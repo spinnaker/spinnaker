@@ -45,7 +45,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,8 +77,8 @@ public class SynchronousQueryProcessorTest {
 
   @Before
   public void setUp() {
-    when(metricsServiceRepository.getOne(METRICS)).thenReturn(Optional.of(metricsService));
-    when(storageServiceRepository.getOne(STORAGE)).thenReturn(Optional.of(storageService));
+    when(metricsServiceRepository.getRequiredOne(METRICS)).thenReturn(metricsService);
+    when(storageServiceRepository.getRequiredOne(STORAGE)).thenReturn(storageService);
     when(retryConfiguration.getAttempts()).thenReturn(ATTEMPTS);
     when(retryConfiguration.getSeries())
         .thenReturn(

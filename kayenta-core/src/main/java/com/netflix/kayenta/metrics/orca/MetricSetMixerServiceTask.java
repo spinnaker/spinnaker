@@ -23,7 +23,6 @@ import com.netflix.kayenta.metrics.MetricSetMixerService;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -82,15 +81,10 @@ public class MetricSetMixerServiceTask implements RetryableTask {
     List<String> experimentMetricSetListIds =
         getMetricSetListIds(stage.getExecution(), (String) context.get("experimentRefidPrefix"));
     String resolvedAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to load metric set lists."));
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
+    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
 
     CanaryConfig canaryConfig = executionMapper.getCanaryConfig(stage.getExecution());
 

@@ -19,7 +19,6 @@ package com.netflix.kayenta.canary.orca;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -74,17 +73,12 @@ public class SetupCanaryTask implements RetryableTask {
       String canaryConfigId = (String) context.get("canaryConfigId");
       String configurationAccountName = (String) context.get("configurationAccountName");
       String resolvedConfigurationAccountName =
-          CredentialsHelper.resolveAccountByNameOrType(
-              configurationAccountName,
-              AccountCredentials.Type.CONFIGURATION_STORE,
-              accountCredentialsRepository);
+          accountCredentialsRepository
+              .getRequiredOneBy(
+                  configurationAccountName, AccountCredentials.Type.CONFIGURATION_STORE)
+              .getName();
       StorageService configurationService =
-          storageServiceRepository
-              .getOne(resolvedConfigurationAccountName)
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "No configuration service was configured; unable to load configurations."));
+          storageServiceRepository.getRequiredOne(resolvedConfigurationAccountName);
       CanaryConfig canaryConfig =
           configurationService.loadObject(
               resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);

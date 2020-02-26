@@ -22,7 +22,6 @@ import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -81,8 +80,9 @@ public class CanaryJudgeTask implements RetryableTask {
     Map<String, Object> context = stage.getContext();
     String storageAccountName = (String) context.get("storageAccountName");
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
     String metricSetPairListId = (String) context.get("metricSetPairListId");
     Map<String, String> orchestratorScoreThresholdsMap =
         (Map<String, String>) context.get("orchestratorScoreThresholds");
@@ -90,12 +90,7 @@ public class CanaryJudgeTask implements RetryableTask {
         objectMapper.convertValue(
             orchestratorScoreThresholdsMap, CanaryClassifierThresholdsConfig.class);
     StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedStorageAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to load metric set lists."));
+        storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
 
     CanaryConfig canaryConfig = executionMapper.getCanaryConfig(stage.getExecution());
     List<MetricSetPair> metricSetPairList =

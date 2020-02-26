@@ -65,21 +65,9 @@ public class SynchronousQueryProcessor {
       int metricIndex,
       CanaryScope canaryScope)
       throws IOException {
-    MetricsService metricsService =
-        metricsServiceRepository
-            .getOne(metricsAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No metrics service was configured; unable to read from metrics store."));
+    MetricsService metricsService = metricsServiceRepository.getRequiredOne(metricsAccountName);
 
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(storageAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to write metric set list."));
+    StorageService storageService = storageServiceRepository.getRequiredOne(storageAccountName);
 
     Id queryId =
         registry
@@ -189,13 +177,7 @@ public class SynchronousQueryProcessor {
     }
 
     if (dryRun) {
-      MetricsService metricsService =
-          metricsServiceRepository
-              .getOne(metricsAccountName)
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "No metrics service was configured; unable to read from metrics store."));
+      MetricsService metricsService = metricsServiceRepository.getRequiredOne(metricsAccountName);
 
       String query =
           metricsService.buildQuery(

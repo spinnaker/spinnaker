@@ -31,7 +31,6 @@ import com.netflix.kayenta.model.DatadogMetricDescriptor;
 import com.netflix.kayenta.model.DatadogMetricDescriptorsResponse;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spectator.api.Registry;
 import java.io.IOException;
 import java.time.Instant;
@@ -180,8 +179,7 @@ public class DatadogMetricsService implements MetricsService {
   @Scheduled(fixedDelayString = "#{@datadogConfigurationProperties.metadataCachingIntervalMS}")
   public void updateMetricDescriptorsCache() {
     Set<AccountCredentials> accountCredentialsSet =
-        CredentialsHelper.getAllAccountsOfType(
-            AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+        accountCredentialsRepository.getAllOf(AccountCredentials.Type.METRICS_STORE);
 
     for (AccountCredentials credentials : accountCredentialsSet) {
       if (credentials instanceof DatadogNamedAccountCredentials) {

@@ -27,7 +27,6 @@ import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecuti
 import com.netflix.kayenta.domain.standalonecanaryanalysis.StageMetadata;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.GenerateCanaryAnalysisResultStage;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.SetupAndExecuteCanariesStage;
@@ -124,20 +123,12 @@ public class CanaryAnalysisService {
           .map(
               storageAccountName -> {
                 String resolvedStorageAccountName =
-                    CredentialsHelper.resolveAccountByNameOrType(
-                        storageAccountName,
-                        AccountCredentials.Type.OBJECT_STORE,
-                        accountCredentialsRepository);
+                    accountCredentialsRepository
+                        .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+                        .getName();
 
                 StorageService storageService =
-                    storageServiceRepository
-                        .getOne(resolvedStorageAccountName)
-                        .orElseThrow(
-                            () ->
-                                new IllegalArgumentException(
-                                    String.format(
-                                        "No storage service was configured for %s unable to load archived results.",
-                                        resolvedStorageAccountName)));
+                    storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
 
                 return (CanaryAnalysisExecutionStatusResponse)
                     storageService.loadObject(

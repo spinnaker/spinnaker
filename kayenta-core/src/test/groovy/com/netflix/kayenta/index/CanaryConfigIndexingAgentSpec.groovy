@@ -77,7 +77,7 @@ class CanaryConfigIndexingAgentSpec extends Specification {
     canaryConfigIndex = new CanaryConfigIndex(jedisPool, objectMapper)
     // We use the current redis time as a baseline to ensure entries aren't inadvertently flushed during testing due to staleness.
     currentTime = canaryConfigIndex.getRedisTime()
-    storageServiceRepository = new MapBackedStorageServiceRepository(storageServices: [configurationService])
+    storageServiceRepository = new MapBackedStorageServiceRepository([configurationService])
     canaryConfigIndexingAgent = new CanaryConfigIndexingAgent(CURRENT_INSTANCE_ID,
                                                               jedisPool,
                                                               accountCredentialsRepository,

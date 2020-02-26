@@ -2,7 +2,6 @@ package com.netflix.kayenta.standalonecanaryanalysis.event.listener;
 
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.standalonecanaryanalysis.event.StandaloneCanaryAnalysisExecutionCompletedEvent;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -36,18 +35,12 @@ public class StandaloneCanaryAnalysisExecutionArchivalListener {
         .ifPresent(
             storageAccountName -> {
               val resolvedStorageAccountName =
-                  CredentialsHelper.resolveAccountByNameOrType(
-                      storageAccountName,
-                      AccountCredentials.Type.OBJECT_STORE,
-                      accountCredentialsRepository);
+                  accountCredentialsRepository
+                      .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+                      .getName();
 
               val storageService =
-                  storageServiceRepository
-                      .getOne(resolvedStorageAccountName)
-                      .orElseThrow(
-                          () ->
-                              new IllegalArgumentException(
-                                  "No storage service was configured; unable to archive results."));
+                  storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
 
               storageService.storeObject(
                   resolvedStorageAccountName,

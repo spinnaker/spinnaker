@@ -16,15 +16,16 @@
 
 package com.netflix.kayenta.storage;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class MapBackedStorageServiceRepository implements StorageServiceRepository {
 
-  @Autowired(required = false)
-  List<StorageService> storageServices = Collections.emptyList();
+  private final List<StorageService> storageServices;
+
+  public MapBackedStorageServiceRepository(List<StorageService> storageServices) {
+    this.storageServices = storageServices;
+  }
 
   @Override
   public Optional<StorageService> getOne(String accountName) {

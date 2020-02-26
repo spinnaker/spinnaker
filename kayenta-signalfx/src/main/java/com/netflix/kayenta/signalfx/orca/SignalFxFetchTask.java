@@ -22,7 +22,6 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -82,16 +81,16 @@ public class SignalFxFetchTask implements RetryableTask {
     }
 
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            (String) context.get("metricsAccountName"),
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(
+                (String) context.get("metricsAccountName"), AccountCredentials.Type.METRICS_STORE)
+            .getName();
 
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            (String) context.get("storageAccountName"),
-            AccountCredentials.Type.OBJECT_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(
+                (String) context.get("storageAccountName"), AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     return synchronousQueryProcessor.executeQueryAndProduceTaskResult(
         resolvedMetricsAccountName,

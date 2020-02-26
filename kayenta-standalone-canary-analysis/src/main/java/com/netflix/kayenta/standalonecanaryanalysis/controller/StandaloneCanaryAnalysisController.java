@@ -27,7 +27,6 @@ import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecuti
 import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
 import com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisService;
 import com.netflix.kayenta.storage.ObjectType;
@@ -129,24 +128,20 @@ public class StandaloneCanaryAnalysisController {
           String canaryConfigId) {
 
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            metricsAccountName,
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
+            .getName();
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
     String resolvedConfigurationAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            configurationAccountName,
-            AccountCredentials.Type.CONFIGURATION_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(configurationAccountName, AccountCredentials.Type.CONFIGURATION_STORE)
+            .getName();
 
     StorageService configurationService =
-        storageServiceRepository
-            .getOne(resolvedConfigurationAccountName)
-            .orElseThrow(
-                () -> new IllegalArgumentException("No configuration service was configured."));
+        storageServiceRepository.getRequiredOne(resolvedConfigurationAccountName);
     CanaryConfig canaryConfig =
         configurationService.loadObject(
             resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
@@ -212,13 +207,13 @@ public class StandaloneCanaryAnalysisController {
           final CanaryAnalysisAdhocExecutionRequest canaryAnalysisAdhocExecutionRequest) {
 
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            metricsAccountName,
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
+            .getName();
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     if (canaryAnalysisAdhocExecutionRequest.getCanaryConfig() == null) {
       throw new IllegalArgumentException("canaryConfig must be provided for ad-hoc requests");

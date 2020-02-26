@@ -28,7 +28,6 @@ import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -92,27 +91,17 @@ public class CanaryJudgesController {
       @RequestParam final Double passThreshold,
       @RequestParam final Double marginalThreshold) {
     String resolvedConfigurationAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            configurationAccountName,
-            AccountCredentials.Type.CONFIGURATION_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(configurationAccountName, AccountCredentials.Type.CONFIGURATION_STORE)
+            .getName();
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
     StorageService configurationService =
-        storageServiceRepository
-            .getOne(resolvedConfigurationAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No configuration service was configured; unable to read canary config from bucket."));
+        storageServiceRepository.getRequiredOne(resolvedConfigurationAccountName);
     StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedStorageAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to read metric set pair list from bucket."));
+        storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
 
     CanaryConfig canaryConfig =
         configurationService.loadObject(
@@ -170,19 +159,16 @@ public class CanaryJudgesController {
       @RequestParam final Double marginalThreshold)
       throws JsonProcessingException {
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
     String resolvedConfigurationAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            configurationAccountName,
-            AccountCredentials.Type.CONFIGURATION_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(configurationAccountName, AccountCredentials.Type.CONFIGURATION_STORE)
+            .getName();
 
     StorageService configurationService =
-        storageServiceRepository
-            .getOne(resolvedConfigurationAccountName)
-            .orElseThrow(
-                () -> new IllegalArgumentException("No configuration service was configured."));
+        storageServiceRepository.getRequiredOne(resolvedConfigurationAccountName);
     CanaryConfig canaryConfig =
         configurationService.loadObject(
             resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);

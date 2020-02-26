@@ -19,5 +19,14 @@ package com.netflix.kayenta.metrics;
 import java.util.Optional;
 
 public interface MetricsServiceRepository {
+
   Optional<MetricsService> getOne(String accountName);
+
+  default MetricsService getRequiredOne(String accountName) {
+    return getOne(accountName)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unable to resolve metrics service " + accountName + "."));
+  }
 }

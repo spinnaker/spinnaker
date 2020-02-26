@@ -20,7 +20,6 @@ import static com.netflix.kayenta.security.AccountCredentials.Type.METRICS_STORE
 
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +44,7 @@ public class MetricsServicesController {
   @RequestMapping(method = RequestMethod.GET)
   List<MetricsServiceDetail> list() {
     Set<AccountCredentials> metricAccountCredentials =
-        CredentialsHelper.getAllAccountsOfType(METRICS_STORE, accountCredentialsRepository);
+        accountCredentialsRepository.getAllOf(METRICS_STORE);
 
     return metricAccountCredentials.stream()
         .map(

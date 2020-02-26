@@ -19,7 +19,6 @@ package com.netflix.kayenta.controllers;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -55,15 +54,10 @@ public class MetricSetPairListController {
       @RequestParam(required = false) final String accountName,
       @PathVariable final String metricSetPairListId) {
     String resolvedAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to read metric set pair list from bucket."));
+        accountCredentialsRepository
+            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
+    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
 
     return storageService.loadObject(
         resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
@@ -79,15 +73,10 @@ public class MetricSetPairListController {
       @PathVariable final String metricSetPairListId,
       @PathVariable final String metricSetPairId) {
     String resolvedAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to read metric set pair list from bucket."));
+        accountCredentialsRepository
+            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
+    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
 
     List<MetricSetPair> metricSetPairList =
         storageService.loadObject(
@@ -108,15 +97,10 @@ public class MetricSetPairListController {
       @RequestBody final List<MetricSetPair> metricSetPairList)
       throws IOException {
     String resolvedAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to write metric set pair list to bucket."));
+        accountCredentialsRepository
+            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
+    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
     String metricSetPairListId = UUID.randomUUID() + "";
 
     storageService.storeObject(
@@ -135,15 +119,10 @@ public class MetricSetPairListController {
       @PathVariable final String metricSetPairListId,
       HttpServletResponse response) {
     String resolvedAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to delete metric set pair list."));
+        accountCredentialsRepository
+            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
+    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
 
     storageService.deleteObject(
         resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
@@ -156,15 +135,10 @@ public class MetricSetPairListController {
   public List<Map<String, Object>> listAllMetricSetPairLists(
       @RequestParam(required = false) final String accountName) {
     String resolvedAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            accountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
-    StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to list all metric set pair lists."));
+        accountCredentialsRepository
+            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
+    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
 
     return storageService.listObjectKeys(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST);
   }

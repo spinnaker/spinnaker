@@ -20,7 +20,6 @@ import com.netflix.kayenta.canary.providers.metrics.WavefrontCanaryMetricSetQuer
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.wavefront.canary.WavefrontCanaryScope;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
@@ -75,13 +74,13 @@ public class WavefrontFetchController {
       throws IOException {
 
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            metricsAccountName,
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
+            .getName();
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     WavefrontCanaryMetricSetQueryConfig wavefrontCanaryMetricSetQueryConfig =
         WavefrontCanaryMetricSetQueryConfig.builder()

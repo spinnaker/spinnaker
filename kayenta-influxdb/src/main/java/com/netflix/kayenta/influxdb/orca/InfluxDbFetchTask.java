@@ -22,7 +22,6 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -69,24 +68,23 @@ public class InfluxDbFetchTask implements RetryableTask {
 
     try {
       canaryScope =
-          kayentaObjectMapper.readValue(
-              (String) stage.getContext().get("canaryScope"), CanaryScope.class);
+          kayentaObjectMapper.readValue((String) context.get("canaryScope"), CanaryScope.class);
     } catch (IOException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);
     }
 
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            (String) context.get("metricsAccountName"),
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(
+                (String) context.get("metricsAccountName"), AccountCredentials.Type.METRICS_STORE)
+            .getName();
 
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            (String) context.get("storageAccountName"),
-            AccountCredentials.Type.OBJECT_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(
+                (String) context.get("storageAccountName"), AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     return synchronousQueryProcessor.executeQueryAndProduceTaskResult(
         resolvedMetricsAccountName,

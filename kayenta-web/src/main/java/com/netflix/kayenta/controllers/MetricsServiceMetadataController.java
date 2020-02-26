@@ -20,7 +20,6 @@ import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
@@ -56,17 +55,12 @@ public class MetricsServiceMetadataController {
       @RequestParam(required = false) final String filter)
       throws IOException {
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            metricsAccountName,
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
+            .getName();
     MetricsService metricsService =
-        metricsServiceRepository
-            .getOne(resolvedMetricsAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No metrics service was configured; unable to read from metrics store."));
+        metricsServiceRepository.getRequiredOne(resolvedMetricsAccountName);
+
     List<Map> matchingDescriptors = metricsService.getMetadata(resolvedMetricsAccountName, filter);
 
     if (StringUtils.isEmpty(filter)) {

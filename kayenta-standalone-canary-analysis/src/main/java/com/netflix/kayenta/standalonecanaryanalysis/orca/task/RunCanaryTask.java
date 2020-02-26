@@ -26,7 +26,6 @@ import com.netflix.kayenta.canary.CanaryScopePair;
 import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.RunCanaryContext;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -83,11 +82,13 @@ public class RunCanaryTask implements Task {
     CanaryExecutionResponse canaryExecutionResponse;
     try {
       String resolvedMetricsAccountName =
-          CredentialsHelper.resolveAccountByNameOrType(
-              metricsAccount, AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+          accountCredentialsRepository
+              .getRequiredOneBy(metricsAccount, AccountCredentials.Type.METRICS_STORE)
+              .getName();
       String resolvedStorageAccountName =
-          CredentialsHelper.resolveAccountByNameOrType(
-              storageAccount, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+          accountCredentialsRepository
+              .getRequiredOneBy(storageAccount, AccountCredentials.Type.OBJECT_STORE)
+              .getName();
 
       if (request.getCanaryConfig() == null) {
         throw new IllegalArgumentException("canaryConfig must be provided for ad-hoc requests");

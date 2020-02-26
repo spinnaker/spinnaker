@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.kayenta.canary.*;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -81,24 +80,20 @@ public class CanaryController {
       @PathVariable String canaryConfigId)
       throws JsonProcessingException {
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            metricsAccountName,
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
+            .getName();
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
     String resolvedConfigurationAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            configurationAccountName,
-            AccountCredentials.Type.CONFIGURATION_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(configurationAccountName, AccountCredentials.Type.CONFIGURATION_STORE)
+            .getName();
 
     StorageService configurationService =
-        storageServiceRepository
-            .getOne(resolvedConfigurationAccountName)
-            .orElseThrow(
-                () -> new IllegalArgumentException("No configuration service was configured."));
+        storageServiceRepository.getRequiredOne(resolvedConfigurationAccountName);
     CanaryConfig canaryConfig =
         configurationService.loadObject(
             resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
@@ -129,13 +124,13 @@ public class CanaryController {
       throws JsonProcessingException {
 
     String resolvedMetricsAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            metricsAccountName,
-            AccountCredentials.Type.METRICS_STORE,
-            accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(metricsAccountName, AccountCredentials.Type.METRICS_STORE)
+            .getName();
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     if (canaryAdhocExecutionRequest.getCanaryConfig() == null) {
       throw new IllegalArgumentException("canaryConfig must be provided for ad-hoc requests");
@@ -164,8 +159,9 @@ public class CanaryController {
       @RequestParam(required = false) final String storageAccountName,
       @PathVariable String canaryExecutionId) {
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     // First look in the online cache.  If nothing is found there, look in our storage for the ID.
     try {
@@ -174,12 +170,7 @@ public class CanaryController {
       return executionMapper.fromExecution(pipeline);
     } catch (ExecutionNotFoundException e) {
       StorageService storageService =
-          storageServiceRepository
-              .getOne(resolvedStorageAccountName)
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "No storage service was configured; unable to load archived results."));
+          storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
 
       return storageService.loadObject(
           resolvedStorageAccountName, ObjectType.CANARY_RESULT_ARCHIVE, canaryExecutionId);
@@ -194,16 +185,12 @@ public class CanaryController {
       @RequestParam(value = "statuses", required = false) String statuses,
       @RequestParam(required = false) final String storageAccountName) {
     String resolvedStorageAccountName =
-        CredentialsHelper.resolveAccountByNameOrType(
-            storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+        accountCredentialsRepository
+            .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+            .getName();
 
     StorageService storageService =
-        storageServiceRepository
-            .getOne(resolvedStorageAccountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "No storage service was configured; unable to retrieve results."));
+        storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
 
     if (StringUtils.isEmpty(statuses)) {
       statuses =

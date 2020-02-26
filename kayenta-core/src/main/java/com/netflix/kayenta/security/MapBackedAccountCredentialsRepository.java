@@ -28,6 +28,7 @@ public class MapBackedAccountCredentialsRepository implements AccountCredentials
       new ConcurrentHashMap<>();
 
   @Override
+  @SuppressWarnings("unchecked")
   public <T extends AccountCredentials> Optional<T> getOne(String accountName) {
     return Optional.ofNullable((T) accountNameToCredentialsMap.get(accountName));
   }

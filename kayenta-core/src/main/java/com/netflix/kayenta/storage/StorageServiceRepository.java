@@ -19,5 +19,14 @@ package com.netflix.kayenta.storage;
 import java.util.Optional;
 
 public interface StorageServiceRepository {
+
   Optional<StorageService> getOne(String accountName);
+
+  default StorageService getRequiredOne(String accountName) {
+    return getOne(accountName)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unable to resolve storage service " + accountName + "."));
+  }
 }

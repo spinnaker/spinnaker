@@ -18,14 +18,37 @@ package com.netflix.kayenta.security;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 public interface AccountCredentialsRepository {
+
   <T extends AccountCredentials> Optional<T> getOne(String accountName);
 
   default <T extends AccountCredentials> T getRequiredOne(String accountName) {
     Optional<T> one = getOne(accountName);
     return one.orElseThrow(
         () -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  }
+
+  default AccountCredentials getRequiredOneBy(
+      String accountName, AccountCredentials.Type accountType) {
+
+    if (StringUtils.hasLength(accountName)) {
+      return getRequiredOne(accountName);
+    } else {
+      return getOne(accountType)
+          .orElseThrow(
+              () ->
+                  new IllegalArgumentException(
+                      "Unable to resolve account of type " + accountType + "."));
+    }
+  }
+
+  default Set<AccountCredentials> getAllOf(AccountCredentials.Type credentialsType) {
+    return getAll().stream()
+        .filter(credentials -> credentials.getSupportedTypes().contains(credentialsType))
+        .collect(Collectors.toSet());
   }
 
   Optional<AccountCredentials> getOne(AccountCredentials.Type credentialsType);

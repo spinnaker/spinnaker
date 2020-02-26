@@ -20,7 +20,6 @@ import com.netflix.kayenta.canary.CanaryArchiveResultUpdateResponse;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -63,8 +62,7 @@ public class CanaryResultArchiveController {
       @RequestParam(required = false) final String storageAccountName,
       @PathVariable String pipelineId) {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService =
-        getStorageService(resolvedConfigurationAccountName, "retrieve archived canary result");
+    StorageService storageService = getStorageService(resolvedConfigurationAccountName);
 
     return storageService.loadObject(
         resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
@@ -78,8 +76,7 @@ public class CanaryResultArchiveController {
       @RequestBody CanaryExecutionStatusResponse canaryExecutionStatusResponse)
       throws IOException {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService =
-        getStorageService(resolvedConfigurationAccountName, "create archived canary result");
+    StorageService storageService = getStorageService(resolvedConfigurationAccountName);
 
     if (pipelineId == null) {
       pipelineId = UUID.randomUUID() + "";
@@ -115,8 +112,7 @@ public class CanaryResultArchiveController {
       @RequestBody CanaryExecutionStatusResponse canaryExecutionStatusResponse)
       throws IOException {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService =
-        getStorageService(resolvedConfigurationAccountName, "update archived canary result");
+    StorageService storageService = getStorageService(resolvedConfigurationAccountName);
 
     try {
       storageService.loadObject(
@@ -144,8 +140,7 @@ public class CanaryResultArchiveController {
       @PathVariable String pipelineId,
       HttpServletResponse response) {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService =
-        getStorageService(resolvedConfigurationAccountName, "delete archived canary result.");
+    StorageService storageService = getStorageService(resolvedConfigurationAccountName);
 
     storageService.deleteObject(
         resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
@@ -158,25 +153,19 @@ public class CanaryResultArchiveController {
   public List<Map<String, Object>> listAllCanaryArchivedResults(
       @RequestParam(required = false) final String storageAccountName) {
     String resolvedConfigurationAccountName = resolveStorageAccountName(storageAccountName);
-    StorageService storageService =
-        getStorageService(resolvedConfigurationAccountName, "list all archived canary results");
+    StorageService storageService = getStorageService(resolvedConfigurationAccountName);
 
     return storageService.listObjectKeys(
         resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE);
   }
 
   private String resolveStorageAccountName(String storageAccountName) {
-    return CredentialsHelper.resolveAccountByNameOrType(
-        storageAccountName, AccountCredentials.Type.OBJECT_STORE, accountCredentialsRepository);
+    return accountCredentialsRepository
+        .getRequiredOneBy(storageAccountName, AccountCredentials.Type.OBJECT_STORE)
+        .getName();
   }
 
-  private StorageService getStorageService(
-      String resolvedStorageAccountName, String contextMessage) {
-    return storageServiceRepository
-        .getOne(resolvedStorageAccountName)
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "No storage service was configured; unable to " + contextMessage + "."));
+  private StorageService getStorageService(String resolvedStorageAccountName) {
+    return storageServiceRepository.getRequiredOne(resolvedStorageAccountName);
   }
 }
