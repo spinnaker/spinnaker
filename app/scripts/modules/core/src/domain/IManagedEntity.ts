@@ -70,8 +70,11 @@ export interface IManagedResourceEvent {
   plugin?: string;
   tasks?: Array<{ id: string; name: string }>;
   delta?: IManagedResourceDiff;
+  // We really should not have 3 different versions of basically
+  // the same field, but right now we do.
   message?: string;
   reason?: string;
+  exceptionMessage?: string;
 }
 
 export type IManagedResourceEventHistory = IManagedResourceEvent[];
