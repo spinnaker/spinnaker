@@ -80,7 +80,7 @@ const TableLayout = ({
           ))}
           {expandable && (
             <div className="standard-grid-table-cell header-expand-toggle" onClick={expandAll}>
-              <i className="ico icon-arrow-toggle-all" />
+              <i className="ico icon-expand-all" />
             </div>
           )}
         </div>
@@ -113,9 +113,7 @@ const TableRowLayout = ({
         {tableExpandable && !isMobile && (
           <div className="standard-grid-table-cell row-expand-toggle">
             {rowExpandable && (
-              <i
-                className={classNames('ico', { 'icon-arrow-collapsed': !expanded, 'icon-arrow-expanded': expanded })}
-              />
+              <i className={classNames('ico', { 'icon-expand': !expanded, 'icon-collapse': expanded })} />
             )}
           </div>
         )}
