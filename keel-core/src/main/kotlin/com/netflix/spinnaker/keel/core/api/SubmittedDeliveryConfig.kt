@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.docs.Description
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import com.netflix.spinnaker.keel.serialization.SubmittedEnvironmentDeserializer
 
@@ -27,9 +28,7 @@ data class SubmittedEnvironment(
   val resources: Set<SubmittedResource<*>>,
   val constraints: Set<Constraint> = emptySet(),
   val notifications: Set<NotificationConfig> = emptySet(),
-  /**
-   * Optional locations that are propagated to any [resources] where they are not specified.
-   */
+  @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null
 )
 

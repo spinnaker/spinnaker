@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -36,14 +37,19 @@ class DeliveryConfigController(
   private val adHocDiffer: AdHocDiffer
 ) {
   @Operation(
-    summary = "Registers or updates a delivery config manifest.",
-    description = "Registers or updates a delivery config manifest. This is a long description."
+    description = "Registers or updates a delivery config manifest."
   )
   @PostMapping(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun upsert(@RequestBody deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
+  fun upsert(
+    @RequestBody
+    @SwaggerRequestBody(
+      description = "The delivery config. If its `name` matches an existing delivery config the operation is an update, otherwise a new delivery config is created."
+    )
+    deliveryConfig: SubmittedDeliveryConfig
+  ): DeliveryConfig =
     resourcePersister.upsert(deliveryConfig)
 
   @GetMapping(

@@ -26,8 +26,8 @@ dependencies {
   implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")
   implementation("com.netflix.spinnaker.fiat:fiat-core:${property("fiatVersion")}")
   implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("org.springdoc:springdoc-openapi-webmvc-core:1.2.31")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.2.31")
+  implementation("org.springdoc:springdoc-openapi-webmvc-core:1.2.32")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.2.32")
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-test"))

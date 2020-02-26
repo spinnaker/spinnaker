@@ -18,16 +18,22 @@ package com.netflix.spinnaker.keel.core.api
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.docs.Description
 import com.netflix.spinnaker.keel.serialization.SubmittedResourceDeserializer
 
 /**
  * External representation of a resource that would be submitted to the API
  */
 @JsonDeserialize(using = SubmittedResourceDeserializer::class)
+@Description("A resource as submitted to the Managed Delivery API.")
 data class SubmittedResource<T : ResourceSpec>(
+  @Description("Optional metadata about the resource.")
   val metadata: Map<String, Any?> = emptyMap(),
+  @Description("The API version of the resource kind.")
   val apiVersion: String,
+  @Description("The kind of resource `spec` represents.")
   val kind: String,
+  @Description("The specification of the resource")
   val spec: T
 )
 

@@ -2,9 +2,6 @@ package com.netflix.spinnaker.keel.apidocs
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.module.kotlin.isKotlinClass
-import io.swagger.v3.core.converter.AnnotatedType
-import io.swagger.v3.core.converter.ModelConverter
-import io.swagger.v3.core.converter.ModelConverterContext
 import io.swagger.v3.oas.models.media.Schema
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -12,6 +9,8 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.primaryConstructor
 import org.slf4j.LoggerFactory
+import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 /**
@@ -23,28 +22,14 @@ import org.springframework.stereotype.Component
  * @see kotlin.reflect.KType.isMarkedNullable
  */
 @Component
-class KotlinOptionalPropertyConverter : BaseModelConverter() {
+@Order(HIGHEST_PRECEDENCE) // needs to run before ApiAnnotationModelConverter
+class KotlinOptionalPropertyConverter : AbstractSchemaCustomizer() {
 
-  override fun resolve(
-    annotatedType: AnnotatedType,
-    context: ModelConverterContext,
-    chain: MutableIterator<ModelConverter>
-  ): Schema<*>? =
-    super.resolve(annotatedType, context, chain)
-      ?.also { schema ->
-        if (annotatedType.baseType.isKotlinClass()) {
-          if (annotatedType.isResolveAsRef) {
-            val referencedSchema = context.definedModels[annotatedType.baseType.simpleName]
-            if (referencedSchema == null) {
-              log.warn("Referenced schema ${annotatedType.baseType.simpleName} not found")
-            } else {
-              applyRequired(annotatedType.baseType.kotlin, referencedSchema)
-            }
-          } else {
-            applyRequired(annotatedType.baseType.kotlin, schema)
-          }
-        }
-      }
+  override fun customize(schema: Schema<*>, type: Class<*>) {
+    if (type.isKotlinClass()) {
+      applyRequired(type.kotlin, schema)
+    }
+  }
 
   private fun applyRequired(kotlinClass: KClass<*>, schema: Schema<*>) {
     if (schema.properties == null) return
@@ -53,14 +38,17 @@ class KotlinOptionalPropertyConverter : BaseModelConverter() {
     if (constructor == null) {
       log.warn("No JsonCreator or constructor found for ${kotlinClass.qualifiedName}")
     } else {
-      schema.properties.forEach { (name, _) ->
+      schema.properties.forEach { (name, propertySchema) ->
         val param = constructor.findParameterByName(name)
         if (param == null) {
           log.warn("No parameter $name found on JsonCreator or constructor for ${kotlinClass.qualifiedName}")
-        } else if (!param.isOptional && !param.type.isMarkedNullable) {
-          if (schema.required == null || !schema.required.contains(name)) {
-            schema.addRequiredItem(name)
+        } else {
+          if (!param.isOptional && !param.type.isMarkedNullable) {
+            schema.markRequired(name)
+          } else {
+            schema.markOptional(name)
           }
+          propertySchema.nullable = param.type.isMarkedNullable
         }
       }
     }

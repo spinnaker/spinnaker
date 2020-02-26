@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.apidocs
 
-import com.fasterxml.jackson.databind.type.TypeBase
 import io.swagger.v3.core.converter.AnnotatedType
 import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverterContext
@@ -19,13 +18,11 @@ abstract class SubtypesModelConverter<T>(
     annotatedType: AnnotatedType,
     context: ModelConverterContext,
     chain: MutableIterator<ModelConverter>
-  ): Schema<*>? {
-    val type = annotatedType.type
-    return if (type is TypeBase && type.rawClass == baseType) {
+  ): Schema<*>? =
+    if (annotatedType.rawClass == baseType) {
       context.defineSchemaAsOneOf(baseType, subTypes)
       ref(baseType)
     } else {
       super.resolve(annotatedType, context, chain)
     }
-  }
 }

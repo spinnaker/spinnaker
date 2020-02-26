@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.apidocs
 
 import io.swagger.v3.core.converter.AnnotatedType
 import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.StringSchema
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -25,15 +26,12 @@ class JavaTimePropertyCustomizer : PropertyCustomizer {
     LocalTime::class.java to "time"
   )
 
-  override fun customize(property: Schema<*>?, type: AnnotatedType): Schema<*>? =
-    property?.apply {
-      val format = formattedTypes[type.baseType]
-      if (format != null) {
-        // OpenAPI ignores the return value so we have to just modify the schema in place.
-        // See https://github.com/springdoc/springdoc-openapi/issues/441
-        type("string")
-        format(format)
-        properties = emptyMap()
-      }
+  override fun customize(property: Schema<*>?, type: AnnotatedType): Schema<*>? {
+    val format = formattedTypes[type.rawClass]
+    return if (format != null) {
+      StringSchema().format(format)
+    } else {
+      property
     }
+  }
 }
