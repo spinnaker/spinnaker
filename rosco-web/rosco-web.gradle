@@ -31,7 +31,7 @@ dependencies {
 
 if (project.plugins.hasPlugin('spinnaker.package')) {
   ospackage {
-    from('config/packer') {
+    from('../halconfig/packer') {
       into '/opt/rosco/config/packer'
     }
 

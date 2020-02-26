@@ -2,7 +2,7 @@ FROM ubuntu:bionic
 MAINTAINER sig-platform@spinnaker.io
 COPY rosco-web/build/install/rosco /opt/rosco
 COPY rosco-web/config              /opt/rosco
-COPY rosco-web/config/packer       /opt/rosco/config/packer
+COPY halconfig/packer              /opt/rosco/config/packer
 
 WORKDIR /packer
 
