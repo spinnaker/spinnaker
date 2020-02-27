@@ -13,6 +13,7 @@ export interface IRangeRule {
   startPort: number;
   endPort: number;
   protocol: string;
+  description: string;
 }
 
 @Overridable('aws.securityGroup.ip.rules')
