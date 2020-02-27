@@ -29,7 +29,7 @@ public class KubernetesConfigurationProperties {
   @Data
   public static class ManagedAccount {
     private String name;
-    private ProviderVersion providerVersion = ProviderVersion.v1;
+    private ProviderVersion providerVersion = ProviderVersion.v2;
     private String environment;
     private String accountType;
     private String context;

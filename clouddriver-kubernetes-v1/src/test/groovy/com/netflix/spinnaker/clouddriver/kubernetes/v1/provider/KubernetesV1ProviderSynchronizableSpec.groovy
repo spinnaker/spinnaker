@@ -80,6 +80,7 @@ class KubernetesV1ProviderSynchronizableSpec extends Specification {
     kubernetesConfigurationProperties.setAccounts([
       new KubernetesConfigurationProperties.ManagedAccount(
         name: "test-account",
+        providerVersion: "v1",
         kubeconfigContents: """
 apiVersion: v1
 contexts:

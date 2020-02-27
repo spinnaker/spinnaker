@@ -112,6 +112,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
     this.LOG = LoggerFactory.getLogger(KubernetesV1Credentials.class);
     this.configureImagePullSecrets = configureImagePullSecrets;
     configureDockerRegistries();
+    logV1RemovalWarning(name);
   }
 
   @VisibleForTesting
@@ -344,5 +345,14 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
           spectatorRegistry,
           accountCredentialsRepository);
     }
+  }
+
+  private void logV1RemovalWarning(String name) {
+    LOG.warn(
+        String.format(
+            "Account %s is using Spinnaker's legacy Kubernetes provider (V1), which is scheduled for removal in Spinnaker 1.21. "
+                + "Please migrate to the manifest-based provider (V2). Check out this RFC for more information: "
+                + "https://github.com/spinnaker/governance/blob/master/rfc/eol_kubernetes_v1.md.",
+            name));
   }
 }
