@@ -138,8 +138,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     if (!unboundArtifacts.isEmpty()) {
       throw new IllegalArgumentException(
           String.format(
-              "The following required artifacts could not be bound: '%s'."
-                  + "Check that the Docker image name above matches the name used in the image field of your manifest."
+              "The following required artifacts could not be bound: '%s'. "
+                  + "Check that the Docker image name above matches the name used in the image field of your manifest. "
                   + "Failing the stage as this is likely a configuration error.",
               unboundArtifacts));
     }
