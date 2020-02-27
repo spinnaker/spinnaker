@@ -73,8 +73,7 @@ object OutlierStrategy {
 case class MetricClassification(classification: MetricClassificationLabel,
                                 reason: Option[String],
                                 deviation: Double,
-                                critical: Boolean,
-                                isDataRequired: Boolean = false)
+                                critical: Boolean)
 
 abstract class BaseMetricClassifier {
   def classify(control: Metric, experiment: Metric,
