@@ -33,5 +33,6 @@ RUN mkdir kustomize && \
 ENV PATH "kustomize:$PATH"
 
 RUN adduser --disabled-login --system spinnaker
+RUN mkdir /plugins && chown -R 102:nogroup /plugins
 USER spinnaker
 CMD ["/opt/rosco/bin/rosco"]
