@@ -27,6 +27,7 @@ import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;
+import retrofit.http.Headers;
 import retrofit.http.POST;
 import retrofit.http.Path;
 import retrofit.http.Query;
@@ -66,6 +67,10 @@ public interface KeelService {
 
   @POST("/delivery-configs/diff")
   List<Map> diffManifest(@Body DeliveryConfig manifest);
+
+  @POST("/delivery-configs/validate")
+  @Headers("Accept: application/json")
+  Map validateManifest(@Body DeliveryConfig manifest);
 
   @GET("/delivery-configs/{name}/environment/{environment}/constraints")
   List<ConstraintState> getConstraintState(

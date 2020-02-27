@@ -2,6 +2,7 @@ package com.netflix.spinnaker.gate.controllers;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import retrofit.RetrofitError;
 
 @RequestMapping("/managed")
 @RestController
@@ -40,11 +42,13 @@ public class ManagedController {
   private final HttpHeaders yamlResponseHeaders;
   private static final Logger log = LoggerFactory.getLogger(ManagedController.class);
   private final KeelService keelService;
+  private final ObjectMapper objectMapper;
   private final String APPLICATION_YAML_VALUE = "application/x-yaml";
 
   @Autowired
-  public ManagedController(KeelService keelService) {
+  public ManagedController(KeelService keelService, ObjectMapper objectMapper) {
     this.keelService = keelService;
+    this.objectMapper = objectMapper;
     this.yamlResponseHeaders = new HttpHeaders();
     yamlResponseHeaders.setContentType(
         new MediaType("application", "x-yaml", StandardCharsets.UTF_8));
@@ -126,6 +130,29 @@ public class ManagedController {
   @DeleteMapping(path = "/delivery-configs/{name}")
   DeliveryConfig deleteManifest(@PathVariable("name") String name) {
     return keelService.deleteManifest(name);
+  }
+
+  @ApiOperation(value = "Validate a delivery config manifest", response = Map.class)
+  @PostMapping(
+      path = "/delivery-configs/validate",
+      consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
+      produces = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE})
+  ResponseEntity<Map> validateManifest(@RequestBody DeliveryConfig manifest) {
+    try {
+      return ResponseEntity.ok(keelService.validateManifest(manifest));
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() == 400) {
+        try {
+          return ResponseEntity.badRequest()
+              .body(objectMapper.readValue(e.getResponse().getBody().in(), Map.class));
+        } catch (Exception ex) {
+          log.error("Error parsing error response from keel: {}", ex.getMessage(), ex);
+          return ResponseEntity.badRequest().body(Collections.emptyMap());
+        }
+      } else {
+        throw e;
+      }
+    }
   }
 
   @ApiOperation(value = "Ad-hoc validate and diff a config manifest", response = Map.class)
