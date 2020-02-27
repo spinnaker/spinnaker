@@ -3,5 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY front50-web/build/install/front50 /opt/front50
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
+RUN mkdir plugins && chown -R 102:nogroup plugins
 USER spinnaker
 CMD ["/opt/front50/bin/front50"]

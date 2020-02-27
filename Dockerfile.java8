@@ -3,5 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY front50-web/build/install/front50 /opt/front50
 RUN apk --no-cache add --update bash openjdk8-jre
 RUN adduser -D -S spinnaker
+RUN mkdir plugins && chown -R 100:100 plugins
 USER spinnaker
 CMD ["/opt/front50/bin/front50"]
