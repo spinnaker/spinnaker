@@ -28,6 +28,7 @@ import {
 
 import { CloudFoundryInstanceDetails } from 'cloudfoundry/instance/details';
 
+import 'cloudfoundry/common/applicationName.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/requiredRoutes.validator';
