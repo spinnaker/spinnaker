@@ -25,5 +25,5 @@ export function RegionSelectInput(props: IRegionSelectInputProps) {
 
   options.unshift({ label: 'Select...', value: '', disabled: true });
 
-  return <SelectInput {...otherProps} options={options} />;
+  return <SelectInput {...otherProps} className="form-control input-sm" options={options} />;
 }
