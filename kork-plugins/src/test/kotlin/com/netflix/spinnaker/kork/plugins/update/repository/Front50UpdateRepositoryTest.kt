@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.plugins.update.repository
 
-import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo.SpinnakerPluginRelease
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo.SpinnakerPluginRelease.State
@@ -25,13 +24,13 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.assertThrows
 import org.pf4j.update.SimpleFileDownloader
 import org.pf4j.update.verifier.CompoundVerifier
 import retrofit2.Response
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import java.net.URL
 import java.util.Collections
@@ -58,9 +57,9 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
         .get { plugin.getReleases()[0].state == pluginReleaseState }
     }
 
-    test("Response error results in thrown SystemException") {
+    test("Response error results in empty plugin list") {
       every { front50Service.listAll().execute() } returns Response.error(500, mockk(relaxed = true))
-      assertThrows<SystemException> { (subject.getPlugins()) }
+      expectThat(subject.plugins).isEmpty()
     }
 
     test("Returns repository ID and URL") {

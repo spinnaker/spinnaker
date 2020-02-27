@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.plugins.update.repository
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
+import io.github.resilience4j.retry.Retry
 import org.pf4j.update.FileDownloader
 import org.pf4j.update.FileVerifier
 import org.pf4j.update.SimpleFileDownloader
@@ -57,10 +58,17 @@ class Front50UpdateRepository(
   override fun getPlugins(): MutableMap<String, SpinnakerPluginInfo> {
     return plugins.ifEmpty {
       log.debug("Populating plugin info cache from front50")
-      val response = front50Service.listAll().execute()
+      val response = retry.executeSupplier { front50Service.listAll().execute() }
 
       if (!response.isSuccessful) {
-        throw SystemException("Unable to list front50 plugin info", response.message())
+        // We can't throw an exception here when we fail to talk to Front50 because it will prevent a service from
+        // starting. We would rather a Spinnaker service start and be potentially misconfigured than have a hard
+        // startup dependency on front50.
+        log.error(
+          "Failed listing plugin info from front50. This service may not download plugins that it needs: {}",
+          response.errorBody()?.string() ?: response.message()
+        )
+        return mutableMapOf()
       }
 
       response.body()!!.associateByTo(plugins) { it.id }
@@ -90,5 +98,9 @@ class Front50UpdateRepository(
 
   override fun refresh() {
     plugins.clear()
+  }
+
+  companion object {
+    private val retry = Retry.ofDefaults("front50-update-repository")
   }
 }
