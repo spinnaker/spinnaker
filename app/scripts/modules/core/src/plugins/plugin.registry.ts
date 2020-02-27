@@ -111,6 +111,10 @@ export class PluginRegistry {
       .get()
       .catch((error: any) => {
         console.error(`Failed to load ${uri} from ${source}`);
+        // If we cannot hit the Gate URL, ignore it
+        if (error.data.status === 404) {
+          return Promise.resolve([]);
+        }
         throw error;
       });
 
