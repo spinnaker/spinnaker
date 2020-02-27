@@ -90,7 +90,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 @ComponentScan([
   "com.netflix.spinnaker.config", "com.netflix.spinnaker.plugin"
 ])
-class Main extends SpinnakerApplication {
+class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
     'netflix.environment'              : 'test',
     'netflix.account'                  : '${netflix.environment}',
@@ -102,7 +102,7 @@ class Main extends SpinnakerApplication {
   ]
 
   static void main(String... args) {
-    SpinnakerApplication.initialize(DEFAULT_PROPS, Main, args)
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
   @Override
