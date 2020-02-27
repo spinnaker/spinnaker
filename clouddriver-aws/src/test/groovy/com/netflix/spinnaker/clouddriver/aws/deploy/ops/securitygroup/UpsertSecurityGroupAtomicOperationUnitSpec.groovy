@@ -430,6 +430,56 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
   }
 
+  void "existing permissions should not be re-created when a security group with description is modified"() {
+    final existingSecurityGroup = Mock(SecurityGroupUpdater)
+
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 25, endPort: 25, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 80, endPort: 81, ipProtocol: "tcp")
+    ]
+    description.ipIngress = [
+      new IpIngress(cidr: "10.0.0.1/32", startPort: 80, endPort: 81, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    3 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    3 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(new SecurityGroupUpdater(
+      new SecurityGroup(groupId: "id-bar"),
+      null
+    ))
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(existingSecurityGroup)
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(fromPort: 80, toPort: 81,
+        userIdGroupPairs: [
+          new UserIdGroupPair(userId: "accountId1", groupId: "grp", description: "sg description" ),
+          new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+        ],
+        ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
+      ),
+      new IpPermission(fromPort: 25, toPort: 25,
+        userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
+    ])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    1 * existingSecurityGroup.removeIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 80, toPort: 81, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "grp", description: "sg description")
+      ])
+    ])
+    2 * existingSecurityGroup.updateTags(description)
+  }
+
   void "should update ingress and add by name for missing ingress security group in EC2 classic"() {
     final existingSecurityGroup = Mock(SecurityGroupUpdater)
     final ingressSecurityGroup = Mock(SecurityGroupUpdater)
