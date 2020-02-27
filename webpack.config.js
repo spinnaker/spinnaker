@@ -194,8 +194,8 @@ function configure(env, webpackOpts) {
           to: `./styleguide.html`,
         },
         {
-          from: `./plugin-manifest.js`,
-          to: `./plugin-manifest.js`,
+          from: `./plugin-manifest.json`,
+          to: `./plugin-manifest.json`,
         },
       ]),
       new HtmlWebpackPlugin({
