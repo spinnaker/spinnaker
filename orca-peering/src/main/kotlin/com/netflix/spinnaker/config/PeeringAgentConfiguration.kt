@@ -55,7 +55,7 @@ class PeeringAgentConfiguration {
 
     val executor = Executors.newCachedThreadPool(
       ThreadFactoryBuilder()
-        .setNameFormat(PeeringAgent::javaClass.name + "-${properties.peerId}-%d")
+        .setNameFormat(PeeringAgent::class.java.simpleName + "-${properties.peerId}-%d")
         .build())
 
     val sourceDB: SqlRawAccess
