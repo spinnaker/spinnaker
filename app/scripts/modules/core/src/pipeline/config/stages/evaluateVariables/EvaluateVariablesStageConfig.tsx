@@ -212,7 +212,6 @@ function FormikVariable({ index, onDeleteClicked, previewStage }: IFormikVariabl
       touched={touchedOverride}
       label={variableNameInputAsLabel}
       actions={actions}
-      fastField={false}
       input={inputProps => (
         <SpelInput
           {...inputProps}

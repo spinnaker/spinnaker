@@ -151,7 +151,6 @@ function AdvancedMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
         <div className="col-md-3 sm-label-right">Resize to</div>
         <div className="col-md-2">
           <FormikFormField
-            fastField={false}
             name="capacity.min"
             input={props => <NumberInput {...props} min={0} max={max} />}
             layout={({ input }) => <>{input}</>}
@@ -161,7 +160,6 @@ function AdvancedMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
 
         <div className="col-md-2">
           <FormikFormField
-            fastField={false}
             name="capacity.max"
             input={props => <NumberInput {...props} min={min} />}
             layout={({ input }) => <>{input}</>}
@@ -171,7 +169,6 @@ function AdvancedMode({ formik, serverGroup, toggleMode }: IAdvancedModeProps) {
 
         <div className="col-md-2">
           <FormikFormField
-            fastField={false}
             name="capacity.desired"
             input={props => <NumberInput {...props} min={min} max={max} />}
             layout={({ input }) => <>{input}</>}

@@ -35,7 +35,6 @@ export class ExecutionRole extends React.Component<IExecutionRoleProps>
             <FormikFormField
               name="role"
               label="Role ARN"
-              fastField={false}
               input={props => <TextInput {...props} placeholder="Enter role ARN" name="role" />}
               required={true}
             />

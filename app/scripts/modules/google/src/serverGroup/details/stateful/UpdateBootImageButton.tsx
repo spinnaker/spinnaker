@@ -92,7 +92,6 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
             order={nextIdx()}
             render={() => (
               <FormikFormField
-                fastField={false}
                 input={props => (
                   <div className="full-width" style={{ height: '225px' }}>
                     <ImageSelect

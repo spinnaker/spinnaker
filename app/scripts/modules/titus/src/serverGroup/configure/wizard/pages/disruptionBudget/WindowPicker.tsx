@@ -152,7 +152,6 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
             <FormikFormField
               name="startHour"
               label="Start"
-              fastField={false}
               input={props => (
                 <div>
                   <NumberInput {...props} min={0} max={formik.values.endHour} />
@@ -163,7 +162,6 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
             <FormikFormField
               name="endHour"
               label="End"
-              fastField={false}
               input={props => (
                 <div>
                   <NumberInput {...props} min={formik.values.startHour} max={23} />

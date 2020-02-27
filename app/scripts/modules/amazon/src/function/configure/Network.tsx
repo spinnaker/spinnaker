@@ -198,7 +198,6 @@ export class Network extends React.Component<INetworkProps, INetworkState>
                 name="vpcId"
                 label="VPC Id"
                 help={<HelpField id="aws.function.vpc.id" />}
-                fastField={false}
                 input={props => (
                   <ReactSelectInput
                     {...props}

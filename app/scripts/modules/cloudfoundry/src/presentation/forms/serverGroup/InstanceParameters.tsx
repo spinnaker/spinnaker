@@ -28,7 +28,6 @@ export class InstanceParameters extends React.Component<IInstanceParametersProps
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={memoryFieldName}
-              fastField={false}
               input={props => <TextInput {...props} />}
               label="Memory"
               onChange={value => {
@@ -39,7 +38,6 @@ export class InstanceParameters extends React.Component<IInstanceParametersProps
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={diskQuotaFieldName}
-              fastField={false}
               input={props => <TextInput {...props} />}
               label="Disk Quota"
               onChange={value => {
@@ -50,7 +48,6 @@ export class InstanceParameters extends React.Component<IInstanceParametersProps
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={instancesFieldName}
-              fastField={false}
               input={props => <TextInput type="number" {...props} />}
               label="Instances"
               onChange={value => {

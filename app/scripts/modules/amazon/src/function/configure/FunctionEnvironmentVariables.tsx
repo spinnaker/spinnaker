@@ -34,7 +34,6 @@ export class FunctionEnvironmentVariables extends React.Component<IFunctionEnvir
     return (
       <div className="container-fluid form-horizontal ">
         <FormikFormField
-          fastField={false}
           name="envVariables"
           label="Env Variables"
           input={props => <MapEditorInput {...props} allowEmptyValues={true} addButtonLabel="Add" />}

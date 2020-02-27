@@ -16,7 +16,6 @@ export function ArtifactoryTrigger() {
       name="artifactorySearchName"
       label="Artifactory Name"
       touched={true}
-      fastField={false}
       validationMessage={validationMessage}
       input={props => (
         <ReactSelectInput

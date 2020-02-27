@@ -123,14 +123,12 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
                   <FormikFormField
                     name="usePriorArtifact"
                     label="Use prior execution"
-                    fastField={false}
                     input={props => <CheckboxInput {...props} />}
                     help={<HelpField id="pipeline.config.expectedArtifact.usePriorExecution" />}
                   />
                   <FormikFormField
                     name="useDefaultArtifact"
                     label="Use default artifact"
-                    fastField={false}
                     input={props => <CheckboxInput {...props} />}
                     help={<HelpField id="pipeline.config.expectedArtifact.defaultArtifact" />}
                   />

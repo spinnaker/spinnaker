@@ -48,7 +48,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
     <div className="form-horizontal">
       <h4>Basic Settings</h4>
       <FormikFormField
-        fastField={false}
         label="Account"
         name="account"
         input={(inputProps: IFormInputProps) => (
@@ -61,7 +60,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
         )}
       />
       <FormikFormField
-        fastField={false}
         label="Project Name"
         name="projectName"
         input={(inputProps: IFormInputProps) => (
@@ -75,7 +73,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       />
       <h4>Source Configuration</h4>
       <FormikFormField
-        fastField={false}
         help={<HelpField id="pipeline.config.codebuild.source" />}
         label="Source"
         name="source.sourceOverride"
@@ -85,7 +82,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       />
       {get(stage, 'source.sourceOverride') === true && (
         <FormikFormField
-          fastField={false}
           help={<HelpField id="pipeline.config.codebuild.sourceType" />}
           label="Source Type"
           name="source.sourceType"
@@ -96,7 +92,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       )}
       {get(stage, 'source.sourceOverride') === true && (
         <FormikFormField
-          fastField={false}
           label="Source Artifact Override"
           name="source"
           input={(inputProps: IFormInputProps) => (
@@ -120,14 +115,12 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
         />
       )}
       <FormikFormField
-        fastField={false}
         help={<HelpField id="pipeline.config.codebuild.sourceVersion" />}
         label="Source Version"
         name="source.sourceVersion"
         input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
       />
       <FormikFormField
-        fastField={false}
         help={<HelpField id="pipeline.config.codebuild.buildspec" />}
         label="Buildspec"
         name="source.buildspec"
@@ -140,7 +133,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
         )}
       />
       <FormikFormField
-        fastField={false}
         help={<HelpField id="pipeline.config.codebuild.secondarySources" />}
         label="Secondary Sources"
         name="secondarySources"
@@ -156,7 +148,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       />
       <h4>Environment Configuration</h4>
       <FormikFormField
-        fastField={false}
         help={<HelpField id="pipeline.config.codebuild.image" />}
         label="Image"
         name="image"
@@ -164,7 +155,6 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       />
       <h4>Advanced Configuration</h4>
       <FormikFormField
-        fastField={false}
         help={<HelpField id="pipeline.config.codebuild.envVar" />}
         label="Environment Variables"
         name="environmentVariables"

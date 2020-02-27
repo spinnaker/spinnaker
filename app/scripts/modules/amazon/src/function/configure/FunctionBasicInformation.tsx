@@ -155,7 +155,6 @@ export class FunctionBasicInformation extends React.Component<IFunctionProps, IF
           </div>
         )}
         <FormikFormField
-          fastField={false}
           name="credentials"
           label="Account"
           input={props => (
@@ -163,7 +162,6 @@ export class FunctionBasicInformation extends React.Component<IFunctionProps, IF
           )}
         />
         <FormikFormField
-          fastField={false}
           name="region"
           label="Region"
           input={props => (

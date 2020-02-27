@@ -47,7 +47,6 @@ export function PipelineTrigger(pipelineTriggerProps: IPipelineTriggerConfigProp
       <FormikFormField
         name="application"
         label="Application"
-        fastField={false}
         required={true}
         input={props => (
           <ReactSelectInput
@@ -64,7 +63,6 @@ export function PipelineTrigger(pipelineTriggerProps: IPipelineTriggerConfigProp
       <FormikFormField
         name="pipeline"
         label="Pipeline"
-        fastField={false}
         required={true}
         input={props => (
           <ReactSelectInput

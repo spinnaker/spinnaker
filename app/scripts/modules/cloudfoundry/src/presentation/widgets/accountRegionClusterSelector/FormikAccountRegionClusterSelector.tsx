@@ -121,7 +121,6 @@ export class FormikAccountRegionClusterSelector extends React.Component<
           <FormikFormField
             name={componentName ? `${componentName}.${credentialsField}` : `${credentialsField}`}
             label="Account"
-            fastField={false}
             input={props => (
               <ReactSelectInput
                 inputClassName="cloudfoundry-react-select"
@@ -139,7 +138,6 @@ export class FormikAccountRegionClusterSelector extends React.Component<
           <FormikFormField
             name={componentName ? `${componentName}.region` : 'region'}
             label="Region"
-            fastField={false}
             input={props => (
               <ReactSelectInput
                 inputClassName="cloudfoundry-react-select"
@@ -157,7 +155,6 @@ export class FormikAccountRegionClusterSelector extends React.Component<
           <FormikFormField
             name={componentName ? `${componentName}.${clusterField}` : `${clusterField}`}
             label="Cluster"
-            fastField={false}
             input={props => (
               <ReactSelectInput
                 inputClassName="cloudfoundry-react-select"

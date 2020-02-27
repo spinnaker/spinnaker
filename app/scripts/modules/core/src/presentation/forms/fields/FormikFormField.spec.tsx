@@ -98,7 +98,6 @@ function TestForm(props: ITestFormProps) {
         onSubmit={() => {}}
         render={() => (
           <FormikFormField
-            fastField={false}
             name="account"
             label="Account"
             input={props => <ReactSelectInput {...props} />}

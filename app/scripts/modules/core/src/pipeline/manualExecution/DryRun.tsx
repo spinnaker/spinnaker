@@ -6,7 +6,6 @@ export const DryRun = () => (
   <FormikFormField
     name="dryRun"
     label="Dry run"
-    fastField={false}
     help={<HelpField id="execution.dryRun" />}
     input={props => <CheckboxInput {...props} text="Run a test execution" />}
   />

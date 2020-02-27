@@ -21,7 +21,6 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           name="healthTimeout"
           label="Timeout"
           required={true}
-          fastField={false} /* This field depends on healthInterval */
           help={<HelpField id="loadBalancer.advancedSettings.healthTimeout" />}
           input={props => <NumberInput {...props} min={0} max={values.healthInterval} />}
           validate={maxValue(values.healthInterval, 'Timeout must be less than the health interval.')}

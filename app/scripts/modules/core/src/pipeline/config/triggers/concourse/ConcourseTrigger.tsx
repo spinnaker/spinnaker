@@ -53,7 +53,6 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
       <FormikFormField
         name="master"
         label="Build Service"
-        fastField={false}
         input={props => (
           <ReactSelectInput
             {...props}
@@ -69,7 +68,6 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
       <FormikFormField
         name="team"
         label="Team"
-        fastField={false}
         onChange={onTeamChanged}
         input={props => (
           <ReactSelectInput
@@ -86,7 +84,6 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
       <FormikFormField
         name="project"
         label="Pipeline"
-        fastField={false}
         onChange={onProjectChanged}
         input={props => (
           <ReactSelectInput
@@ -105,7 +102,6 @@ export function ConcourseTrigger({ formik, trigger }: IConcourseTriggerConfigPro
       <FormikFormField
         name="job"
         label="Job"
-        fastField={false}
         onChange={onJobChanged}
         input={props => (
           <ReactSelectInput

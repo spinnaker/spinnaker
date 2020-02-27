@@ -41,7 +41,6 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
       <FormikFormField
         name="master"
         label={label}
-        fastField={false}
         input={props => (
           <RefreshableReactSelectInput
             {...props}
@@ -58,7 +57,6 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
       <FormikFormField
         name="job"
         label="Job"
-        fastField={false}
         input={props => (
           <RefreshableReactSelectInput
             {...props}

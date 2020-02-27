@@ -174,7 +174,6 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
 
         {showArtifactConstraints && (
           <FormikFormField
-            fastField={false}
             name="expectedArtifactIds"
             label="Artifact Constraints"
             help={<HelpField id="pipeline.config.expectedArtifact" />}

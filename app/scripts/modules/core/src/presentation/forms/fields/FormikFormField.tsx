@@ -22,7 +22,7 @@ export interface IFormikFieldProps<T> {
    * Toggles between `Field` (false) and `FastField` (true)
    * Defaults to `FastField` (true)
    *
-   * Use `fastField={false}` if the field depends on other fields.
+   * Use `fastField={true}` if the field doesn't depend on any other fields or external (i.e., async) data
    * See: https://jaredpalmer.com/formik/docs/api/fastfield#when-to-use-fastfield
    */
   fastField?: boolean;
@@ -50,7 +50,7 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
 
   const formikTouched = getIn(formik.touched, name);
   const formikError = getIn(formik.errors, props.name);
-  const fastField = firstDefined(fastFieldProp, true);
+  const fastField = firstDefined(fastFieldProp, false);
   const touched = firstDefined(touchedProp, formikTouched as boolean);
 
   const message = firstDefined(validationMessage, formikError as string);

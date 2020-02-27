@@ -35,7 +35,6 @@ const UnhealthyTasksLimitsField = () => (
 const AvailabilityPercentageLimit = (componentProps: IFieldOptionComponentProps) => (
   <FormikFormField
     name="disruptionBudget.availabilityPercentageLimit.percentageOfHealthyContainers"
-    fastField={false}
     label="Percentage of Healthy Containers"
     input={props => (
       <div>

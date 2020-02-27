@@ -106,7 +106,6 @@ export function CopyStageModal(props: ICopyStageModalProps) {
                 )}
                 <Form name="form" className="form-horizontal">
                   <FormikFormField
-                    fastField={false}
                     name="application"
                     label="From Application"
                     input={inputProps => (
@@ -122,7 +121,6 @@ export function CopyStageModal(props: ICopyStageModalProps) {
                     )}
                   />
                   <FormikFormField
-                    fastField={false}
                     name="selectedStage"
                     label="Copy Stage"
                     required={true}

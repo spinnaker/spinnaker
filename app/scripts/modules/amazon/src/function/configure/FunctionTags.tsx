@@ -27,7 +27,6 @@ export class FunctionTags extends React.Component<IFunctionTagsProps>
     return (
       <div className="container-fluid form-horizontal ">
         <FormikFormField
-          fastField={false}
           name="tags"
           input={props => <MapEditorInput {...props} allowEmptyValues={false} addButtonLabel="Add" />}
         />

@@ -87,7 +87,6 @@ export class CloudFoundryServerGroupBasicSettings
             <FormikFormField
               name="credentials"
               label="Account"
-              fastField={false}
               input={props => (
                 <ReactSelectInput
                   inputClassName="cloudfoundry-react-select"
@@ -104,7 +103,6 @@ export class CloudFoundryServerGroupBasicSettings
             <FormikFormField
               name="region"
               label="Region"
-              fastField={false}
               input={props => (
                 <ReactSelectInput
                   {...props}
@@ -136,7 +134,6 @@ export class CloudFoundryServerGroupBasicSettings
             <FormikFormField
               name="startApplication"
               label="Start on creation"
-              fastField={false}
               input={props => <CheckboxInput {...props} />}
               help={<HelpField id="cf.serverGroup.startApplication" />}
             />

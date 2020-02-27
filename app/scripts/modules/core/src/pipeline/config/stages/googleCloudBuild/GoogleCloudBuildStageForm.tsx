@@ -138,7 +138,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
     <FormikSpelContextProvider value={true}>
       <div className="form-horizontal">
         <FormikFormField
-          fastField={false}
           label="Account"
           name="account"
           input={(inputProps: IFormInputProps) => (
@@ -151,7 +150,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
           )}
         />
         <FormikFormField
-          fastField={false}
           label="Build Definition Source"
           name="buildDefinitionSource"
           input={(inputProps: IFormInputProps) => <RadioButtonInput {...inputProps} options={SOURCE_OPTIONS} />}
@@ -159,7 +157,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
         />
         {stage.buildDefinitionSource === BuildDefinitionSource.TEXT && (
           <FormikFormField
-            fastField={false}
             label="Build Definition"
             name="buildDefinition"
             input={(inputProps: IFormInputProps) => (
@@ -188,7 +185,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
         {stage.buildDefinitionSource === BuildDefinitionSource.TRIGGER && (
           <>
             <FormikFormField
-              fastField={false}
               name="triggerId"
               label="Trigger Name"
               input={(inputProps: IFormInputProps) => (
@@ -205,7 +201,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
               )}
             />
             <FormikFormField
-              fastField={false}
               name="triggerType"
               label="Trigger Type"
               input={(inputProps: IFormInputProps) => (
@@ -219,7 +214,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
               spelAware={false}
             />
             <FormikFormField
-              fastField={false}
               label="Value"
               name={`repoSource.${stage.triggerType}`}
               input={(inputProps: IFormInputProps) => <TextInput {...inputProps} disabled={!stage.triggerType} />}

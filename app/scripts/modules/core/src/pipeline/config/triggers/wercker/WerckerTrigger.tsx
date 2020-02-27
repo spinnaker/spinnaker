@@ -76,7 +76,6 @@ export function WerckerTrigger(werckerTriggerProps: IWerckerTriggerConfigProps) 
       <FormikFormField
         name="master"
         label="Build Service"
-        fastField={false}
         input={props => (
           <RefreshableReactSelectInput
             {...props}
@@ -93,7 +92,6 @@ export function WerckerTrigger(werckerTriggerProps: IWerckerTriggerConfigProps) 
       <FormikFormField
         name="app"
         label="Application"
-        fastField={false}
         input={props => (
           <RefreshableReactSelectInput
             {...props}
@@ -110,7 +108,6 @@ export function WerckerTrigger(werckerTriggerProps: IWerckerTriggerConfigProps) 
       <FormikFormField
         name="pipeline"
         label="Pipeline"
-        fastField={false}
         input={props => (
           <ReactSelectInput
             {...props}
