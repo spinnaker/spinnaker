@@ -7,6 +7,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const { TypedCssModulesPlugin } = require('typed-css-modules-webpack-plugin');
+const webpack = require('webpack');
 
 const CACHE_INVALIDATE = getCacheInvalidateString();
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
@@ -18,9 +19,31 @@ const ESLINT_FAIL_ON_ERROR = process.env.ESLINT_FAIL_ON_ERROR === 'true';
 function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
   const IS_PRODUCTION = WEBPACK_MODE === 'production';
+  const IS_CI = !!process.env.TRAVIS || !!process.env.GITHUB_ACTIONS;
+  const DISPLAY_PROGRESS = process.stdout.isTTY && !IS_CI;
 
   // eslint-disable-next-line no-console
   console.log('Webpack mode: ' + WEBPACK_MODE);
+
+  const plugins = [
+    new TypedCssModulesPlugin({ globPattern: '**/*.module.css' }),
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
+    new CopyWebpackPlugin([
+      { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
+      { from: `./plugin-manifest.json`, to: `./plugin-manifest.json` },
+    ]),
+    new HtmlWebpackPlugin({
+      title: 'Spinnaker',
+      template: './app/index.deck',
+      favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
+      inject: true,
+      hash: IS_PRODUCTION,
+    }),
+  ];
+
+  if (DISPLAY_PROGRESS) {
+    plugins.push(new webpack.ProgressPlugin({ profile: false }));
+  }
 
   const config = {
     context: __dirname,
@@ -183,29 +206,7 @@ function configure(env, webpackOpts) {
         },
       ],
     },
-    plugins: [
-      new TypedCssModulesPlugin({
-        globPattern: '**/*.module.css',
-      }),
-      new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-      new CopyWebpackPlugin([
-        {
-          from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
-          to: `./styleguide.html`,
-        },
-        {
-          from: `./plugin-manifest.json`,
-          to: `./plugin-manifest.json`,
-        },
-      ]),
-      new HtmlWebpackPlugin({
-        title: 'Spinnaker',
-        template: './app/index.deck',
-        favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
-        inject: true,
-        hash: IS_PRODUCTION,
-      }),
-    ],
+    plugins,
     devServer: {
       disableHostCheck: true,
       port: process.env.DECK_PORT || 9000,
