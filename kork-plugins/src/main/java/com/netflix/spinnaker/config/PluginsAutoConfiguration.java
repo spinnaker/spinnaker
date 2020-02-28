@@ -40,6 +40,7 @@ import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoReleaseProvid
 import com.netflix.spinnaker.kork.plugins.update.release.SpringPluginInfoReleaseProvider;
 import com.netflix.spinnaker.kork.plugins.update.repository.ConfigurableUpdateRepository;
 import com.netflix.spinnaker.kork.version.ManifestVersionResolver;
+import com.netflix.spinnaker.kork.version.ServiceVersion;
 import com.netflix.spinnaker.kork.version.VersionResolver;
 import java.nio.file.Paths;
 import java.util.*;
@@ -80,13 +81,17 @@ public class PluginsAutoConfiguration {
   public static VersionResolver versionResolver(Environment environment) {
     boolean useOssVersionManifestAttribute =
         Binder.get(environment)
-            .bind(
-                PluginsConfigurationProperties.CONFIG_NAMESPACE
-                    + ".use-oss-version-manifest-attribute",
-                Bindable.of(Boolean.class))
+            .bind("service-version.use-oss-version-manifest-attribute", Bindable.of(Boolean.class))
             .orElse(false);
 
     return new ManifestVersionResolver(useOssVersionManifestAttribute);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ServiceVersion.class)
+  public static ServiceVersion serviceVersion(
+      ApplicationContext applicationContext, List<VersionResolver> versionResolvers) {
+    return new ServiceVersion(applicationContext, versionResolvers);
   }
 
   @Bean
@@ -118,14 +123,14 @@ public class PluginsAutoConfiguration {
 
   @Bean
   public static SpinnakerPluginManager pluginManager(
-      VersionResolver serviceVersionResolver,
+      ServiceVersion serviceVersion,
       VersionManager versionManager,
       PluginStatusProvider pluginStatusProvider,
       ApplicationContext applicationContext,
       ConfigFactory configFactory,
       List<SdkFactory> sdkFactories) {
     return new SpinnakerPluginManager(
-        serviceVersionResolver,
+        serviceVersion,
         versionManager,
         pluginStatusProvider,
         configFactory,

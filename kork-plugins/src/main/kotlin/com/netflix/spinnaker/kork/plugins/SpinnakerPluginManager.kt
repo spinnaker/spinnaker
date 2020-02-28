@@ -25,7 +25,7 @@ import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDevelopmentPluginLoad
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerJarPluginLoader
 import com.netflix.spinnaker.kork.plugins.repository.PluginRefPluginRepository
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
-import com.netflix.spinnaker.kork.version.VersionResolver
+import com.netflix.spinnaker.kork.version.ServiceVersion
 import org.pf4j.CompoundPluginLoader
 import org.pf4j.CompoundPluginRepository
 import org.pf4j.DefaultPluginManager
@@ -48,7 +48,7 @@ import java.nio.file.Path
  */
 @Beta
 open class SpinnakerPluginManager(
-  private val systemVersionResolver: VersionResolver,
+  private val serviceVersion: ServiceVersion,
   val spinnakerVersionManager: VersionManager,
   val statusProvider: PluginStatusProvider,
   configFactory: ConfigFactory,
@@ -85,7 +85,13 @@ open class SpinnakerPluginManager(
   override fun getSystemVersion(): String {
     // TODO(jonsie): For now this is ok, but eventually we will want to throw an exception if the
     // system version is null.
-    return systemVersionResolver.resolve(serviceName) ?: "0.0.0"
+    return serviceVersion.resolve().let {
+      if (it == ServiceVersion.UNKNOWN_VERSION) {
+        "0.0.0"
+      } else {
+        it
+      }
+    }
   }
 
   override fun createExtensionFactory(): ExtensionFactory = ExtensionFactoryDelegate()

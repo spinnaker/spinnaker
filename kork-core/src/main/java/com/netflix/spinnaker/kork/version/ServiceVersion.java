@@ -25,7 +25,7 @@ import org.springframework.context.ApplicationContext;
 @Slf4j
 public class ServiceVersion {
 
-  private static final String UNKNOWN_VERSION = "unknown";
+  public static final String UNKNOWN_VERSION = "unknown";
 
   private final List<VersionResolver> resolvers;
   private final ApplicationContext applicationContext;

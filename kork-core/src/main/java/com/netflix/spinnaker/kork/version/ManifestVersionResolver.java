@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Resolves a service version from scanning MANIFEST.MF files in the service artifacts.
@@ -116,5 +117,14 @@ public class ManifestVersionResolver implements VersionResolver {
   @Override
   public int getOrder() {
     return 0;
+  }
+
+  @ConfigurationProperties("service-version")
+  public static class Properties {
+    /**
+     * If set to true, "Implementation-OSS-Version" will be read instead of
+     * "Implementation-Version".
+     */
+    public boolean useOssVersionManifestAttribute = false;
   }
 }

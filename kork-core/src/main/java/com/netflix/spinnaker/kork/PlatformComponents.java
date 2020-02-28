@@ -30,6 +30,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import java.util.List;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +48,7 @@ import org.springframework.context.annotation.Import;
       CircuitBreakersHealthIndicatorAutoConfiguration.class,
       RateLimitersHealthIndicatorAutoConfiguration.class
     })
+@EnableConfigurationProperties(ManifestVersionResolver.Properties.class)
 public class PlatformComponents {
   @Bean
   public EurekaStatusListener eurekaStatusListener() {
@@ -54,14 +56,16 @@ public class PlatformComponents {
   }
 
   @Bean
+  @ConditionalOnMissingBean(ServiceVersion.class)
   ServiceVersion serviceVersion(
       ApplicationContext applicationContext, List<VersionResolver> versionResolvers) {
     return new ServiceVersion(applicationContext, versionResolvers);
   }
 
   @Bean
-  VersionResolver manifestVersionResolver() {
-    return new ManifestVersionResolver();
+  @ConditionalOnMissingBean(ManifestVersionResolver.class)
+  VersionResolver manifestVersionResolver(ManifestVersionResolver.Properties properties) {
+    return new ManifestVersionResolver(properties.useOssVersionManifestAttribute);
   }
 
   @Bean
