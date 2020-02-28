@@ -10,6 +10,7 @@ import { ICommonFormFieldProps, renderContent } from './index';
 import { IFormInputValidation } from '../inputs';
 import { ILayoutProps, LayoutContext } from '../layouts';
 import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
+import { useIsFirstRender } from '../../hooks/useIsFirstRender.hook';
 
 export interface IFormikFieldProps<T> {
   /**
@@ -40,6 +41,18 @@ type IFormikFormFieldImplProps<T> = IFormikFormFieldProps<T> & { formik: FormikC
 
 const { useCallback, useContext, useState } = React;
 
+const revalidateMap = new Map();
+// If many formfields request a revalidate at the same time, coalesce the requests and revalidate once on the next tick
+function coalescedRevalidate(formik: FormikContext<any>) {
+  if (!revalidateMap.has(formik)) {
+    revalidateMap.set(formik, true);
+    setTimeout(() => {
+      revalidateMap.delete(formik);
+      return formik.validateForm();
+    });
+  }
+}
+
 function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
   const { formik } = props;
   const { name, onChange, fastField: fastFieldProp } = props;
@@ -60,11 +73,14 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
   const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
 
-  function revalidate() {
-    formik.validateForm();
-  }
-
-  React.useEffect(() => revalidate(), [internalValidators]);
+  const revalidate = () => coalescedRevalidate(formik);
+  const isFirstRender = useIsFirstRender();
+  React.useEffect(() => {
+    if (isFirstRender && internalValidators.length === 0) {
+      return;
+    }
+    revalidate();
+  }, [internalValidators]);
 
   const validation: IFormInputValidation = {
     touched,
