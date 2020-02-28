@@ -30,7 +30,7 @@ type Config struct {
 	OAuth2  *oauth2.Config `yaml:"oauth2,omitempty"`
 	Basic   *basic.Config  `yaml:"basic,omitempty"`
 	Iap     *config.Config `yaml:"iap,omitempty"`
-	Ldap    *ldap.Config   `yaml:"ldap,omitempty`
+	Ldap    *ldap.Config   `yaml:"ldap,omitempty"`
 
 	GoogleServiceAccount *gsa.Config `yaml:"google_service_account,omitempty"`
 }
