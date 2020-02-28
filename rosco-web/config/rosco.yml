@@ -449,6 +449,56 @@ huaweicloud:
         sshUserName: ubuntu
         eipType: 5_bgp
 
+tencentcloud:
+  # The property referenced below, TENCENT_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to explicitly set the property's
+  # value to true.
+  enabled: ${TENCENTCLOUD_ENABLED:false}
+  bakeryDefaults:
+    secretId: ${TENCENTCLOUD_SECRET_ID:}
+    secretKey: ${TENCENTCLOUD_SECRET_KEY:}
+    # You can specify the templateFile used for this baseImage.
+    # If not specified, the default templateFile will be used.
+    templateFile: tencentcloud.json
+    baseImages:
+      - baseImage:
+          id: ubuntu-1604
+          shortDescription: v16.04
+          detailedDescription: Ubuntu Server 16.04.1-LTS 64bits
+          packageType: deb
+          osType: linux
+        virtualizationSettings:
+          - region: ap-guangzhou
+            zone: ap-guangzhou-3
+            instanceType: S3.SMALL1
+            sourceImageId: img-pyqx34y1
+            sshUsername: ubuntu
+      - baseImage:
+          id: debian-90
+          shortDescription: v9.0
+          detailedDescription: Debian 9.0 64bits
+          packageType: deb
+          osType: linux
+        virtualizationSettings:
+          - region: ap-guangzhou
+            zone: ap-guangzhou-3
+            instanceType: S3.SMALL1
+            sourceImageId: img-6rrx0ymd
+            sshUsername: root
+      - baseImage:
+          id: centos-76
+          shortDescription: v7.6
+          detailedDescription: CentOS 7.6 64bits
+          packageType: rpm
+          osType: linux
+        virtualizationSettings:
+          - region: ap-guangzhou
+            zone: ap-guangzhou-3
+            instanceType: S3.SMALL1
+            sourceImageId: img-9qabwvbn
+            sshUsername: root
 swagger:
   enabled: true
   title: Spinnaker Rosco API

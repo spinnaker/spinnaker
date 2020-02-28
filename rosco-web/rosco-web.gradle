@@ -43,6 +43,7 @@ if (project.plugins.hasPlugin('spinnaker.package')) {
     configurationFile('/opt/rosco/config/packer/gce.json')
     configurationFile('/opt/rosco/config/packer/huaweicloud.json')
     configurationFile('/opt/rosco/config/packer/oci.json')
+    configurationFile('/opt/rosco/config/packer/tencentcloud.json')
     configurationFile('/opt/rosco/config/packer/install_packages.sh')
 
     from('../docker') {
