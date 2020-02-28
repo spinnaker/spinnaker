@@ -29,7 +29,7 @@ class PeeringAgentSpec extends Specification {
   MySqlRawAccess dest = Mock(MySqlRawAccess)
   PeeringMetrics metrics = Mock(PeeringMetrics)
   ExecutionCopier copier = Mock(ExecutionCopier)
-  def clockDrift = 100
+  def clockDrift = 10
 
   PeeringAgent constructPeeringAgent(DynamicConfigService dynamicConfigService = DynamicConfigService.NOOP) {
     return new PeeringAgent(
@@ -83,7 +83,10 @@ class PeeringAgentSpec extends Specification {
     peeringAgent.completedPipelinesMostRecentUpdatedTime = 1
     peeringAgent.completedOrchestrationsMostRecentUpdatedTime = 2
 
-    def callCount = (int)Math.signum(toDelete.size() + toCopy.size())
+    def deleteCallCount = (int)Math.signum(toDelete.size())
+    def copyCallCount = (int)Math.signum(toCopy.size())
+    def correctMax = Math.max(0, ((srcKeys + srcKeysNull).max { it.updated_at }?.updated_at ?: 2) - clockDrift)
+
     when:
     peeringAgent.peerCompletedExecutions(executionType)
 
@@ -92,18 +95,21 @@ class PeeringAgentSpec extends Specification {
     1 * src.getCompletedExecutionIds(executionType, null, mostRecentTimeStamp) >> srcKeysNull
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> destKeys
 
-    callCount * dest.deleteExecutions(executionType, toDelete)
-    callCount * metrics.incrementNumDeleted(executionType, toDelete.size())
+    deleteCallCount * dest.deleteExecutions(executionType, toDelete)
+    deleteCallCount * metrics.incrementNumDeleted(executionType, toDelete.size())
 
-    callCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
-        new ExecutionCopier.MigrationChunkResult(30, 2, false)
+    copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
+        new ExecutionCopier.MigrationChunkResult(
+            (srcKeys + srcKeysNull).findAll {toCopy.contains(it.id)}.collect {it.updated_at}.max() ?: 0,
+            toCopy.size(),
+            false)
 
     if (executionType == PIPELINE) {
-      peeringAgent.completedPipelinesMostRecentUpdatedTime == (srcKeys + srcKeysNull).max { it.updated_at }?.updated_at ?: 1
-      peeringAgent.completedOrchestrationsMostRecentUpdatedTime == 2
+      assert peeringAgent.completedPipelinesMostRecentUpdatedTime == correctMax
+      assert peeringAgent.completedOrchestrationsMostRecentUpdatedTime == 2
     } else {
-      peeringAgent.completedPipelinesMostRecentUpdatedTime == 1
-      peeringAgent.completedOrchestrationsMostRecentUpdatedTime == (srcKeys + srcKeysNull).max { it.updated_at }?.updated_at ?: 2
+      assert peeringAgent.completedPipelinesMostRecentUpdatedTime == 1
+      assert peeringAgent.completedOrchestrationsMostRecentUpdatedTime == correctMax
     }
 
     where:
@@ -125,6 +131,47 @@ class PeeringAgentSpec extends Specification {
     ORCHESTRATION | 2                   | [key("ID1", 10)] | []                               | []                                               || []                    | ["ID1"]
   }
 
+  @Unroll
+  def "updates the most recent timestamp even when there is nothing to copy"() {
+    def peeringAgent = constructPeeringAgent()
+
+    def deleteCallCount = (int) Math.signum(toDelete.size())
+    def copyCallCount = (int) Math.signum(toCopy.size())
+    def correctMax = Math.max(0, (srcKeys.max { it.updated_at }?.updated_at ?: 0) - clockDrift)
+
+    when:
+    peeringAgent.peerExecutions(executionType)
+
+    then:
+    1 * src.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> srcKeys
+    1 * src.getCompletedExecutionIds(executionType, null, mostRecentTimeStamp) >> []
+    1 * dest.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> destKeys
+
+    deleteCallCount * dest.deleteExecutions(executionType, toDelete)
+    deleteCallCount * metrics.incrementNumDeleted(executionType, toDelete.size())
+
+    copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
+        new ExecutionCopier.MigrationChunkResult(0, 0, false)
+
+    if (executionType == PIPELINE) {
+      assert peeringAgent.completedPipelinesMostRecentUpdatedTime == correctMax
+      assert peeringAgent.completedOrchestrationsMostRecentUpdatedTime == 0
+    } else {
+      assert peeringAgent.completedPipelinesMostRecentUpdatedTime == 0
+      assert peeringAgent.completedOrchestrationsMostRecentUpdatedTime == correctMax
+    }
+
+    where:
+    // Note: since the logic for executions and orchestrations should be the same, it's overkill to have the same set of tests for each
+    // but it's easy so why not?
+    executionType | mostRecentTimeStamp | srcKeys           | destKeys                           || toDelete | toCopy
+    PIPELINE      | 0                   | []                | []                                 || []       | []
+    PIPELINE      | 0                   | []                | [key("ID1", 100)]                  || ["ID1"]  | []
+    PIPELINE      | 0                   | [key("ID1", 100)] | [key("ID1", 100)]                  || []       | []
+    PIPELINE      | 0                   | [key("ID1", 100)] | [key("ID1", 100), key("ID2", 200)] || ["ID2"]  | []
+  }
+
+  @Unroll
   def "copies all running executions of #executionType"() {
     given:
     def peeringAgent = constructPeeringAgent()
@@ -136,7 +183,10 @@ class PeeringAgentSpec extends Specification {
     1 * src.getActiveExecutionIds(executionType, "peeredId") >> activeIds
     1 * src.getActiveExecutionIds(executionType, null) >> activeIdsNull
     copyCallCount * copier.copyInParallel(executionType, activeIds + activeIdsNull, ExecutionState.ACTIVE) >>
-        new ExecutionCopier.MigrationChunkResult(30, 2, false)
+        new ExecutionCopier.MigrationChunkResult(
+            30,
+            activeIdsNull.size() + activeIds.size(),
+            false)
 
     where:
     executionType | activeIds       | activeIdsNull | copyCallCount
@@ -148,6 +198,7 @@ class PeeringAgentSpec extends Specification {
     ORCHESTRATION | ["ID1", "ID4"]  | ["ID5"]       | 1
   }
 
+  @Unroll
   def "doesn't delete the world"() {
     given:
     def dynamicConfigService = Mock(DynamicConfigService)
@@ -169,12 +220,12 @@ class PeeringAgentSpec extends Specification {
     1 * src.getCompletedExecutionIds(executionType, null, 1) >> []
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", 1) >> destKeys
 
-    deleteCallCount * dest.deleteExecutions(executionType, toDelete)
-    deleteCallCount * metrics.incrementNumDeleted(executionType, toDelete.size())
+    deleteCallCount * dest.deleteExecutions(executionType, _)
+    deleteCallCount * metrics.incrementNumDeleted(executionType, _)
     deleteFailureCount * metrics.incrementNumErrors(executionType)
 
     copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
-        new ExecutionCopier.MigrationChunkResult(30, 2, false)
+        new ExecutionCopier.MigrationChunkResult(30, 1, false)
 
     where:
     // Note: since the logic for executions and orchestrations should be the same, it's overkill to have the same set of tests for each

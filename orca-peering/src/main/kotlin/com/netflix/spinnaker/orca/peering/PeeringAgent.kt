@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.slf4j.LoggerFactory
+import kotlin.math.max
 
 /**
  *
@@ -136,8 +137,19 @@ class PeeringAgent(
       Execution.ExecutionType.ORCHESTRATION -> completedOrchestrationsMostRecentUpdatedTime
       Execution.ExecutionType.PIPELINE -> completedPipelinesMostRecentUpdatedTime
     }
+
     log.debug("Starting completed $executionType copy for peering with $executionType updatedAfter=$updatedAfter")
 
+    val newLatestUpdateTime = doMigrate(executionType, updatedAfter) - clockDriftMs
+
+    if (executionType == Execution.ExecutionType.ORCHESTRATION) {
+      completedOrchestrationsMostRecentUpdatedTime = max(0, newLatestUpdateTime)
+    } else {
+      completedPipelinesMostRecentUpdatedTime = max(0, newLatestUpdateTime)
+    }
+  }
+
+  private fun doMigrate(executionType: Execution.ExecutionType, updatedAfter: Long): Long {
     // Compute diff
     val completedPipelineKeys = srcDB.getCompletedExecutionIds(executionType, peeredId, updatedAfter)
       .plus(srcDB.getCompletedExecutionIds(executionType, null, updatedAfter))
@@ -160,32 +172,39 @@ class PeeringAgent(
       .map { it.id }
       .toList()
 
-    if (pipelineIdsToMigrate.isNotEmpty() || pipelineIdsToDelete.isNotEmpty()) {
-      log.debug("Found ${completedPipelineKeys.size} completed $executionType candidates with ${migratedPipelineKeys.size} already copied for peering, ${pipelineIdsToMigrate.size} still need copying and ${pipelineIdsToDelete.size} need to be deleted")
-      val maxDeleteCount = dynamicConfigService.getConfig(java.lang.Integer::class.java, "pollers.peering.max-allowed-delete-count", Integer(100))
-      if (pipelineIdsToDelete.size > maxDeleteCount.toInt()) {
-        log.error("Number of pipelines to delete (${pipelineIdsToDelete.size}) > threshold ($maxDeleteCount) - not performing deletes - if this is expected you can set the pollers.peering.max-allowed-delete-count property to a larger number")
-        peeringMetrics.incrementNumErrors(executionType)
-      }
+    fun getLatestCompletedUpdatedTime() =
+      (completedPipelineKeys.map { it.updated_at }.max() ?: 0)
 
+    if (pipelineIdsToDelete.isEmpty() && pipelineIdsToMigrate.isEmpty()) {
+      log.debug("No completed $executionType executions to copy for peering")
+      return getLatestCompletedUpdatedTime()
+    }
+
+    log.debug("Found ${completedPipelineKeys.size} completed $executionType candidates with ${migratedPipelineKeys.size} already copied for peering, ${pipelineIdsToMigrate.size} still need copying and ${pipelineIdsToDelete.size} need to be deleted")
+
+    val maxDeleteCount = dynamicConfigService.getConfig(Integer::class.java, "pollers.peering.max-allowed-delete-count", Integer(100))
+    if (pipelineIdsToDelete.size > maxDeleteCount.toInt()) {
+      log.error("Number of pipelines to delete (${pipelineIdsToDelete.size}) > threshold ($maxDeleteCount) - not performing deletes - if this is expected you can set the pollers.peering.max-allowed-delete-count property to a larger number")
+      peeringMetrics.incrementNumErrors(executionType)
+    } else if (pipelineIdsToDelete.any()) {
       destDB.deleteExecutions(executionType, pipelineIdsToDelete)
       peeringMetrics.incrementNumDeleted(executionType, pipelineIdsToDelete.size)
-
-      val migrationResult = executionCopier.copyInParallel(executionType, pipelineIdsToMigrate, ExecutionState.COMPLETED)
-      if (migrationResult.hadErrors) {
-        log.error("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} with errors, see prior log statements")
-      } else {
-        log.debug("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} with latest updatedAt=${migrationResult.latestUpdatedAt}")
-
-        if (executionType == Execution.ExecutionType.ORCHESTRATION) {
-          completedOrchestrationsMostRecentUpdatedTime = migrationResult.latestUpdatedAt - clockDriftMs
-        } else {
-          completedPipelinesMostRecentUpdatedTime = migrationResult.latestUpdatedAt - clockDriftMs
-        }
-      }
-    } else {
-      log.debug("No completed $executionType executions to copy for peering")
+      log.debug("Completed $executionType peering: ${pipelineIdsToDelete.size} executions deleted")
     }
+
+    if (!pipelineIdsToMigrate.any()) {
+      log.debug("Finished completed $executionType peering: nothing copied️")
+      return getLatestCompletedUpdatedTime()
+    }
+
+    val migrationResult = executionCopier.copyInParallel(executionType, pipelineIdsToMigrate, ExecutionState.COMPLETED)
+    if (migrationResult.hadErrors) {
+      log.error("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} with errors, see prior log statements")
+      return updatedAfter
+    }
+
+    log.debug("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} with latest updatedAt=${migrationResult.latestUpdatedAt}")
+    return migrationResult.latestUpdatedAt
   }
 
   override fun getPollingInterval() = pollingIntervalMs
