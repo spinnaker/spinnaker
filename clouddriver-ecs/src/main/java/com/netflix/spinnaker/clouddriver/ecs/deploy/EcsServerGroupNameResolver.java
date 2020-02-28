@@ -30,6 +30,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class EcsServerGroupNameResolver extends AbstractServerGroupNameResolver {
   private static final String PHASE = "ECS_DEPLOY";
+  private static final int MAX_NEXT_SERVER_GROUP_ATTEMPTS = 5;
 
   String ecsClusterName;
   AmazonECS ecs;
@@ -79,6 +80,46 @@ public class EcsServerGroupNameResolver extends AbstractServerGroupNameResolver 
     }
 
     return slots;
+  }
+
+  @Override
+  public String resolveNextServerGroupName(
+      String application, String stack, String details, Boolean ignoreSequence) {
+    String originalNextServerGroupName =
+        super.resolveNextServerGroupName(application, stack, details, ignoreSequence);
+    String nextServerGroupName = originalNextServerGroupName;
+    String clusterName = combineAppStackDetail(application, stack, details);
+
+    boolean nextServerGroupNameAlreadyExists = true;
+    int attempts = 0;
+    while (nextServerGroupNameAlreadyExists && attempts++ <= MAX_NEXT_SERVER_GROUP_ATTEMPTS) {
+      // An ECS service with this name might exist already in "Draining" state,
+      // so it would not show up in the "taken slots" list.
+      // We need to describe it to determine if it does exist before using the name
+      DescribeServicesRequest request =
+          new DescribeServicesRequest()
+              .withCluster(ecsClusterName)
+              .withServices(nextServerGroupName);
+      DescribeServicesResult result = ecs.describeServices(request);
+
+      if (result.getServices().isEmpty()
+          || result.getServices().get(0).getStatus().equals("INACTIVE")) {
+        // an active or draining ECS service with this name was not found
+        nextServerGroupNameAlreadyExists = false;
+        break;
+      }
+
+      int nextSequence = generateNextSequence(nextServerGroupName);
+      nextServerGroupName =
+          generateServerGroupName(application, stack, details, nextSequence, false);
+    }
+
+    if (nextServerGroupNameAlreadyExists) {
+      throw new IllegalArgumentException(
+          "All server group names for cluster " + clusterName + " in " + region + " are taken.");
+    }
+
+    return nextServerGroupName;
   }
 
   public static String getEcsFamilyName(String serverGroupName) {

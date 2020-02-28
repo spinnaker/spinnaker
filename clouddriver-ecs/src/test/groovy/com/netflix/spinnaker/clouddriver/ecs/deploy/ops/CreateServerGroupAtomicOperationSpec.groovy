@@ -130,8 +130,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
 
     ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
     iamClient.getRole(_) >> new GetRoleResult().withRole(role)
@@ -252,8 +256,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    ecs.describeServices(_) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "${serviceName}-v007", createdAt: new Date()))
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
 
     ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
 
@@ -769,8 +777,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
 
     ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
     iamClient.getRole(_) >> new GetRoleResult().withRole(role)
@@ -888,8 +900,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
 
     ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
     iamClient.getRole(_) >> new GetRoleResult().withRole(role)
@@ -1008,8 +1024,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
 
     1 * ecs.registerTaskDefinition(_) >> { arguments ->
       RegisterTaskDefinitionRequest request = arguments.get(0)
@@ -1136,8 +1156,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+    ecs.describeServices({DescribeServicesRequest request ->
+      request.cluster == 'test-cluster'
+      request.services == ["${serviceName}-v007"]
+    }) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
+    ecs.describeServices(_) >> new DescribeServicesResult()
 
     ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
     iamClient.getRole(_) >> new GetRoleResult().withRole(role)

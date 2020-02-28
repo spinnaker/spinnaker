@@ -53,7 +53,7 @@ class EcsServerGroupNameResolverSpec extends Specification {
       request.cluster == ecsClusterName
       request.services == ["arn:aws:ecs:region:account-id:service/cluster-name/application-stack-details-v000"]
     }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v000", createdAt: new Date(1)))
+      new Service(serviceName: "application-stack-details-v000", createdAt: new Date(1), status: "ACTIVE"))
 
     takenSlots == [
         new AbstractServerGroupNameResolver.TakenSlot('application-stack-details-v000', 0, new Date(1))
@@ -64,8 +64,17 @@ class EcsServerGroupNameResolverSpec extends Specification {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region)
     ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001")
-    ecsClient.describeServices(_) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1)))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v001"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v002"]
+    }) >> new DescribeServicesResult().withFailures(
+      new Failure(arn: "application-stack-details-v002", reason: "MISSING")
+    )
 
     when:
     def nextServerGroupName = resolver.resolveNextServerGroupName('application', 'stack', 'details', false)
@@ -80,9 +89,18 @@ class EcsServerGroupNameResolverSpec extends Specification {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region)
     ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
-    ecsClient.describeServices(_) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1)),
-      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2)))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
+      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v003"]
+    }) >> new DescribeServicesResult().withFailures(
+      new Failure(arn: "application-stack-details-v003", reason: "MISSING")
+    )
 
     when:
     def nextServerGroupName = resolver.resolveNextServerGroupName('application', 'stack', 'details', false)
@@ -91,5 +109,86 @@ class EcsServerGroupNameResolverSpec extends Specification {
     then:
     nextServerGroupName == "application-stack-details-v003".toString()
     containerName == "v003"
+  }
+
+  void "should skip names that already exist as ECS services in active and draining state"() {
+    given:
+    def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region)
+    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
+      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v003"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v003", createdAt: new Date(3), status: "DRAINING"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v004"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v004", createdAt: new Date(3), status: "ACTIVE"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v005"]
+    }) >> new DescribeServicesResult().withFailures(
+      new Failure(arn: "application-stack-details-v005", reason: "MISSING")
+    )
+
+    when:
+    def nextServerGroupName = resolver.resolveNextServerGroupName('application', 'stack', 'details', false)
+    def containerName = EcsServerGroupNameResolver.getEcsContainerName(nextServerGroupName)
+
+    then:
+    nextServerGroupName == "application-stack-details-v005".toString()
+    containerName == "v005"
+  }
+
+  void "should not skip names for inactive ECS services"() {
+    given:
+    def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region)
+    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
+      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v003"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v003", createdAt: new Date(3), status: "INACTIVE"))
+
+    when:
+    def nextServerGroupName = resolver.resolveNextServerGroupName('application', 'stack', 'details', false)
+    def containerName = EcsServerGroupNameResolver.getEcsContainerName(nextServerGroupName)
+
+    then:
+    nextServerGroupName == "application-stack-details-v003".toString()
+    containerName == "v003"
+  }
+
+  void "should give up trying to find a name if all services are draining"() {
+    given:
+    def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region)
+    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.describeServices({DescribeServicesRequest request ->
+      request.cluster == ecsClusterName
+      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
+    }) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
+      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+    ecsClient.describeServices(_) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "blah-blah", createdAt: new Date(1), status: "DRAINING"))
+
+    when:
+    resolver.resolveNextServerGroupName('application', 'stack', 'details', false)
+
+    then:
+    thrown(IllegalArgumentException)
   }
 }
