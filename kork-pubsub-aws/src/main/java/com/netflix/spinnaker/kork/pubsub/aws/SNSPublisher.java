@@ -57,8 +57,7 @@ public class SNSPublisher implements PubsubPublisher {
     this.isEnabled = isEnabled;
     this.registry = registry;
     this.topicARN = new ARN(subscription.getTopicARN());
-    this.successCounter =
-        registry.counter("pubsub.amazon.published", "name", getName(), "topic", getTopicName());
+    this.successCounter = registry.counter("pubsub.amazon.published", "topic", getTopicName());
     this.retrySupport = retrySupport;
 
     initializeTopic();
