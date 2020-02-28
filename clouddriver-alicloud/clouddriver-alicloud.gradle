@@ -16,6 +16,7 @@ dependencies {
   implementation "org.apache.httpcomponents:httpcore"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "javax.servlet:javax.servlet-api"
 
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
   implementation 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
@@ -24,7 +25,9 @@ dependencies {
   implementation 'com.aliyun:aliyun-java-sdk-slb:3.2.9'
   implementation 'com.aliyun:aliyun-java-sdk-vpc:3.0.6'
   implementation 'com.aliyun:aliyun-java-sdk-ecs:4.16.10'
-  implementation 'com.aliyun:aliyun-java-sdk-ess:2.3.0'
+  implementation 'com.aliyun:aliyun-java-sdk-ess:2.3.2'
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.mockito:mockito-core"
