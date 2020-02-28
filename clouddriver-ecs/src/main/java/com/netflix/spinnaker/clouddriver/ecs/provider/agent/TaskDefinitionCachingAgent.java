@@ -149,7 +149,9 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     for (String taskDefArn : taskDefArns) {
       String key = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);
       TaskDefinition taskDefinition = taskDefinitionCacheClient.get(key);
-      taskDefs.add(taskDefinition);
+      if (taskDefinition != null) {
+        taskDefs.add(taskDefinition);
+      }
     }
 
     return taskDefs;
