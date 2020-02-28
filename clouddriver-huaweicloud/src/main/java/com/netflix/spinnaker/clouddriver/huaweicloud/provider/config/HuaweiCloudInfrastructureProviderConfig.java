@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudNetworkCachingAgent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSecurityGroupCachingAgent;
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSubnetCachingAgent;
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
@@ -80,6 +81,8 @@ public class HuaweiCloudInfrastructureProviderConfig {
                     region -> {
                       newlyAddedAgents.add(
                           new HuaweiCloudNetworkCachingAgent(credentials, objectMapper, region));
+                      newlyAddedAgents.add(
+                          new HuaweiCloudSubnetCachingAgent(credentials, objectMapper, region));
                       newlyAddedAgents.add(
                           new HuaweiCloudSecurityGroupCachingAgent(
                               credentials, objectMapper, registry, region));

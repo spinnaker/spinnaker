@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client;
 
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup;
+import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc;
 import com.netflix.spinnaker.clouddriver.huaweicloud.exception.HuaweiCloudException;
 import java.util.List;
@@ -38,6 +39,14 @@ public interface HuaweiCloudClient {
    * @return
    */
   List<? extends SecurityGroup> getSecurityGroups(String region) throws HuaweiCloudException;
+
+  /**
+   * List the available subnets in a region.
+   *
+   * @param region
+   * @return
+   */
+  List<? extends Subnet> getSubnets(String region) throws HuaweiCloudException;
 
   /**
    * List the available vpcs in a region.
