@@ -19,7 +19,7 @@ package com.netflix.kayenta.judge.classifiers.metric
 import com.netflix.kayenta.judge.Metric
 import com.netflix.kayenta.judge.preprocessing.Transforms
 import com.netflix.kayenta.judge.stats.EffectSizes
-import com.netflix.kayenta.mannwhitney.{MannWhitney, MannWhitneyParams}
+import com.netflix.kayenta.mannwhitney.MannWhitney
 
 case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double, deviation: Double)
 case class ComparisonResult(classification: MetricClassificationLabel, reason: Option[String], deviation: Double)
@@ -35,15 +35,15 @@ class MannWhitneyClassifier(tolerance: Double=0.25,
     * Note: In the case of the degenerate distribution, Gaussian noise is added
     */
   def MannWhitneyUTest(experimentValues: Array[Double], controlValues: Array[Double]): MannWhitneyResult = {
-    val mwTest = new MannWhitney()
+    val mw = new MannWhitney()
 
     //Check for tied ranks and transform the data by adding Gaussian noise
     val addNoise = if (experimentValues.distinct.length == 1 && controlValues.distinct.length == 1) true else false
     val experiment = if(addNoise) addGaussianNoise(experimentValues) else experimentValues
     val control = if(addNoise) addGaussianNoise(controlValues) else controlValues
 
-    val params = MannWhitneyParams(mu = 0, confLevel, control, experiment)
-    val testResult = mwTest.eval(params)
+    //Perform the Mann-Whitney U Test
+    val testResult = mw.mannWhitneyUTest(experiment, control, confLevel)
     val confInterval = testResult.confidenceInterval
     val estimate = testResult.estimate
 
