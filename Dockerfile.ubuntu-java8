@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y curl gnupg && \
       wget \
       google-cloud-sdk \
       google-cloud-sdk-app-engine-java \
+      google-cloud-sdk-app-engine-go \
       kubectl \
       python-pip && \
     pip install awscli==1.16.258 --upgrade && \
