@@ -36,9 +36,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit.converter.JacksonConverter
+import retrofit.mime.TypedInput
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.lang.IllegalArgumentException
@@ -98,6 +101,20 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
           context
         )
       )
+
+    val parsingError = mapOf(
+      "message" to "Parsing error",
+      "details" to mapOf(
+        "message" to "Parsing error",
+        "path" to listOf(
+          mapOf(
+            "type" to "SomeClass",
+            "field" to "someField"
+          )
+        ),
+        "pathExpression" to ".someField"
+      )
+    )
   }
 
   private fun ManifestLocation.toMap() =
@@ -289,6 +306,31 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
           val result = execute(manifestLocation.toMap())
           expectThat(result.status).isEqualTo(ExecutionStatus.TERMINAL)
           expectThat(result.context["error"]).isEqualTo(UNAUTHORIZED_SCM_ACCESS_MESSAGE)
+        }
+      }
+
+      context("delivery config parsing error") {
+        modifyFixture {
+          with(scmService) {
+            every {
+              getDeliveryConfigManifest(
+                manifestLocation.repoType,
+                manifestLocation.projectKey,
+                manifestLocation.repositorySlug,
+                manifestLocation.directory,
+                manifestLocation.manifest,
+                manifestLocation.ref
+              )
+            } throws RetrofitError.httpError("http://keel",
+              Response("http://keel", 400, "", emptyList(), JacksonConverter(ObjectMapper()).toBody(parsingError) as TypedInput),
+              null, null)
+          }
+        }
+
+        test("task fails and includes the error details returned by keel") {
+          val result = execute(manifestLocation.toMap())
+          expectThat(result.status).isEqualTo(ExecutionStatus.TERMINAL)
+          expectThat(result.context["error"]).isA<Map<String, Any>>().isEqualTo(parsingError)
         }
       }
 

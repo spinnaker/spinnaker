@@ -20,9 +20,11 @@ import com.netflix.spinnaker.orca.keel.model.DeliveryConfig
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.Header
+import retrofit.http.Headers
 import retrofit.http.POST
 
 interface KeelService {
   @POST("/delivery-configs/")
+  @Headers("Accept: application/json")
   fun publishDeliveryConfig(@Body deliveryConfig: DeliveryConfig, @Header(value = "X-SPINNAKER-USER") user: String): Response
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.keel.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.RetryableTask
@@ -110,11 +111,14 @@ constructor(
           "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${e.friendlyMessage}")
       }
       e.response?.status in 400..499 -> {
+        val response = e.response!!
         // just give up on 4xx errors, which are unlikely to resolve with retries
         buildError(
           // ...but give users a hint about 401 errors from igor/scm
-          if (e.response?.status == 401 && URL(e.url).host.contains("igor")) {
+          if (response.status == 401 && e.fromIgor) {
             UNAUTHORIZED_SCM_ACCESS_MESSAGE
+          } else if (response.status == 400 && e.fromKeel && response.body.length() > 0) {
+            objectMapper.readValue<Map<String, Any?>>(response.body.`in`())
           } else {
             "Non-retryable HTTP response ${e.response?.status} received from downstream service: ${e.friendlyMessage}"
           }
@@ -145,9 +149,14 @@ constructor(
     }
   }
 
-  private fun buildError(errorMessage: String): TaskResult {
-    log.error(errorMessage)
-    return TaskResult.builder(ExecutionStatus.TERMINAL).context(mapOf("error" to errorMessage)).build()
+  private fun buildError(error: Any): TaskResult {
+    val normalizedError = if (error is Map<*, *>) {
+      error["error"] ?: error
+    } else {
+      error.toString()
+    }
+    log.error(normalizedError.toString())
+    return TaskResult.builder(ExecutionStatus.TERMINAL).context(mapOf("error" to normalizedError)).build()
   }
 
   override fun getBackoffPeriod() = TimeUnit.SECONDS.toMillis(30)
@@ -159,6 +168,18 @@ constructor(
       "HTTP ${response.status} ${response.url}: ${cause?.message ?: message}"
     } else {
       "$message: ${cause?.message ?: ""}"
+    }
+
+  val RetrofitError.fromIgor: Boolean
+    get() {
+      val parsedUrl = URL(url)
+      return parsedUrl.host.contains("igor") || parsedUrl.port == 8085
+    }
+
+  val RetrofitError.fromKeel: Boolean
+    get() {
+      val parsedUrl = URL(url)
+      return parsedUrl.host.contains("keel") || parsedUrl.port == 8087
     }
 
   data class ImportDeliveryConfigContext(
