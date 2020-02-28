@@ -1,7 +1,7 @@
 FROM ubuntu:bionic
 MAINTAINER sig-platform@spinnaker.io
 COPY orca-web/build/install/orca /opt/orca
-RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
+RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
 RUN mkdir plugins && chown -R 102:nogroup plugins
 USER spinnaker
