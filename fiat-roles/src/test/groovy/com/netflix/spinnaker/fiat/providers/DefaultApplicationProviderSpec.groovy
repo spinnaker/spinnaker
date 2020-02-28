@@ -49,7 +49,7 @@ class DefaultApplicationProviderSpec extends Specification {
   def "should #action applications with empty permissions when allowAccessToUnknownApplications = #allowAccessToUnknownApplications"() {
     setup:
     Front50Service front50Service = Mock(Front50Service) {
-      getAllApplications(true) >> [
+      getAllApplications(false) >> [
           new Application().setName("onlyKnownToFront50"),
           new Application().setName("app1")
                            .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
@@ -99,7 +99,7 @@ class DefaultApplicationProviderSpec extends Specification {
     def resultApps = provider.getAll()
 
     then:
-    1 * front50Service.getAllApplications(true) >> [app]
+    1 * front50Service.getAllApplications(false) >> [app]
     1 * clouddriverService.getApplications() >> []
 
     resultApps.size() == 1
@@ -125,7 +125,7 @@ class DefaultApplicationProviderSpec extends Specification {
     def resultApps = provider.getAll()
 
     then:
-    1 * front50Service.getAllApplications(true) >> [app]
+    1 * front50Service.getAllApplications(false) >> [app]
     1 * clouddriverService.getApplications() >> []
 
     resultApps.size() == 1
