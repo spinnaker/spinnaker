@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
@@ -45,7 +46,17 @@ import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDese
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -355,10 +366,14 @@ public class Stage implements Serializable {
    */
   public List<Stage> ancestors() {
     if (execution != null) {
-      return getAncestorsImpl(false);
+      Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
+      return ImmutableList.<Stage>builder()
+          .add(this)
+          .addAll(getAncestorsImpl(visited, false))
+          .build();
+    } else {
+      return emptyList();
     }
-
-    return emptyList();
   }
 
   /**
@@ -370,73 +385,81 @@ public class Stage implements Serializable {
    */
   public List<Stage> directAncestors() {
     if (execution != null) {
-      return getAncestorsImpl(true);
+      Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
+      return ImmutableList.<Stage>builder()
+          .add(this)
+          .addAll(getAncestorsImpl(visited, true))
+          .build();
+    } else {
+      return emptyList();
     }
-
-    return emptyList();
   }
 
   /**
    * Worker method to get the list of all ancestors (parents and, optionally, prerequisite stages)
    * of the current stage.
    *
+   * @param visited list of visited nodes
    * @param directParentOnly true to only include direct parents of the stage, false to also include
    *     stages this stage depends on (via requisiteRefIds)
    * @return list of ancestor stages
    */
-  private ImmutableList<Stage> getAncestorsImpl(boolean directParentOnly) {
-    Set<String> visited = new HashSet<>();
-    ImmutableList.Builder<Stage> allAncestorStages = ImmutableList.builder();
-    Queue<Stage> toVisit = new ArrayDeque<>();
+  private List<Stage> getAncestorsImpl(Set<String> visited, boolean directParentOnly) {
+    visited.add(this.refId);
 
-    toVisit.add(this);
+    if (!requisiteStageRefIds.isEmpty() && !directParentOnly) {
+      // Get stages this stage depends on via requisiteStageRefIds:
+      List<Stage> previousStages =
+          execution.getStages().stream()
+              .filter(it -> requisiteStageRefIds.contains(it.refId))
+              .filter(it -> !visited.contains(it.refId))
+              .collect(toList());
+      List<Stage> syntheticStages =
+          execution.getStages().stream()
+              .filter(
+                  s ->
+                      previousStages.stream()
+                          .map(Stage::getId)
+                          .anyMatch(id -> id.equals(s.parentStageId)))
+              .collect(toList());
+      return ImmutableList.<Stage>builder()
+          .addAll(previousStages)
+          .addAll(syntheticStages)
+          .addAll(
+              previousStages.stream()
+                  .flatMap(it -> it.getAncestorsImpl(visited, directParentOnly).stream())
+                  .collect(toList()))
+          .build();
+    } else if (parentStageId != null && !visited.contains(parentStageId)) {
+      // Get parent stages, but exclude already visited ones:
 
-    while (!toVisit.isEmpty()) {
-      Stage curStage = toVisit.remove();
-
-      if (visited.contains(curStage.id)) {
-        continue;
-      }
-
-      visited.add(curStage.id);
-      allAncestorStages.add(curStage);
-
-      // 1. Find all stages we depend on through requisiteStageRefIds and push them on the queue
-      if (!curStage.requisiteStageRefIds.isEmpty() && !directParentOnly) {
-        List<Stage> refIdPriorStages =
+      List<Stage> ancestors = new ArrayList<>();
+      if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
+        ancestors.addAll(
             execution.getStages().stream()
-                .filter(it -> curStage.requisiteStageRefIds.contains(it.refId))
-                .collect(toList());
-
-        toVisit.addAll(refIdPriorStages);
+                .filter(
+                    it ->
+                        parentStageId.equals(it.parentStageId)
+                            && it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE)
+                .collect(toList()));
       }
 
-      // 2. If we have a parent stage
-      if (curStage.parentStageId != null && !visited.contains(curStage.parentStageId)) {
-        // 2.1 AND we are an STAGE_AFTER, find all the stages with same parent as us but that are
-        // marked STAGE_BEFORE
-        if (curStage.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
-          toVisit.addAll(
-              execution.getStages().stream()
-                  .filter(
-                      it ->
-                          curStage.parentStageId.equals(it.parentStageId)
-                              && it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE)
-                  .collect(toList()));
-        }
+      ancestors.addAll(
+          execution.getStages().stream()
+              .filter(it -> it.id.equals(parentStageId))
+              .findFirst()
+              .<List<Stage>>map(
+                  parent ->
+                      ImmutableList.<Stage>builder()
+                          .add(parent)
+                          .addAll(parent.getAncestorsImpl(visited, directParentOnly))
+                          .build())
+              .orElse(emptyList()));
 
-        // 2.2 Add our direct parent to the queue
-        try {
-          toVisit.add(curStage.getParent());
-        } catch (IllegalArgumentException e) {
-          // It's not really possible for the parent not to exist.. But unittests beg to differ
-          // Not logging anything here since not having a parent would have failed and logged in
-          // other places
-        }
-      }
+      return ancestors;
+    } else {
+      return emptyList();
     }
-
-    return allAncestorStages.build();
   }
 
   /**
