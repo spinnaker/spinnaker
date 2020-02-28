@@ -22,7 +22,6 @@ import com.netflix.spinnaker.config.QosConfiguration
 import com.netflix.spinnaker.config.StackdriverConfig
 import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
-import com.netflix.spinnaker.kork.plugins.spring.SpinnakerApplication
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
