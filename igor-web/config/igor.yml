@@ -41,8 +41,8 @@ server.port: 8088
 #  Travis names are prefixed with travis- inside igor.
 #  masters:
 #    - name: ci # This will show as travis-ci inside spinnaker.
-#      baseUrl: https://travis-ci.org
-#      address: https://api.travis-ci.org
+#      baseUrl: https://travis-ci.com
+#      address: https://api.travis-ci.com
 #      githubToken: XXXXXX
 #      numberOfRepositories: 25 # How many repositories the travis integration should fetch from the api each time the
 #                               # poller runs. Should be set a bit higher than the expected maximum number of
