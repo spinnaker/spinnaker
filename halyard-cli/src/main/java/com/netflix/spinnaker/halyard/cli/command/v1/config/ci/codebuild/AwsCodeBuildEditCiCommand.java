@@ -18,11 +18,15 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.codebuild;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.account.AbstractAddAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractEditCiCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.codebuild.AwsCodeBuild;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.codebuild.AwsCodeBuildAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import lombok.Getter;
 
 @Parameters(separators = "=")
-public class AwsCodeBuildAddAccountCommand extends AbstractAddAccountCommand {
+public class AwsCodeBuildEditCiCommand
+    extends AbstractEditCiCommand<AwsCodeBuildAccount, AwsCodeBuild> {
   protected String getCiName() {
     return "codebuild";
   }
@@ -32,28 +36,23 @@ public class AwsCodeBuildAddAccountCommand extends AbstractAddAccountCommand {
     return "AWS CodeBuild";
   }
 
-  @Parameter(
-      names = "--account-id",
-      description = AwsCodeBuildCommandProperties.ACCOUNT_ID_DESCRIPTION)
-  private String accountId;
+  @Getter String shortDescription = "Set CI provider-wide properties for " + getCiFullName();
 
   @Parameter(
-      names = "--assume-role",
-      description = AwsCodeBuildCommandProperties.ASSUME_ROLE_DESCRIPTION)
-  private String assumeRole;
+      names = "--access-key-id",
+      description = AwsCodeBuildCommandProperties.ACCESS_KEY_ID_DESCRIPTION)
+  private String accessKeyId;
 
   @Parameter(
-      names = "--region",
-      required = true,
-      description = AwsCodeBuildCommandProperties.REGION_DESCRIPTION)
-  private String region;
+      names = "--secret-access-key",
+      description = AwsCodeBuildCommandProperties.SECRET_KEY_DESCRIPTION,
+      password = true)
+  private String secretAccessKey;
 
   @Override
-  protected AwsCodeBuildAccount buildAccount(String accountName) {
-    return new AwsCodeBuildAccount()
-        .setName(accountName)
-        .setAccountId(accountId)
-        .setAssumeRole(assumeRole)
-        .setRegion(region);
+  protected Ci editCi(AwsCodeBuild ci) {
+    ci.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : ci.getAccessKeyId());
+    ci.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : ci.getSecretAccessKey());
+    return ci;
   }
 }

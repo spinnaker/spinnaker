@@ -25,4 +25,9 @@ public class AwsCodeBuildCommandProperties {
       "If set, Halyard will configure a credentials provider that uses AWS "
           + "Security Token Service to assume the specified role.\n\n"
           + "Example: \"user/spinnaker\" or \"role/spinnakerManaged\"";
+  static final String ACCESS_KEY_ID_DESCRIPTION =
+      "Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials "
+          + "as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default";
+
+  static final String SECRET_KEY_DESCRIPTION = "Your AWS Secret Key.";
 }

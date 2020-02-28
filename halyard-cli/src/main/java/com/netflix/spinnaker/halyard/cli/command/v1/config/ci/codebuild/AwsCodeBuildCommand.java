@@ -35,6 +35,7 @@ public class AwsCodeBuildCommand extends AbstractNamedCiCommand {
   public AwsCodeBuildCommand() {
     super();
     registerSubcommand(new AwsCodeBuildAccountCommand());
+    registerSubcommand(new AwsCodeBuildEditCiCommand());
   }
 
   @Override

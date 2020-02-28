@@ -184,6 +184,7 @@
  * [**hal config ci codebuild account get**](#hal-config-ci-codebuild-account-get)
  * [**hal config ci codebuild account list**](#hal-config-ci-codebuild-account-list)
  * [**hal config ci codebuild disable**](#hal-config-ci-codebuild-disable)
+ * [**hal config ci codebuild edit**](#hal-config-ci-codebuild-edit)
  * [**hal config ci codebuild enable**](#hal-config-ci-codebuild-enable)
  * [**hal config ci concourse**](#hal-config-ci-concourse)
  * [**hal config ci concourse disable**](#hal-config-ci-concourse-disable)
@@ -3702,6 +3703,7 @@ hal config ci codebuild [parameters] [subcommands]
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for AWS CodeBuild service account.
  * `disable`: Set the codebuild ci as disabled
+ * `edit`: Set CI provider-wide properties for AWS CodeBuild
  * `enable`: Set the codebuild ci as enabled
 
 ---
@@ -3738,8 +3740,8 @@ hal config ci codebuild account add ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--account-id`: (*Required*) The AWS account ID that will be used to trigger CodeBuild build.
- * `--assume-role`: (*Required*) If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
+ * `--account-id`: The AWS account ID that will be used to trigger CodeBuild build.
+ * `--assume-role`: If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
@@ -3828,6 +3830,23 @@ hal config ci codebuild disable [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci codebuild edit
+
+Set CI provider-wide properties for AWS CodeBuild
+
+#### Usage
+```
+hal config ci codebuild edit [parameters]
+```
+
+#### Parameters
+ * `--access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at [http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default](http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default)
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 
 ---

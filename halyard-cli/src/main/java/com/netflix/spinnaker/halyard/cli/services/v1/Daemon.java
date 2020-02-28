@@ -726,6 +726,14 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> setCi(
+      String deploymentName, String ciName, boolean validate, Ci ci) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setCi(deploymentName, ciName, validate, ci));
+      return null;
+    };
+  }
+
   public static Supplier<Void> setCiEnableDisable(
       String deploymentName, String ciName, boolean validate, boolean enable) {
     return () -> {

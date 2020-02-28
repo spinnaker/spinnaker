@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructur
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.ci.CiService;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
@@ -63,6 +64,21 @@ public abstract class CiController<T extends CIAccount, U extends Ci<T>> {
         .description("Get " + ciService.ciName() + " ci")
         .build()
         .execute(validationSettings);
+  }
+
+  @RequestMapping(value = "/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setCi(
+      @PathVariable String deploymentName,
+      @ModelAttribute ValidationSettings validationSettings,
+      @RequestBody Object rawCi) {
+    Ci ci = objectMapper.convertValue(rawCi, Cis.translateCiType(ciService.ciName()));
+    return GenericUpdateRequest.<Ci>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(c -> ciService.setCi(deploymentName, c))
+        .validator(() -> ciService.validateCi(deploymentName))
+        .description("Edit " + ciService.ciName() + " settings")
+        .build()
+        .execute(validationSettings, ci);
   }
 
   @RequestMapping(value = "/enabled", method = RequestMethod.PUT)

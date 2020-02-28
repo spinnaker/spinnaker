@@ -26,6 +26,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class AwsCodeBuild extends Ci<AwsCodeBuildAccount> {
   private boolean enabled;
+  private String accessKeyId;
+  private String secretAccessKey;
   private List<AwsCodeBuildAccount> accounts = new ArrayList<>();
 
   public List<AwsCodeBuildAccount> listAccounts() {

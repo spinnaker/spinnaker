@@ -19,10 +19,14 @@ package com.netflix.spinnaker.halyard.config.services.v1.ci;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.codebuild.AwsCodeBuild;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
 import com.netflix.spinnaker.halyard.config.services.v1.ValidateService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -41,18 +45,21 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
   protected final LookupService lookupService;
   protected final ObjectMapper objectMapper;
   private final ValidateService validateService;
+  private final DeploymentService deploymentService;
 
   @Component
   @RequiredArgsConstructor
   public static class Members {
     private final LookupService lookupService;
     private final ValidateService validateService;
+    private final DeploymentService deploymentService;
     private final ObjectMapper objectMapper = new ObjectMapper();
   }
 
   public CiService(Members members) {
     this.lookupService = members.lookupService;
     this.validateService = members.validateService;
+    this.deploymentService = members.deploymentService;
     this.objectMapper = members.objectMapper;
   }
 
@@ -86,6 +93,20 @@ public abstract class CiService<T extends CIAccount, U extends Ci<T>> {
                     Severity.FATAL,
                     String.format("More than one CI with name '%s' found", ciName()))
                 .build());
+    }
+  }
+
+  public void setCi(String deploymentName, Ci ci) {
+    DeploymentConfiguration deploymentConfiguration =
+        deploymentService.getDeploymentConfiguration(deploymentName);
+    Cis cis = deploymentConfiguration.getCi();
+    switch (ci.getNodeName()) {
+      case "codebuild":
+        cis.setCodebuild((AwsCodeBuild) ci);
+        break;
+      default:
+        throw new IllegalArgumentException(
+            "SetCi is not supported by ci provider " + ci.getNodeName());
     }
   }
 

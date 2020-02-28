@@ -718,6 +718,13 @@ public interface DaemonService {
       @Path("ciName") String ciName,
       @Query("validate") boolean validate);
 
+  @PUT("/v1/config/deployments/{deploymentName}/ci/{ciName}/")
+  DaemonTask<Halconfig, Void> setCi(
+      @Path("deploymentName") String deploymentName,
+      @Path("ciName") String ciName,
+      @Query("validate") boolean validate,
+      @Body Ci ci);
+
   @PUT("/v1/config/deployments/{deploymentName}/ci/{ciName}/enabled/")
   DaemonTask<Halconfig, Void> setCiEnabled(
       @Path("deploymentName") String deploymentName,
