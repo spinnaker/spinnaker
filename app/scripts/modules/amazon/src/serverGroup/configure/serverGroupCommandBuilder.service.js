@@ -3,7 +3,13 @@
 import * as angular from 'angular';
 import _ from 'lodash';
 
-import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils, SubnetReader } from '@spinnaker/core';
+import {
+  AccountService,
+  DeploymentStrategyRegistry,
+  INSTANCE_TYPE_SERVICE,
+  NameUtils,
+  SubnetReader,
+} from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
@@ -291,6 +297,8 @@ angular
             command.useSourceCapacity = true;
             command.viewState.useSimpleCapacity = false;
             command.strategy = 'redblack';
+            const redblack = DeploymentStrategyRegistry.getStrategy('redblack');
+            redblack.initializationMethod && redblack.initializationMethod(command);
             command.suspendedProcesses = [];
           }
 
