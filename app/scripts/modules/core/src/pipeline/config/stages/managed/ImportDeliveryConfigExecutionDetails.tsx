@@ -2,9 +2,68 @@ import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';
 import { IGitTrigger } from 'core/domain';
+import { CollapsibleSection, Markdown } from 'core/presentation';
 import { SETTINGS } from 'core/config';
 
 const NOT_FOUND = 'Not found';
+
+// Turn off linter for the block below because it wants CamelCase property names.
+/* eslint-disable @typescript-eslint/camelcase */
+const ERROR_MESSAGE_MAP = {
+  missing_property: 'The following property is missing:',
+  invalid_type: 'The type of the following property is invalid:',
+  invalid_format: 'The format of the following property is invalid:',
+  invalid_value: 'The value of the following property is invalid:',
+};
+/* eslint-enable */
+
+interface IDeliveryConfigImportErrorDetails {
+  error: 'missing_property' | 'invalid_type' | 'invalid_format' | 'invalid_value';
+  message: string;
+  pathExpression: string;
+}
+
+interface IDeliveryConfigImportError {
+  message: string;
+  details?: IDeliveryConfigImportErrorDetails;
+}
+
+const CustomErrorMessage = ({ summary, debugDetails }: { summary: string; debugDetails?: string }) => {
+  return (
+    <div>
+      <div className="alert alert-danger">
+        <b>There was an error parsing your delivery config file.</b>
+        <br />
+        <Markdown message={summary} style={{ wordBreak: 'break-all' }} />
+        <br />
+        {debugDetails && (
+          <CollapsibleSection heading={({ chevron }) => <span>{chevron} Debug Details</span>}>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{debugDetails}</pre>
+          </CollapsibleSection>
+        )}
+      </div>
+    </div>
+  );
+};
+
+function extractCustomError(error: IDeliveryConfigImportError): { summary: string; debugDetails?: string } {
+  if (!error) {
+    return null;
+  }
+
+  if (!error.details) {
+    return { summary: error.message };
+  }
+
+  // Replace dots with slashes for paths because it feels more familiar. Also ditch the very first slash/dot as it just adds noise.
+  const pathExpression = error.details.pathExpression.substring(1).replace(/\./g, '/');
+
+  const errorMessage = ERROR_MESSAGE_MAP[error.details.error]
+    ? `${ERROR_MESSAGE_MAP[error.details.error]}<br/> \`${pathExpression}\``
+    : 'Unknown error';
+
+  return { summary: errorMessage, debugDetails: error.details.message };
+}
 
 export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
@@ -13,6 +72,8 @@ export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSec
     SETTINGS.managedDelivery?.manifestBasePath +
     '/' +
     (stage.context.manifest ?? SETTINGS.managedDelivery?.defaultManifest);
+
+  const customError = extractCustomError(stage.context.error as IDeliveryConfigImportError);
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
@@ -35,7 +96,11 @@ export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSec
         </div>
       </div>
 
-      <StageFailureMessage stage={stage} message={stage.context.error || stage.failureMessage} />
+      {customError ? (
+        <CustomErrorMessage summary={customError.summary} debugDetails={customError.debugDetails} />
+      ) : (
+        <StageFailureMessage stage={stage} />
+      )}
     </ExecutionDetailsSection>
   );
 }
