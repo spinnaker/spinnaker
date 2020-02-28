@@ -247,7 +247,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     operation.subnetSelector = subnetSelector
     operation.securityGroupSelector = securityGroupSelector
 
-    subnetSelector.resolveSubnetsIds(_, _, _) >> ['subnet-12345']
+    subnetSelector.resolveSubnetsIds(_, _, _, _) >> ['subnet-12345']
     subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-123']
     securityGroupSelector.resolveSecurityGroupNames(_, _, _, _) >> ['sg-12345']
 

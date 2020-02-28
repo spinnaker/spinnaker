@@ -66,7 +66,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     1 * errors.rejectValue('capacity.desired', "${getDescriptionName()}.capacity.desired.less.than.min")
   }
 
-  void 'should fail when more than one availability zones is present'() {
+  void 'should fail when more than one region is present'() {
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.availabilityZones = ['us-west-1': ['us-west-1a'], 'us-west-2': ['us-west-2a']]
@@ -77,6 +77,19 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
 
     then:
     1 * errors.rejectValue('availabilityZones', "${getDescriptionName()}.availabilityZones.must.have.only.one")
+  }
+
+  void 'should fail when no availability zones are present'() {
+    given:
+    def description = (CreateServerGroupDescription) getDescription()
+    description.availabilityZones = ['us-west-1': []]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('availabilityZones.zones', "${getDescriptionName()}.availabilityZones.zones.not.nullable")
   }
 
   void 'should fail when environment variables contain reserved key'() {

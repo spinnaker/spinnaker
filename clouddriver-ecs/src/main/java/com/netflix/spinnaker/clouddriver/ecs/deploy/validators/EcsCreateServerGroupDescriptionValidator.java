@@ -61,6 +61,12 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       if (createServerGroupDescription.getAvailabilityZones().size() != 1) {
         rejectValue(errors, "availabilityZones", "must.have.only.one");
       }
+
+      List<String> zones =
+          createServerGroupDescription.getAvailabilityZones().values().iterator().next();
+      if (zones == null || zones.isEmpty()) {
+        rejectValue(errors, "availabilityZones.zones", "not.nullable");
+      }
     } else {
       rejectValue(errors, "availabilityZones", "not.nullable");
     }

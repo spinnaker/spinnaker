@@ -515,7 +515,10 @@ public class CreateServerGroupAtomicOperation
     if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
       Collection<String> subnetIds =
           subnetSelector.resolveSubnetsIds(
-              description.getAccount(), description.getRegion(), description.getSubnetType());
+              description.getAccount(),
+              description.getRegion(),
+              description.getAvailabilityZones().get(description.getRegion()),
+              description.getSubnetType());
       Collection<String> vpcIds =
           subnetSelector.getSubnetVpcIds(
               description.getAccount(), description.getRegion(), subnetIds);

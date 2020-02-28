@@ -31,10 +31,13 @@ class SubnetSelectorSpec extends Specification {
   public static final String ECS_ACCOUNT = 'ecsAccount'
   public static final String AWS_ACCOUNT = 'awsAccount'
   public static final String REGION = 'us-west-2'
+  public static final String AVAILABILITY_ZONE_1 = 'us-west-2a'
+  public static final String AVAILABILITY_ZONE_2 = 'us-west-2b'
   public static final String GOOD_SUBNET_ID_1 = 'subnet-aa123456'
   public static final String GOOD_SUBNET_ID_2 = 'subnet-bb123123'
   public static final String GOOD_SUBNET_ID_3 = 'subnet-dd345345'
   public static final String BAD_SUBNET_ID = 'subnet-cc233323'
+  public static final String BAD_SUBNET_ID_2 = 'subnet-12345678'
   public static final String VPC_ID_1 = 'vpc-1'
   public static final String VPC_ID_2 = 'vpc-2'
 
@@ -51,38 +54,59 @@ class SubnetSelectorSpec extends Specification {
     def subnet1 = new AmazonSubnet()
     subnet1.account = AWS_ACCOUNT
     subnet1.region = REGION
+    subnet1.availabilityZone = AVAILABILITY_ZONE_1
     subnet1.purpose = subnetTypeNameWeWantToRetrieve
     subnet1.id = GOOD_SUBNET_ID_1
+
 
     def subnet2 = new AmazonSubnet()
     subnet2.account = AWS_ACCOUNT
     subnet2.region = REGION
+    subnet2.availabilityZone = AVAILABILITY_ZONE_1
     subnet2.purpose = subnetTypeNameWeWantToRetrieve
     subnet2.id = GOOD_SUBNET_ID_2
 
     def subnet3 = new AmazonSubnet()
     subnet3.account = AWS_ACCOUNT
     subnet3.region = REGION
+    subnet3.availabilityZone = AVAILABILITY_ZONE_1
     subnet3.purpose = subnetTypeNameWeDoNotWantToRetrieve
     subnet3.id = BAD_SUBNET_ID
+
+    def subnet4 = new AmazonSubnet()
+    subnet4.account = AWS_ACCOUNT
+    subnet4.region = REGION
+    subnet4.availabilityZone = AVAILABILITY_ZONE_2
+    subnet4.purpose = subnetTypeNameWeWantToRetrieve
+    subnet3.id = BAD_SUBNET_ID_2
 
     def ecsSubnet1 = new EcsSubnet()
     ecsSubnet1.account = ECS_ACCOUNT
     ecsSubnet1.region = REGION
+    ecsSubnet1.availabilityZone = AVAILABILITY_ZONE_1
     ecsSubnet1.purpose = subnetTypeNameWeWantToRetrieve
     ecsSubnet1.id = GOOD_SUBNET_ID_1
 
     def ecsSubnet2 = new EcsSubnet()
     ecsSubnet2.account = ECS_ACCOUNT
     ecsSubnet2.region = REGION
+    ecsSubnet2.availabilityZone = AVAILABILITY_ZONE_1
     ecsSubnet2.purpose = subnetTypeNameWeWantToRetrieve
     ecsSubnet2.id = GOOD_SUBNET_ID_2
 
     def ecsSubnet3 = new EcsSubnet()
     ecsSubnet3.account = ECS_ACCOUNT
     ecsSubnet3.region = REGION
+    ecsSubnet3.availabilityZone = AVAILABILITY_ZONE_1
     ecsSubnet3.purpose = subnetTypeNameWeDoNotWantToRetrieve
     ecsSubnet3.id = BAD_SUBNET_ID
+
+    def ecsSubnet4 = new EcsSubnet()
+    ecsSubnet4.account = ECS_ACCOUNT
+    ecsSubnet4.region = REGION
+    ecsSubnet4.availabilityZone = AVAILABILITY_ZONE_2
+    ecsSubnet4.purpose = subnetTypeNameWeWantToRetrieve
+    ecsSubnet4.id = BAD_SUBNET_ID_2
 
     awsAccount.name >> AWS_ACCOUNT
 
@@ -101,6 +125,7 @@ class SubnetSelectorSpec extends Specification {
     def retrievedSubnetIds = subnetSelector.resolveSubnetsIds(
       ECS_ACCOUNT,
       REGION,
+      [AVAILABILITY_ZONE_1],
       subnetTypeNameWeWantToRetrieve
     )
     retrievedSubnetIds.sort()
@@ -110,6 +135,7 @@ class SubnetSelectorSpec extends Specification {
     retrievedSubnetIds.containsAll(desiredSubnetIds)
     desiredSubnetIds.containsAll(retrievedSubnetIds)
     !desiredSubnetIds.contains(BAD_SUBNET_ID)
+    !desiredSubnetIds.contains(BAD_SUBNET_ID_2)
   }
 
 

@@ -46,7 +46,10 @@ public class SubnetSelector {
   }
 
   public Collection<String> resolveSubnetsIds(
-      String ecsAccountName, String region, String subnetType) {
+      String ecsAccountName,
+      String region,
+      Collection<String> availabilityZones,
+      String subnetType) {
     String correspondingAwsAccountName =
         ecsAccountMapper.fromEcsAccountNameToAws(ecsAccountName).getName();
 
@@ -59,6 +62,7 @@ public class SubnetSelector {
     Set<String> filteredSubnetIds =
         ecsSubnets.stream()
             .filter(subnet -> subnetType.equals(subnet.getPurpose()))
+            .filter(subnet -> availabilityZones.contains(subnet.getAvailabilityZone()))
             .map(AmazonSubnet::getId)
             .collect(Collectors.toSet());
 
