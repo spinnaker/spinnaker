@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(BitbucketArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class BitbucketArtifactConfiguration {
+class BitbucketArtifactConfiguration {
   private final BitbucketArtifactProviderProperties bitbucketArtifactProviderProperties;
 
   @Bean

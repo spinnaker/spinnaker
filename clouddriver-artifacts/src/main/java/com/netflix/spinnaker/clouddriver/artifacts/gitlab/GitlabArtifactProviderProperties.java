@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.gitlab")
-public class GitlabArtifactProviderProperties implements ArtifactProvider<GitlabArtifactAccount> {
+final class GitlabArtifactProviderProperties implements ArtifactProvider<GitlabArtifactAccount> {
   private boolean enabled;
   private List<GitlabArtifactAccount> accounts = new ArrayList<>();
 }

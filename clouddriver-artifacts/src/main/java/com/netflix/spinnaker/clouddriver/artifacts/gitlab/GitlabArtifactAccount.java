@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import lombok.Data;
 
 @Data
-public class GitlabArtifactAccount implements ArtifactAccount, TokenAuth {
+final class GitlabArtifactAccount implements ArtifactAccount, TokenAuth {
   private String name;
   private String token;
   private String tokenFile;

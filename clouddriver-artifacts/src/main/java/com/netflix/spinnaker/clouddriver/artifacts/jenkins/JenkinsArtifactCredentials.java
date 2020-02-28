@@ -27,9 +27,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JenkinsArtifactCredentials
-    extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount> implements ArtifactCredentials {
-  public static final String TYPE = "jenkins/file";
+final class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount>
+    implements ArtifactCredentials {
+  private static final String TYPE = "jenkins/file";
 
   @Getter private final String name;
 

@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.maven")
-public class MavenArtifactProviderProperties {
+final class MavenArtifactProviderProperties {
   private boolean enabled;
   private List<MavenArtifactAccount> accounts = new ArrayList<>();
 }

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
 
 @Data
-public class GcsArtifactAccount implements ArtifactAccount {
+final class GcsArtifactAccount implements ArtifactAccount {
   private String name;
   private String jsonPath;
 }

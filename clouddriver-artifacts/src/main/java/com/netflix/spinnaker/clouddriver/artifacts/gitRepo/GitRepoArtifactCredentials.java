@@ -51,7 +51,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
 @Slf4j
-public class GitRepoArtifactCredentials implements ArtifactCredentials {
+final class GitRepoArtifactCredentials implements ArtifactCredentials {
   @Getter private final List<String> types = Collections.singletonList("git/repo");
 
   @Getter private final String name;

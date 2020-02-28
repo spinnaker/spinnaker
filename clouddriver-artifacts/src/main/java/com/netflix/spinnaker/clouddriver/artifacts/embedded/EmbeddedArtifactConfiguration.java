@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class EmbeddedArtifactConfiguration {
+class EmbeddedArtifactConfiguration {
   @Bean
   List<? extends EmbeddedArtifactCredentials> embeddedArtifactCredentials() {
     EmbeddedArtifactAccount account = new EmbeddedArtifactAccount();

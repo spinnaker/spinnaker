@@ -25,7 +25,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SshResolver extends Resolver<org.apache.ivy.plugins.resolver.SshResolver> {
+final class SshResolver extends Resolver<org.apache.ivy.plugins.resolver.SshResolver> {
   /** The username to provide as a credential. */
   @JacksonXmlProperty(isAttribute = true)
   private String user;

@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
 
 @Data
-public class GitRepoArtifactAccount implements ArtifactAccount {
+final class GitRepoArtifactAccount implements ArtifactAccount {
 
   private String name;
 

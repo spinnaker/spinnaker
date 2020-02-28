@@ -19,6 +19,6 @@ package com.netflix.spinnaker.clouddriver.artifacts.ivy.settings;
 import lombok.Data;
 
 @Data
-public class Pattern {
+final class Pattern {
   private String pattern;
 }

@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
 import lombok.Data;
 
 @Data
-public class HelmArtifactAccount implements ArtifactAccount, BasicAuth {
+final class HelmArtifactAccount implements ArtifactAccount, BasicAuth {
   private String name;
   /*
    One of the following are required for auth:

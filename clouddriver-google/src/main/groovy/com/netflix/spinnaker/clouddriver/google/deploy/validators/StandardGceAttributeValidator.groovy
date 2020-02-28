@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -255,7 +255,7 @@ class StandardGceAttributeValidator {
       // If there's no artifact at all, return early rather than try to validate the null artifact
       return false
     }
-    if (imageArtifact.getType() != ArtifactUtils.GCE_IMAGE_TYPE) {
+    if (imageArtifact.getType() != GCEUtil.GCE_IMAGE_TYPE) {
       errors.rejectValue("imageArtifact.type", "${context}.imageArtifact.type.invalid")
     }
   }

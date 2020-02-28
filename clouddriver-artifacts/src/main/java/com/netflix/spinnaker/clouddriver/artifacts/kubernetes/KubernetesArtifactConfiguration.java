@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty("kubernetes.enabled")
 @RequiredArgsConstructor
 @Slf4j
-public class KubernetesArtifactConfiguration {
+class KubernetesArtifactConfiguration {
   @Bean
   List<? extends KubernetesArtifactCredentials> kubernetesArtifactAccounts() {
     return Collections.singletonList(

@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(GitlabArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class GitlabArtifactConfiguration {
+class GitlabArtifactConfiguration {
   private final GitlabArtifactProviderProperties gitlabArtifactProviderProperties;
 
   @Bean

@@ -24,7 +24,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 @Data
-public class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
+final class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
   private String name;
   /*
    One of the following are required for auth:

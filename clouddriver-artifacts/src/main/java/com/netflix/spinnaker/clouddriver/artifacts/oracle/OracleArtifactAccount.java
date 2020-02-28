@@ -13,7 +13,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
 
 @Data
-public class OracleArtifactAccount implements ArtifactAccount {
+final class OracleArtifactAccount implements ArtifactAccount {
   private String name;
 
   private String namespace;

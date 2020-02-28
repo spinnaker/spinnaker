@@ -48,7 +48,7 @@ import org.eclipse.aether.version.Version;
 import org.eclipse.aether.version.VersionConstraint;
 import org.eclipse.aether.version.VersionScheme;
 
-public class MavenArtifactCredentials implements ArtifactCredentials {
+public final class MavenArtifactCredentials implements ArtifactCredentials {
   private static final String RELEASE = "RELEASE";
   private static final String SNAPSHOT = "SNAPSHOT";
   private static final String LATEST = "LATEST";

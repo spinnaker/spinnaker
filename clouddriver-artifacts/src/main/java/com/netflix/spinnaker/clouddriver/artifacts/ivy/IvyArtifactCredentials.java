@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
-public class IvyArtifactCredentials implements ArtifactCredentials {
+final class IvyArtifactCredentials implements ArtifactCredentials {
   @Getter private final List<String> types = Collections.singletonList("ivy/file");
   private final IvyArtifactAccount account;
   private final Supplier<Path> cacheBuilder;

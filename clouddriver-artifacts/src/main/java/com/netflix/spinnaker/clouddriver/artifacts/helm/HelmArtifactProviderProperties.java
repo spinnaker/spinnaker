@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.helm")
-public class HelmArtifactProviderProperties implements ArtifactProvider<HelmArtifactAccount> {
+final class HelmArtifactProviderProperties implements ArtifactProvider<HelmArtifactAccount> {
   private boolean enabled;
   private List<HelmArtifactAccount> accounts = new ArrayList<>();
 }

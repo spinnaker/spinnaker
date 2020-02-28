@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(HelmArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class HelmArtifactConfiguration {
+class HelmArtifactConfiguration {
   private final HelmArtifactProviderProperties helmArtifactProviderProperties;
 
   @Bean

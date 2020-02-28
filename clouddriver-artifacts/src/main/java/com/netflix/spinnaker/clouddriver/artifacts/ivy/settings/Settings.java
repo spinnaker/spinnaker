@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import lombok.Data;
 
 @Data
-public class Settings {
+final class Settings {
   @Nullable
   @JacksonXmlProperty(isAttribute = true)
   private String defaultResolver;

@@ -23,12 +23,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("jenkins")
-public class JenkinsProperties {
+final class JenkinsProperties {
   private boolean enabled;
   private List<Master> masters = new ArrayList<>();
 
   @Data
-  public static class Master {
+  static final class Master {
     private String name;
     private String address;
     private String username;

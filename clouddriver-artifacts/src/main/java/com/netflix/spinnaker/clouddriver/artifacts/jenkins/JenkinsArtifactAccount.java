@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
-public class JenkinsArtifactAccount implements ArtifactAccount, BasicAuth {
+final class JenkinsArtifactAccount implements ArtifactAccount, BasicAuth {
   private final String name;
   private final String username;
   private final String password;

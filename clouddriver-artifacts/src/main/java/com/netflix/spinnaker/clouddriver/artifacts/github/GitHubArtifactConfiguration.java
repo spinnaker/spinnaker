@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(GitHubArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class GitHubArtifactConfiguration {
+class GitHubArtifactConfiguration {
   private final GitHubArtifactProviderProperties gitHubArtifactProviderProperties;
   private final ObjectMapper objectMapper;
 

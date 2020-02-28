@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class OracleArtifactCredentials implements ArtifactCredentials {
+final class OracleArtifactCredentials implements ArtifactCredentials {
   private static final String ARTIFACT_REFERENCE_PREFIX = "oci://";
 
   private static final String ARTIFACT_URI =

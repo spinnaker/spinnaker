@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
 import lombok.Data;
 
 @Data
-public class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth {
+final class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth {
   private String name;
   private String username;
   private String password;

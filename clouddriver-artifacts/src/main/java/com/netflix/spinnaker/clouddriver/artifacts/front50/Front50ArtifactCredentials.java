@@ -35,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class Front50ArtifactCredentials implements ArtifactCredentials {
-  public static final String ACCOUNT_NAME = "front50ArtifactCredentials";
+final class Front50ArtifactCredentials implements ArtifactCredentials {
+  private static final String ACCOUNT_NAME = "front50ArtifactCredentials";
   private static final String URL_PREFIX = "spinnaker://";
 
   @Getter private final String name = ACCOUNT_NAME;

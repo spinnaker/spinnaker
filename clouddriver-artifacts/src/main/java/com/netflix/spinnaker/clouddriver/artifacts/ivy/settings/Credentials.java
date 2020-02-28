@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import lombok.Data;
 
 @Data
-public class Credentials {
+final class Credentials {
   @JacksonXmlProperty(isAttribute = true)
   private String host;
 

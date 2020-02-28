@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(MavenArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class MavenArtifactConfiguration {
+class MavenArtifactConfiguration {
   private final MavenArtifactProviderProperties mavenArtifactProviderProperties;
 
   @Bean

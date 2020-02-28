@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.s3")
-public class S3ArtifactProviderProperties implements ArtifactProvider<S3ArtifactAccount> {
+final class S3ArtifactProviderProperties implements ArtifactProvider<S3ArtifactAccount> {
   private boolean enabled;
   private List<S3ArtifactAccount> accounts = new ArrayList<>();
 }

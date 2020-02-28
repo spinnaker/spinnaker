@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
 
 @Data
-public class MavenArtifactAccount implements ArtifactAccount {
+final class MavenArtifactAccount implements ArtifactAccount {
   private String name;
   private String repositoryUrl;
 }

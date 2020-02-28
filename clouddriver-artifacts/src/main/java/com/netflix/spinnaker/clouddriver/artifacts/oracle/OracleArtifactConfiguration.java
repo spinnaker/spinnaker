@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(OracleArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class OracleArtifactConfiguration {
+class OracleArtifactConfiguration {
   private final OracleArtifactProviderProperties oracleArtifactProviderProperties;
 
   @Bean

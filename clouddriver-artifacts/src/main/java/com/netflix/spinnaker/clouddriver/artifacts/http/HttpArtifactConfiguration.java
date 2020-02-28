@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(HttpArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class HttpArtifactConfiguration {
+class HttpArtifactConfiguration {
   private final HttpArtifactProviderProperties httpArtifactProviderProperties;
 
   @Bean

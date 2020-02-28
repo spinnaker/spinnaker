@@ -28,7 +28,6 @@ import com.google.api.services.storage.model.StorageObject;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

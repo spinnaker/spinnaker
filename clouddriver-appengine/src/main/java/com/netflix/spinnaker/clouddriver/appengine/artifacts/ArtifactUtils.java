@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts;
+package com.netflix.spinnaker.clouddriver.appengine.artifacts;
 
 import java.io.*;
 import java.util.Stack;
@@ -24,8 +24,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
 public class ArtifactUtils {
-  public static final String GCE_IMAGE_TYPE = "gce/image";
-
   public static void untarStreamToPath(InputStream inputStream, String basePath)
       throws IOException {
     class DirectoryTimestamp {

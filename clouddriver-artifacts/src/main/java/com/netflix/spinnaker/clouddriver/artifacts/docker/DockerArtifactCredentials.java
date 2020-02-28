@@ -27,13 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-public class DockerArtifactCredentials implements ArtifactCredentials {
+final class DockerArtifactCredentials implements ArtifactCredentials {
   public static final String TYPE = "docker/image";
 
   private final String name;
   private final List<String> types = Collections.singletonList(TYPE);
 
-  public DockerArtifactCredentials(DockerArtifactAccount account) {
+  DockerArtifactCredentials(DockerArtifactAccount account) {
     this.name = account.getName();
   }
 

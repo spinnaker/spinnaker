@@ -24,7 +24,7 @@ import lombok.Data;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 @Data
-public class Resolvers {
+final class Resolvers {
   @JacksonXmlElementWrapper(useWrapping = false)
   @Nullable
   private List<BintrayResolver> bintray;

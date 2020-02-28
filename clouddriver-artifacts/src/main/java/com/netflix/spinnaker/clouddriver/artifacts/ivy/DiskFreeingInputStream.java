@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 /** An {@link java.io.InputStream} that frees local disk resources when closed. */
-public class DiskFreeingInputStream extends InputStream {
+final class DiskFreeingInputStream extends InputStream {
   private final InputStream delegate;
   private final Path deleteOnClose;
 

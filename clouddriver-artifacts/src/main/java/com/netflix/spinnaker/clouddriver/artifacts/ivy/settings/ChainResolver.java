@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ChainResolver extends Resolver<org.apache.ivy.plugins.resolver.ChainResolver> {
+final class ChainResolver extends Resolver<org.apache.ivy.plugins.resolver.ChainResolver> {
   @JsonIgnore private final Resolvers resolvers = new Resolvers();
   /** If the first found should be returned. */
   @JacksonXmlProperty(isAttribute = true)

@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(IvyArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class IvyArtifactConfiguration {
+class IvyArtifactConfiguration {
   private final IvyArtifactProviderProperties ivyArtifactProviderProperties;
 
   @Bean

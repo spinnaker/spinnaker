@@ -17,7 +17,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.oracle")
-public class OracleArtifactProviderProperties implements ArtifactProvider<OracleArtifactAccount> {
+final class OracleArtifactProviderProperties implements ArtifactProvider<OracleArtifactAccount> {
   private boolean enabled;
   private List<OracleArtifactAccount> accounts = new ArrayList<>();
 }

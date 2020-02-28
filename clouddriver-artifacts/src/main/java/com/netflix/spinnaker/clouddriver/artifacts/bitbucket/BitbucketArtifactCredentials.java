@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class BitbucketArtifactCredentials
+final class BitbucketArtifactCredentials
     extends SimpleHttpArtifactCredentials<BitbucketArtifactAccount> implements ArtifactCredentials {
   @Getter private final String name;
   @Getter private final List<String> types = Collections.singletonList("bitbucket/file");

@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.bitbucket")
-public class BitbucketArtifactProviderProperties
+final class BitbucketArtifactProviderProperties
     implements ArtifactProvider<BitbucketArtifactAccount> {
   private boolean enabled;
   private List<BitbucketArtifactAccount> accounts = new ArrayList<>();

@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(JenkinsProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class JenkinsArtifactConfiguration {
+class JenkinsArtifactConfiguration {
   private final JenkinsProperties jenkinsProperties;
 
   @Bean

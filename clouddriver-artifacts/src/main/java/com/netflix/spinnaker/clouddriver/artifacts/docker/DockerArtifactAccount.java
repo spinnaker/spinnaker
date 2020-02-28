@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 
-public class DockerArtifactAccount implements ArtifactAccount {
+final class DockerArtifactAccount implements ArtifactAccount {
   @Override
   public String getName() {
     return "docker-registry";

@@ -24,7 +24,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class IvyArtifactAccount implements ArtifactAccount {
+final class IvyArtifactAccount implements ArtifactAccount {
   private String name;
   private IvySettings settings;
   private List<String> resolveConfigurations = singletonList("master");

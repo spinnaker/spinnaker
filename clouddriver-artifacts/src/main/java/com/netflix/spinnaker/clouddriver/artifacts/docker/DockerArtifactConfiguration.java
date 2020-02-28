@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty("kubernetes.enabled")
 @RequiredArgsConstructor
 @Slf4j
-public class DockerArtifactConfiguration {
+class DockerArtifactConfiguration {
   @Bean
   List<? extends DockerArtifactCredentials> dockerArtifactCredentials() {
     return Collections.singletonList(new DockerArtifactCredentials(new DockerArtifactAccount()));

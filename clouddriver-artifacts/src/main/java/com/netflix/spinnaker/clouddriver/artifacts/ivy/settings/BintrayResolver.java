@@ -23,7 +23,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class BintrayResolver extends Resolver<org.apache.ivy.plugins.resolver.BintrayResolver> {
+final class BintrayResolver extends Resolver<org.apache.ivy.plugins.resolver.BintrayResolver> {
   /** Bintray username of a repository owner. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable

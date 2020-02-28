@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class Front50ArtifactConfiguration {
+class Front50ArtifactConfiguration {
   @Bean
   List<? extends Front50ArtifactCredentials> front50ArtifactCredentials(
       ObjectMapper objectMapper, Front50Service front50Service) {

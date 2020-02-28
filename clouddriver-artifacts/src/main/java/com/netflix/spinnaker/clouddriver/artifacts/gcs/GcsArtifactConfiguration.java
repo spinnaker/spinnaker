@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(GcsArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class GcsArtifactConfiguration {
+class GcsArtifactConfiguration {
   private final GcsArtifactProviderProperties gcsArtifactProviderProperties;
 
   @Bean

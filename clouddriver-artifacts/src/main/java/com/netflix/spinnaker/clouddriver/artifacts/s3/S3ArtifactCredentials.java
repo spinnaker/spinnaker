@@ -32,7 +32,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class S3ArtifactCredentials implements ArtifactCredentials {
+final class S3ArtifactCredentials implements ArtifactCredentials {
   @Getter private final String name;
   @Getter private final List<String> types = Collections.singletonList("s3/object");
 

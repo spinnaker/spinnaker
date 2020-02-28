@@ -33,7 +33,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArtifactAccount>
+final class HelmArtifactCredentials extends BaseHttpArtifactCredentials<HelmArtifactAccount>
     implements ArtifactCredentials {
   @Getter private final String name;
   @Getter private final List<String> types = Collections.singletonList("helm/chart");

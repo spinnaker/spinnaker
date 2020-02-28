@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.gcsClient
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.artifacts.GcsStorageService
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineRepositoryClient
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
+import com.netflix.spinnaker.clouddriver.appengine.artifacts.ArtifactUtils
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j

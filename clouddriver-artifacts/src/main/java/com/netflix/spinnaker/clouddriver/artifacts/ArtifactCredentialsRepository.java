@@ -40,7 +40,7 @@ public class ArtifactCredentialsRepository {
                 .collect(Collectors.toList()));
   }
 
-  public ArtifactCredentials getCredentials(String accountName) {
+  private ArtifactCredentials getCredentials(String accountName) {
     return getAllCredentials().stream()
         .filter(e -> e.getName().equals(accountName))
         .findFirst()

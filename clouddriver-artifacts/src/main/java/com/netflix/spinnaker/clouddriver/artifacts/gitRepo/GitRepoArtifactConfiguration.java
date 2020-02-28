@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(GitRepoArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class GitRepoArtifactConfiguration {
+class GitRepoArtifactConfiguration {
   private final GitRepoArtifactProviderProperties gitRepoArtifactProviderProperties;
 
   @Bean

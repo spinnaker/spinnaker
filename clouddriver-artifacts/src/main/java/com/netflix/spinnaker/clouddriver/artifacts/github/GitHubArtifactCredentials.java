@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitHubArtifactAccount>
+final class GitHubArtifactCredentials extends SimpleHttpArtifactCredentials<GitHubArtifactAccount>
     implements ArtifactCredentials {
   @Getter private final String name;
   @Getter private final List<String> types = Collections.singletonList("github/file");

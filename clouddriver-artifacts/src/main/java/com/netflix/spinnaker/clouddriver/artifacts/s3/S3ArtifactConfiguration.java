@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(S3ArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class S3ArtifactConfiguration {
+class S3ArtifactConfiguration {
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
 
   @Bean

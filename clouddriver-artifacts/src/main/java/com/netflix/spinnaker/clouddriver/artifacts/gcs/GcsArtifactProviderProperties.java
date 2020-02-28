@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.gcs")
-public class GcsArtifactProviderProperties implements ArtifactProvider<GcsArtifactAccount> {
+final class GcsArtifactProviderProperties implements ArtifactProvider<GcsArtifactAccount> {
   private boolean enabled;
   private List<GcsArtifactAccount> accounts = new ArrayList<>();
 }

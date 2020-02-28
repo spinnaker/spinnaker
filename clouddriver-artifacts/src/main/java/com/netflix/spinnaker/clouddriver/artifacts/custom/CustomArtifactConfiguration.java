@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class CustomArtifactConfiguration {
+class CustomArtifactConfiguration {
   @Bean
   List<? extends CustomArtifactCredentials> customArtifactCredentials() {
     CustomArtifactAccount account = new CustomArtifactAccount();

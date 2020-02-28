@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import lombok.Data;
 
 @Data
-public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
+final class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
   private String name;
   /*
    One of the following are required for auth:

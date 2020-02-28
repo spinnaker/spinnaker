@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.git-repo")
-public class GitRepoArtifactProviderProperties implements ArtifactProvider<GitRepoArtifactAccount> {
+final class GitRepoArtifactProviderProperties implements ArtifactProvider<GitRepoArtifactAccount> {
   private boolean enabled;
   private List<GitRepoArtifactAccount> accounts = new ArrayList<>();
 }

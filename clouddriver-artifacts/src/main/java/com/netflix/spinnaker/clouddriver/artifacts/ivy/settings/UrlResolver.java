@@ -26,7 +26,7 @@ import org.apache.ivy.plugins.resolver.URLResolver;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class UrlResolver extends Resolver<URLResolver> {
+final class UrlResolver extends Resolver<URLResolver> {
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private Boolean m2compatible;

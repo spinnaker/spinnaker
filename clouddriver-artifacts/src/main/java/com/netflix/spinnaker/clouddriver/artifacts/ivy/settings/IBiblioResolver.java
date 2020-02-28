@@ -23,7 +23,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class IBiblioResolver extends Resolver<org.apache.ivy.plugins.resolver.IBiblioResolver> {
+final class IBiblioResolver extends Resolver<org.apache.ivy.plugins.resolver.IBiblioResolver> {
   /** The root of the artifact repository. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable

@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount>
+final class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount>
     implements ArtifactCredentials {
   @Getter private final String name;
   @Getter private final List<String> types = Collections.singletonList("gitlab/file");

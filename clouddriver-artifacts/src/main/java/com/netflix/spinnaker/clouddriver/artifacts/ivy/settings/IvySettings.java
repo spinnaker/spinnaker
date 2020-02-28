@@ -31,7 +31,7 @@ import org.apache.ivy.util.url.CredentialsStore;
 
 @JacksonXmlRootElement(localName = "ivysettings")
 @Data
-public class IvySettings {
+public final class IvySettings {
   private Resolvers resolvers = new Resolvers();
   private Settings settings = new Settings();
 

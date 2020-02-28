@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.http")
-public class HttpArtifactProviderProperties implements ArtifactProvider<HttpArtifactAccount> {
+final class HttpArtifactProviderProperties implements ArtifactProvider<HttpArtifactAccount> {
   private boolean enabled;
   private List<HttpArtifactAccount> accounts = new ArrayList<>();
 }

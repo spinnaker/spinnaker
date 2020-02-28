@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 
 @Slf4j
-public class EmbeddedArtifactCredentials implements ArtifactCredentials {
+final class EmbeddedArtifactCredentials implements ArtifactCredentials {
   @Getter private final String name;
   @Getter private final List<String> types = Collections.singletonList("embedded/base64");
 

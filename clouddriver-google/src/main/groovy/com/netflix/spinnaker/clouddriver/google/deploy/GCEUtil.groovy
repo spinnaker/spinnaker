@@ -29,7 +29,6 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
@@ -58,6 +57,7 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP
 
 @Slf4j
 class GCEUtil {
+  public static final String GCE_IMAGE_TYPE = "gce/image";
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
   private static final String GCE_API_PREFIX = "https://compute.googleapis.com/compute/v1/projects/"
@@ -130,8 +130,8 @@ class GCEUtil {
                                     String phase,
                                     SafeRetry safeRetry,
                                     GoogleExecutorTraits executor) {
-    if (artifact.getType() != ArtifactUtils.GCE_IMAGE_TYPE) {
-      throw new GoogleOperationException("Artifact to deploy to GCE must be of type ${ArtifactUtils.GCE_IMAGE_TYPE}")
+    if (artifact.getType() != GCE_IMAGE_TYPE) {
+      throw new GoogleOperationException("Artifact to deploy to GCE must be of type ${GCE_IMAGE_TYPE}")
     }
 
     def reference = artifact.getReference()

@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifacts.ivy")
-public class IvyArtifactProviderProperties {
+final class IvyArtifactProviderProperties {
   private boolean enabled;
   private List<IvyArtifactAccount> accounts = new ArrayList<>();
 }
