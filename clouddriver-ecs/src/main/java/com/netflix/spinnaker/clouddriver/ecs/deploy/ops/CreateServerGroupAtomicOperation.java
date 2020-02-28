@@ -23,6 +23,7 @@ import com.amazonaws.services.applicationautoscaling.model.RegisterScalableTarge
 import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
 import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
 import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
+import com.amazonaws.services.applicationautoscaling.model.SuspendedState;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
@@ -146,8 +147,7 @@ public class CreateServerGroupAtomicOperation
     TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, newServerGroupName);
     updateTaskStatus("Done creating Amazon ECS Task Definition...");
 
-    Service service =
-        createService(ecs, taskDefinition, ecsServiceRole, newServerGroupName, sourceService);
+    Service service = createService(ecs, taskDefinition, newServerGroupName, sourceService);
 
     String resourceId = registerAutoScalingGroup(credentials, service, sourceTarget);
 
@@ -429,7 +429,6 @@ public class CreateServerGroupAtomicOperation
   private Service createService(
       AmazonECS ecs,
       TaskDefinition taskDefinition,
-      String ecsServiceRole,
       String newServerGroupName,
       Service sourceService) {
 
@@ -444,7 +443,7 @@ public class CreateServerGroupAtomicOperation
     }
 
     CreateServiceRequest request =
-        makeServiceRequest(taskDefinitionArn, ecsServiceRole, newServerGroupName, desiredCount);
+        makeServiceRequest(taskDefinitionArn, newServerGroupName, desiredCount);
 
     updateTaskStatus(
         String.format(
@@ -464,10 +463,7 @@ public class CreateServerGroupAtomicOperation
   }
 
   protected CreateServiceRequest makeServiceRequest(
-      String taskDefinitionArn,
-      String ecsServiceRole,
-      String newServerGroupName,
-      Integer desiredCount) {
+      String taskDefinitionArn, String newServerGroupName, Integer desiredCount) {
     Collection<LoadBalancer> loadBalancers =
         retrieveLoadBalancers(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName));
 
@@ -516,14 +512,6 @@ public class CreateServerGroupAtomicOperation
       request.withTags(taskDefTags).withEnableECSManagedTags(true).withPropagateTags("SERVICE");
     }
 
-    // Load balancer management role:
-    // N/A for non-load-balanced services
-    // Services using awsvpc mode must not specify a role in order to use the
-    // ECS service-linked role
-    if (!AWSVPC_NETWORK_MODE.equals(description.getNetworkMode()) && loadBalancers.size() == 1) {
-      request.withRole(ecsServiceRole);
-    }
-
     if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
       Collection<String> subnetIds =
           subnetSelector.resolveSubnetsIds(
@@ -569,7 +557,6 @@ public class CreateServerGroupAtomicOperation
       AmazonCredentials credentials, Service service, ScalableTarget sourceTarget) {
 
     AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
-    String assumedRoleArn = inferAssumedRoleArn(credentials);
 
     Integer min = description.getCapacity().getMin();
     Integer max = description.getCapacity().getMax();
@@ -589,9 +576,13 @@ public class CreateServerGroupAtomicOperation
             .withResourceId(
                 String.format(
                     "service/%s/%s", description.getEcsClusterName(), service.getServiceName()))
-            .withRoleARN(assumedRoleArn)
             .withMinCapacity(min)
-            .withMaxCapacity(max);
+            .withMaxCapacity(max)
+            .withSuspendedState(
+                new SuspendedState()
+                    .withDynamicScalingInSuspended(false)
+                    .withDynamicScalingOutSuspended(false)
+                    .withScheduledScalingSuspended(false));
 
     updateTaskStatus("Creating Amazon Application Auto Scaling Scalable Target Definition...");
     // ECS DescribeService is eventually consistent, so sometimes RegisterScalableTarget will

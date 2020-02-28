@@ -82,7 +82,6 @@ public class ResizeServiceAtomicOperation
             .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
             .withResourceId(
                 String.format("service/%s/%s", ecsClusterName, service.getServiceName()))
-            .withRoleARN(service.getRoleArn())
             .withMinCapacity(description.getCapacity().getMin())
             .withMaxCapacity(description.getCapacity().getMax());
 

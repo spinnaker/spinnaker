@@ -147,7 +147,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.loadBalancers.get(0).containerPort == 1337
       request.serviceRegistries == []
       request.desiredCount == 3
-      request.role == 'arn:aws:iam::test:test-role'
+      request.role == null
       request.placementConstraints.size() == 1
       request.placementConstraints.get(0).type == 'memberOf'
       request.placementConstraints.get(0).expression == 'attribute:ecs.instance-type =~ t2.*'
@@ -178,7 +178,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       assert request.serviceNamespace == ServiceNamespace.Ecs.toString()
       assert request.scalableDimension == ScalableDimension.EcsServiceDesiredCount.toString()
       assert request.resourceId == "service/test-cluster/${serviceName}-v008"
-      assert request.roleARN == 'arn:aws:iam::test:test-role'
+      assert request.roleARN == null
       assert request.minCapacity == 2
       assert request.maxCapacity == 4
     }
@@ -310,29 +310,6 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     when:
     def request = operation.makeServiceRequest('task-def-arn',
-      'arn:aws:iam::test:test-role',
-      'mygreatapp-stack1-details2-v0011',
-      1)
-
-    then:
-    request.getLoadBalancers() == []
-    request.getRole() == null
-  }
-
-  def 'should create services with multiple load balancers without a role'() {
-    given:
-    def description = Mock(CreateServerGroupDescription)
-
-    description.getApplication() >> 'mygreatapp'
-    description.getStack() >> 'stack1'
-    description.getFreeFormDetails() >> 'details2'
-    description.getTargetGroup() >> null
-
-    def operation = new CreateServerGroupAtomicOperation(description)
-
-    when:
-    def request = operation.makeServiceRequest('task-def-arn',
-      'arn:aws:iam::test:test-role',
       'mygreatapp-stack1-details2-v0011',
       1)
 
@@ -808,7 +785,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.loadBalancers.get(0).containerPort == 1337
       request.serviceRegistries == []
       request.desiredCount == 3
-      request.role == 'arn:aws:iam::test:test-role'
+      request.role == null
       request.placementConstraints.size() == 1
       request.placementConstraints.get(0).type == 'memberOf'
       request.placementConstraints.get(0).expression == 'attribute:ecs.instance-type =~ t2.*'
@@ -839,7 +816,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       assert request.serviceNamespace == ServiceNamespace.Ecs.toString()
       assert request.scalableDimension == ScalableDimension.EcsServiceDesiredCount.toString()
       assert request.resourceId == "service/test-cluster/${serviceName}-v008"
-      assert request.roleARN == 'arn:aws:iam::test:test-role'
+      assert request.roleARN == null
       assert request.minCapacity == 2
       assert request.maxCapacity == 4
     }
@@ -961,7 +938,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       assert request.serviceNamespace == ServiceNamespace.Ecs.toString()
       assert request.scalableDimension == ScalableDimension.EcsServiceDesiredCount.toString()
       assert request.resourceId == "service/test-cluster/${serviceName}-v008"
-      assert request.roleARN == 'arn:aws:iam::test:test-role'
+      assert request.roleARN == null
       assert request.minCapacity == 2
       assert request.maxCapacity == 4
     }
@@ -1052,7 +1029,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.loadBalancers.get(0).containerPort == 80
       request.serviceRegistries == []
       request.desiredCount == 3
-      request.role == 'arn:aws:iam::test:test-role'
+      request.role == null
       request.placementConstraints.size() == 1
       request.placementConstraints.get(0).type == 'memberOf'
       request.placementConstraints.get(0).expression == 'attribute:ecs.instance-type =~ t2.*'
@@ -1083,7 +1060,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       assert request.serviceNamespace == ServiceNamespace.Ecs.toString()
       assert request.scalableDimension == ScalableDimension.EcsServiceDesiredCount.toString()
       assert request.resourceId == "service/test-cluster/${serviceName}-v008"
-      assert request.roleARN == 'arn:aws:iam::test:test-role'
+      assert request.roleARN == null
       assert request.minCapacity == 2
       assert request.maxCapacity == 4
     }
@@ -1209,7 +1186,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       assert request.serviceNamespace == ServiceNamespace.Ecs.toString()
       assert request.scalableDimension == ScalableDimension.EcsServiceDesiredCount.toString()
       assert request.resourceId == "service/test-cluster/${serviceName}-v008"
-      assert request.roleARN == 'arn:aws:iam::test:test-role'
+      assert request.roleARN == null
       assert request.minCapacity == 2
       assert request.maxCapacity == 4
     }
