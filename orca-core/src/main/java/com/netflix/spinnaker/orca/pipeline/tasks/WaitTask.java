@@ -83,6 +83,6 @@ public class WaitTask implements RetryableTask {
 
   @Override
   public long getTimeout() {
-    return Integer.MAX_VALUE;
+    return Long.MAX_VALUE;
   }
 }
