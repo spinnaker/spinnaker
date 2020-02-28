@@ -183,27 +183,29 @@ class PeeringAgent(
     log.debug("Found ${completedPipelineKeys.size} completed $executionType candidates with ${migratedPipelineKeys.size} already copied for peering, ${pipelineIdsToMigrate.size} still need copying and ${pipelineIdsToDelete.size} need to be deleted")
 
     val maxDeleteCount = dynamicConfigService.getConfig(Integer::class.java, "pollers.peering.max-allowed-delete-count", Integer(100))
+    var actualDeleted = pipelineIdsToDelete.size
+
     if (pipelineIdsToDelete.size > maxDeleteCount.toInt()) {
       log.error("Number of pipelines to delete (${pipelineIdsToDelete.size}) > threshold ($maxDeleteCount) - not performing deletes - if this is expected you can set the pollers.peering.max-allowed-delete-count property to a larger number")
       peeringMetrics.incrementNumErrors(executionType)
+      actualDeleted = 0
     } else if (pipelineIdsToDelete.any()) {
       destDB.deleteExecutions(executionType, pipelineIdsToDelete)
       peeringMetrics.incrementNumDeleted(executionType, pipelineIdsToDelete.size)
-      log.debug("Completed $executionType peering: ${pipelineIdsToDelete.size} executions deleted")
     }
 
     if (!pipelineIdsToMigrate.any()) {
-      log.debug("Finished completed $executionType peering: nothing copied️")
+      log.debug("Finished completed $executionType peering: nothing to copy, $actualDeleted deleted")
       return getLatestCompletedUpdatedTime()
     }
 
     val migrationResult = executionCopier.copyInParallel(executionType, pipelineIdsToMigrate, ExecutionState.COMPLETED)
     if (migrationResult.hadErrors) {
-      log.error("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} with errors, see prior log statements")
+      log.error("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} (deleted $actualDeleted) with errors, see prior log statements")
       return updatedAfter
     }
 
-    log.debug("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} with latest updatedAt=${migrationResult.latestUpdatedAt}")
+    log.debug("Finished completed $executionType peering: copied ${migrationResult.count} of ${pipelineIdsToMigrate.size} (deleted $actualDeleted) with latest updatedAt=${migrationResult.latestUpdatedAt}")
     return migrationResult.latestUpdatedAt
   }
 

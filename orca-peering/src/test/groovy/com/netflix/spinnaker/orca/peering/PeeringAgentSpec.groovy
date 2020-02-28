@@ -83,7 +83,6 @@ class PeeringAgentSpec extends Specification {
     peeringAgent.completedPipelinesMostRecentUpdatedTime = 1
     peeringAgent.completedOrchestrationsMostRecentUpdatedTime = 2
 
-    def deleteCallCount = (int)Math.signum(toDelete.size())
     def copyCallCount = (int)Math.signum(toCopy.size())
     def correctMax = Math.max(0, ((srcKeys + srcKeysNull).max { it.updated_at }?.updated_at ?: 2) - clockDrift)
 
@@ -95,8 +94,13 @@ class PeeringAgentSpec extends Specification {
     1 * src.getCompletedExecutionIds(executionType, null, mostRecentTimeStamp) >> srcKeysNull
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> destKeys
 
-    deleteCallCount * dest.deleteExecutions(executionType, toDelete)
-    deleteCallCount * metrics.incrementNumDeleted(executionType, toDelete.size())
+    if (toDelete.isEmpty()) {
+      0 * dest.deleteExecutions(executionType, _)
+      0 * metrics.incrementNumDeleted(executionType, _)
+    } else {
+      1 * dest.deleteExecutions(executionType, toDelete)
+      1 * metrics.incrementNumDeleted(executionType, toDelete.size())
+    }
 
     copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
         new ExecutionCopier.MigrationChunkResult(
@@ -135,8 +139,6 @@ class PeeringAgentSpec extends Specification {
   def "updates the most recent timestamp even when there is nothing to copy"() {
     def peeringAgent = constructPeeringAgent()
 
-    def deleteCallCount = (int) Math.signum(toDelete.size())
-    def copyCallCount = (int) Math.signum(toCopy.size())
     def correctMax = Math.max(0, (srcKeys.max { it.updated_at }?.updated_at ?: 0) - clockDrift)
 
     when:
@@ -147,11 +149,20 @@ class PeeringAgentSpec extends Specification {
     1 * src.getCompletedExecutionIds(executionType, null, mostRecentTimeStamp) >> []
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> destKeys
 
-    deleteCallCount * dest.deleteExecutions(executionType, toDelete)
-    deleteCallCount * metrics.incrementNumDeleted(executionType, toDelete.size())
+    if (toDelete.isEmpty()) {
+      0 * dest.deleteExecutions(executionType, _)
+      0 * metrics.incrementNumDeleted(executionType, _)
+    } else {
+      1 * dest.deleteExecutions(executionType, toDelete)
+      1 * metrics.incrementNumDeleted(executionType, toDelete.size())
+    }
 
-    copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
-        new ExecutionCopier.MigrationChunkResult(0, 0, false)
+    if (toCopy.isEmpty()) {
+      0 * copier.copyInParallel(executionType, _, _)
+    } else {
+      1 * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
+          new ExecutionCopier.MigrationChunkResult(0, 0, false)
+    }
 
     if (executionType == PIPELINE) {
       assert peeringAgent.completedPipelinesMostRecentUpdatedTime == correctMax
@@ -182,11 +193,16 @@ class PeeringAgentSpec extends Specification {
     then:
     1 * src.getActiveExecutionIds(executionType, "peeredId") >> activeIds
     1 * src.getActiveExecutionIds(executionType, null) >> activeIdsNull
-    copyCallCount * copier.copyInParallel(executionType, activeIds + activeIdsNull, ExecutionState.ACTIVE) >>
-        new ExecutionCopier.MigrationChunkResult(
-            30,
-            activeIdsNull.size() + activeIds.size(),
-            false)
+
+    if (copyCallCount == 0) {
+      copyCallCount * copier.copyInParallel(executionType, _, _)
+    } else {
+      copyCallCount * copier.copyInParallel(executionType, activeIds + activeIdsNull, ExecutionState.ACTIVE) >>
+          new ExecutionCopier.MigrationChunkResult(
+              30,
+              activeIdsNull.size() + activeIds.size(),
+              false)
+    }
 
     where:
     executionType | activeIds       | activeIdsNull | copyCallCount
@@ -220,8 +236,13 @@ class PeeringAgentSpec extends Specification {
     1 * src.getCompletedExecutionIds(executionType, null, 1) >> []
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", 1) >> destKeys
 
-    deleteCallCount * dest.deleteExecutions(executionType, _)
-    deleteCallCount * metrics.incrementNumDeleted(executionType, _)
+    if (toDelete.isEmpty()) {
+      0 * dest.deleteExecutions(executionType, _)
+      0 * metrics.incrementNumDeleted(executionType, _)
+    } else {
+      1 * dest.deleteExecutions(executionType, toDelete)
+      1 * metrics.incrementNumDeleted(executionType, toDelete.size())
+    }
     deleteFailureCount * metrics.incrementNumErrors(executionType)
 
     copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
