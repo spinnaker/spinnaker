@@ -210,7 +210,7 @@ public class CreateServerGroupAtomicOperation
 
     Set<PortMapping> portMappings = new HashSet<>();
 
-    if (StringUtils.isEmpty(description.getTargetGroup())
+    if (!StringUtils.isEmpty(description.getTargetGroup())
         && description.getContainerPort() != null) {
       PortMapping portMapping =
           new PortMapping()
