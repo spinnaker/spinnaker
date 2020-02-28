@@ -24,6 +24,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "codebuild")
 public class AwsCodeBuildProperties {
   private List<Account> accounts;
+  private String accessKeyId;
+  private String secretAccessKey;
 
   @Data
   public static class Account {

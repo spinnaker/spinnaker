@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.igor.codebuild;
 
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.codebuild.AWSCodeBuildClient;
 import com.amazonaws.services.codebuild.AWSCodeBuildClientBuilder;
 import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest;
@@ -27,28 +27,17 @@ import com.amazonaws.services.codebuild.model.ListProjectsResult;
 import com.amazonaws.services.codebuild.model.ProjectSortByType;
 import com.amazonaws.services.codebuild.model.StartBuildRequest;
 import com.amazonaws.services.codebuild.model.StopBuildRequest;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /** Generates authenticated requests to AWS CodeBuild API for a single configured account */
 @RequiredArgsConstructor
 public class AwsCodeBuildAccount {
   private final AWSCodeBuildClient client;
 
-  @Autowired AWSSecurityTokenServiceClient stsClient;
-
-  public AwsCodeBuildAccount(String accountId, String assumeRole, String region) {
-    STSAssumeRoleSessionCredentialsProvider credentialsProvider =
-        new STSAssumeRoleSessionCredentialsProvider.Builder(
-                getRoleArn(accountId, assumeRole), "spinnaker-session")
-            .withStsClient(stsClient)
-            .build();
-
+  public AwsCodeBuildAccount(AWSCredentialsProvider credentialsProvider, String region) {
     // TODO: Add client-side rate limiting to avoid getting throttled if necessary
     this.client =
         (AWSCodeBuildClient)
@@ -93,21 +82,6 @@ public class AwsCodeBuildAccount {
 
   public Build stopBuild(String buildId) {
     return client.stopBuild(new StopBuildRequest().withId(buildId)).getBuild();
-  }
-
-  private String getRoleArn(String accountId, String assumeRole) {
-    String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
-    if (!assumeRoleValue.startsWith("arn:")) {
-      /**
-       * GovCloud and China regions need to have the full arn passed because of differing formats
-       * Govcloud: arn:aws-us-gov:iam China: arn:aws-cn:iam
-       */
-      assumeRoleValue =
-          String.format(
-              "arn:aws:iam::%s:%s",
-              Objects.requireNonNull(accountId, "accountId"), assumeRoleValue);
-    }
-    return assumeRoleValue;
   }
 
   private List<Artifact> extractArtifactsFromBuild(Build build) {

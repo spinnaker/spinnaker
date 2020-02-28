@@ -16,40 +16,91 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.netflix.spinnaker.igor.codebuild.AwsCodeBuildAccount;
 import com.netflix.spinnaker.igor.codebuild.AwsCodeBuildAccountRepository;
+import java.util.Objects;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 @ConditionalOnProperty("codebuild.enabled")
 @EnableConfigurationProperties({AwsCodeBuildProperties.class})
 public class AwsCodeBuildConfig {
-  @Bean
+  @Bean("awsCodeBuildAccountRepository")
+  @DependsOn({"awsSecurityTokenServiceClient"})
   AwsCodeBuildAccountRepository awsCodeBuildAccountRepository(
-      AwsCodeBuildProperties awsCodeBuildProperties) {
+      AwsCodeBuildProperties awsCodeBuildProperties,
+      AWSSecurityTokenServiceClient awsSecurityTokenServiceClient,
+      AWSCredentialsProvider awsCredentialsProvider) {
     AwsCodeBuildAccountRepository accounts = new AwsCodeBuildAccountRepository();
     awsCodeBuildProperties
         .getAccounts()
         .forEach(
             a -> {
               AwsCodeBuildAccount account =
-                  new AwsCodeBuildAccount(a.getAccountId(), a.getAssumeRole(), a.getRegion());
+                  new AwsCodeBuildAccount(awsCredentialsProvider, a.getRegion());
+              if (a.getAccountId() != null && a.getAssumeRole() != null) {
+                STSAssumeRoleSessionCredentialsProvider stsAssumeRoleSessionCredentialsProvider =
+                    new STSAssumeRoleSessionCredentialsProvider.Builder(
+                            getRoleArn(a.getAccountId(), a.getAssumeRole()), "spinnaker-session")
+                        .withStsClient(awsSecurityTokenServiceClient)
+                        .build();
+                account =
+                    new AwsCodeBuildAccount(stsAssumeRoleSessionCredentialsProvider, a.getRegion());
+              }
               accounts.addAccount(a.getName(), account);
             });
     return accounts;
   }
 
-  @Bean
-  AWSSecurityTokenServiceClient awsSecurityTokenServiceClient() {
+  @Bean("awsSecurityTokenServiceClient")
+  @DependsOn({"awsCredentialsProvider"})
+  AWSSecurityTokenServiceClient awsSecurityTokenServiceClient(
+      AWSCredentialsProvider awsCredentialsProvider) {
     return (AWSSecurityTokenServiceClient)
         AWSSecurityTokenServiceClientBuilder.standard()
-            .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
+            .withCredentials(awsCredentialsProvider)
             .build();
+  }
+
+  @Bean("awsCredentialsProvider")
+  AWSCredentialsProvider awsCredentialsProvider(AwsCodeBuildProperties awsCodeBuildProperties) {
+    AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
+    if (awsCodeBuildProperties.getAccessKeyId() != null
+        && !awsCodeBuildProperties.getAccessKeyId().isEmpty()
+        && awsCodeBuildProperties.getSecretAccessKey() != null
+        && !awsCodeBuildProperties.getSecretAccessKey().isEmpty()) {
+      credentialsProvider =
+          new AWSStaticCredentialsProvider(
+              new BasicAWSCredentials(
+                  awsCodeBuildProperties.getAccessKeyId(),
+                  awsCodeBuildProperties.getSecretAccessKey()));
+    }
+    return credentialsProvider;
+  }
+
+  private String getRoleArn(String accountId, String assumeRole) {
+    String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
+    if (!assumeRoleValue.startsWith("arn:")) {
+      /**
+       * GovCloud and China regions need to have the full arn passed because of differing formats
+       * Govcloud: arn:aws-us-gov:iam China: arn:aws-cn:iam
+       */
+      assumeRoleValue =
+          String.format(
+              "arn:aws:iam::%s:%s",
+              Objects.requireNonNull(accountId, "accountId"), assumeRoleValue);
+    }
+    return assumeRoleValue;
   }
 }
