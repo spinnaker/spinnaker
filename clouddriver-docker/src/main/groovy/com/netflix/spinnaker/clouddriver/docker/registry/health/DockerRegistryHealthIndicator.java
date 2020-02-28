@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2020 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,41 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.health;
+package com.netflix.spinnaker.clouddriver.docker.registry.health;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.AccountHealthIndicator;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public class KubernetesHealthIndicator
-    extends AccountHealthIndicator<KubernetesNamedAccountCredentials> {
-  private static final String ID = "kubernetes";
-  private final AccountCredentialsProvider accountCredentialsProvider;
+public class DockerRegistryHealthIndicator
+    extends AccountHealthIndicator<DockerRegistryNamedAccountCredentials> {
+  private static final String ID = "docker";
+  private AccountCredentialsProvider accountCredentialsProvider;
 
-  @Autowired
-  public KubernetesHealthIndicator(
+  public DockerRegistryHealthIndicator(
       Registry registry, AccountCredentialsProvider accountCredentialsProvider) {
     super(ID, registry);
     this.accountCredentialsProvider = accountCredentialsProvider;
   }
 
   @Override
-  protected ImmutableList<KubernetesNamedAccountCredentials> getAccounts() {
+  protected ImmutableList<DockerRegistryNamedAccountCredentials> getAccounts() {
     return accountCredentialsProvider.getAll().stream()
-        .filter(a -> a instanceof KubernetesNamedAccountCredentials)
-        .map(a -> (KubernetesNamedAccountCredentials) a)
+        .filter(a -> a instanceof DockerRegistryNamedAccountCredentials)
+        .map(a -> (DockerRegistryNamedAccountCredentials) a)
         .collect(toImmutableList());
   }
 
   @Override
-  protected Optional<String> accountHealth(KubernetesNamedAccountCredentials accountCredentials) {
+  protected Optional<String> accountHealth(
+      DockerRegistryNamedAccountCredentials accountCredentials) {
     try {
-      accountCredentials.getCredentials().getDeclaredNamespaces();
+      accountCredentials.getCredentials().getClient().checkV2Availability();
       return Optional.empty();
     } catch (RuntimeException e) {
       return Optional.of(e.getMessage());

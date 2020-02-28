@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.config;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -42,7 +43,7 @@ public class KubernetesConfiguration {
 
   @Bean
   public KubernetesHealthIndicator kubernetesHealthIndicator(
-      AccountCredentialsProvider accountCredentialsProvider) {
-    return new KubernetesHealthIndicator(accountCredentialsProvider);
+      Registry registry, AccountCredentialsProvider accountCredentialsProvider) {
+    return new KubernetesHealthIndicator(registry, accountCredentialsProvider);
   }
 }
