@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import { mock } from 'angular';
 import { SubnetSelectInput } from './SubnetSelectInput';
 import { Application, ApplicationModelBuilder } from '@spinnaker/core';
-import { mockServerGroupDataSourceConfig, mockSubnet } from 'core/mocks';
+import { mockServerGroupDataSourceConfig, mockSubnet } from '@spinnaker/mocks';
 
 describe('SubnetSelectInput', () => {
   let application: Application;

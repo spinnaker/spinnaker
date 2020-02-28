@@ -1,5 +1,5 @@
-import { IStage } from 'core/domain';
-import { mockAwsCluster } from 'core/mocks';
+import { IStage } from '@spinnaker/core';
+import { mockAwsCluster } from './mockCluster';
 
 export const mockImageFindStage: IStage = {
   cloudProvider: 'aws',

@@ -1,4 +1,4 @@
-import { ISubnet } from '../domain/ISubnet';
+import { ISubnet } from '@spinnaker/core';
 
 export const mockSubnet: ISubnet = {
   availabilityZone: 'us-west-1b',

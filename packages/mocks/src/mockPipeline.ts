@@ -1,11 +1,7 @@
-import { IPipeline, IPipelineLock } from 'core/domain';
-import {
-  mockPipelineNotification,
-  mockWaitStage,
-  mockDeployStage,
-  mockImageFindStage,
-  mockBuildTrigger,
-} from 'core/mocks';
+import { IPipeline, IPipelineLock } from '@spinnaker/core';
+import { mockPipelineNotification } from './mockNotification';
+import { mockDeployStage, mockImageFindStage, mockWaitStage } from './mockStage';
+import { mockBuildTrigger } from './mockTrigger';
 
 export const mockPipelineLock: IPipelineLock = {
   ui: false,

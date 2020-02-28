@@ -1,5 +1,5 @@
-import { ICluster } from 'core/domain';
-import { mockServerGroup } from 'core/mocks';
+import { ICluster } from '@spinnaker/core';
+import { mockServerGroup } from './mockServerGroup';
 
 export const mockAwsCluster: ICluster = {
   account: 'test',

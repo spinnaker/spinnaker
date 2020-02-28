@@ -1,5 +1,5 @@
-import { IInstance } from 'core/domain';
-import { mockHealth } from 'core/mocks';
+import { IInstance } from '@spinnaker/core';
+import { mockHealth } from './mockHealth';
 
 export const mockInstance: IInstance = {
   account: 'test',

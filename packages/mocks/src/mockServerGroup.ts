@@ -1,6 +1,8 @@
-import { IAsg, IServerGroup } from 'core/domain';
-import { ICapacity } from 'core/serverGroup';
-import { mockInstance, mockInstanceCounts, mockMoniker } from 'core/mocks';
+import { IAsg, IServerGroup } from '@spinnaker/core';
+import { ICapacity } from '@spinnaker/core';
+import { mockInstance } from './mockInstance';
+import { mockInstanceCounts } from './mockInstanceCounts';
+import { mockMoniker } from './mockMoniker';
 
 export const mockAsg: IAsg = {
   minSize: 2,

@@ -1,0 +1,18 @@
+{
+  "name": "@spinnaker/mocks",
+  "version": "1.0.2",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "scripts": {
+    "prepublishOnly": "tsc"
+  },
+  "devDependencies": {
+    "@spinnaker/core": "latest",
+    "@spinnaker/eslint-plugin": "latest",
+    "typescript": "~3.8.2"
+  },
+  "peerDependencies": {
+    "@spinnaker/core": "*"
+  }
+}

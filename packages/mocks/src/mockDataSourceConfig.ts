@@ -1,7 +1,10 @@
 import { $q } from 'ngimport';
-import { ILoadBalancer, IPipeline, ISecurityGroup, IServerGroup } from 'core/domain';
-import { mockLoadBalancer, mockPipeline, mockSecurityGroup, mockServerGroup } from 'core/mocks';
-import { Application, IDataSourceConfig } from '../application';
+import { ILoadBalancer, IPipeline, ISecurityGroup, IServerGroup } from '@spinnaker/core';
+import { Application, IDataSourceConfig } from '@spinnaker/core';
+import { mockLoadBalancer } from './mockLoadBalancer';
+import { mockPipeline } from './mockPipeline';
+import { mockSecurityGroup } from './mockSecurityGroup';
+import { mockServerGroup } from './mockServerGroup';
 
 export const mockLoadBalancerDataSourceConfig: IDataSourceConfig<ILoadBalancer> = {
   key: 'loadBalancers',

@@ -1,5 +1,7 @@
-import { ILoadBalancer } from 'core/domain';
-import { mockInstance, mockInstanceCounts, mockMoniker } from 'core/mocks';
+import { ILoadBalancer } from '@spinnaker/core';
+import { mockInstanceCounts } from './mockInstanceCounts';
+import { mockInstance } from './mockInstance';
+import { mockMoniker } from './mockMoniker';
 
 export const mockLoadBalancer: ILoadBalancer = {
   account: 'test',

@@ -1,4 +1,4 @@
-import { IBuildTrigger } from 'core/domain';
+import { IBuildTrigger } from '@spinnaker/core';
 
 export const mockBuildTrigger: IBuildTrigger = {
   enabled: true,
