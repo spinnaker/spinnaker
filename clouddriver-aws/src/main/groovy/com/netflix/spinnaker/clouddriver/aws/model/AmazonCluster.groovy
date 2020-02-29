@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -29,4 +32,27 @@ class AmazonCluster implements Cluster, Serializable {
   Set<AmazonServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<AmazonServerGroup>())
   Set<AmazonTargetGroup> targetGroups = Collections.synchronizedSet(new HashSet<AmazonTargetGroup>())
   Set<AmazonLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<AmazonLoadBalancer>())
+
+  @JsonIgnore
+  private Map<String, Object> extraAttributes = new LinkedHashMap<String, Object>()
+
+  @JsonAnyGetter
+  @Override
+  Map<String, Object> getExtraAttributes() {
+    return extraAttributes
+  }
+
+  /**
+   * Setter for non explicitly defined values.
+   *
+   * Used for both Jackson mapping {@code @JsonAnySetter} as well
+   * as Groovy's implicit Map constructor (this is the reason the
+   * method is named {@code set(String name, Object value)}
+   * @param name The property name
+   * @param value The property value
+   */
+  @JsonAnySetter
+  void set(String name, Object value) {
+    extraAttributes.put(name, value)
+  }
 }

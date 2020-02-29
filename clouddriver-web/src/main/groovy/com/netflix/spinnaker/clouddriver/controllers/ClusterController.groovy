@@ -23,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.Summary
 import com.netflix.spinnaker.clouddriver.model.TargetServerGroup
+import com.netflix.spinnaker.clouddriver.model.view.ClusterViewModelPostProcessor
+import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.moniker.Moniker
@@ -33,6 +35,9 @@ import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+
+import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensions
+import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensionsToObject
 
 @Slf4j
 @RestController
@@ -53,6 +58,12 @@ class ClusterController {
 
   @Autowired
   ServerGroupController serverGroupController
+
+  @Autowired
+  Optional<List<ClusterViewModelPostProcessor<? extends Cluster>>> clusterExtensions = Optional.empty()
+
+  @Autowired
+  Optional<List<ServerGroupViewModelPostProcessor<? extends ServerGroup>>> serverGroupExtensions = Optional.empty()
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
@@ -78,7 +89,7 @@ class ClusterController {
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
     def clusters = clusterProviders.collect {
-      def clusters = (Set<Cluster>) it.getClusters(application, account, false)
+      Set<Cluster> clusters = applyExtensions(clusterExtensions, it.getClusters(application, account, false))
       def clusterViews = []
       for (cluster in clusters) {
         clusterViews << new ClusterViewModel(
@@ -108,7 +119,8 @@ class ClusterController {
                                     @PathVariable String name,
                                     @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
     def clusters = clusterProviders.collect { provider ->
-      requestQueue.execute(application, { provider.getCluster(application, account, name, expand) })
+        applyExtensionsToObject(clusterExtensions,
+          requestQueue.execute(application, { provider.getCluster(application, account, name, expand) }))
     }
 
     clusters.removeAll([null])
@@ -125,7 +137,7 @@ class ClusterController {
                                       @PathVariable String name,
                                       @PathVariable String type,
                                       @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
-    Set<Cluster> allClusters = getForAccountAndName(application, account, name, expand)
+    Set<Cluster> allClusters = applyExtensions(clusterExtensions, getForAccountAndName(application, account, name, expand))
     def cluster = allClusters.find { it.type == type }
     if (!cluster) {
       throw new NotFoundException("No clusters found (application: ${application}, account: ${account}, type: ${type})")
@@ -141,8 +153,8 @@ class ClusterController {
                                    @PathVariable String type,
                                    @RequestParam(value = "region", required = false) String region,
                                    @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
-    Cluster cluster = getForAccountAndNameAndType(application, account, clusterName, type, expand)
-    def results = region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups
+    Cluster cluster = applyExtensionsToObject(clusterExtensions, getForAccountAndNameAndType(application, account, clusterName, type, expand))
+    def results = applyExtensions(serverGroupExtensions, region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups)
     results ?: []
   }
 
@@ -162,7 +174,7 @@ class ClusterController {
 
     def serverGroups = providers.collect { p ->
       def shouldExpand  = !p.supportsMinimalClusters()
-      def serverGroups = getServerGroups(application, account, clusterName, type, region, shouldExpand).findAll {
+      def serverGroups = applyExtensions(serverGroupExtensions, getServerGroups(application, account, clusterName, type, region, shouldExpand)).findAll {
         return region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
       } ?: []
 

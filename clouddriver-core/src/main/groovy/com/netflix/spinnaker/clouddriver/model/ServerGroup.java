@@ -24,11 +24,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -179,6 +175,11 @@ public interface ServerGroup {
 
   default Map<String, String> getLabels() {
     return new HashMap<>();
+  }
+
+  @JsonIgnore
+  default Map<String, Object> getExtraAttributes() {
+    return Collections.EMPTY_MAP;
   }
 
   @Builder

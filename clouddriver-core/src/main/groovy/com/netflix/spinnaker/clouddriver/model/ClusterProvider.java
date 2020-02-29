@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
-import com.netflix.spinnaker.clouddriver.documentation.Nullable;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * A cluster provider is an interface for the application to retrieve implementations of {@link

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.Cluster
@@ -23,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager
+import com.netflix.spinnaker.clouddriver.model.view.ClusterViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -38,6 +41,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+
+import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensions
+import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensionsToObject
 
 @Slf4j
 @RestController
@@ -58,8 +64,11 @@ class ServerGroupController {
   @Autowired
   RequestQueue requestQueue
 
-  @Autowired(required = false)
-  ServerGroupViewModelPostProcessor serverGroupViewModelPostProcessor
+  @Autowired
+  Optional<List<ClusterViewModelPostProcessor<? extends Cluster>>> clusterViewModelPostProcessors = Optional.empty()
+
+  @Autowired
+  Optional<List<ServerGroupViewModelPostProcessor<? extends ServerGroup>>> serverGroupViewModelPostProcessors = Optional.empty()
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
@@ -84,7 +93,7 @@ class ServerGroupController {
     getServerGroup(account, region, name, includeDetails)
   }
 
-  private getServerGroup(String account,
+  private ServerGroup getServerGroup(String account,
                          String region,
                          String name,
                          String includeDetails) {
@@ -97,11 +106,7 @@ class ServerGroupController {
     if (!matches) {
       throw new NotFoundException("Server group not found (account: ${account}, region: ${region}, name: ${name})")
     }
-    ServerGroup serverGroup = matches.first()
-    if (serverGroupViewModelPostProcessor?.supports(serverGroup)) {
-      serverGroupViewModelPostProcessor.process(serverGroup)
-    }
-    serverGroup
+    return applyExtensionsToObject(serverGroupViewModelPostProcessors, matches.first())
   }
 
   List<Map> expandedList(String application, String cloudProvider) {
@@ -109,12 +114,14 @@ class ServerGroupController {
       .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
       .findResults { ClusterProvider cp ->
       requestQueue.execute(application, {
-        cp.getClusterDetails(application)?.values()
+        cp.getClusterDetails(application)?.values()?.collect { Set<Cluster> clusters ->
+          applyExtensions(clusterViewModelPostProcessors, clusters)
+        }
       })
     }
     .collectNested { Cluster c ->
       c.serverGroups?.collect {
-        expanded(it, c)
+        expanded(applyExtensionsToObject(serverGroupViewModelPostProcessors, it), c)
       } ?: []
     }.flatten()
   }
@@ -137,11 +144,13 @@ class ServerGroupController {
     def clusters = (Set<Cluster>) clusterProviders
       .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
       .findResults { provider ->
-      requestQueue.execute(application, { provider.getClusterDetails(application)?.values() })
-    }.flatten()
+        requestQueue.execute(application, { provider.getClusterDetails(application)?.values() })?.collect {
+          applyExtensions(clusterViewModelPostProcessors, it)
+        }
+      }.flatten()
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->
-        serverGroupViews << new ServerGroupViewModel(serverGroup, cluster.name, cluster.accountName)
+        serverGroupViews << new ServerGroupViewModel(applyExtensionsToObject(serverGroupViewModelPostProcessors, serverGroup), cluster.name, cluster.accountName)
       }
     }
 
@@ -216,14 +225,15 @@ class ServerGroupController {
       def (account, clusterName) = accountAndName.split(':')
       if (account && clusterName) {
         return clusterProviders.findResults { clusterProvider ->
-          requestQueue.execute(application, { clusterProvider.getCluster(application, account, clusterName) })
+          applyExtensionsToObject(clusterViewModelPostProcessors, requestQueue.execute(application, { clusterProvider.getCluster(application, account, clusterName) }))
         }
       }
       return null
     }.flatten()
     return matches.findResults { cluster ->
       cluster.serverGroups.collect {
-        isExpanded ? expanded(it, cluster) : new ServerGroupViewModel(it, cluster.name, cluster.accountName)
+        ServerGroup sg = applyExtensionsToObject(serverGroupViewModelPostProcessors, it)
+        isExpanded ? expanded(sg, cluster) : new ServerGroupViewModel(sg, cluster.name, cluster.accountName)
       }
     }.flatten()
   }
@@ -254,6 +264,14 @@ class ServerGroupController {
     Map<String, String> labels
     Map providerMetadata
     List<ServerGroupManager.ServerGroupManagerSummary> serverGroupManagers
+
+    @JsonIgnore
+    Map<String, Object> extraAttributes = new HashMap<>()
+
+    @JsonAnyGetter
+    Map<String, Object> getExtraAttributes() {
+      return extraAttributes
+    }
 
     ServerGroupViewModel(ServerGroup serverGroup, String clusterName, String accountName) {
       cluster = clusterName
@@ -298,6 +316,8 @@ class ServerGroupController {
       }
 
       capacity = serverGroup.getCapacity()
+
+      Optional.ofNullable(serverGroup.extraAttributes).ifPresent { extraAttributes.putAll(it) }
     }
   }
 

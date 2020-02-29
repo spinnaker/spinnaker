@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.clouddriver.model
 
 import com.netflix.spinnaker.clouddriver.documentation.Empty
-import com.netflix.spinnaker.clouddriver.documentation.Nullable
+
+import javax.annotation.Nullable
 
 /**
  * An application provider is an interface for which {@link Application} objects may be retrieved. This interface defines a common contract for which various providers may be queried about their

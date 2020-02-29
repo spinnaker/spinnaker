@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.titus.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
@@ -26,4 +29,27 @@ class TitusCluster implements Cluster, Serializable {
   String accountName
   Set<TitusServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<TitusServerGroup>())
   Set<LoadBalancer> loadBalancers = Collections.emptySet()
+
+  @JsonIgnore
+  private Map<String, Object> extraAttributes = new LinkedHashMap<String, Object>()
+
+  @JsonAnyGetter
+  @Override
+  Map<String, Object> getExtraAttributes() {
+    return extraAttributes
+  }
+
+  /**
+   * Setter for non explicitly defined values.
+   *
+   * Used for both Jackson mapping {@code @JsonAnySetter} as well
+   * as Groovy's implicit Map constructor (this is the reason the
+   * method is named {@code set(String name, Object value)}
+   * @param name The property name
+   * @param value The property value
+   */
+  @JsonAnySetter
+  void set(String name, Object value) {
+    extraAttributes.put(name, value)
+  }
 }

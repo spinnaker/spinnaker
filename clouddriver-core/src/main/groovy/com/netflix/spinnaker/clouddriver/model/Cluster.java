@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -88,5 +91,10 @@ public interface Cluster {
     String accountName;
     Set<ServerGroup> serverGroups;
     Set<LoadBalancer> loadBalancers;
+  }
+
+  @JsonIgnore
+  default Map<String, Object> getExtraAttributes() {
+    return Collections.EMPTY_MAP;
   }
 }
