@@ -3,6 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY kayenta-web/build/install/kayenta /opt/kayenta
 RUN apk --no-cache add --update bash openjdk11-jre
 RUN adduser -D -S spinnaker
-RUN mkdir plugins && chown -R 100:100 plugins
+RUN mkdir -p /opt/spinnaker/plugins && chown -R spinnaker:nogroup /opt/spinnaker/plugins
 USER spinnaker
 CMD ["/opt/kayenta/bin/kayenta"]

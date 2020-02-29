@@ -3,6 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY kayenta-web/build/install/kayenta /opt/kayenta
 RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
-RUN mkdir plugins && chown -R 102:nogroup plugins
+RUN mkdir -p /opt/spinnaker/plugins && chown -R spinnaker:nogroup /opt/spinnaker/plugins
 USER spinnaker
 CMD ["/opt/kayenta/bin/kayenta"]

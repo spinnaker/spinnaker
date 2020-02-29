@@ -26,7 +26,7 @@ RUN apk --no-cache add --update openjdk8-jre
 # Set where to look for config from
 ENV KAYENTA_OPTS=-Dspring.config.location=file:/opt/kayenta/config/kayenta.yml
 
-RUN mkdir /plugins
+RUN mkdir -p /opt/spinnaker/plugins
 
 # Copy from builder image
 COPY --from=builder /opt/kayenta /opt/kayenta
