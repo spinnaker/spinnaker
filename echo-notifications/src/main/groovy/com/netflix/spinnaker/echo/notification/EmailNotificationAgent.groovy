@@ -20,7 +20,7 @@ import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine.HtmlTo
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine.MarkdownToHtmlFormatter
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.echo.email.EmailNotificationService
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import freemarker.template.Configuration
 import freemarker.template.Template
 import org.springframework.beans.factory.annotation.Autowired

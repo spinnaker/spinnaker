@@ -20,6 +20,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.artifacts.ArtifactInfoService
 import com.netflix.spinnaker.echo.build.BuildInfoService
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent
@@ -32,7 +33,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
-  def objectMapper = new ObjectMapper()
+  def objectMapper = EchoObjectMapper.getInstance()
   def buildInfoService = Mock(BuildInfoService)
   def artifactInfoService = Mock(ArtifactInfoService)
   def pipelineCache = Mock(PipelineCache)

@@ -16,6 +16,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -27,7 +28,7 @@ import spock.lang.Unroll
 
 class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
-  def objectMapper = new ObjectMapper()
+  def objectMapper = EchoObjectMapper.getInstance()
   def handlerSupport = new EventHandlerSupport()
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 

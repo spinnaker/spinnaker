@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
-import com.netflix.spinnaker.echo.model.Event;
-import com.netflix.spinnaker.echo.model.Metadata;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import java.util.HashMap;

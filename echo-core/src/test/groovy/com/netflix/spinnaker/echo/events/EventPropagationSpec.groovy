@@ -15,7 +15,8 @@
  */
 package com.netflix.spinnaker.echo.events
 
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.EventListener
+import com.netflix.spinnaker.echo.api.events.Event
 import rx.schedulers.Schedulers
 import spock.lang.Specification
 
@@ -29,8 +30,8 @@ class EventPropagationSpec extends Specification {
         given:
         EventPropagator propagator = new EventPropagator()
         propagator.scheduler = Schedulers.immediate()
-        EchoEventListener l1 = Mock(EchoEventListener)
-        EchoEventListener l2 = Mock(EchoEventListener)
+        EventListener l1 = Mock(EventListener)
+        EventListener l2 = Mock(EventListener)
 
         when:
         propagator.addListener(l1)

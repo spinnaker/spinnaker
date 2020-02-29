@@ -19,9 +19,9 @@ package com.netflix.spinnaker.echo.scm;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -35,8 +35,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
   private ObjectMapper objectMapper;
 
   public BitbucketWehbookEventHandler() {
-    this.objectMapper =
-        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.objectMapper = EchoObjectMapper.getInstance();
   }
 
   public boolean handles(String source) {

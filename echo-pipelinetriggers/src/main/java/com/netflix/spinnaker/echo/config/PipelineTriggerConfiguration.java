@@ -2,6 +2,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
@@ -87,7 +88,7 @@ public class PipelineTriggerConfiguration {
     return new RestAdapter.Builder()
         .setClient(retrofitClient)
         .setRequestInterceptor(requestInterceptor)
-        .setConverter(new JacksonConverter(new ObjectMapper()))
+        .setConverter(new JacksonConverter(EchoObjectMapper.getInstance()))
         .setEndpoint(endpoint)
         .setLogLevel(LogLevel.BASIC)
         .setLog(new Slf4jRetrofitLogger(type))

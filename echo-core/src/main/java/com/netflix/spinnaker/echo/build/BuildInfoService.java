@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.build;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.services.IgorService;
@@ -39,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class BuildInfoService {
   private final IgorService igorService;
   private final RetrySupport retrySupport;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = EchoObjectMapper.getInstance();
 
   // Manual triggers try to replicate actual events (and in some cases build events) but rather than
   // pass the event to

@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.echo.scm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -30,8 +30,7 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
   private ObjectMapper objectMapper;
 
   public GitlabWehbookEventHandler() {
-    this.objectMapper =
-        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.objectMapper = EchoObjectMapper.getInstance();
   }
 
   public boolean handles(String source) {

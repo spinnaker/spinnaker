@@ -21,6 +21,7 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler
 import com.netflix.spinnaker.kork.aws.ARN
 import spock.lang.Shared
@@ -40,7 +41,7 @@ class AmazonSQSSubscriberSpec extends Specification {
     new AmazonPubsubProperties.AmazonPubsubSubscription('aws_events', topicARN.arn, queueARN.arn, "", null, null, 3600)
 
   @Shared
-  def objectMapper = new ObjectMapper()
+  def objectMapper = EchoObjectMapper.getInstance()
 
   @Subject
   def subject = new SQSSubscriber(

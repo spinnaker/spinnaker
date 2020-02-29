@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.events.EchoEventListener;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class TriggerEventListener implements EchoEventListener {
+public class TriggerEventListener implements EventListener {
   private final List<TriggerMonitor> triggerMonitors;
 
   public TriggerEventListener(

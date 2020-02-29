@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.echo.events;
 
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +30,10 @@ import rx.schedulers.Schedulers;
 @Slf4j
 @SuppressWarnings({"CatchException"})
 public class EventPropagator {
-  private List<EchoEventListener> listeners = new ArrayList<>();
+  private List<EventListener> listeners = new ArrayList<>();
   private Scheduler scheduler = Schedulers.io();
 
-  public void addListener(EchoEventListener listener) {
+  public void addListener(EventListener listener) {
     listeners.add(listener);
     log.info("Added listener " + listener.getClass().getSimpleName());
   }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.scm.BitbucketWehbookEventHandler
 import com.netflix.spinnaker.echo.scm.GithubWebhookEventHandler
 import com.netflix.spinnaker.echo.scm.GitlabWehbookEventHandler
@@ -40,7 +41,7 @@ class WebhooksControllerSpec extends Specification {
   void 'emits a transformed event for every webhook event'() {
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -63,7 +64,7 @@ class WebhooksControllerSpec extends Specification {
 
   void 'handles initial github ping'() {
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -83,7 +84,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -107,7 +108,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -181,7 +182,7 @@ class WebhooksControllerSpec extends Specification {
   void 'handles Bitbucket Server Merge Webhook'() {
     def event
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -320,7 +321,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -346,7 +347,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -371,7 +372,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -414,7 +415,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -456,7 +457,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -493,7 +494,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -529,7 +530,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -566,7 +567,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
@@ -609,7 +610,7 @@ class WebhooksControllerSpec extends Specification {
     def event
 
     given:
-    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []

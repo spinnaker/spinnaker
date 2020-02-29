@@ -3,6 +3,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.build.BuildInfoService
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent
 import com.netflix.spinnaker.echo.services.IgorService
@@ -17,7 +18,7 @@ import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.*
 
 class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
-  def objectMapper = new ObjectMapper()
+  def objectMapper = EchoObjectMapper.getInstance()
   def igorService = Mock(IgorService)
   def buildInformation = new BuildInfoService(igorService, new RetrySupport())
   def handlerSupport = new EventHandlerSupport()

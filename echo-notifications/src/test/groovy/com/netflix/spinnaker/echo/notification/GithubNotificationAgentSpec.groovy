@@ -21,7 +21,8 @@ import com.netflix.spinnaker.echo.github.GithubCommitDetail
 import com.netflix.spinnaker.echo.github.GithubCommit
 import com.netflix.spinnaker.echo.github.GithubService
 import com.netflix.spinnaker.echo.github.GithubStatus
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -152,7 +153,7 @@ class GithubNotificationAgentSpec extends Specification {
   def "if commit is a merge commit of the head branch and the default branch then return the head commit"() {
     given:
     GithubCommit commit = new GithubCommit(new GithubCommitDetail(commitMessage))
-    ObjectMapper mapper = new ObjectMapper()
+    ObjectMapper mapper = EchoObjectMapper.getInstance()
     String response = mapper.writeValueAsString(commit)
     github.getCommit(*_) >> { token, repo, sha ->
       new Response("url", 200, "nothing", [], new TypedByteArray("application/json", response.bytes))

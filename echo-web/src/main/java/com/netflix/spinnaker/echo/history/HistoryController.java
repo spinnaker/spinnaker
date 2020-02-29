@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.echo.history;
 
+import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.events.EventPropagator;
-import com.netflix.spinnaker.echo.model.Event;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

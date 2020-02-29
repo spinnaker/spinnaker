@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.scm.github;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
 import java.util.Map;
 import java.util.Optional;
 import lombok.Data;

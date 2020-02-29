@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.echo.pubsub.google;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties.Content;
-import com.netflix.spinnaker.echo.events.EchoEventListener;
-import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubPublishers;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.google.enabled:false}")
-public class GooglePubsubAllContentEventListener implements EchoEventListener {
+public class GooglePubsubAllContentEventListener implements EventListener {
 
   @Autowired private PubsubPublishers publishers;
 

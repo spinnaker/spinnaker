@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -27,7 +28,7 @@ import spock.lang.Unroll
 
 class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
-  def objectMapper = new ObjectMapper()
+  def objectMapper = EchoObjectMapper.getInstance()
   def handlerSupport = new EventHandlerSupport()
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
@@ -285,7 +286,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
     gitEvent.rawContent = "toBeHashed"
     gitEvent.details.source = "github"
     if (signature) {
-      gitEvent.details.requestHeaders.add("X-Hub-Signature", "sha1=" + signature)
+      gitEvent.details.requestHeaders.put("X-Hub-Signature", ["sha1=" + signature])
     }
 
     def trigger = enabledGithubTrigger.atSecret(secret).atBranch("master")

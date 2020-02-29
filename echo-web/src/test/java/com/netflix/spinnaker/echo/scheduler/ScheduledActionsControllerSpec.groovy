@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.echo.scheduler
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import org.quartz.CronTrigger
 import org.quartz.Scheduler
 import org.quartz.Trigger
@@ -11,7 +12,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class ScheduledActionsControllerSpec extends Specification {
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = EchoObjectMapper.getInstance()
   Scheduler scheduler = Mock(Scheduler)
   SchedulerFactoryBean schedulerFactoryBean = Mock(SchedulerFactoryBean)
   ScheduledActionsController sac

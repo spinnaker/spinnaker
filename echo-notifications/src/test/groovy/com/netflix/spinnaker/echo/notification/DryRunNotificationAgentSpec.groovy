@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.notification
 
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service

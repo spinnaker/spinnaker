@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.echo.notification;
 
-import com.netflix.spinnaker.echo.events.EchoEventListener;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -37,7 +37,7 @@ import retrofit.mime.TypedByteArray;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class GoogleCloudBuildNotificationAgent implements EchoEventListener {
+public class GoogleCloudBuildNotificationAgent implements EventListener {
   private final IgorService igorService;
   private final RetrySupport retrySupport;
 

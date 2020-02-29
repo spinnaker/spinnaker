@@ -1,3 +1,10 @@
+/*
+ * DO NOT ADD ANY ADDITIONAL NON-TEST DEPENDENCIES HERE!
+ *
+ * This module should be the only thing required by plugin implementors. In order to
+ * avoid dependency conflicts we should bring the bare minimum of transitive
+ * dependencies along for the ride -- ideally nothing besides kork-plugins-api.
+ */
 dependencies {
   api "com.netflix.spinnaker.kork:kork-plugins-api"
 

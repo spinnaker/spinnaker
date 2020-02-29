@@ -18,9 +18,10 @@ package com.netflix.spinnaker.echo.pubsub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
-import com.netflix.spinnaker.echo.model.Event;
-import com.netflix.spinnaker.echo.model.Metadata;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
@@ -37,7 +38,7 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 public class PubsubEventCreator implements EventCreator {
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = EchoObjectMapper.getInstance();
   private final Optional<MessageArtifactTranslator> messageArtifactTranslator;
 
   public PubsubEventCreator(Optional<MessageArtifactTranslator> messageArtifactTranslator) {

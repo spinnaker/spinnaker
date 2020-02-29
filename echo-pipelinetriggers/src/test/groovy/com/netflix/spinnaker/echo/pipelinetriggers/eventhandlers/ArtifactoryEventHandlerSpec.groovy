@@ -18,7 +18,8 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.echo.model.Metadata
+import com.netflix.spinnaker.echo.api.events.Metadata
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent
@@ -33,7 +34,7 @@ class ArtifactoryEventHandlerSpec extends Specification {
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), new ObjectMapper(), fiatPermissionEvaluator)
+  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), EchoObjectMapper.getInstance(), fiatPermissionEvaluator)
 
   void setup() {
     fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true

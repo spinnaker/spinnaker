@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.notification
 
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

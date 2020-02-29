@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.email.EmailNotificationService
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import freemarker.template.Configuration
 import freemarker.template.Template
 import spock.lang.Specification

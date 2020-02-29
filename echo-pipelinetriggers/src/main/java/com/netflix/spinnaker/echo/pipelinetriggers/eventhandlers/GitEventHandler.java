@@ -154,7 +154,7 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
 
   private boolean hasValidGitHubSecureSignature(GitEvent gitEvent, Trigger trigger) {
     String header =
-        gitEvent.getDetails().getRequestHeaders().getFirst(GITHUB_SECURE_SIGNATURE_HEADER);
+        gitEvent.getDetails().getRequestHeaders().get(GITHUB_SECURE_SIGNATURE_HEADER).get(0);
     log.debug("GitHub Signature detected. " + GITHUB_SECURE_SIGNATURE_HEADER + ": " + header);
     String signature = StringUtils.removeStart(header, "sha1=");
 

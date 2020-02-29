@@ -15,7 +15,7 @@
  */
 
 package com.netflix.spinnaker.echo.notification
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.slack.SlackAttachment
 import com.netflix.spinnaker.echo.slack.CompactSlackMessage
 import com.netflix.spinnaker.echo.slack.SlackService

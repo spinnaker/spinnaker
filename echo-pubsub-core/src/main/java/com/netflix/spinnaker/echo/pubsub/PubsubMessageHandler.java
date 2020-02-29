@@ -18,8 +18,8 @@ package com.netflix.spinnaker.echo.pubsub;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.events.EventPropagator;
-import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;

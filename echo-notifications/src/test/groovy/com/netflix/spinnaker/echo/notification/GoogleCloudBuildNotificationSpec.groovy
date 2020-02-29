@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.echo.model.Metadata
+import com.netflix.spinnaker.echo.api.events.Event
+import com.netflix.spinnaker.echo.api.events.Metadata
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.services.IgorService
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -28,7 +29,7 @@ import spock.lang.Subject
 class GoogleCloudBuildNotificationSpec extends Specification {
   IgorService igorService = Mock(IgorService)
   RetrySupport retrySupport = new RetrySupport()
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = EchoObjectMapper.getInstance()
 
   final String ACCOUNT_NAME = "my-account"
   final String BUILD_ID = "1a9ea355-eb3d-4148-b81b-875d07ea118b"

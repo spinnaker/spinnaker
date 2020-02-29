@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.echo.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
 class TriggerSpec extends Specification {
 
-  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared ObjectMapper objectMapper = EchoObjectMapper.getInstance()
 
   void 'trigger deserialization should ignore propagateAuth'() {
     setup:

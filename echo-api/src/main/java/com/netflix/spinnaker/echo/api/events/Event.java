@@ -1,7 +1,7 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.model.trigger;
+package com.netflix.spinnaker.echo.api.events;
 
-import com.netflix.spinnaker.echo.api.events.Metadata;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Data;
 
+/** Represents an event */
 @Data
-public abstract class TriggerEvent {
-  private Metadata details;
-  private Map payload;
-  private String rawContent;
-  private String eventId;
+public class Event {
+  public Metadata details;
+  public Map<String, Object> content;
+  public String rawContent;
+  public Map<String, Object> payload;
+
+  public String eventId = UUID.randomUUID().toString();
 }

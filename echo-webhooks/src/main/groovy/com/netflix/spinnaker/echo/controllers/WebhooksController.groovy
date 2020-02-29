@@ -21,8 +21,8 @@ import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
 import com.netflix.spinnaker.echo.scm.GitWebhookHandler
-import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.echo.model.Metadata
+import com.netflix.spinnaker.echo.api.events.Event
+import com.netflix.spinnaker.echo.api.events.Metadata
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders

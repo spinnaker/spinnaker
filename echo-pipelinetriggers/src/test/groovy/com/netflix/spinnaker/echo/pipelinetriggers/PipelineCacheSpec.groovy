@@ -20,6 +20,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
@@ -35,7 +36,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def front50 = Mock(Front50Service)
   def orca = Mock(OrcaService)
   def registry = new NoopRegistry()
-  def objectMapper = new ObjectMapper()
+  def objectMapper = EchoObjectMapper.getInstance()
 
   @Shared
   def interval = 30
@@ -83,7 +84,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
 
   def "we can serialize pipelines with triggers that have a parent"() {
     given:
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = EchoObjectMapper.getInstance()
     Trigger trigger = Trigger.builder().id('123-456').build()
     Pipeline pipeline = Pipeline.builder().application('app').name('pipe').id('idPipe').triggers([trigger]).build()
     Pipeline decorated = PipelineCache.decorateTriggers([pipeline])[0]
@@ -100,7 +101,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
 
   def "can handle pipelines without triggers"() {
     given:
-    ObjectMapper objectMapper = new ObjectMapper()
+    ObjectMapper objectMapper = EchoObjectMapper.getInstance()
     Trigger trigger = Trigger.builder().id('123-456').build()
     Pipeline pipeline = Pipeline.builder().application('app').name('pipe').id('idPipe').triggers([]).build()
     Pipeline decorated = PipelineCache.decorateTriggers([pipeline])[0]

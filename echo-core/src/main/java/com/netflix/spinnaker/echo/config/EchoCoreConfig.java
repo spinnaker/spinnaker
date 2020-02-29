@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.discovery.DiscoveryPollingConfiguration;
-import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.events.EventPropagator;
 import com.netflix.spinnaker.kork.PlatformComponents;
 import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory;
@@ -55,7 +55,7 @@ public class EchoCoreConfig {
   @Bean
   public EventPropagator propagator() {
     EventPropagator instance = new EventPropagator();
-    for (EchoEventListener e : context.getBeansOfType(EchoEventListener.class).values()) {
+    for (EventListener e : context.getBeansOfType(EventListener.class).values()) {
       instance.addListener(e);
     }
     return instance;

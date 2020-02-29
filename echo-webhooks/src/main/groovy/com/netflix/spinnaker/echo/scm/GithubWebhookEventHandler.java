@@ -18,9 +18,9 @@ package com.netflix.spinnaker.echo.scm;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.scm.github.GithubPullRequestEvent;
 import com.netflix.spinnaker.echo.scm.github.GithubPushEvent;
 import com.netflix.spinnaker.echo.scm.github.GithubWebhookEvent;
@@ -36,8 +36,7 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
   private ObjectMapper objectMapper;
 
   public GithubWebhookEventHandler() {
-    this.objectMapper =
-        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.objectMapper = EchoObjectMapper.getInstance();
   }
 
   public boolean handles(String source) {

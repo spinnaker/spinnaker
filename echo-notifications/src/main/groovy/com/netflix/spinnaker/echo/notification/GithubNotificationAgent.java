@@ -18,11 +18,12 @@ package com.netflix.spinnaker.echo.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.exceptions.FieldNotFoundException;
 import com.netflix.spinnaker.echo.github.GithubCommit;
 import com.netflix.spinnaker.echo.github.GithubService;
 import com.netflix.spinnaker.echo.github.GithubStatus;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import java.io.IOException;
 import java.util.Map;
@@ -128,7 +129,7 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
 
   private String getBranchCommit(String repo, String sha) {
     Response response = githubService.getCommit("token " + token, repo, sha);
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = EchoObjectMapper.getInstance();
     GithubCommit message = null;
     try {
       message = objectMapper.readValue(response.getBody().in(), GithubCommit.class);

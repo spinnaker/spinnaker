@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.scm.github;
 
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
 import java.util.Map;
 
 public interface GithubWebhookEvent {

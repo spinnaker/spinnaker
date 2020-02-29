@@ -18,7 +18,7 @@ package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.googlechat.GoogleChatMessage
 import com.netflix.spinnaker.echo.googlechat.GoogleChatService
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

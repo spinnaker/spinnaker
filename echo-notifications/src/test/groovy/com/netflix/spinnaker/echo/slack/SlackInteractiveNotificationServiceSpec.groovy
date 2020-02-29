@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.slack
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.springframework.http.HttpHeaders
@@ -35,7 +36,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
     slackAppService,
     slackHookService,
     Mock(NotificationTemplateEngine),
-    new ObjectMapper()
+    EchoObjectMapper.getInstance()
   )
 
   def "supports the SLACK notification type"() {
@@ -144,7 +145,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
     slackAppService.verifyToken(*_) >> { }
     slackAppService.getUserInfo(*_) >> { }
 
-    Map parsedPayload = new ObjectMapper().readValue(payload, Map)
+    Map parsedPayload = EchoObjectMapper.getInstance().readValue(payload, Map)
     Map originalMessage = parsedPayload.original_message
     Map expectedResponse = new HashMap(originalMessage)
     expectedResponse.attachments[0].remove("actions")

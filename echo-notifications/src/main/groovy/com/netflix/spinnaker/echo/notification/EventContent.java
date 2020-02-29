@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.echo.notification;
 
+import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.exceptions.FieldNotFoundException;
-import com.netflix.spinnaker.echo.model.Event;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

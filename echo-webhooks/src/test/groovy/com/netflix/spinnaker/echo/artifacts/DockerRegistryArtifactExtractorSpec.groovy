@@ -1,13 +1,14 @@
 package com.netflix.spinnaker.echo.artifacts
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Specification
 
 
 class DockerRegistryArtifactExtractorSpec extends Specification {
 
-  ObjectMapper mapper = new ObjectMapper()
+  ObjectMapper mapper = EchoObjectMapper.getInstance()
   DockerRegistryArtifactExtractor dockerRegistryArtifactExtractor = new DockerRegistryArtifactExtractor(mapper)
 
   void 'extracts artifact from Docker registry event in official documentation'() {

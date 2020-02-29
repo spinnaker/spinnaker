@@ -19,13 +19,14 @@ package com.netflix.spinnaker.echo.model
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
 class PipelineSpec extends Specification {
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = EchoObjectMapper.getInstance()
 
   void setupSpec() {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

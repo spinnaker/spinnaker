@@ -1,6 +1,7 @@
 package  com.netflix.spinnaker.echo.scheduler
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import org.springframework.test.web.servlet.MvcResult
 import spock.lang.Shared
 import spock.lang.Specification
@@ -9,7 +10,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class ValidationControllerSpec extends Specification {
 
-  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared ObjectMapper objectMapper = EchoObjectMapper.getInstance()
 
   @Shared def mvc = MockMvcBuilders.standaloneSetup(new ValidationController()).build()
 

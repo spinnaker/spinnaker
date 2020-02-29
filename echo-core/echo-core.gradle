@@ -15,6 +15,7 @@
  */
 
 dependencies {
+    api project(":echo-api")
     implementation project(":echo-model")
 
     api "com.netflix.spinnaker.kork:kork-plugins"

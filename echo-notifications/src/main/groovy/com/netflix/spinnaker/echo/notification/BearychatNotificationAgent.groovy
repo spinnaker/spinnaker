@@ -21,7 +21,7 @@ import com.netflix.spinnaker.echo.bearychat.BearychatUserInfo
 import com.netflix.spinnaker.echo.bearychat.CreateP2PChannelPara
 import com.netflix.spinnaker.echo.bearychat.CreateP2PChannelResponse
 import com.netflix.spinnaker.echo.bearychat.SendMessagePara
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.text.WordUtils
 import org.springframework.beans.factory.annotation.Autowired

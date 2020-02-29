@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pubsub
 
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import spock.lang.Specification
 import spock.lang.Subject

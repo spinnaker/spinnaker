@@ -17,15 +17,15 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.events.EchoEventListener
-import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.api.events.EventListener
+import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.services.Front50Service
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
 @Slf4j
-abstract class AbstractEventNotificationAgent implements EchoEventListener {
+abstract class AbstractEventNotificationAgent implements EventListener {
 
   @Autowired
   Front50Service front50Service

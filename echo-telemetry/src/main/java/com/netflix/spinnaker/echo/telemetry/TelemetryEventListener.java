@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.telemetry;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -25,9 +24,10 @@ import com.google.common.hash.Hashing;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.util.JsonFormat;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.config.TelemetryConfig;
-import com.netflix.spinnaker.echo.events.EchoEventListener;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.kork.proto.stats.Application;
 import com.netflix.spinnaker.kork.proto.stats.CloudProvider;
 import com.netflix.spinnaker.kork.proto.stats.CloudProvider.ID;
@@ -56,7 +56,7 @@ import retrofit.mime.TypedString;
 @Slf4j
 @Component
 @ConditionalOnProperty("telemetry.enabled")
-public class TelemetryEventListener implements EchoEventListener {
+public class TelemetryEventListener implements EventListener {
 
   protected static final String TELEMETRY_REGISTRY_NAME = "telemetry";
 
@@ -70,8 +70,7 @@ public class TelemetryEventListener implements EchoEventListener {
   private static final JsonFormat.Printer JSON_PRINTER =
       JsonFormat.printer().includingDefaultValueFields();
 
-  private static final ObjectMapper objectMapper =
-      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = EchoObjectMapper.getInstance();
 
   private final TelemetryService telemetryService;
 

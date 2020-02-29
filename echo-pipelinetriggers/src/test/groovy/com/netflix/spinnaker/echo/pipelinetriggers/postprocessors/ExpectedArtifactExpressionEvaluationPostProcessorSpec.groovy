@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -11,7 +12,7 @@ import spock.lang.Subject
 
 class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specification implements RetrofitStubs {
   @Subject
-  def artifactPostProcessor = new ExpectedArtifactExpressionEvaluationPostProcessor(new ObjectMapper())
+  def artifactPostProcessor = new ExpectedArtifactExpressionEvaluationPostProcessor(EchoObjectMapper.getInstance())
 
   @Shared
   def trigger = Trigger.builder()

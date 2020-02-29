@@ -19,8 +19,8 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.events.EchoEventListener;
-import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /** Triggers pipelines in orca when a TriggerEvent of type T is received by echo. */
 @Slf4j
-public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener {
+public class TriggerMonitor<T extends TriggerEvent> implements EventListener {
   private final PipelineInitiator pipelineInitiator;
   private final Registry registry;
   private final PipelineCache pipelineCache;

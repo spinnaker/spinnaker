@@ -18,13 +18,12 @@ package com.netflix.spinnaker.echo.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.config.RestUrls;
-import com.netflix.spinnaker.echo.extension.rest.RestEventParser;
-import com.netflix.spinnaker.echo.model.Event;
-import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,17 +34,15 @@ import org.springframework.stereotype.Component;
 /** Event listener for echo events */
 @Component
 @ConditionalOnProperty("rest.enabled")
-class RestEventListener implements EchoEventListener {
+class RestEventListener implements EventListener {
 
   private static final Logger log = LoggerFactory.getLogger(RestEventListener.class);
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper mapper = EchoObjectMapper.getInstance();
 
   private RestUrls restUrls;
   private RestEventTemplateEngine restEventTemplateEngine;
   private Registry registry;
-
-  @Alpha private Optional<RestEventParser> restEventParser;
 
   @Value("${rest.default-event-name:spinnaker_events}")
   private String eventName;
@@ -55,13 +52,9 @@ class RestEventListener implements EchoEventListener {
 
   @Autowired
   RestEventListener(
-      RestUrls restUrls,
-      RestEventTemplateEngine restEventTemplateEngine,
-      Optional<RestEventParser> restEventParser,
-      Registry registry) {
+      RestUrls restUrls, RestEventTemplateEngine restEventTemplateEngine, Registry registry) {
     this.restUrls = restUrls;
     this.restEventTemplateEngine = restEventTemplateEngine;
-    this.restEventParser = restEventParser;
     this.registry = registry;
   }
 
@@ -74,21 +67,9 @@ class RestEventListener implements EchoEventListener {
               try {
                 Map<String, Object> eventMap = mapper.convertValue(event, Map.class);
 
-                if (service.getConfig().getFlatten() && restEventParser.isPresent()) {
-                  RestEventParser.FlatEvent flatEvent =
-                      restEventParser
-                          .get()
-                          .flattenEvent(mapper.convertValue(event, RestEventParser.Event.class));
-                  eventMap.put("content", flatEvent.getContent());
-                  eventMap.put("details", flatEvent.getDetails());
-                } else if (service.getConfig().getFlatten()) {
+                if (service.getConfig().getFlatten()) {
                   eventMap.put("content", mapper.writeValueAsString(eventMap.get("content")));
                   eventMap.put("details", mapper.writeValueAsString(eventMap.get("details")));
-                } else if (restEventParser.isPresent()) {
-                  eventMap =
-                      restEventParser
-                          .get()
-                          .parseEvent(mapper.convertValue(event, RestEventParser.Event.class));
                 }
 
                 if (service.getConfig().getWrap()) {
