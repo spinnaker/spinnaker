@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.helpers
 
 import com.netflix.frigga.NameBuilder
+import com.netflix.frigga.NameConstants
+import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -99,8 +101,20 @@ abstract class AbstractServerGroupNameResolver extends NameBuilder {
       throw new IllegalArgumentException("Sequence '${sequence}' is invalid")
     }
 
+    //validate characters, but we will skip pushSequence in stack/detail to not break existing clusters
+    if (!NameValidation.checkName(NameValidation.notEmpty(application, "application"))) {
+      throw new IllegalArgumentException(String.format("Invalid appName %s, may only contain %s characters", application, NameConstants.NAME_CHARS))
+    }
+    if (stack != null && !stack.isEmpty() && !NameValidation.checkName(stack)) {
+      throw new IllegalArgumentException(String.format("Invalid stack %s, stack may only contain %s", stack, NameConstants.NAME_CHARS))
+    }
+
+    if (details != null && !details.isEmpty() && !NameValidation.checkNameWithHyphen(details)) {
+      throw new IllegalArgumentException(String.format("Invalid detail %s, detail may only contain %s", details, NameConstants.NAME_HYPHEN_CHARS))
+    }
+
     def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: details)
-    def groupName = builder.buildGroupName(true)
+    def groupName = builder.buildGroupName()
     if (ignoreSequence) {
       return groupName
     }

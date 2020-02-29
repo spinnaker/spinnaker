@@ -24,7 +24,6 @@ class LocalFileUserDataProviderSpec extends Specification {
 
   static final String APP = 'app'
   static final String STACK = 'stack'
-  static final String DETAIL = 'detail'
   static final String COUNTRIES = 'countries'
   static final String DEV_PHASE = 'devPhase'
   static final String HARDWARE = 'hardware'
@@ -35,8 +34,9 @@ class LocalFileUserDataProviderSpec extends Specification {
   static final String ACCOUNT = 'account'
   static final String ENVIRONMENT = 'environment'
   static final String ACCOUNT_TYPE = 'accountType'
+  static final String DETAIL = "detail-c0${COUNTRIES}-d0${DEV_PHASE}-h0${HARDWARE}-p0${PARTNERS}-r0${REVISION}-z0${ZONE}"
 
-  static final String ASG_NAME = "${APP}-${STACK}-${DETAIL}-c0${COUNTRIES}-d0${DEV_PHASE}-h0${HARDWARE}-p0${PARTNERS}-r0${REVISION}-z0${ZONE}"
+  static final String ASG_NAME = "${APP}-${STACK}-${DETAIL}"
   static final String LAUNCH_CONFIG_NAME = 'launchConfigName'
 
   static final LaunchConfigurationSettings SETTINGS = new LaunchConfigurationSettings(

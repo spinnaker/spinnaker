@@ -51,9 +51,9 @@ class GoogleLabeledResourceNamerSpec extends Specification {
 
     where:
     name                                                      | labels                                || expectedApp  | expectedCluster                                      | expectedStack     | expectedDetail | expectedSequence
-    "cass-nccpintegration-random-junk-d0prod-z0useast1a-v003" | null                                  || "cass"       | "cass-nccpintegration-random-junk-d0prod-z0useast1a" | "nccpintegration" | "random-junk" | 3
-    "cass-nccpintegration-random-junk-d0prod-z0useast1a-v003" | [:]                                   || "cass"       | "cass-nccpintegration-random-junk-d0prod-z0useast1a" | "nccpintegration" | "random-junk" | 3
-    "cass-nccpintegration-random-junk-d0prod-z0useast1a-v003" | [(APP): "myApp"]                      || "myApp"      | "cass-nccpintegration-random-junk-d0prod-z0useast1a" | "nccpintegration" | "random-junk" | 3
+    "cass-nccpintegration-random-junk-d0prod-z0useast1a-v003" | null                                  || "cass"       | "cass-nccpintegration-random-junk-d0prod-z0useast1a" | "nccpintegration" | "random-junk-d0prod-z0useast1a" | 3
+    "cass-nccpintegration-random-junk-d0prod-z0useast1a-v003" | [:]                                   || "cass"       | "cass-nccpintegration-random-junk-d0prod-z0useast1a" | "nccpintegration" | "random-junk-d0prod-z0useast1a" | 3
+    "cass-nccpintegration-random-junk-d0prod-z0useast1a-v003" | [(APP): "myApp"]                      || "myApp"      | "cass-nccpintegration-random-junk-d0prod-z0useast1a" | "nccpintegration" | "random-junk-d0prod-z0useast1a" | 3
     "cass-nccpintegration-random-junk-v003"                   | [(CLUSTER): "myCluster"]              || "cass"       | "myCluster"                                          | "nccpintegration" | "random-junk" | 3
     "cass-nccpintegration-random-junk-v003"                   | [(STACK): "myStack"]                  || "cass"       | "cass-myStack"                                       | "myStack"         | "random-junk" | 3
     "cass-nccpintegration-random-junk-v003"                   | [(STACK): "myStack", (DETAIL): ""]    || "cass"       | "cass-myStack"                                       | "myStack"         | ""            | 3

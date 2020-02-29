@@ -155,7 +155,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
 
     then:
     IllegalArgumentException e = thrown()
-    e.message == "(Use alphanumeric characters only)"
+    e.message == /Invalid detail east!, detail may only contain -a-zA-Z0-9._~\^/
   }
 
   void "application, stack, and freeform details make up the asg name"() {
