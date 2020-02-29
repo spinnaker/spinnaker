@@ -103,7 +103,11 @@ const TableRowLayout = ({
   const gridTemplateColumns = getGridColumnsStyle(sizes, tableExpandable, isMobile);
 
   return (
-    <>
+    <div
+      className={classNames('flex-container-v standard-grid-table-row-container', {
+        'sp-margin-l-bottom': rowExpandable && expanded,
+      })}
+    >
       <div
         className={classNames('standard-grid-table-row', { expandable: rowExpandable, expanded })}
         style={{ gridTemplateColumns }}
@@ -119,7 +123,7 @@ const TableRowLayout = ({
         )}
       </div>
       {rowExpandable && expanded && <div className="expanded-row-content">{renderExpandedContent()}</div>}
-    </>
+    </div>
   );
 };
 

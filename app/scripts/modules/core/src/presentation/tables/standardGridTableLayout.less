@@ -129,7 +129,6 @@
     grid-column: 1 / -1;
     background-color: var(--color-white);
     padding: 16px;
-    margin-bottom: 16px;
     overflow-x: scroll;
   }
 
@@ -144,16 +143,18 @@
   }
 
   @media screen and (max-width: 1024px) {
+    .standard-grid-table-row-container {
+      &:first-child {
+        margin-top: 16px;
+      }
+    }
+
     .standard-grid-table-row {
       display: flex;
       flex-wrap: wrap;
       padding: 0 8px 16px;
       margin: 0 0 16px;
       border-bottom: 1px solid var(--color-porcelain);
-
-      &:first-child {
-        margin-top: 16px;
-      }
 
       &.expanded {
         position: static;
@@ -171,7 +172,6 @@
 
     .expanded-row-content {
       border-left: 2px solid var(--color-regal);
-      margin-bottom: 16px;
     }
 
     .standard-grid-table-cell {
