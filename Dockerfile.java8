@@ -3,6 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY orca-web/build/install/orca /opt/orca
 RUN apk --no-cache add --update bash openjdk8-jre
 RUN adduser -D -S spinnaker
-RUN mkdir plugins && chown -R 100:100 plugins
+RUN mkdir -p /opt/orca/plugins && chown -R spinnaker:nogroup /opt/orca/plugins
 USER spinnaker
 CMD ["/opt/orca/bin/orca"]
