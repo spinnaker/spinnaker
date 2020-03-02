@@ -1,0 +1,13 @@
+{
+  "accountNonExpired": true,
+  "accountNonLocked": true,
+  "allowedAccounts": [],
+  "authorities": [],
+  "credentialsNonExpired": true,
+  "email": "anonymous",
+  "enabled": true,
+  "firstName": null,
+  "lastName": null,
+  "roles": [],
+  "username": "anonymous"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@spinnaker/functionaltests",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts:comment": "These scripts expect that Deck is built ('yarn build' from the root package)",
+  "scripts": {
+    "build": "cd ../../ && npm run build",
+    "start": "cypress-runner open --nospa --path ../../build/webpack",
+    "test": "cypress-runner run --nospa --path ../../build/webpack",
+    "open": "npm run start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "@uirouter/cypress-runner": "^1.1.0"
+  }
+}

@@ -1,0 +1,578 @@
+[
+  {
+    "application": "compute",
+    "id": "9b9d29df-2c0c-40f5-9f3e-02e59198ca4a",
+    "index": 0,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "resize-up",
+    "stages": [
+      {
+        "action": "scale_up",
+        "capacity": {},
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "cluster": "compute",
+        "credentials": "gce",
+        "moniker": { "app": "compute", "cluster": "compute" },
+        "name": "Resize Server Group",
+        "overrideTimeout": true,
+        "refId": "1",
+        "regions": ["us-central1"],
+        "requisiteStageRefIds": [],
+        "resizeType": "incr",
+        "scaleNum": 1,
+        "stageTimeoutMs": 60000,
+        "target": "current_asg_dynamic",
+        "type": "resizeServerGroup"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1519313432132"
+  },
+  {
+    "application": "compute",
+    "id": "d93f5765-b94a-4c69-b906-f64ce8647ab5",
+    "index": 1,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "resize-down",
+    "stages": [
+      {
+        "action": "scale_down",
+        "capacity": {},
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "cluster": "compute",
+        "credentials": "gce",
+        "moniker": { "app": "compute", "cluster": "compute" },
+        "name": "Resize Server Group",
+        "refId": "1",
+        "regions": ["us-central1"],
+        "requisiteStageRefIds": [],
+        "resizeType": "pct",
+        "scalePct": 100,
+        "target": "current_asg_dynamic",
+        "type": "resizeServerGroup"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1519420929627"
+  },
+  {
+    "application": "compute",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": { "kind": "custom" },
+        "id": "cd50818c-9334-4aa2-b1c3-0d7d4c0c87a7",
+        "matchArtifact": {
+          "kind": "custom",
+          "location": "hgdfhgdf",
+          "name": "hgdfhgd",
+          "reference": "hgdfhgdfhgfd",
+          "type": "ghfhdfh",
+          "version": "hgdfhgdf"
+        },
+        "useDefaultArtifact": false,
+        "usePriorExecution": false
+      }
+    ],
+    "id": "030b5d92-f06c-474a-9d8d-d1d951529140",
+    "index": 2,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "clone",
+    "stages": [
+      {
+        "clusters": [
+          {
+            "account": "gce",
+            "application": "compute",
+            "associatePublicIpAddress": false,
+            "authScopes": ["cloud.useraccounts.readonly", "devstorage.read_only", "logging.write", "monitoring.write"],
+            "automaticRestart": true,
+            "availabilityZones": { "us-central1": ["us-central1-c"] },
+            "backendServiceMetadata": [],
+            "canIpForward": false,
+            "capacity": { "desired": 0, "max": 0, "min": 0 },
+            "cloudProvider": "gce",
+            "disableTraffic": false,
+            "disks": [{ "sizeGb": 10, "type": "pd-ssd" }],
+            "distributionPolicy": { "zones": [] },
+            "freeFormDetails": "",
+            "imageArtifactId": "cd50818c-9334-4aa2-b1c3-0d7d4c0c87a7",
+            "imageSource": "artifact",
+            "instanceMetadata": {},
+            "instanceType": "n1-standard-1",
+            "labels": {},
+            "loadBalancers": [],
+            "minCpuPlatform": "",
+            "network": "default",
+            "onHostMaintenance": "MIGRATE",
+            "preemptible": false,
+            "provider": "gce",
+            "region": "us-central1",
+            "regional": false,
+            "selectZones": false,
+            "serviceAccountEmail": "default",
+            "stack": "",
+            "strategy": "",
+            "subnet": "",
+            "tags": [],
+            "targetSize": 0,
+            "zone": "us-central1-c"
+          }
+        ],
+        "group": "foo",
+        "name": "Deploy",
+        "refId": "1",
+        "requisiteStageRefIds": ["2"],
+        "type": "deploy"
+      },
+      {
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "cluster": "compute",
+        "credentials": "gce",
+        "moniker": { "app": "compute", "cluster": "compute" },
+        "name": "Find Image from Cluster",
+        "onlyEnabled": true,
+        "refId": "2",
+        "regions": ["us-central1"],
+        "requisiteStageRefIds": [],
+        "selectionStrategy": "LARGEST",
+        "type": "findImage"
+      },
+      {
+        "clusters": [
+          {
+            "account": "gce",
+            "application": "compute",
+            "associatePublicIpAddress": false,
+            "authScopes": ["cloud.useraccounts.readonly", "devstorage.read_only", "logging.write", "monitoring.write"],
+            "automaticRestart": true,
+            "availabilityZones": { "us-central1": ["us-central1-f"] },
+            "backendServiceMetadata": [],
+            "canIpForward": false,
+            "capacity": { "desired": 1, "max": 1, "min": 1 },
+            "cloudProvider": "gce",
+            "disableTraffic": false,
+            "disks": [{ "sizeGb": 10, "type": "pd-standard" }],
+            "distributionPolicy": { "zones": [] },
+            "imageSource": "priorStage",
+            "instanceMetadata": {},
+            "instanceType": "f1-micro",
+            "labels": {},
+            "loadBalancers": [],
+            "minCpuPlatform": "",
+            "network": "default",
+            "onHostMaintenance": "MIGRATE",
+            "preemptible": false,
+            "provider": "gce",
+            "region": "us-central1",
+            "regional": false,
+            "selectZones": false,
+            "serviceAccountEmail": "default",
+            "strategy": "",
+            "subnet": "",
+            "tags": [],
+            "targetSize": 1,
+            "zone": "us-central1-f"
+          }
+        ],
+        "group": "foo",
+        "name": "Deploy",
+        "refId": "3",
+        "requisiteStageRefIds": ["2"],
+        "type": "deploy"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1527780307880"
+  },
+  {
+    "application": "compute",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": { "kind": "custom" },
+        "id": "8e62a85b-7631-4161-920b-459611bd3a90",
+        "matchArtifact": { "kind": "base64", "name": "foobar", "type": "embedded/base64" },
+        "useDefaultArtifact": false,
+        "usePriorExecution": false
+      }
+    ],
+    "id": "39d55763-8bff-48de-b2ad-8f5989023533",
+    "index": 3,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "bake+deploy",
+    "stages": [
+      {
+        "baseLabel": "release",
+        "baseOs": "trusty",
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": { "kind": "custom" },
+            "id": "e74dc459-0ed5-4525-a996-fbc4dd4aca63",
+            "matchArtifact": { "kind": "github", "name": "gofjkdsanjkfls", "type": "github/file" },
+            "useDefaultArtifact": false,
+            "usePriorExecution": false
+          }
+        ],
+        "extendedAttributes": {},
+        "name": "Bake",
+        "packageArtifactIds": ["8e62a85b-7631-4161-920b-459611bd3a90"],
+        "refId": "1",
+        "region": "global",
+        "requisiteStageRefIds": [],
+        "type": "bake",
+        "user": "[anonymous]"
+      }
+    ],
+    "triggers": [{ "enabled": true, "type": "docker" }],
+    "updateTs": "1543331256842"
+  },
+  {
+    "appConfig": {},
+    "application": "compute",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "kind": "custom",
+          "name": "wget",
+          "reference": "http://deb.debian.org/debian/ stretch main",
+          "type": "deb/package"
+        },
+        "id": "8a6183b0-2577-4e6e-8259-f75363b25179",
+        "matchArtifact": { "kind": "custom", "name": "wget", "reference": "", "type": "deb/package", "version": "" },
+        "useDefaultArtifact": true,
+        "usePriorExecution": false
+      }
+    ],
+    "id": "019e760e-fe63-4ff4-aef1-a0e82f89f1b5",
+    "index": 4,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "gce - bake+deploy",
+    "stages": [
+      {
+        "baseLabel": "release",
+        "baseOs": "trusty",
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": { "kind": "custom" },
+            "id": "29be38e7-bf69-4c3d-b34a-6a9355fbd217",
+            "matchArtifact": { "kind": "custom", "name": "hello-karyon-rxnetty-all*", "type": "gce/image" },
+            "useDefaultArtifact": false,
+            "usePriorExecution": false
+          }
+        ],
+        "extendedAttributes": {},
+        "name": "Bake",
+        "packageArtifactIds": ["8a6183b0-2577-4e6e-8259-f75363b25179"],
+        "rebake": false,
+        "refId": "1",
+        "region": "global",
+        "requisiteStageRefIds": [],
+        "type": "bake",
+        "user": "[anonymous]"
+      },
+      {
+        "clusters": [
+          {
+            "account": "my-gce-account",
+            "application": "bakery",
+            "associatePublicIpAddress": true,
+            "authScopes": ["cloud.useraccounts.readonly", "devstorage.read_only", "logging.write", "monitoring.write"],
+            "automaticRestart": true,
+            "availabilityZones": { "us-east4": ["us-east4-b"] },
+            "backendServiceMetadata": [],
+            "canIpForward": false,
+            "capacity": { "desired": 1, "max": 1, "min": 1 },
+            "cloudProvider": "gce",
+            "disableTraffic": false,
+            "disks": [{ "sizeGb": 10, "type": "pd-standard" }],
+            "distributionPolicy": { "zones": [] },
+            "imageArtifactId": "29be38e7-bf69-4c3d-b34a-6a9355fbd217",
+            "imageSource": "artifact",
+            "instanceMetadata": { "load-balancer-names": "bakery-test" },
+            "instanceType": "f1-micro",
+            "labels": {},
+            "loadBalancers": ["bakery-test"],
+            "minCpuPlatform": "",
+            "network": "default",
+            "onHostMaintenance": "MIGRATE",
+            "preemptible": false,
+            "provider": "gce",
+            "region": "us-east4",
+            "regional": false,
+            "selectZones": false,
+            "serviceAccountEmail": "default",
+            "stack": "test",
+            "strategy": "",
+            "subnet": "",
+            "tags": [],
+            "targetSize": 1,
+            "zone": "us-east4-b"
+          }
+        ],
+        "name": "Deploy",
+        "refId": "2",
+        "requisiteStageRefIds": ["1"],
+        "type": "deploy"
+      },
+      {
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "cluster": "bakery-test",
+        "credentials": "my-gce-account",
+        "moniker": { "app": "bakery", "cluster": "bakery-test", "stack": "test" },
+        "name": "Disable Server Group",
+        "refId": "3",
+        "regions": ["us-east4"],
+        "requisiteStageRefIds": ["2"],
+        "target": "ancestor_asg_dynamic",
+        "type": "disableServerGroup"
+      }
+    ],
+    "triggers": [
+      {
+        "enabled": true,
+        "expectedArtifactIds": ["8a6183b0-2577-4e6e-8259-f75363b25179"],
+        "payloadConstraints": {},
+        "source": "cihook",
+        "type": "webhook"
+      }
+    ],
+    "updateTs": "1527791457772"
+  },
+  {
+    "application": "compute",
+    "id": "96be9835-e479-4c1d-9d7b-3df834561172",
+    "index": 5,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Kayenta-Shorter-Lifetimes",
+    "stages": [
+      {
+        "analysisType": "realTime",
+        "canaryConfig": {
+          "canaryAnalysisIntervalMins": "2",
+          "canaryConfigId": "a62f3be1-5250-4687-a7ed-914372269ef4",
+          "combinedCanaryResultStrategy": "LOWEST",
+          "lifetimeDuration": "PT0H5M",
+          "metricsAccountName": "local-canary",
+          "scopes": [
+            {
+              "controlLocation": "${ deployedServerGroups[0].region }",
+              "controlScope": "${ #stage('Clone Server Group')['context']['source']['serverGroupName'] }",
+              "experimentLocation": "${ deployedServerGroups[0].region }",
+              "experimentScope": "${ deployedServerGroups[0].serverGroup }",
+              "extendedScopeParams": { "resourceType": "gce_instance" },
+              "scopeName": "foobar",
+              "step": 60
+            }
+          ],
+          "scoreThresholds": { "marginal": "50", "pass": "75" },
+          "storageAccountName": "local-canary"
+        },
+        "name": "Canary Analysis",
+        "refId": "1",
+        "requisiteStageRefIds": ["4"],
+        "type": "kayentaCanary"
+      },
+      {
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "cluster": "compute",
+        "credentials": "gce",
+        "moniker": { "app": "compute", "cluster": "compute" },
+        "name": "Find Image from Cluster",
+        "onlyEnabled": true,
+        "refId": "3",
+        "regions": ["us-central1"],
+        "requisiteStageRefIds": [],
+        "selectionStrategy": "LARGEST",
+        "type": "findImage"
+      },
+      {
+        "application": "compute",
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "credentials": "gce",
+        "disableTraffic": false,
+        "freeFormDetails": "",
+        "moniker": { "app": "compute", "cluster": "compute" },
+        "name": "Clone Server Group",
+        "refId": "4",
+        "region": "us-central1",
+        "requisiteStageRefIds": ["3"],
+        "stack": "",
+        "target": "current_asg_dynamic",
+        "targetCluster": "compute",
+        "type": "cloneServerGroup",
+        "useSourceCapacity": true
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1541178125598"
+  },
+  {
+    "application": "compute",
+    "id": "c89c7d5f-f970-4227-8b47-62caa1bf6ba2",
+    "index": 6,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Kayenta-Add-New-Canary-Stage",
+    "stages": [],
+    "triggers": [],
+    "updateTs": "1528815841063"
+  },
+  {
+    "application": "compute",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": { "id": "6b571df6-b212-4c51-a7c5-58d77262414a", "kind": "custom" },
+        "id": "ced95e27-79f6-4d3a-9d37-0243a057153f",
+        "matchArtifact": {
+          "id": "41e5a4b3-0c93-4874-94cc-89735580e81b",
+          "kind": "custom",
+          "location": "foo/bar.com",
+          "name": "foo",
+          "reference": "fhjdksahfjklsdhfjklsd",
+          "type": "foo/bar",
+          "version": "bar"
+        },
+        "useDefaultArtifact": false,
+        "usePriorArtifact": false
+      }
+    ],
+    "id": "168b2ea0-8398-4381-bb12-e259b6b982dd",
+    "index": 7,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Deploy Server Group",
+    "stages": [
+      {
+        "clusters": [
+          {
+            "account": "gce",
+            "application": "compute",
+            "associatePublicIpAddress": false,
+            "authScopes": ["cloud.useraccounts.readonly", "devstorage.read_only", "logging.write", "monitoring.write"],
+            "automaticRestart": true,
+            "availabilityZones": { "us-central1": ["us-central1-f"] },
+            "backendServiceMetadata": [],
+            "canIpForward": false,
+            "capacity": { "desired": 1, "max": 1, "min": 1 },
+            "cloudProvider": "gce",
+            "disableTraffic": false,
+            "disks": [{ "sizeGb": 10, "type": "pd-standard" }],
+            "distributionPolicy": { "zones": [] },
+            "imageSource": "priorStage",
+            "instanceMetadata": {},
+            "instanceType": "f1-micro",
+            "labels": {},
+            "loadBalancers": [],
+            "minCpuPlatform": "",
+            "network": "default",
+            "onHostMaintenance": "MIGRATE",
+            "preemptible": false,
+            "provider": "gce",
+            "region": "us-central1",
+            "regional": false,
+            "selectZones": false,
+            "serviceAccountEmail": "default",
+            "strategy": "",
+            "subnet": "",
+            "tags": [],
+            "targetSize": 1,
+            "zone": "us-central1-f"
+          }
+        ],
+        "name": "Deploy",
+        "refId": "1",
+        "requisiteStageRefIds": ["2"],
+        "type": "deploy"
+      },
+      {
+        "baseLabel": "release",
+        "baseOs": "trusty",
+        "cloudProvider": "gce",
+        "cloudProviderType": "gce",
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": { "id": "76f3fb18-2129-44c4-b070-e57d9559848d", "kind": "custom" },
+            "id": "c3842cbe-d346-4cf2-82b8-39f0bc8feeec",
+            "matchArtifact": {
+              "id": "6440a499-be91-447b-aa83-1c92ec67c93e",
+              "kind": "gcs",
+              "name": "gs://foo/bar/bakestage",
+              "type": "gcs/object"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "extendedAttributes": {},
+        "name": "Bake",
+        "refId": "2",
+        "region": "global",
+        "requisiteStageRefIds": [],
+        "type": "bake",
+        "user": "[anonymous]"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1536760748284"
+  },
+  {
+    "application": "compute",
+    "id": "5f9b4f77-eae9-44e7-8587-dd9e30a89c99",
+    "index": 8,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Webhook Artifacts",
+    "stages": [
+      {
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": { "id": "160d497f-f583-43a7-85c2-5a5f5a9f2a1d", "kind": "custom" },
+            "id": "ac377b7a-c138-49ea-99db-e28669c7c152",
+            "matchArtifact": {
+              "id": "391700e2-0c7e-4974-8dc5-77b0e672db2e",
+              "kind": "gcs",
+              "name": "gs://sbws/manifests/nginx.yaml",
+              "type": "gcs/object"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "method": "GET",
+        "name": "Webhook",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "statusUrlResolution": "getMethod",
+        "type": "webhook",
+        "url": "http://localhost:9090"
+      },
+      { "name": "Wait", "refId": "2", "requisiteStageRefIds": ["1"], "type": "wait", "waitTime": 2 }
+    ],
+    "triggers": [],
+    "updateTs": "1543419540185"
+  }
+]

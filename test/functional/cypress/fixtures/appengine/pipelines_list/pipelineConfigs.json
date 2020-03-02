@@ -1,0 +1,387 @@
+[
+  {
+    "application": "gae",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "id": "50ca1cd7-d926-401b-8794-28a779fb0de5",
+          "kind": "default.docker",
+          "name": "gcr.io/hebridean-sun/hello-go",
+          "reference": "gcr.io/hebridean-sun/hello-go",
+          "type": "docker/image"
+        },
+        "id": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+        "matchArtifact": {
+          "id": "be089af6-45c4-4f67-b937-1eea60595da0",
+          "kind": "docker",
+          "name": "gcr.io/hebridean-sun/hello-go",
+          "type": "docker/image"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      },
+      {
+        "defaultArtifact": {
+          "id": "1bbeeaac-e171-4f83-bb73-307eab8600b6",
+          "kind": "default.gcs",
+          "name": "gs://sbws/appengine/app.yaml",
+          "reference": "gs://sbws/appengine/app.yaml",
+          "type": "gcs/object"
+        },
+        "id": "f70ec87a-2aff-49c1-b0c2-0e4dfb110c78",
+        "matchArtifact": {
+          "id": "61818beb-71a2-4399-80fe-f17f2c24cf57",
+          "kind": "gcs",
+          "name": "gs://sbws/appengine/app.yaml",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      }
+    ],
+    "id": "c2b04706-1d72-4ad1-ae04-5d5ee0d66749",
+    "index": 0,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Deploy a Container",
+    "stages": [
+      {
+        "clusters": [
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [{ "account": "hebridean-sun-local-gcs", "id": "f70ec87a-2aff-49c1-b0c2-0e4dfb110c78" }],
+            "configFiles": [],
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test1detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "promote": true,
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test1stack",
+            "stopPreviousVersion": false
+          }
+        ],
+        "name": "Deploy",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "deploy"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1540558574772"
+  },
+  {
+    "application": "gae",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "id": "50ca1cd7-d926-401b-8794-28a779fb0de5",
+          "kind": "default.docker",
+          "name": "gcr.io/hebridean-sun/hello-go",
+          "reference": "gcr.io/hebridean-sun/hello-go",
+          "type": "docker/image"
+        },
+        "id": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+        "matchArtifact": {
+          "id": "be089af6-45c4-4f67-b937-1eea60595da0",
+          "kind": "docker",
+          "name": "gcr.io/hebridean-sun/hello-go",
+          "type": "docker/image"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      }
+    ],
+    "id": "31ba4f1f-3848-4106-a2bf-f7c5e433a8dd",
+    "index": 1,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Deploy Many Services From Inline Config File",
+    "parameterConfig": [],
+    "stages": [
+      {
+        "clusters": [
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test1detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "promote": false,
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test1stack",
+            "stopPreviousVersion": false
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test2detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test2stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test3detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test3stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test4detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test4stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test5detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test5stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test6detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test6stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test7detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test7stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test8detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test8stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test9detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test9stack"
+          },
+          {
+            "account": "gae",
+            "application": "gae",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFiles": [
+              "env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"
+            ],
+            "containerImageUrl": "gcr.io/hebridean-sun/hello-go",
+            "expectedArtifactId": "4230d4a3-6255-46ac-bbb2-28c4668f5740",
+            "freeFormDetails": "test10detail",
+            "fromArtifact": true,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "provider": "appengine",
+            "region": "us-central",
+            "sourceType": "containerImage",
+            "stack": "test10stack"
+          }
+        ],
+        "name": "Deploy",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "deploy"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1540572326485"
+  },
+  {
+    "application": "gae",
+    "id": "9b0ce1bb-f479-4823-a9ac-90c78f082711",
+    "index": 2,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Deploy Exploded WAR",
+    "stages": [
+      {
+        "clusters": [
+          {
+            "account": "gae",
+            "application": "gae",
+            "applicationDirectoryRoot": "",
+            "cloudProvider": "appengine",
+            "configArtifacts": [],
+            "configFilepaths": ["staged-app/app.yaml "],
+            "configFiles": [],
+            "fromArtifact": false,
+            "gitCredentialType": "NONE",
+            "interestingHealthProviderNames": [],
+            "promote": true,
+            "provider": "appengine",
+            "region": "us-central",
+            "repositoryUrl": "gs://sbws/hello-world-war/staged-app.tar",
+            "sourceType": "gcs"
+          }
+        ],
+        "name": "Deploy",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "deploy"
+      }
+    ],
+    "triggers": [],
+    "updateTs": "1547569177565"
+  },
+  {
+    "application": "gae",
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": { "id": "fa732eae-f33f-41f7-a0ed-80c570650424", "kind": "custom" },
+        "id": "ba157234-4127-4b05-a037-729f98faeb20",
+        "matchArtifact": {
+          "id": "93375bbe-a0c5-427a-a54c-a0e84076c872",
+          "kind": "gcs",
+          "name": "gs://sbws/cloud-build-test/app.yaml",
+          "type": "gcs/object"
+        },
+        "useDefaultArtifact": false,
+        "usePriorArtifact": false
+      }
+    ],
+    "id": "5a452958-7e81-48ba-9a4f-3433024562c4",
+    "index": 3,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Trigger from Cloud Build Subscription",
+    "stages": [{ "name": "Wait", "refId": "1", "requisiteStageRefIds": [], "type": "wait", "waitTime": 5 }],
+    "triggers": [
+      {
+        "application": "gae",
+        "attributeConstraints": {},
+        "enabled": true,
+        "payloadConstraints": { "status": "SUCCESS" },
+        "pubsubSystem": "google",
+        "status": [],
+        "subscriptionName": "hebridean-sun-cloud-builds",
+        "type": "pubsub"
+      }
+    ],
+    "updateTs": "1547569177507"
+  }
+]

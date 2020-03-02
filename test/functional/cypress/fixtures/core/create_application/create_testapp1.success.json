@@ -1,0 +1,133 @@
+{
+  "application": "testapp1",
+  "buildTime": 1553171539942,
+  "endTime": 1553171541940,
+  "execution": {
+    "application": "testapp1",
+    "authentication": { "allowedAccounts": ["dockerhub", "gcr-docker-registry", "gae", "gce"], "user": "anonymous" },
+    "buildTime": 1553171539942,
+    "canceled": false,
+    "description": "Create Application: testapp1",
+    "endTime": 1553171541940,
+    "id": "01D6G3SSZ54TVWM5CA4ZC8MDXH",
+    "initialConfig": {},
+    "keepWaitingPipelines": false,
+    "limitConcurrent": false,
+    "notifications": [],
+    "origin": "deck",
+    "stages": [
+      {
+        "context": {
+          "application": {
+            "cloudProviders": "",
+            "email": "user@testcompany.com",
+            "instancePort": 80,
+            "name": "testapp1",
+            "providerSettings": { "gce": { "associatePublicIpAddress": true } }
+          },
+          "application.name": "testapp1",
+          "newState": {
+            "cloudProviders": "",
+            "email": "user@testcompany.com",
+            "instancePort": 80,
+            "name": "testapp1",
+            "providerSettings": { "gce": { "associatePublicIpAddress": true } },
+            "user": "[anonymous]"
+          },
+          "notification.type": "upsertapplication",
+          "parameters": {},
+          "previousState": {},
+          "refId": "0",
+          "requisiteStageRefIds": [],
+          "user": "[anonymous]"
+        },
+        "endTime": 1553171541927,
+        "id": "01D6G3SSZ5P2W1WX1YSTBC32TS",
+        "name": "createApplication",
+        "outputs": {},
+        "refId": "0",
+        "requisiteStageRefIds": [],
+        "startTime": 1553171539963,
+        "status": "SUCCEEDED",
+        "tasks": [
+          {
+            "endTime": 1553171541912,
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask",
+            "loopEnd": false,
+            "loopStart": false,
+            "name": "createApplication",
+            "stageEnd": true,
+            "stageStart": true,
+            "startTime": 1553171539975,
+            "status": "SUCCEEDED"
+          }
+        ],
+        "type": "createApplication"
+      }
+    ],
+    "startTime": 1553171539947,
+    "status": "SUCCEEDED",
+    "systemNotifications": [],
+    "trigger": {
+      "artifacts": [],
+      "dryRun": false,
+      "notifications": [],
+      "parameters": {},
+      "rebake": false,
+      "resolvedExpectedArtifacts": [],
+      "strategy": false,
+      "type": "manual",
+      "user": "anonymous"
+    },
+    "type": "ORCHESTRATION"
+  },
+  "id": "01D6G3SSZ54TVWM5CA4ZC8MDXH",
+  "name": "Create Application: testapp1",
+  "startTime": 1553171539947,
+  "status": "SUCCEEDED",
+  "steps": [
+    {
+      "endTime": 1553171541912,
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask",
+      "loopEnd": false,
+      "loopStart": false,
+      "name": "createApplication",
+      "stageEnd": true,
+      "stageStart": true,
+      "startTime": 1553171539975,
+      "status": "SUCCEEDED"
+    }
+  ],
+  "variables": [
+    { "key": "notification.type", "value": "upsertapplication" },
+    { "key": "requisiteStageRefIds", "value": [] },
+    {
+      "key": "application",
+      "value": {
+        "cloudProviders": "",
+        "email": "user@testcompany.com",
+        "instancePort": 80,
+        "name": "testapp1",
+        "providerSettings": { "gce": { "associatePublicIpAddress": true } }
+      }
+    },
+    { "key": "refId", "value": "0" },
+    { "key": "user", "value": "[anonymous]" },
+    { "key": "parameters", "value": {} },
+    {
+      "key": "newState",
+      "value": {
+        "cloudProviders": "",
+        "email": "user@testcompany.com",
+        "instancePort": 80,
+        "name": "testapp1",
+        "providerSettings": { "gce": { "associatePublicIpAddress": true } },
+        "user": "[anonymous]"
+      }
+    },
+    { "key": "application.name", "value": "testapp1" },
+    { "key": "previousState", "value": {} }
+  ]
+}

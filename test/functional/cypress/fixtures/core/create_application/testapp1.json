@@ -1,0 +1,16 @@
+{
+  "attributes": {
+    "cloudProviders": "",
+    "createTs": "1553171540150",
+    "email": "user@testcompany.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "testapp1",
+    "providerSettings": { "gce": { "associatePublicIpAddress": true } },
+    "trafficGuards": [],
+    "updateTs": "1553171540499",
+    "user": "[anonymous]"
+  },
+  "clusters": {},
+  "name": "testapp1"
+}

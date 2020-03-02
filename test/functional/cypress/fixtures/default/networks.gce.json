@@ -1,0 +1,58 @@
+[
+  {
+    "account": "compute-engine",
+    "autoCreateSubnets": true,
+    "cloudProvider": "gce",
+    "id": "default",
+    "name": "default",
+    "region": "global",
+    "selfLink": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/global/networks/default",
+    "subnets": [
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west2/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/northamerica-northeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east4/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-south1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west4/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west3/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/southamerica-east1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-north1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/australia-southeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-southeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-east1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west2/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-northeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west1/subnetworks/default"
+    ]
+  },
+  {
+    "account": "gce",
+    "autoCreateSubnets": true,
+    "cloudProvider": "gce",
+    "id": "default",
+    "name": "default",
+    "region": "global",
+    "selfLink": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/global/networks/default",
+    "subnets": [
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west2/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/northamerica-northeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east4/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-south1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west4/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west3/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/southamerica-east1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-north1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/australia-southeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-southeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-east1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west2/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-northeast1/subnetworks/default",
+      "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west1/subnetworks/default"
+    ]
+  }
+]

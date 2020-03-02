@@ -44,3 +44,5 @@ mb.pid
 mb*.log
 selenium-logs
 *.browser.log
+test/functional/cypress/videos/**/*
+test/functional/cypress/screenshots/**/*
