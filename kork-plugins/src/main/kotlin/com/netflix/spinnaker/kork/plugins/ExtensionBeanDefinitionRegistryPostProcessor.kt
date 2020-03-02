@@ -53,8 +53,8 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
     // 1) Load plugins prior to downloading so we can resolve what needs to be updated
     pluginManager.loadPlugins()
 
-    // 2) Determine the plugins for release from the list of available plugins
-    val releases = pluginInfoReleaseProvider.getReleases(updateManager.availablePlugins)
+    // 2) Determine the plugins for release from the list of plugins
+    val releases = pluginInfoReleaseProvider.getReleases(updateManager.plugins)
 
     // 3) Download releases, updating previously loaded plugins where necessary
     updateManager.downloadPluginReleases(releases).forEach { pluginPath ->

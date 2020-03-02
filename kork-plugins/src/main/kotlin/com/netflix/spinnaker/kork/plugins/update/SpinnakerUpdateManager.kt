@@ -58,7 +58,9 @@ class SpinnakerUpdateManager(
         if (loadedPlugin != null) {
           val loadedPluginVersion = loadedPlugin.descriptor.version
 
-          if (pluginManager.versionManager.compareVersions(release.props.version, loadedPluginVersion) > 0) {
+          // If a plugin was built without a version specified (via the Plugin-Version MANIFEST.MF
+          // attribute), to be safe we always check for the configured plugin version.
+          if (loadedPluginVersion == "unspecified" || pluginManager.versionManager.compareVersions(release.props.version, loadedPluginVersion) > 0) {
             log.debug("Newer version '{}' of plugin '{}' found, deleting previous version '{}'",
               release.props.version, release.pluginId, loadedPluginVersion)
             val deleted = pluginManager.deletePlugin(loadedPlugin.pluginId)

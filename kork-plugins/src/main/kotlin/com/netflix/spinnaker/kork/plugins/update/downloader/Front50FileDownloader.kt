@@ -48,7 +48,7 @@ class Front50FileDownloader(
       throw NotFoundException("Plugin binary could not be downloaded, received HTTP ${response.code()}")
     }
 
-    return downloadDir.resolve(Paths.get(fileUrl.path).fileName).also {
+    return downloadDir.resolve(Paths.get(fileUrl.path + binaryExtension).fileName).also {
       Files.write(it, body.bytes())
     }
   }
@@ -56,5 +56,6 @@ class Front50FileDownloader(
   companion object {
     private val downloadDir = Files.createTempDirectory("plugin-downloads")
     private val retry = Retry.ofDefaults("plugin-front50-downloader")
+    private const val binaryExtension = ".zip"
   }
 }
