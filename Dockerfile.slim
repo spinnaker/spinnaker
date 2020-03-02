@@ -3,5 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY fiat-web/build/install/fiat /opt/fiat
 RUN apk --no-cache add --update bash openjdk11-jre
 RUN adduser -D -S spinnaker
+RUN mkdir -p /opt/spinnaker/plugins && chown -R spinnaker:nogroup /opt/spinnaker/plugins
 USER spinnaker
 CMD ["/opt/fiat/bin/fiat"]
