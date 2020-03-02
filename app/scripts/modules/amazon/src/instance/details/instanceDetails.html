@@ -220,7 +220,7 @@
           </link-with-clipboard>
         </dd>
         <dd ng-if="instance.ipv6Addresses.length" ng-repeat="ip in instance.ipv6Addresses">
-          <link-with-clipboard url="'http://' + ip + ':' + state.instancePort" text="ip"> </link-with-clipboard>
+          <link-with-clipboard url="'http://[' + ip + ']:' + state.instancePort" text="ip"> </link-with-clipboard>
         </dd>
       </dl>
     </collapsible-section>
