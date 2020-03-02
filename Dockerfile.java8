@@ -3,6 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY gate-web/build/install/gate /opt/gate
 RUN apk --no-cache add --update bash openjdk8-jre
 RUN adduser -D -S spinnaker
-RUN mkdir -p /opt/spinnaker/plugins && chown -R spinnaker:nogroup /opt/spinnaker/plugins
+RUN mkdir -p /opt/gate/plugins && chown -R spinnaker:nogroup /opt/gate/plugins
 USER spinnaker
 CMD ["/opt/gate/bin/gate"]
