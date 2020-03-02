@@ -24,7 +24,8 @@ Relevant properties:
 | *Property* | *Default value* | *Description* |
 | --- | --- | --- |
 | `spinnaker.build.pollInterval` | `60` | Interval in seconds between polling cycles |
-| `spinnaker.pollingSafeguard.itemUpperThreshold` | `1000` | Defines the upper threshold for number of new items before a cache update cycle will be rejected | `locking.enabled` | `false` | Enables distributed locking so that igor can run on multiple nodes without interference |
+| `spinnaker.pollingSafeguard.itemUpperThreshold` | `1000` | Defines the upper threshold for number of new items before a cache update cycle will be rejected |
+| `locking.enabled` | `false` | Enables distributed locking so that igor can run on multiple nodes without interference |
 
 Relevant metrics:
 
