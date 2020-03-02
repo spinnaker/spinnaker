@@ -4,5 +4,5 @@ dependencies {
   implementation(project(":orca-core"))
   implementation("org.springframework:spring-context")
   implementation("com.fasterxml.jackson.core:jackson-core")
-  implementation("com.github.fge:json-schema-validator:2.2.6")
+  implementation("com.github.java-json-tools:json-schema-validator:2.2.12")
 }
