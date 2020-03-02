@@ -18,7 +18,7 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import com.fasterxml.jackson.annotation.JsonProperty
+
 import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.Path
@@ -93,4 +93,8 @@ interface IgorService {
   @GET('/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources')
   List<String> getConcourseResources(@Path("buildMaster") String buildMaster, @Path("team") String team, @Path("pipeline") String pipeline);
 
+  @GET('/ci/builds')
+  List<String> getBuilds(@Query("projectKey") String projectKey,
+                         @Query("repoSlug") String repoSlug,
+                         @Query("completionStatus") String completionStatus)
 }
