@@ -71,9 +71,9 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
   }
 
   // Expected Artifacts
-  function updateExpectedArtifacts(e: IExpectedArtifact[]) {
-    setExpectedArtifacts(e);
-    updatePipelineConfig({ expectedArtifacts });
+  function updateExpectedArtifacts(updatedExpectedArtifacts: IExpectedArtifact[]) {
+    setExpectedArtifacts(updatedExpectedArtifacts);
+    updatePipelineConfig({ expectedArtifacts: updatedExpectedArtifacts });
   }
 
   function removeUnusedExpectedArtifacts(pipelineParam: IPipeline) {
@@ -90,8 +90,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
       }
       ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipelineParam.stages);
     });
-    setExpectedArtifacts(newExpectedArtifacts);
-    updatePipelineConfig({ expectedArtifacts });
+    updateExpectedArtifacts(newExpectedArtifacts);
   }
 
   return (
