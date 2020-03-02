@@ -31,7 +31,7 @@ ENV PATH=$PATH:/opt/google-cloud-sdk/bin/
 
 RUN adduser -D -S spinnaker
 
-RUN mkdir plugins && chown -R 100:100 plugins
+RUN mkdir -p /opt/clouddriver/plugins && chown -R spinnaker:nogroup /opt/clouddriver/plugins
 
 USER spinnaker
 
