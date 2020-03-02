@@ -3,6 +3,6 @@ MAINTAINER sig-platform@spinnaker.io
 COPY fiat-web/build/install/fiat /opt/fiat
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
-RUN mkdir -p /opt/spinnaker/plugins && chown -R spinnaker:nogroup /opt/spinnaker/plugins
+RUN mkdir -p /opt/fiat/plugins && chown -R spinnaker:nogroup /opt/fiat/plugins
 USER spinnaker
 CMD ["/opt/fiat/bin/fiat"]
