@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -25,11 +26,11 @@ import org.springframework.util.StringUtils;
  * way out and the interceptor logic will not be necessary long term.
  */
 class MetricsInterceptor {
-  private final Registry registry;
+  private final Provider<Registry> registry;
   private final boolean skipHeaderCheck;
   private final Logger log;
 
-  MetricsInterceptor(Registry registry, boolean skipHeaderCheck) {
+  MetricsInterceptor(Provider<Registry> registry, boolean skipHeaderCheck) {
     this.registry = registry;
     this.skipHeaderCheck = skipHeaderCheck;
     this.log = LoggerFactory.getLogger(getClass());
@@ -104,7 +105,12 @@ class MetricsInterceptor {
       }
 
       recordTimer(
-          registry, url, System.nanoTime() - start, statusCode, wasSuccessful, !missingAuthHeaders);
+          registry.get(),
+          url,
+          System.nanoTime() - start,
+          statusCode,
+          wasSuccessful,
+          !missingAuthHeaders);
     }
   }
 

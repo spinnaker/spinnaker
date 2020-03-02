@@ -15,6 +15,11 @@
  */
 package com.netflix.spinnaker.kork.plugins.api;
 
+import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClient;
+import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry;
+import javax.annotation.Nonnull;
+
 /**
  * A convenience interface for accessing plugin SDK services.
  *
@@ -32,4 +37,10 @@ package com.netflix.spinnaker.kork.plugins.api;
  * }
  * }</pre>
  */
-public interface PluginSdks {}
+public interface PluginSdks {
+
+  /** Get the {@link HttpClientRegistry}, containing all configured {@link HttpClient}s. */
+  @Beta
+  @Nonnull
+  HttpClientRegistry http();
+}

@@ -18,11 +18,12 @@ package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spectator.api.Registry;
 import java.io.IOException;
+import javax.inject.Provider;
 import okhttp3.Response;
 
 public class OkHttp3MetricsInterceptor extends MetricsInterceptor implements okhttp3.Interceptor {
 
-  public OkHttp3MetricsInterceptor(Registry registry, boolean skipHeaderCheck) {
+  public OkHttp3MetricsInterceptor(Provider<Registry> registry, boolean skipHeaderCheck) {
     super(registry, skipHeaderCheck);
   }
 

@@ -26,8 +26,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+import javax.inject.Provider
+
 @Configuration
-@EnableConfigurationProperties(OkHttpClientConfigurationProperties)
+@EnableConfigurationProperties([OkHttpClientConfigurationProperties, OkHttpMetricsInterceptorProperties])
 class OkHttpClientComponents {
   @Bean
   SpinnakerRequestInterceptor spinnakerRequestInterceptor(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
@@ -36,17 +38,17 @@ class OkHttpClientComponents {
 
   @Bean
   OkHttpMetricsInterceptor okHttpMetricsInterceptor(
-    Registry registry,
-    @Value('${ok-http-client.interceptor.skip-header-check:false}') boolean skipHeaderCheck) {
+    Provider<Registry> registry,
+    OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
 
-    return new OkHttpMetricsInterceptor(registry, skipHeaderCheck)
+    return new OkHttpMetricsInterceptor(registry, okHttpMetricsInterceptorProperties.skipHeaderCheck)
   }
 
   @Bean
   OkHttp3MetricsInterceptor okHttp3MetricsInterceptor(
-    Registry registry,
-    @Value('${ok-http-client.interceptor.skip-header-check:false}') boolean skipHeaderCheck) {
+    Provider<Registry> registry,
+    OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
 
-    return new OkHttp3MetricsInterceptor(registry, skipHeaderCheck)
+    return new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties.skipHeaderCheck)
   }
 }

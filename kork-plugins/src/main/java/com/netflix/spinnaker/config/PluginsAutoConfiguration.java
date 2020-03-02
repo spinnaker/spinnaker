@@ -66,7 +66,7 @@ import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableConfigurationProperties(PluginsConfigurationProperties.class)
-@Import({Front50PluginsConfiguration.class})
+@Import({Front50PluginsConfiguration.class, HttpClientSdkConfiguration.class})
 public class PluginsAutoConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(PluginsAutoConfiguration.class);
