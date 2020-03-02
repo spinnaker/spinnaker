@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.orca
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.actuation.SubjectType.RESOURCE
+import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
@@ -61,10 +62,10 @@ class OrcaTaskMonitorAgent(
               when (taskDetails.status.isSuccess()) {
                 true -> publisher.publishEvent(
                   ResourceTaskSucceeded(
-                    resourceRepository.get(id), clock))
+                    resourceRepository.get(id), listOf(Task(taskDetails.id, taskDetails.name)), clock))
                 false -> publisher.publishEvent(
                   ResourceTaskFailed(
-                    resourceRepository.get(id), taskDetails.execution.stages.getFailureMessage() ?: "", clock))
+                    resourceRepository.get(id), taskDetails.execution.stages.getFailureMessage() ?: "", listOf(Task(taskDetails.id, taskDetails.name)), clock))
               }
             } catch (e: NoSuchResourceId) {
               log.warn("No resource found for id $resourceId")

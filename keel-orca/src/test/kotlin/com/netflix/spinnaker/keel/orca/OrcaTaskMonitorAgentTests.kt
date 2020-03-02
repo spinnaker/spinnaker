@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
+import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
@@ -49,6 +50,11 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
       id = "123",
       subject = "${SubjectType.CONSTRAINT}:${resource.id}",
       name = "canary constraint")
+
+    val task = Task(
+      id = "123",
+      name = "upsert server group"
+    )
   }
 
   data class OrcaTaskMonitorAgentFixture(
@@ -129,7 +135,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 1) { publisher.publishEvent(ofType<ResourceTaskFailed>()) }
-        resourceRepository.appendHistory(ResourceTaskFailed(resource, orcaExceptions().details.errors.joinToString(","), clock))
+        resourceRepository.appendHistory(ResourceTaskFailed(resource, orcaExceptions().details.errors.joinToString(","), listOf(task), clock))
 
         expectThat(resourceRepository.eventHistory(resource.id))
           .first()
@@ -157,7 +163,8 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
 
         verify(exactly = 1) { publisher.publishEvent(ofType<ResourceTaskFailed>()) }
-        resourceRepository.appendHistory(ResourceTaskFailed(resource, "The following security groups do not exist: 'keeldemo-main-elb' in 'test' vpc-46f5a223", clock))
+        resourceRepository.appendHistory(ResourceTaskFailed(resource,
+          "The following security groups do not exist: 'keeldemo-main-elb' in 'test' vpc-46f5a223", listOf(task), clock))
 
         expectThat(resourceRepository.eventHistory(resource.id))
           .first()
