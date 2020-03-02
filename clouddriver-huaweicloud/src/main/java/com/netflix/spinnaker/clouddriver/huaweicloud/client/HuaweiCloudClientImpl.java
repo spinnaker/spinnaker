@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client;
 
 import com.huawei.openstack4j.api.OSClient;
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone;
+import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc;
@@ -55,6 +56,15 @@ public class HuaweiCloudClientImpl implements HuaweiCloudClient {
     return handleInvoking(
         String.format("getting zones in region(%s)", region),
         () -> getRegionClient(region).compute().zones().list(),
+        emptyList());
+  }
+
+  @Override
+  public List<? extends Flavor> getInstanceTypes(String region, String az)
+      throws HuaweiCloudException {
+    return handleInvoking(
+        String.format("getting flavors in availability zone(%s) of region(%s)", az, region),
+        () -> getRegionClient(region).ecs().servers().getSpecifications(az),
         emptyList());
   }
 

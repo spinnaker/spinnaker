@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Data;
 
 @Data
@@ -80,15 +81,10 @@ public class HuaweiCloudNamedAccountCredentials
   }
 
   private List<String> getZonesOfRegion(String region) {
-    List<String> result = new ArrayList();
-
     List<? extends AvailabilityZone> zones = cloudClient.getZones(region);
-    zones.forEach(
-        zone -> {
-          if (zone.getZoneState().getAvailable()) {
-            result.add(zone.getZoneName());
-          }
-        });
-    return result;
+    return zones.stream()
+        .filter(zone -> zone.getZoneState().getAvailable())
+        .map(zone -> zone.getZoneName())
+        .collect(Collectors.toList());
   }
 }

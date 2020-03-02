@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class Keys implements KeyParser {
 
   public static enum Namespace {
+    INSTANCE_TYPES,
     NETWORKS,
     SECURITY_GROUPS,
     SUBNETS,
@@ -107,14 +108,17 @@ public class Keys implements KeyParser {
     Map<String, String> result;
 
     switch (ns) {
+      case INSTANCE_TYPES:
+        result = parseSimpleKey(parts);
+        break;
       case NETWORKS:
-        result = parseNetworkKey(parts);
+        result = parseSimpleKey(parts);
         break;
       case SECURITY_GROUPS:
         result = parseSecurityGroupKey(parts);
         break;
       case SUBNETS:
-        result = parseSubnetKey(parts);
+        result = parseSimpleKey(parts);
         break;
       default:
         return emptyMap();
@@ -129,6 +133,18 @@ public class Keys implements KeyParser {
     return result;
   }
 
+  public static String getInstanceTypeKey(String instanceType, String account, String region) {
+    return getCloudProviderId()
+        + SEPARATOR
+        + Namespace.INSTANCE_TYPES
+        + SEPARATOR
+        + account
+        + SEPARATOR
+        + region
+        + SEPARATOR
+        + instanceType;
+  }
+
   public static String getNetworkKey(String networkId, String account, String region) {
     return getCloudProviderId()
         + SEPARATOR
@@ -139,18 +155,6 @@ public class Keys implements KeyParser {
         + region
         + SEPARATOR
         + networkId;
-  }
-
-  private static Map parseNetworkKey(String[] parts) {
-    if (parts.length != 5) {
-      return emptyMap();
-    }
-
-    Map<String, String> result = new HashMap();
-    result.put("account", parts[2]);
-    result.put("region", parts[3]);
-    result.put("id", parts[4]);
-    return result;
   }
 
   public static String getSecurityGroupKey(
@@ -200,7 +204,7 @@ public class Keys implements KeyParser {
         + subnetId;
   }
 
-  private static Map parseSubnetKey(String[] parts) {
+  private static Map parseSimpleKey(String[] parts) {
     if (parts.length != 5) {
       return emptyMap();
     }
