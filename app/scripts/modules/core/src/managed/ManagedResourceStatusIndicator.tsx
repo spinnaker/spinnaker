@@ -179,7 +179,7 @@ const LearnMoreLink = ({ resourceSummary }: { resourceSummary: IManagedResourceS
   <a
     target="_blank"
     onClick={() => logClick('Status docs link', resourceSummary.id, resourceSummary.status)}
-    href={`https://www.spinnaker.io/reference/managed-delivery/resource-status/#${resourceSummary.status.toLowerCase()}`}
+    href={`https://www.spinnaker.io/guides/user/managed-delivery/resource-status/#${resourceSummary.status.toLowerCase()}`}
   >
     Learn more
   </a>
