@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class BakeryConfigurationProperties {
   private String baseUrl;
   private boolean roscoApisEnabled = false;
-  private boolean extractBuildDetails = false;
+  private boolean extractBuildDetails = true;
   private boolean allowMissingPackageInstallation = false;
   private List<SelectableService.BaseUrl> baseUrls;
 

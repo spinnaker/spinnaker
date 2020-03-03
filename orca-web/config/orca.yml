@@ -1,5 +1,6 @@
 server:
-  port: 8083
+  port: ${services.orca.port:8083}
+  address: ${services.orca.host:localhost}
 
 default:
   bake:
@@ -10,33 +11,30 @@ default:
 
 front50:
   enabled: true
-  baseUrl: http://localhost:8080
+  baseUrl: ${services.front50.baseUrl:http://localhost:8080}
 tide:
   baseUrl: http://localhost:8090
 oort:
-  baseUrl: http://localhost:7002
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
 mort:
-  baseUrl: http://localhost:7002
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
 kato:
-  baseUrl: http://localhost:7002
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
 echo:
-  enabled: false
+  enabled: true
+  baseUrl: ${services.echo.baseUrl:http://localhost:8089}
 igor:
   enabled: true
-  baseUrl: http://localhost:8088
+  baseUrl: ${services.igor.baseUrl:http://localhost:8088}
 bakery:
   enabled: true
-  baseUrl: http://localhost:8087
-  # Rosco exposes more endpoints than Netflix's internal bakery. This disables
-  # the use of those endpoints.
-  roscoApisEnabled: true
-  allowMissingPackageInstallation: false
+  baseUrl: ${services.rosco.baseUrl:http://localhost:8087}
 kayenta:
-  enabled: false
-  baseUrl: http://localhost:8090
+  enabled: ${services.kayenta.enabled:false}
+  baseUrl: ${services.kayenta.baseUrl:http://localhost:8090}
 
 redis:
-  connection: ${REDIS_URL:redis://localhost:6379}
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
 
 keiko:
   queue:
@@ -47,6 +45,8 @@ keiko:
 
 tasks:
   useWaitForAllNetflixAWSInstancesDownTask: false
+  executionWindow:
+    timezone: ${global.spinnaker.timezone:America/Los_Angeles}
 
 logging:
   config: classpath:logback-defaults.xml

@@ -27,7 +27,3 @@ igor:
 
 redis:
   connection: ${services.redisBootstrap.baseUrl:redis://localhost:6379}
-
-tasks:
-  executionWindow:
-    timezone: ${global.spinnaker.timezone:America/Los_Angeles}
