@@ -35,21 +35,13 @@ server:
 # Does it make sense to publish all Kayenta metrics to all datasources in integraion tests?
 spring:
   autoconfigure:
-    exclude: org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration
-management:
-  metrics:
-    binders:
-      files:
-        enabled: false
-      processor:
-        enabled: false
-      uptime:
-        enabled: false
-      logback:
-        enabled: false
-      jvm:
-        enabled: false
+    exclude: >
+      org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration,
+      org.springframework.boot.actuate.autoconfigure.metrics.JvmMetricsAutoConfiguration,
+      org.springframework.boot.actuate.autoconfigure.metrics.LogbackMetricsAutoConfiguration,
+      org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration,
 
+management:
   endpoints.web:
     base-path: /
     exposure.include: '*'
