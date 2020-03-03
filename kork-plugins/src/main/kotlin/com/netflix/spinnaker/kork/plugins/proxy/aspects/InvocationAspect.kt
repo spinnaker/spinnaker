@@ -60,4 +60,13 @@ interface InvocationAspect<I : InvocationState> {
    * @param invocationState The invocationState object created via [before]
    */
   fun error(e: InvocationTargetException, invocationState: I)
+
+  /**
+   * Called last and always called, regardless of invocation success or failure.
+   *
+   * Optional, default implementation is a no-op.
+   *
+   * @param invocationState The invocationState object created via [before]
+   */
+  fun finally(invocationState: I) { /* default implementation */ }
 }

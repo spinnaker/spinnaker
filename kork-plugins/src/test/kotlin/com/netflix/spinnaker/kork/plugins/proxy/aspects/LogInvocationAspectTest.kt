@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import org.slf4j.MDC
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -45,6 +47,14 @@ class LogInvocationAspectTest : JUnit5Minutests {
       val metricInvocationState = MetricInvocationState("Extension", 123, mockk(), mockk())
       expectThat(subject.supports(state.javaClass)).isTrue()
       expectThat(subject.supports(metricInvocationState.javaClass)).isFalse()
+    }
+
+    test("Plugin ID and extension name added to the MDC before invocation") {
+      subject.before(target, proxy, method, args, spinnakerPluginDescriptor)
+      val mdcPluginId = MDC.get(Header.PLUGIN_ID.header)
+      val mdcPluginExtension = MDC.get(Header.PLUGIN_EXTENSION.header)
+      expectThat(mdcPluginId).isEqualTo(spinnakerPluginDescriptor.pluginId)
+      expectThat(mdcPluginExtension).isEqualTo(target.javaClass.simpleName.toString())
     }
   }
 

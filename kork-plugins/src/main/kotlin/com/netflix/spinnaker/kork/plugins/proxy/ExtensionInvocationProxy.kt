@@ -53,6 +53,8 @@ class ExtensionInvocationProxy(
     } catch (e: InvocationTargetException) {
       invocationStates.error(e)
       throw e.cause ?: RuntimeException("Caught invocation target exception without cause.", e)
+    } finally {
+      invocationStates.finally()
     }
 
     return result
@@ -79,6 +81,16 @@ class ExtensionInvocationProxy(
       invocationAspects.forEach { invocationAspect ->
         if (invocationAspect.supports((invocationState.javaClass))) {
           invocationAspect.after(invocationState)
+        }
+      }
+    }
+  }
+
+  private fun MutableSet<InvocationState>.finally() {
+    this.forEach { invocationState ->
+      invocationAspects.forEach { invocationAspect ->
+        if (invocationAspect.supports((invocationState.javaClass))) {
+          invocationAspect.finally(invocationState)
         }
       }
     }

@@ -95,6 +95,8 @@ class SpringEnvironmentConfigResolver(
       return missingCallback()
     }
 
+    log.debug("Found config at '$pointer'")
+
     try {
       return callback(TreeTraversingParser(tree, mapper))
     } catch (pe: JsonParseException) {

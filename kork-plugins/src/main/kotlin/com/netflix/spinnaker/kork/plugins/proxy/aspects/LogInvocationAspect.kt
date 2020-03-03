@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
- * Logs the invoked extension and method name.
+ * Logs the invoked extension and method name.  Additionally adds the plugin-id and plugin-extension
+ * to the MDC.
  *
  * There is room for improvement here: The logger name could be mapped to the extension class and
  * there could be additional details logged (like arguments) based on configuration.
@@ -49,6 +52,9 @@ class LogInvocationAspect : InvocationAspect<LogInvocationState> {
     log.trace("Invoking method={} on extension={}", logInvocationState.methodName,
       logInvocationState.extensionName)
 
+    setOrRemoveMdc(Header.PLUGIN_ID.header, descriptor.pluginId)
+    setOrRemoveMdc(Header.PLUGIN_EXTENSION.header, logInvocationState.extensionName)
+
     return logInvocationState
   }
 
@@ -60,5 +66,18 @@ class LogInvocationAspect : InvocationAspect<LogInvocationState> {
   override fun error(e: InvocationTargetException, invocationState: LogInvocationState) {
     log.error("Error invoking method={} on extension={}", invocationState.methodName,
       invocationState.extensionName, e.cause)
+  }
+
+  private fun setOrRemoveMdc(key: String, value: String?) {
+    if (value != null) {
+      MDC.put(key, value)
+    } else {
+      MDC.remove(key)
+    }
+  }
+
+  override fun finally(invocationState: LogInvocationState) {
+    MDC.remove(Header.PLUGIN_ID.header)
+    MDC.remove(Header.PLUGIN_EXTENSION.header)
   }
 }
