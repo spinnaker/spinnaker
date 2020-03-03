@@ -24,7 +24,7 @@ dependencies {
   implementation 'com.google.apis:google-api-services-appengine:v1-rev92-1.25.0'
   implementation 'com.microsoft.azure:adal4j:1.6.3'
   implementation 'com.microsoft.azure:azure:1.19.0'
-  implementation 'commons-collections:commons-collections:3.2.1'
+  implementation 'commons-collections:commons-collections:3.2.2'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io:2.6'
   implementation 'io.fabric8:kubernetes-client:4.1.1'
