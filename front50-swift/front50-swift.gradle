@@ -27,7 +27,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-hystrix"
   implementation "org.springframework:spring-web"
-  implementation 'org.pacesys:openstack4j:3.0.3'
+  implementation 'org.pacesys:openstack4j:3.2.0'
 
   testImplementation project(":front50-test")
 }
