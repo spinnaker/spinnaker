@@ -28,11 +28,8 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IViewConfi
           <b>Action is being taken to resolve a drift from the declarative configuration.</b>
         </p>
         <p>
-          Check the{' '}
-          <UISref to="home.applications.application.tasks">
-            <a>tasks view</a>
-          </UISref>{' '}
-          to see work that's in progress. <LearnMoreLink resourceSummary={resourceSummary} />
+          Check this resource's History to see details and track the work currently in progress.{' '}
+          <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -62,8 +59,8 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IViewConfi
           <b>A drift from the declarative configuration was detected.</b>
         </p>
         <p>
-          Spinnaker will automatically take action to bring this resource back to its desired state.{' '}
-          <LearnMoreLink resourceSummary={resourceSummary} />
+          Spinnaker will automatically take action to bring this resource back to its desired state. Check the History
+          to see details and track progress. <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -78,8 +75,8 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IViewConfi
         </p>
         <p>
           Spinnaker is configured to continuously manage this resource, but something went wrong trying to check its
-          current state. Automatic action can't be taken right now, and manual intervention might be required.{' '}
-          <LearnMoreLink resourceSummary={resourceSummary} />
+          current state. Automatic action can't be taken right now, and manual intervention might be required. Check the
+          History for details. <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -148,7 +145,8 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IViewConfi
         </p>
         <p>
           Spinnaker has been trying to correct a detected drift, but taking automatic action hasn't helped. Manual
-          intervention might be required. <LearnMoreLink resourceSummary={resourceSummary} />
+          intervention might be required. Check the History for details.{' '}
+          <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
     ),
@@ -249,6 +247,7 @@ export const ManagedResourceStatusIndicator = ({
   application,
 }: IManagedResourceStatusIndicatorProps) => {
   const { status } = resourceSummary;
+
   const PopoverContents = ({ hidePopover }: IHoverablePopoverContentsProps) => (
     <>
       {viewConfigurationByStatus[status].popoverContents(resourceSummary, application)}
