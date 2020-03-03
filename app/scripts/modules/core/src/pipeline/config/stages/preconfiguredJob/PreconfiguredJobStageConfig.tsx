@@ -20,7 +20,7 @@ export class PreconfiguredJobStageConfig extends React.Component<IStageConfigPro
     return (
       <div className="form-horizontal">
         {configuration.parameters.map((parameter: IPreconfiguredJobParameter) => (
-          <StageConfigField label={parameter.label}>
+          <StageConfigField key={parameter.name} label={parameter.label}>
             <input
               type="text"
               className="form-control input-sm"
