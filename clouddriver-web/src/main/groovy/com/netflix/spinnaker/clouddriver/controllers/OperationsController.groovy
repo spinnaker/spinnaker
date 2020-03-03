@@ -53,7 +53,7 @@ class OperationsController {
     OperationsService operationsService,
     OrchestrationProcessor orchestrationProcessor,
     TaskRepository taskRepository,
-    @Value('${admin.tasks.shutdown-wait-seconds:-1}') long shutdownWaitSeconds) {
+    @Value('${admin.tasks.shutdown-wait-seconds:600}') long shutdownWaitSeconds) {
     this.operationsService = operationsService
     this.orchestrationProcessor = orchestrationProcessor
     this.taskRepository = taskRepository

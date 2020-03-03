@@ -6,7 +6,3 @@ server:
 
 redis:
   connection: ${services.redisBootstrap.baseUrl:redis://localhost:6379}
-
-caching:
-  redis:
-    hashingEnabled: true
