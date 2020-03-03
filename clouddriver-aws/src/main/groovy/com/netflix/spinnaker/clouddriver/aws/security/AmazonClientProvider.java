@@ -58,6 +58,8 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.support.AWSSupport;
+import com.amazonaws.services.support.AWSSupportClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spectator.api.NoopRegistry;
@@ -640,5 +642,10 @@ public class AmazonClientProvider {
         amazonCredentials,
         region,
         skipEdda);
+  }
+
+  public AWSSupport getAmazonSupport(NetflixAmazonCredentials amazonCredentials, String region) {
+    return proxyHandlerBuilder.getProxyHandler(
+        AWSSupport.class, AWSSupportClientBuilder.class, amazonCredentials, region, true);
   }
 }
