@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.Map;
 import lombok.Getter;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,7 +50,7 @@ public class CloudFoundryJobProvider implements JobProvider<CloudFoundryJobStatu
   @Override
   public Map<String, Object> getFileContents(
       String account, String location, String id, String fileName) {
-    throw new NotImplementedException("");
+    return null;
   }
 
   @Override
