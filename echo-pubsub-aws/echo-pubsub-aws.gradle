@@ -22,6 +22,7 @@ dependencies {
   implementation "com.amazonaws:aws-java-sdk-sqs"
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-aws"
+  implementation "com.netflix.spinnaker.kork:kork-pubsub-aws"
   implementation "com.netflix.spectator:spectator-api"
   implementation "javax.validation:validation-api"
 }

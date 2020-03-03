@@ -32,7 +32,7 @@ import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.aws.ARN;
-import com.netflix.spinnaker.kork.aws.pubsub.PubSubUtils;
+import com.netflix.spinnaker.kork.pubsub.aws.PubSubUtils;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
