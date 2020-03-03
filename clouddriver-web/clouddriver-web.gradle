@@ -44,6 +44,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-stackdriver"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation("com.netflix.spinnaker.kork:kork-plugins")
   implementation "com.netflix.spinnaker.moniker:moniker"
   implementation "commons-io:commons-io"
   implementation "org.codehaus.groovy:groovy-all"
