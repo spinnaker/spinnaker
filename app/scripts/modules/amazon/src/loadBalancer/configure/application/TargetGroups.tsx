@@ -320,6 +320,9 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                           {targetGroup.targetType !== 'lambda' && (
                             <span className="wizard-pod-content">
                               <label>Protocol </label>
+                              {targetGroup.healthCheckProtocol === 'TCP' && (
+                                <HelpField id="aws.targetGroup.healthCheckProtocol" />
+                              )}{' '}
                               <select
                                 className="form-control input-sm inline-number"
                                 value={targetGroup.healthCheckProtocol}
@@ -365,53 +368,6 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                               />
                             </span>
                           )}
-                          <span className="wizard-pod-content">
-                            <label>Protocol </label>
-                            {targetGroup.healthCheckProtocol === 'TCP' && (
-                              <HelpField id="aws.targetGroup.healthCheckProtocol" />
-                            )}{' '}
-                            <select
-                              className="form-control input-sm inline-number"
-                              value={targetGroup.healthCheckProtocol}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)
-                              }
-                            >
-                              {ProtocolOptions}
-                            </select>
-                          </span>
-                          <span className="wizard-pod-content">
-                            <label>Port </label>
-                            <HelpField id="aws.targetGroup.attributes.healthCheckPort.trafficPort" />{' '}
-                            <select
-                              className="form-control input-sm inline-number"
-                              style={{ width: '90px' }}
-                              value={targetGroup.healthCheckPort === 'traffic-port' ? 'traffic-port' : 'manual'}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(
-                                  index,
-                                  'healthCheckPort',
-                                  event.target.value === 'traffic-port' ? 'traffic-port' : '',
-                                )
-                              }
-                            >
-                              <option value="traffic-port">Traffic Port</option>
-                              <option value="manual">Manual</option>
-                            </select>{' '}
-                            <SpInput
-                              className="form-control input-sm inline-number"
-                              error={tgErrors.healthCheckPort}
-                              style={{
-                                visibility: targetGroup.healthCheckPort === 'traffic-port' ? 'hidden' : 'inherit',
-                              }}
-                              name="healthCheckPort"
-                              required={true}
-                              value={targetGroup.healthCheckPort}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthCheckPort', event.target.value)
-                              }
-                            />
-                          </span>
                           <span className="wizard-pod-content">
                             <label>Path </label>
                             <SpInput
