@@ -7,6 +7,7 @@
 - [How do I report metrics in a way that is compatible with Kayenta and canary analysis](#how-do-i-report-metrics-in-a-way-that-is-compatible-with-kayenta-and-canary-analysis)
 - [My metric failed and I don't agree with the results, can I change how sensitive Kayenta is to change?](#my-metric-failed-and-i-dont-agree-with-the-results-can-i-change-how-sensitive-kayenta-is-to-change)
 - [Why doesn't my Google account have access to get bucket metadata?](#why-doesnt-my-google-account-have-access-to-get-bucket-metadata)
+- [Halyard doesn't support feature X in Kayenta, how do I use it?](#halyard-doesnt-support-feature-x-in-kayenta-how-do-I-use-it)
 
 ## Can you use Kayenta as a standalone service without the rest of Spinnaker?
 
@@ -59,3 +60,35 @@ See [EffectSize](./canary-config.md#effect-size) for more information.
 ## Why doesn't my Google account have access to get bucket metadata?
 
 In order for Kayenta to read and write from a GCS bucket, it first needs to checks for the existence of the bucket. It does this by making a GET request to the `storage/v1/b/{bucket}` API which returns some metadata about the bucket. In order to interact with this API you need a role that has the `storage.buckets.get` permission. This permission used to be included in Google's [Standard Roles](https://cloud.google.com/storage/docs/access-control/iam-roles), but has since been removed and put into [Legacy Roles](https://cloud.google.com/storage/docs/access-control/iam-roles#legacy-roles). In order to get that permission, you can create a custom role and apply `storage.buckets.get` to it, add the `roles/storage.legacyBucketReader` as explained in the Legacy Roles section, or use the `roles/storage.admin` role.
+
+## Halyard doesn't support feature X in Kayenta, how do I use it?
+
+This question comes up time to time, Kayenta is used by many companies as a standalone service outside of Spinnaker.
+So when one of these companies add a feature they don't always add the corresponding support required in Halyard (or Deck).
+
+Luckily Halyard has a mechanism for supporting features that haven't been explicitly added to halyard.
+
+Halyard has a concept of [custom profiles](https://www.spinnaker.io/reference/halyard/custom/#custom-profiles).
+
+The tl;dr of it is that you can create a file called `~/.hal/default/profiles/kayenta-local.yml` and add any unsupported config you want to it.
+
+This config will be left merged into the configuration that halyard auto generates (`kayenta.yml`) 
+
+So if I wanted to add a New Relic account to my config and Halyard didn't have explicit support for New Relic, I would add the following to `~/.hal/default/profiles/kayenta-local.yml`
+
+```yaml
+kayenta:
+  newrelic:
+    enabled: true
+    accounts:
+    - name: my-newrelic-account
+      apiKey: xxxx
+      applicationKey: xxxx
+#      defaultScopeKey: server_scope # Optional, if omitted every request must supply the _scope_key param in extended scope params
+#      defaultLocationKey: server_region # Optional, if omitted requests must supply the _location_key if it is needed.
+      supportedTypes:
+        - METRICS_STORE
+      endpoint.baseUrl: https://insights-api.newrelic.com
+```
+
+See the [Halyard page on custom configuration](https://www.spinnaker.io/reference/halyard/custom/#custom-configuration) for more information.
