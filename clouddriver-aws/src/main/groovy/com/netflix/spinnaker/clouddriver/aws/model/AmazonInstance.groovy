@@ -85,7 +85,7 @@ class AmazonInstance implements Instance, Serializable {
 
   @Override
   String getZone() {
-    any().get("placement")?.availabilityZone
+    getExtraAttributes().get("placement")?.availabilityZone
   }
 
   @Override
