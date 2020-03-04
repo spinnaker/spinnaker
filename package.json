@@ -192,6 +192,7 @@
     "postcss-nested": "^4.2.1",
     "prettier": "1.19.1",
     "pretty-quick": "^1.11.1",
+    "prompts": "^2.3.1",
     "react-addons-test-utils": "15.6.2",
     "react-test-renderer": "16.3.2",
     "request-promise-native": "^1.0.5",
