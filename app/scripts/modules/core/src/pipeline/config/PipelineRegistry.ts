@@ -287,28 +287,19 @@ export class PipelineRegistry {
         // - to allow deck to still find a match for legacy stage types
         // - to have stages that actually run as their 'alias' in orca (addAliasToConfig) because their 'key' doesn't actually exist
         const aliasMatch = this.checkAliasedStageTypes(stage) || this.checkAliasFallback(stage);
-        if (aliasMatch) {
-          return aliasMatch;
-        }
-        return this.getStageTypes().find(s => s.key === 'unmatched') || null;
+        const unmatchedStageType = this.getStageTypes().find(s => s.key === 'unmatched');
+        return aliasMatch ?? unmatchedStageType ?? null;
       }
       case 1:
         return matches[0];
       default: {
+        // More than one stage definition matched the stage's 'type' field.
+        // Try to narrow it down by cloud provider.
         const provider = PipelineRegistry.resolveCloudProvider(stage);
-        const matchesForStageCloudProvider = matches.filter(stageType => {
-          return stageType.cloudProvider === provider;
-        });
-
-        if (!matchesForStageCloudProvider.length) {
-          return (
-            matches.find(stageType => {
-              return !!stageType.cloudProvider;
-            }) || null
-          );
-        } else {
-          return matchesForStageCloudProvider[0];
-        }
+        const matchesThisCloudProvider = matches.find(stageType => stageType.cloudProvider === provider);
+        const matchesAnyCloudProvider = matches.find(stageType => !!stageType.cloudProvider);
+        // ct: I'm not sure why we fall back to null instead of matches[0]
+        return matchesThisCloudProvider ?? matchesAnyCloudProvider ?? null;
       }
     }
   }
