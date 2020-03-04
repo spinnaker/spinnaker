@@ -11,9 +11,9 @@ import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
-import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.exceptions.ValidationException
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
@@ -70,9 +70,9 @@ class ExceptionHandler(
     return ApiError(e)
   }
 
-  @ExceptionHandler(DuplicateResourceIdException::class)
+  @ExceptionHandler(ValidationException::class)
   @ResponseStatus(BAD_REQUEST)
-  fun onDuplicateResourceIds(e: DuplicateResourceIdException): ApiError {
+  fun onInvalidDeliveryConfig(e: ValidationException): ApiError {
     log.error(e.message)
     return ApiError(e)
   }

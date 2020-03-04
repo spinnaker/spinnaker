@@ -1,9 +1,5 @@
 package com.netflix.spinnaker.keel.exceptions
 
-open class ValidationException(
-  val msg: String
-) : RuntimeException(msg)
-
 class DuplicateResourceIdException(
   val ids: List<String>,
   val envsToResources: Map<String, List<String>>

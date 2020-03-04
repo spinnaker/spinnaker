@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.core.api.resources
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -304,7 +305,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
     context("persisting delivery config manifests") {
 
-      context("a delivery config with non-unique resource ids errors while persisting ") {
+      context("a delivery config with non-unique resource ids errors while persisting") {
         val submittedConfig = SubmittedDeliveryConfig(
           name = configName,
           application = "keel",
@@ -340,6 +341,43 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             subject.upsertDeliveryConfig(submittedConfig)
           }.failed()
             .isA<DuplicateResourceIdException>()
+
+          expectThat(subject.allResourceNames().size).isEqualTo(0)
+        }
+      }
+
+      context("a delivery config with non-unique artifact references errors while persisting") {
+        // Two different artifacts with the same reference
+        val artifacts = setOf(
+          DockerArtifact(name = "org/thing-1", deliveryConfigName = configName, reference = "thing"),
+          DockerArtifact(name = "org/thing-2", deliveryConfigName = configName, reference = "thing")
+        )
+
+        val submittedConfig = SubmittedDeliveryConfig(
+          name = configName,
+          application = "keel",
+          serviceAccount = "keel@spinnaker",
+          artifacts = artifacts,
+          environments = setOf(
+            SubmittedEnvironment(
+              name = "test",
+              resources = setOf(
+                SubmittedResource(
+                  metadata = mapOf("serviceAccount" to "keel@spinnaker"),
+                  apiVersion = "test.$SPINNAKER_API_V1",
+                  kind = "whatever",
+                  spec = DummyResourceSpec(data = "o hai")
+                )
+              ),
+              constraints = emptySet()
+            )
+          )
+        )
+        test("an error is thrown and config is deleted") {
+          expectCatching {
+            subject.upsertDeliveryConfig(submittedConfig)
+          }.failed()
+            .isA<DuplicateArtifactReferenceException>()
 
           expectThat(subject.allResourceNames().size).isEqualTo(0)
         }
