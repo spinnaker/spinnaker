@@ -288,7 +288,7 @@ export class PipelineRegistry {
         // - to have stages that actually run as their 'alias' in orca (addAliasToConfig) because their 'key' doesn't actually exist
         const aliasMatch = this.checkAliasedStageTypes(stage) || this.checkAliasFallback(stage);
         const unmatchedStageType = this.getStageTypes().find(s => s.key === 'unmatched');
-        return aliasMatch ?? unmatchedStageType ?? null;
+        return aliasMatch ?? unmatchedStageType;
       }
       case 1:
         return matches[0];
@@ -298,8 +298,7 @@ export class PipelineRegistry {
         const provider = PipelineRegistry.resolveCloudProvider(stage);
         const matchesThisCloudProvider = matches.find(stageType => stageType.cloudProvider === provider);
         const matchesAnyCloudProvider = matches.find(stageType => !!stageType.cloudProvider);
-        // ct: I'm not sure why we fall back to null instead of matches[0]
-        return matchesThisCloudProvider ?? matchesAnyCloudProvider ?? null;
+        return matchesThisCloudProvider ?? matchesAnyCloudProvider ?? matches[0];
       }
     }
   }
