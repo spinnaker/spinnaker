@@ -2,6 +2,7 @@ export * from './ApplicationIcon';
 export * from './application.model';
 export * from './applicationModel.builder';
 export * from './nav/defaultCategories';
+export * from './nav/navigationCategory.registry';
 export * from './modal/validation/ApplicationNameValidator';
 export * from './modal/PlatformHealthOverride';
 export * from './listExtractor/AppListExtractor';
