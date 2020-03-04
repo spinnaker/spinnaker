@@ -1,5 +1,6 @@
 export * from './useContainerClassNames.hook';
 export * from './useData.hook';
+export * from './usePollingData.hook';
 export * from './useDebouncedValue.hook';
 export * from './useDeepObjectDiff.hook';
 export * from './useEventListener.hook';
