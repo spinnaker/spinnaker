@@ -91,7 +91,7 @@ public class RetrofitConfig {
     client.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
     client.setRetryOnConnectionFailure(retryOnConnectionFailure);
     client.interceptors().add(new RetryingInterceptor(maxElapsedBackoffMs));
-    client.interceptors().add(new OkHttpMetricsInterceptor(registry, skipHeaderChecks));
+    client.interceptors().add(new OkHttpMetricsInterceptor(() -> registry, skipHeaderChecks));
 
     return new OkClient(client);
   }
