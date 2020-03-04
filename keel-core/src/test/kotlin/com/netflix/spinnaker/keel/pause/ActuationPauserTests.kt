@@ -19,6 +19,9 @@ package com.netflix.spinnaker.keel.pause
 
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
+import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
+import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryPausedRepository
@@ -33,7 +36,7 @@ import strikt.api.expect
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-class ResourcePauserTests : JUnit5Minutests {
+class ActuationPauserTests : JUnit5Minutests {
   class Fixture {
     val resource1 = resource()
     val resource2 = resource()
@@ -46,7 +49,7 @@ class ResourcePauserTests : JUnit5Minutests {
     }
     val pausedRepository = InMemoryPausedRepository()
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-    val subject = ResourcePauser(resourceRepository, pausedRepository, publisher)
+    val subject = ActuationPauser(resourceRepository, pausedRepository, publisher)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -61,13 +64,35 @@ class ResourcePauserTests : JUnit5Minutests {
         }
       }
 
+      test("pause event is generated") {
+        subject.pauseApplication(resource1.application)
+        verify(exactly = 1) {
+          publisher.publishEvent(ofType<ApplicationActuationPaused>())
+        }
+        // no matching ResourceActuationPaused events are generated here as they are dynamically inserted into the
+        // list by EventController to account for newly added resources
+        verify(exactly = 0) {
+          publisher.publishEvent(ofType<ResourceActuationPaused>())
+        }
+      }
+
       test("resume is reflected") {
         subject.resumeApplication(resource1.application)
         expect {
           that(subject.isPaused(resource1)).isFalse()
           that(subject.isPaused(resource2)).isFalse()
         }
-        verify(exactly = 2) { publisher.publishEvent(any<ResourceActuationResumed>()) }
+        verify(exactly = 2) { publisher.publishEvent(ofType<ResourceActuationResumed>()) }
+      }
+
+      test("resume event is generated") {
+        subject.resumeApplication(resource1.application)
+        verify(exactly = 1) {
+          publisher.publishEvent(ofType<ApplicationActuationResumed>())
+        }
+        verify(exactly = 2) {
+          publisher.publishEvent(ofType<ResourceActuationResumed>())
+        }
       }
     }
 
@@ -86,7 +111,7 @@ class ResourcePauserTests : JUnit5Minutests {
           that(subject.isPaused(resource1)).isFalse()
           that(subject.isPaused(resource2)).isFalse()
         }
-        verify(exactly = 1) { publisher.publishEvent(any<ResourceActuationResumed>()) }
+        verify(exactly = 1) { publisher.publishEvent(ofType<ResourceActuationResumed>()) }
       }
     }
   }

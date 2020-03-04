@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.keel.events.ResourceEvent.Companion.clock
+import com.netflix.spinnaker.keel.events.PersistentEvent.Companion.clock
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryUnhappyVetoRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

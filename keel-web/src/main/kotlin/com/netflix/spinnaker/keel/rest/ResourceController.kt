@@ -19,7 +19,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.DiffResult
-import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/resources"])
 class ResourceController(
   private val repository: KeelRepository,
-  private val resourcePauser: ResourcePauser,
+  private val actuationPauser: ActuationPauser,
   private val adHocDiffer: AdHocDiffer
 ) {
 
@@ -61,7 +61,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun getStatus(@PathVariable("id") id: String): ResourceStatus =
-    if (resourcePauser.isPaused(id)) { // todo eb: we could make determining status easier and more straight forward.
+    if (actuationPauser.isPaused(id)) { // todo eb: we could make determining status easier and more straight forward.
       PAUSED
     } else {
       repository.getResourceStatus(id)
@@ -72,7 +72,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun pauseResource(@PathVariable("id") id: String) {
-    resourcePauser.pauseResource(id)
+    actuationPauser.pauseResource(id)
   }
 
   @DeleteMapping(
@@ -80,7 +80,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun resumeResource(@PathVariable("id") id: String) {
-    resourcePauser.resumeResource(id)
+    actuationPauser.resumeResource(id)
   }
 
   @PostMapping(

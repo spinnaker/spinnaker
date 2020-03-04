@@ -4,6 +4,7 @@ plugins {
   `java-library`
   id("kotlin-spring")
   id("ch.ayedo.jooqmodelator") version "3.6.0"
+  id("org.liquibase.gradle") version "2.0.2"
 }
 
 afterEvaluate {
@@ -48,6 +49,12 @@ dependencies {
 
   jooqModelatorRuntime(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
   jooqModelatorRuntime("mysql:mysql-connector-java")
+
+  liquibaseRuntime("org.liquibase:liquibase-core:3.8.5")
+  liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:2.0.1")
+  liquibaseRuntime("org.yaml:snakeyaml:1.25")
+  liquibaseRuntime("mysql:mysql-connector-java:8.0.16")
+  liquibaseRuntime(sourceSets.main.get().output)
 }
 
 jooqModelator {
@@ -70,4 +77,17 @@ afterEvaluate {
       targetExclude(fileTree("$projectDir/src/generated/java"))
     }
   }
+}
+
+liquibase {
+  activities.register("main") {
+    arguments = mapOf(
+      "logLevel" to "info",
+      "changeLogFile" to "db/databaseChangeLog.yml",
+      "url" to "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC",
+      "username" to "root",
+      "password" to ""
+    )
+  }
+  runList = "main"
 }

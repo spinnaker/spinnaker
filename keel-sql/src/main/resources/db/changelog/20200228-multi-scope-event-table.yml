@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: multi-scope-event-table
+      author: lpollo
+      changes:
+        - renameTable:
+            oldTableName: resource_event
+            newTableName: event
+        - modifyDataType:
+            tableName: event
+            columnName: uid
+            newDataType: varchar(255)
+        - addColumn:
+            tableName: event
+            columns:
+              - column:
+                  name: scope
+                  type: varchar(255)
+                  defaultValueDate: '"RESOURCE"'
+                  constraints:
+                    nullable: false
+      rollback:
+        - sql:
+            sql: >
+              delete from event where scope = 'APPLICATION'
+        - dropColumn:
+            tableName: event
+            columnName: scope
+        - modifyDataType:
+            tableName: event
+            columnName: uid
+            newDataType: char(26)
+        - renameTable:
+            oldTableName: event
+            newTableName: resource_event
+
+  - changeSet:
+      id: recreate-event-table-indices
+      author: lpollo
+      changes:
+        - dropIndex:
+            indexName: resource_event_uid_idx
+            tableName: event
+        - dropIndex:
+            indexName: resource_event_uid_timestamp_idx
+            tableName: event
+        - createIndex:
+            indexName: event_scope_uid_idx
+            tableName: event
+            columns:
+              - column:
+                  name: uid
+              - column:
+                  name: scope
+        - createIndex:
+            indexName: event_uid_scope_timestamp_idx
+            tableName: event
+            columns:
+              - column:
+                  name: uid
+              - column:
+                  name: scope
+              - column:
+                  name: timestamp
+      rollback:
+        - dropIndex:
+            indexName: event_scope_uid_idx
+            tableName: event
+        - dropIndex:
+            indexName: event_uid_scope_timestamp_idx
+            tableName: event
+        - createIndex:
+            indexName: resource_event_uid_idx
+            tableName: event
+            columns:
+              - column:
+                  name: uid
+        - createIndex:
+            indexName: resource_event_uid_timestamp_idx
+            tableName: event
+            columns:
+              - column:
+                  name: uid
+              - column:
+                  name: timestamp

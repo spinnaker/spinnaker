@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceCreated
-import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
@@ -36,7 +36,7 @@ internal class ApplicationControllerTests {
   lateinit var resourceRepository: InMemoryResourceRepository
 
   @Autowired
-  lateinit var resourcePauser: ResourcePauser
+  lateinit var actuationPauser: ActuationPauser
 
   @AfterEach
   fun clearRepository() {

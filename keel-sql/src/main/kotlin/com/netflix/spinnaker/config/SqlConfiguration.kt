@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.events.ResourceEvent.Companion.clock
+import com.netflix.spinnaker.keel.events.PersistentEvent.Companion.clock
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.sql.SqlAgentLockRepository

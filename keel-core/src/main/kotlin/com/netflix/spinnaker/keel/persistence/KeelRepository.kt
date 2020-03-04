@@ -16,11 +16,13 @@ import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
+import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.transaction.annotation.Propagation
@@ -121,7 +123,9 @@ interface KeelRepository {
 
   fun deleteResource(id: String)
 
-  fun deleteResourcesByApplication(application: String): Int
+  fun applicationEventHistory(application: String, limit: Int): List<ApplicationEvent>
+
+  fun applicationEventHistory(application: String, downTo: Instant): List<ApplicationEvent>
 
   fun resourceEventHistory(id: String, limit: Int): List<ResourceEvent>
 

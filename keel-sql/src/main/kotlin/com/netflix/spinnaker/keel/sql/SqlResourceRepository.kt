@@ -7,14 +7,16 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.core.api.randomUID
+import com.netflix.spinnaker.keel.events.ApplicationEvent
+import com.netflix.spinnaker.keel.events.PersistentEvent.Scope
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceSummary
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -24,7 +26,10 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 
 open class SqlResourceRepository(
@@ -34,37 +39,6 @@ open class SqlResourceRepository(
   private val objectMapper: ObjectMapper,
   private val sqlRetry: SqlRetry
 ) : ResourceRepository {
-
-  override fun deleteByApplication(application: String): Int {
-    val resourceIds = getResourceIdsByApplication(application)
-    val resourceUids = getUidByApplication(application)
-
-    resourceUids.sorted().chunked(10).forEach { chunk ->
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(RESOURCE)
-          .where(RESOURCE.UID.`in`(*chunk.toTypedArray()))
-          .execute()
-
-        jooq.deleteFrom(RESOURCE_LAST_CHECKED)
-          .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.`in`(*chunk.toTypedArray()))
-          .execute()
-
-        jooq.deleteFrom(RESOURCE_EVENT)
-          .where(RESOURCE_EVENT.UID.`in`(*chunk.toTypedArray()))
-          .execute()
-      }
-    }
-
-    resourceIds.sorted().chunked(10).forEach { chunk ->
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(DIFF_FINGERPRINT)
-          .where(DIFF_FINGERPRINT.RESOURCE_ID.`in`(*chunk.toTypedArray()))
-          .execute()
-      }
-    }
-
-    return resourceUids.size
-  }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     sqlRetry.withRetry(READ) {
@@ -199,15 +173,49 @@ open class SqlResourceRepository(
       .execute()
   }
 
+  override fun applicationEventHistory(application: String, limit: Int): List<ApplicationEvent> {
+    require(limit > 0) { "limit must be a positive integer" }
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(EVENT.JSON)
+        .from(EVENT)
+        .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
+        .and(EVENT.UID.eq(application))
+        .orderBy(EVENT.TIMESTAMP.desc())
+        .limit(limit)
+        .fetch()
+        .map { (json) ->
+          objectMapper.readValue<ApplicationEvent>(json)
+        }
+    }
+  }
+
+  override fun applicationEventHistory(application: String, until: Instant): List<ApplicationEvent> {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(EVENT.JSON)
+        .from(EVENT)
+        .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
+        .and(EVENT.UID.eq(application))
+        .and(EVENT.TIMESTAMP.lessOrEqual(LocalDateTime.ofInstant(until, ZoneOffset.UTC)))
+        .orderBy(EVENT.TIMESTAMP.desc())
+        .fetch()
+        .map { (json) ->
+          objectMapper.readValue<ApplicationEvent>(json)
+        }
+    }
+  }
+
   override fun eventHistory(id: String, limit: Int): List<ResourceEvent> {
     require(limit > 0) { "limit must be a positive integer" }
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE_EVENT.JSON)
-        .from(RESOURCE_EVENT, RESOURCE)
-        .where(RESOURCE.ID.eq(id))
-        .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
-        .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
+        .select(EVENT.JSON)
+        .from(EVENT, RESOURCE)
+        .where(EVENT.SCOPE.eq(Scope.RESOURCE.name))
+        .and(RESOURCE.ID.eq(id))
+        .and(RESOURCE.UID.eq(EVENT.UID))
+        .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
         .fetch()
         .map { (json) ->
@@ -219,30 +227,66 @@ open class SqlResourceRepository(
     }
   }
 
+  override fun appendHistory(event: ApplicationEvent) {
+    jooq.transaction { config ->
+      val txn = DSL.using(config)
+
+      if (event.ignoreRepeatedInHistory) {
+        val previousEvent = txn
+          .select(EVENT.JSON)
+          .from(EVENT)
+          .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
+          .and(EVENT.UID.eq(event.application))
+          .orderBy(EVENT.TIMESTAMP.desc())
+          .limit(1)
+          .fetchOne()
+          ?.let { (json) ->
+            objectMapper.readValue<ApplicationEvent>(json)
+          }
+
+        if (event.javaClass == previousEvent?.javaClass) return@transaction
+      }
+
+      txn
+        .insertInto(EVENT)
+        .set(EVENT.SCOPE, Scope.APPLICATION.name)
+        .set(EVENT.UID, event.application)
+        .set(EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
+        .set(EVENT.JSON, objectMapper.writeValueAsString(event))
+        .execute()
+    }
+  }
+
   // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
   override fun appendHistory(event: ResourceEvent) {
-    if (event.ignoreRepeatedInHistory) {
-      val previousEvent = jooq
-        .select(RESOURCE_EVENT.JSON)
-        .from(RESOURCE_EVENT, RESOURCE)
-        .where(RESOURCE.ID.eq(event.id))
-        .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
-        .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
-        .limit(1)
-        .fetchOne()
-        ?.let { (json) ->
-          objectMapper.readValue<ResourceEvent>(json)
-        }
+    jooq.transaction { config ->
+      val txn = DSL.using(config)
 
-      if (event.javaClass == previousEvent?.javaClass) return
+      if (event.ignoreRepeatedInHistory) {
+        val previousEvent = txn
+          .select(EVENT.JSON)
+          .from(EVENT, RESOURCE)
+          .where(EVENT.SCOPE.eq(Scope.RESOURCE.name))
+          .and(RESOURCE.ID.eq(event.id))
+          .and(RESOURCE.UID.eq(EVENT.UID))
+          .orderBy(EVENT.TIMESTAMP.desc())
+          .limit(1)
+          .fetchOne()
+          ?.let { (json) ->
+            objectMapper.readValue<ResourceEvent>(json)
+          }
+
+        if (event.javaClass == previousEvent?.javaClass) return@transaction
+      }
+
+      txn
+        .insertInto(EVENT)
+        .set(EVENT.SCOPE, Scope.RESOURCE.name)
+        .set(EVENT.UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.id)))
+        .set(EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
+        .set(EVENT.JSON, objectMapper.writeValueAsString(event))
+        .execute()
     }
-
-    jooq
-      .insertInto(RESOURCE_EVENT)
-      .set(RESOURCE_EVENT.UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.id)))
-      .set(RESOURCE_EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
-      .set(RESOURCE_EVENT.JSON, objectMapper.writeValueAsString(event))
-      .execute()
   }
 
   override fun delete(id: String) {
@@ -260,8 +304,9 @@ open class SqlResourceRepository(
         .execute()
     }
     sqlRetry.withRetry(WRITE) {
-      jooq.deleteFrom(RESOURCE_EVENT)
-        .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+      jooq.deleteFrom(EVENT)
+        .where(EVENT.SCOPE.eq(Scope.RESOURCE.name))
+        .and(EVENT.UID.eq(uid.toString()))
         .execute()
     }
     sqlRetry.withRetry(WRITE) {

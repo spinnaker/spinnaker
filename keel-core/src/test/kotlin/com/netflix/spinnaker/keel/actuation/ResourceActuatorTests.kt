@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
-import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
@@ -58,7 +58,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val artifactRepository = mockk<ArtifactRepository>()
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>()
     val diffFingerprintRepository = InMemoryDiffFingerprintRepository()
-    val resourcePauser: ResourcePauser = mockk() {
+    val actuationPauser: ActuationPauser = mockk() {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
@@ -73,7 +73,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       deliveryConfigRepository,
       diffFingerprintRepository,
       listOf(plugin1, plugin2),
-      resourcePauser,
+      actuationPauser,
       vetoEnforcer,
       publisher,
       Clock.systemDefaultZone())
@@ -113,7 +113,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         context("management is paused for that resource") {
           before {
             resourceRepository.appendHistory(ResourceActuationPaused(resource, "ActuationPaused"))
-            every { resourcePauser.isPaused(resource) } returns true
+            every { actuationPauser.isPaused(resource) } returns true
             runBlocking {
               subject.checkResource(resource)
             }

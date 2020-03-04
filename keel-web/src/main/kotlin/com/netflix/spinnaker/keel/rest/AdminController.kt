@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NO_CONTENT
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/admin"])
 class AdminController(
   private val repository: KeelRepository,
-  private val resourcePauser: ResourcePauser
+  private val actuationPauser: ActuationPauser
 ) {
   private val log by lazy { getLogger(javaClass) }
 
@@ -36,5 +36,5 @@ class AdminController(
     path = ["/applications/paused"]
   )
   fun getPausedApplications() =
-    resourcePauser.pausedApplications()
+    actuationPauser.pausedApplications()
 }

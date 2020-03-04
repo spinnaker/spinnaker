@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.keel.test.resource
@@ -201,28 +202,27 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           context("updating the state again") {
             before {
               tick()
-              // TODO: ensure persisting a map with actual data
-              subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+              subject.appendHistory(ResourceValid(resource, clock))
             }
 
             test("the event is included in the history") {
               expectThat(subject.eventHistory(resource.id))
                 .hasSize(3)
                 .first()
-                .isA<ResourceDeltaDetected>()
+                .isA<ResourceValid>()
             }
 
             context("a subsequent identical event that should be ignored") {
               before {
                 tick()
-                subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+                subject.appendHistory(ResourceValid(resource, clock))
               }
 
               test("the event is not included in the history") {
                 expectThat(subject.eventHistory(resource.id))
                   .and {
-                    first().isA<ResourceDeltaDetected>()
-                    second().not().isA<ResourceDeltaDetected>()
+                    first().isA<ResourceValid>()
+                    second().not().isA<ResourceValid>()
                   }
               }
             }
@@ -267,34 +267,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           expectThrows<NoSuchResourceException> {
             subject.eventHistory(resource.id)
           }
-        }
-      }
-
-      context("deleting resource by application name") {
-        before {
-          subject.store(resource)
-          subject.deleteByApplication(resource.application)
-        }
-
-        test("the resource is no longer returned when listing all resources") {
-          subject.allResources(callback)
-          verify(exactly = 0) { callback(any()) }
-        }
-
-        test("the resource can no longer be retrieved by name") {
-          expectThrows<NoSuchResourceException> {
-            subject.get<DummyResourceSpec>(resource.id)
-          }
-        }
-
-        test("events for the resource are also deleted") {
-          expectThrows<NoSuchResourceException> {
-            subject.eventHistory(resource.id)
-          }
-        }
-
-        test("deleting a non-existent application throws an exception") {
-          expectThat(subject.deleteByApplication(resource.application)).isEqualTo(0)
         }
       }
 

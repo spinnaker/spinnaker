@@ -54,22 +54,14 @@ import java.time.Instant
   Type(value = ResourceTaskFailed::class, name = "ResourceTaskFailed"),
   Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded")
 )
-sealed class ResourceEvent {
+sealed class ResourceEvent : PersistentEvent() {
+  @JsonIgnore override val scope = Scope.RESOURCE
   abstract val apiVersion: String
   abstract val kind: String
   abstract val id: String
-  abstract val application: String
-  abstract val timestamp: Instant
 
-  /**
-   * Should repeated events of the same type
-   */
-  @JsonIgnore
-  open val ignoreRepeatedInHistory: Boolean = false
-
-  companion object {
-    val clock: Clock = Clock.systemDefaultZone()
-  }
+  override val uid: String
+    get() = id
 }
 
 /**
@@ -228,13 +220,13 @@ data class ResourceActuationPaused(
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
-  constructor(resource: Resource<*>, reason: String?, clock: Clock = Companion.clock) : this(
+  constructor(resource: Resource<*>, reason: String? = null, timestamp: Instant = clock.instant()) : this(
     resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
     reason,
-    clock.instant()
+    timestamp
   )
 }
 

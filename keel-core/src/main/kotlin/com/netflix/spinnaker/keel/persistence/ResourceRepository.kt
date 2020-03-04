@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
@@ -47,6 +48,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.VETOED
 import java.time.Duration
+import java.time.Instant
 
 data class ResourceHeader(
   val id: String,
@@ -104,9 +106,20 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   fun delete(id: String)
 
   /**
-   * Deletes the resource associated with [application].
+   * Retrieves the history of persisted events for [application].
+   *
+   * @param application the name of the application.
+   * @param limit the maximum number of events to return.
    */
-  fun deleteByApplication(application: String): Int
+  fun applicationEventHistory(application: String, limit: Int = DEFAULT_MAX_EVENTS): List<ApplicationEvent>
+
+  /**
+   * Retrieves the history of persisted events for [application].
+   *
+   * @param application the name of the application.
+   * @param until the time of the oldest event to return.
+   */
+  fun applicationEventHistory(application: String, until: Instant): List<ApplicationEvent>
 
   /**
    * Retrieves the history of state change events for the resource represented by [uid].
@@ -128,6 +141,12 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    * Records an event associated with a resource.
    */
   fun appendHistory(event: ResourceEvent)
+
+  /**
+   * Records an event associated with an application.
+   * TODO: adding this here as there's no ApplicationRepository or EventRepository, but might want to move it.
+   */
+  fun appendHistory(event: ApplicationEvent)
 
   /**
    * Returns between zero and [limit] resources that have not been checked (i.e. returned by this

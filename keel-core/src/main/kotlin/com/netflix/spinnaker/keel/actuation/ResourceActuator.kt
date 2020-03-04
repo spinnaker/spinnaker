@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
-import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
@@ -45,7 +45,7 @@ class ResourceActuator(
   private val deliveryConfigRepository: DeliveryConfigRepository,
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val handlers: List<ResourceHandler<*, *>>,
-  private val resourcePauser: ResourcePauser,
+  private val actuationPauser: ActuationPauser,
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
@@ -57,7 +57,7 @@ class ResourceActuator(
       val id = resource.id
       val plugin = handlers.supporting(resource.apiVersion, resource.kind)
 
-      if (resourcePauser.isPaused(resource)) {
+      if (actuationPauser.isPaused(resource)) {
         log.debug("Actuation for resource {} is paused, skipping checks", id)
         publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationPaused"))
         return@withTracingContext
