@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.webhook.pipeline
 
+import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -41,31 +42,48 @@ class WebhookStageSpec extends Specification {
       "webhook",
       [
         waitForCompletion: waitForCompletion,
-        waitBeforeMonitor: waitTime
+        waitBeforeMonitor: waitTime,
+        monitorOnly: monitorOnly
       ])
 
     when:
     webhookStage.taskGraph(stage, builder)
 
     then:
-    1 * builder.withTask("createWebhook", CreateWebhookTask)
-
-    then:
+    expectedCreateTaskCount * builder.withTask("createWebhook", CreateWebhookTask)
     expectedWaitTaskCount * builder.withTask("waitBeforeMonitorWebhook", WaitTask)
-
-    then:
     expectedMonitorTaskCount * builder.withTask("monitorWebhook", MonitorWebhookTask)
 
     stage.context.waitTime == expectedWaitTimeInContext
 
     where:
-    waitForCompletion | waitTime || expectedWaitTimeInContext | expectedWaitTaskCount | expectedMonitorTaskCount
-    true              | 10       || 10                        | 1                     | 1
-    true              | "2"      || 2                         | 1                     | 1
-    "true"            | 0        || null                      | 0                     | 1
-    true              | -1       || null                      | 0                     | 1
-    false             | 10       || null                      | 0                     | 0
-    false             | 0        || null                      | 0                     | 0
+    waitForCompletion | monitorOnly | waitTime || expectedWaitTimeInContext | expectedWaitTaskCount | expectedMonitorTaskCount | expectedCreateTaskCount
+    true              | false       | 10       || 10                        | 1                     | 1                        | 1
+    true              | null        | "2"      || 2                         | 1                     | 1                        | 1
+    "true"            | "false"     | 0        || null                      | 0                     | 1                        | 1
+    true              | false       | -1       || null                      | 0                     | 1                        | 1
+    false             | false       | 10       || null                      | 0                     | 0                        | 1
+    false             | false       | 0        || null                      | 0                     | 0                        | 1
+    true              | true        | 10       || 10                        | 1                     | 1                        | 0
+    true              | "true"      | "2"      || 2                         | 1                     | 1                        | 0
+    "true"            | true        | 0        || null                      | 0                     | 1                        | 0
+    true              | "true"      | -1       || null                      | 0                     | 1                        | 0
   }
 
+  def "Should throw on invalid input"() {
+    given:
+    def stage = new Stage(
+        Execution.newPipeline("orca"),
+        "webhook",
+        [
+            waitForCompletion: false,
+            monitorOnly: true
+        ])
+
+    when:
+    webhookStage.taskGraph(stage, builder)
+
+    then:
+    thrown(UserException)
+  }
 }
