@@ -6,11 +6,29 @@ databaseChangeLog:
     - sql:
         sql: >
           update resource
-          set kind = substring(api_version, 1, locate('.', api_version) - 1)
-                  || '/'
-                  || kind
-                  || '@'
-                  || substring(api_version, locate('/', api_version) + 1)
+          set kind = concat(
+            substring(api_version, 1, locate('.', api_version) - 1),
+            '/',
+            kind,
+            '@',
+            substring(api_version, locate('/', api_version) + 1)
+          )
     - dropColumn:
         tableName: resource
         columnName: api_version
+    rollback:
+      - createColumn:
+          tableName: resource
+          column:
+            name: api_version
+            type: varchar(255)
+      - sql:
+          sql: update resource set api_version = concat(substring(kind, 1, locate('/', kind) - 1), '.spinnaker.netflix.com/v1')
+      - addNotNullConstraint:
+          tableName: resource
+          columnName: api_version
+          columnDataType: varchar(255)
+      - sql:
+          sql: update resource set kind = substring(kind, locate('/', kind) + 1)
+      - sql:
+          sql: update resource set kind = substring(kind, 1, locate('@', kind) - 1)
