@@ -373,7 +373,7 @@ export class ExecutionFilterService {
     if (!b.endTime) {
       return 1;
     }
-    return b.endTime - a.endTime;
+    return b.startTime - a.startTime;
   }
 
   public static clearFilters(): void {
