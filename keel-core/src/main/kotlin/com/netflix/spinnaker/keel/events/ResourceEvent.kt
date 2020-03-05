@@ -270,7 +270,7 @@ data class ResourceTaskFailed(
   override val id: String,
   override val application: String,
   val reason: String?,
-  val tasks: List<Task>,
+  val tasks: List<Task> = emptyList(),
   override val timestamp: Instant
 ) : ResourceEvent() {
 
@@ -291,7 +291,7 @@ data class ResourceTaskSucceeded(
   override val kind: ResourceKind,
   override val id: String,
   override val application: String,
-  val tasks: List<Task>,
+  val tasks: List<Task> = emptyList(),
   override val timestamp: Instant
 ) : ResourceEvent() {
 
