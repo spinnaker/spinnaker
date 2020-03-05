@@ -8,7 +8,7 @@ import { NgReact } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
 import { SpinFormik } from 'core/presentation';
 
-import { IModalComponentProps } from '../../presentation/ReactModal';
+import { IModalComponentProps } from '../../presentation';
 import { ModalClose } from '../buttons/ModalClose';
 import { SubmitButton } from '../buttons/SubmitButton';
 import { WizardPage } from './WizardPage';
