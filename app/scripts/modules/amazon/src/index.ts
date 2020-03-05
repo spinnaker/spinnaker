@@ -11,3 +11,4 @@ export * from './reactShims';
 export * from './serverGroup';
 export * from './vpc';
 export * from './instance';
+export * from './securityGroup';
