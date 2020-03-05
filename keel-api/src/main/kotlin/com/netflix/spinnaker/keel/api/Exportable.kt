@@ -6,7 +6,7 @@ data class Exportable(
   val user: String,
   val moniker: Moniker,
   val regions: Set<String>,
-  val kind: String
+  val kind: ResourceKind
 ) {
   fun toResourceId() =
     "$cloudProvider:$kind:$account:$moniker"

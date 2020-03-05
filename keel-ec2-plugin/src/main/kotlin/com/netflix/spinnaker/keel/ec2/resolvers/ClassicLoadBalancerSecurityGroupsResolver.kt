@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ClassicLoadBalancerSecurityGroupsResolver : Resolver<ClassicLoadBalancerSpec> {
-  override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = "classic-load-balancer"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer")
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

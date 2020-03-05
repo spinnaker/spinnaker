@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
@@ -52,12 +53,10 @@ import java.time.Instant
 
 data class ResourceHeader(
   val id: String,
-  val apiVersion: String,
-  val kind: String
+  val kind: ResourceKind
 ) {
   constructor(resource: Resource<*>) : this(
     resource.id,
-    resource.apiVersion,
     resource.kind
   )
 }

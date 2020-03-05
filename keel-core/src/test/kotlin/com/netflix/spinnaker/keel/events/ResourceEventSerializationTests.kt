@@ -33,7 +33,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
     get() = """
       {
         "type": "${createdEvent.javaClass.simpleName}",
-        "apiVersion": "${createdEvent.apiVersion}",
         "kind": "${createdEvent.kind}",
         "id": "${createdEvent.id}",
         "application": "${createdEvent.application}",
@@ -44,7 +43,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
   val Fixture.yaml: String
     get() = """
       --- !<${createdEvent.javaClass.simpleName}>
-      apiVersion: "${createdEvent.apiVersion}"
       kind: "${createdEvent.kind}"
       id: "${createdEvent.id}"
       application: "${createdEvent.application}"
@@ -63,7 +61,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         val json = mapper.valueToTree<ObjectNode>(createdEvent)
         expectThat(json)
           .has("id")
-          .has("apiVersion")
           .has("kind")
           .has("application")
           .has("timestamp")
@@ -88,7 +85,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         val json = mapper.valueToTree<ObjectNode>(createdEvent)
         expectThat(json)
           .has("id")
-          .has("apiVersion")
           .has("kind")
           .has("application")
           .has("timestamp")

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
@@ -19,6 +18,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.TEST_API
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -88,16 +88,14 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
               SubmittedEnvironment(
                 name = "test",
                 resources = setOf(SubmittedResource(
-                  apiVersion = "test.$SPINNAKER_API_V1",
-                  kind = "whatever",
+                  kind = TEST_API.qualify("whatever"),
                   spec = DummyResourceSpec(data = "resource in test")
                 ))
               ),
               SubmittedEnvironment(
                 name = "prod",
                 resources = setOf(SubmittedResource(
-                  apiVersion = "test.$SPINNAKER_API_V1",
-                  kind = "whatever",
+                  kind = TEST_API.qualify("whatever"),
                   spec = DummyResourceSpec(data = "resource in prod")
                 )),
                 constraints = setOf(DependsOnConstraint("test"))
@@ -139,8 +137,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |environments:
         |- name: test
         |  resources:
-        |  - apiVersion: test.spinnaker.netflix.com/v1
-        |    kind: whatever
+        |  - kind: test/whatever@v1
         |    spec:
         |      data: resource in test
         |      application: someapp
@@ -153,8 +150,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      - hours: 6-18
         |        days: mon-fri
         |  resources:
-        |  - apiVersion: test.spinnaker.netflix.com/v1
-        |    kind: whatever
+        |  - kind: test/whatever@v1
         |    spec:
         |      data: resource in prod
         |      application: someapp
@@ -177,8 +173,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      "name": "test",
         |      "resources": [
         |        {
-        |          "apiVersion": "test.spinnaker.netflix.com/v1",
-        |          "kind": "whatever",
+        |          "kind": "test/whatever@v1",
         |          "spec": {
         |            "data": "resource in test",
         |            "application": "someapp"
@@ -209,8 +204,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      ],
         |      "resources": [
         |        {
-        |          "apiVersion": "test.spinnaker.netflix.com/v1",
-        |          "kind": "whatever",
+        |          "kind": "test/whatever@v1",
         |          "spec": {
         |            "data": "resource in prod",
         |            "application": "someapp"

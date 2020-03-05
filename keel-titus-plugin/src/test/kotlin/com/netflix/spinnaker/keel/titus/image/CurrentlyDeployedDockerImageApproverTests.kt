@@ -42,8 +42,7 @@ internal class CurrentlyDeployedDockerImageApproverTests : JUnit5Minutests {
     )
 
     val referenceCluster = resource(
-      apiVersion = SPINNAKER_TITUS_API_V1,
-      kind = "cluster",
+      kind = SPINNAKER_TITUS_API_V1.qualify("cluster"),
       spec = TitusClusterSpec(
         moniker = Moniker("waffles", "api"),
         locations = SimpleLocations(account = "test", regions = setOf(SimpleRegionSpec("us-east-1"))),
@@ -56,8 +55,7 @@ internal class CurrentlyDeployedDockerImageApproverTests : JUnit5Minutests {
     )
 
     val digestCluster = resource(
-      apiVersion = SPINNAKER_TITUS_API_V1,
-      kind = "cluster",
+      kind = SPINNAKER_TITUS_API_V1.qualify("cluster"),
       spec = TitusClusterSpec(
         moniker = Moniker("waffles", "api"),
         locations = SimpleLocations(account = "test", regions = setOf(SimpleRegionSpec("us-east-1"))),

@@ -80,7 +80,6 @@ class AdHocDiffer(
   @Suppress("UNCHECKED_CAST")
   private fun <T : ResourceSpec> handlerFor(resource: SubmittedResource<T>) =
     handlers.supporting(
-      resource.apiVersion,
       resource.kind
     ) as ResourceHandler<T, *>
 

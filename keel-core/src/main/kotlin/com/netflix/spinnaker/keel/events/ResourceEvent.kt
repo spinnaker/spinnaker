@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
@@ -56,8 +57,7 @@ import java.time.Instant
 )
 sealed class ResourceEvent : PersistentEvent() {
   @JsonIgnore override val scope = Scope.RESOURCE
-  abstract val apiVersion: String
-  abstract val kind: String
+  abstract val kind: ResourceKind
   abstract val id: String
 
   override val uid: String
@@ -68,15 +68,13 @@ sealed class ResourceEvent : PersistentEvent() {
  * A new resource was registered for management.
  */
 data class ResourceCreated(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -91,15 +89,13 @@ data class ResourceCreated(
  * updated version).
  */
 data class ResourceUpdated(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -109,14 +105,12 @@ data class ResourceUpdated(
 }
 
 data class ResourceDeleted(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -135,8 +129,7 @@ sealed class ResourceCheckResult : ResourceEvent() {
  * A managed resource does not currently exist in the cloud.
  */
 data class ResourceMissing(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant
@@ -145,7 +138,6 @@ data class ResourceMissing(
   override val state = Missing
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -159,8 +151,7 @@ data class ResourceMissing(
  * @property delta The difference between the "base" spec (desired) and "working" spec (actual).
  */
 data class ResourceDeltaDetected(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val delta: Map<String, Any?>,
@@ -170,7 +161,6 @@ data class ResourceDeltaDetected(
   override val state = Diff
 
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -184,8 +174,7 @@ data class ResourceDeltaDetected(
  * resource.
  */
 data class ResourceActuationLaunched(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val plugin: String,
@@ -194,7 +183,6 @@ data class ResourceActuationLaunched(
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, plugin: String, tasks: List<Task>, clock: Clock = Companion.clock) :
     this(
-      resource.apiVersion,
       resource.kind,
       resource.id,
       resource.application,
@@ -210,8 +198,7 @@ data class ResourceActuationLaunched(
  * @property reason The reason why actuation was paused.
  */
 data class ResourceActuationPaused(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val reason: String?,
@@ -221,7 +208,6 @@ data class ResourceActuationPaused(
   override val ignoreRepeatedInHistory = true
 
   constructor(resource: Resource<*>, reason: String? = null, timestamp: Instant = clock.instant()) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -236,8 +222,7 @@ data class ResourceActuationPaused(
  * @property reason The reason why actuation was vetoed.
  */
 data class ResourceActuationVetoed(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val reason: String?,
@@ -247,7 +232,6 @@ data class ResourceActuationVetoed(
   override val ignoreRepeatedInHistory = true
 
   constructor(resource: Resource<*>, reason: String?, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -260,8 +244,7 @@ data class ResourceActuationVetoed(
  * Actuation on the managed resource has resumed.
  */
 data class ResourceActuationResumed(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant
@@ -270,7 +253,6 @@ data class ResourceActuationResumed(
   override val ignoreRepeatedInHistory = true
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -284,8 +266,7 @@ data class ResourceActuationResumed(
  * @property reason The reason why actuation failed.
  */
 data class ResourceTaskFailed(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val reason: String?,
@@ -294,7 +275,6 @@ data class ResourceTaskFailed(
 ) : ResourceEvent() {
 
   constructor(resource: Resource<*>, reason: String?, tasks: List<Task>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -308,8 +288,7 @@ data class ResourceTaskFailed(
  * Orca task for the managed resource has succeeded.
  */
 data class ResourceTaskSucceeded(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   val tasks: List<Task>,
@@ -317,7 +296,6 @@ data class ResourceTaskSucceeded(
 ) : ResourceEvent() {
 
   constructor(resource: Resource<*>, tasks: List<Task>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -331,8 +309,7 @@ data class ResourceTaskSucceeded(
  * (or the resource did not exist).
  */
 data class ResourceDeltaResolved(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant
@@ -341,7 +318,6 @@ data class ResourceDeltaResolved(
   override val state = Ok
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,
@@ -350,8 +326,7 @@ data class ResourceDeltaResolved(
 }
 
 data class ResourceValid(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant
@@ -364,7 +339,6 @@ data class ResourceValid(
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) :
     this(
-      resource.apiVersion,
       resource.kind,
       resource.id,
       resource.application,
@@ -373,8 +347,7 @@ data class ResourceValid(
 }
 
 data class ResourceCheckUnresolvable(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
@@ -388,7 +361,6 @@ data class ResourceCheckUnresolvable(
 
   constructor(resource: Resource<*>, exception: ResourceCurrentlyUnresolvable, clock: Clock = Companion.clock) :
     this(
-      resource.apiVersion,
       resource.kind,
       resource.id,
       resource.application,
@@ -398,8 +370,7 @@ data class ResourceCheckUnresolvable(
 }
 
 data class ResourceCheckError(
-  override val apiVersion: String,
-  override val kind: String,
+  override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
@@ -410,7 +381,6 @@ data class ResourceCheckError(
   override val state = Error
 
   constructor(resource: Resource<*>, exception: Throwable, clock: Clock = Companion.clock) : this(
-    resource.apiVersion,
     resource.kind,
     resource.id,
     resource.application,

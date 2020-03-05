@@ -55,17 +55,17 @@ class ResourceActuator(
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
     withTracingContext(resource) {
       val id = resource.id
-      val plugin = handlers.supporting(resource.apiVersion, resource.kind)
+      val plugin = handlers.supporting(resource.kind)
 
       if (actuationPauser.isPaused(resource)) {
         log.debug("Actuation for resource {} is paused, skipping checks", id)
-        publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationPaused"))
+        publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationPaused"))
         return@withTracingContext
       }
 
       if (plugin.actuationInProgress(resource)) {
         log.debug("Actuation for resource {} is already running, skipping checks", id)
-        publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationInProgress"))
+        publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationInProgress"))
         return@withTracingContext
       }
 
@@ -118,7 +118,7 @@ class ResourceActuator(
             }
           }
           log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
-          publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, response.vetoName))
+          publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, response.vetoName))
           publishVetoedEvent(response, resource)
           return@withTracingContext
         }
@@ -198,7 +198,6 @@ class ResourceActuator(
       }
       else -> publisher.publishEvent(
         ResourceActuationVetoed(
-          resource.apiVersion,
           resource.kind,
           resource.id,
           resource.spec.application,

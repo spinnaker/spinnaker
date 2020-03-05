@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancerSpec> {
-  override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = "application-load-balancer"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("application-load-balancer")
 
   override fun invoke(resource: Resource<ApplicationLoadBalancerSpec>): Resource<ApplicationLoadBalancerSpec> {
     if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.dependencies.securityGroupNames.isEmpty()) {

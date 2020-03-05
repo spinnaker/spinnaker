@@ -1,0 +1,16 @@
+databaseChangeLog:
+- changeSet:
+    id: drop-api-version
+    author: fletch
+    changes:
+    - sql:
+        sql: >
+          update resource
+          set kind = substring(api_version, 1, locate('.', api_version) - 1)
+                  || '/'
+                  || kind
+                  || '@'
+                  || substring(api_version, locate('/', api_version) + 1)
+    - dropColumn:
+        tableName: resource
+        columnName: api_version

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component
  * missing key pair details in the [ClusterSpec].
  */
 class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver<ClusterSpec> {
-  override val apiVersion: String = SPINNAKER_EC2_API_V1
-  override val supportedKind: String = "cluster"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("cluster")
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> =

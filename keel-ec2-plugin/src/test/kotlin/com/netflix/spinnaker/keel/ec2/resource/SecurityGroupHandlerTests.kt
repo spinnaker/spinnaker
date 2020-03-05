@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
@@ -46,6 +45,7 @@ import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -850,8 +850,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
   val Fixture.resource: Resource<SecurityGroupSpec>
     get() = resource(
-      apiVersion = SPINNAKER_API_V1,
-      kind = "ec2.SecurityGroup",
+      kind = SPINNAKER_EC2_API_V1.qualify("security-group"),
       spec = securityGroupSpec
     )
 }

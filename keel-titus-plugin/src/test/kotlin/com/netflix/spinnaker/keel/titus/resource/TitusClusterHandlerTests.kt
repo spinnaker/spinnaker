@@ -138,8 +138,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount)
 
   val resource = resource(
-    apiVersion = SPINNAKER_TITUS_API_V1,
-    kind = "cluster",
+    kind = SPINNAKER_TITUS_API_V1.qualify("cluster"),
     spec = spec
   )
 
@@ -149,7 +148,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     user = "fzlem@netflix.com",
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
-    kind = "cluster"
+    kind = SPINNAKER_TITUS_API_V1.qualify("cluster")
   )
 
   val images = listOf(

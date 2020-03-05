@@ -221,7 +221,7 @@ class ApiDocTests : JUnit5Minutests {
       at("/components/schemas/SubmittedResource/required")
         .isArray()
         .textValues()
-        .contains("apiVersion", "kind", "spec")
+        .contains("kind", "spec")
     }
 
     test("data class parameters with default values are not required") {

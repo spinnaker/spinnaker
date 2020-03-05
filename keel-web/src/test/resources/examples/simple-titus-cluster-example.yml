@@ -1,6 +1,5 @@
 ---
-apiVersion: titus.spinnaker.netflix.com/v1
-kind: cluster
+kind: titus/cluster@v1
 metadata:
   serviceAccount: my-email@spinnaker.io
 spec:

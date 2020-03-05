@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
-import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository.Companion.DELETE_CHUNK_SIZE
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -751,7 +751,6 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
-          RESOURCE.API_VERSION,
           RESOURCE.KIND,
           RESOURCE.METADATA,
           RESOURCE.SPEC
@@ -759,12 +758,11 @@ class SqlDeliveryConfigRepository(
         .from(RESOURCE, ENVIRONMENT_RESOURCE)
         .where(RESOURCE.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
-        .fetch { (apiVersion, kind, metadata, spec) ->
+        .fetch { (kind, metadata, spec) ->
           Resource(
-            apiVersion,
-            kind,
+            parseKind(kind),
             mapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            mapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion, kind))
+            mapper.readValue(spec, resourceTypeIdentifier.identify(parseKind(kind)))
           )
         }
     }

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
@@ -40,14 +40,12 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
   private val resources = listOf(
     resource(
-      apiVersion = "ec2.$SPINNAKER_API_V1",
-      kind = "security-group",
+      kind = parseKind("ec2/security-group@v1"),
       id = "ec2:security-group:prod:ap-south-1:keel-sg",
       application = "keel"
     ),
     resource(
-      apiVersion = "ec2.$SPINNAKER_API_V1",
-      kind = "cluster",
+      kind = parseKind("ec2/cluster@v1"),
       id = "ec2:cluster:prod:keel",
       application = "keel"
     )

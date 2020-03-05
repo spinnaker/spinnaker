@@ -21,7 +21,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
     val subject = ExceptionHandler(listOf(DummyResourceHandler))
     val mapper = configuredYamlMapper()
     val parseException = try {
-        mapper.registerSubtypes(NamedType(DummyResourceSpec::class.java, "$TEST_API/whatever"))
+        mapper.registerSubtypes(NamedType(DummyResourceSpec::class.java, TEST_API.qualify("whatever").toString()))
         mapper.readValue(brokenYaml, SubmittedDeliveryConfig::class.java)
         throw IllegalArgumentException("test is broken")
       } catch (e: JsonMappingException) {
@@ -46,8 +46,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -80,8 +79,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -113,8 +111,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
             - constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -147,8 +144,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: true # wrong
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -181,9 +177,8 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                # kind: "whatever"
-                spec: {}
+              - spec: {}
+                # kind: "${TEST_API.qualify("whatever")}"
           """.trimIndent()
         )
       }
@@ -192,9 +187,9 @@ class ExceptionHandlerTests : JUnit5Minutests {
         expect {
           that(apiError.details) {
             isA<ParsingErrorDetails>().and {
-              get { error }.isEqualTo(ParsingError.INVALID_VALUE)
-              get { path }.size.isEqualTo(4)
-              get { pathExpression }.isEqualTo(".environments[0].resources[0]")
+              get { error }.isEqualTo(ParsingError.INVALID_TYPE)
+              get { path }.size.isEqualTo(5)
+              get { pathExpression }.isEqualTo(".environments[0].resources[0].spec")
             }
           }
         }
@@ -215,8 +210,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec:
                   intData: "wrong"
           """.trimIndent()
@@ -250,8 +244,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec:
                   timeData: "wrong"
           """.trimIndent()
@@ -285,8 +278,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - apiVersion: $TEST_API
-                kind: "whatever"
+              - kind: "${TEST_API.qualify("whatever")}"
                 spec:
                   enumData: "wrong"
           """.trimIndent()

@@ -65,8 +65,7 @@ internal class ResourceControllerTests {
       .header("X-SPINNAKER-USER", "fzlem@netflix.com")
       .content(
         """{
-          |  "apiVersion": "test.spinnaker.netflix.com/v1",
-          |  "kind": "whatever",
+          |  "kind": "test/whatever@v1",
           |  "spec": {
           |    "data": "o hai"
           |  }
@@ -87,7 +86,6 @@ internal class ResourceControllerTests {
       .header("X-SPINNAKER-USER", "fzlem@netflix.com")
       .content(
         """---
-          |apiVersion: test.spinnaker.netflix.com/v1
           |metadata:
           |  name: i-forgot-my-kind
           |spec:

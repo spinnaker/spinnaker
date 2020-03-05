@@ -40,8 +40,7 @@ class TitusImageResolver(
 ) : DockerImageResolver<TitusClusterSpec>(
   repository
 ) {
-  override val apiVersion: String = SPINNAKER_TITUS_API_V1
-  override val supportedKind: String = "cluster"
+  override val supportedKind = SPINNAKER_TITUS_API_V1.qualify("cluster")
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

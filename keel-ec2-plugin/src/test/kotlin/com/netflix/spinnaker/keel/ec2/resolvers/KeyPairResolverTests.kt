@@ -45,8 +45,7 @@ internal class KeyPairResolverTests : JUnit5Minutests {
 
   data class Fixture(val subject: KeyPairResolver, val spec: ClusterSpec) {
     val resource = resource(
-      apiVersion = SPINNAKER_EC2_API_V1,
-      kind = "cluster",
+      kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
       spec = spec
     )
     val resolved by lazy { subject(resource) }

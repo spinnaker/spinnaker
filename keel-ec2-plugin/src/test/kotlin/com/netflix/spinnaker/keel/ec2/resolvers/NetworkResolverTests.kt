@@ -240,8 +240,7 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ClusterSpec> =
     resource(
-      apiVersion = SPINNAKER_EC2_API_V1,
-      kind = "cluster",
+      kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
       spec = ClusterSpec(
         moniker = Moniker(
           app = "fnord",
@@ -273,8 +272,7 @@ internal class ClassicLoadBalancerNetworkResolverTests : NetworkResolverTests<Cl
   override val createSubject = ::ClassicLoadBalancerNetworkResolver
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ClassicLoadBalancerSpec> = resource(
-    apiVersion = SPINNAKER_EC2_API_V1,
-    kind = "classic-load-balancer",
+    kind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer"),
     spec = ClassicLoadBalancerSpec(
       moniker = Moniker(
         app = "fnord",
@@ -292,8 +290,7 @@ internal class ApplicationLoadBalancerNetworkResolverTests : NetworkResolverTest
   override val createSubject = ::ApplicationLoadBalancerNetworkResolver
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ApplicationLoadBalancerSpec> = resource(
-    apiVersion = SPINNAKER_EC2_API_V1,
-    kind = "application-load-balancer",
+    kind = SPINNAKER_EC2_API_V1.qualify("application-load-balancer"),
     spec = ApplicationLoadBalancerSpec(
       moniker = Moniker(
         app = "fnord",

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
@@ -43,11 +44,11 @@ open class SqlResourceRepository(
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
+        .select(RESOURCE.KIND, RESOURCE.ID)
         .from(RESOURCE)
         .fetch()
-        .map { (apiVersion, kind, id) ->
-          ResourceHeader(id, apiVersion, kind)
+        .map { (kind, id) ->
+          ResourceHeader(id, parseKind(kind))
         }
         .forEach(callback)
     }
@@ -56,12 +57,12 @@ open class SqlResourceRepository(
   override fun get(id: String): Resource<out ResourceSpec> {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
         .from(RESOURCE)
         .where(RESOURCE.ID.eq(id))
         .fetchOne()
-        ?.let { (apiVersion, kind, metadata, spec) ->
-          constructResource(apiVersion, kind, metadata, spec)
+        ?.let { (kind, metadata, spec) ->
+          constructResource(kind, metadata, spec)
         } ?: throw NoSuchResourceId(id)
     }
   }
@@ -69,12 +70,12 @@ open class SqlResourceRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
         .from(RESOURCE)
         .where(RESOURCE.APPLICATION.eq(application))
         .fetch()
-        .map { (apiVersion, kind, metadata, spec) ->
-          constructResource(apiVersion, kind, metadata, spec)
+        .map { (kind, metadata, spec) ->
+          constructResource(kind, metadata, spec)
         }
     }
   }
@@ -82,12 +83,11 @@ open class SqlResourceRepository(
   /**
    * Constructs a resource object from its database representation
    */
-  private fun constructResource(apiVersion: String, kind: String, metadata: String, spec: String) =
+  private fun constructResource(kind: String, metadata: String, spec: String) =
     Resource(
-      apiVersion,
-      kind,
+      parseKind(kind),
       objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-      objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion, kind))
+      objectMapper.readValue(spec, resourceTypeIdentifier.identify(parseKind(kind)))
     )
 
   override fun hasManagedResources(application: String): Boolean {
@@ -124,16 +124,15 @@ open class SqlResourceRepository(
   override fun getSummaryByApplication(application: String): List<ResourceSummary> {
     val resources: List<Resource<*>> = sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
         .from(RESOURCE)
         .where(RESOURCE.APPLICATION.eq(application))
         .fetch()
-        .map { (apiVersion, kind, metadata, spec) ->
+        .map { (kind, metadata, spec) ->
           Resource(
-            apiVersion,
-            kind,
+            parseKind(kind),
             objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion, kind))
+            objectMapper.readValue(spec, resourceTypeIdentifier.identify(parseKind(kind)))
           )
         }
     }
@@ -149,7 +148,6 @@ open class SqlResourceRepository(
       ?: randomUID().toString()
 
     val updatePairs = mapOf(
-      RESOURCE.API_VERSION to resource.apiVersion,
       RESOURCE.KIND to resource.kind,
       RESOURCE.ID to resource.id,
       RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata + ("uid" to uid)),
@@ -321,7 +319,7 @@ open class SqlResourceRepository(
     val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
-        select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        select(RESOURCE.UID, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
           .from(RESOURCE, RESOURCE_LAST_CHECKED)
           .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
           .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
@@ -330,7 +328,7 @@ open class SqlResourceRepository(
           .forUpdate()
           .fetch()
           .also {
-            it.forEach { (uid, _, _, _, _) ->
+            it.forEach { (uid, _, _, _) ->
               insertInto(RESOURCE_LAST_CHECKED)
                 .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
                 .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
@@ -339,8 +337,8 @@ open class SqlResourceRepository(
                 .execute()
             }
           }
-          .map { (_, apiVersion, kind, metadata, spec) ->
-            constructResource(apiVersion, kind, metadata, spec)
+          .map { (_, kind, metadata, spec) ->
+            constructResource(kind, metadata, spec)
           }
       }
     }

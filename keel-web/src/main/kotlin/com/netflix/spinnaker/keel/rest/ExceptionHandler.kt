@@ -115,7 +115,7 @@ class ExceptionHandler(
             // for ResourceSpec sub-types, use the API version/kind instead of the class name
             val handler = resourceHandlers.supporting(type as Class<ResourceSpec>)
             if (handler != null) {
-              "${handler.supportedKind.apiVersion}/${handler.supportedKind.kind}"
+              handler.supportedKind.kind
             } else {
               type.name
             }

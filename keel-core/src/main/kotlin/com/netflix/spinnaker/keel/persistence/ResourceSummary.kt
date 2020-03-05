@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.ResourceKind
 
 /**
  * A summary version of a resource that contains identifying information, location information, and status.
@@ -26,7 +27,7 @@ import com.netflix.spinnaker.keel.api.Moniker
  */
 data class ResourceSummary(
   val id: String,
-  val kind: String,
+  val kind: ResourceKind,
   val status: ResourceStatus,
   val moniker: Moniker?,
   val locations: Locations<*>?

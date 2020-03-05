@@ -36,8 +36,8 @@ class ImageResolver(
   private val imageService: ImageService
 ) : Resolver<ClusterSpec> {
 
-  override val apiVersion: String = SPINNAKER_EC2_API_V1
-  override val supportedKind: String = "cluster"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("cluster")
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   data class VersionedNamedImage(

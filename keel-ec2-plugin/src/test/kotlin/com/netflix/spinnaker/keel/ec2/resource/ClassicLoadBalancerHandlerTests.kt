@@ -110,8 +110,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
   private val spec = yamlMapper.readValue(yaml, ClassicLoadBalancerSpec::class.java)
   private val resource = resource(
-    apiVersion = SPINNAKER_EC2_API_V1,
-    kind = "classic-load-balancer",
+    kind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer"),
     spec = spec
   )
 

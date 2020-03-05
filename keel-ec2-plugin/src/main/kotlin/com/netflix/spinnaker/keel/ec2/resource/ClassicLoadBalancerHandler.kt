@@ -45,7 +45,7 @@ class ClassicLoadBalancerHandler(
 ) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(resolvers) {
 
   override val supportedKind =
-    SupportedKind(SPINNAKER_EC2_API_V1, "classic-load-balancer", ClassicLoadBalancerSpec::class.java)
+    SupportedKind(SPINNAKER_EC2_API_V1.qualify("classic-load-balancer"), ClassicLoadBalancerSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<ClassicLoadBalancerSpec>): Map<String, ClassicLoadBalancer> =
     with(resource.spec) {

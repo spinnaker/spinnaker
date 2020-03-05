@@ -68,8 +68,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     val artifact = DebianArtifact(name = "fnord")
 
     val nonArtifactCluster = resource(
-      apiVersion = SPINNAKER_EC2_API_V1,
-      kind = "cluster",
+      kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
         locations = SubnetAwareLocations(
@@ -100,8 +99,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     )
 
     val artifactCluster = resource(
-      apiVersion = SPINNAKER_EC2_API_V1,
-      kind = "cluster",
+      kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
         imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),

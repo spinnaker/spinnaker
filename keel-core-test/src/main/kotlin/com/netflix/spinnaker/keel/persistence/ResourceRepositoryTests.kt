@@ -42,7 +42,6 @@ import java.time.Duration
 import java.time.Period
 import java.util.UUID.randomUUID
 import strikt.api.Assertion
-import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -159,10 +158,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("resource summary is formatted correctly") {
           val summary = subject.getSummaryByApplication("toast")
 
-          expect {
-            that(summary).hasSize(1)
-            that(summary.first().id).isEqualTo(lr.id)
-            that(summary.first().locations).isNotNull()
+          expectThat(summary) {
+            hasSize(1)
+            with(first()) {
+              get(ResourceSummary::id).isEqualTo(lr.id)
+              get(ResourceSummary::locations).isNotNull()
+            }
           }
         }
       }

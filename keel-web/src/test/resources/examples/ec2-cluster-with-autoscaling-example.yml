@@ -1,6 +1,5 @@
 ---
-apiVersion: ec2.spinnaker.netflix.com/v1
-kind: cluster
+kind: ec2/cluster@v1
 metadata:
   serviceAccount: my-email@spinnaker.io
 spec:

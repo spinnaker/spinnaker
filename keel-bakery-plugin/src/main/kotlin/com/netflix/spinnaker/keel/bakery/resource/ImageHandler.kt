@@ -42,7 +42,7 @@ class ImageHandler(
 ) : ResourceHandler<ImageSpec, Image>(resolvers) {
 
   override val supportedKind =
-    SupportedKind(BAKERY_API_V1, "image", ImageSpec::class.java)
+    SupportedKind(BAKERY_API_V1.qualify("image"), ImageSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {

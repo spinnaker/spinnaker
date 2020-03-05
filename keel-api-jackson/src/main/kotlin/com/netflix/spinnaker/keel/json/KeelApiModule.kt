@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ser.Serializers
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.json.mixins.DeliveryArtifactMixin
 import com.netflix.spinnaker.keel.json.mixins.LocatableMixin
 import com.netflix.spinnaker.keel.json.mixins.MonikeredMixin
+import com.netflix.spinnaker.keel.json.mixins.ResourceKindMixin
 import com.netflix.spinnaker.keel.json.mixins.SubnetAwareRegionSpecMixin
 
 fun ObjectMapper.registerKeelApiModule(): ObjectMapper = registerModule(KeelApiModule)
@@ -44,6 +46,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       insertAnnotationIntrospector(KeelApiAnnotationIntrospector)
       addSerializers(KeelApiSerializers)
       addDeserializers(KeelApiDeserializers)
+      setMixInAnnotations<ResourceKind, ResourceKindMixin>()
       setMixInAnnotations<DeliveryArtifact, DeliveryArtifactMixin>()
       setMixInAnnotations<Locatable<*>, LocatableMixin<*>>()
       setMixInAnnotations<Monikered, MonikeredMixin>()

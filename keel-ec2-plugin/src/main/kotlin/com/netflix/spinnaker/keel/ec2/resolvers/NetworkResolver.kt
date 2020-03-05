@@ -41,8 +41,7 @@ abstract class NetworkResolver<T : Locatable<SubnetAwareLocations>>(
 
 @Component
 class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClusterSpec>(cloudDriverCache) {
-  override val apiVersion: String = SPINNAKER_EC2_API_V1
-  override val supportedKind: String = "cluster"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("cluster")
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> =
     resource.run {
@@ -58,8 +57,7 @@ class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolv
 
 @Component
 class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClassicLoadBalancerSpec>(cloudDriverCache) {
-  override val apiVersion: String = SPINNAKER_EC2_API_V1
-  override val supportedKind: String = "classic-load-balancer"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer")
 
   override fun invoke(resource: Resource<ClassicLoadBalancerSpec>): Resource<ClassicLoadBalancerSpec> =
     resource.run {
@@ -75,8 +73,7 @@ class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : N
 
 @Component
 class ApplicationLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ApplicationLoadBalancerSpec>(cloudDriverCache) {
-  override val apiVersion: String = SPINNAKER_EC2_API_V1
-  override val supportedKind: String = "application-load-balancer"
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("application-load-balancer")
 
   override fun invoke(resource: Resource<ApplicationLoadBalancerSpec>): Resource<ApplicationLoadBalancerSpec> =
     resource.run {

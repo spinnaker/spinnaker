@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.id
@@ -48,10 +50,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
       object : ResourceTypeIdentifier {
-        override fun identify(apiVersion: String, kind: String): Class<out ResourceSpec> {
+        override fun identify(kind: ResourceKind): Class<out ResourceSpec> {
           return when (kind) {
-            "security-group" -> DummyResourceSpec::class.java
-            "cluster" -> DummyResourceSpec::class.java
+            parseKind("security-group") -> DummyResourceSpec::class.java
+            parseKind("cluster") -> DummyResourceSpec::class.java
             else -> error("unsupported kind $kind")
           }
         }
@@ -176,8 +178,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
               Environment(
                 name = "test",
                 resources = setOf(
-                  resource(kind = "cluster"),
-                  resource(kind = "security-group")
+                  resource(kind = parseKind("ec2/cluster@v1")),
+                  resource(kind = parseKind("ec2/security-group@v1"))
                 )
               ),
               Environment(
@@ -189,8 +191,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                   ManualJudgementConstraint()
                 ),
                 resources = setOf(
-                  resource(kind = "cluster"),
-                  resource(kind = "security-group")
+                  resource(kind = parseKind("ec2/cluster@v1")),
+                  resource(kind = parseKind("ec2/security-group@v1"))
                 )
               )
             )

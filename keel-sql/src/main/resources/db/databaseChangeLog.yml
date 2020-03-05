@@ -101,3 +101,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200228-multi-scope-event-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200302-drop-api-version.yml
+      relativeToChangelogFile: true

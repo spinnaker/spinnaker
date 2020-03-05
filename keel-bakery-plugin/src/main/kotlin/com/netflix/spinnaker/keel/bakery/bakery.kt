@@ -1,5 +1,5 @@
 package com.netflix.spinnaker.keel.bakery
 
-import com.netflix.spinnaker.keel.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.ApiVersion
 
-const val BAKERY_API_V1 = "bakery.$SPINNAKER_API_V1"
+val BAKERY_API_V1 = ApiVersion("bakery")

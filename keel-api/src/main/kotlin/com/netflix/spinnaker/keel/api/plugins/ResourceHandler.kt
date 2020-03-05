@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.api.plugins
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.id
@@ -144,34 +145,24 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
 }
 
 data class SupportedKind<SPEC : ResourceSpec>(
-  val apiVersion: String,
-  val kind: String,
+  val kind: ResourceKind,
   val specClass: Class<SPEC>
-) {
-  val typeId = "$apiVersion/$kind"
-}
+)
 
 /**
- * Searches a list of `ResourceHandler`s and returns the first that supports [apiVersion] and
- * [kind].
+ * Searches a list of `ResourceHandler`s and returns the first that supports [kind].
  *
  * @throws UnsupportedKind if no appropriate handlers are found in the list.
  */
 fun Collection<ResourceHandler<*, *>>.supporting(
-  apiVersion: String,
-  kind: String
+  kind: ResourceKind
 ): ResourceHandler<*, *> =
-  find {
-    it.supportedKind.apiVersion == apiVersion && it.supportedKind.kind == kind
-  }
-    ?: throw UnsupportedKind(apiVersion, kind)
+  find { it.supportedKind.kind == kind } ?: throw UnsupportedKind(kind)
 
 fun <T : ResourceSpec> Collection<ResourceHandler<*, *>>.supporting(
   specClass: Class<T>
 ): ResourceHandler<*, *>? =
-  find {
-    it.supportedKind.specClass == specClass
-  }
+  find { it.supportedKind.specClass == specClass }
 
-class UnsupportedKind(apiVersion: String, kind: String) :
-  IllegalStateException("No resource handler supporting \"$kind\" in \"$apiVersion\" is available")
+class UnsupportedKind(kind: ResourceKind) :
+  IllegalStateException("No resource handler supporting \"$kind\" is available")
