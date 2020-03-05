@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
 import { UISref } from '@uirouter/react';
@@ -11,11 +11,12 @@ import {
   TableRow,
   TableCell,
   standardGridTableLayout,
-  useData,
+  usePollingData,
+  usePrevious,
 } from '../presentation';
 
 import { relativeTime, timestamp } from 'core/utils';
-import { IManagedResourceSummary, IManagedResourceDiff } from 'core/domain';
+import { IManagedResourceSummary, IManagedResourceDiff, IManagedResourceEvent } from 'core/domain';
 import { AccountTag } from 'core/account';
 import { ManagedReader } from 'core/managed';
 import { Spinner } from 'core/widgets';
@@ -28,7 +29,7 @@ export interface IManagedResourceHistoryModalProps extends IModalComponentProps 
   resourceSummary: IManagedResourceSummary;
 }
 
-const { useMemo } = React;
+const EVENT_POLLING_INTERVAL = 10 * 1000;
 
 const viewConfigurationByEventType = {
   ResourceCreated: {
@@ -100,6 +101,41 @@ const viewConfigurationByEventType = {
   },
 } as const;
 
+const mergeNewEvents = (next: IManagedResourceEvent[], previous: IManagedResourceEvent[]) => {
+  // Because re-rendering the entire table can be expensive (especially if rows are expanded),
+  // we want to try hard to maintain reference equality for events we've already rendered
+  // so we can leverage memoization later.
+  if (!previous) {
+    return next;
+  }
+
+  // Let's grab the newest event out of our existing data
+  // and try to find it in the new data we just receieved.
+  const newestExistingEvent = previous[0];
+  const newestExistingEventIndex = next.findIndex(
+    ({ type, timestamp }) => type === newestExistingEvent.type && timestamp === newestExistingEvent.timestamp,
+  );
+
+  if (newestExistingEventIndex === 0) {
+    // The newest event from our previous fetch is still the newest,
+    // so we can keep all the previous objects and discard the new ones.
+    return previous;
+  } else if (newestExistingEventIndex === -1) {
+    // For some reason the newest event from the previous fetch isn't in our new data.
+    // Either so many events were published that none of the old ones made it in,
+    // or something unexpected happened. Either way let's bail out
+    // of our optimizations and return fresh data.
+    return next;
+  }
+
+  // We've got some new events, let's keep the objects from the previous
+  // fetch but prepend the new ones.
+  const newEvents = next.slice(0, newestExistingEventIndex);
+  const combinedEvents: IManagedResourceEvent[] = newEvents.length ? [...newEvents, ...previous] : previous;
+
+  return combinedEvents;
+};
+
 const renderExpandedRowContent = (
   level: 'info' | 'warning' | 'error',
   diff: IManagedResourceDiff,
@@ -143,14 +179,18 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
   } = resourceSummary;
 
   const tableLayout = useMemo(() => standardGridTableLayout([4, 2, 2.6]), []);
-  const { status: historyEventStatus, result: historyEvents, refresh } = useData(
-    () => ManagedReader.getResourceHistory(id),
-    [],
+
+  const { status: historyEventStatus, result: historyEvents, refresh } = usePollingData(
+    () => ManagedReader.getResourceHistory(id).then(events => mergeNewEvents(events, previousHistoryEvents)),
+    null,
+    EVENT_POLLING_INTERVAL,
     [],
   );
+  const previousHistoryEvents: IManagedResourceEvent[] = usePrevious(historyEvents);
 
   const resourceDisplayName = [app, stack, detail].filter(Boolean).join('-');
-  const isLoading = ['NONE', 'PENDING'].includes(historyEventStatus);
+  const isLoading = !historyEvents && ['NONE', 'PENDING'].includes(historyEventStatus);
+  const shouldShowExistingData = !isLoading && historyEventStatus !== 'REJECTED';
 
   return (
     <>
@@ -170,7 +210,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
               </button>
             </div>
           )}
-          {historyEventStatus === 'RESOLVED' && (
+          {shouldShowExistingData && (
             <div className="sp-margin-xl-bottom">
               <Table
                 layout={tableLayout}

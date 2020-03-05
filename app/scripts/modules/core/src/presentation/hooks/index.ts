@@ -9,3 +9,4 @@ export * from './useIsMobile.hook';
 export * from './useIsMountedRef.hook';
 export * from './useLatestCallback.hook';
 export * from './useLatestPromise.hook';
+export * from './usePrevious.hook';
