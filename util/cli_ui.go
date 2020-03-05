@@ -103,12 +103,8 @@ func (u *ColorizeUi) JsonOutput(input interface{}, outputFormat *output.OutputFo
 			u.Error(fmt.Sprintf("%v", err))
 		}
 
-		prettyStr, err := json.MarshalIndent(jsonValue, "", " ")
-		if err != nil {
-			u.Error(fmt.Sprintf("%v", err))
-		}
 		// unquote since go quotes the string if the bytes is a string.
-		u.Output(u.colorize(u.unquote(string(prettyStr)), u.OutputColor))
+		u.Output(u.colorize(u.unquote(jsonValue.String()), u.OutputColor))
 	}
 }
 
@@ -120,21 +116,18 @@ func (u *ColorizeUi) unquote(input string) string {
 
 // parseJsonPath finds the values specified in the input data as specified with the template.
 // This leverages the kubernetes jsonpath libs (https://kubernetes.io/docs/reference/kubectl/jsonpath/).
-func (u *ColorizeUi) parseJsonPath(input interface{}, template string) (interface{}, error) {
+func (u *ColorizeUi) parseJsonPath(input interface{}, template string) (*bytes.Buffer, error) {
 	j := jsonpath.New("json-path")
 	buf := new(bytes.Buffer)
 	if err := j.Parse(template); err != nil {
 		return buf, errors.New(fmt.Sprintf("Error parsing json: %v", err))
 	}
-	values, err := j.FindResults(input)
+	err := j.Execute(buf, input)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing value from input %v using template %s: %v ", input, template, err))
+		return buf, errors.New(fmt.Sprintf("Error parsing value from input %v using template %s: %v ", input, template, err))
 	}
 
-	if values != nil && len(values) > 0 && len(values[0]) > 0 {
-		return values[0][0].Interface(), nil
-	}
-	return nil, errors.New(fmt.Sprintf("Error parsing value from input %v using template %s: %v ", input, template, err))
+	return buf, nil
 }
 
 func (u *ColorizeUi) Info(message string) {
