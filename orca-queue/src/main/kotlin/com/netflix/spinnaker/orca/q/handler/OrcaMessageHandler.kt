@@ -83,6 +83,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
           }
           .let(block)
       } catch (e: IllegalArgumentException) {
+        log.error("Failed to locate stage with id: {}", stageId, e)
         queue.push(InvalidStageId(this))
       }
     }
