@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +50,7 @@ public class CompoundExecutionOperator {
 
   public void cancel(ExecutionType executionType, String executionId, String user, String reason) {
     doInternal(
-        () -> runner.cancel(repository.retrieve(executionType, executionId), user, reason),
+        (Execution execution) -> runner.cancel(execution, user, reason),
         () -> repository.cancel(executionType, executionId, user, reason),
         "cancel",
         executionType,
@@ -64,7 +66,7 @@ public class CompoundExecutionOperator {
       @NonNull String executionId,
       @Nullable String pausedBy) {
     doInternal(
-        () -> runner.reschedule(repository.retrieve(executionType, executionId)),
+        (Execution execution) -> runner.reschedule(execution),
         () -> repository.pause(executionType, executionId, pausedBy),
         "pause",
         executionType,
@@ -77,7 +79,7 @@ public class CompoundExecutionOperator {
       @Nullable String user,
       @NonNull Boolean ignoreCurrentStatus) {
     doInternal(
-        () -> runner.unpause(repository.retrieve(executionType, executionId)),
+        (Execution execution) -> runner.unpause(execution),
         () -> repository.resume(executionType, executionId, user, ignoreCurrentStatus),
         "resume",
         executionType,
@@ -85,13 +87,24 @@ public class CompoundExecutionOperator {
   }
 
   private void doInternal(
-      Runnable runnerAction,
+      Consumer<Execution> runnerAction,
       Runnable repositoryAction,
       String action,
       ExecutionType executionType,
       String executionId) {
     try {
-      runWithRetries(runnerAction);
+      runWithRetries(
+          () -> {
+            Execution execution = repository.retrieve(executionType, executionId);
+            if (repository.handlesPartition(execution.getPartition())) {
+              runnerAction.accept(execution);
+            } else {
+              log.info(
+                  "Not pushing queue message action='{}' for execution with foreign partition='{}'",
+                  action,
+                  execution.getPartition());
+            }
+          });
       runWithRetries(repositoryAction);
     } catch (Exception e) {
       log.error(

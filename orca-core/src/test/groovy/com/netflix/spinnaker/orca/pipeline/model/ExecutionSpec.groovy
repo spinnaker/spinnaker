@@ -31,17 +31,21 @@ class ExecutionSpec extends Specification {
     }
   }
 
-  def "should return Optional.empty if no authenticated details available"() {
-    given:
+  def setup() {
     MDC.clear()
+  }
 
+  def cleanup() {
+    MDC.clear()
+  }
+
+  def "should return Optional.empty if no authenticated details available"() {
     expect:
     !Execution.AuthenticationDetails.build().present
   }
 
   def "should build AuthenticationDetails containing authenticated details"() {
     given:
-    MDC.clear()
     MDC.put(Header.USER.header, "SpinnakerUser")
     MDC.put(Header.ACCOUNTS.header, "Account1,Account2")
 

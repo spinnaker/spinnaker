@@ -20,6 +20,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.pubsub.aws.NotificationMessage;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.orca.interlink.InterlinkMessageHandlingException;
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent;
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 @Slf4j
 public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler {
@@ -59,14 +61,19 @@ public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler
 
   @VisibleForTesting
   void handleInternal(InterlinkEvent event) {
-    if (executionRepository.handlesPartition(event.getPartition())) {
-      event.applyTo(executionOperator);
-    } else {
-      log.debug(
-          "Execution repository with local partition {} does not handle this event's partition {}, "
-              + "so it will not be applied",
-          executionRepository.getPartition(),
-          event.getPartition());
+    try {
+      MDC.put(Header.EXECUTION_ID.getHeader(), event.getExecutionId());
+
+      if (executionRepository.handlesPartition(event.getPartition())) {
+        event.applyTo(executionOperator);
+      } else {
+        log.debug(
+            "Execution repository with local partition {} can't handle this event {} so it will not be applied",
+            executionRepository.getPartition(),
+            event);
+      }
+    } finally {
+      MDC.remove(Header.EXECUTION_ID.getHeader());
     }
   }
 }
