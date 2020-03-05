@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.fiat.controllers;
 
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -27,15 +25,9 @@ public class ControllerSupport {
   static final String ANONYMOUS_USER = "anonymous";
 
   static String convert(String in) {
-    try {
-      String decoded = URLDecoder.decode(in, "UTF-8");
-      if (ANONYMOUS_USER.equalsIgnoreCase(decoded)) {
-        return UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
-      }
-      return decoded;
-    } catch (UnsupportedEncodingException uee) {
-      log.error("Decoding exception for string " + in, uee);
+    if (ANONYMOUS_USER.equalsIgnoreCase(in)) {
+      return UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
     }
-    return null;
+    return in;
   }
 }

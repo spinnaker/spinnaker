@@ -175,14 +175,14 @@ class AuthorizeControllerSpec extends Specification {
     def foo = new UserPermission().setId("foo@batman.com")
 
     when:
-    controller.getUserPermission("foo%40batman.com")
+    controller.getUserPermission("foo@batman.com")
 
     then:
     1 * repository.get("foo@batman.com") >> Optional.empty()
     thrown NotFoundException
 
     when:
-    def result = controller.getUserPermission("foo%40batman.com")
+    def result = controller.getUserPermission("foo@batman.com")
 
     then:
     1 * repository.get("foo@batman.com") >> Optional.of(foo)
