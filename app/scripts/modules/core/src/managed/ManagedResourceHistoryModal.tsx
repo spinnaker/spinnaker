@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { UISref } from '@uirouter/react';
 
 import {
+  IModalComponentProps,
   ModalHeader,
   ModalBody,
   Table,
@@ -11,7 +12,7 @@ import {
   TableCell,
   standardGridTableLayout,
   useData,
-} from 'core/presentation';
+} from '../presentation';
 
 import { relativeTime, timestamp } from 'core/utils';
 import { IManagedResourceSummary, IManagedResourceDiff } from 'core/domain';
@@ -23,7 +24,7 @@ import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
 
 import './ManagedResourceHistoryModal.less';
 
-export interface IManagedResourceHistoryModalProps {
+export interface IManagedResourceHistoryModalProps extends IModalComponentProps {
   resourceSummary: IManagedResourceSummary;
 }
 
@@ -104,6 +105,7 @@ const renderExpandedRowContent = (
   diff: IManagedResourceDiff,
   tasks: Array<{ id: string; name: string }>,
   message: string,
+  dismissModal: () => any,
 ) => {
   return (
     <div className="flex-container-v left">
@@ -121,7 +123,9 @@ const renderExpandedRowContent = (
         <div className="flex-container-v">
           {tasks.map(({ id, name }) => (
             <UISref key={id} to="home.applications.application.tasks.taskDetails" params={{ taskId: id }}>
-              <a className="sp-padding-xs-yaxis">{name}</a>
+              <a className="sp-padding-xs-yaxis" onClick={() => dismissModal()}>
+                {name}
+              </a>
             </UISref>
           ))}
         </div>
@@ -131,7 +135,7 @@ const renderExpandedRowContent = (
   );
 };
 
-export const ManagedResourceHistoryModal = ({ resourceSummary }: IManagedResourceHistoryModalProps) => {
+export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: IManagedResourceHistoryModalProps) => {
   const {
     id,
     moniker: { app, stack, detail },
@@ -191,6 +195,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary }: IManagedResourc
                               delta,
                               tasks,
                               message || reason || exceptionMessage,
+                              dismissModal,
                             ))
                         }
                       >

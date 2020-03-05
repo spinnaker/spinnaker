@@ -3,7 +3,7 @@ import ReactGA from 'react-ga';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { SETTINGS } from 'core/config/settings';
-import { HoverablePopover, Modal } from 'core/presentation';
+import { HoverablePopover, showModal } from 'core/presentation';
 import { HelpField } from 'core/help';
 import { Application } from 'core/application';
 import { IManagedResourceSummary } from 'core/domain';
@@ -30,8 +30,6 @@ export const ManagedResourceDetailsIndicator = ({
   resourceSummary,
   application,
 }: IManagedResourceDetailsIndicatorProps) => {
-  const [showHistoryModal, setShowHistoryModal] = React.useState(false);
-
   if (!resourceSummary) {
     return null;
   }
@@ -104,7 +102,7 @@ export const ManagedResourceDetailsIndicator = ({
             <li>
               <a
                 onClick={() => {
-                  setShowHistoryModal(true);
+                  showModal(ManagedResourceHistoryModal, { resourceSummary });
                   logClick('History', id);
                 }}
               >
@@ -122,9 +120,6 @@ export const ManagedResourceDetailsIndicator = ({
             </li>
           </Dropdown.Menu>
         </Dropdown>
-        <Modal isOpen={showHistoryModal} onRequestClose={() => setShowHistoryModal(false)}>
-          <ManagedResourceHistoryModal resourceSummary={resourceSummary} />
-        </Modal>
       </div>
     </div>
   );
