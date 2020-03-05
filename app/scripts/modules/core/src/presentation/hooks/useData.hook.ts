@@ -1,5 +1,6 @@
 import { IPromise } from 'angular';
 import { isNil } from 'lodash';
+import { useRef } from 'react';
 
 import { useLatestPromise, IUseLatestPromiseResult } from './useLatestPromise.hook';
 
@@ -21,6 +22,9 @@ import { useLatestPromise, IUseLatestPromiseResult } from './useLatestPromise.ho
 export function useData<T>(callback: () => IPromise<T>, defaultResult: T, deps: any[]): IUseLatestPromiseResult<T> {
   const anyDepsMissing = deps.some(dep => isNil(dep));
   const result = useLatestPromise<T>(anyDepsMissing ? () => null : callback, deps);
-  const useDefaultValue = result.requestId === 0 && result.status !== 'RESOLVED';
-  return useDefaultValue ? { ...result, result: defaultResult } : result;
+  const hasResolvedAtLeastOnceRef = useRef(false);
+  if (result.status === 'RESOLVED') {
+    hasResolvedAtLeastOnceRef.current = true;
+  }
+  return hasResolvedAtLeastOnceRef.current ? result : { ...result, result: defaultResult };
 }
