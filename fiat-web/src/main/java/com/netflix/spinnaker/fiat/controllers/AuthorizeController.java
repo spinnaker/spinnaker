@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.*;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
@@ -44,6 +45,7 @@ public class AuthorizeController {
 
   private final Registry registry;
   private final PermissionsRepository permissionsRepository;
+  private final PermissionsResolver permissionsResolver;
   private final FiatServerConfigurationProperties configProps;
   private final ResourcePermissionProvider<Application> applicationResourcePermissionProvider;
   private final ObjectMapper objectMapper;
@@ -54,11 +56,13 @@ public class AuthorizeController {
   public AuthorizeController(
       Registry registry,
       PermissionsRepository permissionsRepository,
+      PermissionsResolver permissionsResolver,
       FiatServerConfigurationProperties configProps,
       ResourcePermissionProvider<Application> applicationResourcePermissionProvider,
       ObjectMapper objectMapper) {
     this.registry = registry;
     this.permissionsRepository = permissionsRepository;
+    this.permissionsResolver = permissionsResolver;
     this.configProps = configProps;
     this.applicationResourcePermissionProvider = applicationResourcePermissionProvider;
     this.objectMapper = objectMapper;
@@ -232,28 +236,41 @@ public class AuthorizeController {
     UserPermission userPermission =
         permissionsRepository.get(ControllerSupport.convert(userId)).orElse(null);
 
-    if (userPermission != null || !configProps.isDefaultToUnrestrictedUser()) {
+    if (userPermission != null) {
       registry
-          .counter(
-              getUserPermissionCounterId
-                  .withTag("success", userPermission != null)
-                  .withTag("fallback", false))
+          .counter(getUserPermissionCounterId.withTag("success", true).withTag("fallback", false))
           .increment();
-      return Optional.ofNullable(userPermission);
+      return Optional.of(userPermission);
     }
 
+    /*
+     * User does not have any stored permissions but the requested userId matches the
+     * X-SPINNAKER-USER header value, likely a request that has not transited gate.
+     */
     if (userId.equalsIgnoreCase(authenticatedUserId)) {
+
       /*
-       * User does not have any stored permissions, likely a request that has not transited gate.
-       *
-       * If the request is for the permissions of the currently authenticated user, default to those of the
-       * unrestricted user.
+       * First, attempt to resolve via the permissionsResolver.
        */
-      userPermission =
-          permissionsRepository
-              .get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
-              .map(u -> u.setId(authenticatedUserId))
-              .orElse(null);
+      if (configProps.isAllowPermissionResolverFallback()) {
+        UserPermission resolvedUserPermission = permissionsResolver.resolve(authenticatedUserId);
+        if (resolvedUserPermission.getAllResources().stream().anyMatch(Objects::nonNull)) {
+          log.debug("Resolved fallback permissions for user {}", authenticatedUserId);
+          userPermission = resolvedUserPermission;
+        }
+      }
+
+      /*
+       * If user permissions are not resolved, default to those of the unrestricted user.
+       */
+      if (userPermission == null && configProps.isDefaultToUnrestrictedUser()) {
+        log.debug("Falling back to unrestricted user permissions for user {}", authenticatedUserId);
+        userPermission =
+            permissionsRepository
+                .get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+                .map(u -> u.setId(authenticatedUserId))
+                .orElse(null);
+      }
     }
 
     log.debug(

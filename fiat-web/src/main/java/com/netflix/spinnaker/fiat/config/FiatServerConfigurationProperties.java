@@ -32,6 +32,13 @@ public class FiatServerConfigurationProperties {
 
   private boolean defaultToUnrestrictedUser = false;
 
+  /**
+   * If a request for user permissions comes through `/authorize` and fails to find stored
+   * permissions, enable this flag to fallback to looking up user permissions from the underlying
+   * {@link com.netflix.spinnaker.fiat.permissions.PermissionsResolver} implementation.
+   */
+  private boolean allowPermissionResolverFallback = false;
+
   private boolean allowAccessToUnknownApplications = false;
 
   private Authorization executeFallback = Authorization.READ;
