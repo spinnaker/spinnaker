@@ -42,11 +42,11 @@ class ExtensionInvocationProxy(
     return target.javaClass
   }
 
-  override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any {
+  override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
     val invocationStates: MutableSet<InvocationState> = mutableSetOf()
     invocationStates.before(proxy, method, args)
 
-    val result: Any
+    val result: Any?
     try {
       result = method.invoke(target, *(args ?: arrayOfNulls<Any>(0)))
       invocationStates.after()
