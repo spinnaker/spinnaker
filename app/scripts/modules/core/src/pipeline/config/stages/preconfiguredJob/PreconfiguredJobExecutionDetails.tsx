@@ -7,7 +7,7 @@ import {
   StageExecutionLogs,
   StageFailureMessage,
 } from 'core/pipeline';
-import { IPreconfiguredJobParameter } from './preconfiguredJobStage';
+import { IPreconfiguredJobParameter } from './preconfiguredJob.reader';
 import { JobStageExecutionLogs } from 'core/manifest/stage/JobStageExecutionLogs';
 import { IStage, IJobOwnedPodStatus } from 'core/domain';
 import { AccountService } from 'core/account';
