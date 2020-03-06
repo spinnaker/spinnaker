@@ -95,6 +95,10 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     Map<String, List<String>> serverGroupsByRegion = getServerGroups(stage)
 
     if (!serverGroupsByRegion || !serverGroupsByRegion?.values()?.flatten()) {
+      log.warn(
+          String.format(
+              "No server groups found in stage context (stage.id: %s, execution.id: %s)",
+              stage.getId(), stage.getExecution()?.getId()));
       return TaskResult.ofStatus(ExecutionStatus.TERMINAL)
     }
 

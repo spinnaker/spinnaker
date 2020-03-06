@@ -135,8 +135,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | "image"           | false              || "some-ami-name"
-    "gce"                  | null              | "image"           | false              || "some-ami-name"
+    "gce"                  | "gce"             | "image"           | true               || "some-ami-name"
+    "gce"                  | null              | "image"           | true               || "some-ami-name"
     "aws"                  | "aws"             | "imageId"         | true               || "some-ami-name"
     "aws"                  | null              | "imageId"         | true               || "some-ami-name"
   }
@@ -194,8 +194,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | "image"           | false              || "parent-ami"
-    "gce"                  | null              | "image"           | false              || "parent-ami"
+    "gce"                  | "gce"             | "image"           | true               || "parent-ami"
+    "gce"                  | null              | "image"           | true               || "parent-ami"
     "aws"                  | "aws"             | "imageId"         | true               || "parent-ami"
     "aws"                  | null              | "imageId"         | true               || "parent-ami"
   }
@@ -270,8 +270,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | "image"           | false              || "grandparent-ami"
-    "gce"                  | null              | "image"           | false              || "grandparent-ami"
+    "gce"                  | "gce"             | "image"           | true               || "grandparent-ami"
+    "gce"                  | null              | "image"           | true               || "grandparent-ami"
     "aws"                  | "aws"             | "imageId"         | true               || "grandparent-ami"
     "aws"                  | null              | "imageId"         | true               || "grandparent-ami"
   }
@@ -327,8 +327,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | "image"           | false              || "parent-name"
-    "gce"                  | null              | "image"           | false              || "parent-name"
+    "gce"                  | "gce"             | "image"           | true               || "parent-name"
+    "gce"                  | null              | "image"           | true               || "parent-name"
     "aws"                  | "aws"             | "imageId"         | true               || "parent-name"
     "aws"                  | null              | "imageId"         | true               || "parent-name"
   }
@@ -396,8 +396,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | "image"           | false              || "grandparent-name"
-    "gce"                  | null              | "image"           | false              || "grandparent-name"
+    "gce"                  | "gce"             | "image"           | true               || "grandparent-name"
+    "gce"                  | null              | "image"           | true               || "grandparent-name"
     "aws"                  | "aws"             | "imageId"         | true               || "grandparent-name"
     "aws"                  | null              | "imageId"         | true               || "grandparent-name"
   }
@@ -462,8 +462,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | "image"           | false              || "parent-ami"
-    "gce"                  | null              | "image"           | false              || "parent-ami"
+    "gce"                  | "gce"             | "image"           | true               || "parent-ami"
+    "gce"                  | null              | "image"           | true               || "parent-ami"
     "aws"                  | "aws"             | "imageId"         | true               || "parent-ami"
     "aws"                  | null              | "imageId"         | true               || "parent-ami"
   }
@@ -571,8 +571,8 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
     operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageIdBranchA | expectedImageIdBranchB
-    "gce"                  | "gce"             | "image"           | false              || "parent-name-branch-a" | "parent-name-branch-b"
-    "gce"                  | null              | "image"           | false              || "parent-name-branch-a" | "parent-name-branch-b"
+    "gce"                  | "gce"             | "image"           | true               || "parent-name-branch-a" | "parent-name-branch-b"
+    "gce"                  | null              | "image"           | true               || "parent-name-branch-a" | "parent-name-branch-b"
     "aws"                  | "aws"             | "imageId"         | true               || "parent-name-branch-a" | "parent-name-branch-b"
     "aws"                  | null              | "imageId"         | true               || "parent-name-branch-a" | "parent-name-branch-b"
   }

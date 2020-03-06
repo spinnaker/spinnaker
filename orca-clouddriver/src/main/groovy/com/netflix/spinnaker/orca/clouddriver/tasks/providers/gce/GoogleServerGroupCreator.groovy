@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 @Component
 class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
-  boolean katoResultExpected = false
+  boolean katoResultExpected = true
   String cloudProvider = "gce"
 
   @Autowired
