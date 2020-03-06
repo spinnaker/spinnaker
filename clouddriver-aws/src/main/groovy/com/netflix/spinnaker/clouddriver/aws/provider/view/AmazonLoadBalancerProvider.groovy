@@ -200,7 +200,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
             ]
         )
       } : [],
-      detachedInstances: serverGroup.extraAttributes().detachedInstances,
+      detachedInstances: serverGroup.extraAttributes?.detachedInstances,
       cloudProvider: AmazonCloudProvider.ID
     )
   }
