@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.data.task.jedis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -25,6 +26,22 @@ import groovy.util.logging.Slf4j
 
 import javax.annotation.Nonnull
 
+// The fields of the task are computed on-demand by querying the repository. This means that the
+// serialized task may not be internally consistent; each field will reflect the state of the task
+// in the repository at the time that field's accessor was called during serialization.
+// This is in general a difficult problem to solve with redis, which does not support atomic reads
+// of multiple keys, but has been solved in the SQL repository by fetching all data in a single
+// query. As a workaround, we'll instruct Jackson to serialize the status first. The reason is that
+// consumers tend to use the status field to check if a task is complete, and expect the other
+// fields to be filled out if it is. If there is an inconsistency between the status and other
+// fields, we'd rather return a stale value in the status field than in other fields.
+// In general, returning an older status (ie, still running) and newer other fields will just cause
+// clients to poll again until they see the updated status. Returning a newer status (ie, completed
+// or failed) but stale values in other fields will in general cause clients to use these stale
+// values, leading to bugs.
+// We'll force the history to be computed next (as clients could feasibly use this to determine
+// whether a task is complete), then will not enforce an order on any other properties.
+@JsonPropertyOrder(["status", "history"])
 @Slf4j
 class JedisTask implements Task {
 
