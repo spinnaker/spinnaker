@@ -88,7 +88,7 @@ class EurekaProviderConfiguration {
   }
 
   private OkHttpClientConfiguration eurekaOkHttpClientConfig() {
-    new OkHttpClientConfiguration(eurekaClientConfig(), new OkHttpMetricsInterceptor(registry, true))
+    new OkHttpClientConfiguration(eurekaClientConfig(), new OkHttpMetricsInterceptor({ registry }, true))
   }
 
   private static Converter eurekaConverter() {
