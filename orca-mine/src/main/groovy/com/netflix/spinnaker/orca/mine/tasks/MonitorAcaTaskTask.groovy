@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.security.AuthenticatedRequest
+
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
@@ -45,8 +47,9 @@ class MonitorAcaTaskTask extends AbstractCloudProviderAwareTask implements Overr
     ]
 
     try {
+      def canary = AuthenticatedRequest.allowAnonymous({ mineService.getCanary(context.canary.id) })
       outputs << [
-        canary : mineService.getCanary(context.canary.id)
+          canary: canary
       ]
     } catch (RetrofitError e) {
       log.error("Exception occurred while getting canary with id ${context.canary.id} from mine service", e)

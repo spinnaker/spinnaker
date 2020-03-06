@@ -127,7 +127,9 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         front50Service.getApplicationNotifications(pipeline.application)
       }, user.get()).call()
     } else {
-      notifications = front50Service.getApplicationNotifications(pipeline.application)
+      notifications = AuthenticatedRequest.allowAnonymous({
+        front50Service.getApplicationNotifications(pipeline.application)
+      })
     }
 
     if (notifications) {

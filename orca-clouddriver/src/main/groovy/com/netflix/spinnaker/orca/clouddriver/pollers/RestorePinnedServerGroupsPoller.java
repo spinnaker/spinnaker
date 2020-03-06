@@ -201,18 +201,20 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
 
   public List<PinnedServerGroupTag> fetchPinnedServerGroupTags() {
     List<EntityTags> allEntityTags =
-        retrySupport.retry(
+        AuthenticatedRequest.allowAnonymous(
             () ->
-                objectMapper.convertValue(
-                    oortService.getEntityTags(
-                        ImmutableMap.<String, String>builder()
-                            .put("tag:" + PINNED_CAPACITY_TAG, "*")
-                            .put("entityType", "servergroup")
-                            .build()),
-                    new TypeReference<List<EntityTags>>() {}),
-            15,
-            2000,
-            false);
+                retrySupport.retry(
+                    () ->
+                        objectMapper.convertValue(
+                            oortService.getEntityTags(
+                                ImmutableMap.<String, String>builder()
+                                    .put("tag:" + PINNED_CAPACITY_TAG, "*")
+                                    .put("entityType", "servergroup")
+                                    .build()),
+                            new TypeReference<List<EntityTags>>() {}),
+                    15,
+                    2000,
+                    false));
 
     return allEntityTags.stream()
         .map(

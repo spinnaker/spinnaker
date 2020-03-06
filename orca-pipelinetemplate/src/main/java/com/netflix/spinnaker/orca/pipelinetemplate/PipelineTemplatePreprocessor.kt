@@ -71,8 +71,6 @@ class PipelineTemplatePreprocessor
       return pipeline
     }
 
-    log.debug("Starting handler chain")
-
     val chain = DefaultHandlerChain()
     val context = GlobalPipelineTemplateContext(chain, request)
 
@@ -101,7 +99,6 @@ class PipelineTemplatePreprocessor
 
     recordRequest(context, !context.getErrors().hasErrors(false))
 
-    log.debug("Handler chain complete")
     return context.getProcessedOutput()
   }
 
