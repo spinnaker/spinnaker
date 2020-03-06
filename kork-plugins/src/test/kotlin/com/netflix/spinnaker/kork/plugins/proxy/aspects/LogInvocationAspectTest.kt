@@ -26,6 +26,7 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import java.lang.reflect.Method
 
@@ -49,12 +50,15 @@ class LogInvocationAspectTest : JUnit5Minutests {
       expectThat(subject.supports(metricInvocationState.javaClass)).isFalse()
     }
 
-    test("Plugin ID and extension name added to the MDC before invocation") {
-      subject.before(target, proxy, method, args, spinnakerPluginDescriptor)
-      val mdcPluginId = MDC.get(Header.PLUGIN_ID.header)
-      val mdcPluginExtension = MDC.get(Header.PLUGIN_EXTENSION.header)
-      expectThat(mdcPluginId).isEqualTo(spinnakerPluginDescriptor.pluginId)
-      expectThat(mdcPluginExtension).isEqualTo(target.javaClass.simpleName.toString())
+    test("Plugin ID and extension name added to the MDC before invocation, removes in finally") {
+      val invocatonState = subject.before(target, proxy, method, args, spinnakerPluginDescriptor)
+      expectThat(MDC.get(Header.PLUGIN_ID.header)).isEqualTo(spinnakerPluginDescriptor.pluginId)
+      expectThat(MDC.get(Header.PLUGIN_EXTENSION.header)).isEqualTo(target.javaClass.simpleName.toString())
+
+      subject.finally(invocatonState)
+
+      expectThat(MDC.get(Header.PLUGIN_ID.header)).isNull()
+      expectThat(MDC.get(Header.PLUGIN_EXTENSION.header)).isNull()
     }
   }
 
