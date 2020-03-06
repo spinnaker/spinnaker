@@ -177,7 +177,7 @@ describe('PipelineRegistry: API', function() {
         Registry.pipeline.registerStage(config);
         expect(Registry.pipeline.getStageConfig({ type: 'a' } as IStage)).toEqual(config);
         expect(Registry.pipeline.getStageConfig({ type: 'a1' } as IStage)).toEqual(config);
-        expect(Registry.pipeline.getStageConfig({ type: 'b' } as IStage)).toBe(null);
+        expect(Registry.pipeline.getStageConfig({ type: 'b' } as IStage)).toBeFalsy();
       }),
     );
   });
@@ -234,7 +234,7 @@ describe('PipelineRegistry: API', function() {
       const pipelineRegistry = new PipelineRegistry();
       slimmaker.filter(stage => stage !== unmatchedStage).forEach(stage => pipelineRegistry.registerStage(stage));
 
-      expect(pipelineRegistry.getStageConfig({ type: 'x' } as IStage)).toEqual(null);
+      expect(pipelineRegistry.getStageConfig({ type: 'x' } as IStage)).toBeFalsy();
     });
 
     it('matches renamed stage with both stageType.key or (legacy) stageType.alias', function() {
