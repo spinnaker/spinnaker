@@ -44,4 +44,7 @@ public class StageMetadata {
   @NotNull
   @ApiModelProperty(value = "The Orca execution status of the stage")
   ExecutionStatus status;
+
+  @ApiModelProperty(value = "The execution id if the stage is a runCanary stage")
+  String executionId;
 }

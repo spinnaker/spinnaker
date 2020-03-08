@@ -28,6 +28,7 @@ import com.netflix.kayenta.domain.standalonecanaryanalysis.StageMetadata;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
+import com.netflix.kayenta.standalonecanaryanalysis.orca.MonitorKayentaCanaryContext;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.GenerateCanaryAnalysisResultStage;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.SetupAndExecuteCanariesStage;
 import com.netflix.kayenta.storage.ObjectType;
@@ -170,7 +171,12 @@ public class CanaryAnalysisService {
                         .map(
                             stage ->
                                 new StageMetadata(
-                                    stage.getType(), stage.getName(), stage.getStatus()))
+                                    stage.getType(),
+                                    stage.getName(),
+                                    stage.getStatus(),
+                                    stage
+                                        .mapTo(MonitorKayentaCanaryContext.class)
+                                        .getCanaryPipelineExecutionId()))
                         .collect(Collectors.toList()))
                 .complete(isComplete)
                 .executionStatus(pipelineStatus);
