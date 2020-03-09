@@ -25,6 +25,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
           GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
         run: |
-          ./gradlew --info -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
+          ./gradlew -PenablePublishing=true --info -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
           sleep 90
-          ./gradlew --info -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -Pgithub.token="${SPINNAKER_GITHUB_TOKEN}" bumpDependencies
+          ./gradlew -PenablePublishing=true --info -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -Pgithub.token="${SPINNAKER_GITHUB_TOKEN}" bumpDependencies
