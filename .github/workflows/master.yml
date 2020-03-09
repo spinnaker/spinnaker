@@ -1,4 +1,4 @@
-name: Fiat master build
+name: Fiat master
 
 on:
   push:

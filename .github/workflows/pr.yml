@@ -1,4 +1,4 @@
-name: Fiat PR build
+name: Fiat PR
 
 on: [pull_request]
 
