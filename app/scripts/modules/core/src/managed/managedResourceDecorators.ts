@@ -3,13 +3,13 @@ import { SETTINGS } from 'core/config';
 import { IServerGroup, ILoadBalancer, IManagedResourceSummary, ISecurityGroup } from 'core/domain';
 import { IMoniker } from 'core/naming';
 
-import { getResourceKindForLoadBalancerType } from './ManagedReader';
+import { getKindName, getResourceKindForLoadBalancerType } from './ManagedReader';
 
 const isMonikerEqual = (a: IMoniker, b: IMoniker) => a.app === b.app && a.stack === b.stack && a.detail === b.detail;
 
 const getResourcesOfKind = (application: Application, kinds: string[]) => {
   const resources: IManagedResourceSummary[] = application.managedResources.data.resources;
-  return resources.filter(({ kind }) => kinds.includes(kind));
+  return resources.filter(({ kind }) => kinds.includes(getKindName(kind)));
 };
 
 export const addManagedResourceMetadataToServerGroups = (application: Application) => {
@@ -45,7 +45,7 @@ export const addManagedResourceMetadataToLoadBalancers = (application: Applicati
   loadBalancers.forEach(loadBalancer => {
     const matchingResource = loadBalancerResources.find(
       ({ kind, moniker, locations: { account, regions } }) =>
-        kind === getResourceKindForLoadBalancerType(loadBalancer.loadBalancerType) &&
+        getKindName(kind) === getResourceKindForLoadBalancerType(loadBalancer.loadBalancerType) &&
         isMonikerEqual(moniker, loadBalancer.moniker) &&
         account === loadBalancer.account &&
         regions.some(({ name }) => name === loadBalancer.region),
