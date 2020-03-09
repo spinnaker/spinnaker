@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import org.quartz.CronScheduleBuilder
 import org.quartz.CronTrigger
+import org.quartz.JobDataMap
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -47,6 +48,7 @@ class TriggerConverterSpec extends Specification {
             .rebake(triggerRebake)
             .runAsUser("mr.captain")
             .parent(pipeline)
+            .parameters(triggerParameters)
             .build()
 
         when:
@@ -60,10 +62,12 @@ class TriggerConverterSpec extends Specification {
         parameters.triggerTimeZoneId == 'America/New_York'
         parameters.triggerRebake == Boolean.toString(trigger.rebake)
         parameters.runAsUser == 'mr.captain'
+        parameters.triggerParameters == triggerParameters
 
         where:
         triggerId << ['123-456', null]
         triggerRebake << [true, false]
+        triggerParameters << [null, [param1: 'value1', param2: 42]]
     }
 
     @Unroll
@@ -79,7 +83,8 @@ class TriggerConverterSpec extends Specification {
             triggerType: 'cron',
             triggerCronExpression: '* 0/30 * * * ? *',
             triggerEnabled: "true",
-            triggerRebake: triggerRebake
+            triggerRebake: triggerRebake,
+            triggerParameters: ['param1': 42]
         ]
 
         when:
@@ -94,6 +99,7 @@ class TriggerConverterSpec extends Specification {
         pipelineWithTrigger.trigger.cronExpression == parameters.triggerCronExpression
         pipelineWithTrigger.trigger.enabled == Boolean.valueOf(parameters.triggerEnabled)
         pipelineWithTrigger.trigger.rebake == Boolean.valueOf(parameters.triggerRebake)
+        pipelineWithTrigger.trigger.parameters == parameters.triggerParameters
 
         where:
         triggerRebake << ['true', 'false']
@@ -131,7 +137,7 @@ class TriggerConverterSpec extends Specification {
     }
 
     @Unroll
-    void 'isInSync() should return true if cronExpression, timezone of the trigger, and runAsUser match the ActionInstance'() {
+    void 'isInSync() should return true if cronExpression, timezone of the trigger, runAsUser and trigger parameters match the ActionInstance'() {
         setup:
         Trigger pipelineTrigger = Trigger.builder()
                                  .id("id1")
@@ -139,22 +145,30 @@ class TriggerConverterSpec extends Specification {
                                  .type(Trigger.Type.CRON.toString())
                                  .cronExpression('* 0/30 * * * ? *')
                                  .runAsUser("batman")
+                                 .parameters([param: 'value'])
                                  .build()
+
         org.quartz.Trigger scheduleTrigger = org.quartz.TriggerBuilder.newTrigger()
           .withIdentity("ignored", null)
           .withSchedule(CronScheduleBuilder.cronSchedule(pipelineTrigger.cronExpression)
             .inTimeZone(TimeZone.getTimeZone(actionInstanceTimeZoneId)))
-          .usingJobData("runAsUser", runAsUser)
+          .usingJobData(new JobDataMap([
+            runAsUser: runAsUser,
+            triggerParameters: parameters
+          ]))
           .build()
 
         expect:
-        isInSync(scheduleTrigger, pipelineTrigger, TimeZone.getTimeZone(currentTimeZoneId)) == expectedInSync
+        isInSync(scheduleTrigger, pipelineTrigger, TimeZone.getTimeZone('America/New_York')) == expectedInSync
 
         where:
-        actionInstanceTimeZoneId | currentTimeZoneId  | runAsUser | expectedInSync
-        'America/New_York'       | 'America/New_York' | 'batman'  | true
-        'America/Los_Angeles'    | 'America/New_York' | 'batman'  | false
-        ''                       | 'America/New_York' | 'batman'  | false
-        'America/New_York'       | 'America/New_York' | 'robin'   | false
+        actionInstanceTimeZoneId | runAsUser | parameters         | expectedInSync
+        'America/New_York'       | 'batman'  | [param: 'value']   | true
+        'America/New_York'       | 'batman'  | [:]                | false
+        'America/New_York'       | 'batman'  | null               | false
+        'America/New_York'       | 'batman'  | [param: 'other']   | false
+        'America/Los_Angeles'    | 'batman'  | [param: 'value']   | false
+        ''                       | 'batman'  | [param: 'value']   | false
+        'America/New_York'       | 'robin'   | [param: 'value']   | false
     }
 }

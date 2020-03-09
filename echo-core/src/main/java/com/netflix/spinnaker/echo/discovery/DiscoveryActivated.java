@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 
 /**
- * A component that starts doing something when the instance is up in discovery and stops doing that
+ * A component that starts doing something when the instance is up in Eureka and stops doing that
  * thing when it goes down.
  */
 public interface DiscoveryActivated extends ApplicationListener<RemoteStatusChangedEvent> {

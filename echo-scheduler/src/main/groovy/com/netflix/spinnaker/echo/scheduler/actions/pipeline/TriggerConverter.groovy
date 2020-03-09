@@ -32,7 +32,7 @@ import static org.quartz.TriggerBuilder.newTrigger
 class TriggerConverter {
   public static final String JOB_ID = "Pipeline Trigger"
 
-  static Map<String, String> toParamMap(Trigger trigger, String timeZoneId) {
+  static Map<String, Object> toParamMap(Trigger trigger, String timeZoneId) {
     def params = [
       id                   : trigger.parent.id,
       application          : trigger.parent.application,
@@ -41,7 +41,8 @@ class TriggerConverter {
       triggerCronExpression: trigger.cronExpression,
       triggerTimeZoneId    : timeZoneId,
       triggerRebake        : Boolean.toString(trigger.rebake),
-      triggerEnabled       : "true"
+      triggerEnabled       : "true",
+      triggerParameters    : trigger.parameters
     ]
 
     if (trigger.runAsUser) {
@@ -77,22 +78,23 @@ class TriggerConverter {
   }
 
   static Pipeline toPipeline(PipelineCache pipelineCache, Map<String, Object> parameters) {
-    def triggerBuilder = Trigger
-      .builder()
-      .enabled(Boolean.parseBoolean(parameters.triggerEnabled))
-      .rebake(Boolean.parseBoolean(parameters.triggerRebake))
-      .id(parameters.triggerId)
-      .type(Trigger.Type.CRON.toString())
-      .eventId(UUID.randomUUID().toString())
-      .cronExpression(parameters.triggerCronExpression)
-
-    if (parameters.runAsUser) {
-      triggerBuilder.runAsUser(parameters.runAsUser)
-    }
-
     def existingPipeline = pipelineCache.getPipelinesSync().find { it.id == parameters.id }
     if (!existingPipeline) {
       throw new IllegalStateException("No pipeline found (id: ${parameters.id})")
+    }
+
+    def triggerBuilder = Trigger
+      .builder()
+      .enabled(Boolean.parseBoolean(parameters.triggerEnabled as String))
+      .rebake(Boolean.parseBoolean(parameters.triggerRebake as String))
+      .id(parameters.triggerId as String)
+      .type(Trigger.Type.CRON.toString())
+      .eventId(UUID.randomUUID().toString())
+      .cronExpression(parameters.triggerCronExpression as String)
+      .parameters(parameters.triggerParameters as Map)
+
+    if (parameters.runAsUser) {
+      triggerBuilder.runAsUser(parameters.runAsUser as String)
     }
 
     return existingPipeline.withTrigger(triggerBuilder.build())
@@ -101,15 +103,9 @@ class TriggerConverter {
   static boolean isInSync(CronTrigger trigger, Trigger pipelineTrigger, TimeZone timeZoneId) {
     CronTrigger other = toQuartzTrigger(pipelineTrigger, timeZoneId) as CronTrigger
 
-    boolean cronExpressionMismatch = (trigger.cronExpression != other.cronExpression)
-    boolean timezoneMismatch = !trigger.timeZone.hasSameRules(other.timeZone)
-    boolean runAsUserMismatch =
-      (trigger.jobDataMap.getString("runAsUser") != other.jobDataMap.getString("runAsUser"))
-
-    if (cronExpressionMismatch || runAsUserMismatch || timezoneMismatch) {
-      return false
-    }
-
-    return true
+    return (trigger.cronExpression == other.cronExpression
+      && trigger.timeZone.hasSameRules(other.timeZone)
+      && trigger.jobDataMap.getString("runAsUser") == other.jobDataMap.getString("runAsUser")
+      && trigger.jobDataMap.getWrappedMap().triggerParameters == other.jobDataMap.getWrappedMap().triggerParameters)
   }
 }

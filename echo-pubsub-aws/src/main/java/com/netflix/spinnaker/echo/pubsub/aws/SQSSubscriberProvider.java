@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
@@ -78,9 +79,8 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
 
   @PostConstruct
   public void start() {
-    if (properties == null) {
-      return;
-    }
+    Preconditions.checkNotNull(
+        properties, "Can't initialize SQSSubscriberProvider with null properties");
 
     ExecutorService executorService =
         Executors.newFixedThreadPool(properties.getSubscriptions().size());

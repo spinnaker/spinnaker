@@ -84,7 +84,7 @@ public class GooglePubsubPublisher implements PubsubPublisher {
               .build();
       publisher.setPublisher(p);
     } catch (IOException ioe) {
-      log.error("Could not create Google Pubsub Publishers: {}", ioe);
+      log.error("Could not create Google Pubsub Publishers", ioe);
     }
 
     return publisher;
@@ -95,7 +95,7 @@ public class GooglePubsubPublisher implements PubsubPublisher {
     try {
       jsonPayload = mapper.writeValueAsString(event);
     } catch (JsonProcessingException jpe) {
-      log.error("Could not serialize event message: {}", jpe);
+      log.error("Could not serialize event message", jpe);
       return;
     }
 
@@ -146,7 +146,7 @@ public class GooglePubsubPublisher implements PubsubPublisher {
     try {
       jsonPayload = mapper.writeValueAsString(payload);
     } catch (JsonProcessingException jpe) {
-      log.error("Could not serialize event message: {}", jpe);
+      log.error("Could not serialize event message", jpe);
       return;
     }
     publish(jsonPayload, attributes);
