@@ -1,0 +1,30 @@
+name: Fiat release build
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Build
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
+          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
+        run: |
+          ./gradlew --info -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
+          sleep 90
+          ./gradlew --info -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -Pgithub.token="${SPINNAKER_GITHUB_TOKEN}" bumpDependencies
