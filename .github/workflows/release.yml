@@ -30,7 +30,7 @@ jobs:
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
+          SPINNAKER_GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
           GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
         if: github.event.release.prerelease != true
         run: |
