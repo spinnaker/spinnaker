@@ -7,7 +7,7 @@ export * from './config/stages/bake/BakeExecutionLabel';
 export * from './config/stages/bake/BakeryReader';
 export * from './config/stages/common';
 export * from './config/stages/pipeline/PipelineStageExecutionDetails';
-export * from './config/stages/preconfiguredJob/preconfiguredJob.reader';
+export * from './config/stages/preconfiguredJob';
 export * from './config/stages/stageConstants';
 export * from './config/stages/templates';
 export * from './config/templates';

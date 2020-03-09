@@ -7,6 +7,7 @@ import { IRegion } from 'core/account/AccountService';
 import { Registry } from 'core/registry';
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 import { PipelineRegistry } from './PipelineRegistry';
+import { IPreconfiguredJob, PreconfiguredJobReader } from './stages/preconfiguredJob';
 
 const mockProviderAccount = {
   accountId: 'abc',
@@ -180,6 +181,51 @@ describe('PipelineRegistry: API', function() {
         expect(Registry.pipeline.getStageConfig({ type: 'b' } as IStage)).toBeFalsy();
       }),
     );
+  });
+
+  describe('preconfigured stage', function() {
+    beforeEach(mock.inject());
+
+    const makeStage = () => ({ key: 'job', alias: 'preconfiguredJob' } as IStageTypeConfig);
+
+    const makeJobMetadata = () => {
+      return {
+        type: 'job',
+        parameters: [
+          { name: 'param', description: 'description', defaultValue: 'abc', label: 'Param', type: 'string' },
+        ],
+      } as Partial<IPreconfiguredJob>;
+    };
+
+    const spyOnReader = () =>
+      spyOn(PreconfiguredJobReader, 'list').and.callFake(() => Promise.resolve([makeJobMetadata()]));
+
+    it('registration returns a promise', async () => {
+      spyOnReader();
+      const result = Registry.pipeline.registerPreconfiguredJobStage(makeStage());
+      expect(typeof result.then).toBe('function');
+      await result;
+    });
+
+    it('registers a stage', async () => {
+      spyOnReader();
+      expect(Registry.pipeline.getStageTypes().length).toBe(0);
+      await Registry.pipeline.registerPreconfiguredJobStage(makeStage());
+      expect(Registry.pipeline.getStageTypes().length).toBe(1);
+    });
+
+    it('fetches fresh preconfigured jobs metadata from gate', async () => {
+      const spy = spyOnReader();
+      await Registry.pipeline.registerPreconfiguredJobStage(makeStage());
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies default job parameters to the stage config', async () => {
+      spyOnReader();
+      await Registry.pipeline.registerPreconfiguredJobStage(makeStage());
+      const stageType = Registry.pipeline.getStageTypes()[0];
+      expect(stageType.defaults.parameters).toEqual({ param: 'abc' });
+    });
   });
 
   describe('getStageConfig all permutations', function() {

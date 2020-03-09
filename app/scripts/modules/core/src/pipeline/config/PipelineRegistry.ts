@@ -1,4 +1,4 @@
-import { uniq, isNil, cloneDeep, intersection, memoize, defaults } from 'lodash';
+import { uniq, isNil, cloneDeep, defaultsDeep, intersection, memoize, defaults, fromPairs } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import {
@@ -14,6 +14,7 @@ import {
 import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 import { IAccountDetails } from 'core/account/AccountService';
+import { PreconfiguredJobReader } from './stages/preconfiguredJob';
 
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 import { ComponentType, SFC } from 'react';
@@ -97,6 +98,31 @@ export class PipelineRegistry {
   public registerStage(stageConfig: IStageTypeConfig): void {
     this.stageTypes.push(stageConfig);
     this.normalizeStageTypes();
+  }
+
+  /**
+   * Registers a custom UI for a preconfigured run job stage.
+   * Fetches and applies the preconfigured job parameters from Gate.
+   */
+  public async registerPreconfiguredJobStage(stageConfig: IStageTypeConfig): Promise<IStageTypeConfig> {
+    const preconfiguredJobs = await PreconfiguredJobReader.list();
+    const jobFromGate = preconfiguredJobs.find(j => j.type === stageConfig.key);
+
+    const parameters = jobFromGate?.parameters ?? [];
+    const paramsWithDefaults = parameters.filter(p => !isNil(p.defaultValue));
+    const defaultParameterValues = fromPairs(paramsWithDefaults.map(p => [p.name, p.defaultValue]));
+
+    // Apply the parameter configuration from Gate
+    defaultsDeep(stageConfig, {
+      configuration: { parameters },
+      defaults: {
+        parameters: defaultParameterValues,
+      },
+    });
+
+    this.registerStage(stageConfig);
+
+    return stageConfig;
   }
 
   public registerArtifactKind(
