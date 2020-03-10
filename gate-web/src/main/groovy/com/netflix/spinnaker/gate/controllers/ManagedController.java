@@ -188,9 +188,11 @@ public class ManagedController {
   @GetMapping(path = "/application/{application}")
   Map getApplicationDetails(
       @PathVariable("application") String application,
-      @RequestParam(value = "includeDetails", required = false, defaultValue = "false")
-          Boolean includeDetails) {
-    return keelService.getApplicationDetails(application, includeDetails);
+      @RequestParam(name = "includeDetails", required = false, defaultValue = "false")
+          Boolean includeDetails,
+      @RequestParam(name = "entities", required = false, defaultValue = "resources")
+          List<String> entities) {
+    return keelService.getApplicationDetails(application, includeDetails, entities);
   }
 
   @ApiOperation(value = "Pause management of an entire application")
