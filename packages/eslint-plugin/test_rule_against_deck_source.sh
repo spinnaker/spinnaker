@@ -5,6 +5,6 @@ if [[ -z "$1" ]] ; then
 else
   RULE={\"$1\":2}
   shift;
-  echo "node ${NODE_OPTS} ../../node_modules/.bin/eslint --no-eslintrc -c test.eslintrc --rulesdir rules --rule $RULE ../../app $*"
-  node ${NODE_OPTS} ../../node_modules/.bin/eslint --no-eslintrc -c test.eslintrc --rulesdir rules --rule $RULE ../../app $*
+  echo "node ${NODE_OPTS} ../../node_modules/.bin/eslint --ext js,ts,jsx,tsx --no-eslintrc -c test.eslintrc --rulesdir rules --rule $RULE ../../app $*"
+  node ${NODE_OPTS} ../../node_modules/.bin/eslint --ext js,ts,jsx,tsx --no-eslintrc -c test.eslintrc --rulesdir rules --rule $RULE ../../app $*
 fi

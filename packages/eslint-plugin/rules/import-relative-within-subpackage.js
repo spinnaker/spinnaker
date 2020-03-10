@@ -28,12 +28,7 @@ const rule = function(context) {
 
       const importString = node.source.value;
       const aliasImport = getAliasImport(allSpinnakerPackages, importString);
-      if (
-        !aliasImport ||
-        aliasImport.pkg !== ownPackage ||
-        aliasImport.subPkg !== ownSubPackage ||
-        aliasImport.importPath === aliasImport.subPkg // don't handle import from 'core/subpackage' in this rule
-      ) {
+      if (!aliasImport || aliasImport.pkg !== ownPackage || aliasImport.subPkg !== ownSubPackage) {
         return;
       }
 
@@ -42,13 +37,21 @@ const rule = function(context) {
       const message =
         `Do not use an alias to import from ${pkg}/${subPkg} from code inside ${pkg}/${subPkg}.` +
         ` Instead, use a relative import`;
+
       const fix = fixer => {
         const relativeDir = path.relative(path.dirname(filePath), path.dirname(importPath)) || '.';
         let newPath = path.join(relativeDir, path.basename(importPath));
         newPath = newPath.match(/^\.?\.\//) ? newPath : './' + newPath;
         return fixer.replaceText(node.source, `'${newPath}'`);
       };
-      context.report({ fix, node, message });
+
+      if (aliasImport.importPath === aliasImport.subPkg) {
+        // Do not try to fix: import from 'alias/subpkg'
+        context.report({ node, message });
+      } else {
+        // Do try to fix: import from 'alias/subpkg/nestedimport'
+        context.report({ fix, node, message });
+      }
     },
   };
 };

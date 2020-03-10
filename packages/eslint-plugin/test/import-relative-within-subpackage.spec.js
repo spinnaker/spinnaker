@@ -18,10 +18,6 @@ ruleTester.run('import-relative-within-subpackage', rule, {
       code: `import { Anything } from '../subpackage/foo';`,
     },
     {
-      filename: '/root/spinnaker/deck/app/scripts/modules/core/subpackage/nest/core_source_file.ts',
-      code: `import { Anything } from 'core/subpackage';`,
-    },
-    {
       // kubernetes subpackages are nested under v1 or v2 directory so treat them differently
       filename:
         '/Users/cthielen/netflix/spinnaker/deck/app/scripts/modules/kubernetes/src/v1/pipeline/stages/runJob/configureJob.controller.js',
@@ -50,6 +46,13 @@ ruleTester.run('import-relative-within-subpackage', rule, {
       filename: '/root/spinnaker/deck/app/scripts/modules/core/subpackage/nest/core_source_file.ts',
       code: `import { Anything } from 'core/subpackage/foo/bar';`,
       output: `import { Anything } from '../foo/bar';`,
+      errors: [
+        'Do not use an alias to import from core/subpackage from code inside core/subpackage. Instead, use a relative import',
+      ],
+    },
+    {
+      filename: '/root/spinnaker/deck/app/scripts/modules/core/subpackage/nest/core_source_file.ts',
+      code: `import { Anything } from 'core/subpackage';`,
       errors: [
         'Do not use an alias to import from core/subpackage from code inside core/subpackage. Instead, use a relative import',
       ],
