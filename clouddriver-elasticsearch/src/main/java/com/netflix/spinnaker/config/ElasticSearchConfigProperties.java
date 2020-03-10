@@ -34,7 +34,6 @@ public class ElasticSearchConfigProperties {
   // The name of the unique mapping type is configurable as mappingTypeName, but is defaulted to
   // "_doc", which is
   // recommended for forward compatibility with Elasticsearch 7.0.
-  private boolean singleMappingType = false;
   private String mappingTypeName = "_doc";
 
   public String getActiveIndex() {
@@ -67,14 +66,6 @@ public class ElasticSearchConfigProperties {
 
   public void setConnectionTimeout(int connectionTimeout) {
     this.connectionTimeout = connectionTimeout;
-  }
-
-  public void setSingleMappingType(boolean singleMappingType) {
-    this.singleMappingType = singleMappingType;
-  }
-
-  public boolean isSingleMappingType() {
-    return singleMappingType;
   }
 
   public void setMappingTypeName(String mappingTypeName) {

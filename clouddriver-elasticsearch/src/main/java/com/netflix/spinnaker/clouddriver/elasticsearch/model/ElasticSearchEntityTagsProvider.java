@@ -42,6 +42,7 @@ import io.searchbox.params.Parameters;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -64,7 +65,6 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   private final String activeElasticSearchIndex;
 
-  private final boolean singleMappingType;
   private final String mappingTypeName;
 
   @Autowired
@@ -81,7 +81,6 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     this.front50Service = front50Service;
     this.jestClient = jestClient;
     this.activeElasticSearchIndex = elasticSearchConfigProperties.getActiveIndex();
-    this.singleMappingType = elasticSearchConfigProperties.isSingleMappingType();
     this.mappingTypeName = elasticSearchConfigProperties.getMappingTypeName();
   }
 
@@ -131,6 +130,11 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       queryBuilder = queryBuilder.must(QueryBuilders.wildcardQuery("id", idPrefix));
     }
 
+    if (entityType != null) {
+      queryBuilder =
+          queryBuilder.must(QueryBuilders.wildcardQuery("entityRef.entityType", entityType));
+    }
+
     if (tags != null) {
       for (Map.Entry<String, Object> entry : tags.entrySet()) {
         // each key/value pair maps to a distinct nested `tags` object and must be a unique query
@@ -150,7 +154,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       queryBuilder = queryBuilder.must(applyTagsToBuilder(namespace, Collections.emptyMap()));
     }
 
-    return search(entityType, queryBuilder, maxResults);
+    return search(queryBuilder, maxResults);
   }
 
   @Override
@@ -173,7 +177,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       }
     }
 
-    List<EntityTags> entityTags = search(null, queryBuilder, 1);
+    List<EntityTags> entityTags = search(queryBuilder, 1);
     return entityTags.isEmpty() ? Optional.empty() : Optional.of(entityTags.get(0));
   }
 
@@ -184,7 +188,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
           new Index.Builder(
                   objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
               .index(activeElasticSearchIndex)
-              .type(getDocumentType(entityTags))
+              .type(mappingTypeName)
               .id(entityTags.getId())
               .build();
 
@@ -209,13 +213,13 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
               Bulk.Builder builder = new Bulk.Builder().defaultIndex(activeElasticSearchIndex);
 
               for (EntityTags entityTags : tags) {
+                Map tag =
+                    objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class);
                 builder =
                     builder.addAction(
-                        new Index.Builder(
-                                objectMapper.convertValue(
-                                    prepareForWrite(objectMapper, entityTags), Map.class))
+                        new Index.Builder(tag)
                             .index(activeElasticSearchIndex)
-                            .type(getDocumentType(entityTags))
+                            .type(mappingTypeName)
                             .id(entityTags.getId())
                             .build());
               }
@@ -255,10 +259,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       }
 
       Delete action =
-          new Delete.Builder(id)
-              .index(activeElasticSearchIndex)
-              .type(getDocumentType(entityTags))
-              .build();
+          new Delete.Builder(id).index(activeElasticSearchIndex).type(mappingTypeName).build();
 
       JestResult jestResult = jestClient.execute(action);
       if (!jestResult.isSucceeded()) {
@@ -281,9 +282,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
               for (EntityTags entityTags : tags) {
                 builder =
                     builder.addAction(
-                        new Delete.Builder(entityTags.getId())
-                            .type(getDocumentType(entityTags))
-                            .build());
+                        new Delete.Builder(entityTags.getId()).type(mappingTypeName).build());
               }
 
               Bulk bulk = builder.build();
@@ -352,9 +351,14 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     entityTagsByEntityTypeFront50
         .keySet()
         .forEach(
-            entityType ->
-                entityTagsByEntityTypeElasticsearch.put(
-                    entityType, fetchAll(QueryBuilders.matchAllQuery(), entityType, 5000, "2m")));
+            entityType -> {
+              BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+              queryBuilder =
+                  queryBuilder.must(QueryBuilders.termQuery("entityRef.entityType", entityType));
+
+              entityTagsByEntityTypeElasticsearch.put(
+                  entityType, fetchAll(queryBuilder, 5000, "2m"));
+            });
 
     Map<String, Map> metadata = new HashMap<>();
 
@@ -566,7 +570,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
           QueryBuilders.boolQuery()
               .must(applyTagsToBuilder(null, Collections.singletonMap(tag, "*")));
 
-      fetchAll(queryBuilder, null, 5000, "2m")
+      fetchAll(queryBuilder, 5000, "2m")
           .forEach(
               entityTags -> {
                 if (!entityTagsIdentifiers.contains(entityTags.getId())) {
@@ -580,7 +584,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       BoolQueryBuilder queryBuilder =
           QueryBuilders.boolQuery().must(applyTagsToBuilder(namespace, Collections.emptyMap()));
 
-      fetchAll(queryBuilder, null, 5000, "2m")
+      fetchAll(queryBuilder, 5000, "2m")
           .forEach(
               entityTags -> {
                 if (!entityTagsIdentifiers.contains(entityTags.getId())) {
@@ -610,7 +614,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       boolQueryBuilder.must(QueryBuilders.termQuery("tags.namespace", namespace));
     }
 
-    return QueryBuilders.nestedQuery("tags", boolQueryBuilder);
+    return QueryBuilders.nestedQuery("tags", boolQueryBuilder, ScoreMode.Avg);
   }
 
   /** Elasticsearch requires that all search criteria be flattened (vs. nested) */
@@ -628,17 +632,13 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     return accumulator;
   }
 
-  private List<EntityTags> search(String type, QueryBuilder queryBuilder, int maxResults) {
+  private List<EntityTags> search(QueryBuilder queryBuilder, int maxResults) {
     SearchSourceBuilder searchSourceBuilder =
         new SearchSourceBuilder().query(queryBuilder).size(maxResults);
     String searchQuery = searchSourceBuilder.toString();
 
     Search.Builder searchBuilder =
         new Search.Builder(searchQuery).addIndex(activeElasticSearchIndex);
-    if (type != null) {
-      // restrict to a specific index type (optional)
-      searchBuilder.addType(type.toLowerCase());
-    }
 
     try {
       SearchResult searchResult = jestClient.execute(searchBuilder.build());
@@ -651,17 +651,12 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     }
   }
 
-  private List<EntityTags> fetchAll(
-      QueryBuilder queryBuilder, String type, int scrollSize, String scrollTime) {
+  private List<EntityTags> fetchAll(QueryBuilder queryBuilder, int scrollSize, String scrollTime) {
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.query(queryBuilder);
 
     Search.Builder builder =
         new Search.Builder(searchSourceBuilder.toString()).addIndex(activeElasticSearchIndex);
-
-    if (type != null) {
-      builder.addType(type);
-    }
 
     Search search =
         builder
@@ -684,10 +679,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     try {
       while (entityTags.size() > 0) {
-        SearchScroll scroll =
-            new SearchScroll.Builder(scrollId, scrollTime)
-                .setParameter(Parameters.SIZE, scrollSize)
-                .build();
+        SearchScroll scroll = new SearchScroll.Builder(scrollId, scrollTime).build();
 
         try {
           result = jestClient.execute(scroll);
@@ -747,13 +739,5 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         .forEach(entityTag -> entityTag.setValue(entityTag.getValueForRead(objectMapper)));
 
     return entityTags;
-  }
-
-  private String getDocumentType(EntityTags entityTags) {
-    if (singleMappingType) {
-      return mappingTypeName;
-    } else {
-      return entityTags.getEntityRef().getEntityType();
-    }
   }
 }
