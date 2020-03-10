@@ -14,7 +14,7 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
       .filter(job => job.uiType !== 'CUSTOM')
       .forEach(preconfiguredJob => {
         const { label, description, type, waitForCompletion, parameters, producesArtifacts } = preconfiguredJob;
-        const defaults = fromPairs(parameters.filter(p => p.defaultValue).map(p => [p, name, p.defaultValue]));
+        const paramDefaults = fromPairs(parameters.filter(p => p.defaultValue).map(p => [p.name, p.defaultValue]));
 
         Registry.pipeline.registerStage({
           label,
@@ -23,7 +23,9 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
           alias: 'preconfiguredJob',
           addAliasToConfig: true,
           restartable: true,
-          defaults,
+          defaults: {
+            parameters: paramDefaults,
+          },
           component: PreconfiguredJobStageConfig,
           executionDetailsSections: [PreconfiguredJobExecutionDetails, ExecutionDetailsTasks],
           configuration: {

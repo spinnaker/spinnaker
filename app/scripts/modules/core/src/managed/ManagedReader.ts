@@ -11,7 +11,15 @@ import {
   IManagedResourceEvent,
 } from 'core/domain';
 
+const KIND_NAME_MATCHER = /.*\/(.*?)@/i;
 const RESOURCE_DIFF_LIST_MATCHER = /^(.*)\[(.*)\]$/i;
+
+export const getKindName = (kind: string) => {
+  const match = kind.match(KIND_NAME_MATCHER);
+  const extractedKind = match && match[1];
+
+  return extractedKind || kind;
+};
 
 export const getResourceKindForLoadBalancerType = (type: string) => {
   switch (type) {

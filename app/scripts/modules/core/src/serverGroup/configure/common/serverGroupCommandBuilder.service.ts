@@ -9,6 +9,7 @@ import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityG
 import { IRegion, IAggregatedAccounts } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
 import { IPreferredInstanceType } from 'core/instance';
+import { getKindName } from 'core/managed';
 
 export interface IServerGroupCommandBuilderOptions {
   account: string;
@@ -147,7 +148,7 @@ export const setMatchingResourceSummary = (command: IServerGroupCommand) => {
   command.resourceSummary = (command.backingData.managedResources ?? []).find(
     resource =>
       !resource.isPaused &&
-      resource.kind === 'cluster' &&
+      getKindName(resource.kind) === 'cluster' &&
       resource.locations.regions.some(r => r.name === command.region) &&
       (resource.moniker.stack ?? '') === command.stack &&
       (resource.moniker.detail ?? '') === command.freeFormDetails &&

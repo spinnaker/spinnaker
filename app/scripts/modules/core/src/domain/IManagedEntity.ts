@@ -110,7 +110,6 @@ export interface IManagedResourceDiff {
 
 export interface IManagedResourceEvent {
   type: ManagedResourceEventType;
-  apiVersion: string;
   kind: string;
   id: string;
   application: string;

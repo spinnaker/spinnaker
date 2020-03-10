@@ -427,7 +427,7 @@ describe('Service: awsServerGroupConfiguration', function() {
           },
           managedResources: [
             {
-              kind: 'cluster',
+              kind: 'ec2/cluster@v1',
               locations: {
                 account: 'prod',
                 regions: [{ name: 'us-east-1' }],
