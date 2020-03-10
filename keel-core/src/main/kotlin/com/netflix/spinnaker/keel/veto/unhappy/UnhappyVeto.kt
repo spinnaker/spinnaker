@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import java.time.Duration
+import java.time.format.DateTimeParseException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -42,13 +43,12 @@ class UnhappyVeto(
   private val resourceRepository: ResourceRepository,
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val unhappyVetoRepository: UnhappyVetoRepository,
-  private val dynamicConfigService: DynamicConfigService
+  private val dynamicConfigService: DynamicConfigService,
+  @Value("veto.unhappy.waiting-time")
+  private val configuredWaitingTime: String = "PT10M"
 ) : Veto {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
-  @Value("veto.unhappy.waiting-time")
-  private var configuredWaitingTime: String = "PT10M"
 
   override fun check(resource: Resource<*>): VetoResponse {
     val resourceId = resource.id
@@ -95,26 +95,36 @@ class UnhappyVeto(
 
   private fun maxDiffCount(resource: Resource<*>) =
     when (resource.spec) {
-      is UnhappyControl -> (resource.spec as UnhappyControl).maxDiffCount ?: maxDiffCount()
-      else -> maxDiffCount()
+      is UnhappyControl -> (resource.spec as UnhappyControl).maxDiffCount ?: maxDiffCount
+      else -> maxDiffCount
     }
 
-  private fun maxDiffCount() =
-    dynamicConfigService.getConfig(Int::class.java, "veto.unhappy.max-diff-count", 5)
+  private val maxDiffCount: Int
+    get() = dynamicConfigService.getConfig(
+      Int::class.java,
+      "veto.unhappy.max-diff-count",
+      5
+    )
 
   private fun waitingTime(resource: Resource<*>) =
     when (resource.spec) {
-      is UnhappyControl -> (resource.spec as UnhappyControl).unhappyWaitTime ?: waitingTime()
-      else -> waitingTime()
+      is UnhappyControl -> (resource.spec as UnhappyControl).unhappyWaitTime ?: waitingTime
+      else -> waitingTime
     }
 
-  private fun waitingTime() =
-    Duration
-      .parse(
+  private val waitingTime: Duration
+    get() = try {
+      Duration.parse(
         dynamicConfigService.getConfig(
           String::class.java,
           "veto.unhappy.waiting-time",
-          configuredWaitingTime))
+          configuredWaitingTime
+        )
+      )
+    } catch (e: DateTimeParseException) {
+      log.error("'{}' is not a valid Duration", e.parsedString)
+      throw e
+    }
 
   private fun unhappyMessage(resource: Resource<*>): String {
     val maxDiffs = maxDiffCount(resource)
