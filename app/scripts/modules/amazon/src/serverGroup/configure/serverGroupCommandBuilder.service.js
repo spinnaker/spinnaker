@@ -151,6 +151,7 @@ angular
             region: region,
             credentials: pipelineCluster.account,
             availabilityZones: pipelineCluster.availabilityZones[region],
+            iamRole: pipelineCluster.iamRole,
             viewState: viewState,
           };
 
