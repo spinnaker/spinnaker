@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application } from 'core/application';
+import { Application } from '../application.model';
 import { PagerDutyWriter } from 'core/pagerDuty';
 import { Tooltip } from 'core/presentation';
 

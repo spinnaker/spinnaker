@@ -1,4 +1,4 @@
-import { ICloudFoundrySpace } from 'cloudfoundry/domain';
+import { ICloudFoundrySpace } from './ICloudFoundrySpace';
 
 export interface ICloudFoundryDroplet {
   id: string;

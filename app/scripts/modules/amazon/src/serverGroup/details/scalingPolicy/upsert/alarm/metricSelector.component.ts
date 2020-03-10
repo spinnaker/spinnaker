@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 
 import { CloudMetricsReader, ICloudMetricDescriptor, IServerGroup, IMetricAlarmDimension } from '@spinnaker/core';
 
-import { IConfigurableMetric } from 'amazon/serverGroup';
+import { IConfigurableMetric } from '../../ScalingPolicyWriter';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { NAMESPACES } from './namespaces';
 

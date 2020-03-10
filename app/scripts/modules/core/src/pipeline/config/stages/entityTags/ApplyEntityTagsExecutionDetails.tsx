@@ -1,11 +1,7 @@
 import React from 'react';
 
-import {
-  IExecutionDetailsSectionProps,
-  ExecutionDetailsSection,
-  StageExecutionLogs,
-  StageFailureMessage,
-} from 'core/pipeline';
+import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 export function ApplyEntityTagsExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { current, name, stage } = props;
 

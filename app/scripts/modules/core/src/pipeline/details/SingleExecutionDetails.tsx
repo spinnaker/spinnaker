@@ -7,7 +7,7 @@ import { Application } from 'core/application/application.model';
 import { IExecution, IPipeline } from 'core/domain';
 import { Execution } from '../executions/execution/Execution';
 import { IScheduler, SchedulerFactory } from 'core/scheduler';
-import { ManualExecutionModal } from 'core/pipeline';
+import { ManualExecutionModal } from '../manualExecution';
 import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 import { ISortFilter } from 'core/filterModel';

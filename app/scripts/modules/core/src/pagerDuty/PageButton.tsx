@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Application } from 'core/application';
-import { IPagerDutyService } from 'core/pagerDuty';
+import { IPagerDutyService } from './pagerDuty.read.service';
 
 import { PageModal } from './PageModal';
 

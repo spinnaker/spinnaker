@@ -7,7 +7,7 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { Application, IServerGroup, TaskMonitor } from '@spinnaker/core';
 
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain';
-import { IUpsertScalingPolicyCommand, ScalingPolicyWriter } from 'amazon/serverGroup';
+import { IUpsertScalingPolicyCommand, ScalingPolicyWriter } from '../ScalingPolicyWriter';
 
 export type MetricType = 'custom' | 'predefined';
 

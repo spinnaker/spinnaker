@@ -2,7 +2,7 @@ import React from 'react';
 import { get } from 'lodash';
 
 import { IRecentHistoryEntry } from 'core/history';
-import { SearchResultType } from 'core/search';
+import { SearchResultType } from '../searchResult/searchResultType';
 
 import { SearchResultPod } from './SearchResultPod';
 import { ProjectSummaryPod } from './ProjectSummaryPod';

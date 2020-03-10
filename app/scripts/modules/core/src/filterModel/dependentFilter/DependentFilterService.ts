@@ -1,6 +1,6 @@
 import { chain, identity, pickBy } from 'lodash';
 
-import { ISortFilter } from 'core/filterModel';
+import { ISortFilter } from '../IFilterModel';
 
 function generateIterator(sortFilter: ISortFilter & { [key: string]: any }) {
   return function iterator(acc: { headings: any; pool: any }, headingType: string) {

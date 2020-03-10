@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Markdown } from 'core/presentation';
+import { Markdown } from '../../../Markdown';
 
 export interface IExpressionPreviewProps {
   spelPreview: string;

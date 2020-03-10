@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { OverrideRegistry } from 'core/overrideRegistry';
+import { OverrideRegistry } from './override.registry';
 
 /**
  * This queues OverrideComponent registration until the registries are ready.

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Option } from 'react-select';
 
-import { Markdown, OmitControlledInputPropsFrom } from 'core/presentation';
+import { Markdown } from '../../Markdown';
+import { OmitControlledInputPropsFrom } from './interface';
 
 import { isStringArray, orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from './interface';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application } from 'core/application';
+import { Application } from '../application.model';
 import { ApplicationRefresher } from './ApplicationRefresher';
 import { INavigationCategory, navigationCategoryRegistry } from './navigationCategory.registry';
 import { PagerDutyButton } from './PagerDutyButton';

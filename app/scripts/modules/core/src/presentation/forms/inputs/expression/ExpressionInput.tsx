@@ -1,7 +1,8 @@
 import React from 'react';
 import { isEqual } from 'lodash';
 
-import { IFormInputProps, TextInput } from 'core/presentation';
+import { TextInput } from '../TextInput';
+import { IFormInputProps } from '../interface';
 
 import { IExpressionChange, evaluateExpression } from './evaluateExpression';
 

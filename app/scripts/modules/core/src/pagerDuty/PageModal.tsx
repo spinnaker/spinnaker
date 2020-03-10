@@ -3,7 +3,8 @@ import { Button, Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 
 import { Application, ApplicationModelBuilder } from 'core/application';
-import { IPagerDutyService, PagerDutyWriter } from 'core/pagerDuty';
+import { IPagerDutyService } from './pagerDuty.read.service';
+import { PagerDutyWriter } from './pagerDuty.write.service';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
 import { SubmitButton } from 'core/modal';

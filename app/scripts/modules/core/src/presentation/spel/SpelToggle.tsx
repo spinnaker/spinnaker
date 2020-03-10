@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
-import { Tooltip } from 'core/presentation';
+import { Tooltip } from '../Tooltip';
 
 interface ISpelToggleProps {
   inputMode: SpelAwareInputMode;

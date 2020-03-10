@@ -1,6 +1,6 @@
 import { ILoadBalancerSourceData } from '@spinnaker/core';
 
-import { IListenerAction, NLBListenerProtocol } from 'amazon/domain';
+import { IListenerAction, NLBListenerProtocol } from './IAmazonLoadBalancer';
 
 import { IListenerRule } from './IAmazonLoadBalancer';
 

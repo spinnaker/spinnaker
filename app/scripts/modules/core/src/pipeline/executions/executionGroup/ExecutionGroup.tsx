@@ -26,7 +26,8 @@ import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 import { TriggersTag } from '../../triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ReactInjector } from 'core/reactShims';
-import { ManualExecutionModal, PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
+import { ManualExecutionModal } from '../../manualExecution';
+import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';

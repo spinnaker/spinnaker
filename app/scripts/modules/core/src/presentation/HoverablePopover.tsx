@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import { Observable, Subject } from 'rxjs';
 
-import { Placement } from 'core/presentation';
+import { Placement } from './Placement';
 import { UUIDGenerator } from 'core/utils';
 
 import './HoverablePopover.css';

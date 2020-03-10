@@ -4,13 +4,10 @@ import { uniq, pick } from 'lodash';
 
 import { Application } from 'core/application';
 import { IEntityTags, IEntityTag } from 'core/domain';
-import {
-  EntityTagEditor,
-  EntityTagWriter,
-  GroupedNotificationList,
-  IEntityTagEditorProps,
-  NotificationList,
-} from 'core/entityTag';
+import { EntityTagEditor, IEntityTagEditorProps } from '../EntityTagEditor';
+import { EntityTagWriter } from '../entityTags.write.service';
+import { GroupedNotificationList } from './GroupedNotificationList';
+import { NotificationList } from './NotificationList';
 import { Placement, HoverablePopover, IHoverablePopoverContentsProps } from 'core/presentation';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { noop } from 'core/utils';

@@ -6,7 +6,7 @@ import { Option } from 'react-select';
 import { IArtifactEditorProps, IArtifactKindConfig, IBuild } from 'core/domain';
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IgorService } from 'core/ci';
-import { StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../../../stages/common';
 import { TetheredSelect } from 'core/presentation';
 import { SpelText } from 'core/widgets';
 

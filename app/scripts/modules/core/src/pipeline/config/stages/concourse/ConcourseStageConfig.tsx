@@ -1,7 +1,7 @@
 import React from 'react';
 import Select, { Option } from 'react-select';
 import { BuildServiceType, IgorService } from 'core/ci';
-import { IStageConfigProps, StageConfigField } from 'core/pipeline';
+import { StageConfigField, IStageConfigProps } from '../common';
 import { ConcourseService } from '../../triggers/concourse/concourse.service';
 
 export interface IConcourseStageConfigState {

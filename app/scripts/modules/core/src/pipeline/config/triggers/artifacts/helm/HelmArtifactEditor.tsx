@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash';
 
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact, IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../../../stages/common';
 import { TetheredSelect, TetheredCreatable } from 'core/presentation';
 import { ArtifactService } from '../ArtifactService';
 import { Spinner } from 'core/widgets';

@@ -5,7 +5,7 @@ import { groupBy, sortBy } from 'lodash';
 import { IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
-import { ServerGroupReader } from 'core/serverGroup';
+import { ServerGroupReader } from '../../serverGroupReader.service';
 
 export interface IDeployTemplate {
   key?: string;

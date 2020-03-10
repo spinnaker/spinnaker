@@ -3,7 +3,7 @@ import { IPromise, module } from 'angular';
 import { isNil, uniq } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry } from '../CloudProviderRegistry';
 
 export class SkinSelectionService {
   public static $inject = ['$uibModal'];

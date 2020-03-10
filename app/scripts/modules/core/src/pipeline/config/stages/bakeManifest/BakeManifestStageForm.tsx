@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { IPipeline } from 'core/domain';
-import { IFormikStageConfigInjectedProps, StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../common';
+import { IFormikStageConfigInjectedProps } from '../FormikStageConfig';
 import { BakeKustomizeConfigForm } from './kustomize/BakeKustomizeConfigForm';
 import { BakeHelmConfigForm } from './helm/BakeHelmConfigForm';
 import { ReactSelectInput } from 'core/presentation';

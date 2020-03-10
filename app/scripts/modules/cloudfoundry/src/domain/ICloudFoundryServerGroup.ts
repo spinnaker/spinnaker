@@ -1,6 +1,7 @@
 import { IServerGroup } from '@spinnaker/core';
 
-import { ICloudFoundrySpace, ICloudFoundryDroplet } from 'cloudfoundry/domain';
+import { ICloudFoundrySpace } from './ICloudFoundrySpace';
+import { ICloudFoundryDroplet } from './ICloudFoundryDroplet';
 import { ICloudFoundryInstance } from './ICloudFoundryInstance';
 
 export interface ICloudFoundryServerGroup extends IServerGroup {

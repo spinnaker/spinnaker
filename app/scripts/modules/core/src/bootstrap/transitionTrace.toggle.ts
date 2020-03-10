@@ -1,7 +1,7 @@
 import { UIRouter, Category } from '@uirouter/core';
 
 import { bootstrapModule } from './bootstrap.module';
-import { paramChangedHelper } from 'core/bootstrap';
+import { paramChangedHelper } from './paramChangedHelper';
 
 /** Changes UI-Router console tracing based on the query parameter `trace` */
 bootstrapModule.run([

@@ -1,11 +1,7 @@
 import React from 'react';
 
-import {
-  ExecutionDetailsSection,
-  IExecutionDetailsSectionProps,
-  StageExecutionLogs,
-  StageFailureMessage,
-} from 'core/pipeline';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageExecutionLogs, StageFailureMessage } from '../../../details';
 import { JsonUtils } from 'core/utils';
 
 export class FindArtifactFromExecutionExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {

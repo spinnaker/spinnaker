@@ -1,7 +1,7 @@
 import React from 'react';
 import { find, get } from 'lodash';
 
-import { StageFailureMessage } from 'core/pipeline';
+import { StageFailureMessage } from '../../../details/StageFailureMessage';
 import { IStage } from 'core/domain';
 import { IExecutionDetailsSectionProps } from '../common';
 import { ExecutionDetailsSection } from '../common/ExecutionDetailsSection';

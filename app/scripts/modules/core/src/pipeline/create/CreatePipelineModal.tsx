@@ -20,7 +20,7 @@ import {
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateV2Service } from '../config/templates/v2/pipelineTemplateV2.service';
 
 import { TemplateDescription } from './TemplateDescription';
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
@@ -390,7 +390,10 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     </div>
                     <div className="col-md-7">
                       <Select
-                        options={[{ label: 'Pipeline', value: false }, { label: 'Strategy', value: true }]}
+                        options={[
+                          { label: 'Pipeline', value: false },
+                          { label: 'Strategy', value: true },
+                        ]}
                         clearable={false}
                         value={this.state.command.strategy ? { label: 'Strategy' } : { label: 'Pipeline' }}
                         onChange={this.handleTypeChange}

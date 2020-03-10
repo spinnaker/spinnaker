@@ -1,5 +1,6 @@
 import { ArtifactReferenceService, ExecutionArtifactTab, ExpectedArtifactService } from 'core/artifact';
-import { ExecutionDetailsTasks, IValidatorConfig } from 'core/pipeline';
+import { IValidatorConfig } from '../../validation/PipelineConfigValidator';
+import { ExecutionDetailsTasks } from '../common';
 
 import { IArtifact, IStage, IPipeline, IStageOrTriggerTypeConfig } from 'core/domain';
 

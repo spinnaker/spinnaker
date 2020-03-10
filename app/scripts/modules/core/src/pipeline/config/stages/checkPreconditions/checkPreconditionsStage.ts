@@ -1,7 +1,7 @@
 import { IScope, module } from 'angular';
 
 import { Registry } from 'core/registry';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 import { CheckPreconditionsExecutionDetails } from './CheckPreconditionsExecutionDetails';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';

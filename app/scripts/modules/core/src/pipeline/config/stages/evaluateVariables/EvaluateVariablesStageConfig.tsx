@@ -3,7 +3,8 @@ import { countBy } from 'lodash';
 import { FieldArray } from 'formik';
 
 import { IStage } from 'core/domain';
-import { FormikStageConfig, IFormikStageConfigInjectedProps, IStageConfigProps } from 'core/pipeline';
+import { FormikStageConfig, IFormikStageConfigInjectedProps } from '../FormikStageConfig';
+import { IStageConfigProps } from '../common';
 import {
   FormValidator,
   FormikFormField,

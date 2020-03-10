@@ -6,7 +6,7 @@ import { Application } from 'core/application';
 import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 import { IExpectedArtifact, IPipeline, ITrigger } from 'core/domain';
 import { HelpField } from 'core/help';
-import { PipelineConfigValidator } from 'core/pipeline';
+import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 import { CheckboxInput, FormField } from 'core/presentation';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';

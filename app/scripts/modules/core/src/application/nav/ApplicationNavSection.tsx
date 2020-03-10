@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Application } from 'core/application';
+import { Application } from '../application.model';
 import { CategoryDropdown } from './CategoryDropdown';
 import { IDataSourceCategory } from './ApplicationHeader';
 

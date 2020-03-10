@@ -5,7 +5,7 @@ import { FormikProps } from 'formik';
 import { head } from 'lodash';
 
 import { IParameter, IPipeline, IPipelineCommand, ITrigger } from 'core/domain';
-import { IPipelineTemplateConfig, PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
+import { IPipelineTemplateConfig, PipelineTemplateReader, PipelineTemplateV2Service } from '../config/templates';
 import { FormField, TetheredSelect } from 'core/presentation';
 
 export interface IPipelineOptionsProps {

@@ -1,4 +1,4 @@
-import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { ICloudFoundryServerGroup } from './ICloudFoundryServerGroup';
 
 export interface ICloudFoundryCluster {
   name: string;

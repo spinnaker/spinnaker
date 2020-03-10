@@ -3,7 +3,7 @@
 import { module } from 'angular';
 
 import { AccountService } from 'core/account/AccountService';
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry } from '../CloudProviderRegistry';
 
 export const CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE = 'spinnaker.providerSelection.directive';
 export const name = CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE; // for backwards compatibility

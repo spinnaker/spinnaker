@@ -1,7 +1,8 @@
 import React from 'react';
 import { get, isEmpty } from 'lodash';
 
-import { StageFailureMessage, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';
+import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { StageFailureMessage } from '../../../details';
 import { IExecutionStage } from 'core/domain';
 import { DeploymentMonitorReader, IDeploymentMonitorDefinition } from './DeploymentMonitorReader';
 

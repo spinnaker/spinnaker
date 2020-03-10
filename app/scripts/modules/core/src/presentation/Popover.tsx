@@ -1,7 +1,8 @@
 import React from 'react';
 import { OverlayTrigger, Popover as BSPopover } from 'react-bootstrap';
 
-import { Placement, Markdown } from 'core/presentation';
+import { Markdown } from './Markdown';
+import { Placement } from './Placement';
 
 export interface IPopoverProps {
   value?: string;

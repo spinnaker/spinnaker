@@ -8,7 +8,7 @@ import { AccountTag } from 'core/account';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
-import { ServerGroupReader } from 'core/serverGroup';
+import { ServerGroupReader } from '../../serverGroupReader.service';
 import { ModalClose } from 'core/modal';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
 

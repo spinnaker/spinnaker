@@ -24,7 +24,7 @@ import { UnlockPipelineModal } from './actions/unlock/UnlockPipelineModal';
 import { RenamePipelineModal } from './actions/rename/RenamePipelineModal';
 import { ShowPipelineHistoryModal } from './actions/history/ShowPipelineHistoryModal';
 import { ShowPipelineTemplateJsonModal } from './actions/templateJson/ShowPipelineTemplateJsonModal';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateV2Service } from './templates/v2/pipelineTemplateV2.service';
 import { PipelineTemplateWriter } from './templates/PipelineTemplateWriter';
 
 export const CORE_PIPELINE_CONFIG_PIPELINECONFIGURER = 'spinnaker.core.pipeline.config.pipelineConfigurer';

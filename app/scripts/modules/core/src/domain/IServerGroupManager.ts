@@ -1,5 +1,5 @@
 import { IMoniker } from 'core/naming';
-import { IEntityTags } from 'core/domain';
+import { IEntityTags } from './IEntityTags';
 
 export interface IServerGroupManager {
   account: string;

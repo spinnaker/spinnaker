@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';
+import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { StageFailureMessage } from '../../../details';
 import { AccountTag } from 'core/account';
 
 import { IFindAmiStageContext } from './findAmiStage';

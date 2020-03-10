@@ -1,16 +1,13 @@
 import React from 'react';
 import { getIn } from 'formik';
 
-import {
-  CollapsibleSection,
-  errorMessage,
-  ExpressionError,
-  FormikForm,
-  FormikFormField,
-  ILayoutProps,
-  messageMessage,
-  TextInput,
-} from 'core/presentation';
+import { CollapsibleSection } from '../../collapsibleSection/CollapsibleSection';
+import { ExpressionError } from '../inputs/expression/ExpressionError';
+import { FormikForm } from '../FormikForm';
+import { FormikFormField } from './FormikFormField';
+import { ILayoutProps } from '../layouts';
+import { errorMessage, messageMessage } from '../validation/categories';
+import { TextInput } from '../inputs/TextInput';
 
 import { ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
 import { IFormikExpressionFieldProps } from './FormikExpressionField';

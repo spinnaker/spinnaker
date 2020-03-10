@@ -6,7 +6,7 @@ import { JobManifestPodLogs } from './JobManifestPodLogs';
 import { IManifest } from 'core/domain/IManifest';
 import { Application } from 'core/application';
 import { IPodNameProvider } from '../PodNameProvider';
-import { ManifestReader } from 'core/manifest';
+import { ManifestReader } from '../ManifestReader';
 
 interface IJobStageExecutionLogsProps {
   deployedName: string;

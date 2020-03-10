@@ -1,7 +1,8 @@
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { Application, ApplicationDataSource } from 'core/application';
+import { Application } from '../application.model';
+import { ApplicationDataSource } from '../service/applicationDataSource';
 import { IEntityTags } from 'core/domain';
 import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
 

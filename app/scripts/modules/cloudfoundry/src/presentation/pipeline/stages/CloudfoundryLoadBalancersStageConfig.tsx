@@ -14,7 +14,8 @@ import {
   StageConstants,
 } from '@spinnaker/core';
 
-import { AccountRegionClusterSelector, Routes } from 'cloudfoundry/presentation';
+import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
+import { Routes } from '../../forms/serverGroup';
 import { Formik } from 'formik';
 
 interface ICloudfoundryLoadBalancerStageConfigProps extends IStageConfigProps {

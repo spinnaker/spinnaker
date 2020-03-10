@@ -1,7 +1,7 @@
 import React from 'react';
 import { Subscription } from 'rxjs';
 
-import { INotifier, NotifierService } from 'core/widgets';
+import { INotifier, NotifierService } from './notifier.service';
 import { Markdown } from 'core/presentation';
 
 export interface INotifierState {

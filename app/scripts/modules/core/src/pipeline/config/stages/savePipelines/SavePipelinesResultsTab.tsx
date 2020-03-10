@@ -1,7 +1,7 @@
 import React from 'react';
 import { get } from 'lodash';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';
+import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
 import { PipelineRefList } from './PipleineRefList';
 
 export class SavePipelinesResultsTab extends React.Component<IExecutionDetailsSectionProps> {

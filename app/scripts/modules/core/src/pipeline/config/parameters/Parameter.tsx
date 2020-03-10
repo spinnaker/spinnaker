@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { IParameter } from 'core/domain';
 import { HelpField } from 'core/help';
 import { Tooltip } from 'core/presentation';
-import { StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../stages/common';
 import { SortableHandle } from 'react-sortable-hoc';
 
 export interface IParameterOption {

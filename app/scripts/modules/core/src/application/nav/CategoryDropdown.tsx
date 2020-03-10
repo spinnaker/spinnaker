@@ -6,7 +6,8 @@ import { Subscription } from 'rxjs';
 import { Dropdown } from 'react-bootstrap';
 import { merge } from 'rxjs/observable/merge';
 
-import { Application, ApplicationDataSource } from 'core/application';
+import { Application } from '../application.model';
+import { ApplicationDataSource } from '../service/applicationDataSource';
 import { IEntityTags } from 'core/domain';
 import { noop } from 'core/utils';
 import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';

@@ -4,7 +4,7 @@ import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
 import { AuthenticationService } from 'core/authentication/AuthenticationService';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateV2Service } from '../templates/v2/pipelineTemplateV2.service';
 import { ViewStateCache } from 'core/cache';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';

@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry } from './CloudProviderRegistry';
 
 import './cloudProviderLogo.less';
 

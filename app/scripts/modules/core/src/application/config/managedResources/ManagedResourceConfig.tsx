@@ -5,7 +5,7 @@ import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
 import { NgReact } from 'core/reactShims';
-import { Application } from 'core/application';
+import { Application } from '../../application.model';
 import { ValidationMessage, useLatestCallback } from 'core/presentation';
 import { ManagedWriter } from 'core/managed';
 

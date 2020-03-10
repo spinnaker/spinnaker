@@ -1,7 +1,8 @@
 import React from 'react';
 import { get } from 'lodash';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection, StageFailureMessage } from 'core/pipeline';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageFailureMessage } from '../../../details';
 
 export class AwsCodeBuildExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'awsCodeBuildStatus';

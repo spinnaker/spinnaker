@@ -1,6 +1,7 @@
 import { IAccountDetails, IServerGroup, IAsg } from '@spinnaker/core';
 
-import { ISuspendedProcess, IScalingPolicyView } from 'amazon/domain';
+import { IScalingPolicyView } from './IAmazonScalingPolicy';
+import { ISuspendedProcess } from './IScalingProcess';
 
 import { IScalingPolicy } from './IScalingPolicy';
 

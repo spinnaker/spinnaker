@@ -1,17 +1,10 @@
 import React from 'react';
 import { SpelService } from './SpelService';
 
-import {
-  ITextInputProps,
-  TextAreaInput,
-  asyncMessage,
-  messageMessage,
-  useDebouncedValue,
-  useInternalValidator,
-  useIsMountedRef,
-  useData,
-  warningMessage,
-} from 'core/presentation';
+import { useDebouncedValue, useIsMountedRef, useData } from '../hooks';
+import { ITextInputProps, TextAreaInput } from '../forms/inputs';
+import { asyncMessage, messageMessage, warningMessage } from '../forms/validation';
+import { useInternalValidator } from '../forms/inputs/hooks';
 
 import './SpelInput.less';
 

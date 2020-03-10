@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AccountService, IArtifactAccount } from 'core/account';
-import { ExpectedArtifactService } from 'core/artifact';
+import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
 import { HelpField } from 'core/help';
 import { WizardModal, WizardPage } from 'core/modal/wizard';

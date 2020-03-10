@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application';
 import { IPipeline, IPipelineCommand, IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
-import { ManualExecutionModal } from 'core/pipeline';
+import { ManualExecutionModal } from '../manualExecution';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import { CreatePipeline } from '../config/CreatePipeline';

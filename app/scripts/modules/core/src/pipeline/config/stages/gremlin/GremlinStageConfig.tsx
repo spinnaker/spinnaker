@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { API } from 'core/api/ApiService';
-import { IStageConfigProps, StageConfigField } from 'core/pipeline';
+import { IStageConfigProps, StageConfigField } from '../common';
 import { Observable } from 'rxjs';
 import Select from 'react-select';
 

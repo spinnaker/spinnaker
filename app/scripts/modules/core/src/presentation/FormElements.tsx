@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Tooltip } from 'core/presentation';
+import { Tooltip } from './Tooltip';
 
 export const SpInput = (
   props: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & {

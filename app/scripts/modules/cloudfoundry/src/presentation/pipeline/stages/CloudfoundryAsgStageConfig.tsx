@@ -11,7 +11,7 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 
-import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
+import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
 
 export interface ICloudfoundryAsgStageConfigState {
   accounts: IAccount[];

@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { SETTINGS } from 'core/config/settings';
-import { IStageConfigProps, FormikStageConfig } from 'core/pipeline';
+import { FormikStageConfig } from '../FormikStageConfig';
+import { IStageConfigProps } from '../common';
 import { FormikFormField, TextInput } from 'core/presentation';
 import { HelpField } from 'core/help';
 

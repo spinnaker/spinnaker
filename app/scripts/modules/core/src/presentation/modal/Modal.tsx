@@ -4,7 +4,8 @@ import { CSSTransition } from 'react-transition-group';
 
 const { useMemo } = React;
 
-import { useEventListener, useContainerClassNames, useLatestCallback, TabBoundary } from 'core/presentation';
+import { useLatestCallback, useContainerClassNames, useEventListener } from '../hooks';
+import { TabBoundary } from '../TabBoundary';
 
 import { ModalContext } from './ModalContext';
 import styles from './Modal.module.css';

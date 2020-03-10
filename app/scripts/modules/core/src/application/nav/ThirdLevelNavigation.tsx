@@ -2,7 +2,7 @@ import React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { UISref, UISrefActive } from '@uirouter/react';
 
-import { Application } from 'core/application';
+import { Application } from '../application.model';
 import { IDataSourceCategory } from './ApplicationHeader';
 import { DataSourceEntry } from './DataSourceEntry';
 

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
 import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateV2Service } from './templates/v2/pipelineTemplateV2.service';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 import { module } from 'angular';

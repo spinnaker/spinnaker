@@ -1,4 +1,4 @@
-import { ITransformer } from 'core/pipeline';
+import { ITransformer } from '../../PipelineRegistry';
 import { Application } from 'core/application';
 import { IExecution } from 'core/domain';
 

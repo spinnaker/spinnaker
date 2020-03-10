@@ -5,7 +5,7 @@ import { unset } from 'lodash';
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { IModalComponentProps } from 'core/presentation';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface IUnlockPipelineModalProps extends IModalComponentProps {
   pipeline: IPipeline;

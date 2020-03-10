@@ -2,7 +2,7 @@ import { ApplicationHeader } from './nav/ApplicationHeader';
 import React from 'react';
 import { UIView } from '@uirouter/react';
 
-import { Application } from 'core/application';
+import { Application } from './application.model';
 import { RecentHistoryService } from 'core/history';
 import { DebugWindow } from 'core/utils/consoleDebug';
 

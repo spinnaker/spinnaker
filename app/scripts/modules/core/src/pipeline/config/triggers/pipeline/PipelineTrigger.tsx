@@ -3,7 +3,7 @@ import { FormikProps } from 'formik';
 
 import { ApplicationReader } from 'core/application';
 import { IPipelineTrigger } from 'core/domain';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { ChecklistInput, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
 
 export interface IPipelineTriggerConfigProps {

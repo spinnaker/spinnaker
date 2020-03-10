@@ -1,7 +1,7 @@
 import React from 'react';
 import { get, isBoolean, isString } from 'lodash';
 
-import { StageFailureMessage } from 'core/pipeline';
+import { StageFailureMessage } from '../../../details';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
-import { Application, ApplicationDataSource, IFetchStatus } from 'core/application';
+import { Application } from '../application.model';
+import { ApplicationDataSource, IFetchStatus } from '../service/applicationDataSource';
 import { Refresher } from 'core/presentation/refresher/Refresher';
 
 export interface IApplicationRefresherProps {

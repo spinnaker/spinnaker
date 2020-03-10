@@ -28,7 +28,9 @@ import {
   ITrigger,
 } from 'core/domain';
 import { AppNotificationsService } from 'core/notification/AppNotificationsService';
-import { ArtifactList, IPipelineTemplateConfig, ITriggerTemplateComponentProps } from 'core/pipeline';
+import { ArtifactList } from '../status/ArtifactList';
+import { IPipelineTemplateConfig } from '../config/templates';
+import { ITriggerTemplateComponentProps } from './TriggerTemplate';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 import { UrlParser } from 'core/navigation/urlParser';

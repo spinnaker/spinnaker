@@ -1,5 +1,5 @@
-import { CloudProviderRegistry } from 'core/cloudProvider';
 import React from 'react';
+import { CloudProviderRegistry } from '../CloudProviderRegistry';
 import { Modal } from 'react-bootstrap';
 import { IModalComponentProps, ReactModal } from 'core/presentation';
 import { ModalClose } from 'core/modal';

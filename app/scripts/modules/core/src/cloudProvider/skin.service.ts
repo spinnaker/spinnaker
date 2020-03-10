@@ -4,7 +4,7 @@ import { $log, $q } from 'ngimport';
 
 import { SETTINGS } from 'core/config/settings';
 import { AccountService, IAccountDetails } from 'core/account';
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CloudProviderRegistry } from './CloudProviderRegistry';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
 import { IMoniker } from 'core/naming';
 import { Application } from 'core/application';

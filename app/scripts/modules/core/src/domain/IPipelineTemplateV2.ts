@@ -1,4 +1,4 @@
-import { IPipeline } from 'core/domain';
+import { IPipeline } from './IPipeline';
 import { VariableType } from 'core/pipeline/config/templates/PipelineTemplateReader';
 
 export interface IPipelineTemplateV2 {

@@ -8,7 +8,7 @@ import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { IModalComponentProps } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface IDeletePipelineModalProps extends IModalComponentProps {
   application: Application;

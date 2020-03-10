@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { useIsMobile, useDeepObjectDiff } from 'core/presentation';
+import { useIsMobile, useDeepObjectDiff } from '../hooks';
 
 import { ITableRowLayoutProps } from './TableRow';
 import { ITableCellLayoutProps } from './TableCell';

@@ -1,5 +1,5 @@
 import { Registry } from 'core/registry';
-import { ExecutionDetailsTasks } from 'core/pipeline';
+import { ExecutionDetailsTasks } from '../common';
 
 import { ImportDeliveryConfigStageConfig } from './ImportDeliveryConfigStageConfig';
 import { ImportDeliveryConfigExecutionDetails } from './ImportDeliveryConfigExecutionDetails';

@@ -1,5 +1,6 @@
 import { ComponentType, SFC } from 'react';
-import { IArtifactEditorProps, IArtifact } from 'core/domain';
+import { IArtifact } from './IArtifact';
+import { IArtifactEditorProps } from './IArtifactEditorProps';
 
 export interface IArtifactKindConfig {
   label: string;

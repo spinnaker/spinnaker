@@ -3,7 +3,7 @@ import React from 'react';
 import { Application } from 'core/application';
 import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
-import { ILoadBalancerUpsertCommand } from 'core/loadBalancer';
+import { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { IModalComponentProps, Tooltip } from 'core/presentation';
 

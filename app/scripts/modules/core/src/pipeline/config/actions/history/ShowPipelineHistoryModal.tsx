@@ -4,7 +4,7 @@ import { isEmpty } from 'lodash';
 
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { FormField, IModalComponentProps, ReactSelectInput } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 import { IJsonDiff, JsonUtils, timestamp } from 'core/utils';

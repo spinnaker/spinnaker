@@ -1,7 +1,7 @@
 import { isString } from 'lodash';
 
 import { API } from 'core/api';
-import { parseSpelExpressions } from 'core/presentation';
+import { parseSpelExpressions } from '../forms/inputs/expression';
 
 interface IEvaluationException {
   description: string;

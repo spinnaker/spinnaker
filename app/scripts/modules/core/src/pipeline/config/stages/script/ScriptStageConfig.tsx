@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { IStageConfigProps, FormikStageConfig, IContextualValidator } from 'core/pipeline';
+import { IStageConfigProps } from '../common/IStageConfigProps';
+import { FormikStageConfig, IContextualValidator } from '../FormikStageConfig';
 import { FormikFormField, TextInput, TextAreaInput, CheckboxInput, FormValidator } from 'core/presentation';
 import { HelpField } from 'core/help';
 

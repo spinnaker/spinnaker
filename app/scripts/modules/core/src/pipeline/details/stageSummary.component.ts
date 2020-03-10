@@ -6,7 +6,7 @@ import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from 'core/domain';
 import { Registry } from 'core/registry';
 import { ConfirmationModalService } from 'core/confirmationModal';
-import { ExecutionService } from 'core/pipeline';
+import { ExecutionService } from '../service/execution.service';
 
 export class StageSummaryController implements IController {
   public application: Application;

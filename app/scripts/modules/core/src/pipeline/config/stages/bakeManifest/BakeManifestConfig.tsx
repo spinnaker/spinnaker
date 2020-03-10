@@ -2,7 +2,8 @@ import React from 'react';
 import { defaults } from 'lodash';
 
 import { IStage } from 'core/domain';
-import { FormikStageConfig, IStageConfigProps } from 'core/pipeline';
+import { FormikStageConfig } from '../FormikStageConfig';
+import { IStageConfigProps } from '../common';
 import { BakeManifestStageForm } from './BakeManifestStageForm';
 
 export class BakeManifestConfig extends React.Component<IStageConfigProps> {

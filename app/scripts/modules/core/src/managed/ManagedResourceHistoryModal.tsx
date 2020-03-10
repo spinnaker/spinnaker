@@ -18,7 +18,7 @@ import {
 import { relativeTime, timestamp } from 'core/utils';
 import { IManagedResourceSummary, IManagedResourceDiff, IManagedResourceEvent } from 'core/domain';
 import { AccountTag } from 'core/account';
-import { ManagedReader } from 'core/managed';
+import { ManagedReader } from './ManagedReader';
 import { Spinner } from 'core/widgets';
 
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';

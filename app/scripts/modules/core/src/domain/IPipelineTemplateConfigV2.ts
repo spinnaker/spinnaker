@@ -1,4 +1,4 @@
-import { IPipeline } from 'core/domain';
+import { IPipeline } from './IPipeline';
 
 export interface IPipelineTemplateConfigV2 extends Partial<IPipeline> {
   exclude?: string[];

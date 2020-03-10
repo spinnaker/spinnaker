@@ -10,7 +10,7 @@ import { Registry } from 'core/registry';
 import { ExecutionDetailsTasks } from '../common';
 import { PipelineStageExecutionDetails } from './PipelineStageExecutionDetails';
 import { PipelineParametersExecutionDetails } from './PipelineParametersExecutionDetails';
-import { PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../templates';
 
 export const CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE = 'spinnaker.core.pipeline.stage.pipelineStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE; // for backwards compatibility

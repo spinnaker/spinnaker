@@ -2,7 +2,8 @@ import React from 'react';
 import ReactGA from 'react-ga';
 import { isUndefined } from 'lodash';
 
-import { HelpContentsRegistry, HelpTextExpandedContext } from 'core/help';
+import { HelpContentsRegistry } from './helpContents.registry';
+import { HelpTextExpandedContext } from './HelpTextExpandedContext';
 import { HoverablePopover, Markdown, Placement } from 'core/presentation';
 
 export interface IHelpFieldProps {

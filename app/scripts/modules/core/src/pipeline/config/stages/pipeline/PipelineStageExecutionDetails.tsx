@@ -1,7 +1,8 @@
 import React from 'react';
 import { UISref } from '@uirouter/react';
 
-import { IExecutionDetailsSectionProps, ExecutionDetailsSection, StageFailureMessage } from 'core/pipeline';
+import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from '../common';
+import { StageFailureMessage } from '../../../details';
 import { IPipeline } from 'core/domain';
 import { useLatestPromise } from 'core/presentation/hooks/useLatestPromise.hook';
 

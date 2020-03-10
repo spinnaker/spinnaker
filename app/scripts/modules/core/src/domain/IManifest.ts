@@ -1,5 +1,5 @@
 import { IMoniker } from 'core/naming/IMoniker';
-import { IArtifact } from 'core/domain';
+import { IArtifact } from './IArtifact';
 
 export interface IManifest {
   name: string;

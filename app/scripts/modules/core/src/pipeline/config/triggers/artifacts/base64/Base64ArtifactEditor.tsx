@@ -3,7 +3,7 @@ import { has, cloneDeep } from 'lodash';
 
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';
-import { StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../../../stages/common';
 import { CopyToClipboard } from 'core/utils';
 import { SpelText } from 'core/widgets';
 

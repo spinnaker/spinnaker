@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { IFormikStageConfigInjectedProps, StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
+import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 import { StageArtifactSelectorDelegate, ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
 import { IArtifact, IPipeline } from 'core/domain';
 import { TextInput } from 'core/presentation';

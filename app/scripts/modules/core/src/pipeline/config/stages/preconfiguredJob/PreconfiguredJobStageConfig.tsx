@@ -1,7 +1,7 @@
 import React from 'react';
 import { set } from 'lodash';
 
-import { IStageConfigProps, StageConfigField } from 'core/pipeline';
+import { IStageConfigProps, StageConfigField } from '../common';
 import { IPreconfiguredJobParameter } from './preconfiguredJob.reader';
 
 export class PreconfiguredJobStageConfig extends React.Component<IStageConfigProps> {

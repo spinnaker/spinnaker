@@ -5,7 +5,7 @@ import { IPipeline, IPipelineLock } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { CheckboxInput, FormField, IModalComponentProps, TextInput } from 'core/presentation';
 import { HelpField } from 'core/help';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 
 export interface ILockPipelineModalProps extends IModalComponentProps {
   pipeline: IPipeline;

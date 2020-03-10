@@ -9,7 +9,7 @@ import { Subject } from 'rxjs';
 import { ReactInjector } from 'core/reactShims';
 import { IProject } from 'core/domain';
 import { SpanDropdownTrigger } from 'core/presentation';
-import { ConfigureProjectModal } from 'core/projects';
+import { ConfigureProjectModal } from './configure/ConfigureProjectModal';
 
 import './project.less';
 

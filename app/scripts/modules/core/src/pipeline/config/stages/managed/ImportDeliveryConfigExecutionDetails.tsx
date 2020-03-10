@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
+import { StageFailureMessage } from '../../../details';
 import { IGitTrigger } from 'core/domain';
 import { CollapsibleSection, Markdown } from 'core/presentation';
 import { SETTINGS } from 'core/config';

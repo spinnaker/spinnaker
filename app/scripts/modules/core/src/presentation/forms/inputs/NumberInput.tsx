@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInternalValidator } from 'core/presentation';
+import { useInternalValidator } from './hooks/useInternalValidator.hook';
 import { composeValidators, IValidator, Validators } from '../validation';
 import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 

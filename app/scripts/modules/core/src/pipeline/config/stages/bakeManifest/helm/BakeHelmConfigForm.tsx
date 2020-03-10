@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StageConfigField } from 'core/pipeline';
+import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 import { CheckboxInput, TextInput } from 'core/presentation';
 import { MapEditor } from 'core/forms';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';

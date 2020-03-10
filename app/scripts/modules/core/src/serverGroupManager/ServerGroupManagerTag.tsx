@@ -4,7 +4,7 @@ import { Application } from 'core/application';
 import { IServerGroupManager, IServerGroup } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
-import { IServerGroupManagerStateParams } from 'core/serverGroupManager';
+import { IServerGroupManagerStateParams } from './serverGroupManager.states';
 
 export interface IServerGroupManagerTagProps {
   application: Application;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { UISref } from '@uirouter/react';
 
-import { Application } from 'core/application';
+import { Application } from '../application.model';
 import { IEntityTags } from 'core/domain';
 import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
 

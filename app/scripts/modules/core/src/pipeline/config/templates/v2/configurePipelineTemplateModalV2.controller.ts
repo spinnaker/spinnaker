@@ -4,7 +4,7 @@ import { without, chain, has } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import { IPipelineTemplateConfigV2 } from 'core/domain';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { VariableValidatorService } from '../validators/variableValidator.service';
 
 import {

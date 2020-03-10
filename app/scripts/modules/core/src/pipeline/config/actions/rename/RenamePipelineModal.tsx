@@ -6,7 +6,7 @@ import { Form } from 'formik';
 import { Application } from 'core/application';
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
-import { PipelineConfigService } from 'core/pipeline';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 import {
   FormikFormField,
   IModalComponentProps,

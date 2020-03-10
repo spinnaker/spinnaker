@@ -5,7 +5,7 @@ import { API } from 'core/api/ApiService';
 import { IPipeline } from 'core/domain/IPipeline';
 import { IPipelineTemplateV2Collections } from 'core/domain/IPipelineTemplateV2';
 import { IPipelineTemplateConfigV2 } from 'core/domain';
-import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateV2Service } from './v2/pipelineTemplateV2.service';
 
 export interface IPipelineTemplate {
   id: string;
