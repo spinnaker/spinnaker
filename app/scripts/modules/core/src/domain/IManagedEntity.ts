@@ -24,6 +24,49 @@ export interface IManagedResourceSummary {
   };
 }
 
+export interface IManagedEnvironmentArtifact {
+  name: string;
+  type: string;
+  statuses: string[];
+  versions: {
+    current: string;
+    pending: string[];
+    approved: string[];
+    previous: string[];
+    vetoed: string[];
+  };
+}
+
+export interface IManagedEnviromentSummary {
+  artifacts: IManagedEnvironmentArtifact[];
+  name: string;
+  resources: string[];
+}
+
+export interface IManagedArtifactVersionEnvironmentSummary {
+  name: string;
+  state: string;
+  deployedAt?: string;
+  replacedAt?: string;
+  replacedBy?: string;
+}
+
+export interface IManagedArtifactVersion {
+  version: string;
+  environments: IManagedArtifactVersionEnvironmentSummary[];
+}
+
+export interface IManagedArtifactSummary {
+  name: string;
+  type: string;
+  versions: IManagedArtifactVersion[];
+}
+
+export interface IManagedApplicationEnvironmentsSummary extends IManagedApplicationSummary {
+  environments: IManagedEnviromentSummary[];
+  artifacts: IManagedArtifactSummary[];
+}
+
 export interface IManagedApplicationSummary {
   applicationPaused: boolean;
   hasManagedResources: boolean;

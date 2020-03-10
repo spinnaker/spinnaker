@@ -61,10 +61,10 @@ const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse
   }, {} as IManagedResourceDiff);
 
 export class ManagedReader {
-  public static getApplicationSummary(app: string): IPromise<IManagedApplicationSummary> {
+  public static getApplicationSummary(app: string, entities = ['resources']): IPromise<IManagedApplicationSummary> {
     return API.one('managed')
       .one('application', app)
-      .withParams({ includeDetails: true })
+      .withParams({ includeDetails: true, entities: entities.join(',') })
       .get()
       .then((response: IManagedApplicationSummary) => {
         // Individual resources don't update their status when an application is paused/resumed,
@@ -91,5 +91,9 @@ export class ManagedReader {
         });
         return response as IManagedResourceEventHistory;
       });
+  }
+
+  public static getEnvironmentsSummary(app: string): IPromise<IManagedApplicationSummary> {
+    return this.getApplicationSummary(app, ['resources', 'artifacts', 'environments']);
   }
 }
