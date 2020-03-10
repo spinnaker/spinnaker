@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.sdk
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry
+import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 
 /**
  * The implementation of the [PluginSdks] SDK.
@@ -28,6 +29,9 @@ class PluginSdksImpl(
 
   override fun http(): HttpClientRegistry =
     service(HttpClientRegistry::class.java)
+
+  override fun yamlResourceLoader(): YamlResourceLoader =
+    service(YamlResourceLoader::class.java)
 
   private fun <T> service(serviceClass: Class<T>): T =
     sdkServices.filterIsInstance(serviceClass).firstOrNull()

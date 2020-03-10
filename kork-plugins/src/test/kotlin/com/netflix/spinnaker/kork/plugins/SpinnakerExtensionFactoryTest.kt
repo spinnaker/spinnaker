@@ -18,9 +18,11 @@ package com.netflix.spinnaker.kork.plugins
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
+import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
+import com.netflix.spinnaker.kork.plugins.sdk.yaml.YamlResourceLoaderSdkFactory
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -95,7 +97,9 @@ class SpinnakerExtensionFactoryTest : JUnit5Minutests {
         expectThat(subject.create(MyPlugin.SdkAwareExtension::class.java))
           .isA<MyPlugin.SdkAwareExtension>()
           .get { sdks }
-          .isA<PluginSdks>()
+          .isA<PluginSdks>().and {
+            get { yamlResourceLoader() }.isA<YamlResourceLoader>()
+          }
       }
     }
   }
@@ -104,7 +108,7 @@ class SpinnakerExtensionFactoryTest : JUnit5Minutests {
     val configResolver: ConfigResolver = mockk(relaxed = true)
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
     val configFactory: ConfigFactory = ConfigFactory(configResolver)
-    val sdkFactories: List<SdkFactory> = listOf()
+    val sdkFactories: List<SdkFactory> = listOf(YamlResourceLoaderSdkFactory())
 
     val subject = SpinnakerExtensionFactory(pluginManager, configFactory, sdkFactories)
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
