@@ -24,36 +24,33 @@ export interface IManagedResourceSummary {
   };
 }
 
-export interface IManagedEnvironmentArtifact {
-  name: string;
-  type: string;
-  statuses: string[];
-  versions: {
-    current: string;
-    pending: string[];
-    approved: string[];
-    previous: string[];
-    vetoed: string[];
-  };
-}
-
 export interface IManagedEnviromentSummary {
-  artifacts: IManagedEnvironmentArtifact[];
   name: string;
   resources: string[];
-}
-
-export interface IManagedArtifactVersionEnvironmentSummary {
-  name: string;
-  state: string;
-  deployedAt?: string;
-  replacedAt?: string;
-  replacedBy?: string;
+  artifacts: Array<{
+    name: string;
+    type: string;
+    statuses: string[];
+    versions: {
+      current?: string;
+      deploying?: string;
+      pending: string[];
+      approved: string[];
+      previous: string[];
+      vetoed: string[];
+    };
+  }>;
 }
 
 export interface IManagedArtifactVersion {
   version: string;
-  environments: IManagedArtifactVersionEnvironmentSummary[];
+  environments: Array<{
+    name: string;
+    state: string;
+    deployedAt?: string;
+    replacedAt?: string;
+    replacedBy?: string;
+  }>;
 }
 
 export interface IManagedArtifactSummary {
@@ -67,11 +64,19 @@ export interface IManagedApplicationEnvironmentsSummary extends IManagedApplicat
   artifacts: IManagedArtifactSummary[];
 }
 
-export interface IManagedApplicationSummary {
+export interface IManagedApplicationEntities {
+  resources: IManagedResourceSummary[];
+  environments: IManagedEnviromentSummary[];
+  artifacts: IManagedArtifactSummary[];
+}
+
+export type IManagedApplicationSummary<T extends keyof IManagedApplicationEntities = 'resources'> = Pick<
+  IManagedApplicationEntities,
+  T
+> & {
   applicationPaused: boolean;
   hasManagedResources: boolean;
-  resources: IManagedResourceSummary[];
-}
+};
 
 export interface IManagedResource {
   managedResourceSummary?: IManagedResourceSummary;
