@@ -44,10 +44,10 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/eslint-plugin@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.4.tgz#1d53907c9f33c45e791114de9274bd6012afac45"
-  integrity sha512-vDcFPA5T9A5P5/jWflZ6TuyUd4dwjx/UxBpGQZ8jJJJ+AqoNxhChUXJQ61Bz3/gp7YXD+WFHY+quOyRrH8SQCA==
+"@spinnaker/eslint-plugin@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.5.tgz#1d59f02223191584e4b59c25466be9b5510526d6"
+  integrity sha512-wX0FlKRKJCHlbdOwU6WhjEYYceIbNTSdAgv63/5CClsKXZBWB9dLjcXZUsObKNJ9WsPDIhLhyG2izLdtjlmLPw==
   dependencies:
     lodash "^4.17.15"
 
