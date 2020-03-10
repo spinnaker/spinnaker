@@ -188,4 +188,19 @@ class Keys implements KeyParser {
   static String getInstanceHealthKey(String id, String healthProvider) {
     "${TitusCloudProvider.ID}:${Namespace.HEALTH}:${id}:${healthProvider}"
   }
+
+  static String removeSchemaVersion(String key) {
+    def parts = key.split(':')
+
+    if ((parts.length < 2) || (parts[0] != TitusCloudProvider.ID)) {
+      return key
+    }
+
+    if ((parts[2] != CachingSchema.V2.toString()) && (parts[2] != CachingSchema.V1.toString())) {
+      return key
+    }
+
+    parts[2] = null
+    return parts.findAll({ it != null }).join(':')
+  }
 }

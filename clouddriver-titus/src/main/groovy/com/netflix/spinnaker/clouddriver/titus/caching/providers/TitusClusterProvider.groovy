@@ -219,7 +219,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
     account = Optional.ofNullable(account).orElse("*")
     region = Optional.ofNullable(region).orElse("*")
 
-    return cacheView.filterIdentifiers(SERVER_GROUPS.ns, Keys.getServerGroupKey("*", "*", account, region))
+    Collection<String> ids = cacheView.filterIdentifiers(SERVER_GROUPS.ns, Keys.getServerGroupKey("*", "*", account, region))
+
+    return ids.collect({ id ->
+      Keys.removeSchemaVersion(id)
+    }).toList()
   }
 
   @Override
