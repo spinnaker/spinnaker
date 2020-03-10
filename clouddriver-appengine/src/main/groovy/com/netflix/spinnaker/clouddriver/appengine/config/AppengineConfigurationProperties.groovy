@@ -34,7 +34,7 @@ class AppengineConfigurationProperties {
     static final String metadataUrl = "http://metadata.google.internal/computeMetadata/v1"
 
     String serviceAccountEmail
-    String localRepositoryDirectory
+    String localRepositoryDirectory = "/var/tmp/clouddriver"
     String gitHttpsUsername
     String gitHttpsPassword
     String githubOAuthAccessToken

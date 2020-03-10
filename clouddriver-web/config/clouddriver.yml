@@ -64,7 +64,7 @@ aws:
   #  proxyWorkstation: foo
   #  protocol: HTTP
   defaults:
-    iamRole: FooRole
+    iamRole: BaseIAMRole
     unknownInstanceTypeBlockDevice:
       deviceName: /dev/sdb
       size: 40
