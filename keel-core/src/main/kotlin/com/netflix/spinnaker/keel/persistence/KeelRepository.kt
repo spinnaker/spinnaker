@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
@@ -173,7 +173,7 @@ interface KeelRepository {
 
   fun markAsSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String)
 
-  fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary>
+  fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary>
 
   fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin)
 

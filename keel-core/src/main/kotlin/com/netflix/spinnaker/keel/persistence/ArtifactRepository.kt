@@ -4,9 +4,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 
 interface ArtifactRepository {
@@ -163,7 +164,7 @@ interface ArtifactRepository {
   /**
    * Fetches the status of artifact versions in the environments of [deliveryConfig].
    */
-  fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary>
+  fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary>
 
   /**
    * Pin an environment to only deploy a specific DeliveryArtifact version
@@ -185,6 +186,14 @@ interface ArtifactRepository {
    * Removes a specific pin from [targetEnvironment], by [reference] and [type].
    */
   fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String, type: ArtifactType)
+
+  fun getArtifactSummaryInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactName: String,
+    artifactType: ArtifactType,
+    version: String
+  ): ArtifactSummaryInEnvironment?
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :

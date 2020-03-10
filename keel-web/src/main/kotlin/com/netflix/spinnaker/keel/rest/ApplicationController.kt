@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.pause.ActuationPauser
-import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
+import com.netflix.spinnaker.keel.services.ApplicationService
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -33,8 +33,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/application"])
 class ApplicationController(
-  private val repository: KeelRepository,
-  private val actuationPauser: ActuationPauser
+  private val actuationPauser: ActuationPauser,
+  private val applicationService: ApplicationService
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -44,32 +44,21 @@ class ApplicationController(
   )
   fun get(
     @PathVariable("application") application: String,
-    @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean
+    @RequestParam("entities", required = false, defaultValue = "") entities: List<String>
   ): Map<String, Any> {
-    if (includeDetails) {
-      var resources = repository.getSummaryByApplication(application)
-      resources = resources.map { summary ->
-        if (actuationPauser.resourceIsPaused(summary.id)) {
-          // we only update the status if the individual resource is paused,
-          // because the application pause is reflected in the response as a top level key.
-          summary.copy(status = PAUSED)
-        } else {
-          summary
+    return mutableMapOf<String, Any>(
+      "applicationPaused" to actuationPauser.applicationIsPaused(application),
+      "hasManagedResources" to applicationService.hasManagedResources(application)
+    ).also { results ->
+      entities.forEach { entity ->
+        results[entity] = when (entity) {
+          "resources" -> applicationService.getResourceSummariesFor(application)
+          "environments" -> applicationService.getEnvironmentSummariesFor(application)
+          "artifacts" -> applicationService.getArtifactSummariesFor(application)
+          else -> throw InvalidRequestException("Unknown entity type: $entity")
         }
       }
-      val constraintStates = repository.constraintStateFor(application)
-
-      return mapOf(
-        "applicationPaused" to actuationPauser.applicationIsPaused(application),
-        "hasManagedResources" to resources.isNotEmpty(),
-        "resources" to resources,
-        "currentEnvironmentConstraints" to constraintStates
-      )
     }
-    return mapOf(
-      "applicationPaused" to actuationPauser.applicationIsPaused(application),
-      "hasManagedResources" to repository.hasManagedResources(application)
-    )
   }
 
   @PostMapping(

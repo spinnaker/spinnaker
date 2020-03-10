@@ -103,7 +103,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     artifact: DeliveryArtifact = artifact1
   ): ArtifactVersionStatus {
     return subject
-      .versionsByEnvironment(manifest)
+      .getEnvironmentSummaries(manifest)
       .first { it.name == environment.name }
       .artifacts
       .first {

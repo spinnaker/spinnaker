@@ -44,7 +44,7 @@ import strikt.assertions.isTrue
 import strikt.assertions.succeeded
 
 /**
- * Tests that involve creating, updateting, or deleting things from two or more of the three repositories present.
+ * Tests that involve creating, updating, or deleting things from two or more of the three repositories present.
  *
  * Tests that only apply to one repository should live in the repository-specific test classes.
  */

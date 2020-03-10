@@ -8,11 +8,12 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.comparator
@@ -39,6 +40,7 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Instant
+import java.time.ZoneOffset
 import javax.xml.bind.DatatypeConverter
 import org.jooq.DSLContext
 import org.jooq.Record1
@@ -578,7 +580,7 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> {
+  override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> {
     return deliveryConfig.environments.map { environment ->
       val artifactVersions = deliveryConfig.artifacts.map { artifact ->
         val versionsInEnvironment = jooq
@@ -672,8 +674,8 @@ class SqlArtifactRepository(
             vetoed = versions[VETOED] ?: emptyList()
           )
         )
-      }
-      EnvironmentArtifactsSummary(environment.name, artifactVersions)
+      }.toSet()
+      EnvironmentSummary(environment, artifactVersions)
     }
   }
 
@@ -769,6 +771,71 @@ class SqlArtifactRepository(
           ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
         .fetch { (envUid, artUid) ->
           deletePin(envUid, artUid)
+        }
+    }
+  }
+
+  override fun getArtifactSummaryInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactName: String,
+    artifactType: ArtifactType,
+    version: String
+  ): ArtifactSummaryInEnvironment? {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID,
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+          ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
+          ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS
+        )
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .innerJoin(ENVIRONMENT)
+        .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(
+          select(ENVIRONMENT.UID).from(ENVIRONMENT).where(ENVIRONMENT.NAME.eq(environmentName)))
+        )
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(
+          select(DELIVERY_ARTIFACT.UID)
+            .from(DELIVERY_ARTIFACT)
+            .where(DELIVERY_ARTIFACT.NAME.eq(artifactName))
+            .and(DELIVERY_ARTIFACT.TYPE.eq(artifactType.name)))
+        )
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+        .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
+        .limit(1)
+        .fetchOne { (environmentUid, artifactUid, version, deployedAt, promotionStatus) ->
+          val (replacedBy, replacedAt) = when (promotionStatus) {
+            CURRENT.name, PREVIOUS.name -> {
+              jooq
+                .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT)
+                .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+                .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+                .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactUid))
+                .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
+                .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
+                .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.greaterThan(deployedAt))
+                .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
+                .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.asc())
+                .limit(1)
+                .fetchOne { (replacedBy, replacedAt) ->
+                  Pair(replacedBy, replacedAt.toInstant(ZoneOffset.UTC))
+                } ?: Pair(null, null)
+            }
+            else -> Pair(null, null)
+          }
+
+          ArtifactSummaryInEnvironment(
+            environment = environmentName,
+            version = version,
+            state = promotionStatus.toLowerCase(),
+            deployedAt = deployedAt.toInstant(ZoneOffset.UTC),
+            replacedAt = replacedAt,
+            replacedBy = replacedBy
+          )
         }
     }
   }

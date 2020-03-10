@@ -5,11 +5,13 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
@@ -340,7 +342,7 @@ class InMemoryArtifactRepository : ArtifactRepository {
     statuses[version] = DEPLOYING
   }
 
-  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> =
+  override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> =
     deliveryConfig
       .environments
       .map { environment ->
@@ -375,7 +377,8 @@ class InMemoryArtifactRepository : ArtifactRepository {
               )
             )
           }
-        EnvironmentArtifactsSummary(environment.name, artifactVersions)
+          .toSet()
+        EnvironmentSummary(environment, artifactVersions)
       }
 
   override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
@@ -425,10 +428,36 @@ class InMemoryArtifactRepository : ArtifactRepository {
       .forEach { pinnedVersions.remove(it.key) }
   }
 
+  override fun getArtifactSummaryInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactName: String,
+    artifactType: ArtifactType,
+    version: String
+  ): ArtifactSummaryInEnvironment? {
+    val artifact = deliveryConfig.artifacts.find { it ->
+      it.deliveryConfigName == deliveryConfig.name && it.name == artifactName && it.type == artifactType
+    } ?: throw ArtifactNotFoundException(artifactName, artifactType, "", deliveryConfig.name)
+
+    val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
+    val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environmentName)
+    val statuses = statusByEnvironment.getOrDefault(key, emptyMap<String, String>())
+
+    return ArtifactSummaryInEnvironment(
+      environment = environmentName,
+      version = version,
+      state = statuses.filterKeys { it == version }.values.first().toString().toLowerCase(),
+      deployedAt = null, // TODO
+      replacedAt = null, // TODO
+      replacedBy = null // TODO
+    )
+  }
+
   fun dropAll() {
     artifacts.clear()
     approvedVersions.clear()
     deployedVersions.clear()
+    versions.clear()
   }
 
   private data class ArtifactVersionAndStatus(

@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
@@ -368,8 +368,8 @@ class CombinedRepository(
   override fun markAsSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, version, targetEnvironment)
 
-  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> =
-    artifactRepository.versionsByEnvironment(deliveryConfig)
+  override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> =
+    artifactRepository.getEnvironmentSummaries(deliveryConfig)
 
   override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) =
     artifactRepository.pinEnvironment(deliveryConfig, environmentArtifactPin)

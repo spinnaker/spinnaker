@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.EnvironmentDiff
@@ -84,17 +83,6 @@ class DeliveryConfigController(
   // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
     //  in [ExceptionHandler])
     mapOf("status" to "valid")
-
-  @GetMapping(
-    path = ["/{name}/artifacts"],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  fun getArtifacts(
-    @PathVariable("name") name: String
-  ): List<EnvironmentArtifactsSummary> =
-    repository.getDeliveryConfig(name).let {
-      repository.versionsByEnvironment(it)
-    }
 
   @GetMapping(
     path = ["/{name}/environment/{environment}/constraints"],
