@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Application extends BaseAccessControlled implements Viewable {
+public class Application extends BaseAccessControlled<Application> implements Viewable {
   final ResourceType resourceType = ResourceType.APPLICATION;
 
   private String name;

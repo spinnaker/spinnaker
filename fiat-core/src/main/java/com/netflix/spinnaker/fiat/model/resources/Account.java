@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Account extends BaseAccessControlled implements Viewable {
+public class Account extends BaseAccessControlled<Account> implements Viewable {
   final ResourceType resourceType = ResourceType.ACCOUNT;
 
   private String name;
@@ -33,6 +33,7 @@ public class Account extends BaseAccessControlled implements Viewable {
   private Permissions permissions = Permissions.EMPTY;
 
   @JsonIgnore
+  @Override
   public View getView(Set<Role> userRoles, boolean isAdmin) {
     return new View(this, userRoles, isAdmin);
   }
