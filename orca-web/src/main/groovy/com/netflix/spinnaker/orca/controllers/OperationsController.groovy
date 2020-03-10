@@ -420,7 +420,7 @@ class OperationsController {
         noUserConfigurableFields: true,
         parameters: it.parameters,
         producesArtifacts: it.producesArtifacts,
-        ui: it.uiType
+        uiType: it.uiType
       ]
     }
   }
