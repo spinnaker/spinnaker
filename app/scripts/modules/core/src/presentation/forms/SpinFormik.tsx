@@ -10,7 +10,8 @@ import { traverseObject } from 'core/utils';
  * Use this component like you would use the <Formik/> component
  */
 function SpinFormikImpl<Values extends {}>(props: FormikConfig<Values>, ref?: React.MutableRefObject<Formik<Values>>) {
-  const formikRef = ref || React.useRef<Formik<Values>>();
+  const defaultRef = React.useRef<Formik<Values>>();
+  const formikRef = ref || defaultRef;
   const [refSaved, setRefSaved] = React.useState(false);
   const [ready, setReady] = React.useState(false);
 

@@ -26,6 +26,14 @@ export function ManualExecutionBakeManifest(props: ITriggerTemplateComponentProp
     props.updateCommand('extraFields.artifacts', updatedArtifacts);
   };
 
+  React.useEffect(() => {
+    if (overrideArtifact === false) {
+      removeHelmArtifact();
+    } else {
+      updateHelmArtifact(defaultArtifact);
+    }
+  }, [overrideArtifact]);
+
   /*
   Only allow manual override of a helm chart artifact when there is exactly one Helm
   Bake (Manifest) stage and exactly one artifact of type `helm/chart`.
@@ -50,14 +58,6 @@ export function ManualExecutionBakeManifest(props: ITriggerTemplateComponentProp
     ...expectedHelmArtifacts[0].matchArtifact,
     version: null,
   };
-
-  React.useEffect(() => {
-    if (overrideArtifact === false) {
-      removeHelmArtifact();
-    } else {
-      updateHelmArtifact(defaultArtifact);
-    }
-  }, [overrideArtifact]);
 
   return (
     <>
