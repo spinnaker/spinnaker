@@ -20,13 +20,26 @@ allprojects {
   if (Boolean.valueOf(enablePublishing)) {
     apply plugin: 'spinnaker.project'
   }
-  apply plugin: "groovy"
 
   group = "com.netflix.spinnaker.rosco"
 
-  tasks.withType(JavaExec) {
-    if (System.getProperty('DEBUG', 'false') == 'true') {
-      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8187'
+  if (name != "rosco-bom") {
+    apply plugin: "groovy"
+
+    dependencies {
+      implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+
+      annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor "org.projectlombok:lombok"
+      annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+      testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor "org.projectlombok:lombok"
+    }
+
+    test {
+      testLogging {
+        exceptionFormat = 'full'
+      }
     }
   }
 }
@@ -39,19 +52,9 @@ subprojects {
     }
   }
 
-  dependencies {
-    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-
-    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    annotationProcessor "org.projectlombok:lombok"
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-    testAnnotationProcessor "org.projectlombok:lombok"
-  }
-
-  test {
-    testLogging {
-      exceptionFormat = 'full'
+  tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8187'
     }
   }
 }
