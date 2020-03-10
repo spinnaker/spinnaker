@@ -19,11 +19,13 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client;
 import com.huawei.openstack4j.api.OSClient;
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone;
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor;
+import com.huawei.openstack4j.openstack.ims.v2.domain.Image;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc;
 import com.netflix.spinnaker.clouddriver.huaweicloud.exception.HuaweiCloudException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -56,6 +58,25 @@ public class HuaweiCloudClientImpl implements HuaweiCloudClient {
     return handleInvoking(
         String.format("getting zones in region(%s)", region),
         () -> getRegionClient(region).compute().zones().list(),
+        emptyList());
+  }
+
+  @Override
+  public List<? extends Image> getImages(String region) throws HuaweiCloudException {
+    return handleInvoking(
+        String.format("getting images in region(%s)", region),
+        () ->
+            getRegionClient(region)
+                .imsV2()
+                .images()
+                .list(
+                    new HashMap() {
+                      {
+                        put("__imagetype", "gold");
+                        put("status", "active");
+                        put("virtual_env_type", "FusionCompute");
+                      }
+                    }),
         emptyList());
   }
 
