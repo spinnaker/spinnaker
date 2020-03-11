@@ -23,6 +23,13 @@ class InMemoryDeliveryConfigRepository(
   private val applicationConstraintMapper = mutableMapOf<String, MutableSet<String>>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
 
+  fun dropAll() {
+    configs.clear()
+    constraints.clear()
+    applicationConstraintMapper.clear()
+    lastCheckTimes.clear()
+  }
+
   override fun getByApplication(application: String) =
     configs.values.filter { it.application == application }
 
@@ -162,11 +169,6 @@ class InMemoryDeliveryConfigRepository(
         }
       }
       .map { name -> configs[name] ?: error("No delivery config named $name") }
-  }
-
-  fun dropAll() {
-    configs.clear()
-    constraints.clear()
   }
 
   private val Environment.resourceIds: Iterable<String>

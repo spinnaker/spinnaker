@@ -44,12 +44,19 @@ class ApplicationController(
   )
   fun get(
     @PathVariable("application") application: String,
-    @RequestParam("entities", required = false, defaultValue = "") entities: List<String>
+    @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean,
+    @RequestParam("entities", required = false, defaultValue = "") entities: MutableList<String>
   ): Map<String, Any> {
     return mutableMapOf<String, Any>(
       "applicationPaused" to actuationPauser.applicationIsPaused(application),
-      "hasManagedResources" to applicationService.hasManagedResources(application)
+      "hasManagedResources" to applicationService.hasManagedResources(application),
+      "currentEnvironmentConstraints" to applicationService.getConstraintStatesFor(application)
+
     ).also { results ->
+      // for backwards-compatibility
+      if (includeDetails && !entities.contains("resources")) {
+        entities.add("resources")
+      }
       entities.forEach { entity ->
         results[entity] = when (entity) {
           "resources" -> applicationService.getResourceSummariesFor(application)

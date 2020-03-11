@@ -28,6 +28,8 @@ class ApplicationService(
 
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
+  fun getConstraintStatesFor(application: String) = repository.constraintStateFor(application)
+
   /**
    * Returns a list of [ResourceSummary] for the specified application.
    *
@@ -85,13 +87,6 @@ class ApplicationService(
 
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
-    // map of artifacts to the environments where they appear
-    val artifactsToEnvironments = environmentSummaries.flatMap { environmentSummary ->
-      environmentSummary.artifacts.map { artifact ->
-        artifact.key to environmentSummary.name
-      }
-    }.toMap()
-
     // map of environments to the set of artifact summaries by state
     val artifactSummariesByEnvironmentAndState = environmentSummaries.associate { environmentSummary ->
       environmentSummary.name to mapOf(
@@ -126,31 +121,29 @@ class ApplicationService(
           val state = it.key
           val versions = it.value
 
-          if (versions != null) {
-            versionSummariesByArtifact[artifact.key]!!.addAll(
-              versions.map { version ->
-                val summaryInEnvironment = artifactRepository.getArtifactSummaryInEnvironment(
-                  deliveryConfig = deliveryConfig,
-                  environmentName = environmentSummary.name,
-                  artifactName = artifact.name,
-                  artifactType = artifact.type,
-                  version = version
-                )
+          versionSummariesByArtifact[artifact.key]!!.addAll(
+            versions.map { version ->
+              val summaryInEnvironment = artifactRepository.getArtifactSummaryInEnvironment(
+                deliveryConfig = deliveryConfig,
+                environmentName = environmentSummary.name,
+                artifactName = artifact.name,
+                artifactType = artifact.type,
+                version = version
+              )
 
-                ArtifactVersionSummary(
-                  version = version,
-                  environments = artifactSummariesByEnvironmentAndState
-                    .get(environmentSummary.name)!! // safe because we create the maps with these keys above
-                    .get(state)!! // safe because we create the maps with these keys above
-                    .also { artifactSummariesInEnvironment ->
-                      if (summaryInEnvironment != null) {
-                        artifactSummariesInEnvironment.add(summaryInEnvironment)
-                      }
+              ArtifactVersionSummary(
+                version = version,
+                environments = artifactSummariesByEnvironmentAndState
+                  .get(environmentSummary.name)!! // safe because we create the maps with these keys above
+                  .get(state)!! // safe because we create the maps with these keys above
+                  .also { artifactSummariesInEnvironment ->
+                    if (summaryInEnvironment != null) {
+                      artifactSummariesInEnvironment.add(summaryInEnvironment)
                     }
-                )
-              }
-            )
-          }
+                  }
+              )
+            }
+          )
         }
         // finally, create the artifact summary by looking up the version summaries that were built above
         ArtifactSummary(

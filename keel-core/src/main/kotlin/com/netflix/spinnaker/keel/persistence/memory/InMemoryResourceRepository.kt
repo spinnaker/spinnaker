@@ -40,6 +40,13 @@ class InMemoryResourceRepository(
   private val applicationEvents = mutableMapOf<String, MutableList<ApplicationEvent>>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
 
+  fun dropAll() {
+    resources.clear()
+    resourceEvents.clear()
+    applicationEvents.clear()
+    lastCheckTimes.clear()
+  }
+
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
       callback(ResourceHeader(it))
@@ -142,13 +149,6 @@ class InMemoryResourceRepository(
       }
       .map { resources[it]!! }
       .toList()
-  }
-
-  fun dropAll() {
-    resources.clear()
-    resourceEvents.clear()
-    applicationEvents.clear()
-    lastCheckTimes.clear()
   }
 
   fun size() = resources.size

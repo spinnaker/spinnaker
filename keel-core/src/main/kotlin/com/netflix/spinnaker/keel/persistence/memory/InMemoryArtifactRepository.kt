@@ -43,6 +43,17 @@ class InMemoryArtifactRepository : ArtifactRepository {
   private val vetoReference = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, String>>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
+  fun dropAll() {
+    artifacts.clear()
+    approvedVersions.clear()
+    deployedVersions.clear()
+    versions.clear()
+    vetoedVersions.clear()
+    pinnedVersions.clear()
+    statusByEnvironment.clear()
+    vetoReference.clear()
+  }
+
   private data class VersionsKey(
     val name: String,
     val type: ArtifactType
@@ -451,13 +462,6 @@ class InMemoryArtifactRepository : ArtifactRepository {
       replacedAt = null, // TODO
       replacedBy = null // TODO
     )
-  }
-
-  fun dropAll() {
-    artifacts.clear()
-    approvedVersions.clear()
-    deployedVersions.clear()
-    versions.clear()
   }
 
   private data class ArtifactVersionAndStatus(

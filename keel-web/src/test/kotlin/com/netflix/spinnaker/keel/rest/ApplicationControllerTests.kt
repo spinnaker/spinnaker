@@ -137,7 +137,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             """
               {
                 "applicationPaused":false,
-                "hasManagedResources":true
+                "hasManagedResources":true,
+                "currentEnvironmentConstraints":[]
               }
             """.trimIndent()
           ))
@@ -162,7 +163,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
               """
               {
                 "applicationPaused":true,
-                "hasManagedResources":true
+                "hasManagedResources":true,
+                "currentEnvironmentConstraints":[]
               }
             """.trimIndent()
             ))
@@ -293,6 +295,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           .containsExactly(
             "applicationPaused",
             "hasManagedResources",
+            "currentEnvironmentConstraints",
             "resources",
             "environments",
             "artifacts"
@@ -312,6 +315,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           .containsExactly(
             "applicationPaused",
             "hasManagedResources",
+            "currentEnvironmentConstraints",
             "resources",
             "environments",
             "artifacts"
@@ -323,6 +327,39 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           .accept(MediaType.APPLICATION_JSON_VALUE)
         mvc.perform(request)
           .andExpect(status().isBadRequest)
+      }
+
+      test("is backwards-compatible with older version of the API") {
+        var request = get("/application/$application?includeDetails=false")
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        var result = mvc
+          .perform(request)
+          .andExpect(status().isOk)
+          .andDo { print(it.response.contentAsString) }
+          .andReturn()
+        var response = configuredObjectMapper().readValue<Map<String, Any>>(result.response.contentAsString)
+        expectThat(response.keys)
+          .containsExactly(
+            "applicationPaused",
+            "hasManagedResources",
+            "currentEnvironmentConstraints"
+          )
+
+        request = get("/application/$application?includeDetails=true")
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        result = mvc
+          .perform(request)
+          .andExpect(status().isOk)
+          .andDo { print(it.response.contentAsString) }
+          .andReturn()
+        response = configuredObjectMapper().readValue<Map<String, Any>>(result.response.contentAsString)
+        expectThat(response.keys)
+          .containsExactly(
+            "applicationPaused",
+            "hasManagedResources",
+            "currentEnvironmentConstraints",
+            "resources"
+          )
       }
     }
   }
