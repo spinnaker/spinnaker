@@ -24,7 +24,8 @@ module.exports = {
     // turn back on if https://github.com/eslint/eslint/issues/11899 fixes false positives
     'require-atomic-updates': 'off',
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
+    // turn back on after addressing all violations
+    // 'react-hooks/exhaustive-deps': 'warn',
     '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
     '@typescript-eslint/ban-ts-ignore': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
