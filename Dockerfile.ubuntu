@@ -2,9 +2,9 @@ FROM ubuntu:bionic
 LABEL maintainer="delivery-engineering@netflix.com"
 COPY --from=halyard.compile /compiled_sources/halyard-web/build/install/halyard /opt/halyard
 
-ENV KUBECTL_RELEASE=1.14.10
-ENV AWS_BINARY_RELEASE_DATE=2019-08-22
-ENV AWS_CLI_VERSION=1.17.9
+ENV KUBECTL_RELEASE=1.15.10
+ENV AWS_BINARY_RELEASE_DATE=2020-02-22
+ENV AWS_CLI_VERSION=1.18.18
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -18,11 +18,11 @@ RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
   echo '/opt/halyard/bin/hal "$@"' | tee /usr/local/bin/hal > /dev/null
 RUN chmod +x /usr/local/bin/hal
 
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
+RUN curl -f -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
-RUN curl -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
+RUN curl -f -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
     chmod +x /usr/local/bin/aws-iam-authenticator
 
 RUN adduser --disabled-login --system --group --uid 1000 spinnaker
