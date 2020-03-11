@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-environment_artifact_constraints_version-idx
+      author: asher
+      changes:
+        - createIndex:
+            indexName: env_version_idx
+            tableName: environment_artifact_constraint
+            columns:
+              - column:
+                  name: environment_uid
+              - column:
+                  name: artifact_version
+  - changeSet:
+      id: create-environment_artifact_queued_approval-table
+      author: asher
+      changes:
+        - createTable:
+            tableName: environment_artifact_queued_approval
+            columns:
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: queued_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: environment_artifact_queued_approval
+            constraintName: env_art_q_pk
+            columnNames: environment_uid, artifact_version

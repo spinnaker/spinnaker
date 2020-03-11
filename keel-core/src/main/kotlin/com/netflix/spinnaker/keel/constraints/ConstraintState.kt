@@ -30,6 +30,9 @@ data class ConstraintState(
     createdAt.plus(timeout).isBefore(now)
 }
 
+val List<ConstraintState>.allPass: Boolean
+  get() = all { it.status.passes() }
+
 enum class ConstraintStatus(private val passed: Boolean, private val failed: Boolean) {
   PENDING(false, false),
   PASS(true, false),

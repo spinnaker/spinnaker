@@ -20,6 +20,7 @@ class InMemoryDeliveryConfigRepository(
 
   private val configs = mutableMapOf<String, DeliveryConfig>()
   private val constraints = mutableMapOf<String, ConstraintState>()
+  private val queuedForApproval = mutableMapOf<String, MutableSet<String>>()
   private val applicationConstraintMapper = mutableMapOf<String, MutableSet<String>>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
 
@@ -101,13 +102,22 @@ class InMemoryDeliveryConfigRepository(
 
   override fun storeConstraintState(state: ConstraintState) {
     val config = get(state.deliveryConfigName)
-    val stateId = "${state.deliveryConfigName}:${state.environmentName}:${state.artifactVersion}:" +
-      state.type
+    val idPrefix = "${state.deliveryConfigName}:${state.environmentName}:${state.artifactVersion}:"
+    val stateId = idPrefix + state.type
 
     constraints[stateId] = state
     applicationConstraintMapper
       .getOrPut(config.application, { mutableSetOf() })
       .add(stateId)
+
+    val allPass = constraints
+      .filterKeys { it.startsWith(idPrefix) }
+      .values
+      .all { it.status.passes() }
+
+    if (allPass) {
+      queueAllConstraintsApproved(state.deliveryConfigName, state.environmentName, state.artifactVersion)
+    }
   }
 
   override fun constraintStateFor(application: String): List<ConstraintState> {
@@ -124,6 +134,46 @@ class InMemoryDeliveryConfigRepository(
     type: String
   ): ConstraintState? =
     constraints["$deliveryConfigName:$environmentName:$artifactVersion:$type"]
+
+  override fun constraintStateFor(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ): List<ConstraintState> =
+    constraints
+      .filterKeys {
+        it.startsWith("$deliveryConfigName:$environmentName:$artifactVersion:")
+      }
+      .map { it.value }
+
+  override fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String> =
+    constraints
+      .filterKeys {
+        it.startsWith("$deliveryConfigName:$environmentName:")
+      }
+      .map { it.value }
+      .map { it.artifactVersion }
+
+  override fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String): Set<String> =
+    queuedForApproval.getOrDefault("$deliveryConfigName:$environmentName", emptySet())
+
+  override fun queueAllConstraintsApproved(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ) {
+    val key = "$deliveryConfigName:$environmentName"
+    queuedForApproval.getOrPut(key, ::mutableSetOf).add(artifactVersion)
+  }
+
+  override fun deleteQueuedConstraintApproval(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ) {
+    val key = "$deliveryConfigName:$environmentName"
+    queuedForApproval.getOrPut(key, ::mutableSetOf).remove(artifactVersion)
+  }
 
   override fun getConstraintStateById(uid: UID) =
     constraints[uid.toString()]

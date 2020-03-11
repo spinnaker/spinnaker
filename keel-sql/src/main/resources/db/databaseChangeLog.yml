@@ -104,3 +104,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200302-drop-api-version.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200226-env-artifact-constraint-index.yml
+      relativeToChangelogFile: true

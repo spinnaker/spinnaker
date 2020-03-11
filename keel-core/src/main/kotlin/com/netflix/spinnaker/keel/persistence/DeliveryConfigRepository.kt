@@ -128,6 +128,18 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
     environmentName: String,
     limit: Int = 10
   ): List<ConstraintState>
+
+  fun constraintStateFor(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ): List<ConstraintState>
+
+  fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String>
+
+  fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String): Set<String>
+  fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String)
+  fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String)
 }
 
 sealed class NoSuchDeliveryConfigException(message: String) : RuntimeException(message)

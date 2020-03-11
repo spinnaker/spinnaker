@@ -8,8 +8,11 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.statefulCount
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.constraints.allPass
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
@@ -23,6 +26,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_A
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_CONSTRAINT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
@@ -212,8 +216,7 @@ class SqlDeliveryConfigRepository(
                       ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
                       ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
                       .`in`(
-                        it.map {
-                          t -> row(envUid, t.first, t.second) }))
+                        it.map { t -> row(envUid, t.first, t.second) }))
                   .execute()
               }
             txn.select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
@@ -226,8 +229,7 @@ class SqlDeliveryConfigRepository(
                   .where(
                     row(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, ENVIRONMENT_RESOURCE.RESOURCE_UID)
                       .`in`(
-                        it.map {
-                          resourceId -> row(envUid, resourceId) }))
+                        it.map { resourceId -> row(envUid, resourceId) }))
                   .execute()
               }
             txn
@@ -431,6 +433,11 @@ class SqlDeliveryConfigRepository(
         } ?: randomUID().toString()
 
         val application = applicationByDeliveryConfigName(state.deliveryConfigName)
+        val environment = get(state.deliveryConfigName)
+          .environments
+          .firstOrNull {
+            it.name == state.environmentName
+          } ?: error("Environment ${state.environmentName} does not exist in ${state.deliveryConfigName}")
 
         sqlRetry.withRetry(WRITE) {
           jooq.transaction { config ->
@@ -464,10 +471,21 @@ class SqlDeliveryConfigRepository(
               .onDuplicateKeyUpdate()
               .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, MySQLDSL.values(CURRENT_CONSTRAINT.CONSTRAINT_UID))
               .execute()
+
+            val allStates = constraintStateFor(state.deliveryConfigName, state.environmentName, state.artifactVersion)
+            if (allStates.allPass && allStates.size >= environment.constraints.statefulCount) {
+              txn
+                .insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
+                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
+                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, state.artifactVersion)
+                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant().toEpochMilli())
+                .onDuplicateKeyIgnore()
+                .execute()
+            }
           }
-          // Store generated UID in constraint state object so it can be used by caller
-          state.uid = parseUID(uid)
         }
+        // Store generated UID in constraint state object so it can be used by caller
+        state.uid = parseUID(uid)
       }
   }
 
@@ -743,6 +761,124 @@ class SqlDeliveryConfigRepository(
             comment,
             mapper.readValue(attributes)
           )
+        }
+    }
+  }
+
+  override fun constraintStateFor(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ): List<ConstraintState> {
+    val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
+      ?: return emptyList()
+
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          inline(deliveryConfigName).`as`("deliveryConfigName"),
+          inline(environmentName).`as`("environmentName"),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES
+        )
+        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+        .where(
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion)
+        )
+        .fetch { (deliveryConfigName,
+                   environmentName,
+                   artifactVersion,
+                   constraintType,
+                   status,
+                   createdAt,
+                   judgedBy,
+                   judgedAt,
+                   comment,
+                   attributes) ->
+          ConstraintState(
+            deliveryConfigName,
+            environmentName,
+            artifactVersion,
+            constraintType,
+            ConstraintStatus.valueOf(status),
+            createdAt.toInstant(ZoneOffset.UTC),
+            judgedBy,
+            when (judgedAt) {
+              null -> null
+              else -> judgedAt.toInstant(ZoneOffset.UTC)
+            },
+            comment,
+            mapper.readValue(attributes)
+          )
+        }
+    }
+  }
+
+  override fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String> {
+    val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
+      ?: return emptyList()
+
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION)
+        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+        .where(
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS.eq(PENDING.toString()))
+        .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION)
+    }
+  }
+
+  override fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String): Set<String> {
+    val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
+      ?: return emptySet()
+
+    return sqlRetry.withRetry(READ) {
+      jooq.select(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION)
+        .where(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.eq(environmentUID))
+        .fetch(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION)
+        .toSet()
+    }
+  }
+
+  override fun queueAllConstraintsApproved(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ) {
+    sqlRetry.withRetry(WRITE) {
+      environmentUidByName(deliveryConfigName, environmentName)
+        ?.also { envUid ->
+          jooq.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
+            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
+            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, artifactVersion)
+            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant().toEpochMilli())
+            .onDuplicateKeyIgnore()
+            .execute()
+        }
+    }
+  }
+
+  override fun deleteQueuedConstraintApproval(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String
+  ) {
+    sqlRetry.withRetry(WRITE) {
+      environmentUidByName(deliveryConfigName, environmentName)
+        ?.also { envUid ->
+          jooq.deleteFrom(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
+            .where(
+              ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.eq(envUid),
+              ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION.eq(artifactVersion))
+            .execute()
         }
     }
   }

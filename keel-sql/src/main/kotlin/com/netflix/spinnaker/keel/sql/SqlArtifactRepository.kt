@@ -268,8 +268,16 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.isNotNull)
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
           .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
-          .limit(1)
-          .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+          .limit(20)
+          .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+          .let {
+            when (it.isNotEmpty()) {
+              true -> it
+                .sortedWith(artifact.versioningStrategy.comparator)
+                .first()
+              else -> null
+            }
+          }
     }
   }
 
