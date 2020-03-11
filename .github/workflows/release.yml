@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: startsWith(github.event.ref, 'version-') != true # skip tags that start with 'version-'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
