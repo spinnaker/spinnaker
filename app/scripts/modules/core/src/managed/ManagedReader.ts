@@ -69,22 +69,34 @@ const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse
   }, {} as IManagedResourceDiff);
 
 export class ManagedReader {
-  public static getApplicationSummary(app: string): IPromise<IManagedApplicationSummary> {
+  private static decorateResources(response: IManagedApplicationSummary) {
+    // Individual resources don't update their status when an application is paused/resumed,
+    // so for now let's swap to a PAUSED status and keep things simpler in downstream components.
+    if (response.applicationPaused) {
+      response.resources.forEach(resource => (resource.status = ManagedResourceStatus.PAUSED));
+    }
+
+    response.resources.forEach(resource => (resource.isPaused = resource.status === ManagedResourceStatus.PAUSED));
+
+    return response;
+  }
+
+  public static getApplicationSummary(app: string): IPromise<IManagedApplicationSummary<'resources'>> {
     return API.one('managed')
       .one('application', app)
-      .withParams({ includeDetails: true })
+      .withParams({ entities: 'resources' })
       .get()
-      .then((response: IManagedApplicationSummary) => {
-        // Individual resources don't update their status when an application is paused/resumed,
-        // so for now let's swap to a PAUSED status and keep things simpler in downstream components.
-        if (response.applicationPaused) {
-          response.resources.forEach(resource => (resource.status = ManagedResourceStatus.PAUSED));
-        }
+      .then(this.decorateResources);
+  }
 
-        response.resources.forEach(resource => (resource.isPaused = resource.status === ManagedResourceStatus.PAUSED));
-
-        return response;
-      });
+  public static getEnvironmentsSummary(
+    app: string,
+  ): IPromise<IManagedApplicationSummary<'resources' | 'artifacts' | 'environments'>> {
+    return API.one('managed')
+      .one('application', app)
+      .withParams({ entities: ['resources', 'artifacts', 'environments'] })
+      .get()
+      .then(this.decorateResources);
   }
 
   public static getResourceHistory(resourceId: string): IPromise<IManagedResourceEventHistory> {
