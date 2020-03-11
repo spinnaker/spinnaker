@@ -36,7 +36,7 @@ import retrofit.converter.JacksonConverter;
 
 @Slf4j
 @Configuration
-@ConditionalOnProperty("telemetry.enabled")
+@ConditionalOnProperty("stats.enabled")
 @EnableConfigurationProperties(TelemetryConfig.TelemetryConfigProps.class)
 public class TelemetryConfig {
 
@@ -67,7 +67,7 @@ public class TelemetryConfig {
   }
 
   @Data
-  @ConfigurationProperties(prefix = "telemetry")
+  @ConfigurationProperties(prefix = "stats")
   public static class TelemetryConfigProps {
 
     public static final String DEFAULT_TELEMETRY_ENDPOINT = "https://stats.spinnaker.io/log";

@@ -55,7 +55,7 @@ import retrofit.mime.TypedString;
 
 @Slf4j
 @Component
-@ConditionalOnProperty("telemetry.enabled")
+@ConditionalOnProperty("stats.enabled")
 public class TelemetryEventListener implements EventListener {
 
   protected static final String TELEMETRY_REGISTRY_NAME = "telemetry";
