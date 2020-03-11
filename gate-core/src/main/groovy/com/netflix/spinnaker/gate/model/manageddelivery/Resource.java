@@ -17,6 +17,8 @@
  */
 package com.netflix.spinnaker.gate.model.manageddelivery;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.util.Map;
 import lombok.Data;
 
@@ -28,6 +30,7 @@ import lombok.Data;
  * serviceAccount [spec] the actual resource
  */
 @Data
+@JsonInclude(Include.NON_NULL)
 public class Resource {
   String apiVersion;
   String kind;
