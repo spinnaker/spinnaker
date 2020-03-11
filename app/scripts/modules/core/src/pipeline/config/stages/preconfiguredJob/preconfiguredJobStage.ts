@@ -2,29 +2,35 @@ import { module } from 'angular';
 import { IStageTypeConfig } from 'core/domain';
 import { Registry } from 'core/registry';
 import { ExecutionDetailsTasks } from '../common';
-import { IPreconfiguredJob, PreconfiguredJobReader } from './preconfiguredJob.reader';
+import { PreconfiguredJobReader } from './preconfiguredJob.reader';
 import { PreconfiguredJobExecutionDetails } from './PreconfiguredJobExecutionDetails';
 import { PreconfiguredJobStageConfig } from './PreconfiguredJobStageConfig';
 
-export function buildPreconfiguredJobStage(job: IPreconfiguredJob): IStageTypeConfig {
-  const { label, description, type, waitForCompletion, parameters, producesArtifacts } = job;
-
+/**
+ * Builds a skeleton preconfigured job stage
+ *
+ * After building a skeleton, register it with PipelineRegistry.registerPreconfiguredJobStage().
+ * The skeleton will be filled in with details pulled from gate via the /jobs/preconfigured endpoint.
+ *
+ * @param preconfiguredJobKey the preconfigured job's 'type' (registered in orca)
+ */
+export function makePreconfiguredJobStage(preconfiguredJobType: string): IStageTypeConfig {
   return {
-    label,
-    description,
-    key: type,
+    label: '',
+    description: '',
+    key: preconfiguredJobType,
     alias: 'preconfiguredJob',
     addAliasToConfig: true,
     restartable: true,
-    // Overriden when the
+    // Overriden with parameter metadata from /jobs/preconfigured
     defaults: { parameters: {} },
     component: PreconfiguredJobStageConfig,
     executionDetailsSections: [PreconfiguredJobExecutionDetails, ExecutionDetailsTasks],
     configuration: {
-      waitForCompletion,
-      parameters,
+      waitForCompletion: true,
+      parameters: [],
     },
-    producesArtifacts,
+    producesArtifacts: false,
   };
 }
 
@@ -35,7 +41,7 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
     const basicPreconfiguredJobs = preconfiguredJobs.filter(job => job.uiType !== 'CUSTOM');
     return Promise.all(
       basicPreconfiguredJobs.map(job => {
-        const stageConfig = buildPreconfiguredJobStage(job);
+        const stageConfig = makePreconfiguredJobStage(job.type);
         return Registry.pipeline.registerPreconfiguredJobStage(stageConfig);
       }),
     );
