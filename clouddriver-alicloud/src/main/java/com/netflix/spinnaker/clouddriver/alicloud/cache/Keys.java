@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -165,11 +165,12 @@ public class Keys implements KeyParser {
       String autoScalingGroupName, String account, String region) {
     AliCloudServerGroup serverGroup = new AliCloudServerGroup();
     serverGroup.setName(autoScalingGroupName);
+    // Names names = Names.parseName(autoScalingGroupName);
     return getServerGroupKey(
         serverGroup.getMoniker().getCluster(), autoScalingGroupName, account, region);
   }
 
-  static String getServerGroupKey(
+  public static String getServerGroupKey(
       String cluster, String autoScalingGroupName, String account, String region) {
     return ID
         + SEPARATOR
@@ -236,6 +237,32 @@ public class Keys implements KeyParser {
     return key;
   }
 
+  public static String getInstanceHealthKey(
+      String loadBalancerId,
+      String instanceId,
+      String port,
+      String account,
+      String region,
+      String provider) {
+    String key =
+        ID
+            + SEPARATOR
+            + com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+            + SEPARATOR
+            + loadBalancerId
+            + SEPARATOR
+            + instanceId
+            + SEPARATOR
+            + port
+            + SEPARATOR
+            + account
+            + SEPARATOR
+            + region
+            + SEPARATOR
+            + provider;
+    return key;
+  }
+
   @Override
   public Map<String, String> parseKey(String key) {
     return parse(key);
@@ -257,13 +284,17 @@ public class Keys implements KeyParser {
 
     switch (result.get("type")) {
       case "securityGroups":
-        Names names = Names.parseName(parts[4]);
-        result.put("application", names.getApp());
-        result.put("name", parts[4]);
-        result.put("id", parts[5]);
-        result.put("region", parts[3]);
-        result.put("account", parts[2]);
-        result.put("vpcId", parts[6] == "null" ? null : parts[6]);
+        if (parts.length >= 7 && !"null".equals(parts[6])) {
+          Names names = Names.parseName(parts[4]);
+          result.put("application", names.getApp());
+          result.put("name", parts[4]);
+          result.put("id", parts[5]);
+          result.put("region", parts[3]);
+          result.put("account", parts[2]);
+          result.put("vpcId", parts[6]);
+        } else {
+          return null;
+        }
         break;
       default:
         return null;

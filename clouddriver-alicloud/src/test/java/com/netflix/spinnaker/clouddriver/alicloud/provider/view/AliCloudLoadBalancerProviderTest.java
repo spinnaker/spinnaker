@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,11 +24,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.alicloud.model.AliCloudLoadBalancer;
 import com.netflix.spinnaker.clouddriver.alicloud.provider.view.AliCloudLoadBalancerProvider.ResultDetails;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -45,7 +41,7 @@ public class AliCloudLoadBalancerProviderTest extends CommonProvider {
   @Test
   public void testGetApplicationLoadBalancers() {
     AliCloudLoadBalancerProvider provider =
-        new AliCloudLoadBalancerProvider(objectMapper, cacheView);
+        new AliCloudLoadBalancerProvider(objectMapper, cacheView, oldProvider);
     Set<AliCloudLoadBalancer> applicationLoadBalancers =
         provider.getApplicationLoadBalancers("test-application");
     assertTrue(applicationLoadBalancers.size() == 1);
@@ -54,7 +50,7 @@ public class AliCloudLoadBalancerProviderTest extends CommonProvider {
   @Test
   public void testByAccountAndRegionAndName() {
     AliCloudLoadBalancerProvider provider =
-        new AliCloudLoadBalancerProvider(objectMapper, cacheView);
+        new AliCloudLoadBalancerProvider(objectMapper, cacheView, oldProvider);
     List<ResultDetails> lbName = provider.byAccountAndRegionAndName(ACCOUNT, REGION, "lbName");
     assertTrue(lbName.size() == 1);
   }

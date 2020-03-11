@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.alicloud.model;
 import com.netflix.spinnaker.clouddriver.alicloud.AliCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
-import com.netflix.spinnaker.moniker.Moniker;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,8 +44,6 @@ public class AliCloudLoadBalancer implements LoadBalancer {
 
   Map<String, String> labels = new HashMap<>();
 
-  Moniker moniker = new Moniker();
-
   public AliCloudLoadBalancer(
       String account, String region, String name, String vpcId, String loadBalancerId) {
     this.account = account;
@@ -59,11 +56,6 @@ public class AliCloudLoadBalancer implements LoadBalancer {
   @Override
   public String getName() {
     return name;
-  }
-
-  @Override
-  public Moniker getMoniker() {
-    return moniker;
   }
 
   @Override
@@ -101,5 +93,9 @@ public class AliCloudLoadBalancer implements LoadBalancer {
 
   public String getLoadBalancerId() {
     return loadBalancerId;
+  }
+
+  public void setServerGroups(Set<LoadBalancerServerGroup> serverGroups) {
+    this.serverGroups = serverGroups;
   }
 }

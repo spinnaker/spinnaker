@@ -20,7 +20,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.alicloud.AliCloudProvider;
 import com.netflix.spinnaker.clouddriver.alicloud.common.ClientFactory;
-import com.netflix.spinnaker.clouddriver.alicloud.provider.agent.AliCloudLoadBalancerCachingAgent;
+import com.netflix.spinnaker.clouddriver.alicloud.provider.agent.*;
 import com.netflix.spinnaker.clouddriver.alicloud.security.AliCloudClientProvider;
 import com.netflix.spinnaker.clouddriver.alicloud.security.AliCloudCredentials;
 import com.netflix.spinnaker.clouddriver.alicloud.security.AliCloudCredentialsProvider;
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -49,6 +50,7 @@ public class AliProviderConfig {
       Registry registry,
       ObjectMapper objectMapper,
       AliCloudProvider aliCloudProvider,
+      ApplicationContext ctx,
       ClientFactory clientFactory) {
     AliProvider provider =
         new AliProvider(
@@ -62,6 +64,7 @@ public class AliProviderConfig {
         registry,
         objectMapper,
         aliCloudProvider,
+        ctx,
         clientFactory);
     return provider;
   }
@@ -76,6 +79,7 @@ public class AliProviderConfig {
       Registry registry,
       ObjectMapper objectMapper,
       AliCloudProvider aliCloudProvider,
+      ApplicationContext ctx,
       ClientFactory clientFactory) {
 
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(aliProvider);
@@ -99,6 +103,14 @@ public class AliProviderConfig {
                     objectMapper,
                     registry,
                     credentials,
+                    clientFactory.createClient(
+                        region, credentials.getAccessKeyId(), credentials.getAccessSecretKey())));
+            newAgents.add(
+                new AliCloudLoadBalancerInstanceStateCachingAgent(
+                    ctx,
+                    credentials,
+                    region,
+                    objectMapper,
                     clientFactory.createClient(
                         region, credentials.getAccessKeyId(), credentials.getAccessSecretKey())));
           }

@@ -128,6 +128,10 @@ public class UpsertAliCloudLoadBalancerAtomicOperation implements AtomicOperatio
       if (!StringUtils.isEmpty(description.getVSwitchId())) {
         loadBalancerRequest.setVSwitchId(description.getVSwitchId());
       }
+      if ("internet".equalsIgnoreCase(loadBalancerRequest.getAddressType())) {
+        loadBalancerRequest.setVSwitchId("");
+      }
+
       // Instance delete protection off
       loadBalancerRequest.setDeleteProtection("off");
       CreateLoadBalancerResponse loadBalancerResponse;

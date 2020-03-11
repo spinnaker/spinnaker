@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,7 @@ import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancerAttributeResponse.Li
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancerHTTPListenerAttributeResponse;
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancersResponse;
 import com.aliyuncs.slb.model.v20140515.DescribeLoadBalancersResponse.LoadBalancer;
+import com.aliyuncs.slb.model.v20140515.DescribeVServerGroupsResponse;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -64,7 +65,8 @@ public class AliCloudLoadBalancerCachingAgentTest extends CommonCachingAgentTest
     when(client.getAcsResponse(any()))
         .thenAnswer(new LoadBalancersAnswer())
         .thenAnswer(new LoadBalancerAttributeAnswer())
-        .thenAnswer(new HTTPSListenerAnswer());
+        .thenAnswer(new HTTPSListenerAnswer())
+        .thenAnswer(new DescribeVServerGroupsResponseAnswer());
   }
 
   @Test
@@ -129,6 +131,17 @@ public class AliCloudLoadBalancerCachingAgentTest extends CommonCachingAgentTest
           new DescribeLoadBalancerHTTPListenerAttributeResponse();
       response.setListenerPort(80);
       return response;
+    }
+  }
+
+  private class DescribeVServerGroupsResponseAnswer
+      implements Answer<DescribeVServerGroupsResponse> {
+
+    @Override
+    public DescribeVServerGroupsResponse answer(InvocationOnMock invocation) throws Throwable {
+      DescribeVServerGroupsResponse describeVServerGroupsResponse =
+          new DescribeVServerGroupsResponse();
+      return describeVServerGroupsResponse;
     }
   }
 }
