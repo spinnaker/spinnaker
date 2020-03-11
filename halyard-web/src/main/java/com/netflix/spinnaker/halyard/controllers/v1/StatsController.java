@@ -19,8 +19,8 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Telemetry;
-import com.netflix.spinnaker.halyard.config.services.v1.TelemetryService;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Stats;
+import com.netflix.spinnaker.halyard.config.services.v1.StatsService;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
@@ -30,48 +30,48 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/config/deployments/{deploymentName:.+}/telemetry")
+@RequestMapping("/v1/config/deployments/{deploymentName:.+}/stats")
 @RequiredArgsConstructor
-public class TelemetryController {
-  private final TelemetryService telemetryService;
+public class StatsController {
+  private final StatsService statsService;
   private final HalconfigDirectoryStructure halconfigDirectoryStructure;
   private final HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Telemetry> getTelemetry(
+  DaemonTask<Halconfig, Stats> getStats(
       @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
-    return GenericGetRequest.<Telemetry>builder()
-        .getter(() -> telemetryService.getTelemetry(deploymentName))
-        .validator(() -> telemetryService.validateTelemetry(deploymentName))
-        .description("Get telemetry")
+    return GenericGetRequest.<Stats>builder()
+        .getter(() -> statsService.getStats(deploymentName))
+        .validator(() -> statsService.validateStats(deploymentName))
+        .description("Get stats")
         .build()
         .execute(validationSettings);
   }
 
   @RequestMapping(value = "/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setTelemetryEnabled(
+  DaemonTask<Halconfig, Void> setStatsEnabled(
       @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Boolean enabled) {
     return GenericEnableDisableRequest.builder(halconfigParser)
-        .updater(t -> telemetryService.setTelemetryEnabled(deploymentName, false, enabled))
-        .validator(() -> telemetryService.validateTelemetry(deploymentName))
-        .description("Enable or disable telemetry")
+        .updater(t -> statsService.setStatsEnabled(deploymentName, false, enabled))
+        .validator(() -> statsService.validateStats(deploymentName))
+        .description("Enable or disable stats")
         .build()
         .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setTelemetry(
+  DaemonTask<Halconfig, Void> setStats(
       @PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
-      @RequestBody Telemetry telemetry) {
-    return GenericUpdateRequest.<Telemetry>builder(halconfigParser)
+      @RequestBody Stats stats) {
+    return GenericUpdateRequest.<Stats>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
-        .updater(t -> telemetryService.setTelemetry(deploymentName, t))
-        .validator(() -> telemetryService.validateTelemetry(deploymentName))
-        .description("Edit telemetry settings")
+        .updater(t -> statsService.setStats(deploymentName, t))
+        .validator(() -> statsService.validateStats(deploymentName))
+        .description("Edit stats settings")
         .build()
-        .execute(validationSettings, telemetry);
+        .execute(validationSettings, stats);
   }
 }

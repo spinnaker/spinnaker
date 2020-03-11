@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.telemetry;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.stats;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
@@ -23,17 +23,17 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class TelemetryEnableDisableCommandBuilder implements CommandBuilder {
+public class StatsEnableDisableCommandBuilder implements CommandBuilder {
   @Setter boolean enable;
 
   @Override
   public NestableCommand build() {
-    return new TelemetryEnableDisableCommand(enable);
+    return new StatsEnableDisableCommand(enable);
   }
 
   @Parameters(separators = "=")
-  private static class TelemetryEnableDisableCommand extends AbstractEnableDisableTelemetryCommand {
-    private TelemetryEnableDisableCommand(boolean enable) {
+  private static class StatsEnableDisableCommand extends AbstractEnableDisableStatsCommand {
+    private StatsEnableDisableCommand(boolean enable) {
       this.enable = enable;
     }
 

@@ -361,8 +361,8 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
-  public NodeFilter setTelemetry() {
-    matchers.add(Node.thisNodeAcceptor(Telemetry.class));
+  public NodeFilter setStats() {
+    matchers.add(Node.thisNodeAcceptor(Stats.class));
     return this;
   }
 

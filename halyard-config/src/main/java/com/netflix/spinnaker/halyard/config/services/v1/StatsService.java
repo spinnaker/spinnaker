@@ -18,40 +18,40 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Telemetry;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Stats;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TelemetryService {
+public class StatsService {
   private final LookupService lookupService;
   private final ValidateService validateService;
   private final DeploymentService deploymentService;
 
-  public Telemetry getTelemetry(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setTelemetry();
+  public Stats getStats(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setStats();
 
     return lookupService.getSingularNodeOrDefault(
-        filter, Telemetry.class, Telemetry::new, n -> setTelemetry(deploymentName, n));
+        filter, Stats.class, Stats::new, n -> setStats(deploymentName, n));
   }
 
-  public void setTelemetry(String deploymentName, Telemetry telemetry) {
+  public void setStats(String deploymentName, Stats stats) {
     DeploymentConfiguration deploymentConfiguration =
         deploymentService.getDeploymentConfiguration(deploymentName);
-    deploymentConfiguration.setTelemetry(telemetry);
+    deploymentConfiguration.setStats(stats);
   }
 
-  public void setTelemetryEnabled(String deploymentName, boolean validate, boolean enable) {
+  public void setStatsEnabled(String deploymentName, boolean validate, boolean enable) {
     DeploymentConfiguration deploymentConfiguration =
         deploymentService.getDeploymentConfiguration(deploymentName);
-    Telemetry telemetry = deploymentConfiguration.getTelemetry();
-    telemetry.setEnabled(enable);
+    Stats stats = deploymentConfiguration.getStats();
+    stats.setEnabled(enable);
   }
 
-  public ProblemSet validateTelemetry(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setTelemetry();
+  public ProblemSet validateStats(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setStats();
     return validateService.validateMatchingFilter(filter);
   }
 }

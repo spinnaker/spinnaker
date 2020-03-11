@@ -155,7 +155,7 @@ public class DeploymentService {
             .withAnyAccount()
             .setFeatures()
             .setSecurity()
-            .setTelemetry();
+            .setStats();
 
     if (storage.getPersistentStoreType() != null) {
       filter.setPersistentStore(storage.getPersistentStoreType().getId());

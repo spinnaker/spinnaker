@@ -14,45 +14,45 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.telemetry;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.stats;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Telemetry;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Stats;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class TelemetryEditCommand extends AbstractConfigCommand {
+public class StatsEditCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Edit Spinnaker's telemetry settings.";
+  private String shortDescription = "Edit Spinnaker's stats settings.";
 
-  @Parameter(names = "--endpoint", description = "Set the endpoint for telemetry metrics.")
+  @Parameter(names = "--endpoint", description = "Set the endpoint for stats metrics.")
   private String endpoint;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-    Telemetry telemetry =
-        new OperationHandler<Telemetry>()
-            .setOperation(Daemon.getTelemetry(currentDeployment, false))
-            .setFailureMesssage("Failed to load telemetry settings.")
+    Stats stats =
+        new OperationHandler<Stats>()
+            .setOperation(Daemon.getStats(currentDeployment, false))
+            .setFailureMesssage("Failed to load stats settings.")
             .get();
 
     if (isSet(endpoint)) {
-      telemetry.setEndpoint(endpoint);
+      stats.setEndpoint(endpoint);
     }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setTelemetry(currentDeployment, !noValidate, telemetry))
-        .setFailureMesssage("Failed to edit telemetry settings.")
-        .setSuccessMessage("Successfully edited telemetry settings.")
+        .setOperation(Daemon.setStats(currentDeployment, !noValidate, stats))
+        .setFailureMesssage("Failed to edit stats settings.")
+        .setSuccessMessage("Successfully edited stats settings.")
         .get();
   }
 }

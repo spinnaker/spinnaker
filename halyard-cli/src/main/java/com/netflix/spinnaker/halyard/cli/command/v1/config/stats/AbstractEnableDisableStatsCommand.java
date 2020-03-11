@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.telemetry;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.stats;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
@@ -27,7 +27,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public abstract class AbstractEnableDisableTelemetryCommand extends AbstractConfigCommand {
+public abstract class AbstractEnableDisableStatsCommand extends AbstractConfigCommand {
   @Override
   public String getCommandName() {
     return isEnable() ? "enable" : "disable";
@@ -48,7 +48,7 @@ public abstract class AbstractEnableDisableTelemetryCommand extends AbstractConf
 
   @Override
   public String getShortDescription() {
-    return "Set Spinnaker's telemetry settings to " + subjunctivePerfectAction() + ".";
+    return "Set Spinnaker's stats settings to " + subjunctivePerfectAction() + ".";
   }
 
   @Override
@@ -56,9 +56,9 @@ public abstract class AbstractEnableDisableTelemetryCommand extends AbstractConf
     String currentDeployment = getCurrentDeployment();
     boolean enable = isEnable();
     new OperationHandler<Void>()
-        .setOperation(Daemon.setTelemetryEnableDisable(currentDeployment, !noValidate, enable))
-        .setFailureMesssage("Failed to " + getCommandName() + " telemetry settings.")
-        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " telemetry settings.")
+        .setOperation(Daemon.setStatsEnableDisable(currentDeployment, !noValidate, enable))
+        .setFailureMesssage("Failed to " + getCommandName() + " stats settings.")
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " stats settings.")
         .get();
   }
 }

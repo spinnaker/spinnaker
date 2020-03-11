@@ -14,39 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.telemetry;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.stats;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Telemetry;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Stats;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class TelemetryCommand extends AbstractConfigCommand {
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "telemetry";
+public class StatsCommand extends AbstractConfigCommand {
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Show Spinnaker's telemetry settings.";
+  private String commandName = "stats";
 
-  public TelemetryCommand() {
-    registerSubcommand(new TelemetryEditCommand());
-    registerSubcommand(new TelemetryEnableDisableCommandBuilder().setEnable(true).build());
-    registerSubcommand(new TelemetryEnableDisableCommandBuilder().setEnable(false).build());
+  @Getter(AccessLevel.PUBLIC)
+  private String shortDescription = "Show Spinnaker's stats settings.";
+
+  public StatsCommand() {
+    registerSubcommand(new StatsEditCommand());
+    registerSubcommand(new StatsEnableDisableCommandBuilder().setEnable(true).build());
+    registerSubcommand(new StatsEnableDisableCommandBuilder().setEnable(false).build());
   }
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    new OperationHandler<Telemetry>()
-        .setOperation(Daemon.getTelemetry(currentDeployment, !noValidate))
-        .setFailureMesssage("Failed to load telemetry.")
-        .setSuccessMessage("Configured telemetry: ")
+    new OperationHandler<Stats>()
+        .setOperation(Daemon.getStats(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load stats.")
+        .setSuccessMessage("Configured stats: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)
         .get();
