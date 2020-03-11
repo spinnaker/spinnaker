@@ -32,7 +32,7 @@ public class Stats extends Node {
   }
 
   @ValidForSpinnakerVersion(
-      lowerBound = "1.18.0",
+      lowerBound = "1.19.0",
       tooLowMessage = "Stats are not available prior to this release.")
   private Boolean enabled = true;
 
