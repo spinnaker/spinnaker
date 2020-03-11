@@ -60,6 +60,7 @@ public interface KeelService {
   List<Map<String, Object>> getManifestArtifacts(@Path("name") String name);
 
   @POST("/delivery-configs")
+  @Headers("Accept: application/json")
   DeliveryConfig upsertManifest(@Body DeliveryConfig manifest);
 
   @DELETE("/delivery-configs/{name}")
