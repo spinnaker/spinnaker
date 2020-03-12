@@ -93,7 +93,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
           (dockerConfig.tag || dockerConfig.digest),
       };
     } else if (has(serverGroup, 'buildInfo.images')) {
-      images = serverGroup.buildInfo.images;
+      images = serverGroup.buildInfo.images.map((val: string) => this.getShortSha(val));
     }
 
     return {
@@ -104,6 +104,15 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       isSelected,
       isMultiSelected,
     };
+  }
+
+  private getShortSha(val: string): string {
+    const sha = val.lastIndexOf('sha256:');
+    if (sha > -1) {
+      // 14 = "sha256:" + 7 characters of hash
+      val = val.substring(0, sha + 14) + '...';
+    }
+    return val;
   }
 
   private isSelected(serverGroup: IServerGroup) {
