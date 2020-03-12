@@ -18,9 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
@@ -65,8 +63,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Collection<String> taskEvictions;
-  private Collection<String> serviceEvictions;
-  private Collection<String> taskDefEvictions;
   private ObjectMapper objectMapper;
 
   public TaskHealthCachingAgent(
@@ -105,8 +101,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
     List<TaskHealth> taskHealthList = new LinkedList<>();
     taskEvictions = new LinkedList<>();
-    serviceEvictions = new LinkedList<>();
-    taskDefEvictions = new LinkedList<>();
 
     Collection<Task> tasks = taskCacheClient.getAll(accountName, region);
     if (tasks != null) {
@@ -222,18 +216,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     return overallTaskHealth;
   }
 
-  private void evictStaleData(Task task, Service loadBalancerService) {
-    String serviceEvictionKey =
-        Keys.getTaskDefinitionKey(accountName, region, loadBalancerService.getServiceName());
-    serviceEvictions.add(serviceEvictionKey);
-    String taskEvictionKey = Keys.getTaskKey(accountName, region, task.getTaskId());
-    taskEvictions.add(taskEvictionKey);
-
-    String taskDefArn = loadBalancerService.getTaskDefinition();
-    String taskDefKey = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);
-    taskDefEvictions.add(taskDefKey);
-  }
-
   private TaskHealth makeTaskHealth(
       Task task, String serviceName, TargetHealthDescription healthDescription) {
     String targetHealth = STATUS_UNKNOWN;
@@ -333,7 +315,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
     if (targetHealth == null) {
       log.debug("Cached EcsTargetHealth is empty for targetGroup {}", targetGroupArn);
-      evictStaleData(task, loadBalancerService);
       return makeTaskHealth(task, serviceName, null);
     }
     TargetHealthDescription targetHealthDescription =
@@ -345,7 +326,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
           targetGroupArn,
           targetId,
           targetPort);
-      evictStaleData(task, loadBalancerService);
       return makeTaskHealth(task, serviceName, null);
     }
 
@@ -449,20 +429,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
         evictions.get(TASKS.toString()).addAll(taskEvictions);
       } else {
         evictions.put(TASKS.toString(), taskEvictions);
-      }
-    }
-    if (!serviceEvictions.isEmpty()) {
-      if (evictions.containsKey(SERVICES.toString())) {
-        evictions.get(SERVICES.toString()).addAll(serviceEvictions);
-      } else {
-        evictions.put(SERVICES.toString(), serviceEvictions);
-      }
-    }
-    if (!taskDefEvictions.isEmpty()) {
-      if (evictions.containsKey(TASK_DEFINITIONS.toString())) {
-        evictions.get(TASK_DEFINITIONS.toString()).addAll(taskDefEvictions);
-      } else {
-        evictions.put(TASK_DEFINITIONS.toString(), taskDefEvictions);
       }
     }
     return evictions;
