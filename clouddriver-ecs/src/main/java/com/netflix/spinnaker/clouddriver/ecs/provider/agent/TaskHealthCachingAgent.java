@@ -134,17 +134,24 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
           continue;
         }
 
-        TaskHealth taskHealth;
-        if (task.getContainers().get(0).getNetworkBindings().size() >= 1) {
-          taskHealth =
-              inferHealthNetworkBindedContainer(
-                  targetHealthCacheClient,
-                  task,
-                  containerInstance,
-                  serviceName,
-                  service,
-                  taskDefinition);
-        } else {
+        TaskHealth taskHealth = null;
+        Collection<Container> containers = task.getContainers();
+
+        for (Container container : containers) {
+          if (container.getNetworkBindings().size() >= 1) {
+            taskHealth =
+                inferHealthNetworkBindedContainer(
+                    targetHealthCacheClient,
+                    task,
+                    containerInstance,
+                    serviceName,
+                    service,
+                    taskDefinition);
+            break;
+          }
+        }
+
+        if (taskHealth == null) {
           taskHealth =
               inferHealthNetworkInterfacedContainer(
                   targetHealthCacheClient, task, serviceName, service, taskDefinition);
@@ -191,7 +198,15 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
         continue;
       }
 
-      NetworkInterface networkInterface = task.getContainers().get(0).getNetworkInterfaces().get(0);
+      Collection<Container> containers = task.getContainers();
+      NetworkInterface networkInterface = null;
+
+      for (Container container : containers) {
+        if (container.getNetworkInterfaces().size() >= 1) {
+          networkInterface = container.getNetworkInterfaces().get(0);
+          break;
+        }
+      }
 
       overallTaskHealth =
           describeTargetHealth(
@@ -382,17 +397,29 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   }
 
   private boolean isTaskMissingNetworkBindings(Task task) {
-    return task.getContainers().isEmpty()
-        || task.getContainers().get(0).getNetworkBindings() == null
-        || task.getContainers().get(0).getNetworkBindings().isEmpty()
-        || task.getContainers().get(0).getNetworkBindings().get(0) == null;
+    Collection<Container> containers = task.getContainers();
+
+    for (Container container : containers) {
+      if (!(container.getNetworkBindings() == null
+          || container.getNetworkBindings().isEmpty()
+          || container.getNetworkBindings().get(0) == null)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean isTaskMissingNetworkInterfaces(Task task) {
-    return task.getContainers().isEmpty()
-        || task.getContainers().get(0).getNetworkInterfaces() == null
-        || task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-        || task.getContainers().get(0).getNetworkInterfaces().get(0) == null;
+    Collection<Container> containers = task.getContainers();
+
+    for (Container container : containers) {
+      if (!(container.getNetworkInterfaces() == null
+          || container.getNetworkInterfaces().isEmpty()
+          || container.getNetworkInterfaces().get(0) == null)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
