@@ -46,10 +46,17 @@
   dependencies:
     estree-walker "^1.0.1"
 
-"@spinnaker/core@=0.0.458":
-  version "0.0.458"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.458.tgz#1e6a742a238e6bf906f13d6f91db06ed36bd5c81"
-  integrity sha512-Dj0Cj8P23D5qdV1wQWmsGV8kyytzymv/nVHzwWJSBhT+DdpOr5cN21JX9gqEX/TD6o/VEqeY2o1heXwTsNBnUw==
+"@spinnaker/core@0.0.459":
+  version "0.0.459"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.459.tgz#5433334f9e8d639b11e2ed5bddd0d8b0af7825d6"
+  integrity sha512-ueyUW3EkgCw738yI3xvcBAQIbs9g3/ZRb4if77ccJ+BeYECdXiPpNVWRozQMqaOL7oFoKI34y/tIzRKgjPDk2A==
+
+"@spinnaker/eslint-plugin@=1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.6.tgz#f49eb95d45831ddf8352f5790e5ad88752f20521"
+  integrity sha512-aEeu4D/hPuu6mCiBSGRTIcDt0ELwNTTVN3Q0iF8pAwgXxAo2ft0hLtJuKp0KZYXzQKLly4hvcQV6L9/IMsxDQg==
+  dependencies:
+    lodash "^4.17.15"
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -81,7 +88,7 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
-"@types/react@16.9.24":
+"@types/react@=16.9.24":
   version "16.9.24"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.9.24.tgz#9896c3ce0cf0d67beb3f9a35049b4a37679de30d"
   integrity sha512-SoAlUP6XkRlGEWK0Jb4fMPt98CptLHmRYxxXQGIGbfM4Xyppbo0n7NmX/u6mlOyCnIeDViAanZ6dTVHI29U1Ig==
@@ -1172,6 +1179,11 @@ lodash.uniq@^4.5.0:
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
   integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
 
+lodash@^4.17.15:
+  version "4.17.15"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
+  integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
+
 magic-string@^0.25.2, magic-string@^0.25.4:
   version "0.25.6"
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.25.6.tgz#5586387d1242f919c6d223579cc938bf1420795e"
@@ -1923,7 +1935,7 @@ rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.8.2:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup@1.32.1:
+rollup@=1.32.1:
   version "1.32.1"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-1.32.1.tgz#4480e52d9d9e2ae4b46ba0d9ddeaf3163940f9c4"
   integrity sha512-/2HA0Ec70TvQnXdzynFffkjA6XN+1e2pEv/uKS5Ulca40g2L7KuOE3riasHoNVHOsFD5KKZgDsMk1CP3Tw9s+A==
