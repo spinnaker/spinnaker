@@ -43,7 +43,7 @@ export class DeploymentStrategySelector extends React.Component<
     AdditionalFieldsComponent: undefined,
   };
 
-  public selectStrategy(strategy: string): void {
+  public selectStrategy(strategy: string, onMount = false): void {
     const { command, onStrategyChange } = this.props;
 
     const oldStrategy = DeploymentStrategyRegistry.getStrategy(this.state.currentStrategy);
@@ -60,7 +60,8 @@ export class DeploymentStrategySelector extends React.Component<
     let AdditionalFieldsComponent;
     if (newStrategy) {
       AdditionalFieldsComponent = newStrategy.AdditionalFieldsComponent;
-      if (newStrategy.initializationMethod) {
+      // do not run on mount otherwise we'll confusingly fill in things that weren't there
+      if (newStrategy.initializationMethod && !onMount) {
         newStrategy.initializationMethod(command);
       }
     }
@@ -79,7 +80,7 @@ export class DeploymentStrategySelector extends React.Component<
   };
 
   public componentDidMount() {
-    this.selectStrategy(this.props.command.strategy);
+    this.selectStrategy(this.props.command.strategy, true);
   }
 
   public render() {
