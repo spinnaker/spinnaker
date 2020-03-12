@@ -20,10 +20,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.noCondition
 import org.jooq.impl.DSL.sql
 import org.jooq.impl.DSL.table
 import org.jooq.util.mysql.MySQLDSL
@@ -91,7 +93,7 @@ class SqlCache(
       ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)) { chunk ->
         withRetry(RetryCategory.WRITE) {
           jooq.deleteFrom(table(sqlNames.resourceTableName(type)))
-            .where("id in (${chunk.joinToString(",") { "'$it'" }})")
+            .where(field("id").`in`(*chunk.toTypedArray()))
             .execute()
         }
         deletedCount += chunk.size
@@ -423,14 +425,21 @@ class SqlCache(
 
     val sql = if (glob.matches(useRegexp)) {
       val filter = glob.replace("?", ".", true).replace("*", ".*").replace(cleanRegexp, ".*")
-      "SELECT id FROM ${sqlNames.resourceTableName(type)} WHERE id REGEXP '^$filter\$'"
+      jooq
+        .select(field("id"))
+        .from(table(sqlNames.resourceTableName(type)))
+        .where(field("id").likeRegex("^$filter$"))
     } else {
-      "SELECT id FROM ${sqlNames.resourceTableName(type)} WHERE id LIKE '${glob.replace('*', '%')}'"
+      jooq
+        .select(field("id"))
+        .from(table(sqlNames.resourceTableName(type)))
+        .where(field("id").like(glob.replace('*', '%')))
     }
 
     val ids = try {
       withRetry(RetryCategory.READ) {
-        jooq.fetch(sql).getValues(0, String::class.java)
+        sql
+          .fetch(field("id"), String::class.java)
       }
     } catch (e: Exception) {
       suppressedLog("Failed searching for identifiers type: $type glob: $glob reason: ${e.message}", e)
@@ -1067,7 +1076,7 @@ class SqlCache(
     val relPointers = mutableSetOf<RelPointer>()
     var selectQueries = 0
 
-    val relWhere = getRelWhere(relationshipPrefixes, "r.application = \"$application\"")
+    val relWhere = getRelWhere(relationshipPrefixes, field("r.application").eq(application))
 
     try {
       val resultSet = withRetry(RetryCategory.READ) {
@@ -1235,7 +1244,7 @@ class SqlCache(
     return withRetry(RetryCategory.READ) {
       jooq.select(field("body"))
         .from(table(sqlNames.resourceTableName(type)))
-        .where("ID in (${ids.joinToString(",") { "'$it'" }})")
+        .where(field("ID").`in`(*ids.toTypedArray()))
         .fetch()
         .getValues(0)
         .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
@@ -1248,7 +1257,7 @@ class SqlCache(
     relationshipPrefixes: List<String>,
     ids: List<String>
   ): ResultSet {
-    val where = "ID in (${ids.joinToString(",") { "'$it'" }})"
+    val where = field("ID").`in`(*ids.toTypedArray())
 
     val relWhere = getRelWhere(relationshipPrefixes, where)
 
@@ -1281,7 +1290,7 @@ class SqlCache(
     return withRetry(RetryCategory.READ) {
       jooq.select(field("id"))
         .from(table(sqlNames.resourceTableName(type)))
-        .where("id in (${ids.joinToString(",") { "'$it'" }})")
+        .where(field("id").`in`(*ids.toTypedArray()))
         .fetch()
         .intoSet(field("id"), String::class.java)
     }
@@ -1418,24 +1427,22 @@ class SqlCache(
     return relationships
   }
 
-  private fun getRelWhere(relationshipPrefixes: List<String>, prefix: String? = null): String {
-    val relWhere: String = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
-      "(rel_type LIKE " +
-        relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
-    } else if (prefix.isNullOrBlank()) {
-      "1=1"
-    } else {
-      ""
-    }
+  private fun getRelWhere(relationshipPrefixes: List<String>, prefix: Condition? = null): Condition {
+    var relWhere: Condition = noCondition()
 
-    return if (prefix.isNullOrBlank()) {
-      relWhere
-    } else {
-      when (relWhere) {
-        "" -> prefix
-        else -> "$prefix AND $relWhere"
+    if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
+      relWhere = field("rel_type").like(relationshipPrefixes[0])
+
+      for (i in 1 until relationshipPrefixes.size) {
+        relWhere = relWhere.or(field("rel_type").like(relationshipPrefixes[i]))
       }
     }
+
+    if (prefix != null) {
+      return prefix.and(relWhere)
+    }
+
+    return relWhere
   }
 
   private enum class RetryCategory {

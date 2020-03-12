@@ -71,7 +71,7 @@ class SqlTaskCleanupAgent(
             candidateTaskStateIds.addAll(
               j.select(field("id"))
                 .from(taskStatesTable)
-                .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
+                .where(field("task_id").`in`(*chunk.toTypedArray()))
                 .fetch("id", String::class.java)
                 .filterNotNull()
             )
@@ -79,7 +79,7 @@ class SqlTaskCleanupAgent(
             candidateResultIds.addAll(
               j.select(field("id"))
                 .from(taskResultsTable)
-                .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
+                .where(field("task_id").`in`(*chunk.toTypedArray()))
                 .fetch("id", String::class.java)
                 .filterNotNull()
             )
@@ -105,7 +105,7 @@ class SqlTaskCleanupAgent(
           candidates.resultIds.chunked(properties.batchSize) { chunk ->
             jooq.transactional { ctx ->
               ctx.deleteFrom(taskResultsTable)
-                .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+                .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
             }
           }
@@ -113,7 +113,7 @@ class SqlTaskCleanupAgent(
           candidates.stateIds.chunked(properties.batchSize) { chunk ->
             jooq.transactional { ctx ->
               ctx.deleteFrom(taskStatesTable)
-                .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+                .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
             }
           }
@@ -121,7 +121,7 @@ class SqlTaskCleanupAgent(
           candidates.taskIds.chunked(properties.batchSize) { chunk ->
             jooq.transactional { ctx ->
               ctx.deleteFrom(tasksTable)
-                .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+                .where(field("id").`in`(*chunk.toTypedArray()))
                 .execute()
             }
           }

@@ -120,7 +120,7 @@ class SqlUnknownAgentCleanupAgent(
       )
       idsToClean.chunked(100) { chunk ->
         jooq.deleteFrom(table(tableName))
-          .where("${cacheTable.idColumn()} in (${chunk.joinToString(",") { "'$it'" }})")
+          .where(field(cacheTable.idColumn()).`in`(*chunk.toTypedArray()))
           .execute()
       }
     }
