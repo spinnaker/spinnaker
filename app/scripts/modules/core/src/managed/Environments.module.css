@@ -1,0 +1,42 @@
+.GenericRowRoute {
+  flex: 1 1 1200px;
+}
+
+.ObjectRowHeader {
+  position: sticky;
+  top: 56px;
+  height: 48px;
+  z-index: 999;
+  width: calc(100% + 16px);
+  margin-left: -8px;
+  padding: 0 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: linear-gradient(-135deg, #f7f7f7 3px, transparent 0), linear-gradient(135deg, #f7f7f7 3px, transparent 0),
+    linear-gradient(-135deg, #888888 4px, transparent 1px), linear-gradient(135deg, #888888 4px, transparent 1px);
+  background-position: 0 calc(100% - 4px), 0 calc(100% - 4px);
+  background-repeat: repeat-x, repeat-x;
+  background-size: 8px 8px, 8px 8px;
+  background-color: #f7f7f7;
+}
+
+.scrollOffHeader {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mainContent {
+  display: flex;
+  margin-top: 24px;
+}
+
+.artifactsColumn {
+  flex: 0 1 280px;
+  overflow: hidden;
+  margin-right: 16px;
+}
+
+.environmentsColumn {
+  flex: 1 1 400px;
+}

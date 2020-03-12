@@ -1,0 +1,53 @@
+.ArtifactRow {
+  height: 48px;
+  display: block;
+}
+.ArtifactRow:hover {
+  cursor: pointer;
+  background-image: linear-gradient(to bottom, rgba(160, 180, 220, 0.15), rgba(160, 180, 220, 0.15));
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-top: 4px;
+}
+.version {
+  flex: 0 0 48px;
+  margin: 0 8px 0 4px;
+  /*margin-right: 8px;*/
+}
+.text {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+.sha {
+  font-size: 14px;
+}
+.name {
+  font-size: 12px;
+  font-style: italic;
+  color: #999;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.statuses {
+  flex: 1 0 auto;
+  margin-right: 4px;
+}
+
+.stages {
+  display: flex;
+  height: 6px;
+  padding-bottom: 2px;
+}
+.stage {
+  background-color: #00b237;
+  flex: 1 1 auto;
+  margin-right: 2px;
+}
+.stage:last-child {
+  margin-right: 0;
+}

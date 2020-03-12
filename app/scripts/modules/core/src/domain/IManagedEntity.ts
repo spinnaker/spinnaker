@@ -17,6 +17,7 @@ export interface IManagedResourceSummary {
   kind: string;
   status: ManagedResourceStatus;
   isPaused: boolean;
+  artifact?: any;
   moniker: IMoniker;
   locations: {
     account: string;
@@ -64,6 +65,10 @@ interface IManagedApplicationEntities {
   environments: IManagedEnviromentSummary[];
   artifacts: IManagedArtifactSummary[];
 }
+
+export type IManagedApplicationEnvironmentSummary = IManagedApplicationSummary<
+  'resources' | 'artifacts' | 'environments'
+>;
 
 export type IManagedApplicationSummary<T extends keyof IManagedApplicationEntities = 'resources'> = Pick<
   IManagedApplicationEntities,

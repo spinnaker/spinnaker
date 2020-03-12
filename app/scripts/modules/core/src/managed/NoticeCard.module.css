@@ -1,0 +1,68 @@
+.NoticeCard {
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 3px;
+  padding: 8px 16px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  color: #444;
+}
+.NoticeCard.active {
+  background-color: #fff0a0;
+}
+.NoticeCard.warning {
+  background-color: #ff8282;
+  animation: noticeStrobe 4s linear;
+}
+
+.iconContainer {
+  flex: 0 0 40px;
+  height: 40px;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 48px;
+}
+.iconContainer.warning {
+  background-color: #ff8282;
+  color: #ffffff;
+}
+.iconContainer.ok {
+  background-color: #00b237;
+  color: #ffffff;
+}
+
+.title {
+  font-weight: bold;
+  flex: 1 1 1px;
+  min-height: 24px;
+  margin-top: 12px;
+}
+
+.text {
+  flex: 0 0 100%;
+  margin-top: 8px;
+  align-self: center;
+}
+
+@keyframes noticeStrobe {
+  0% {
+    background-color: transparent;
+  }
+  20% {
+    background-color: colorWarn;
+  }
+  40% {
+    background-color: transparent;
+  }
+  60% {
+    background-color: colorWarn;
+  }
+  80% {
+    background-color: transparent;
+  }
+  100% {
+    background-color: colorWarn;
+  }
+}

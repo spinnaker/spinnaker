@@ -9,6 +9,7 @@ import {
   IManagedResourceEventHistory,
   IManagedResourceDiff,
   IManagedResourceEvent,
+  IManagedApplicationEnvironmentSummary,
 } from 'core/domain';
 
 const KIND_NAME_MATCHER = /.*\/(.*?)@/i;
@@ -89,9 +90,7 @@ export class ManagedReader {
       .then(this.decorateResources);
   }
 
-  public static getEnvironmentsSummary(
-    app: string,
-  ): IPromise<IManagedApplicationSummary<'resources' | 'artifacts' | 'environments'>> {
+  public static getEnvironmentsSummary(app: string): IPromise<IManagedApplicationEnvironmentSummary> {
     return API.one('managed')
       .one('application', app)
       .withParams({ entities: ['resources', 'artifacts', 'environments'] })
