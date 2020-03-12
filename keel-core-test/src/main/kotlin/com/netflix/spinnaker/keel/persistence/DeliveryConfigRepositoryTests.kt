@@ -107,6 +107,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       }
     }
 
+    fun queueConstraintApproval() {
+      repository.queueAllConstraintsApproved(deliveryConfig.name, "staging", "keel-1.0.0")
+    }
+
     fun getEnvironment(resource: Resource<*>) = expectCatching {
       repository.environmentFor(resource.id)
     }
@@ -268,6 +272,12 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             .hasSize(1)
           expectThat(updatedConstraintState.first().status)
             .isEqualTo(ConstraintStatus.PASS)
+        }
+
+        test("can queue constraint approvals") {
+          queueConstraintApproval()
+          expectThat(repository.getQueuedConstraintApprovals(deliveryConfig.name, "staging"))
+            .isEqualTo(setOf("keel-1.0.0"))
         }
 
         test("can retrieve the environment for the resources") {

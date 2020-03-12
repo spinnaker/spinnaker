@@ -842,6 +842,7 @@ class SqlDeliveryConfigRepository(
 
     return sqlRetry.withRetry(READ) {
       jooq.select(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION)
+        .from(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
         .where(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.eq(environmentUID))
         .fetch(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION)
         .toSet()
