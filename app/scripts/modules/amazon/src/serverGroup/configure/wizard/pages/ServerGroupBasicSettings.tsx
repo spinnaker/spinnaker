@@ -21,6 +21,7 @@ import { SubnetSelectField } from 'amazon/subnet';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import ServerGroupDetailsField from './fields/ServerGroupDetailsField';
 
 const isExpressionLanguage = (field: string) => field && field.includes('${');
 const isStackPattern = (stack: string) =>
@@ -170,13 +171,6 @@ export class ServerGroupBasicSettings
     values.clusterChanged(values);
   };
 
-  private freeFormDetailsChanged = (freeFormDetails: string) => {
-    const { setFieldValue, values } = this.props.formik;
-    values.freeFormDetails = freeFormDetails; // have to do it here to make sure it's done before calling values.clusterChanged
-    setFieldValue('freeFormDetails', freeFormDetails);
-    values.clusterChanged(values);
-  };
-
   public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
     this.setState(this.getStateFromProps(nextProps));
   }
@@ -266,26 +260,7 @@ export class ServerGroupBasicSettings
             </div>
           </div>
         )}
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            Detail <HelpField id="aws.serverGroup.detail" />
-          </div>
-          <div className="col-md-7">
-            <input
-              type="text"
-              className="form-control input-sm no-spel"
-              value={values.freeFormDetails}
-              onChange={e => this.freeFormDetailsChanged(e.target.value)}
-            />
-          </div>
-        </div>
-        {errors.freeFormDetails && (
-          <div className="form-group row slide-in">
-            <div className="col-sm-9 col-sm-offset-2 error-message">
-              <span>{errors.freeFormDetails}</span>
-            </div>
-          </div>
-        )}
+        <ServerGroupDetailsField formik={formik} />
         {values.viewState.imageSourceText && (
           <div className="form-group">
             <div className="col-md-3 sm-label-right">Image Source</div>
