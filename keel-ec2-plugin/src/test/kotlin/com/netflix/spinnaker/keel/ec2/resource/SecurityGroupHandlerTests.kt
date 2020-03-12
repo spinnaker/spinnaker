@@ -26,11 +26,11 @@ import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
+import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -577,7 +577,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         copy(
           securityGroupSpec = securityGroupSpec.copy(
             inboundRules = setOf(
-              SelfReferenceRule(
+              ReferenceRule(
                 protocol = TCP,
                 portRange = PortRange(startPort = 443, endPort = 443)
               )
@@ -626,7 +626,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         copy(
           securityGroupSpec = securityGroupSpec.copy(
             inboundRules = setOf(
-              SelfReferenceRule(
+              ReferenceRule(
                 protocol = TCP,
                 portRange = PortRange(startPort = 443, endPort = 443)
               )

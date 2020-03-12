@@ -38,6 +38,7 @@ dependencies {
   testImplementation("com.netflix.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("org.testcontainers:mysql")
+  testImplementation("org.openapi4j:openapi-schema-validator:0.7")
 }
 
 application {

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -14,6 +13,6 @@ class KindController(
   val plugins: List<ResourceHandler<*, *>>
 ) {
   @GetMapping(produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE])
-  fun get(): List<ResourceKind> =
-    plugins.map { it.supportedKind.kind }
+  fun get(): Set<String> =
+    plugins.map { it.supportedKind.kind.toString() }.toSet()
 }

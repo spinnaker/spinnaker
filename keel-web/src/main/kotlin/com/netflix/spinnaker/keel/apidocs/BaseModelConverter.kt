@@ -32,26 +32,30 @@ abstract class BaseModelConverter : ModelConverter {
   protected fun ref(type: Class<*>): Schema<*> =
     Schema<Any>().`$ref`(constructRef(type.simpleName))
 
+  protected fun ref(simpleRef: String): Schema<*> =
+    Schema<Any>().`$ref`(constructRef(simpleRef))
+
   /**
    * Defines the schema for [type] as `oneOf` the schemas for [subTypes].
    */
-  protected fun ModelConverterContext.defineSchemaAsOneOf(type: Class<*>, subTypes: List<Class<*>>) {
+  protected fun ModelConverterContext.defineSchemaAsOneOf(type: Class<*>, subTypes: List<Class<*>>): ComposedSchema {
     subTypes.forEach {
       if (!definedModels.containsKey(it.simpleName)) {
         defineModel(it.simpleName, resolve(AnnotatedType(it)))
       }
     }
 
-    if (!definedModels.containsKey(type.simpleName)) {
-      defineModel(
-        type.simpleName,
-        ComposedSchema()
-          .apply {
-            subTypes.forEach {
-              addOneOfItem(ref(it))
-            }
+    return if (!definedModels.containsKey(type.simpleName)) {
+      ComposedSchema()
+        .apply {
+          subTypes.forEach {
+            addOneOfItem(ref(it))
           }
-      )
+        }.also {
+          defineModel(type.simpleName, it)
+        }
+    } else {
+      definedModels[type.simpleName] as ComposedSchema
     }
   }
 }

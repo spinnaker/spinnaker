@@ -28,7 +28,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
         ),
         description = "I can see the fnords",
         inboundRules = setOf(
-          SelfReferenceRule(TCP, PortRange(7001, 7002)),
+          ReferenceRule(protocol = TCP, portRange = PortRange(7001, 7002)),
           CidrRule(TCP, PortRange(443, 443), "127.0.0.1/16")
         )
       )
@@ -115,7 +115,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
           this,
           copy(inboundRules = inboundRules.map {
             when (it) {
-              is SelfReferenceRule -> it.copy(portRange = PortRange(8080, 8083))
+              is ReferenceRule -> it.copy(portRange = PortRange(8080, 8083))
               else -> it
             }
           }

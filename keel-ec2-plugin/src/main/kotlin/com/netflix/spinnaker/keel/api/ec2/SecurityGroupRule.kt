@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonDeserializer.None
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.ec2.jackson.SecurityGroupRuleDeserializer
@@ -27,20 +28,21 @@ sealed class SecurityGroupRule {
   enum class Protocol {
     TCP, UDP, ICMP
   }
-}
 
-@JsonDeserialize(using = None::class)
-data class SelfReferenceRule(
-  override val protocol: Protocol,
-  override val portRange: PortRange
-) : SecurityGroupRule()
+  @JsonIgnore
+  open val isSelfReference: Boolean = false
+}
 
 @JsonDeserialize(using = None::class)
 data class ReferenceRule(
   override val protocol: Protocol,
-  val name: String,
+  val name: String? = null,
   override val portRange: PortRange
-) : SecurityGroupRule()
+) : SecurityGroupRule() {
+  @get:JsonIgnore
+  override val isSelfReference: Boolean
+    get() = name == null
+}
 
 @JsonDeserialize(using = None::class)
 data class CrossAccountReferenceRule(

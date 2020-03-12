@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component
  * intercept it and add `oneOf` definitions.
  *
  * @see https://github.com/springdoc/springdoc-openapi/issues/434#issuecomment-586700760
- * @see ResourceSpecModelConverter
  */
 @Component
 class GenericWildcardTypeModelConverter : ModelConverter {

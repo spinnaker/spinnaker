@@ -30,7 +30,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
             |  startPort: 8080
             |  endPort: 8080
             |""".trimMargin(),
-          model = SelfReferenceRule(
+          model = ReferenceRule(
             protocol = TCP,
             portRange = PortRange(8080, 8080)
           )

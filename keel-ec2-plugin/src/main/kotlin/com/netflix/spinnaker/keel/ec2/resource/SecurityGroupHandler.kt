@@ -32,7 +32,6 @@ import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -287,13 +286,9 @@ class SecurityGroupHandler(
                   cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
                   portRange
                 )
-                ingressGroup.name != name -> ReferenceRule(
+                else -> ReferenceRule(
                   protocol,
-                  ingressGroup.name,
-                  portRange
-                )
-                else -> SelfReferenceRule(
-                  protocol,
+                  if (ingressGroup.name == name) null else ingressGroup.name, // if it's a self-referential rule keel models the name as null
                   portRange
                 )
               }
@@ -328,7 +323,7 @@ class SecurityGroupHandler(
           // we have to do a 2-phase create for self-referencing ingress rules as the referenced
           // security group must exist prior to the rule being applied. We filter then out here and
           // the subsequent diff will apply the additional group(s).
-          .filterNot { it is SelfReferenceRule }
+          .filterNot { it.isSelfReference }
           .mapNotNull {
             it.referenceRuleToJob(this)
           },
@@ -366,13 +361,7 @@ class SecurityGroupHandler(
         "type" to protocol.name.toLowerCase(),
         "startPort" to portRange.startPort,
         "endPort" to portRange.endPort,
-        "name" to name
-      )
-      is SelfReferenceRule -> mapOf(
-        "type" to protocol.name.toLowerCase(),
-        "startPort" to portRange.startPort,
-        "endPort" to portRange.endPort,
-        "name" to securityGroup.moniker.toString()
+        "name" to (name ?: securityGroup.moniker.toString())
       )
       is CrossAccountReferenceRule -> mapOf(
         "type" to protocol.name.toLowerCase(),

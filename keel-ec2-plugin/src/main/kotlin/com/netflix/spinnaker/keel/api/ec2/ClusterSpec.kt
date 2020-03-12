@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.VersionedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.docs.Optional
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
@@ -114,7 +113,6 @@ data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider? = null,
   val deployWith: ClusterDeployStrategy = RedBlack(),
-  @Optional
   override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
   @JsonInclude(NON_EMPTY)

@@ -15,4 +15,10 @@ class ConstraintModelConverter(
 ) : SubtypesModelConverter<Constraint>(Constraint::class.java) {
 
   override val subTypes = evaluators.map { it.supportedType.type }
+
+  override val discriminator: String? = Constraint::type.name
+
+  override val mapping: Map<String, Class<out Constraint>> = evaluators.associate {
+    it.supportedType.name to it.supportedType.type
+  }
 }

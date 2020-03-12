@@ -16,7 +16,7 @@ spec:
     - name: us-west-2
   internal: true
   securityGroupNames: []
-  idleTimeout: 60
+  idleTimeout: PT60S
   listeners:
   - internalProtocol: HTTP
     internalPort: 7001
@@ -25,7 +25,7 @@ spec:
     sslCertificateId:
   healthCheck:
     target: HTTP:7001/health
-    interval: 10
+    interval: PT10S
     healthyThreshold: 5
     unhealthyThreshold: 2
-    timeout: 5
+    timeout: PT5S
