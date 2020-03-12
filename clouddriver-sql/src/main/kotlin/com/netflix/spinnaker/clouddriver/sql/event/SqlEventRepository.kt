@@ -52,6 +52,7 @@ class SqlEventRepository(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val eventCountId = registry.createId("eventing.events")
+  private val eventErrorCountId = registry.createId("eventing.errors")
 
   override fun save(
     aggregateType: String,
@@ -151,11 +152,17 @@ class SqlEventRepository(
         }
       }
     } catch (e: AggregateChangeRejectedException) {
-      registry.counter(eventCountId.withTags("aggregateType", aggregateType)).increment(newEvents.size.toLong())
+      registry.counter(
+        eventErrorCountId
+          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName))
+        .increment()
       throw e
     } catch (e: Exception) {
       // This is totally handling it...
-      registry.counter(eventCountId.withTags("aggregateType", aggregateType)).increment(newEvents.size.toLong())
+      registry.counter(
+        eventErrorCountId
+          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName))
+        .increment()
       throw SqlEventSystemException("Failed saving new events", e)
     }
 
