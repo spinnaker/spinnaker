@@ -1,35 +1,29 @@
 import React from 'react';
-import { set } from 'lodash';
-
-import { IStageConfigProps, StageConfigField } from '../common';
+import { FormikFormField, TextInput } from 'core/presentation';
 import { IPreconfiguredJobParameter } from './preconfiguredJob.reader';
+import { HelpField } from '../../../../help';
+import { IStageConfigProps } from '../common';
 
-export class PreconfiguredJobStageConfig extends React.Component<IStageConfigProps> {
-  private parameterFieldChanged = (fieldIndex: string, value: any) => {
-    set(this.props.stage, `parameters.${fieldIndex}`, value);
-    this.props.stageFieldUpdated();
-    this.forceUpdate();
-  };
+import { FormikStageConfig } from '../FormikStageConfig';
 
-  public render() {
-    const {
-      stage: { parameters = {} },
-      configuration,
-    } = this.props;
-
-    return (
-      <div className="form-horizontal">
-        {configuration.parameters.map((parameter: IPreconfiguredJobParameter) => (
-          <StageConfigField key={parameter.name} label={parameter.label}>
-            <input
-              type="text"
-              className="form-control input-sm"
-              value={parameters[parameter.name]}
-              onChange={e => this.parameterFieldChanged(parameter.name, e.target.value)}
-            />
-          </StageConfigField>
-        ))}
-      </div>
-    );
-  }
+export function PreconfiguredJobStageConfig(props: IStageConfigProps) {
+  const parameters: IPreconfiguredJobParameter[] = props.configuration.parameters ?? [];
+  return (
+    <FormikStageConfig
+      {...props}
+      onChange={props.updateStage}
+      render={() =>
+        parameters.map(param => (
+          <FormikFormField
+            key={param.name}
+            name={`parameters.${param.name}`}
+            label={param.label}
+            help={param.description ? <HelpField content={param.description} /> : null}
+            input={props => <TextInput {...props} />}
+            {...props}
+          />
+        ))
+      }
+    />
+  );
 }
