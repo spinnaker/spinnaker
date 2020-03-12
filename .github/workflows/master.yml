@@ -1,4 +1,4 @@
-name: Fiat master
+name: master
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Fiat PR
+name: PR
 
 on: [pull_request]
 

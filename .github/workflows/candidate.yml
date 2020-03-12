@@ -1,9 +1,9 @@
-name: Release
+name: Candidate release
 
 on:
   push:
     tags:
-    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
 
 jobs:
   build:
@@ -19,16 +19,13 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Release build
+      - name: Candidate build
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          SPINNAKER_GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
           GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
         run: |
-          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
-          sleep 90
-          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -Pgithub.token="${SPINNAKER_GITHUB_TOKEN}" bumpDependencies
+          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" candidate
       - name: Get the changelog
         id: get_changelog
         env:
@@ -48,4 +45,4 @@ jobs:
            body: |
             ${{ steps.get_changelog.outputs.CHANGELOG }}
            draft: false
-           prerelease: false
+           prerelease: true
