@@ -55,7 +55,7 @@ class SqlEventCleanupAgent(
 
     registry.timer(timingId).record {
       withPool(ConnectionPools.EVENTS.value) {
-        val rs = jooq.select(field("aggregate_type"), field("aggregateId"))
+        val rs = jooq.select(field("aggregate_type"), field("aggregate_id"))
           .from(table("event_aggregates"))
           .where(timestampDiff(field("last_change_timestamp", Timestamp::class.java), currentTimestamp())
             .greaterThan(DayToSecond.valueOf(duration)))
