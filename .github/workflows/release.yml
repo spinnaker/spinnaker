@@ -47,6 +47,7 @@ jobs:
            draft: false
            prerelease: false
   bump-dependencies:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
