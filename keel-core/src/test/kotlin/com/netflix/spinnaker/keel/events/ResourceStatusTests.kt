@@ -47,7 +47,7 @@ internal class ResourceStatusTests : JUnit5Minutests {
     val deltaResolvedEvent = ResourceDeltaResolved(resource)
     val dependencyMissingEvent = ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("I guess I can't find the AMI or something") {})
     val errorEvent = ResourceCheckError(resource, InvalidResourceFormatException("bad resource", "who knows"))
-    val actuationPausedEvent = ResourceActuationPaused(resource, "whatever")
+    val actuationPausedEvent = ResourceActuationPaused(resource)
     val actuationResumedEvent = ResourceActuationResumed(resource)
     val resourceValidEvent = ResourceValid(resource)
   }

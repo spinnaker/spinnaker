@@ -15,8 +15,7 @@ import java.time.Instant
   JsonSubTypes.Type(value = ApplicationActuationPaused::class, name = "ApplicationActuationPaused"),
   JsonSubTypes.Type(value = ApplicationActuationResumed::class, name = "ApplicationActuationResumed")
 )
-sealed class ApplicationEvent : PersistentEvent() {
-  @JsonIgnore
+abstract class ApplicationEvent : PersistentEvent() {
   override val scope = Scope.APPLICATION
 
   override val uid: String
@@ -30,15 +29,13 @@ sealed class ApplicationEvent : PersistentEvent() {
  */
 data class ApplicationActuationPaused(
   override val application: String,
-  val reason: String?,
   override val timestamp: Instant
 ) : ApplicationEvent() {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
-  constructor(application: String, reason: String? = null, clock: Clock = Companion.clock) : this(
+  constructor(application: String, clock: Clock = Companion.clock) : this(
     application,
-    reason,
     clock.instant()
   )
 }
@@ -48,14 +45,12 @@ data class ApplicationActuationPaused(
  */
 data class ApplicationActuationResumed(
   override val application: String,
-  val reason: String?,
   override val timestamp: Instant
 ) : ApplicationEvent() {
   @JsonIgnore override val ignoreRepeatedInHistory = true
 
-  constructor(application: String, reason: String? = null, clock: Clock = Companion.clock) : this(
+  constructor(application: String, clock: Clock = Companion.clock) : this(
     application,
-    reason,
     clock.instant()
   )
 }

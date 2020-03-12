@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
@@ -28,11 +28,10 @@ class EventController(
   fun eventHistory(
     @PathVariable("id") id: String,
     @RequestParam("limit") limit: Int?
-  ): List<ResourceEvent> {
+  ): List<PersistentEvent> {
     log.debug("Getting state history for: $id")
     val resource = repository.getResource(id)
     val events = repository.resourceEventHistory(id, limit ?: DEFAULT_MAX_EVENTS)
-
-    return actuationPauser.addSyntheticPausedEvents(events, resource)
+    return actuationPauser.addApplicationActuationEvents(events, resource)
   }
 }

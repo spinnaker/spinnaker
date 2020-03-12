@@ -31,6 +31,7 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.Clock
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.assertions.isFalse
@@ -49,7 +50,7 @@ class ActuationPauserTests : JUnit5Minutests {
     }
     val pausedRepository = InMemoryPausedRepository()
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-    val subject = ActuationPauser(resourceRepository, pausedRepository, publisher)
+    val subject = ActuationPauser(resourceRepository, pausedRepository, publisher, Clock.systemDefaultZone())
   }
 
   fun tests() = rootContext<Fixture> {
@@ -82,7 +83,6 @@ class ActuationPauserTests : JUnit5Minutests {
           that(subject.isPaused(resource1)).isFalse()
           that(subject.isPaused(resource2)).isFalse()
         }
-        verify(exactly = 2) { publisher.publishEvent(ofType<ResourceActuationResumed>()) }
       }
 
       test("resume event is generated") {
@@ -90,7 +90,7 @@ class ActuationPauserTests : JUnit5Minutests {
         verify(exactly = 1) {
           publisher.publishEvent(ofType<ApplicationActuationResumed>())
         }
-        verify(exactly = 2) {
+        verify(exactly = 0) {
           publisher.publishEvent(ofType<ResourceActuationResumed>())
         }
       }

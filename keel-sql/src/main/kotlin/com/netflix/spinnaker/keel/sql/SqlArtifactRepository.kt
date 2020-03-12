@@ -840,7 +840,7 @@ class SqlArtifactRepository(
             environment = environmentName,
             version = version,
             state = promotionStatus.toLowerCase(),
-            deployedAt = deployedAt.toInstant(ZoneOffset.UTC),
+            deployedAt = deployedAt?.toInstant(ZoneOffset.UTC),
             replacedAt = replacedAt,
             replacedBy = replacedBy
           )

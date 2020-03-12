@@ -111,7 +111,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("management is paused for that resource") {
           before {
-            resourceRepository.appendHistory(ResourceActuationPaused(resource, "ActuationPaused"))
+            resourceRepository.appendHistory(ResourceActuationPaused(resource))
             every { actuationPauser.isPaused(resource) } returns true
             runBlocking {
               subject.checkResource(resource)
