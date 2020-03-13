@@ -28,6 +28,7 @@ dependencies {
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("org.springdoc:springdoc-openapi-webmvc-core:1.2.32")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.2.32")
+  implementation("org.apache.maven:maven-artifact:3.6.3")
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-test"))

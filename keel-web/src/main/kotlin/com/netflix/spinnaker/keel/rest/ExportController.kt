@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
@@ -10,8 +11,10 @@ import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.util.comparator.NullSafeComparator
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
@@ -66,11 +69,10 @@ class ExportController(
     @PathVariable("name") name: String,
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): SubmittedResource<*> {
-    val provider = cloudProviderOverrides[cloudProvider] ?: cloudProvider
-    val kind = typeToKind.getOrDefault(type.toLowerCase(), type.toLowerCase()).let(::parseKind)
+    val kind = parseKind(cloudProvider, type)
     val handler = handlers.supporting(kind)
     val exportable = Exportable(
-      cloudProvider = provider,
+      cloudProvider = kind.group,
       account = account,
       user = user,
       moniker = parseMoniker(name),
@@ -93,5 +95,44 @@ class ExportController(
         )
       }
     }
+  }
+
+  fun parseKind(cloudProvider: String, type: String) =
+    type.toLowerCase().let { t1 ->
+      val group = cloudProviderOverrides[cloudProvider] ?: cloudProvider
+      var version: String? = null
+      val normalizedType = if (versionSuffix.containsMatchIn(t1)) {
+        version = versionSuffix.find(t1)!!.groups[1]?.value
+        t1.replace(versionSuffix, "")
+      } else {
+        t1
+      }.let { t2 ->
+        typeToKind.getOrDefault(t2, t2)
+      }
+
+      if (version == null) {
+        version = handlers
+          .supporting(group, normalizedType)
+          .map { h -> h.supportedKind.kind.version }
+          .sortedWith(versionComparator)
+          .last()
+      }
+
+      (version != null) || error("Unable to find version for group $group, $normalizedType")
+
+      "$group/$normalizedType@v$version"
+    }.let(ResourceKind.Companion::parseKind)
+
+  companion object {
+    val versionSuffix = """@v(\d+)$""".toRegex()
+    private val versionPrefix = """^v""".toRegex()
+    val versionComparator: Comparator<String> = NullSafeComparator<String>(
+      Comparator<String> { s1, s2 ->
+        DefaultArtifactVersion(s1?.replace(versionPrefix, "")).compareTo(
+          DefaultArtifactVersion(s2?.replace(versionPrefix, ""))
+        )
+      },
+      true // null is considered lower
+    )
   }
 }

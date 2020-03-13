@@ -150,7 +150,7 @@ data class SupportedKind<SPEC : ResourceSpec>(
 )
 
 /**
- * Searches a list of `ResourceHandler`s and returns the first that supports [kind].
+ * Searches a list of [ResourceHandler]s and returns the first that supports [kind].
  *
  * @throws UnsupportedKind if no appropriate handlers are found in the list.
  */
@@ -159,10 +159,27 @@ fun Collection<ResourceHandler<*, *>>.supporting(
 ): ResourceHandler<*, *> =
   find { it.supportedKind.kind == kind } ?: throw UnsupportedKind(kind)
 
+/**
+ * Searches a list of [ResourceHandler]s and returns the ones that support the specified [group] and [unqualifiedKind].
+ *
+ * @throws UnsupportedKind if no appropriate handlers are found in the list.
+ */
+fun Collection<ResourceHandler<*, *>>.supporting(
+  group: String,
+  unqualifiedKind: String
+): List<ResourceHandler<*, *>> =
+  filter { it.supportedKind.kind.group == group && it.supportedKind.kind.kind == unqualifiedKind }
+    ?: throw UnsupportedKind("$group/$unqualifiedKind")
+
+/**
+ * Searches a list of [ResourceHandler] and returns the ones that support the specified [specClass].
+ */
 fun <T : ResourceSpec> Collection<ResourceHandler<*, *>>.supporting(
   specClass: Class<T>
 ): ResourceHandler<*, *>? =
   find { it.supportedKind.specClass == specClass }
 
-class UnsupportedKind(kind: ResourceKind) :
-  IllegalStateException("No resource handler supporting \"$kind\" is available")
+class UnsupportedKind(kind: String) :
+  IllegalStateException("No resource handler supporting \"$kind\" is available") {
+  constructor(kind: ResourceKind) : this(kind.toString())
+}

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.TEST_API
+import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -224,7 +224,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
       context("resource lifecycle") {
         val resource = SubmittedResource(
           metadata = mapOf("serviceAccount" to "keel@spinnaker"),
-          kind = TEST_API.qualify("whatever"),
+          kind = TEST_API_V1.qualify("whatever"),
           spec = DummyResourceSpec(data = "o hai")
         ).normalize()
 
@@ -317,7 +317,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
               name = "test",
               resources = setOf(
                 SubmittedResource(
-                  kind = TEST_API.qualify("whatever"),
+                  kind = TEST_API_V1.qualify("whatever"),
                   spec = DummyResourceSpec("test", "im a twin", "keel")
                 )
               ),
@@ -327,7 +327,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
               name = "prod",
               resources = setOf(
                 SubmittedResource(
-                  kind = TEST_API.qualify("whatever"),
+                  kind = TEST_API_V1.qualify("whatever"),
                   spec = DummyResourceSpec("test", "im a twin", "keel")
                 )
               ),
@@ -363,7 +363,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
               resources = setOf(
                 SubmittedResource(
                   metadata = mapOf("serviceAccount" to "keel@spinnaker"),
-                  kind = TEST_API.qualify("whatever"),
+                  kind = TEST_API_V1.qualify("whatever"),
                   spec = DummyResourceSpec(data = "o hai")
                 )
               ),

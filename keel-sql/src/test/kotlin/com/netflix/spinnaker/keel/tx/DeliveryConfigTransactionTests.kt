@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.test.DummyResourceHandler
+import com.netflix.spinnaker.keel.test.DummyResourceHandlerV1
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import com.ninjasquad.springmockk.SpykBean
@@ -183,5 +183,5 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
 @Configuration
 internal class TestConfiguration {
   @Bean
-  fun dummyResourceHandler() = DummyResourceHandler
+  fun dummyResourceHandler() = DummyResourceHandlerV1
 }

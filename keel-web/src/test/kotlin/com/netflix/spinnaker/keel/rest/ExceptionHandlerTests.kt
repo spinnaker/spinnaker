@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
-import com.netflix.spinnaker.keel.test.DummyResourceHandler
+import com.netflix.spinnaker.keel.test.DummyResourceHandlerV1
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.TEST_API
+import com.netflix.spinnaker.keel.test.TEST_API_V1
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
@@ -18,10 +18,10 @@ class ExceptionHandlerTests : JUnit5Minutests {
   class Fixture(
     brokenYaml: String
   ) {
-    val subject = ExceptionHandler(listOf(DummyResourceHandler))
+    val subject = ExceptionHandler(listOf(DummyResourceHandlerV1))
     val mapper = configuredYamlMapper()
     val parseException = try {
-        mapper.registerSubtypes(NamedType(DummyResourceSpec::class.java, TEST_API.qualify("whatever").toString()))
+        mapper.registerSubtypes(NamedType(DummyResourceSpec::class.java, TEST_API_V1.qualify("whatever").toString()))
         mapper.readValue(brokenYaml, SubmittedDeliveryConfig::class.java)
         throw IllegalArgumentException("test is broken")
       } catch (e: JsonMappingException) {
@@ -46,7 +46,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -79,7 +79,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -111,7 +111,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
             - constraints: []
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -144,7 +144,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: true # wrong
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec: {}
           """.trimIndent()
         )
@@ -178,7 +178,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               notifications: []
               resources:
               - spec: {}
-                # kind: "${TEST_API.qualify("whatever")}"
+                # kind: "${TEST_API_V1.qualify("whatever")}"
           """.trimIndent()
         )
       }
@@ -210,7 +210,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec:
                   intData: "wrong"
           """.trimIndent()
@@ -244,7 +244,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec:
                   timeData: "wrong"
           """.trimIndent()
@@ -278,7 +278,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
               constraints: []
               notifications: []
               resources:
-              - kind: "${TEST_API.qualify("whatever")}"
+              - kind: "${TEST_API_V1.qualify("whatever")}"
                 spec:
                   enumData: "wrong"
           """.trimIndent()

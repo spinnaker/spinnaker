@@ -20,10 +20,11 @@ import de.danielbechler.diff.introspection.ObjectDiffProperty
 import java.time.Duration
 import java.util.UUID
 
-val TEST_API = ApiVersion("test")
+val TEST_API_V1 = ApiVersion("test", "1")
+val TEST_API_V2 = ApiVersion("test", "2")
 
 fun resource(
-  kind: ResourceKind = TEST_API.qualify("whatever"),
+  kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   id: String = randomString(),
   application: String = "fnord"
 ): Resource<DummyResourceSpec> =
@@ -38,7 +39,7 @@ fun resource(
     }
 
 fun artifactVersionedResource(
-  kind: ResourceKind = TEST_API.qualify("whatever"),
+  kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   id: String = randomString(),
   application: String = "fnord"
 ): Resource<DummyArtifactVersionedResourceSpec> =
@@ -53,7 +54,7 @@ fun artifactVersionedResource(
     }
 
 fun submittedResource(
-  kind: ResourceKind = TEST_API.qualify("whatever"),
+  kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   application: String = "fnord"
 ): SubmittedResource<DummyResourceSpec> =
   DummyResourceSpec(application = application)
@@ -65,7 +66,7 @@ fun submittedResource(
     }
 
 fun locatableResource(
-  kind: ResourceKind = TEST_API.qualify("locatable"),
+  kind: ResourceKind = TEST_API_V1.qualify("locatable"),
   id: String = randomString(),
   application: String = "fnord",
   locations: SimpleLocations = SimpleLocations(
@@ -85,7 +86,7 @@ fun locatableResource(
     }
 
 fun <T : Monikered> resource(
-  kind: ResourceKind = TEST_API.qualify("whatever"),
+  kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   spec: T
 ): Resource<T> = resource(
   kind = kind,
@@ -95,7 +96,7 @@ fun <T : Monikered> resource(
 )
 
 fun <T : ResourceSpec> resource(
-  kind: ResourceKind = TEST_API.qualify("whatever"),
+  kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   spec: T,
   id: String = spec.id,
   application: String = "fnord"
@@ -111,7 +112,7 @@ fun <T : ResourceSpec> resource(
   )
 
 fun <T : ResourceSpec> submittedResource(
-  kind: ResourceKind = TEST_API.qualify("whatever"),
+  kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   spec: T
 ): SubmittedResource<T> =
   SubmittedResource(
@@ -176,9 +177,18 @@ fun randomString(length: Int = 8) =
     .joinToString("")
     .substring(0 until length)
 
-object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(emptyList()) {
+object DummyResourceHandlerV1 : SimpleResourceHandler<DummyResourceSpec>(emptyList()) {
   override val supportedKind =
-    SupportedKind(TEST_API.qualify("whatever"), DummyResourceSpec::class.java)
+    SupportedKind(TEST_API_V1.qualify("whatever"), DummyResourceSpec::class.java)
+
+  override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
+    TODO("not implemented")
+  }
+}
+
+object DummyResourceHandlerV2 : SimpleResourceHandler<DummyResourceSpec>(emptyList()) {
+  override val supportedKind =
+    SupportedKind(TEST_API_V2.qualify("whatever"), DummyResourceSpec::class.java)
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

@@ -18,7 +18,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.TEST_API
+import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -88,14 +88,14 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
               SubmittedEnvironment(
                 name = "test",
                 resources = setOf(SubmittedResource(
-                  kind = TEST_API.qualify("whatever"),
+                  kind = TEST_API_V1.qualify("whatever"),
                   spec = DummyResourceSpec(data = "resource in test")
                 ))
               ),
               SubmittedEnvironment(
                 name = "prod",
                 resources = setOf(SubmittedResource(
-                  kind = TEST_API.qualify("whatever"),
+                  kind = TEST_API_V1.qualify("whatever"),
                   spec = DummyResourceSpec(data = "resource in prod")
                 )),
                 constraints = setOf(DependsOnConstraint("test"))
