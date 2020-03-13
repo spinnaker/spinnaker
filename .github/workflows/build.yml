@@ -1,8 +1,10 @@
-name: Master
+name: Branch Build
 
 on:
   push:
-    branches: [ master ]
+    branches:
+    - master
+    - version-*
 
 jobs:
   build:
