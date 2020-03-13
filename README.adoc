@@ -31,7 +31,7 @@ strategies such as canary deployments provide the safety necessary to capture va
  impact. As the most mature and widely productionalized continuous delivery platform, Spinnaker can apply the expertise of Netflix, Google, Microsoft,
  and Amazon to your SDLC. User companies include Target, Salesforce, Airbnb, Cerner, Adobe, and JPMorgan Chase.
  
- = Tech Specs
+= Tech Specs
 
 Spinnaker consists of a number of https://www.spinnaker.io/reference/architecture/[independent microservices], with the Halyard CLI administration service
 managing the lifecycle of the other services. A variety of SDLC tools integrate with Spinnaker, and its plugin framework offers an alternative to extending
