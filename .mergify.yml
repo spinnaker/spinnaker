@@ -1,7 +1,7 @@
 pull_request_rules:
   - name: Automatically merge on CI success and review
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
+      - status-success=build
       - "label=ready to merge"
       - "approved-reviews-by=@oss-approvers"
     actions:
@@ -12,7 +12,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Automatically merge PRs from maintainers on CI success and review
     conditions:
-    - status-success=continuous-integration/travis-ci/pr
+    - status-success=build
     - "label=ready to merge"
     - "author=@oss-approvers"
     actions:
@@ -23,7 +23,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Automatically merge kork autobump PRs on CI success
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
+      - status-success=build
       - "label~=autobump-*"
       - "author:spinnakerbot"
     actions:
