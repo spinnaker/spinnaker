@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { isEqual } from 'lodash';
 
+import { useDataSource } from '../presentation/hooks';
 import { Application, ApplicationDataSource } from '../application';
-import { IManagedApplicationSummary } from '../domain/IManagedEntity';
+import { IManagedApplicationEnvironmentSummary } from '../domain/IManagedEntity';
 import { ColumnHeader } from './ColumnHeader';
 import { ArtifactsList } from './ArtifactsList';
 import { EnvironmentsList } from './EnvironmentsList';
 
 import styles from './Environments.module.css';
-import { isEqual } from 'lodash';
 
 const CONTENT_WIDTH = 1200;
 
@@ -22,13 +23,10 @@ interface IEnvironmentsProps {
 
 export function Environments(props: IEnvironmentsProps) {
   const { app } = props;
-  const dataSource: ApplicationDataSource<IManagedApplicationSummary<
-    'resources' | 'artifacts' | 'environments'
-  >> = app.getDataSource('environments');
+  const dataSource: ApplicationDataSource<IManagedApplicationEnvironmentSummary> = app.getDataSource('environments');
+  const { data: environments } = useDataSource(dataSource);
   const [selectedArtifact, setSelectedArtifact] = useState<ISelectedArtifact>();
-  const [environments, setEnvironments] = useState(dataSource.data);
   const [isFiltersOpen] = useState(false);
-  useEffect(() => dataSource.onRefresh(null, () => setEnvironments(dataSource.data)), [app]);
 
   const totalContentWidth = isFiltersOpen ? CONTENT_WIDTH + 248 + 'px' : CONTENT_WIDTH + 'px';
 
