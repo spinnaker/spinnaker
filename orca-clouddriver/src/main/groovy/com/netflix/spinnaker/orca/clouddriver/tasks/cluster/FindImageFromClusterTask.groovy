@@ -294,16 +294,11 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       return artifact
     }.flatten()
 
-    // When additional regions are inferred for downstream deploy stages, adding them back
-    // to Stage.context.regions enables direct use via DeploymentDetailsAware.withImageFromPrecedingStage()
-    // instead of via a subsequent code path that may exhibit different behavior.
-    Map<String, Object> context = [amiDetails: deploymentDetails, artifacts: artifacts]
-    context.put("regions", config.regions + inferredRegions)
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(
-      context
-    ).outputs([
-      deploymentDetails: deploymentDetails,
-      inferredRegions: inferredRegions
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
+      amiDetails: deploymentDetails,
+      artifacts: artifacts
+    ]).outputs([
+      deploymentDetails: deploymentDetails
     ]).build()
   }
 
