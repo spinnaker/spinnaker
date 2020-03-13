@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - run: git fetch --prune --unshallow
       - uses: actions/setup-java@v1
         with:
           java-version: 8
