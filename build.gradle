@@ -95,6 +95,9 @@ subprojects {
       }
     }
   }
+  tasks.withType(Javadoc) {
+    failOnError = false
+  }
 }
 
 defaultTasks ":orca-web:run"
