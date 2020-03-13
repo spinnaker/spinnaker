@@ -319,6 +319,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   def "should delete all entity tags in namespace"() {
     given:
     def allEntityTags = [
+      buildEntityTags("titus:servergroup:clouddriver-main-^1.0.0-v150:myaccount:us-west-1", ["a": "1"], "my_namespace"),
       buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", ["a": "1"], "my_namespace"),
       buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", ["b": "2"], "my_namespace"),
       buildEntityTags("aws:servergroup:clouddriver-main-v003:myaccount:us-west-1", ["c": "3"]),
