@@ -22,8 +22,6 @@ import org.eclipse.egit.github.core.PullRequestMarker
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.User
 import org.eclipse.egit.github.core.client.GitHubClient
-import org.eclipse.egit.github.core.client.GitHubRequest
-import org.eclipse.egit.github.core.client.GitHubResponse
 import org.eclipse.egit.github.core.service.PullRequestService
 import org.eclipse.egit.github.core.service.RepositoryService
 import org.eclipse.egit.github.core.service.UserService
@@ -32,20 +30,22 @@ import org.gradle.api.tasks.TaskAction
 
 class BumpDependencies extends DefaultTask {
 
+  private static final String TEAM_REVIEWERS = "oss-approvers"
+
   private static final String COMMIT_BODY = '''\
     This is an automated PR!
-    
+
     You can merge all of these PRs from the `%s` project using the command below and a Github access token.
     Generate a GH token from https://github.com/settings/tokens, and run the following:
-    
+
     ```
     GITHUB_ACCESS_TOKEN=
     ./gradlew mergeAllAutoBumpPRs -Pgithub.token=$GITHUB_ACCESS_TOKEN -PenablePublishing=true
     ```
-    
+
     If something has gone wrong, and you don't want to manually close all of the autobump PRs, you can
     close all open PRs with the 'autobump' label using this command:
-    
+
     ```
     GITHUB_ACCESS_TOKEN=
     ./gradlew closeAllAutoBumpPRs -Pgithub.token=$GITHUB_ACCESS_TOKEN -PenablePublishing=true
@@ -62,17 +62,6 @@ class BumpDependencies extends DefaultTask {
     User user = userSvc.getUser()
 
     DependencyBumpExtension extension = project.extensions.findByType(DependencyBumpExtension)
-
-    String reviewer
-    try {
-      String latestReleaseUri = "/repos/spinnaker/${extension.artifact}/releases/latest"
-      GitHubResponse resp = client.get(new GitHubRequest(uri: latestReleaseUri, type: LatestRelease.class))
-      reviewer = (resp.body as LatestRelease)?.author?.login
-      logger.lifecycle("Found author of last release: $reviewer.")
-    } catch (Exception e) {
-      logger.lifecycle("Could not get most recent $extension.artifact release author: ${e.getMessage()}")
-    }
-
 
     def repos = extension.reposForArtifact
     RepositoryService repoSvc = new RepositoryService(client)
@@ -177,13 +166,12 @@ class BumpDependencies extends DefaultTask {
           logger.lifecycle("Could not apply labels ${labels} to PR ${pr.htmlUrl}: ${e.getMessage()}")
         }
 
-        if (reviewer) {
-          logger.lifecycle("Requesting review from ${reviewer}")
-          def uri = "/repos/spinnaker/${upstream.name}/pulls/${pr.number}/requested_reviewers"
-          def data = ["reviewers": [reviewer]]
-          client.post(uri, data, null /* return Type */)
-          logger.lifecycle("Reviewers requested!")
-        }
+        logger.lifecycle("Requesting review from ${TEAM_REVIEWERS}")
+        def uri = "/repos/spinnaker/${upstream.name}/pulls/${pr.number}/requested_reviewers"
+        def data = ["team_reviewers": [TEAM_REVIEWERS]]
+        client.post(uri, data, null /* return Type */)
+        logger.lifecycle("Reviewers requested!")
+
       } else {
         logger.lifecycle("Skipping PR creation because of -PdryRun")
       }
