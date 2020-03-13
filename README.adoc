@@ -3,12 +3,25 @@
 image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
 image:https://travis-ci.org/spinnaker/spinnaker.svg?branch=master["Build Status", link="https://travis-ci.org/spinnaker/spinnaker"]
 
+= Welcome to the Spinnaker Project
+
 Spinnaker is an open-source continuous delivery platform for releasing software changes with high velocity and confidence.
 Through a powerful abstraction layer, Spinnaker provides compelling tooling that empowers developers to own their application code from commit to delivery.
-Inside Spinnaker, manage deployments and cloud resources such as load balancers, security groups, server groups, and
-firewalls, either using a GUI (graphical user interface), or as code. Facilitate GitOps, and grant developers control of
-provisioning infrastructure for apps. Natively, use Spinnaker’s cloud driver to deploy to all of the major cloud providers, and the Kubernetes V2 provider
-for Kubernetes deployments. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery pipelines.
+
+Inside Spinnaker, using a GUI (graphical user interface), or as code, manage deployments and cloud resources such as: 
+
+- VM "bake" deployments to a cloud
+- Container deployments to a cloud
+- Container deployments to Kubernetes
+- Load balancers
+- Security groups
+- Server groups
+- Clusters
+- Firewalls
+- Functions
+
+
+Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Natively, use Spinnaker’s cloud driver to deploy to all of the major cloud providers, and the Kubernetes V2 provider for Kubernetes deployments. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery pipelines.
 
 With Spinnaker, create a “paved road” for application delivery, with guardrails that ensure only valid infrastructure and configuration reach production.
 Free development teams from burdensome ops provisioning while automating reinforcement of business and regulatory requirements. Delivery automation
@@ -16,7 +29,7 @@ strategies such as canary deployments provide the safety necessary to capture va
  impact. As the most mature and widely productionalized continuous delivery platform, Spinnaker can apply the expertise of Netflix, Google, Microsoft,
  and Amazon to your SDLC. User companies include Target, Salesforce, Airbnb, Cerner, Adobe, and JPMorgan Chase.
 
-Spinnaker consists of a number of [independent microservices](https://www.spinnaker.io/reference/architecture/), with the Halyard CLI administration service
+Spinnaker consists of a number of https://www.spinnaker.io/reference/architecture/[independent microservices], with the Halyard CLI administration service
 managing the lifecycle of the other services. A variety of SDLC tools integrate with Spinnaker, and its plugin framework offers an alternative to extending
 and maintaining individual Spinnaker extensions. Plugins allow us to add system integrations without restarting or updating Spinnaker, broadening its potential
 to easily leverage the entire software delivery toolchain. With this in place, Spinnaker is evolving towards leaner binaries and a smaller threat surface,
