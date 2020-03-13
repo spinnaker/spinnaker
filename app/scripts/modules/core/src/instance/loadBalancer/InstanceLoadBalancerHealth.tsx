@@ -1,5 +1,4 @@
 import React from 'react';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 export interface InstanceLoadBalancer {
   healthState?: string; // (usually present but) optional because there's a fallback
@@ -24,7 +23,6 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
     } = this.props;
 
     const health = healthState || (state === 'InService' ? 'Up' : 'OutOfService');
-    const displayName = name || loadBalancerName;
 
     let icon = null;
     if (health === 'Up') {
@@ -35,49 +33,28 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
       icon = <span className="glyphicon glyphicon-Starting-triangle" />;
     }
 
-    // We need to continue injecting spaces so that angular and react components align
-    // until everything in a particular view is react and we can move them all to margins
-    const artificialSpaceBetweenSpans = icon ? ' ' : null;
+    const displayName = <span>{name || loadBalancerName}</span>;
 
-    const healthDiv = (
-      <div style={{ display: 'inline-block' }}>
-        {icon}
-        {artificialSpaceBetweenSpans}
-        <span>{displayName}</span>
-      </div>
+    const downReason =
+      healthState !== 'Up' && !!description ? (
+        <span style={{ color: 'var(--color-danger)' }}>{description}</span>
+      ) : null;
+
+    const healthCheckLink = (
+      <a target="_blank" href={`${healthCheckProtocol}://${ipAddress}${healthCheckPath}`}>
+        Health Check
+      </a>
     );
-
-    const healthCheckLinkSpan = (
-      <span className="pad-left small">
-        <a
-          ng-if="targetGroup.healthCheckPath"
-          target="_blank"
-          href={`${healthCheckProtocol}://${ipAddress}${healthCheckPath}`}
-        >
-          Health Check
-        </a>
-      </span>
-    );
-
-    // Only wrap with tooltip if we have text for a tooltip
-    const tooltipText = healthState !== 'Up' ? description : '';
-    if (tooltipText) {
-      const tooltip = <Tooltip id={name}>{tooltipText}</Tooltip>;
-      return (
-        <OverlayTrigger placement="left" overlay={tooltip}>
-          <>
-            {healthDiv}
-            {ipAddress && healthCheckPath && healthCheckLinkSpan}
-          </>
-        </OverlayTrigger>
-      );
-    }
 
     return (
-      <>
-        {healthDiv}
-        {ipAddress && healthCheckPath && healthCheckLinkSpan}
-      </>
+      <div className="flex-container-h">
+        <div style={{ flex: 'none', width: '16px' }}>{icon}</div>
+        <div className="flex-container-v">
+          {displayName}
+          {downReason}
+          {ipAddress && healthCheckPath && healthCheckLink}
+        </div>
+      </div>
     );
   }
 }
