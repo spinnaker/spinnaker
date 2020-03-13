@@ -273,42 +273,35 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   public lastRefresh: number;
 
   /** This subject is used to cancel the internal subscription */
-  private destroy$ = new Subject<void>();
+  private destroy$: Subject<void>;
 
   /** This subject is used to trigger a new fetch */
-  private fetchRequest$ = new Subject<void>();
+  private fetchRequest$: Subject<void>;
 
   /**
    * Stream of IFetchStatus.
    * Updated when the status and/or data changes.
    * Starts with NOT_INITIALIZED
    */
-  public status$ = new BehaviorSubject<IFetchStatus>({
-    status: 'NOT_INITIALIZED',
-    lastRefresh: 0,
-    error: null,
-    data: this.data,
-  });
+  public status$: BehaviorSubject<IFetchStatus>;
 
   /** BehaviorSubject of data changes, starts by emitting the current value */
-  public data$ = new BehaviorSubject<T>(this.data);
+  public data$: BehaviorSubject<T>;
 
   /**
    * Stream of data changes
    * @deprecated use data$.skip(1) instead
    */
-  public refresh$: Observable<T> = this.data$.skip(1);
+  public refresh$: Observable<T>;
 
   /** Stream of failed IFetchStatus */
-  private refreshFailure$ = this.status$.skip(1).filter(({ status }) => status === 'ERROR');
+  private refreshFailure$: Observable<IFetchStatus>;
 
   /** Stream that throws fetch failures. */
-  private throwFailures$ = this.refreshFailure$.map(({ error }) => {
-    throw error;
-  });
+  private throwFailures$: Observable<never>;
 
   /** A stream that either emits the next data change, or throws */
-  private nextRefresh$ = Observable.merge(this.data$.skip(1), this.throwFailures$).take(1);
+  private nextRefresh$: Observable<T>;
 
   /**
    * A flag to toggle debug messages on. To use, open the JS console and enter:
@@ -361,6 +354,29 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
       ReactInjector.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
       ReactInjector.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
+
+    // While we can initialize these fields directly on the class to give them private/public
+    // status, we have to configure their initial values down here or else things like this.data
+    // and this.defaultData will be undefined. This is because member initialization gets transpiled
+    // to the *top* of the constructor, so all custom constructor code runs last.
+    this.destroy$ = new Subject();
+    this.fetchRequest$ = new Subject();
+
+    this.status$ = new BehaviorSubject({
+      status: 'NOT_INITIALIZED',
+      lastRefresh: 0,
+      error: null,
+      data: this.data,
+    });
+
+    this.data$ = new BehaviorSubject(this.data);
+
+    this.refresh$ = this.data$.skip(1);
+    this.refreshFailure$ = this.status$.skip(1).filter(({ status }) => status === 'ERROR');
+    this.throwFailures$ = this.refreshFailure$.map(({ error }) => {
+      throw error;
+    });
+    this.nextRefresh$ = Observable.merge(this.data$.skip(1), this.throwFailures$).take(1);
 
     const fetchStream$ = this.fetchRequest$
       .do(() => this.debug('fetch requested...'))
