@@ -280,6 +280,23 @@ public class TrafficGuard {
             .reduce(0, Integer::sum);
 
     int futureCapacity = currentCapacity - capacityGoingAway;
+
+    int someDesiredSize = someServerGroup.getCapacity().getDesired();
+    if (futureCapacity > 0
+        && serverGroupsGoingAway.size() > 1
+        && serverGroupsGoingAway.stream().allMatch(sg -> sg.getCapacity().isPinned())
+        && serverGroupsGoingAway.stream()
+            .allMatch(sg -> sg.getCapacity().getDesired() == someDesiredSize)) {
+      log.debug(
+          "Bypassing traffic guard check for '{}' in {}/{} with pinned server groups of size {}. Context: {}",
+          cluster,
+          account,
+          location.getValue(),
+          someDesiredSize,
+          generateContext(currentServerGroups));
+      return;
+    }
+
     double futureCapacityRatio = ((double) futureCapacity) / currentCapacity;
     double minCapacityRatio = getMinCapacityRatio();
     if (futureCapacityRatio <= minCapacityRatio) {
@@ -367,6 +384,7 @@ public class TrafficGuard {
                     .put("name", tsg.getName())
                     .put("disabled", tsg.isDisabled())
                     .put("instances", tsg.getInstances())
+                    .put("capacity", tsg.getCapacity())
                     .build())
         .collect(Collectors.toList());
   }

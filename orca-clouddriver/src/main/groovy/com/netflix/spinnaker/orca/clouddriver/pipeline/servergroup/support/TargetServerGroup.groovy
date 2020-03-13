@@ -64,6 +64,17 @@ class TargetServerGroup {
     return serverGroup.name
   }
 
+  Capacity getCapacity() {
+    return new Capacity(
+        toInt(serverGroup.capacity.min),
+        toInt(serverGroup.capacity.max),
+        toInt(serverGroup.capacity.desired))
+  }
+
+  private static int toInt(Object field) {
+    Integer.parseInt(field.toString())
+  }
+
   /**
    * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
    */

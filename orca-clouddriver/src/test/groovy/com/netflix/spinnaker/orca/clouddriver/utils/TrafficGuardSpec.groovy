@@ -63,7 +63,8 @@ class TrafficGuardSpec extends Specification {
         name: name,
         moniker: MonikerHelper.friggaToMoniker(name),
         isDisabled: false,
-        instances: [[healthState: 'Up']] * up + [[healthState: 'OutOfService']] * down
+        instances: [[healthState: 'Up']] * up + [[healthState: 'OutOfService']] * down,
+        capacity: [min: 0, max: 4, desired: 3]
     ] + overrides
   }
 
@@ -199,6 +200,75 @@ class TrafficGuardSpec extends Specification {
     thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.40d
+  }
+
+  void "should bypass capacity check for pinned server groups"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    List<TargetServerGroup> serverGroupsGoingAway =
+        [makeServerGroup("app-foo-v000", 3, 0, [capacity: [min: 3, max: 3, desired: 3]]) as TargetServerGroup,
+         makeServerGroup("app-foo-v001", 3, 0, [capacity: [min: 3, max: 3, desired: 3]]) as TargetServerGroup]
+
+    when:
+    trafficGuard.verifyTrafficRemoval(
+        serverGroupsGoingAway,
+        serverGroupsGoingAway + [makeServerGroup("app-foo-v002", 1) as TargetServerGroup],
+        "test", "x")
+
+    then:
+    notThrown(TrafficGuardException)
+    1 * front50Service.get("app") >> application
+  }
+
+  void "should still make sure that capacity does not drop to 0 for pinned server groups"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    List<TargetServerGroup> serverGroupsGoingAway =
+        [makeServerGroup("app-foo-v000", 3, 0, [capacity: [min: 3, max: 3, desired: 3]]) as TargetServerGroup,
+         makeServerGroup("app-foo-v001", 3, 0, [capacity: [min: 3, max: 3, desired: 3]]) as TargetServerGroup]
+
+    when:
+    trafficGuard.verifyTrafficRemoval(
+        serverGroupsGoingAway,
+        serverGroupsGoingAway + [makeServerGroup("app-foo-v002", 0) as TargetServerGroup],
+        "test", "x")
+
+    then:
+    def e = thrown(TrafficGuardException)
+    e.message.contains("would leave the cluster with no instances up")
+    1 * front50Service.get("app") >> application
+  }
+
+  @Unroll
+  def "should still apply capacity check when pinned server groups don't qualify"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+
+    when:
+    trafficGuard.verifyTrafficRemoval(
+        serverGroupsGoingAway,
+        serverGroupsGoingAway + [makeServerGroup("app-foo-v002", 1) as TargetServerGroup],
+        "test", "x")
+
+    then:
+    def e = thrown(TrafficGuardException)
+    e.message.contains("would leave the cluster with 1 instance up")
+    1 * front50Service.get("app") >> application
+    1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.4d
+
+    where:
+    serverGroupsGoingAway << [
+        // only one pinned server group going away
+        [makeServerGroup("app-foo-v000", 100, 0, [capacity: [min: 100, max: 100, desired: 100]]) as TargetServerGroup],
+
+        // only some of the server groups going away are pinned
+        [makeServerGroup("app-foo-v000", 10, 0, [capacity: [min: 10, max: 10, desired: 10]]) as TargetServerGroup,
+         makeServerGroup("app-foo-v001", 10, 0, [capacity: [min: 10, max: 100, desired: 10]]) as TargetServerGroup],
+
+        // the pinned server groups have different sizes
+        [makeServerGroup("app-foo-v000", 10, 0, [capacity: [min: 1, max: 1, desired: 1]]) as TargetServerGroup,
+         makeServerGroup("app-foo-v001", 10, 0, [capacity: [min: 100, max: 100, desired: 100]]) as TargetServerGroup]
+    ]
   }
 
   void "should not throw exception during a regular shrink/disable cluster-wide operation"() {
