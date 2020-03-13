@@ -133,7 +133,8 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     if (entityType != null) {
       queryBuilder =
-          queryBuilder.must(QueryBuilders.wildcardQuery("entityRef.entityType", entityType));
+          queryBuilder.must(
+              QueryBuilders.wildcardQuery("entityRef.entityType", entityType.toLowerCase()));
     }
 
     if (tags != null) {
