@@ -14,6 +14,13 @@
         DATABASECHANGELOG
         | DATABASECHANGELOGLOCK
       </excludes>
+      <forcedTypes>
+        <!-- Automatically convert JSON columns to String -->
+        <forcedType>
+          <name>LONGVARCHAR</name>
+          <includeTypes>JSON</includeTypes>
+        </forcedType>
+      </forcedTypes>
     </database>
     <target>
       <packageName>com.netflix.spinnaker.keel.persistence.metamodel</packageName>

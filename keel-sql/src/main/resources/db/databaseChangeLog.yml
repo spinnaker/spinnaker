@@ -107,3 +107,9 @@ databaseChangeLog:
   - include:
       file: changelog/20200226-env-artifact-constraint-index.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200312-fix-timestamps.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20200313-json-columns.yml
+      relativeToChangelogFile: true
