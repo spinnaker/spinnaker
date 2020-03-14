@@ -95,10 +95,14 @@ class PluginControllerSpec extends Specification {
 
   def 'delete api should succeed'() {
     setup:
-    when(taskService.createAndWaitForCompletion(any())).thenReturn(['ref': '/tasks/ref/3'])
+    when(taskService.create(any(Map.class))).thenAnswer { taskData ->
+      Map m = taskData.getArgument(0)
+      assert m.get('job')[0].get('pluginInfoId').toString().equalsIgnoreCase('test.plugin.id')
+      (['ref': '/tasks/ref/3'])
+    }
 
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.delete("/pluginInfo/testPlugin")
+    this.mockMvc.perform(MockMvcRequestBuilders.delete("/pluginInfo/test.plugin.id")
       .header('Content-Type', "application/json"))
       .andExpect(status().isAccepted())
   }

@@ -84,13 +84,13 @@ public class PluginController {
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
-    return initiateTask("Upsert plugin info with Id: " + pluginInfo.get("Id"), jobs);
+    return initiateTask("Upsert plugin info with Id: " + pluginInfo.get("id"), jobs);
   }
 
   @ApiOperation(value = "Delete plugin info with the provided Id")
   @PreAuthorize("hasPermission(#this.this.appName, 'APPLICATION', 'WRITE')")
   @RequestMapping(
-      value = "/{id}",
+      value = "/{id:.+}",
       method = {RequestMethod.DELETE},
       consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
