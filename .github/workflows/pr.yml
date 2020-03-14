@@ -1,16 +1,10 @@
-name: Echo CI
+name: PR Build
 
-on:
-  pull_request:
-  push:
-    branches:
-    - master
-    - release-*
+on: [ pull_request ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v1
