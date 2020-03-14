@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { IManagedArtifactSummary } from '../domain/IManagedEntity';
+import { IManagedArtifactSummary, IManagedArtifactVersion } from '../domain/IManagedEntity';
 import { ISelectedArtifact } from './Environments';
 import { Pill } from './Pill';
+import { parseName } from './Frigga';
 
 import styles from './ArtifactRow.module.css';
 
@@ -16,13 +17,12 @@ export function ArtifactsList({ artifacts, artifactSelected }: IArtifactsListPro
   return (
     <div>
       {artifacts.map(({ versions, name }) =>
-        versions.map(({ version }, i) => (
+        versions.map((version, i) => (
           <ArtifactRow
-            key={`${name}-${version}-${i}`} // appending index until name-version is guaranteed to be unique
+            key={`${name}-${version.version}-${i}`} // appending index until name-version is guaranteed to be unique
             clickHandler={artifactSelected}
             version={version}
             name={name}
-            sha="abc123"
             stages={[4, 3, 0]}
           />
         )),
@@ -33,22 +33,23 @@ export function ArtifactsList({ artifacts, artifactSelected }: IArtifactsListPro
 
 interface IArtifactRowProps {
   clickHandler: (artifact: ISelectedArtifact) => void;
-  version: string;
+  version: IManagedArtifactVersion;
   name: string;
-  sha: string;
   stages: any[];
 }
 
-export function ArtifactRow({ clickHandler, version, name, sha, stages }: IArtifactRowProps) {
+export function ArtifactRow({ clickHandler, version, name, stages }: IArtifactRowProps) {
+  const versionString = version.version;
+  const { packageName, version: packageVersion, buildNumber, commit } = parseName(versionString);
   return (
-    <div className={styles.ArtifactRow} onClick={() => clickHandler({ name, version })}>
+    <div className={styles.ArtifactRow} onClick={() => clickHandler({ name, version: versionString })}>
       <div className={styles.content}>
         <div className={styles.version}>
-          <Pill text={version} />
+          <Pill text={buildNumber ? `#${buildNumber}` : packageVersion || versionString} />
         </div>
         <div className={styles.text}>
-          <div className={styles.sha}>{sha}</div>
-          <div className={styles.name}>{name}</div>
+          <div className={styles.sha}>{commit}</div>
+          <div className={styles.name}>{name || packageName}</div>
         </div>
         {/* Holding spot for status bubbles */}
       </div>
