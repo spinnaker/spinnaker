@@ -32,15 +32,15 @@ import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
 
 @ControllerAdvice
-public class GenericExceptionHandlers {
+public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
   private static final Logger logger = LoggerFactory.getLogger(GenericExceptionHandlers.class);
 
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
@@ -69,13 +69,6 @@ public class GenericExceptionHandlers {
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
     response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-  }
-
-  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-  public void handleRequestMethodNotSupportedException(
-      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
-    storeException(request, response, e);
-    response.sendError(HttpStatus.METHOD_NOT_ALLOWED.value(), e.getMessage());
   }
 
   @ExceptionHandler(RetrofitError.class)

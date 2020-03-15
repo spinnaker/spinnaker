@@ -26,6 +26,8 @@ dependencies {
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 
   testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
 }
