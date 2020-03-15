@@ -41,7 +41,7 @@ class TargetHealthCachingAgentSpec extends Specification {
   def awsProviderCache = Mock(ProviderCache)
   def credentialsProvider = Mock(AWSCredentialsProvider)
   def amazonloadBalancing = Mock(AmazonElasticLoadBalancing)
-  def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':123456789012:targetgroup/test-tg/9e8997b7cff00c62'
+  def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':' + CommonCachingAgent.ACCOUNT_ID + ':targetgroup/test-tg/9e8997b7cff00c62'
   ObjectMapper mapper = new ObjectMapper()
 
   @Subject
@@ -139,5 +139,62 @@ class TargetHealthCachingAgentSpec extends Specification {
     }) >> { throw new TargetGroupNotFoundException("The specified target group does not exist.") }
 
     targetHealthList.size() == 0
+  }
+
+  def 'should describe and return target groups for matching account only'() {
+    given:
+    // set up correct account cache data
+    def targetGroupAttributes = [
+      loadBalancerNames: ['loadBalancerName'],
+      targetGroupArn: targetGroupArn,
+      targetGroupName: 'test-tg',
+      vpcId: 'vpc-id',
+    ]
+    def targetGroupKey =
+      Keys.getTargetGroupKey('test-tg', CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, 'ip', 'vpc-id')
+    def loadbalancerKey =
+      Keys.getLoadBalancerKey('loadBalancerName', CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, 'vpc-id', 'ip')
+    def relations = [loadBalancers: [loadbalancerKey]]
+    def targetGroupCacheData =
+      new DefaultCacheData(targetGroupKey, targetGroupAttributes, relations)
+
+    // set up other account cache data
+    def targetGroupArn2 = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':210987654321:targetgroup/other-tg/7uf491b7cff00c62'
+    def otherAccountName = "other-account"
+    def targetGroupAttributes2 = [
+      loadBalancerNames: ['loadBalancerName'],
+      targetGroupArn: targetGroupArn2,
+      targetGroupName: 'other-tg',
+      vpcId: 'vpc-id',
+    ]
+    def targetGroupKey2 =
+      Keys.getTargetGroupKey('test-tg', otherAccountName, CommonCachingAgent.REGION, 'ip', 'vpc-id')
+    def loadbalancerKey2 =
+      Keys.getLoadBalancerKey('loadBalancerName', otherAccountName, CommonCachingAgent.REGION, 'vpc-id', 'ip')
+    def relations2 = [loadBalancers: [loadbalancerKey2]]
+    def targetGroupCacheData2 =
+      new DefaultCacheData(targetGroupKey2, targetGroupAttributes2, relations2)
+
+    TargetHealthDescription targetHealth =
+      new TargetHealthDescription().withTarget(
+        new TargetDescription().withId('10.0.0.3').withPort(80))
+        .withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+
+    // return cache data for both target groups
+    awsProviderCache.getAll(TARGET_GROUPS.getNs(), _, _) >> [targetGroupCacheData, targetGroupCacheData2]
+
+    when:
+    agent.setAwsCache(awsProviderCache)
+    def targetHealthList = agent.getItems(ecs, Mock(ProviderCache))
+
+    then:
+    // expect one describe call, with correct target group
+    1 * amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
+      request.targetGroupArn == targetGroupArn
+    }) >> new DescribeTargetHealthResult().withTargetHealthDescriptions(targetHealth)
+
+    targetHealthList.size() == 1
+    EcsTargetHealth targetHealthDescription = targetHealthList.get(0)
+    targetHealthDescription.getTargetGroupArn() == targetGroupArn
   }
 }

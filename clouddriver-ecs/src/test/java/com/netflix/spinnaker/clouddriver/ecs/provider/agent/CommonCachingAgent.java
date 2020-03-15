@@ -32,7 +32,8 @@ import org.junit.BeforeClass;
 
 public class CommonCachingAgent {
   static final String REGION = "us-west-2";
-  private static final String ECS_SERIVCE = "arn:aws:ecs:" + REGION + ":012345678910:";
+  static final String ACCOUNT_ID = "012345678910";
+  private static final String ECS_SERIVCE = "arn:aws:ecs:" + REGION + ":" + ACCOUNT_ID + ":";
   static final String ACCOUNT = "test-account";
   static final String APP_NAME = "testapp";
   static final String ROLE_ARN = ECS_SERIVCE + "service/test-role";
@@ -77,6 +78,7 @@ public class CommonCachingAgent {
   static {
     netflixAmazonCredentials = mock(NetflixAmazonCredentials.class);
     when(netflixAmazonCredentials.getName()).thenReturn(ACCOUNT);
+    when(netflixAmazonCredentials.getAccountId()).thenReturn(ACCOUNT_ID);
   }
 
   @BeforeClass

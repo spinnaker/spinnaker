@@ -72,6 +72,7 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
     EcsTargetGroupCacheClient targetGroupCacheClient =
         new EcsTargetGroupCacheClient(awsProviderCache, objectMapper);
     Set<String> targetGroups = fetchTargetGroups(targetGroupCacheClient);
+    log.debug("Fetched {} target groups for which to get target healths", targetGroups.size());
 
     AmazonElasticLoadBalancing amazonLoadBalancing =
         amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, false);
@@ -114,7 +115,15 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
     Collection<String> targetGroupKeys =
         awsProviderCache.filterIdentifiers(TARGET_GROUPS.getNs(), searchKey);
 
-    List<EcsTargetGroup> tgList = cacheClient.find(targetGroupKeys);
+    if (targetGroupKeys.size() > 0) {
+      log.debug("Found " + targetGroupKeys.size() + " target group keys in " + getAgentType());
+    }
+
+    // TODO: refine search key instead of filtering these cache results
+    List<EcsTargetGroup> tgList =
+        cacheClient.find(targetGroupKeys).stream()
+            .filter(t -> t.getTargetGroupArn().contains(account.getAccountId()))
+            .collect(Collectors.toList());
 
     return tgList.stream().map(EcsTargetGroup::getTargetGroupArn).collect(Collectors.toSet());
   }

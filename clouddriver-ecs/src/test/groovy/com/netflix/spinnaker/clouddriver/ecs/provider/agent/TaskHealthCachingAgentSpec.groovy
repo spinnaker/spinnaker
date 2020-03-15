@@ -53,7 +53,7 @@ class TaskHealthCachingAgentSpec extends Specification {
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
   def credentialsProvider = Mock(AWSCredentialsProvider)
-  def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':769716316905:targetgroup/test-target-group/9e8997b7cff00c62'
+  def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':' + CommonCachingAgent.ACCOUNT_ID + ':targetgroup/test-target-group/9e8997b7cff00c62'
   ObjectMapper mapper = new ObjectMapper()
 
 
