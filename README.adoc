@@ -8,20 +8,20 @@ image:https://travis-ci.org/spinnaker/spinnaker.svg?branch=master["Build Status"
 Spinnaker is an open-source continuous delivery platform for releasing software changes with high velocity and confidence.
 Through a powerful abstraction layer, Spinnaker provides compelling tooling that empowers developers to own their application code from commit to delivery.
 
-Inside Spinnaker, using a GUI (graphical user interface), or as code, manage deployments and cloud resources such as: 
+Manage your SDLC in Spinnaker using the GUI (graphical user interface), or config-as-code. View, manage, and construct [application](https://www.spinnaker.io/concepts/#application) workflows involving one or all of these resources: 
 
-- VM "bake" deployments to a cloud
-- Container deployments to a cloud
-- Container deployments to Kubernetes
-- Load balancers
+- [Virtual machine (VM) deployments to a public cloud provider, "baked" as immutable infrastructure](https://www.spinnaker.io/reference/pipeline/stages/#bake)
+- [Container deployments to a cloud](https://www.spinnaker.io/reference/providers/)
+- [Container deployments to Kubernetes](https://www.spinnaker.io/guides/user/kubernetes-v2/deploy-manifest/)
+- [Load balancers](https://www.spinnaker.io/concepts/#load-balancer)
 - Security groups
-- Server groups
-- Clusters
-- Firewalls
+- [Server groups](https://www.spinnaker.io/concepts/#server-group)
+- [Clusters](https://www.spinnaker.io/concepts/#cluster)
+- [Firewalls](https://www.spinnaker.io/concepts/#firewall)
 - Functions
 
 
-Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Natively, use Spinnaker’s cloud driver to deploy to all of the major cloud providers, and the Kubernetes V2 provider for Kubernetes deployments. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery pipelines.
+Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Natively, use Spinnaker’s cloud driver to deploy to all of the major cloud providers, and the Kubernetes V2 provider for Kubernetes deployments. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery [pipelines](https://www.spinnaker.io/concepts/#firewall).
 
 = Why Do I Need Spinnaker?
 
