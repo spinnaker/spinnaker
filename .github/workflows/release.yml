@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Assemble release info
+        id: release_info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          . .github/workflows/release_info.sh ${{ github.event.repository.name }}
+          echo ::set-output name=CHANGELOG::$(echo -e "${CHANGELOG}")
+          echo ::set-output name=SKIP_RELEASE::${SKIP_RELEASE}
+          echo ::set-output name=IS_CANDIDATE::${IS_CANDIDATE}
+      - name: Candidate build
+        if: steps.release_info.outputs.IS_CANDIDATE == 'true'
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
+        run: |
+          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" candidate
+      - name: Release build
+        if: steps.release_info.outputs.IS_CANDIDATE == 'false'
+        env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
+        run: |
+          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
+      - name: Create release
+        if: steps.release_info.outputs.SKIP_RELEASE == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+           tag_name: ${{ github.ref }}
+           release_name: ${{ github.event.repository.name }} ${{ github.ref }}
+           body: |
+            ${{ steps.release_info.outputs.CHANGELOG }}
+           draft: false
+           prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}
