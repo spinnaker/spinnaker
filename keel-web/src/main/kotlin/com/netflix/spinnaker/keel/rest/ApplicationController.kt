@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.services.ApplicationService
+import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -40,7 +41,7 @@ class ApplicationController(
 
   @GetMapping(
     path = ["/{application}"],
-    produces = [APPLICATION_JSON_VALUE]
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun get(
     @PathVariable("application") application: String,

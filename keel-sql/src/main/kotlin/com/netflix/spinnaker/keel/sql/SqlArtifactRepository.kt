@@ -791,31 +791,37 @@ class SqlArtifactRepository(
     version: String
   ): ArtifactSummaryInEnvironment? {
     return sqlRetry.withRetry(READ) {
+
+      val artifactUid = jooq
+        .select(DELIVERY_ARTIFACT.UID)
+        .from(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.NAME.eq(artifactName))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(artifactType.name))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
+        .limit(1)
+        .fetchOne(DELIVERY_ARTIFACT.UID)
+        ?: error("Artifact not found: name=$artifactName, type=$artifactType, deliveryConfig=${deliveryConfig.name}")
+
+      val environmentUid = jooq
+        .select(ENVIRONMENT.UID).from(ENVIRONMENT).where(ENVIRONMENT.NAME.eq(environmentName))
+        .limit(1)
+        .fetchOne(ENVIRONMENT.UID)
+        ?: error("Environment '$environmentName not found")
+
       jooq
         .select(
-          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID,
-          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
           ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
           ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
           ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS
         )
         .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .innerJoin(ENVIRONMENT)
-        .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
         .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(
-          select(ENVIRONMENT.UID).from(ENVIRONMENT).where(ENVIRONMENT.NAME.eq(environmentName)))
-        )
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(
-          select(DELIVERY_ARTIFACT.UID)
-            .from(DELIVERY_ARTIFACT)
-            .where(DELIVERY_ARTIFACT.NAME.eq(artifactName))
-            .and(DELIVERY_ARTIFACT.TYPE.eq(artifactType.name)))
-        )
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactUid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
         .limit(1)
-        .fetchOne { (environmentUid, artifactUid, version, deployedAt, promotionStatus) ->
+        .fetchOne { (version, deployedAt, promotionStatus) ->
           val (replacedBy, replacedAt) = when (promotionStatus) {
             CURRENT.name, PREVIOUS.name -> {
               jooq
@@ -830,7 +836,7 @@ class SqlArtifactRepository(
                 .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.asc())
                 .limit(1)
                 .fetchOne { (replacedBy, replacedAt) ->
-                  Pair(replacedBy, replacedAt.toInstant(ZoneOffset.UTC))
+                  Pair(replacedBy, replacedAt)
                 } ?: Pair(null, null)
             }
             else -> Pair(null, null)
@@ -841,7 +847,7 @@ class SqlArtifactRepository(
             version = version,
             state = promotionStatus.toLowerCase(),
             deployedAt = deployedAt?.toInstant(ZoneOffset.UTC),
-            replacedAt = replacedAt,
+            replacedAt = replacedAt?.toInstant(ZoneOffset.UTC),
             replacedBy = replacedBy
           )
         }

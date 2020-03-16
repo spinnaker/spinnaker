@@ -457,7 +457,9 @@ class InMemoryArtifactRepository : ArtifactRepository {
     return ArtifactSummaryInEnvironment(
       environment = environmentName,
       version = version,
-      state = statuses.filterKeys { it == version }.values.first().toString().toLowerCase(),
+      state = statuses.filterKeys { it == version }.values.firstOrNull()
+        ?.toString()?.toLowerCase()
+        ?: PromotionStatus.PENDING.name.toLowerCase(),
       deployedAt = null, // TODO
       replacedAt = null, // TODO
       replacedBy = null // TODO
