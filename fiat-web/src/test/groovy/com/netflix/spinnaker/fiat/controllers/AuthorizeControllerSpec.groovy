@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.hystrix.strategy.HystrixPlugins
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.FiatSystemTest
@@ -31,8 +30,6 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider
-import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
-import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletResponse
@@ -61,12 +58,6 @@ class AuthorizeControllerSpec extends Specification {
   WebApplicationContext wac
 
   @Autowired
-  Front50Service stubFront50Service
-
-  @Autowired
-  ClouddriverService stubClouddriverService
-
-  @Autowired
   PermissionsRepository permissionsRepository
 
   @Autowired
@@ -93,7 +84,6 @@ class AuthorizeControllerSpec extends Specification {
   MockMvc mockMvc;
 
   def setup() {
-    HystrixPlugins.reset();
     this.mockMvc = MockMvcBuilders
         .webAppContextSetup(this.wac)
         .defaultRequest(get("/").content().contentType("application/json"))

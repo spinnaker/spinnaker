@@ -26,8 +26,16 @@ public interface Front50Api {
   @GET("/permissions/applications")
   List<Application> getAllApplicationPermissions();
 
+  /**
+   * @deprecated for fiat's usage this is always going to be called with restricted = false, use the
+   *     no arg method instead which has the same behavior.
+   */
   @GET("/v2/applications")
+  @Deprecated
   List<Application> getAllApplications(@Query("restricted") boolean restricted);
+
+  @GET("/v2/applications?restricted=false")
+  List<Application> getAllApplications();
 
   @GET("/serviceAccounts")
   List<ServiceAccount> getAllServiceAccounts();

@@ -21,7 +21,12 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @TestPropertySource("/fiat.properties")
 @DirtiesContext
 @ContextConfiguration(
-    classes = {TestUserRoleProviderConfig.class, ResourcesConfig.class, Main.class})
+    classes = {
+      TestUserRoleProviderConfig.class,
+      ResourcesConfig.class,
+      Main.class,
+      TestDataLoaderConfig.class
+    })
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public @interface FiatSystemTest {}

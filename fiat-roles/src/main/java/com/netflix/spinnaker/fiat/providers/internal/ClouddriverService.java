@@ -16,65 +16,26 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
-import static com.netflix.spinnaker.security.AuthenticatedRequest.allowAnonymous;
-
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.providers.HealthTrackable;
-import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
-/**
- * This class makes and caches live calls to Clouddriver. In the event that Clouddriver is
- * unavailable, the cached data is returned in stead. Failed calls are logged with the Clouddriver
- * health tracker, which will turn unhealthy after X number of failed cache refreshes.
- */
-@Slf4j
-public class ClouddriverService implements HealthTrackable, InitializingBean {
-  private final ClouddriverApi clouddriverApi;
+public class ClouddriverService {
+  private final ClouddriverApplicationLoader clouddriverApplicationLoader;
+  private final ClouddriverAccountLoader clouddriverAccountLoader;
 
-  @Autowired @Getter private ProviderHealthTracker healthTracker;
-
-  private AtomicReference<List<Application>> applicationCache = new AtomicReference<>();
-  private AtomicReference<List<Account>> accountCache = new AtomicReference<>();
-
-  public ClouddriverService(ClouddriverApi clouddriverApi) {
-    this.clouddriverApi = clouddriverApi;
-  }
-
-  @Override
-  public void afterPropertiesSet() {
-    try {
-      refreshAccounts();
-      refreshApplications();
-    } catch (Exception e) {
-      log.warn("Cache initialization failed: ", e);
-    }
+  public ClouddriverService(
+      ClouddriverApplicationLoader clouddriverApplicationLoader,
+      ClouddriverAccountLoader clouddriverAccountLoader) {
+    this.clouddriverApplicationLoader = clouddriverApplicationLoader;
+    this.clouddriverAccountLoader = clouddriverAccountLoader;
   }
 
   public List<Account> getAccounts() {
-    return accountCache.get();
+    return clouddriverAccountLoader.getData();
   }
 
   public List<Application> getApplications() {
-    return applicationCache.get();
-  }
-
-  @Scheduled(fixedDelayString = "${fiat.clouddriver-refresh-ms:30000}")
-  public void refreshAccounts() {
-    accountCache.set(allowAnonymous(clouddriverApi::getAccounts));
-    healthTracker.success();
-  }
-
-  @Scheduled(fixedDelayString = "${fiat.clouddriver-refresh-ms:30000}")
-  public void refreshApplications() {
-    applicationCache.set(allowAnonymous(clouddriverApi::getApplications));
-    healthTracker.success();
+    return clouddriverApplicationLoader.getData();
   }
 }

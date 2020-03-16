@@ -18,12 +18,7 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
-import com.netflix.spinnaker.fiat.providers.internal.ClouddriverApi;
-import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
-import com.netflix.spinnaker.fiat.providers.internal.Front50Api;
-import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
-import com.netflix.spinnaker.fiat.providers.internal.IgorApi;
-import com.netflix.spinnaker.fiat.providers.internal.IgorService;
+import com.netflix.spinnaker.fiat.providers.internal.*;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
@@ -42,7 +37,7 @@ import retrofit.converter.JacksonConverter;
 
 @Configuration
 @EnableConfigurationProperties(ProviderCacheConfig.class)
-@DependsOn("hystrixSpectatorPublisher")
+@PropertySource("classpath:resilience4j-defaults.properties")
 public class ResourcesConfig {
   @Autowired @Setter private RestAdapter.LogLevel retrofitLogLevel;
 
@@ -75,8 +70,22 @@ public class ResourcesConfig {
   }
 
   @Bean
-  Front50Service front50Service(Front50Api front50Api) {
-    return new Front50Service(front50Api);
+  Front50ApplicationLoader front50ApplicationLoader(
+      ProviderHealthTracker tracker, Front50Api front50Api) {
+    return new Front50ApplicationLoader(tracker, front50Api);
+  }
+
+  @Bean
+  Front50ServiceAccountLoader front50ServiceAccountLoader(
+      ProviderHealthTracker tracker, Front50Api front50Api) {
+    return new Front50ServiceAccountLoader(tracker, front50Api);
+  }
+
+  @Bean
+  Front50Service front50Service(
+      Front50ApplicationLoader front50ApplicationLoader,
+      Front50ServiceAccountLoader front50ServiceAccountLoader) {
+    return new Front50Service(front50ApplicationLoader, front50ServiceAccountLoader);
   }
 
   @Bean
@@ -92,8 +101,22 @@ public class ResourcesConfig {
   }
 
   @Bean
-  ClouddriverService clouddriverService(ClouddriverApi clouddriverApi) {
-    return new ClouddriverService(clouddriverApi);
+  ClouddriverAccountLoader clouddriverAccountLoader(
+      ProviderHealthTracker providerHealthTracker, ClouddriverApi clouddriverApi) {
+    return new ClouddriverAccountLoader(providerHealthTracker, clouddriverApi);
+  }
+
+  @Bean
+  ClouddriverApplicationLoader clouddriverApplicationLoader(
+      ProviderHealthTracker providerHealthTracker, ClouddriverApi clouddriverApi) {
+    return new ClouddriverApplicationLoader(providerHealthTracker, clouddriverApi);
+  }
+
+  @Bean
+  ClouddriverService clouddriverService(
+      ClouddriverApplicationLoader clouddriverApplicationLoader,
+      ClouddriverAccountLoader clouddriverAccountLoader) {
+    return new ClouddriverService(clouddriverApplicationLoader, clouddriverAccountLoader);
   }
 
   @Bean
@@ -111,8 +134,15 @@ public class ResourcesConfig {
 
   @Bean
   @ConditionalOnProperty("services.igor.enabled")
-  IgorService igorService(IgorApi igorApi) {
-    return new IgorService(igorApi);
+  IgorBuildServiceLoader igorBuildServiceLoader(
+      ProviderHealthTracker providerHealthTracker, IgorApi igorApi) {
+    return new IgorBuildServiceLoader(providerHealthTracker, igorApi);
+  }
+
+  @Bean
+  @ConditionalOnProperty("services.igor.enabled")
+  IgorService igorService(IgorBuildServiceLoader igorBuildServiceLoader) {
+    return new IgorService(igorBuildServiceLoader);
   }
 
   @Bean

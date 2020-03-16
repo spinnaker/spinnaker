@@ -1,12 +1,11 @@
 /*
- * Copyright 2019 Schibsted ASA.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- *
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,18 +16,12 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
-import com.netflix.spinnaker.fiat.model.resources.BuildService;
-import java.util.List;
+import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 
-public class IgorService {
+public class Front50ApplicationLoader extends Front50DataLoader<Application> {
 
-  private final IgorBuildServiceLoader igorBuildServiceLoader;
-
-  public IgorService(IgorBuildServiceLoader igorBuildServiceLoader) {
-    this.igorBuildServiceLoader = igorBuildServiceLoader;
-  }
-
-  public List<BuildService> getAllBuildServices() {
-    return igorBuildServiceLoader.getData();
+  public Front50ApplicationLoader(ProviderHealthTracker healthTracker, Front50Api front50Api) {
+    super(healthTracker, front50Api::getAllApplications);
   }
 }

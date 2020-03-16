@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.fiat.controllers
 
-import com.netflix.hystrix.strategy.HystrixPlugins
 import com.netflix.spinnaker.config.FiatSystemTest
 import com.netflix.spinnaker.config.TestUserRoleProviderConfig.TestUserRoleProvider
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
-import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
-import com.netflix.spinnaker.fiat.providers.internal.Front50Service
-import com.netflix.spinnaker.fiat.providers.internal.IgorService
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverAccountLoader
+import com.netflix.spinnaker.fiat.providers.internal.Front50ApplicationLoader
+import com.netflix.spinnaker.fiat.providers.internal.Front50ServiceAccountLoader
+import com.netflix.spinnaker.fiat.providers.internal.IgorBuildServiceLoader
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -41,13 +41,16 @@ class RolesControllerSpec extends Specification {
   WebApplicationContext wac
 
   @Autowired
-  Front50Service stubFront50Service
+  Front50ApplicationLoader front50ApplicationLoader
 
   @Autowired
-  ClouddriverService stubClouddriverService
+  Front50ServiceAccountLoader front50ServiceAccountLoader
 
   @Autowired
-  IgorService stubIgorService
+  ClouddriverAccountLoader clouddriverAccountLoader
+
+  @Autowired
+  IgorBuildServiceLoader igorBuildServiceLoader
 
   @Autowired
   PermissionsRepository permissionsRepository
@@ -61,7 +64,6 @@ class RolesControllerSpec extends Specification {
   MockMvc mockMvc
 
   def setup() {
-    HystrixPlugins.reset()
     this.mockMvc = MockMvcBuilders
         .webAppContextSetup(this.wac)
         .defaultRequest(get("/").content().contentType("application/json"))
@@ -70,10 +72,10 @@ class RolesControllerSpec extends Specification {
 
   def "should put user in the repo"() {
     setup:
-    stubFront50Service.getAllServiceAccounts() >> []
-    stubFront50Service.getAllApplications(false) >> [unrestrictedApp, restrictedApp]
-    stubClouddriverService.getAccounts() >> [unrestrictedAccount, restrictedAccount]
-    stubIgorService.allBuildServices >> []
+    front50ServiceAccountLoader.getData() >> []
+    front50ApplicationLoader.getData() >> [unrestrictedApp, restrictedApp]
+    clouddriverAccountLoader.getData() >> [unrestrictedAccount, restrictedAccount]
+    igorBuildServiceLoader.getData() >> []
 
     userRoleProvider.userToRoles = [
         "noRolesUser@group.com"   : [],
@@ -120,7 +122,7 @@ class RolesControllerSpec extends Specification {
     mockMvc.perform(put("/roles/expectedError").content('["batman"]')).andExpect(status().is5xxServerError())
 
     then:
-    stubFront50Service.getAllApplications(false) >> {
+    front50ApplicationLoader.getData() >> {
       throw RetrofitError.networkError("test1", new IOException("test2"))
     }
 

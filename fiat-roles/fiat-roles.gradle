@@ -23,11 +23,12 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp-urlconnection"
   implementation "com.squareup.okhttp:okhttp-apache"
 
+  implementation "io.github.resilience4j:resilience4j-spring-boot2"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-aop"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   implementation "com.netflix.spinnaker.kork:kork-dynomite"
-  implementation "com.netflix.spinnaker.kork:kork-hystrix"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "redis.clients:jedis"

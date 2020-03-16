@@ -16,95 +16,33 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
-import static com.netflix.spinnaker.security.AuthenticatedRequest.*;
-
-import com.netflix.hystrix.exception.HystrixBadRequestException;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
-import com.netflix.spinnaker.fiat.providers.HealthTrackable;
-import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
-@Slf4j
-public class Front50Service implements HealthTrackable, InitializingBean {
+public class Front50Service {
 
-  private static final String GROUP_KEY = "front50Service";
+  private final Front50ApplicationLoader front50ApplicationLoader;
+  private final Front50ServiceAccountLoader front50ServiceAccountLoader;
 
-  private final Front50Api front50Api;
-
-  @Autowired @Getter private ProviderHealthTracker healthTracker;
-
-  private AtomicReference<List<Application>> applicationCache = new AtomicReference<>();
-  private AtomicReference<List<ServiceAccount>> serviceAccountCache = new AtomicReference<>();
-
-  public Front50Service(Front50Api front50Api) {
-    this.front50Api = front50Api;
+  public Front50Service(
+      Front50ApplicationLoader front50ApplicationLoader,
+      Front50ServiceAccountLoader front50ServiceAccountLoader) {
+    this.front50ApplicationLoader = front50ApplicationLoader;
+    this.front50ServiceAccountLoader = front50ServiceAccountLoader;
   }
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    refreshCache();
-  }
-
+  /** @deprecated use {@code getAllApplications} - the restricted parameter is ignored */
+  @Deprecated
   public List<Application> getAllApplications(boolean restricted) {
-    return new SimpleJava8HystrixCommand<>(
-            GROUP_KEY,
-            "getAllApplications",
-            () -> {
-              applicationCache.set(allowAnonymous(() -> front50Api.getAllApplications(restricted)));
-              healthTracker.success();
-              return applicationCache.get();
-            },
-            (Throwable cause) -> {
-              logFallback("application", cause);
-              List<Application> applications = applicationCache.get();
-              if (applications == null) {
-                throw new HystrixBadRequestException("Front50 is unavailable", cause);
-              }
-              return applications;
-            })
-        .execute();
+    return getAllApplications();
+  }
+
+  public List<Application> getAllApplications() {
+    return front50ApplicationLoader.getData();
   }
 
   public List<ServiceAccount> getAllServiceAccounts() {
-    return new SimpleJava8HystrixCommand<>(
-            GROUP_KEY,
-            "getAccounts",
-            () -> {
-              serviceAccountCache.set(allowAnonymous(front50Api::getAllServiceAccounts));
-              healthTracker.success();
-              return serviceAccountCache.get();
-            },
-            (Throwable cause) -> {
-              logFallback("service account", cause);
-              List<ServiceAccount> serviceAccounts = serviceAccountCache.get();
-              if (serviceAccounts == null) {
-                throw new HystrixBadRequestException("Front50 is unavailable", cause);
-              }
-              return serviceAccounts;
-            })
-        .execute();
-  }
-
-  private static void logFallback(String resource, Throwable cause) {
-    String message = cause != null ? "Cause: " + cause.getMessage() : "";
-    log.info("Falling back to {} cache. {}", resource, message);
-  }
-
-  @Scheduled(fixedDelayString = "${fiat.front50-refresh-ms:30000}")
-  private void refreshCache() {
-    try {
-      // Initialize caches (also indicates service is healthy)
-      getAllApplications(false);
-      getAllServiceAccounts();
-    } catch (Exception e) {
-      log.warn("Cache prime failed: ", e);
-    }
+    return front50ServiceAccountLoader.getData();
   }
 }
