@@ -107,6 +107,8 @@ class PreviousImageRollbackSpec extends Specification {
       credentials                  : "test",
       cloudProvider                : "aws",
       delayBeforeDisableSec : expectedDelay,
+      securityGroups: null,
+      targetGroups: null,
       source                       : [
         asgName          : "application-v002",
         serverGroupName  : "application-v002",
