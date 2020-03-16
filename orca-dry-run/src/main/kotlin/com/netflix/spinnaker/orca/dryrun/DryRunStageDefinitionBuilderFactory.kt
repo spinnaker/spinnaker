@@ -17,16 +17,16 @@
 package com.netflix.spinnaker.orca.dryrun
 
 import com.netflix.spinnaker.orca.StageResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.CheckPreconditionsStage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 
 class DryRunStageDefinitionBuilderFactory(
   stageResolver: StageResolver
 ) : DefaultStageDefinitionBuilderFactory(stageResolver) {
 
-  override fun builderFor(stage: Stage): StageDefinitionBuilder =
+  override fun builderFor(stage: StageExecution): StageDefinitionBuilder =
     stage.execution.let { execution ->
       super.builderFor(stage).let {
         if (!execution.trigger.isDryRun || stage.shouldExecuteNormallyInDryRun) {
@@ -37,7 +37,7 @@ class DryRunStageDefinitionBuilderFactory(
       }
     }
 
-  private val Stage.shouldExecuteNormallyInDryRun: Boolean
+  private val StageExecution.shouldExecuteNormallyInDryRun: Boolean
     get() = isManualJudgment ||
       isPipeline ||
       isExpressionPrecondition ||
@@ -46,36 +46,36 @@ class DryRunStageDefinitionBuilderFactory(
       isRollbackCluster ||
       isEvalVariables
 
-  private val Stage.isManualJudgment: Boolean
+  private val StageExecution.isManualJudgment: Boolean
     get() = type == "manualJudgment"
 
-  private val Stage.isPipeline: Boolean
+  private val StageExecution.isPipeline: Boolean
     get() = type == "pipeline"
 
-  private val Stage.isFindImage: Boolean
+  private val StageExecution.isFindImage: Boolean
     get() = type in setOf("findImage", "findImageFromTags")
 
-  private val Stage.isDetermineTargetServerGroup: Boolean
+  private val StageExecution.isDetermineTargetServerGroup: Boolean
     get() = type == "determineTargetServerGroup"
 
-  private val Stage.isExpressionPrecondition: Boolean
+  private val StageExecution.isExpressionPrecondition: Boolean
     get() = isPreconditionStage && (isExpressionChild || isExpressionParent)
 
-  private val Stage.isPreconditionStage: Boolean
+  private val StageExecution.isPreconditionStage: Boolean
     get() = type == CheckPreconditionsStage.PIPELINE_CONFIG_TYPE
 
-  private val Stage.isExpressionChild: Boolean
+  private val StageExecution.isExpressionChild: Boolean
     get() = context["preconditionType"] == "expression"
 
   @Suppress("UNCHECKED_CAST")
-  private val Stage.isExpressionParent: Boolean
+  private val StageExecution.isExpressionParent: Boolean
     get() = (context["preconditions"] as Iterable<Map<String, Any>>?)?.run {
       all { it["type"] == "expression" }
     } == true
 
-  private val Stage.isRollbackCluster: Boolean
+  private val StageExecution.isRollbackCluster: Boolean
     get() = type == "rollbackCluster"
 
-  private val Stage.isEvalVariables: Boolean
+  private val StageExecution.isEvalVariables: Boolean
     get() = type == "evaluateVariables"
 }

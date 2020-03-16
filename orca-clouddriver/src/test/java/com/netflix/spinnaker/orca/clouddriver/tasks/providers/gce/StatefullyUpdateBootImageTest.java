@@ -23,12 +23,12 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +57,7 @@ final class StatefullyUpdateBootImageTest {
     when(katoService.requestOperations(any(), any()))
         .thenReturn(Observable.just(new TaskId("10111")));
 
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     stage.getContext().put("cloudProvider", "gce");
     stage.getContext().put("credentials", "spinnaker-test");
     stage.getContext().put("serverGroupName", "testapp-v000");

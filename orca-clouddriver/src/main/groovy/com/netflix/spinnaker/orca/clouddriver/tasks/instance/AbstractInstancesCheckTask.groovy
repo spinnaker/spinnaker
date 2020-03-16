@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 
 import java.time.Duration
@@ -23,14 +24,13 @@ import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.moniker.Moniker
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,12 +60,12 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
    *
    * @return A map of region --> list of serverGroup names.
    */
-  abstract protected Map<String, List<String>> getServerGroups(Stage stage)
+  abstract protected Map<String, List<String>> getServerGroups(StageExecution stage)
 
   abstract
-  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
+  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
 
-  protected Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
+  protected Map getAdditionalRunningStageContext(StageExecution stage, Map serverGroup) {
     [:]
   }
 
@@ -77,7 +77,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   }
 
   @Override
-  long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+  long getDynamicBackoffPeriod(StageExecution stage, Duration taskDuration) {
     if (taskDuration.toMillis() > TimeUnit.MINUTES.toMillis(60)) {
       // task has been running > 60min, drop retry interval to every 2 minutes
       return Math.max(backoffPeriod, TimeUnit.SECONDS.toMillis(120))
@@ -90,7 +90,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   }
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     String account = getCredentials(stage)
     Map<String, List<String>> serverGroupsByRegion = getServerGroups(stage)
 
@@ -189,7 +189,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
    *
    * Will raise an exception in the event that a server group is being modified and is destroyed by an external process.
    */
-  void verifyServerGroupsExist(Stage stage) {
+  void verifyServerGroupsExist(StageExecution stage) {
     def forceCacheRefreshResult = serverGroupCacheForceRefreshTask.execute(stage)
 
     Map<String, List<String>> serverGroups = getServerGroups(stage)

@@ -18,9 +18,8 @@ package com.netflix.spinnaker.orca.pipeline.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
@@ -64,14 +63,11 @@ class JenkinsTriggerTest {
    */
   @Test
   void jenkinsTriggerSerialization() throws IOException {
-    ObjectMapper mapper =
-        new ObjectMapper()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    ObjectMapper mapper = OrcaObjectMapper.getInstance();
     JenkinsTrigger jenkinsTrigger = mapper.readValue(trigger, JenkinsTrigger.class);
     String triggerSerialized = mapper.writeValueAsString(jenkinsTrigger);
     assertThat(triggerSerialized)
-        .contains("\"fileName\" : \"props\"")
-        .contains("\"relativePath\" : \"properties/props\"");
+        .contains("\"fileName\":\"props\"")
+        .contains("\"relativePath\":\"properties/props\"");
   }
 }

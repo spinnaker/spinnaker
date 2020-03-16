@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.events;
 
 import com.netflix.spinnaker.kork.common.Header;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationListener;
@@ -62,7 +62,7 @@ public final class ExecutionListenerAdapter implements ApplicationListener<Execu
     delegate.afterExecution(persister, executionFor(event), status, status.isSuccessful());
   }
 
-  private Execution executionFor(ExecutionEvent event) {
+  private PipelineExecution executionFor(ExecutionEvent event) {
     return repository.retrieve(event.getExecutionType(), event.getExecutionId());
   }
 }

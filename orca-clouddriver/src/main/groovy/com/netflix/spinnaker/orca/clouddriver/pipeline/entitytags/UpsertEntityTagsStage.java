@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.entitytags;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.entitytags.UpsertEntityTagsTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpsertEntityTagsStage implements StageDefinitionBuilder {
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
         .withTask("upsertEntityTags", UpsertEntityTagsTask.class)
         .withTask("monitorUpsert", MonitorKatoTask.class);

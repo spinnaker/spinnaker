@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback;
 
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +32,11 @@ public class TestRollback implements Rollback {
   @Autowired @JsonIgnore WaitStage waitStage;
 
   @Override
-  public List<Stage> buildStages(Stage parentStage) {
+  public List<StageExecution> buildStages(StageExecution parentStage) {
     Map<String, Object> waitContext = Collections.singletonMap("waitTime", waitTime);
 
     return Collections.singletonList(
-        newStage(
+        StageExecutionFactory.newStage(
             parentStage.getExecution(),
             waitStage.getType(),
             "wait",

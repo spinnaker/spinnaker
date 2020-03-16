@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import java.util.Collections;
 
 public interface PipelineValidator {
@@ -27,7 +27,7 @@ public interface PipelineValidator {
    *
    * @throws PipelineValidationFailed if the pipeline cannot run.
    */
-  void checkRunnable(Execution pipeline);
+  void checkRunnable(PipelineExecution pipeline);
 
   abstract class PipelineValidationFailed extends ValidationException {
     public PipelineValidationFailed(String message) {

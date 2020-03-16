@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -43,7 +43,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
     def pipe = pipeline {
       application = "orca"
     }
-    def stage = new Stage(pipe, "whatever", ctx)
+    def stage = new StageExecutionImpl(pipe, "whatever", ctx)
 
     when:
       def results = upserter.getOperationContext(stage)
@@ -81,7 +81,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
     def pipe = pipeline {
       application = "orca"
     }
-    def stage = new Stage(pipe, "whatever", ctx)
+    def stage = new StageExecutionImpl(pipe, "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService)
 
     when:
@@ -154,7 +154,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
     def pipe = pipeline {
       application = "orca"
     }
-    def stage = new Stage(pipe, "whatever", ctx)
+    def stage = new StageExecutionImpl(pipe, "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService, objectMapper: OrcaObjectMapper.newInstance())
 
     when:

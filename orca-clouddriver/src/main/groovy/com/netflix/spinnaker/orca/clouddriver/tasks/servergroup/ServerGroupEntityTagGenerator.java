@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.Collection;
 import java.util.Map;
 
@@ -30,5 +30,9 @@ public interface ServerGroupEntityTagGenerator {
    * @return a collection of maps representing tags to send to Clouddriver
    */
   Collection<Map<String, Object>> generateTags(
-      Stage stage, String serverGroup, String account, String location, String cloudProvider);
+      StageExecution stage,
+      String serverGroup,
+      String account,
+      String location,
+      String cloudProvider);
 }

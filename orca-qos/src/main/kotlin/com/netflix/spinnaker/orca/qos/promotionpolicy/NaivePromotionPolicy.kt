@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.qos.promotionpolicy
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.qos.PromotionPolicy
 import com.netflix.spinnaker.orca.qos.PromotionResult
 import org.springframework.stereotype.Component
@@ -26,7 +26,7 @@ class NaivePromotionPolicy(
   private val configService: DynamicConfigService
 ) : PromotionPolicy {
 
-  override fun apply(candidates: List<Execution>): PromotionResult {
+  override fun apply(candidates: List<PipelineExecution>): PromotionResult {
     if (!configService.isEnabled("qos.promotion-policy.naive", true)) {
       return PromotionResult(candidates, false, "Naive policy is disabled")
     }

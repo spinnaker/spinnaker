@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Specification
 

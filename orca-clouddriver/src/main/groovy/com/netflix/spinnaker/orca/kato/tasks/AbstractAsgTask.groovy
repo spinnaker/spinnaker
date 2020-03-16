@@ -17,14 +17,16 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+
+import javax.annotation.Nonnull
 
 @CompileStatic
 abstract class AbstractAsgTask implements Task {
@@ -40,8 +42,9 @@ abstract class AbstractAsgTask implements Task {
 
   abstract String getAsgAction()
 
+  @Nonnull
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(@Nonnull StageExecution stage) {
     def operation = convert(stage)
     def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]])
                      .toBlocking()
@@ -59,7 +62,7 @@ abstract class AbstractAsgTask implements Task {
     ]).build()
   }
 
-  Map convert(Stage stage) {
+  Map convert(StageExecution stage) {
     def operation = new HashMap(stage.context)
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)

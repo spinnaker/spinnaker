@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.ext.withTask
-import com.netflix.spinnaker.orca.kayenta.model.KayentaCanaryContext
+import com.netflix.spinnaker.orca.kayenta.KayentaCanaryContext
 import com.netflix.spinnaker.orca.kayenta.tasks.AggregateCanaryResultsTask
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
@@ -32,11 +32,11 @@ import java.time.Instant
 @Component
 class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
 
-  override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+  override fun taskGraph(stage: StageExecution, builder: TaskNode.Builder) {
     builder.withTask<AggregateCanaryResultsTask>("aggregateCanaryResults")
   }
 
-  override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
+  override fun beforeStages(parent: StageExecution, graph: StageGraphBuilder) {
     if (parent.context["deployments"] != null) {
       graph.add {
         it.type = DeployCanaryServerGroupsStage.STAGE_TYPE
@@ -65,7 +65,7 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
     parent.context["intervalStageId"] = runStage.id
   }
 
-  override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+  override fun afterStages(parent: StageExecution, graph: StageGraphBuilder) {
     if (parent.context["deployments"] != null) {
       graph.add {
         it.type = CleanupCanaryClustersStage.STAGE_TYPE
@@ -74,7 +74,7 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
     }
   }
 
-  override fun onFailureStages(stage: Stage, graph: StageGraphBuilder) {
+  override fun onFailureStages(stage: StageExecution, graph: StageGraphBuilder) {
     afterStages(stage, graph)
   }
 

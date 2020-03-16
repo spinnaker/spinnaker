@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.interlink
 
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.interlink.events.CancelInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.PauseInterlinkEvent
@@ -25,14 +26,13 @@ import spock.lang.Specification
 import java.time.Duration
 
 import static com.netflix.spinnaker.config.InterlinkConfigurationProperties.FlaggerProperties
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 
 class MessageFlaggerSpec extends Specification {
-  def cancel = new CancelInterlinkEvent(ORCHESTRATION, "id", "user", "reason")
-  def cancelByOtherUser = new CancelInterlinkEvent(ORCHESTRATION, "id", "otherUser", "reason")
-  def pause = new PauseInterlinkEvent(ORCHESTRATION, "id", "user")
-  def delete = new DeleteInterlinkEvent(ORCHESTRATION, "id")
-  def deleteOtherId = new DeleteInterlinkEvent(ORCHESTRATION, "otherId")
+  def cancel = new CancelInterlinkEvent(ExecutionType.ORCHESTRATION, "id", "user", "reason")
+  def cancelByOtherUser = new CancelInterlinkEvent(ExecutionType.ORCHESTRATION, "id", "otherUser", "reason")
+  def pause = new PauseInterlinkEvent(ExecutionType.ORCHESTRATION, "id", "user")
+  def delete = new DeleteInterlinkEvent(ExecutionType.ORCHESTRATION, "id")
+  def deleteOtherId = new DeleteInterlinkEvent(ExecutionType.ORCHESTRATION, "otherId")
   MutableClock clock = new MutableClock()
 
   def 'flagger should flag repeated messages'() {

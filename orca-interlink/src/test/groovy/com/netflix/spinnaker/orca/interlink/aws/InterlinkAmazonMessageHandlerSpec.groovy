@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.orca.interlink.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
-
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-
 
 class InterlinkAmazonMessageHandlerSpec extends Specification {
   def 'checks if the execution repo handles the partition of the event'() {
@@ -37,17 +35,17 @@ class InterlinkAmazonMessageHandlerSpec extends Specification {
     )
 
     when:
-    handler.handleInternal(new DeleteInterlinkEvent(PIPELINE, "id").withPartition("local"))
+    handler.handleInternal(new DeleteInterlinkEvent(ExecutionType.PIPELINE, "id").withPartition("local"))
 
     then:
     1 * executionRepo.handlesPartition("local") >> true
-    1 * executionOperator.delete(PIPELINE, "id")
+    1 * executionOperator.delete(ExecutionType.PIPELINE, "id")
 
     when:
-    handler.handleInternal(new DeleteInterlinkEvent(PIPELINE, "id").withPartition("foreign"))
+    handler.handleInternal(new DeleteInterlinkEvent(ExecutionType.PIPELINE, "id").withPartition("foreign"))
 
     then:
     1 * executionRepo.handlesPartition("foreign") >> false
-    0 * executionOperator.delete(PIPELINE, "id")
+    0 * executionOperator.delete(ExecutionType.PIPELINE, "id")
   }
 }

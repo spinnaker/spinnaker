@@ -19,14 +19,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import static retrofit.RetrofitError.httpError
 
 class WaitForClusterShrinkTaskSpec extends Specification {
@@ -39,7 +39,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "does not complete if previous ASG is still there"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "test", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [
@@ -90,7 +90,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "completes if previous ASG is gone"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "test", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [
@@ -126,7 +126,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
 
   def "completes if the cluster is now totally gone"() {
     given:
-    def stage = new Stage(context: [
+    def stage = new StageExecutionImpl(context: [
       cluster               : clusterName,
       credentials           : account,
       "deploy.server.groups": [

@@ -16,20 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.scalingpolicy
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.scalingpolicy.UpsertScalingPolicyTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Component
 @CompileStatic
 class UpsertScalingPolicyStage implements StageDefinitionBuilder {
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("upsertScalingPolicy", UpsertScalingPolicyTask)
       .withTask("monitorUpsert", MonitorKatoTask)

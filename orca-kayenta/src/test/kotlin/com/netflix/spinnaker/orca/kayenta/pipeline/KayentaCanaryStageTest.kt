@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
 import com.netflix.spinnaker.orca.fixture.stage
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import com.netflix.spinnaker.time.fixedClock
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
@@ -55,7 +55,7 @@ object KayentaCanaryStageTest : Spek({
         )
       }
 
-      val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+      val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
         .let { graph ->
           builder.beforeStages(kayentaCanaryStage, graph)
           graph.build()

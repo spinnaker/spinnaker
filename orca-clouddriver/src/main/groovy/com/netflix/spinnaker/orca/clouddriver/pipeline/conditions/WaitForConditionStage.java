@@ -18,10 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.conditions.EvaluateConditionTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ public class WaitForConditionStage implements StageDefinitionBuilder {
   public static String STAGE_TYPE = "waitForCondition";
 
   @Override
-  public void taskGraph(@NotNull Stage stage, @NotNull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull @NotNull TaskNode.Builder builder) {
     builder.withTask(STAGE_TYPE, EvaluateConditionTask.class);
   }
 

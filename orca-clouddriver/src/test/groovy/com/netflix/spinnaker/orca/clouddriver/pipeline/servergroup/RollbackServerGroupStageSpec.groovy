@@ -19,8 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.TestRollback
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import spock.lang.Shared
 import spock.lang.Specification
@@ -52,8 +51,8 @@ class RollbackServerGroupStageSpec extends Specification {
       ]
     }
 
-    def graphBefore = StageGraphBuilder.beforeStages(stage)
-    def graphAfter = StageGraphBuilder.afterStages(stage)
+    def graphBefore = StageGraphBuilderImpl.beforeStages(stage)
+    def graphAfter = StageGraphBuilderImpl.afterStages(stage)
 
     when:
     def tasks = rollbackServerGroupStage.buildTaskGraph(stage)

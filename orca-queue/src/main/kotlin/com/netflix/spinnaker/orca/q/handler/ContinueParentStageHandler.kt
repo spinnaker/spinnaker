@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.ext.allAfterStagesComplete
 import com.netflix.spinnaker.orca.ext.allBeforeStagesSuccessful
 import com.netflix.spinnaker.orca.ext.anyBeforeStagesFailed
 import com.netflix.spinnaker.orca.ext.hasTasks
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.ContinueParentStage
@@ -67,7 +67,7 @@ class ContinueParentStageHandler(
     }
   }
 
-  private fun Stage.runFirstTask() {
+  private fun StageExecution.runFirstTask() {
     val firstTask = tasks.first()
     if (firstTask.status == NOT_STARTED) {
       queue.push(StartTask(this, firstTask))

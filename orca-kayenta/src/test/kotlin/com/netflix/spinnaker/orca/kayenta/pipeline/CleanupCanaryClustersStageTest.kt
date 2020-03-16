@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStag
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
@@ -132,7 +132,7 @@ internal object CleanupCanaryClustersStageTest : Spek({
         assertThat(
           requisiteStageRefIds
             .map(pipeline::stageByRef)
-            .map(Stage::getName)
+            .map(StageExecution::getName)
         ).containsExactlyInAnyOrder(
           "Disable control cluster spindemo-prestaging-baseline-a",
           "Disable control cluster spindemo-prestaging-baseline-b",
@@ -149,7 +149,7 @@ internal object CleanupCanaryClustersStageTest : Spek({
         assertThat(
           requisiteStageRefIds
             .map(pipeline::stageByRef)
-            .map(Stage::getName)
+            .map(StageExecution::getName)
         ).containsExactly("Wait before cleanup")
 
         assertThat(context["cloudProvider"]).isEqualTo("aws")
@@ -165,7 +165,7 @@ internal object CleanupCanaryClustersStageTest : Spek({
         assertThat(
           requisiteStageRefIds
             .map(pipeline::stageByRef)
-            .map(Stage::getName)
+            .map(StageExecution::getName)
         ).containsExactly("Wait before cleanup")
 
         assertThat(context["cloudProvider"]).isEqualTo("aws")

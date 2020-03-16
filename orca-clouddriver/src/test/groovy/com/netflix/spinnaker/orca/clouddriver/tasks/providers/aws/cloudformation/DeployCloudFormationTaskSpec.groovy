@@ -20,8 +20,8 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -43,14 +43,14 @@ class DeployCloudFormationTaskSpec extends Specification {
   def "should put kato task information as output"() {
     given:
     def taskId = new TaskId(id: 'id')
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       credentials: 'creds',
       cloudProvider: 'aws',
       source: 'text',
       regions: ['eu-west-1'],
       templateBody: [key: 'value']]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
 
     when:
     def result = deployCloudFormationTask.execute(stage)
@@ -66,14 +66,14 @@ class DeployCloudFormationTaskSpec extends Specification {
   def "should put kato task information as output when templateBody is a string"() {
     given:
     def taskId = new TaskId(id: 'id')
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       credentials: 'creds',
       cloudProvider: 'aws',
       source: 'text',
       regions: ['eu-west-1'],
       templateBody: 'key: "value"']
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
 
     when:
     def result = deployCloudFormationTask.execute(stage)
@@ -89,7 +89,7 @@ class DeployCloudFormationTaskSpec extends Specification {
   @Unroll
   def "should fail if context is invalid"() {
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def template = new TypedString('{ "key": "value" }')
     def context = [
       credentials: 'creds',
@@ -100,7 +100,7 @@ class DeployCloudFormationTaskSpec extends Specification {
       templateBody: templateBody,
       regions: regions
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
 
     when:
     def result = deployCloudFormationTask.execute(stage)
@@ -125,7 +125,7 @@ class DeployCloudFormationTaskSpec extends Specification {
   def "should fetch artifact if specified, and add it as a templateBody"() {
     given:
     def taskId = new TaskId(id: 'id')
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       credentials: 'creds',
       cloudProvider: 'aws',
@@ -135,7 +135,7 @@ class DeployCloudFormationTaskSpec extends Specification {
       stackArtifactAccount: stackArtifactAccount,
       regions: ['eu-west-1'],
       templateBody: [key: 'value']]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
 
     when:
     def result = deployCloudFormationTask.execute(stage)

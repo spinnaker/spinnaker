@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
@@ -62,7 +62,8 @@ public class PipelineTemplateService {
     if (containsJinja(templateSource.getSource())
         && !(executionId == null && pipelineConfigId == null)) {
       try {
-        Execution pipeline = retrievePipelineOrNewestExecution(executionId, pipelineConfigId);
+        PipelineExecution pipeline =
+            retrievePipelineOrNewestExecution(executionId, pipelineConfigId);
         String renderedSource = render(templateSource.getSource(), pipeline);
         if (StringUtils.isNotBlank(renderedSource)) {
           templateSource.setSource(renderedSource);
@@ -85,7 +86,7 @@ public class PipelineTemplateService {
    * @throws IllegalArgumentException if neither executionId or pipelineConfigId are provided
    * @throws ExecutionNotFoundException if no execution could be found
    */
-  public Execution retrievePipelineOrNewestExecution(
+  public PipelineExecution retrievePipelineOrNewestExecution(
       @Nullable String executionId, @Nullable String pipelineConfigId)
       throws ExecutionNotFoundException {
     if (executionId != null) {
@@ -113,7 +114,7 @@ public class PipelineTemplateService {
     }
   }
 
-  private String render(String templateString, Execution pipeline) {
+  private String render(String templateString, PipelineExecution pipeline) {
     DefaultRenderContext rc =
         new DefaultRenderContext(
             pipeline.getApplication(), null, mapper.convertValue(pipeline.getTrigger(), Map.class));

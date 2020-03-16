@@ -17,17 +17,20 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
+
 import static MortService.VPC.findForRegionAndAccount
 
 @Component
@@ -41,8 +44,9 @@ class CopyAmazonLoadBalancerTask implements Task {
   @Autowired
   MortService mortService
 
+  @Nonnull
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(@Nonnull StageExecution stage) {
     def operation = stage.mapTo(StageData)
     def currentLoadBalancer = oortService.getLoadBalancerDetails(
       "aws", operation.credentials, operation.region, operation.name

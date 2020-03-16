@@ -17,8 +17,8 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import java.sql.ResultSet
@@ -36,13 +36,13 @@ class ExecutionMapper(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun map(rs: ResultSet, context: DSLContext): Collection<Execution> {
-    val results = mutableListOf<Execution>()
-    val executionMap = mutableMapOf<String, Execution>()
+  fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
+    val results = mutableListOf<PipelineExecution>()
+    val executionMap = mutableMapOf<String, PipelineExecution>()
     val legacyMap = mutableMapOf<String, String>()
 
     while (rs.next()) {
-      mapper.readValue<Execution>(rs.getString("body"))
+      mapper.readValue<PipelineExecution>(rs.getString("body"))
         .also {
           execution -> results.add(execution)
           execution.partition = rs.getString("`partition`")
@@ -84,12 +84,12 @@ class ExecutionMapper(
     return results
   }
 
-  private fun mapStage(rs: ResultSet, executions: Map<String, Execution>) {
+  private fun mapStage(rs: ResultSet, executions: Map<String, PipelineExecution>) {
     val executionId = rs.getString("execution_id")
     executions.getValue(executionId)
       .stages
       .add(
-        mapper.readValue<Stage>(rs.getString("body"))
+        mapper.readValue<StageExecution>(rs.getString("body"))
           .apply {
             execution = executions.getValue(executionId)
           }

@@ -21,10 +21,10 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
@@ -55,7 +55,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     location: "us-east-1",
     serverGroup: "app-stack-details-v001",
 
-    executionType: Execution.ExecutionType.PIPELINE,
+    executionType: ExecutionType.PIPELINE,
     executionId: "execution-id-1",
 
     pinnedCapacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3),
@@ -71,7 +71,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     location: "us-east-1",
     serverGroup: "app-stack-details-v002",
 
-    executionType: Execution.ExecutionType.PIPELINE,
+    executionType: ExecutionType.PIPELINE,
     executionId: "execution-id-2",
 
     pinnedCapacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3),
@@ -112,7 +112,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
         )
       )
     }
-    1 * executionLauncher.start(Execution.ExecutionType.ORCHESTRATION, { String configJson ->
+    1 * executionLauncher.start(ExecutionType.ORCHESTRATION, { String configJson ->
       def config = objectMapper.readValue(configJson, Map)
       assert config.stages*.type == ["resizeServerGroup", "deleteEntityTags"]
 
@@ -141,7 +141,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
         )
       )
     }
-    1 * executionLauncher.start(Execution.ExecutionType.ORCHESTRATION, { String configJson ->
+    1 * executionLauncher.start(ExecutionType.ORCHESTRATION, { String configJson ->
       def config = objectMapper.readValue(configJson, Map)
 
       // no resize necessary!

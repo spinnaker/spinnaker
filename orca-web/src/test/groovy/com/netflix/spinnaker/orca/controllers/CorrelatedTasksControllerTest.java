@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.controllers;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder;
@@ -55,7 +55,7 @@ class CorrelatedTasksControllerTest {
 
   @Test
   void returnsIdsOfAnyCorrelatedPipelines() throws Exception {
-    Execution pipeline = ExecutionBuilder.pipeline();
+    PipelineExecution pipeline = ExecutionBuilder.pipeline();
     when(executionRepository.retrieveByCorrelationId(PIPELINE, correlationId)).thenReturn(pipeline);
     when(executionRepository.retrieveByCorrelationId(ORCHESTRATION, correlationId))
         .thenThrow(ExecutionNotFoundException.class);
@@ -67,7 +67,7 @@ class CorrelatedTasksControllerTest {
 
   @Test
   void returnsIdsOfAnyCorrelatedOrchestrations() throws Exception {
-    Execution orchestration = ExecutionBuilder.orchestration();
+    PipelineExecution orchestration = ExecutionBuilder.orchestration();
     when(executionRepository.retrieveByCorrelationId(PIPELINE, correlationId))
         .thenThrow(ExecutionNotFoundException.class);
     when(executionRepository.retrieveByCorrelationId(ORCHESTRATION, correlationId))

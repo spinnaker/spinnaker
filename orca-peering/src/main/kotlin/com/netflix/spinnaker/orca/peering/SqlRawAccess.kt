@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.peering
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import org.jooq.Record
 import org.jooq.Result
 import org.slf4j.Logger
@@ -32,37 +32,37 @@ abstract class SqlRawAccess(
   /**
    *  Returns a list of execution IDs and their update_at times for completed executions
    */
-  abstract fun getCompletedExecutionIds(executionType: Execution.ExecutionType, partitionName: String?, updatedAfter: Long): List<ExecutionDiffKey>
+  abstract fun getCompletedExecutionIds(executionType: ExecutionType, partitionName: String?, updatedAfter: Long): List<ExecutionDiffKey>
 
   /**
    *  Returns a list of execution IDs for active (not completed) executions
    */
-  abstract fun getActiveExecutionIds(executionType: Execution.ExecutionType, partitionName: String?): List<String>
+  abstract fun getActiveExecutionIds(executionType: ExecutionType, partitionName: String?): List<String>
 
   /**
    * Returns a list of stage IDs that belong to the given executions
    */
-  abstract fun getStageIdsForExecutions(executionType: Execution.ExecutionType, executionIds: List<String>): List<String>
+  abstract fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<String>
 
   /**
    * Returns (a list of) full execution DB records with given execution IDs
    */
-  abstract fun getExecutions(executionType: Execution.ExecutionType, ids: List<String>): Result<Record>
+  abstract fun getExecutions(executionType: ExecutionType, ids: List<String>): Result<Record>
 
   /**
    * Returns (a list of) full stage DB records with given stage IDs
    */
-  abstract fun getStages(executionType: Execution.ExecutionType, stageIds: List<String>): Result<Record>
+  abstract fun getStages(executionType: ExecutionType, stageIds: List<String>): Result<Record>
 
   /**
    * Deletes specified stages
    */
-  abstract fun deleteStages(executionType: Execution.ExecutionType, stageIdsToDelete: List<String>)
+  abstract fun deleteStages(executionType: ExecutionType, stageIdsToDelete: List<String>)
 
   /**
    * Delete specified executions
    */
-  abstract fun deleteExecutions(executionType: Execution.ExecutionType, pipelineIdsToDelete: List<String>)
+  abstract fun deleteExecutions(executionType: ExecutionType, pipelineIdsToDelete: List<String>)
 
   /**
    * Load given records into the specified table using jooq loader api

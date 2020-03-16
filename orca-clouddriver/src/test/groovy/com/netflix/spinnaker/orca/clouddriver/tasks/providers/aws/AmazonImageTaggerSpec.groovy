@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Unroll
 
@@ -39,12 +39,12 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
   @Unroll
   def "should throw exception if image does not exist"() {
     given:
-    def pipeline = Execution.newPipeline("orca")
-    def stage1 = new Stage(pipeline, "", [
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage1 = new StageExecutionImpl(pipeline, "", [
       imageId      : imageId,
       cloudProvider: "aws"
     ])
-    def stage2 = new Stage(pipeline, "", [
+    def stage2 = new StageExecutionImpl(pipeline, "", [
       imageNames   : imageName ? [imageName] : null,
       cloudProvider: "aws"
     ])
@@ -84,7 +84,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     given:
     def name = "spinapp-1.0.0-ebs"
     def pipeline = ExecutionBuilder.pipeline {}
-    def stage1 = new Stage(
+    def stage1 = new StageExecutionImpl(
       pipeline,
       "bake",
       [
@@ -95,7 +95,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
       ]
     )
 
-    def stage2 = new Stage(
+    def stage2 = new StageExecutionImpl(
       pipeline,
       "bake",
       [
@@ -106,7 +106,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
       ]
     )
 
-    def stage3 = new Stage(pipeline, "upsertImageTags", [imageName: name, cloudProvider: "aws"])
+    def stage3 = new StageExecutionImpl(pipeline, "upsertImageTags", [imageName: name, cloudProvider: "aws"])
 
     stage1.refId = stage1.id
     stage2.refId = stage2.id
@@ -164,7 +164,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
     given:
-    def stage = new Stage(Execution.newOrchestration("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "", [
       imageNames: ["my-ami"],
       tags      : [
         "tag1"      : "value1",
@@ -204,7 +204,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
   def "should apply regions based on AMI data from Clouddriver"() {
     given:
-    def stage = new Stage(Execution.newOrchestration("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "", [
       imageNames: ["my-ami-1", "my-ami-2"],
       tags      : [
         "tag1": "value1"

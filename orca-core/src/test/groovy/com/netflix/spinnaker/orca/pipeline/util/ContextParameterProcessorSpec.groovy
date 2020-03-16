@@ -19,7 +19,8 @@ package com.netflix.spinnaker.orca.pipeline.util
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.expressions.functions.UrlExpressionFunctionProvider
 import com.netflix.spinnaker.orca.pipeline.model.*
@@ -28,8 +29,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -928,7 +929,7 @@ class ContextParameterProcessorSpec extends Specification {
       }
     }
 
-    pipe.setAuthentication(new Execution.AuthenticationDetails('joeyjoejoejuniorshabadoo@host.net'))
+    pipe.setAuthentication(new PipelineExecution.AuthenticationDetails('joeyjoejoejuniorshabadoo@host.net'))
 
     def stage = pipe.stages.find { it.name == "Wait1" }
     def ctx = contextParameterProcessor.buildExecutionContext(stage)

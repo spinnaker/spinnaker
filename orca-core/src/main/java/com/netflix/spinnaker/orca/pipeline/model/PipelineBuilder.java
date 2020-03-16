@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +27,7 @@ import java.util.Map;
 @Deprecated
 public class PipelineBuilder {
   public PipelineBuilder(String application) {
-    pipeline = Execution.newPipeline(application);
+    pipeline = PipelineExecutionImpl.newPipeline(application);
   }
 
   public PipelineBuilder withId(String id) {
@@ -51,9 +53,9 @@ public class PipelineBuilder {
   }
 
   public PipelineBuilder withInitialConfig(Map<String, Object> initialConfig) {
-    pipeline.getInitialConfig().clear();
+    ((PipelineExecutionImpl) pipeline).getInitialConfig().clear();
     if (initialConfig != null) {
-      pipeline.getInitialConfig().putAll(initialConfig);
+      ((PipelineExecutionImpl) pipeline).getInitialConfig().putAll(initialConfig);
     }
 
     return this;
@@ -69,7 +71,7 @@ public class PipelineBuilder {
         && !(Arrays.asList("aws", "titus")).contains(context.get("providerType"))) {
       type += "_" + context.get("providerType");
     }
-    pipeline.getStages().add(new Stage(pipeline, type, name, context));
+    pipeline.getStages().add(new StageExecutionImpl(pipeline, type, name, context));
     return this;
   }
 
@@ -91,10 +93,11 @@ public class PipelineBuilder {
     return this;
   }
 
-  public Execution build() {
+  public PipelineExecution build() {
     pipeline.setBuildTime(System.currentTimeMillis());
     pipeline.setAuthentication(
-        Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails()));
+        PipelineExecutionImpl.AuthenticationHelper.build()
+            .orElse(new PipelineExecution.AuthenticationDetails()));
 
     return pipeline;
   }
@@ -119,7 +122,7 @@ public class PipelineBuilder {
     return this;
   }
 
-  public PipelineBuilder withSource(Execution.PipelineSource source) {
+  public PipelineBuilder withSource(PipelineExecution.PipelineSource source) {
     pipeline.setSource(source);
     return this;
   }
@@ -143,5 +146,5 @@ public class PipelineBuilder {
     return this;
   }
 
-  private final Execution pipeline;
+  private final PipelineExecution pipeline;
 }

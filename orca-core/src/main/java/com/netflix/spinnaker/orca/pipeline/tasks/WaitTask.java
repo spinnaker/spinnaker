@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,7 +38,7 @@ public class WaitTask implements RetryableTask {
   }
 
   @Override
-  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+  public @Nonnull TaskResult execute(@Nonnull StageExecution stage) {
     WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
     Instant now = clock.instant();
@@ -61,7 +61,7 @@ public class WaitTask implements RetryableTask {
   }
 
   @Override
-  public long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+  public long getDynamicBackoffPeriod(StageExecution stage, Duration taskDuration) {
     WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
     if (context.isSkipRemainingWait()) {

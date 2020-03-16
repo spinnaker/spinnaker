@@ -13,8 +13,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oracle
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,7 +32,7 @@ class OracleImageFinderSpec extends Specification {
 
   def "should find first matching image for single region"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
       regions: ["us-ashburn-1"]
     ])
     def tags = [
@@ -58,7 +58,7 @@ class OracleImageFinderSpec extends Specification {
 
   def "should match first image per region for multiple regions"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
       regions: ["us-ashburn-1", "us-phoenix-1"]
     ])
     def tags = [

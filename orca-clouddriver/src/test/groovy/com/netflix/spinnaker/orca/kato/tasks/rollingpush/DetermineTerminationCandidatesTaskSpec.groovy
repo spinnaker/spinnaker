@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -46,7 +46,7 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
       context.termination = termination
     }
 
-    def stage = new Stage(Execution.newOrchestration("orca"), 'test', context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), 'test', context)
 
     def oortResponse = oortResponse([
       instances: knownInstanceIds.inject([]) { List l, id -> l << [instanceId: id, launchTime: l.size()] }

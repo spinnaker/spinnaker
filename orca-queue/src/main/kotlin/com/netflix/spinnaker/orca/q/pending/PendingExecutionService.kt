@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.q.pending
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.q.Message
 
 /**
  * Used to prevent multiple executions of the same pipeline from running
- * concurrently if [Execution.limitConcurrent] is `true`.
+ * concurrently if [PipelineExecution.limitConcurrent] is `true`.
  */
 interface PendingExecutionService {
   fun enqueue(pipelineConfigId: String, message: Message)

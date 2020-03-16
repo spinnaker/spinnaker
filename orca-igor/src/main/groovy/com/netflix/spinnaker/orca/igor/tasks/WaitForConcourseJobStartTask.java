@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.ConcourseService;
 import com.netflix.spinnaker.orca.igor.model.ConcourseStageExecution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +39,7 @@ public class WaitForConcourseJobStartTask implements OverridableTimeoutRetryable
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     ConcourseStageExecution stageExecution = concourseService.popExecution(stage);
     if (stageExecution != null) {
       Map<String, Object> context = new HashMap<>();

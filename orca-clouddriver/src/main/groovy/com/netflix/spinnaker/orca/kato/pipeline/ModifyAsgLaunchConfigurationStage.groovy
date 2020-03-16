@@ -19,9 +19,12 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.UpdateLaunchConfigStage
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+
 @Deprecated
 @Component
 class ModifyAsgLaunchConfigurationStage extends UpdateLaunchConfigStage {
+  @Nonnull
   @Override
   String getType() {
     return "modifyAsgLaunchConfiguration"

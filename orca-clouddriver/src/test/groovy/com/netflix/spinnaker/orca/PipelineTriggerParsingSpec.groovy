@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca
 
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import spock.lang.Specification
 
 class PipelineTriggerParsingSpec extends Specification {
@@ -26,10 +26,10 @@ class PipelineTriggerParsingSpec extends Specification {
 
   def "can parse"() {
     given:
-    def execution = mapper.readValue(json, Execution)
+    def execution = mapper.readValue(json, PipelineExecution)
 
     when:
-    def parent = mapper.convertValue(execution.trigger.parentExecution, Execution)
+    def parent = mapper.convertValue(execution.trigger.parentExecution, PipelineExecution)
 
     then:
     parent.id == "84099610-f292-4cab-bd5a-49ecf8570ffe"

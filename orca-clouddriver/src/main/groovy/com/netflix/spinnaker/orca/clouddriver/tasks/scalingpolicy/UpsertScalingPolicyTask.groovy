@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.scalingpolicy
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+
 import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import groovy.util.logging.Slf4j
@@ -38,7 +39,7 @@ class UpsertScalingPolicyTask extends AbstractCloudProviderAwareTask implements 
   long timeout = TimeUnit.SECONDS.toMillis(100)
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     try {
       def taskId = kato.requestOperations(getCloudProvider(stage), [[upsertScalingPolicy: stage.context]])
         .toBlocking()

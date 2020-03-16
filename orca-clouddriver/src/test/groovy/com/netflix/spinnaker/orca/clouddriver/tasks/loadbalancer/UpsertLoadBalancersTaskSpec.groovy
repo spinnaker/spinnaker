@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -28,7 +28,7 @@ class UpsertLoadBalancersTaskSpec extends Specification {
   @Subject
   def task = new UpsertLoadBalancersTask()
 
-  def stage = new Stage(type: "")
+  def stage = new StageExecutionImpl(type: "")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def insertLoadBalancerConfig = [

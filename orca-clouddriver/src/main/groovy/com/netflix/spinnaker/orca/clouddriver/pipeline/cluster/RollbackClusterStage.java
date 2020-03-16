@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DetermineRollbackCandidatesTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,12 +36,12 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "rollbackCluster";
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("determineRollbackCandidates", DetermineRollbackCandidatesTask.class);
   }
 
   @Override
-  public void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public void afterStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     StageData stageData = parent.mapTo(StageData.class);
 
     Map<String, Object> parentOutputs = parent.getOutputs();
@@ -91,7 +91,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
     }
   }
 
-  private static Map<String, Object> propagateParentStageContext(Stage parent) {
+  private static Map<String, Object> propagateParentStageContext(StageExecution parent) {
     Map<String, Object> contextToPropagate = new HashMap<>();
 
     if (parent == null) {

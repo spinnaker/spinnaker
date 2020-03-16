@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.orca.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.EvaluateVariablesStage
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
 
@@ -32,13 +34,13 @@ class ExpressionUtilsSpec extends Specification {
     new ContextParameterProcessor(),
     new StageDefinitionBuilderFactory() {
       @Override
-      StageDefinitionBuilder builderFor(@Nonnull Stage stage) {
+      StageDefinitionBuilder builderFor(@Nonnull StageExecution stage) {
         return new EvaluateVariablesStage(new ObjectMapper())
       }
     });
 
   def 'should evaluate variables correctly with v4'() {
-    Execution execution = createExecution()
+    PipelineExecutionImpl execution = createExecution()
 
     when:
     def result = utils.evaluateVariables(execution, ['1', '2'], 'v4',
@@ -58,7 +60,7 @@ class ExpressionUtilsSpec extends Specification {
   }
 
   def 'should correctly use refIds'() {
-    Execution execution = createExecution()
+    PipelineExecutionImpl execution = createExecution()
 
     when:
     def result = utils.evaluateVariables(execution, ['1'], 'v4',
@@ -81,7 +83,7 @@ class ExpressionUtilsSpec extends Specification {
   }
 
   def 'should fail to evaluate variables that depend on prior variables in same stage when in v3'() {
-    Execution execution = createExecution()
+    PipelineExecutionImpl execution = createExecution()
 
     when:
     def result = utils.evaluateVariables(execution, ['1', '2'], 'v3',
@@ -103,13 +105,13 @@ class ExpressionUtilsSpec extends Specification {
   }
 
   private static def createExecution() {
-    def execution = new Execution(Execution.ExecutionType.PIPELINE, "test")
-    def stage1 = new Stage(execution, "evaluateVariables")
+    def execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, "test")
+    def stage1 = new StageExecutionImpl(execution, "evaluateVariables")
     stage1.refId = "1"
     stage1.outputs = [varFromStage1: 100]
     execution.stages.add(stage1)
 
-    def stage2 = new Stage(execution, "evaluateVariables")
+    def stage2 = new StageExecutionImpl(execution, "evaluateVariables")
     stage2.refId = "2"
     stage2.outputs = [varFromStage2: 200]
     execution.stages.add(stage2)

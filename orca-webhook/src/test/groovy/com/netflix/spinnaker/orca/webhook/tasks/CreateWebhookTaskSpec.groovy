@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpHeaders
@@ -36,14 +36,14 @@ import java.nio.charset.Charset
 
 class CreateWebhookTaskSpec extends Specification {
 
-  def pipeline = Execution.newPipeline("orca")
+  def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   @Subject
   def createWebhookTask = new CreateWebhookTask()
 
   def "should create new webhook task with expected parameters"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "post",
       payload: [payload1: "Hello Spinnaker!"],
@@ -74,7 +74,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should default to POST if no method is specified"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       url: "https://my-service.io/api/"
     ])
 
@@ -96,7 +96,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should support GET"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       waitForCompletion: "false",
       method: "get"
@@ -120,7 +120,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should return TERMINAL status if webhook is not returning 200 OK"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "delete",
       payload: [:],
@@ -154,7 +154,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should retry on HTTP status 429"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "delete",
       payload: [:],
@@ -188,7 +188,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should retry on name resolution failure"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [:])
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [:])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
       exchange(_, _, _, _) >> {
@@ -212,7 +212,7 @@ class CreateWebhookTaskSpec extends Specification {
   def "should retry on timeout for GET request"() {
     setup:
     def webhookUrl = "https://my-service.io/api/"
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: webhookUrl,
       method: "get",
     ])
@@ -238,7 +238,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should return TERMINAL on URL validation failure"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [url: "wrong://my-service.io/api/"])
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "wrong://my-service.io/api/"])
 
     createWebhookTask.webhookService = Stub(WebhookService) {
       exchange(_, _, _, _) >> {
@@ -260,7 +260,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should parse response correctly on failure"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "delete",
       payload: [:],
@@ -305,7 +305,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should return TERMINAL status if webhook returns one of fail fast HTTP status codes"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "get",
       payload: [:],
@@ -340,7 +340,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should throw on invalid payload"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "get",
       payload: [:],
@@ -367,7 +367,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "if statusUrlResolution is getMethod, should return SUCCEEDED status"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       waitForCompletion: "true",
       statusUrlResolution: "getMethod"
@@ -395,7 +395,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "if statusUrlResolution is locationHeader, should return SUCCEEDED status if the endpoint returns a Location header"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       waitForCompletion: "true",
       statusUrlResolution: "locationHeader"
@@ -425,7 +425,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "if statusUrlResolution is webhookResponse, should return SUCCEEDED status if the endpoint returns an URL in the body"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       waitForCompletion: "true",
       statusUrlResolution: "webhookResponse",
@@ -456,7 +456,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "if statusUrlResolution is webhookResponse, should return TERMINAL if JSON path is wrong"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       waitForCompletion: "true",
       statusUrlResolution: "webhookResponse",
@@ -494,7 +494,7 @@ class CreateWebhookTaskSpec extends Specification {
   // Tests https://github.com/spinnaker/spinnaker/issues/2163
   def "should evaluate statusUrlJsonPath for differing payloads"() {
     given:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       waitForCompletion: "true",
       statusUrlResolution: "webhookResponse",
@@ -522,7 +522,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should support html in response"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "post",
       payload: [payload1: "Hello Spinnaker!"]
@@ -553,7 +553,7 @@ class CreateWebhookTaskSpec extends Specification {
 
   def "should inject artifacts from response"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", "My webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
       method: "post",
       payload: [payload1: "Hello Spinnaker!"],
@@ -595,7 +595,7 @@ class CreateWebhookTaskSpec extends Specification {
                                         payload: ['test': 'test'],
                                         waitForCompletion: true,
                                         statusUrlJsonPath:  '$.statusCheckUrl']
-    def stage = new Stage(pipeline, "webhook", "Protocol scheme webhook", stageContext)
+    def stage = new StageExecutionImpl(pipeline, "webhook", "Protocol scheme webhook", stageContext)
 
     when:
     stage.context.statusUrlResolution = statusUrlResolution

@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.pipeline.v2;
 
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.v2.UpdateV2PipelineTemplateTask;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpdateV2PipelineTemplateStage implements StageDefinitionBuilder {
 
   @Override
-  public void taskGraph(Stage stage, Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull Builder builder) {
     builder.withTask("updatePipelineTemplate", UpdateV2PipelineTemplateTask.class);
   }
 }

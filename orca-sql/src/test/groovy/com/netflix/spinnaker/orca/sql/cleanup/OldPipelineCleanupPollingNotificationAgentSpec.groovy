@@ -24,17 +24,17 @@ import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 import static java.time.temporal.ChronoUnit.DAYS
 
@@ -93,14 +93,14 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     allExecutions*.name.sort() == ["#01", "#02", "#11", "#12", "#13", "#14", "#15"]
   }
 
-  Execution buildExecution(int daysOffset) {
-    Execution e = new Execution(PIPELINE, "app")
+  PipelineExecutionImpl buildExecution(int daysOffset) {
+    PipelineExecutionImpl e = new PipelineExecutionImpl(PIPELINE, "app")
     e.status = ExecutionStatus.SUCCEEDED
     e.pipelineConfigId = "pipeline-001"
     e.buildTime = Instant.now().minus(daysOffset, DAYS).toEpochMilli()
 
     e.name = "#${daysOffset.toString().padLeft(2, "0")}"
-    e.stages.add(new Stage(e, "wait", "wait stage", [waitTime: 10]))
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [waitTime: 10]))
 
     return e
   }

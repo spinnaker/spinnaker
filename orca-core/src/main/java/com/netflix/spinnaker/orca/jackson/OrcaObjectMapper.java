@@ -20,11 +20,24 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
+import com.netflix.spinnaker.orca.jackson.mixin.PipelineExecutionMixin;
+import com.netflix.spinnaker.orca.jackson.mixin.StageExecutionMixin;
+import com.netflix.spinnaker.orca.jackson.mixin.TriggerMixin;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -41,9 +54,23 @@ public class OrcaObjectMapper {
     instance.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
     instance.setSerializationInclusion(NON_NULL);
+
+    // Jackson cannot deserialize an interface. For interfaces defined by orca-api, we need to tell
+    // Jackson the singular class that implement these interfaces.
+    SimpleModule module = new SimpleModule("apiTypes", Version.unknownVersion());
+    SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
+    resolver.addMapping(TaskExecution.class, TaskExecutionImpl.class);
+    resolver.addMapping(StageExecution.class, StageExecutionImpl.class);
+    resolver.addMapping(PipelineExecution.class, PipelineExecutionImpl.class);
+    module.setMixInAnnotation(Trigger.class, TriggerMixin.class);
+    module.setMixInAnnotation(StageExecution.class, StageExecutionMixin.class);
+    module.setMixInAnnotation(PipelineExecution.class, PipelineExecutionMixin.class);
+    module.setAbstractTypes(resolver);
+
+    instance.registerModule(module);
+
     return instance;
   }
-
   /**
    * Return an ObjectMapper instance that can be reused. Do not change the configuration of this
    * instance as it will be shared across the entire application, use {@link #newInstance()}

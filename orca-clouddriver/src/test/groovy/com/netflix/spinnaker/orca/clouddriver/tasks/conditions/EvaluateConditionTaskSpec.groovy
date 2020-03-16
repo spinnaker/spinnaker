@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.conditions
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfigurationProperties
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionSupplier

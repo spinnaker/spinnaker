@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.pipeline.CheckPreconditionsStage;
 
 /**

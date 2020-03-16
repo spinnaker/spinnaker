@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.autoscaling.UpsertGceAutoscalingPolicyTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 public class ModifyGceAutoscalingPolicyStage extends TargetServerGroupLinearStageSupport {
 
   @Override
-  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {
     builder
         .withTask("upsert", UpsertGceAutoscalingPolicyTask.class)
         .withTask("monitor", MonitorKatoTask.class)

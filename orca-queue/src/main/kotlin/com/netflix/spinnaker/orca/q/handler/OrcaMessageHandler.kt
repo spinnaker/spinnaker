@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.parent
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
@@ -55,7 +56,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
     return exceptionHandler?.handle(taskName ?: "unspecified", ex)
   }
 
-  fun TaskLevel.withTask(block: (Stage, Task) -> Unit) =
+  fun TaskLevel.withTask(block: (StageExecution, TaskExecution) -> Unit) =
     withStage { stage ->
       stage
         .taskById(taskId)
@@ -69,7 +70,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
         }
     }
 
-  fun StageLevel.withStage(block: (Stage) -> Unit) =
+  fun StageLevel.withStage(block: (StageExecution) -> Unit) =
     withExecution { execution ->
       try {
         execution
@@ -79,7 +80,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
              * Mutates it.context in a required way (such as removing refId and requisiteRefIds from the
              * context map) for some non-linear stage features.
              */
-            Stage(execution, it.type, it.context)
+            StageExecutionImpl(execution, it.type, it.context)
           }
           .let(block)
       } catch (e: IllegalArgumentException) {
@@ -88,7 +89,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
       }
     }
 
-  fun ExecutionLevel.withExecution(block: (Execution) -> Unit) =
+  fun ExecutionLevel.withExecution(block: (PipelineExecution) -> Unit) =
     try {
       val execution = repository.retrieve(executionType, executionId)
       block.invoke(execution)
@@ -96,7 +97,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
       queue.push(InvalidExecutionId(this))
     }
 
-  fun Stage.startNext() {
+  fun StageExecution.startNext() {
     execution.let { execution ->
       val downstreamStages = downstreamStages()
       val phase = syntheticStageOwner
@@ -112,7 +113,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
     }
   }
 
-  fun Execution.shouldQueue(): Boolean {
+  fun PipelineExecution.shouldQueue(): Boolean {
     val configId = pipelineConfigId
     return when {
       !isLimitConcurrent -> false

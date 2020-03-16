@@ -16,19 +16,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
-import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper
-import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
 
 import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup.isDynamicallyBound
@@ -47,34 +43,34 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
    * Override to supply tasks that individual target stages will run. The top level
    * stage will never run any tasks.
    */
-  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {}
+  protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {}
 
   /**
    * Override to supply before stages for individual target stages operating on a
    * static target.
    */
-  protected void preStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
+  protected void preStatic(Map<String, Object> descriptor, StageGraphBuilderImpl graph) {
   }
 
   /**
    * Override to supply after stages for individual target stages operating on a
    * static target.
    */
-  protected void postStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
+  protected void postStatic(Map<String, Object> descriptor, StageGraphBuilderImpl graph) {
   }
 
   /**
    * Override to supply before stages for individual target stages operating on a
    * dynamic target.
    */
-  protected void preDynamic(Map<String, Object> context, StageGraphBuilder graph) {
+  protected void preDynamic(Map<String, Object> context, StageGraphBuilderImpl graph) {
   }
 
   /**
    * Override to supply after stages for individual target stages operating on a
    * dynamic target.
    */
-  protected void postDynamic(Map<String, Object> context, StageGraphBuilder graph) {
+  protected void postDynamic(Map<String, Object> context, StageGraphBuilderImpl graph) {
   }
 
   @Override
@@ -96,7 +92,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
   }
 
   @Override
-  final void taskGraph(Stage stage, TaskNode.Builder builder) {
+  final void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     if (!isTopLevel(stage)) {
       // Tasks are only run by individual target stages
       taskGraphInternal(stage, builder)
@@ -105,8 +101,8 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
 
   @Override
   final void beforeStages(
-    @Nonnull Stage parent,
-    @Nonnull StageGraphBuilder graph
+      @Nonnull StageExecution parent,
+      @Nonnull StageGraphBuilder graph
   ) {
     if (isTopLevel(parent)) {
       // the top level stage should resolve targets and create synthetic stages to
@@ -125,8 +121,8 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
 
   @Override
   final void afterStages(
-    @Nonnull Stage parent,
-    @Nonnull StageGraphBuilder graph
+      @Nonnull StageExecution parent,
+      @Nonnull StageGraphBuilder graph
   ) {
     if (isTopLevel(parent)) {
       // the top level stage has no after stages
@@ -141,7 +137,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     }
   }
 
-  void composeTargets(Stage parent, StageGraphBuilder graph) {
+  void composeTargets(StageExecution parent, StageGraphBuilderImpl graph) {
     parent.resolveStrategyParams()
     def params = TargetServerGroup.Params.fromStage(parent)
     if (isDynamicallyBound(parent)) {
@@ -151,11 +147,11 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     }
   }
 
-  private boolean isTopLevel(Stage stage) {
+  private boolean isTopLevel(StageExecution stage) {
     return stage.parentStageId == null
   }
 
-  private void composeStaticTargets(Stage stage, TargetServerGroup.Params params, StageGraphBuilder graph) {
+  private void composeStaticTargets(StageExecution stage, TargetServerGroup.Params params, StageGraphBuilderImpl graph) {
     def targets = resolver.resolveByParams(params)
     def descriptionList = buildStaticTargetDescriptions(stage, targets)
 
@@ -168,7 +164,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     }
   }
 
-  private void composeDynamicTargets(Stage stage, TargetServerGroup.Params params, StageGraphBuilder graph) {
+  private void composeDynamicTargets(StageExecution stage, TargetServerGroup.Params params, StageGraphBuilderImpl graph) {
     // Scrub the context of any preset location.
     stage.context.with {
       remove("zone")
@@ -198,7 +194,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     }
   }
 
-  protected List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage, List<TargetServerGroup> targets) {
+  protected List<Map<String, Object>> buildStaticTargetDescriptions(StageExecution stage, List<TargetServerGroup> targets) {
     List<Map<String, Object>> descriptions = []
     for (target in targets) {
       def description = new HashMap(stage.context)

@@ -15,17 +15,19 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CheckForRemainingPipelinesTask implements Task {
 
+  @Nonnull
   @Override
-  public TaskResult execute(Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     final SavePipelinesData savePipelines = stage.mapTo(SavePipelinesData.class);
     if (savePipelines.getPipelinesToSave() == null
         || savePipelines.getPipelinesToSave().isEmpty()) {

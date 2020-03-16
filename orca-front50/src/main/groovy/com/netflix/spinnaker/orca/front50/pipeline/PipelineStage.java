@@ -15,20 +15,21 @@
  */
 package com.netflix.spinnaker.orca.front50.pipeline;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 
-import com.netflix.spinnaker.orca.CancellableStage;
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.tasks.MonitorPipelineTask;
 import com.netflix.spinnaker.orca.front50.tasks.StartPipelineTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.StageContext;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
   ExecutionRepository executionRepository;
 
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     // only start the pipeline if no execution ID already exists
     if (stage.getContext().get("executionId") == null) {
       builder.withTask("startPipeline", StartPipelineTask.class);
@@ -67,7 +68,7 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  public void prepareStageForRestart(Stage stage) {
+  public void prepareStageForRestart(@Nonnull StageExecution stage) {
     StageContext context = (StageContext) stage.getContext();
 
     context.remove("status");
@@ -84,7 +85,7 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  public CancellableStage.Result cancel(Stage stage) {
+  public CancellableStage.Result cancel(StageExecution stage) {
     String readableStageDetails =
         format(
             "(stageId: %s, executionId: %s, context: %s)",
@@ -100,7 +101,7 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
                   "Stage %s could not be canceled w/o front50 enabled. Please set 'front50.enabled: true' in your orca config.",
                   readableStageDetails));
         } else {
-          Execution childPipeline = executionRepository.retrieve(PIPELINE, executionId);
+          PipelineExecution childPipeline = executionRepository.retrieve(PIPELINE, executionId);
           if (!childPipeline.isCanceled()) {
             // flag the child pipeline as canceled (actual cancellation will happen asynchronously)
             executionRepository.cancel(

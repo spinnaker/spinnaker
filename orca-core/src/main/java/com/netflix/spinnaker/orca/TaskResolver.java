@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

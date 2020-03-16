@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper.HealthCountSnapshot
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
@@ -36,7 +37,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   }
 
   @Override
-  Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
+  Map getAdditionalRunningStageContext(StageExecution stage, Map serverGroup) {
     def additionalRunningStageContext = [
       targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
       lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
@@ -54,7 +55,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     return additionalRunningStageContext
   }
 
-  static boolean allInstancesMatch(Stage stage,
+  static boolean allInstancesMatch(StageExecution stage,
                                    Map serverGroup,
                                    List<Map> instances,
                                    Collection<String> interestingHealthProviderNames,
@@ -106,7 +107,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
   }
 
-  static int calculateTargetDesiredSize(Stage stage, Map serverGroup, Splainer splainer = NOOPSPLAINER) {
+  static int calculateTargetDesiredSize(StageExecution stage, Map serverGroup, Splainer splainer = NOOPSPLAINER) {
     // Don't wait for spot instances to come up if the deployment strategy is None. All other deployment strategies rely on
     // confirming the new serverGroup is up and working correctly, so doing this is only safe with the None strategy
     // This should probably be moved to an AWS-specific part of the codebase
@@ -161,7 +162,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   // If either the configured capacity or current serverGroup has autoscaling diasbled, calculate
   // targetDesired from the configured capacity. This relaxes the need for clouddriver onDemand
   // cache updates while resizing serverGroups.
-  static boolean useConfiguredCapacity(Stage stage, Map<String, Integer> current) {
+  static boolean useConfiguredCapacity(StageExecution stage, Map<String, Integer> current) {
     Map<String, Integer> configured =
       (stage.context.getOrDefault("capacity", [:]))
       .collectEntries { k, v -> [(k): v as Integer] } as Map<String, Integer>
@@ -179,11 +180,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   }
 
   @Override
-  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
 
-  private static HealthCountSnapshot getHealthCountSnapshot(Stage stage, Map serverGroup) {
+  private static HealthCountSnapshot getHealthCountSnapshot(StageExecution stage, Map serverGroup) {
     HealthCountSnapshot snapshot = new HealthCountSnapshot()
     Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
@@ -232,7 +233,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
    * This method aims to generically detect these scenarios and use the target capacity of the
    * server group rather than 0/0/0.
    */
-  private static Map<String, Integer> getServerGroupCapacity(Stage stage, Map serverGroup) {
+  private static Map<String, Integer> getServerGroupCapacity(StageExecution stage, Map serverGroup) {
     def serverGroupCapacity = serverGroup.capacity as Map<String, Integer>
 
     def cloudProvider = stage.context.cloudProvider
@@ -286,7 +287,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   /**
    * Fetch the new server group's initial capacity _if_ it was passed back from clouddriver.
    */
-  private static Map<String, Integer> getInitialTargetCapacity(Stage stage, Map serverGroup) {
+  private static Map<String, Integer> getInitialTargetCapacity(StageExecution stage, Map serverGroup) {
     def katoTasks = (stage.context."kato.tasks" as List<Map<String, Object>>)?.reverse()
     def katoTask = katoTasks?.find {
       ((List<Map>) it.getOrDefault("resultObjects", [])).any {

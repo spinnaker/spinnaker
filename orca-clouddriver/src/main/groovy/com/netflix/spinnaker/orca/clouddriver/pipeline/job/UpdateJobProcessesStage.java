@@ -16,19 +16,20 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.UpdateJobProcessesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpdateJobProcessesStage implements StageDefinitionBuilder {
   @Override
-  public void taskGraph(@NotNull Stage stage, @NotNull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull @NotNull TaskNode.Builder builder) {
     builder
         .withTask("updateJobProcesses", UpdateJobProcessesTask.class)
         .withTask("monitorUpdateJobProcesses", MonitorKatoTask.class)

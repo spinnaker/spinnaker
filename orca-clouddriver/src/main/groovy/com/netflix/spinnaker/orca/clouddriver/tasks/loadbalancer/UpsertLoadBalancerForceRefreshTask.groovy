@@ -19,13 +19,13 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -59,7 +59,7 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
   }
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     LBUpsertContext context = stage.mapTo(LBUpsertContext.class)
 
     if (!context.refreshState.hasRequested) {
@@ -89,7 +89,7 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
   }
 
   @Override
-  long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+  long getDynamicBackoffPeriod(StageExecution stage, Duration taskDuration) {
     LBUpsertContext context = stage.mapTo(LBUpsertContext.class)
     if (context.refreshState.seenPendingCacheUpdates) {
       return getBackoffPeriod()
@@ -100,7 +100,7 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
     }
   }
 
-  private TaskResult requestCacheUpdates(Stage stage, LBUpsertContext context) {
+  private TaskResult requestCacheUpdates(StageExecution stage, LBUpsertContext context) {
     String cloudProvider = getCloudProvider(stage)
 
     List<Boolean> requestStatuses = new ArrayList<>()
@@ -146,7 +146,7 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
     }
   }
 
-  private void checkPending(Stage stage, LBUpsertContext context) {
+  private void checkPending(StageExecution stage, LBUpsertContext context) {
     String cloudProvider = getCloudProvider(stage)
 
     Collection<Map> pendingCacheUpdates = retrySupport.retry({

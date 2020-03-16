@@ -19,12 +19,15 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.UpsertServerGroupTagsStage
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+
 /**
  * @deprecated Use {@link UpsertServerGroupTagsStage} instead.
  */
 @Component
 @Deprecated
 class UpsertAsgTagsStage extends UpsertServerGroupTagsStage {
+  @Nonnull
   @Override
   String getType() {
     return "upsertAsgTags"

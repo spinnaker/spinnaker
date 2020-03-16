@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -39,7 +39,7 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
   @Autowired
   TrafficGuard trafficGuard
 
-  Map getAdditionalContext(Stage stage, Map operation) {
+  Map getAdditionalContext(StageExecution stage, Map operation) {
     [capacity: operation.capacity]
   }
 
@@ -47,7 +47,7 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
    * Track the _original_ capacity of the server group being resized in case it needs to be subsequently restored.
    */
   @Override
-  Map<String, Object> getAdditionalOutputs(Stage stage, Map operation) {
+  Map<String, Object> getAdditionalOutputs(StageExecution stage, Map operation) {
     def originalCapacityKey = "originalCapacity.${operation.serverGroupName}".toString()
     def originalCapacity = stage.context.get(originalCapacityKey)
 
@@ -61,7 +61,7 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
     ]
   }
 
-  Map convert(Stage stage) {
+  Map convert(StageExecution stage) {
     Map operation = super.convert(stage)
     String serverGroupName = operation.serverGroupName
     String cloudProvider = getCloudProvider(stage)

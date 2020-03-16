@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker;
 
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 
 /**
  * Supports generic modification of an Unshare Service stage.
@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
  * <p>Common use-cases: - injecting cloud-aware steps
  */
 public interface UnshareServiceStagePreprocessor {
-  boolean supports(Stage stage);
+  boolean supports(StageExecution stage);
 
-  void addSteps(TaskNode.Builder builder, Stage stage);
+  void addSteps(TaskNode.Builder builder, StageExecution stage);
 }

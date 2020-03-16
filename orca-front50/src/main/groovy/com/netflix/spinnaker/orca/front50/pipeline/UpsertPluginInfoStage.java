@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.orca.front50.pipeline;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.tasks.UpsertPluginInfoTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpsertPluginInfoStage implements StageDefinitionBuilder {
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("upsertPluginInfo", UpsertPluginInfoTask.class);
   }
 }

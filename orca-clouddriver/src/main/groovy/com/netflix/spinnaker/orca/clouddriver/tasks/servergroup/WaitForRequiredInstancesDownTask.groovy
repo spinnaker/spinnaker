@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
   @Override
-  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
@@ -93,7 +93,7 @@ class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
     } >= targetDesiredSize
   }
 
-  static List<String> getSkippedInstances(Stage stage, List<Map> results = []) {
+  static List<String> getSkippedInstances(StageExecution stage, List<Map> results = []) {
     def resultObjects = results.isEmpty() ? getKatoResults(stage) : results
     def skippedInstances = resultObjects.find {
       it.containsKey("discoverySkippedInstanceIds")
@@ -102,7 +102,7 @@ class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
     return skippedInstances as List<String>
   }
 
-  static List<Map> getInstancesToDisable(Stage stage, List<Map> instances) {
+  static List<Map> getInstancesToDisable(StageExecution stage, List<Map> instances) {
     def resultObjects = getKatoResults(stage)
 
     if (!resultObjects.isEmpty()) {
@@ -121,7 +121,7 @@ class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
     return []
   }
 
-  static List<Map> getKatoResults(Stage stage) {
+  static List<Map> getKatoResults(StageExecution stage) {
     TaskId lastTaskId = stage.context."kato.last.task.id" as TaskId
     def katoTasks = stage.context."kato.tasks" as List<Map>
     def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }

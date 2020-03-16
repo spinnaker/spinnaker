@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Collections2
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
@@ -37,7 +39,7 @@ import spock.lang.Unroll
 import java.time.Clock
 import java.time.Instant
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.time.ZoneOffset.UTC
@@ -53,7 +55,7 @@ class TaskControllerSpec extends Specification {
   def front50Service = Mock(Front50Service)
   def executionRunner = Mock(ExecutionRunner)
   def executionOperator = Mock(CompoundExecutionOperator)
-  def mapper = new ObjectMapper()
+  def mapper = OrcaObjectMapper.getInstance()
   def registry = new NoopRegistry()
 
   def clock = Clock.fixed(Instant.now(), UTC)
@@ -91,8 +93,8 @@ class TaskControllerSpec extends Specification {
 
   void 'should cancel a list of tasks by id'() {
     given:
-    def orc1 = Stub(Execution)
-    def orc2 = Stub(Execution)
+    def orc1 = Stub(PipelineExecutionImpl)
+    def orc2 = Stub(PipelineExecutionImpl)
     when:
     def response = mockMvc.perform(
       put('/tasks/cancel').contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(["id1", "id2"]))
@@ -112,8 +114,8 @@ class TaskControllerSpec extends Specification {
       application = "covfefe"
       stage {
         type = "test"
-        tasks = [new Task(id:'1', name: 'jobOne', startTime: 1L, endTime: 2L, implementingClass: 'Class' ),
-                 new Task(id:'2', name: 'jobTwo', startTime: 1L, endTime: 2L, implementingClass: 'Class' )]
+        tasks = [new TaskExecutionImpl(id:'1', name: 'jobOne', startTime: 1L, endTime: 2L, implementingClass: 'Class' ),
+                 new TaskExecutionImpl(id:'2', name: 'jobTwo', startTime: 1L, endTime: 2L, implementingClass: 'Class' )]
       }
     }])
 
@@ -132,7 +134,7 @@ class TaskControllerSpec extends Specification {
     def orchestration = orchestration {
       id = "1"
       application = "covfefe"
-      stages << new Stage(delegate, "OrchestratedType")
+      stages << new StageExecutionImpl(delegate, "OrchestratedType")
       stages.first().context = [customOutput: "variable"]
     }
 
@@ -254,7 +256,7 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/evaluateExpressions precomputes values'() {
     given:
-    executionRepository.retrieve(Execution.ExecutionType.PIPELINE, "1") >> {
+    executionRepository.retrieve(ExecutionType.PIPELINE, "1") >> {
       pipeline {
         id = "1"
         application = "doesn't matter"
@@ -332,8 +334,8 @@ class TaskControllerSpec extends Specification {
 
   void 'should update existing stage context'() {
     given:
-    def pipeline = Execution.newPipeline("covfefe")
-    def pipelineStage = new Stage(pipeline, "test", [value: "1"])
+    def pipeline = PipelineExecutionImpl.newPipeline("covfefe")
+    def pipelineStage = new StageExecutionImpl(pipeline, "test", [value: "1"])
     pipelineStage.id = "s1"
     pipeline.stages.add(pipelineStage)
 
@@ -351,7 +353,7 @@ class TaskControllerSpec extends Specification {
         stage.context == [
         judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
-    } as Stage)
+    } as StageExecutionImpl)
     1 * executionRunner.reschedule(pipeline)
     0 * _
 
@@ -382,18 +384,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _ ) >> pipelines.findAll {
         it.pipelineConfigId == "1"
       }.collect { config ->
-        Execution pipeline = pipeline {
+        PipelineExecutionImpl pipeline = pipeline {
           id = config.id
           application = app
           startTime = config.startTime
           pipelineConfigId = config.pipelineConfigId
         }
-        config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
         pipeline.setTrigger(config.trigger)
         return pipeline
       }
@@ -433,18 +432,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
@@ -485,18 +481,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       config.trigger.other.put("eventId", config.eventId)
       pipeline.setTrigger(config.trigger)
       return pipeline
@@ -531,18 +524,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app1
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
@@ -573,18 +563,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["2"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       pipeline.setTrigger(config.trigger)
       pipeline.setName(config.name)
       return pipeline
@@ -615,18 +602,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
@@ -656,18 +640,15 @@ class TaskControllerSpec extends Specification {
     pipelines[0].trigger.artifacts.addAll([[name: "a", version: "1"],  [name: "a"]])
     pipelines[1].trigger.artifacts.addAll([[name: "a"], [name: "a", version: "1"]])
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       pipeline.setTrigger(config.trigger)
       return pipeline
     }
@@ -703,18 +684,15 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    ObjectMapper mapper = new ObjectMapper()
-
     executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
-      Execution pipeline = pipeline {
+      PipelineExecutionImpl pipeline = pipeline {
         id = config.id
         application = app
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-      config.trigger.setOther(mapper.convertValue(config.trigger, Map.class))
       config.trigger.other.put("payload", config.payload)
       pipeline.setTrigger(config.trigger)
       return pipeline

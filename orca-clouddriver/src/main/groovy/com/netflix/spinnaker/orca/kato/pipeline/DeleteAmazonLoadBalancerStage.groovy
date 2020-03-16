@@ -21,10 +21,13 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer.DeleteLoadBa
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+
 @Deprecated
 @Component
 @CompileStatic
 class DeleteAmazonLoadBalancerStage extends DeleteLoadBalancerStage {
+  @Nonnull
   @Override
   String getType() {
     return "deleteAmazonLoadBalancer"

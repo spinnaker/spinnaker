@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.orca.controllers;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.util.List;
@@ -29,16 +29,16 @@ public class CorrelatedTasksController {
 
   @GetMapping(path = "/executions/correlated/{correlationId}", produces = APPLICATION_JSON_VALUE)
   public List<String> getCorrelatedExecutions(@PathVariable String correlationId) {
-    return Stream.<Execution>builder()
+    return Stream.<PipelineExecution>builder()
         .add(getCorrelated(PIPELINE, correlationId))
         .add(getCorrelated(ORCHESTRATION, correlationId))
         .build()
         .filter(Objects::nonNull)
-        .map(Execution::getId)
+        .map(PipelineExecution::getId)
         .collect(toList());
   }
 
-  private Execution getCorrelated(ExecutionType executionType, String correlationId) {
+  private PipelineExecution getCorrelated(ExecutionType executionType, String correlationId) {
     try {
       return executionRepository.retrieveByCorrelationId(executionType, correlationId);
     } catch (ExecutionNotFoundException ignored) {

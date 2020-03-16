@@ -17,15 +17,15 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.IgorService;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSource;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSourceArtifact;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class StartAwsCodeBuildTask implements Task {
 
   @Override
   @Nonnull
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     AwsCodeBuildStageDefinition stageDefinition = stage.mapTo(AwsCodeBuildStageDefinition.class);
 
     Map<String, Object> requestInput = new HashMap<>();
@@ -87,7 +87,7 @@ public class StartAwsCodeBuildTask implements Task {
   }
 
   private void appendSource(
-      Map<String, Object> requestInput, Stage stage, AwsCodeBuildSource source) {
+      Map<String, Object> requestInput, StageExecution stage, AwsCodeBuildSource source) {
     if (source != null) {
       Artifact matchArtifact = Artifact.builder().build();
       if (source.isSourceOverride() && source.getSourceArtifact() != null) {
@@ -113,7 +113,7 @@ public class StartAwsCodeBuildTask implements Task {
   }
 
   private void appendSecondarySources(
-      Map<String, Object> requestInput, Stage stage, List<AwsCodeBuildSource> sources) {
+      Map<String, Object> requestInput, StageExecution stage, List<AwsCodeBuildSource> sources) {
     if (sources != null) {
       List<Map<String, String>> secondarySources = new ArrayList<>();
       List<Map<String, String>> secondarySourcesVersion = new ArrayList<>();
@@ -180,7 +180,8 @@ public class StartAwsCodeBuildTask implements Task {
     requestInput.put(ENV_VARS, startBuildEnvVars);
   }
 
-  private Artifact getSourceArtifact(@Nonnull Stage stage, AwsCodeBuildSourceArtifact artifact) {
+  private Artifact getSourceArtifact(
+      @Nonnull StageExecution stage, AwsCodeBuildSourceArtifact artifact) {
     Artifact matchArtifact =
         artifactUtils.getBoundArtifactForStage(
             stage, artifact.getArtifactId(), artifact.getArtifact());

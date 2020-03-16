@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -29,7 +29,7 @@ class DryRunTask(
   private val outputStubs: List<OutputStub>
 ) : Task {
 
-  override fun execute(stage: Stage): TaskResult =
+  override fun execute(stage: StageExecution): TaskResult =
     stage.generateOutputs().let { outputs ->
       stage.execution.also { execution ->
         log.info("Dry run of ${execution.application} ${execution.name} ${execution.id} stage ${stage.type} ${stage.refId} outputting $outputs")
@@ -37,7 +37,7 @@ class DryRunTask(
       TaskResult.builder(SUCCEEDED).outputs(outputs).build()
     }
 
-  private fun Stage.generateOutputs(): Map<String, Any> =
+  private fun StageExecution.generateOutputs(): Map<String, Any> =
     outputStubs.find { it.supports(this) }?.outputs(this) ?: emptyMap()
 
   private val log = LoggerFactory.getLogger(javaClass)

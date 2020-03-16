@@ -18,14 +18,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.snapshot;
 
 import static java.util.stream.Collectors.toList;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.snapshot.DeleteSnapshotStage;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +45,7 @@ public class DeleteSnapshotTask extends AbstractCloudProviderAwareTask implement
   }
 
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     DeleteSnapshotStage.DeleteSnapshotRequest deleteSnapshotRequest =
         stage.mapTo(DeleteSnapshotStage.DeleteSnapshotRequest.class);
 

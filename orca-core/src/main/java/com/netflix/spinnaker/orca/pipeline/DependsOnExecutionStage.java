@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.tasks.DependsOnExecutionTask;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
@@ -27,7 +29,7 @@ public class DependsOnExecutionStage implements StageDefinitionBuilder {
   public static final String STAGE_TYPE = "dependsOnExecution";
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("dependsOnExecution", DependsOnExecutionTask.class);
   }
 }

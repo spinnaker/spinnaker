@@ -16,19 +16,20 @@
 package com.netflix.spinnaker.orca.q.admin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.ext.afterStages
 import com.netflix.spinnaker.orca.ext.allAfterStagesSuccessful
 import com.netflix.spinnaker.orca.ext.allBeforeStagesSuccessful
 import com.netflix.spinnaker.orca.ext.allUpstreamStagesComplete
 import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.ext.isInitial
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteExecution
@@ -63,7 +64,7 @@ class HydrateQueueCommand(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun invoke(p1: HydrateQueueInput): HydrateQueueOutput {
-    val pInTimeWindow = { execution: Execution -> inTimeWindow(p1, execution) }
+    val pInTimeWindow = { execution: PipelineExecution -> inTimeWindow(p1, execution) }
 
     val targets = if (p1.executionId == null) {
       executionRepository
@@ -109,7 +110,7 @@ class HydrateQueueCommand(
     return output
   }
 
-  internal fun processExecution(execution: Execution): ProcessedExecution {
+  internal fun processExecution(execution: PipelineExecution): ProcessedExecution {
     val actions = mutableListOf<Action>()
 
     execution.stages
@@ -131,7 +132,7 @@ class HydrateQueueCommand(
     )
   }
 
-  private fun processStage(stage: Stage): List<Action> {
+  private fun processStage(stage: StageExecution): List<Action> {
     if (stage.status == NOT_STARTED) {
       if (stage.allUpstreamStagesComplete()) {
         return listOf(Action(
@@ -177,7 +178,7 @@ class HydrateQueueCommand(
     return listOf()
   }
 
-  private fun processTask(stage: Stage, task: Task): Action {
+  private fun processTask(stage: StageExecution, task: TaskExecution): Action {
     return if (task.status == RUNNING) {
       if (task.isRetryable()) {
         Action(
@@ -228,50 +229,50 @@ class HydrateQueueCommand(
     }
   }
 
-  private fun inTimeWindow(input: HydrateQueueInput, execution: Execution): Boolean =
+  private fun inTimeWindow(input: HydrateQueueInput, execution: PipelineExecution): Boolean =
     execution.startTime
       ?.let { Instant.ofEpochMilli(it) }
       ?.let { !(input.start?.isBefore(it) == true || input.end?.isAfter(it) == true) }
       ?: true
 
-  private fun ExecutionRepository.retrieveRunning(): Observable<Execution> =
+  private fun ExecutionRepository.retrieveRunning(): Observable<PipelineExecution> =
     rx.Observable.merge(
-      retrieve(Execution.ExecutionType.ORCHESTRATION, ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)),
-      retrieve(Execution.ExecutionType.PIPELINE, ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING))
+      retrieve(ExecutionType.ORCHESTRATION, ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)),
+      retrieve(ExecutionType.PIPELINE, ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING))
     )
 
-  private fun ExecutionRepository.retrieveSingleRunning(executionId: String): Observable<Execution> {
+  private fun ExecutionRepository.retrieveSingleRunning(executionId: String): Observable<PipelineExecution> {
     // TODO rz - Ugh. So dumb.
     val execution = try {
-      retrieve(Execution.ExecutionType.ORCHESTRATION, executionId)
+      retrieve(ExecutionType.ORCHESTRATION, executionId)
     } catch (e: ExecutionNotFoundException) {
       try {
-        retrieve(Execution.ExecutionType.PIPELINE, executionId)
+        retrieve(ExecutionType.PIPELINE, executionId)
       } catch (e: ExecutionNotFoundException) {
         null
       }
     }
     return if (execution == null || execution.status != RUNNING) {
-      rx.Observable.empty<Execution>()
+      rx.Observable.empty<PipelineExecution>()
     } else {
       rx.Observable.just(execution)
     }
   }
 
   @Suppress("UNCHECKED_CAST")
-  private val com.netflix.spinnaker.orca.pipeline.model.Task.type
+  private val TaskExecution.type
     get() = taskResolver.getTaskClass(implementingClass)
 
-  private fun Task.isRetryable(): Boolean =
+  private fun TaskExecution.isRetryable(): Boolean =
     RetryableTask::class.java.isAssignableFrom(type)
 
-  private fun Stage.toActionContext() = ActionContext(
+  private fun StageExecution.toActionContext() = ActionContext(
     stageId = id,
     stageType = type,
     stageStartTime = startTime
   )
 
-  private fun Task.toActionContext(stage: Stage) = stage.toActionContext().copy(
+  private fun TaskExecution.toActionContext(stage: StageExecution) = stage.toActionContext().copy(
     taskId = id,
     taskType = name,
     taskStartTime = startTime

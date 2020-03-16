@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
@@ -47,7 +47,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage(pipe, 'instanceHealthCheck', [:])
+    def stage = new StageExecutionImpl(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
     def responses = []
@@ -87,7 +87,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage(pipe, 'instanceHealthCheck', [:])
+    def stage = new StageExecutionImpl(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
     and:
@@ -115,7 +115,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = pipeline {
       application = "foo"
     }
-    def stage = new Stage(pipe, 'instanceHealthCheck', [:])
+    def stage = new StageExecutionImpl(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
     task.oortHelper = oortHelper
 

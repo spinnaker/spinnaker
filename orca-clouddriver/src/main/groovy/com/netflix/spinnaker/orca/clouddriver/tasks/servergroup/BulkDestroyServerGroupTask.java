@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage.getPIPELINE_CONFIG_TYPE;
 
 import com.netflix.spinnaker.moniker.Moniker;
-import com.netflix.spinnaker.orca.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;

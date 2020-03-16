@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 
 class KubernetesContainerFinder {
   static Map parseContainerPartsFrom(String containerName) {
@@ -54,7 +54,7 @@ class KubernetesContainerFinder {
     return [registry: registry, tag: tag, repository: imageName ]
   }
 
-  static void populateFromStage(Map operation, Stage stage, ArtifactUtils artifactUtils) {
+  static void populateFromStage(Map operation, StageExecution stage, ArtifactUtils artifactUtils) {
     // If this is a stage in a pipeline, look in the context for the baked image.
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
 

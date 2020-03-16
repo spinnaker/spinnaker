@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.azure
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupUpserter
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -33,7 +33,7 @@ class AzureSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvider
   MortService mortService
 
   @Override
-  SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
+  SecurityGroupUpserter.OperationContext getOperationContext(StageExecution stage) {
     def ops = [[(SecurityGroupUpserter.OPERATION): stage.context]]
 
     def targets = [
@@ -45,7 +45,7 @@ class AzureSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvider
     return new SecurityGroupUpserter.OperationContext(ops, [targets: targets])
   }
 
-  boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, Stage _) {
+  boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, StageExecution _) {
     try {
       return mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
         cloudProvider,

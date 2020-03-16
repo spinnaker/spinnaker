@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 
 import javax.annotation.Nonnull
@@ -32,9 +35,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEn
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -43,7 +44,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
 
 @Slf4j
 @Component
-class CreateServerGroupStage extends AbstractDeployStrategyStage {
+class CreateServerGroupStage extends AbstractDeployStrategyStage implements ForceCacheRefreshAware {
   public static final String PIPELINE_CONFIG_TYPE = "createServerGroup"
 
   @Autowired
@@ -63,7 +64,7 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
   }
 
   @Override
-  protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
+  protected List<TaskNode.TaskDefinition> basicTasks(StageExecution stage) {
     def taggingEnabled = featuresService.areEntityTagsAvailable()
 
     def tasks = [
@@ -89,7 +90,7 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
   }
 
   @Override
-  void onFailureStages(@Nonnull Stage stage, StageGraphBuilder graph) {
+  void onFailureStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
     def stageData = stage.mapTo(StageData)
     if (!stageData.rollback?.onFailure) {
       super.onFailureStages(stage, graph)

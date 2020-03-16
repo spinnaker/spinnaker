@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -35,7 +35,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
   @Unroll
   def "should succeed if the stack creation is '#status' and if isChangeSet property is '#isChangeSet'"() {
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
@@ -43,7 +43,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'changeSetName': 'changeSetName',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     def stack = [
       stackId: 'stackId',
       stackStatus: status,
@@ -78,13 +78,13 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
   @Unroll
   def "should be running while deploy is in '#status'"() {
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     def stack = [stackStatus: 'CREATE_IN_PROGRESS']
 
     when:
@@ -104,13 +104,13 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
   }
 
   def "should be running while clouddriver doesn't return the stack (still not cached)"() {
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     def error404 = RetrofitError.httpError("url", new Response("url", 404, "reason", [], null), null, null)
 
     when:
@@ -125,7 +125,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
   @Unroll
   def "should error on known error states or unknown stack status"() {
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
@@ -133,7 +133,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'changeSetName': 'changeSetName',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     def stack = [
       stackStatus: status,
       stackStatusReason: "Stack failed",
@@ -165,13 +165,13 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
   }
 
   def "should error when clouddriver responds with an error other than 404"() {
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     def error500 = RetrofitError.httpError("url", new Response("url", 500, "reason", [], null), null, null)
 
     when:
@@ -186,7 +186,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
 
   @Unroll
   def "should get the change set status if it's a change set"() {
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       'credentials': 'creds',
       'cloudProvider': 'aws',
@@ -194,7 +194,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'changeSetName': 'changeSetName',
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     def stack = [
       stackStatus: 'UPDATE_COMPLETE',
       changeSets: [

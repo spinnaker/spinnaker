@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.dcos
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -28,7 +28,7 @@ class DcosServerGroupCreator implements ServerGroupCreator {
   String cloudProvider = "dcos"
 
   @Override
-  List<Map> getOperations(Stage stage) {
+  List<Map> getOperations(StageExecution stage) {
     def operation = [:]
 
     // TODO: this is side-effecty and not good... but it works.

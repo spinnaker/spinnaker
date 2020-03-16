@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
@@ -27,8 +29,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess.SuspendAwsScalingProcessTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
+class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware {
 
   public static final String TYPE = getType(ModifyAwsScalingProcessStage)
 
@@ -48,7 +49,7 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
   }
 
   @Override
-  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {
     def data = stage.mapTo(StageData)
     switch (data.action) {
       case StageAction.suspend:
@@ -90,7 +91,7 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
     OortHelper oortHelper
 
     @Override
-    TaskResult execute(Stage stage) {
+    TaskResult execute(StageExecution stage) {
       def stageData = stage.mapTo(StageData)
       def targetServerGroup = oortHelper.getTargetServerGroup(
         stageData.credentials, stageData.serverGroupName, stageData.region, 'aws'

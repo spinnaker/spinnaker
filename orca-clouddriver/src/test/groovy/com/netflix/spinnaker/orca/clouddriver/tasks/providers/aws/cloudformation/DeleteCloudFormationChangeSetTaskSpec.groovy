@@ -16,19 +16,15 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class DeleteCloudFormationChangeSetTaskSpec extends Specification {
 
@@ -42,7 +38,7 @@ class DeleteCloudFormationChangeSetTaskSpec extends Specification {
   def "should delete change set if requested by the context"() {
     given:
     def taskId = new TaskId(id: 'id')
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       credentials: 'creds',
       cloudProvider: 'aws',
@@ -51,7 +47,7 @@ class DeleteCloudFormationChangeSetTaskSpec extends Specification {
       deleteChangeSet: true,
       regions: ['eu-west-1']
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
 
     when:
     def result = deleteCloudFormationChangeSetTask.execute(stage)
@@ -71,7 +67,7 @@ class DeleteCloudFormationChangeSetTaskSpec extends Specification {
 
   def "should succeed deleting change set if not requested by the context"() {
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       credentials: 'creds',
       cloudProvider: 'aws',
@@ -80,7 +76,7 @@ class DeleteCloudFormationChangeSetTaskSpec extends Specification {
       deleteChangeSet: false,
       regions: ['eu-west-1']
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
 
     when:
     def result = deleteCloudFormationChangeSetTask.execute(stage)

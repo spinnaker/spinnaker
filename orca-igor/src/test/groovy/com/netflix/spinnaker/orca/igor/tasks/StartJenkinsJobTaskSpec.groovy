@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import spock.lang.Shared
 import spock.lang.Specification
@@ -38,11 +38,11 @@ class StartJenkinsJobTaskSpec extends Specification {
   }
 
   @Shared
-  def pipeline = Execution.newPipeline("orca")
+  def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
     def "should trigger build without parameters"() {
         given:
-        def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca"])
+        def stage = new StageExecutionImpl(pipeline, "jenkins", [master: "builds", job: "orca"])
 
         and:
         task.buildService = Stub(BuildService) {
@@ -58,7 +58,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
   def "should trigger build with parameters"() {
       given:
-      def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
+      def stage = new StageExecutionImpl(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
 
       and:
       task.buildService = Stub(BuildService) {
@@ -74,7 +74,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
     def "throw exception when you can't trigger a build"() {
         given:
-        def stage = new Stage(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
+        def stage = new StageExecutionImpl(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
 
         and:
         task.buildService = Stub(BuildService) {

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public interface ManifestAware {
-  default Map<String, List<String>> manifestNamesByNamespace(Stage stage) {
+  default Map<String, List<String>> manifestNamesByNamespace(StageExecution stage) {
     Map<String, List<String>> result =
         (Map<String, List<String>>)
             stage
@@ -50,7 +50,7 @@ public interface ManifestAware {
     return result;
   }
 
-  default Map<String, List<String>> manifestsToRefresh(Stage stage) {
+  default Map<String, List<String>> manifestsToRefresh(StageExecution stage) {
     Map<String, List<String>> result =
         (Map<String, List<String>>)
             stage

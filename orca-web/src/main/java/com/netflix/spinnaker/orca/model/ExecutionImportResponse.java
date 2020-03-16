@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.model;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

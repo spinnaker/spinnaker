@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -45,7 +45,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
   String cloudProvider = "aws"
 
   @Override
-  List<Map> getOperations(Stage stage) {
+  List<Map> getOperations(StageExecution stage) {
     def ops = []
     def createServerGroupOp = createServerGroupOperation(stage)
     def allowLaunchOps = allowLaunchOperations(createServerGroupOp)
@@ -73,7 +73,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     return Optional.of("Amazon")
   }
 
-  def createServerGroupOperation(Stage stage) {
+  def createServerGroupOperation(StageExecution stage) {
     def operation = [:]
     def context = stage.context
 

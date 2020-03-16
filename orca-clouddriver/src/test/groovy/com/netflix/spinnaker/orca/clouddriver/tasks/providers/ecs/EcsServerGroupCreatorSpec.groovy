@@ -19,8 +19,8 @@ import com.google.common.collect.Maps
 import spock.lang.Specification
 import spock.lang.Subject
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -58,7 +58,7 @@ class EcsServerGroupCreatorSpec extends Specification {
       tag: testTag
     ]
     stage.context.imageDescription = testDescription
-    stage.execution = new Execution(ExecutionType.PIPELINE, 'ecs')
+    stage.execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, 'ecs')
     def expected = Maps.newHashMap(deployConfig)
     expected.dockerImageAddress = "$testReg/$testRepo:$testTag"
 
@@ -90,7 +90,7 @@ class EcsServerGroupCreatorSpec extends Specification {
 
     stage.context.imageDescription = testDescription
     stage.parentStageId = parentStageId
-    stage.execution = new Execution(ExecutionType.ORCHESTRATION, 'ecs')
+    stage.execution = new PipelineExecutionImpl(ExecutionType.ORCHESTRATION, 'ecs')
     stage.execution.stages.add(parentStage)
 
     def expected = Maps.newHashMap(deployConfig)
@@ -118,7 +118,7 @@ class EcsServerGroupCreatorSpec extends Specification {
 
     stage.context.region = testRegion
     stage.parentStageId = parentStageId
-    stage.execution = new Execution(ExecutionType.PIPELINE, 'ecs')
+    stage.execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, 'ecs')
     stage.execution.stages.add(parentStage)
 
     def expected = Maps.newHashMap(deployConfig)
@@ -168,7 +168,7 @@ class EcsServerGroupCreatorSpec extends Specification {
     ]
 
     // add inputs to stage context
-    stage.execution = new Execution(ExecutionType.PIPELINE, 'ecs')
+    stage.execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, 'ecs')
     stage.context.useTaskDefinitionArtifact = true
     stage.context.taskDefinitionArtifact = taskDefArtifact
     stage.context.containerMappings = testMappings

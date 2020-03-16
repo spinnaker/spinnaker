@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -40,7 +40,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
   void "should fetch server groups"() {
     given:
-    def pipeline = Execution.newPipeline("orca")
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
           region   : 'us-east-1',
@@ -69,7 +69,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(pipeline, 'asgActionWaitForDownInstances', [
+    def stage = new StageExecutionImpl(pipeline, 'asgActionWaitForDownInstances', [
       'targetop.asg.disableAsg.name'   : 'front50-v000',
       'targetop.asg.disableAsg.regions': ['us-east-1'],
       'account.name'                   : 'test'
@@ -89,7 +89,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
   @Unroll
   void "should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [desiredPercentage: desiredPercentage])
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [desiredPercentage: desiredPercentage])
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [capacity: [min: min, max: max, desired: desired], minSize: 0], instances, healthProviderNames)

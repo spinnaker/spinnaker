@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import spock.lang.Specification
 import spock.lang.Subject
@@ -64,8 +66,9 @@ class TaskResolverSpec extends Specification {
 
   @Task.Aliases("com.netflix.spinnaker.orca.NotAliasedTask")
   class AliasedTask implements Task {
+    @Nonnull
     @Override
-    TaskResult execute(@Nonnull Stage stage) {
+    TaskResult execute(@Nonnull StageExecution stage) {
       return TaskResult.SUCCEEDED
     }
   }

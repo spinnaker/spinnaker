@@ -28,12 +28,12 @@ import com.google.common.collect.Streams;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.io.InputStream;
@@ -97,14 +97,15 @@ public class ManifestEvaluator implements CloudProviderAware {
    *     artifacts.
    * @return The result of the manifest and artifact resolution {@link Result}.
    */
-  public Result evaluate(Stage stage, ManifestContext context) {
+  public Result evaluate(StageExecution stage, ManifestContext context) {
     return new Result(
         getManifests(stage, context),
         getRequiredArtifacts(stage, context),
         getOptionalArtifacts(stage));
   }
 
-  private ImmutableList<Map<Object, Object>> getManifests(Stage stage, ManifestContext context) {
+  private ImmutableList<Map<Object, Object>> getManifests(
+      StageExecution stage, ManifestContext context) {
     switch (context.getSource()) {
       case Artifact:
         return getManifestsFromArtifact(stage, context);
@@ -122,7 +123,7 @@ public class ManifestEvaluator implements CloudProviderAware {
   }
 
   private ImmutableList<Map<Object, Object>> getManifestsFromArtifact(
-      Stage stage, ManifestContext context) {
+      StageExecution stage, ManifestContext context) {
     Artifact manifestArtifact = getManifestArtifact(stage, context);
 
     Iterable<Object> rawManifests =
@@ -165,7 +166,7 @@ public class ManifestEvaluator implements CloudProviderAware {
     };
   }
 
-  private Artifact getManifestArtifact(Stage stage, ManifestContext context) {
+  private Artifact getManifestArtifact(StageExecution stage, ManifestContext context) {
     Artifact manifestArtifact =
         Optional.ofNullable(
                 artifactUtils.getBoundArtifactForStage(
@@ -186,7 +187,7 @@ public class ManifestEvaluator implements CloudProviderAware {
   }
 
   private ImmutableList<Map<Object, Object>> getSpelEvaluatedManifests(
-      ImmutableList<Map<Object, Object>> unevaluatedManifests, Stage stage) {
+      ImmutableList<Map<Object, Object>> unevaluatedManifests, StageExecution stage) {
     Map<String, Object> processorInput = ImmutableMap.of("manifests", unevaluatedManifests);
 
     Map<String, Object> processorResult =
@@ -207,7 +208,8 @@ public class ManifestEvaluator implements CloudProviderAware {
     return ImmutableList.copyOf(evaluatedManifests);
   }
 
-  private ImmutableList<Artifact> getRequiredArtifacts(Stage stage, ManifestContext context) {
+  private ImmutableList<Artifact> getRequiredArtifacts(
+      StageExecution stage, ManifestContext context) {
     Stream<Artifact> requiredArtifactsFromId =
         Optional.ofNullable(context.getRequiredArtifactIds()).orElse(emptyList()).stream()
             .map(artifactId -> resolveRequiredArtifactById(stage, artifactId));
@@ -219,7 +221,7 @@ public class ManifestEvaluator implements CloudProviderAware {
     return Streams.concat(requiredArtifactsFromId, requiredArtifacts).collect(toImmutableList());
   }
 
-  private Artifact resolveRequiredArtifactById(Stage stage, String artifactId) {
+  private Artifact resolveRequiredArtifactById(StageExecution stage, String artifactId) {
     return Optional.ofNullable(artifactUtils.getBoundArtifactForId(stage, artifactId))
         .orElseThrow(
             () ->
@@ -229,7 +231,7 @@ public class ManifestEvaluator implements CloudProviderAware {
                         artifactId)));
   }
 
-  private Artifact resolveRequiredArtifact(Stage stage, BindArtifact artifact) {
+  private Artifact resolveRequiredArtifact(StageExecution stage, BindArtifact artifact) {
     return Optional.ofNullable(
             artifactUtils.getBoundArtifactForStage(
                 stage, artifact.getExpectedArtifactId(), artifact.getArtifact()))
@@ -241,7 +243,7 @@ public class ManifestEvaluator implements CloudProviderAware {
                         artifact.getExpectedArtifactId())));
   }
 
-  private ImmutableList<Artifact> getOptionalArtifacts(Stage stage) {
+  private ImmutableList<Artifact> getOptionalArtifacts(StageExecution stage) {
     return ImmutableList.copyOf(artifactUtils.getArtifacts(stage));
   }
 }

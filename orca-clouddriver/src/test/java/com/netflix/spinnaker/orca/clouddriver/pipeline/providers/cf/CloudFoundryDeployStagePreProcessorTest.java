@@ -19,12 +19,12 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ServerGroupForceCacheRefreshStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ class CloudFoundryDeployStagePreProcessorTest {
 
   @Test
   void onFailureStageDefinitionsReturnsEmptyListForRedBlack() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Map<String, Object> context = new HashMap<>();
     context.put("strategy", "redblack");
     context.put("cloudProvider", "cloudfoundry");
@@ -55,7 +55,7 @@ class CloudFoundryDeployStagePreProcessorTest {
 
   @Test
   void onFailureStageDefinitionsReturnsEmptyListIfRollbackIsNull() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Map<String, Object> context = new HashMap<>();
     context.put("strategy", "redblack");
     context.put("cloudProvider", "cloudfoundry");
@@ -69,7 +69,7 @@ class CloudFoundryDeployStagePreProcessorTest {
 
   @Test
   void onFailureStageDefinitionsReturnsEmptyListIfRollbackOnFailureIsFalse() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Map<String, Object> context = new HashMap<>();
     context.put("strategy", "redblack");
     context.put("cloudProvider", "cloudfoundry");
@@ -84,7 +84,7 @@ class CloudFoundryDeployStagePreProcessorTest {
 
   @Test
   void onFailureStageDefinitionsReturnsCacheRefreshAndRollbackForCfRollingRedBlack() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     StageData.Source source = new StageData.Source();
     source.setServerGroupName("sourceServerGroupName");
     Map<String, Object> context = new HashMap<>();

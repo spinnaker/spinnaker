@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RunJobManifestContext;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.*;
 import lombok.Data;
@@ -45,7 +45,7 @@ public class KubernetesJobRunner implements JobRunner {
     this.manifestEvaluator = manifestEvaluator;
   }
 
-  public List<Map> getOperations(Stage stage) {
+  public List<Map> getOperations(StageExecution stage) {
     Map<String, Object> operation = new HashMap<>();
 
     if (stage.getContext().containsKey("cluster")) {
@@ -76,7 +76,7 @@ public class KubernetesJobRunner implements JobRunner {
     return Collections.singletonList(task);
   }
 
-  public Map<String, Object> getAdditionalOutputs(Stage stage, List<Map> operations) {
+  public Map<String, Object> getAdditionalOutputs(StageExecution stage, List<Map> operations) {
     Map<String, Object> outputs = new HashMap<>();
     Map<String, Object> execution = new HashMap<>();
 

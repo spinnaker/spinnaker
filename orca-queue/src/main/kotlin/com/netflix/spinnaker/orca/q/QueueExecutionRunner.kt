@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.stereotype.Component
@@ -27,22 +27,22 @@ class QueueExecutionRunner(
   private val queue: Queue
 ) : ExecutionRunner {
 
-  override fun start(execution: Execution) =
+  override fun start(execution: PipelineExecution) =
     queue.push(StartExecution(execution))
 
-  override fun reschedule(execution: Execution) {
+  override fun reschedule(execution: PipelineExecution) {
     queue.push(RescheduleExecution(execution))
   }
 
-  override fun restart(execution: Execution, stageId: String) {
+  override fun restart(execution: PipelineExecution, stageId: String) {
     queue.push(RestartStage(execution, stageId, AuthenticatedRequest.getSpinnakerUser().orElse(null)))
   }
 
-  override fun unpause(execution: Execution) {
+  override fun unpause(execution: PipelineExecution) {
     queue.push(ResumeExecution(execution))
   }
 
-  override fun cancel(execution: Execution, user: String, reason: String?) {
+  override fun cancel(execution: PipelineExecution, user: String, reason: String?) {
     queue.push(CancelExecution(execution, user, reason))
   }
 }

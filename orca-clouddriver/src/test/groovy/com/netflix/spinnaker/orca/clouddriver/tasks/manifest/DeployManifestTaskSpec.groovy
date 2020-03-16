@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest
 
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -110,7 +110,7 @@ class DeployManifestTaskSpec extends Specification {
 
 
   def createStage(Map extraParams) {
-    return new Stage(Stub(Execution), "deployManifest", [
+    return new StageExecutionImpl(Stub(PipelineExecutionImpl), "deployManifest", [
       account: "my-k8s-account",
       cloudProvider: "kubernetes",
       source: "text",

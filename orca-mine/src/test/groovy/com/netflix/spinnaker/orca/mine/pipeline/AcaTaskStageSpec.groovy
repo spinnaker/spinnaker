@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 
@@ -29,11 +29,11 @@ class AcaTaskStageSpec extends Specification {
   def "restart aca task should cancel off the original canary and clean up the stage context"() {
     given:
     def executionRepository = Mock(ExecutionRepository)
-    def pipeline = Execution.newPipeline("orca")
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
     def canary = createCanary('123');
     def context = [canary: canary.clone()]
-    Stage stage = createStage(pipeline, context)
+    StageExecutionImpl stage = createStage(pipeline, context)
     AcaTaskStage acaTaskStage = new AcaTaskStage()
     MineService mineService = Mock()
     acaTaskStage.mineService = mineService
@@ -66,11 +66,11 @@ class AcaTaskStageSpec extends Specification {
   def "restart aca task should not cancel off the original canary if there is no canary id and clean up the stage context"() {
     given:
     def executionRepository = Mock(ExecutionRepository)
-    def pipeline = Execution.newPipeline("orca")
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
     def canary = createCanary()
     def context = [canary: canary.clone()]
-    Stage stage = createStage(pipeline, context)
+    StageExecutionImpl stage = createStage(pipeline, context)
     AcaTaskStage acaTaskStage = new AcaTaskStage()
     MineService mineService = Mock()
     acaTaskStage.mineService = mineService
@@ -117,24 +117,24 @@ class AcaTaskStageSpec extends Specification {
     canary
   }
 
-  def createStage(Execution pipeline, Map<String, Object> context) {
-    Stage stage = new Stage(pipeline, "acaTask", "ACA Task", context)
+  def createStage(PipelineExecutionImpl pipeline, Map<String, Object> context) {
+    StageExecutionImpl stage = new StageExecutionImpl(pipeline, "acaTask", "ACA Task", context)
     stage.tasks = [
-      new Task(
+      new TaskExecutionImpl(
         id: "1",
         name: "stageStart",
         startTime: 1470062659330,
         endTime: 1470062660513,
         status: "SUCCEEDED"
       ),
-      new Task(
+      new TaskExecutionImpl(
         id: "2",
         name: "registerGenericCanary",
         startTime: 1470062663868,
         endTime: 1470062664805,
         status: "SUCCEEDED"
       ),
-      new Task(
+      new TaskExecutionImpl(
         id: "3",
         name: "monitorGenericCanary",
         startTime: 1470062668621,

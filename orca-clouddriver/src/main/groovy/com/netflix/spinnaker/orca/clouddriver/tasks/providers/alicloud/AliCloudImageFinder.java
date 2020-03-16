@@ -19,9 +19,9 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class AliCloudImageFinder implements ImageFinder {
 
   @Override
   public Collection<ImageDetails> byTags(
-      Stage stage, String packageName, Map<String, String> tags) {
+      StageExecution stage, String packageName, Map<String, String> tags) {
     List<AliCloudImage> allMatchedImages =
         oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
             .stream()

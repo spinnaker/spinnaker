@@ -18,15 +18,15 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.conditions;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionSupplier;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext.Status;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -77,7 +77,7 @@ public class EvaluateConditionTask implements RetryableTask {
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
     if (conditionsConfigurationProperties.isSkipWait()) {
       log.debug(
@@ -156,7 +156,7 @@ public class EvaluateConditionTask implements RetryableTask {
         .increment();
   }
 
-  private Instant getStartTime(Stage stage) {
+  private Instant getStartTime(StageExecution stage) {
     return Instant.ofEpochMilli(Optional.ofNullable(stage.getStartTime()).orElse(clock.millis()));
   }
 }

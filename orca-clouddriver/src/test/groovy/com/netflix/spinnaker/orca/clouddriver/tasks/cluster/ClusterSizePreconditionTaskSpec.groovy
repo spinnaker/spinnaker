@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import java.util.concurrent.atomic.AtomicInteger
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -62,7 +62,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
       serverGroups: serverGroups
     ]))
     def response = new Response('http://foo', 200, 'OK', [], body)
-    def stage = new Stage(Execution.newPipeline("orca"), 'checkCluster', [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), 'checkCluster', [
       context: [
         credentials: credentials,
         cluster    : cluster,
@@ -95,7 +95,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
       serverGroups: serverGroups
     ]))
     def response = new Response('http://foo', 200, 'OK', [], body)
-    def stage = new Stage(Execution.newPipeline("orca"), 'checkCluster', [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), 'checkCluster', [
       context: [
         credentials: credentials,
         cluster    : cluster,
@@ -123,7 +123,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
   @Unroll
   'cluster with name "#cluster" and moniker "#moniker" should have application name "#expected"'() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), 'checkCluster', [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), 'checkCluster', [
       context: [
         cluster: cluster,
         moniker: moniker,

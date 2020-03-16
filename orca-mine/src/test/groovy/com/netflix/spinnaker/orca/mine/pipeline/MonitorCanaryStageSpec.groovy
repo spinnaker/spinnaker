@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -31,7 +31,7 @@ class MonitorCanaryStageSpec extends Specification {
   def "should short-circuit if canary registered but execution not explicitly canceled"() {
     given:
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService)
-    def stage = new Stage(Execution.newPipeline("orca"), "pipelineStage", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 
@@ -55,7 +55,7 @@ class MonitorCanaryStageSpec extends Specification {
     def canaryStage = pipeline.stageByRef("1")
     def canaryStageBuilder = Mock(CanaryStage)
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService, canaryStage: canaryStageBuilder)
-    def stage = new Stage(pipeline, "pipelineStage", [
+    def stage = new StageExecutionImpl(pipeline, "pipelineStage", [
       canary: [id: "canaryId"]
     ])
     stage.setRequisiteStageRefIds(["1"])
@@ -74,7 +74,7 @@ class MonitorCanaryStageSpec extends Specification {
 
   def "should raise exception if no upstream canary stage found"() {
     def monitorCanaryStage = new MonitorCanaryStage(mineService: mineService)
-    def stage = new Stage(Execution.newPipeline("orca"), "pipelineStage", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "pipelineStage", [
       canary: [id: "canaryId"]
     ])
 

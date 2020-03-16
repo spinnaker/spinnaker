@@ -20,9 +20,9 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException
 
 import java.time.Clock
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -50,7 +50,7 @@ class BakeStageSpec extends Specification {
       }
     }
 
-    def bakeStage = new Stage(pipeline, "bake", "Bake!", bakeStageContext + [refId: "1"])
+    def bakeStage = new StageExecutionImpl(pipeline, "bake", "Bake!", bakeStageContext + [refId: "1"])
     def builder = new BakeStage(
       clock: Clock.fixed(EPOCH.plus(1, HOURS).plus(15, MINUTES).plus(12, SECONDS), UTC),
       regionCollector: new RegionCollector()
@@ -102,7 +102,7 @@ class BakeStageSpec extends Specification {
     }
 
     def bakeStage = pipeline.stageById("1")
-    def graph = StageGraphBuilder.beforeStages(bakeStage)
+    def graph = StageGraphBuilderImpl.beforeStages(bakeStage)
     new BakeStage(regionCollector: new RegionCollector()).beforeStages(bakeStage, graph)
     def parallelStages = graph.build()
 
@@ -135,7 +135,7 @@ class BakeStageSpec extends Specification {
     }
 
     def bakeStage = pipeline.stageById("1")
-    def graph = StageGraphBuilder.beforeStages(bakeStage)
+    def graph = StageGraphBuilderImpl.beforeStages(bakeStage)
     new BakeStage(regionCollector: new RegionCollector()).beforeStages(bakeStage, graph)
     def parallelStages = graph.build()
 
@@ -180,7 +180,7 @@ class BakeStageSpec extends Specification {
 
     for (stageId in ["1", "2"]) {
       def bakeStage = pipeline.stageById(stageId)
-      def graph = StageGraphBuilder.beforeStages(bakeStage)
+      def graph = StageGraphBuilderImpl.beforeStages(bakeStage)
       new BakeStage(regionCollector: new RegionCollector()).beforeStages(bakeStage, graph)
       def childBakeStages = graph.build()
       childBakeStages.eachWithIndex { it, idx ->

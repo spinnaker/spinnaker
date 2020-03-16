@@ -19,16 +19,16 @@ package com.netflix.spinnaker.orca.bakery.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
@@ -66,7 +66,7 @@ class CreateBakeTask implements RetryableTask {
   private final Logger log = LoggerFactory.getLogger(getClass())
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     if (!bakerySelector) {
       throw new UnsupportedOperationException("You have not enabled baking for this orca instance. Set bakery.enabled: true")
     }
@@ -137,7 +137,7 @@ class CreateBakeTask implements RetryableTask {
     }
   }
 
-  private static boolean shouldRebake(Stage stage) {
+  private static boolean shouldRebake(StageExecution stage) {
     if (stage.context.rebake == true) {
       return true
     }
@@ -145,7 +145,7 @@ class CreateBakeTask implements RetryableTask {
   }
 
   @CompileDynamic
-  private BakeRequest bakeFromContext(Stage stage, SelectedService<BakeryService> bakery) {
+  private BakeRequest bakeFromContext(StageExecution stage, SelectedService<BakeryService> bakery) {
     PackageType packageType
     if (bakery.config.roscoApisEnabled) {
       def baseImage = bakery.service.getBaseImage(stage.context.cloudProviderType as String,

@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.BuildService;
 import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class GetBuildArtifactsTask extends RetryableIgorTask<CIStageDefinition> 
   }
 
   @Override
-  protected @Nonnull CIStageDefinition mapStage(@Nonnull Stage stage) {
+  protected @Nonnull CIStageDefinition mapStage(@Nonnull StageExecution stage) {
     return stage.mapTo(CIStageDefinition.class);
   }
 }

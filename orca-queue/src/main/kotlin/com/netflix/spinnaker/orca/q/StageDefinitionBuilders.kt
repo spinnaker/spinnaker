@@ -16,29 +16,29 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition
-import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskGraph
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.TaskDefinition
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.TaskGraph
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
+import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 
 /**
  * Build and append the tasks for [stage].
  */
-fun StageDefinitionBuilder.buildTasks(stage: Stage) {
+fun StageDefinitionBuilder.buildTasks(stage: StageExecution) {
   buildTaskGraph(stage)
     .listIterator()
     .forEachWithMetadata { processTaskNode(stage, it) }
 }
 
-fun StageDefinitionBuilder.addContextFlags(stage: Stage) {
+fun StageDefinitionBuilder.addContextFlags(stage: StageExecution) {
   if (canManuallySkip()) {
     // Provides a flag for the UI to indicate that the stage can be skipped.
     stage.context["canManuallySkip"] = true
@@ -46,14 +46,14 @@ fun StageDefinitionBuilder.addContextFlags(stage: Stage) {
 }
 
 private fun processTaskNode(
-  stage: Stage,
+  stage: StageExecution,
   element: IteratorElement<TaskNode>,
   isSubGraph: Boolean = false
 ) {
   element.apply {
     when (value) {
       is TaskDefinition -> {
-        val task = Task()
+        val task = TaskExecutionImpl()
         task.id = (stage.tasks.size + 1).toString()
         task.name = value.name
         task.implementingClass = value.implementingClass.name
@@ -81,12 +81,12 @@ private fun processTaskNode(
  * Build the synthetic stages for [stage] and inject them into the execution.
  */
 fun StageDefinitionBuilder.buildBeforeStages(
-  stage: Stage,
-  callback: (Stage) -> Unit = {}
+  stage: StageExecution,
+  callback: (StageExecution) -> Unit = {}
 ) {
   val executionWindow = stage.buildExecutionWindow()
 
-  val graph = StageGraphBuilder.beforeStages(stage, executionWindow)
+  val graph = StageGraphBuilderImpl.beforeStages(stage, executionWindow)
   beforeStages(stage, graph)
   val beforeStages = graph.build().toList()
 
@@ -100,10 +100,10 @@ fun StageDefinitionBuilder.buildBeforeStages(
 }
 
 fun StageDefinitionBuilder.buildAfterStages(
-  stage: Stage,
-  callback: (Stage) -> Unit = {}
+  stage: StageExecution,
+  callback: (StageExecution) -> Unit = {}
 ) {
-  val graph = StageGraphBuilder.afterStages(stage)
+  val graph = StageGraphBuilderImpl.afterStages(stage)
   afterStages(stage, graph)
   val afterStages = graph.build().toList()
 
@@ -111,19 +111,19 @@ fun StageDefinitionBuilder.buildAfterStages(
 }
 
 fun StageDefinitionBuilder.buildFailureStages(
-  stage: Stage,
-  callback: (Stage) -> Unit = {}
+  stage: StageExecution,
+  callback: (StageExecution) -> Unit = {}
 ) {
-  val graph = StageGraphBuilder.afterStages(stage)
+  val graph = StageGraphBuilderImpl.afterStages(stage)
   onFailureStages(stage, graph)
   val afterStages = graph.build().toList()
 
   stage.appendAfterStages(afterStages, callback)
 }
 
-fun Stage.appendAfterStages(
-  afterStages: Iterable<Stage>,
-  callback: (Stage) -> Unit = {}
+fun StageExecution.appendAfterStages(
+  afterStages: Iterable<StageExecution>,
+  callback: (StageExecution) -> Unit = {}
 ) {
   val index = execution.stages.indexOf(this) + 1
   afterStages.reversed().forEach {
@@ -133,12 +133,12 @@ fun Stage.appendAfterStages(
   }
 }
 
-private typealias SyntheticStages = Map<SyntheticStageOwner, List<Stage>>
+private typealias SyntheticStages = Map<SyntheticStageOwner, List<StageExecution>>
 
-private fun Stage.buildExecutionWindow(): Stage? {
+private fun StageExecution.buildExecutionWindow(): StageExecution? {
   if (context.getOrDefault("restrictExecutionDuringTimeWindow", false) as Boolean) {
     val execution = execution
-    val executionWindow = newStage(
+    val executionWindow = StageExecutionFactory.newStage(
       execution,
       RestrictExecutionDuringTimeWindow.TYPE,
       RestrictExecutionDuringTimeWindow.TYPE,
@@ -154,11 +154,11 @@ private fun Stage.buildExecutionWindow(): Stage? {
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun Execution.injectStage(index: Int, stage: Stage) {
+private fun PipelineExecution.injectStage(index: Int, stage: StageExecution) {
   stages.add(index, stage)
 }
 
-private fun Stage.sanitizeContext() {
+private fun StageExecution.sanitizeContext() {
   if (type != RestrictExecutionDuringTimeWindow.TYPE) {
     context.apply {
       remove("restrictExecutionDuringTimeWindow")

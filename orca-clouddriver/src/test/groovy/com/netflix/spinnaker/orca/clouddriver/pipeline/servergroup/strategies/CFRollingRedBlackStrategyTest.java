@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage;
@@ -38,8 +39,8 @@ import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage;
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy;
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -95,17 +96,19 @@ class CFRollingRedBlackStrategyTest {
     context.put("targetPercentages", targetPercentageList);
     context.put("source", source);
     context.put("delayBeforeScaleDownSec", 5L);
-    Stage deployServerGroupStage =
-        new Stage(
-            new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
+    StageExecution deployServerGroupStage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "unit"),
+            CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
+            context);
     when(targetServerGroupResolver.resolve(any()))
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
     when(resizeStrategySupport.getCapacity(any(), any(), any(), any()))
         .thenReturn(new ResizeStrategy.Capacity(1, 1, 1));
 
-    List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
+    List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
-    assertThat(stages.stream().map(Stage::getType))
+    assertThat(stages.stream().map(StageExecution::getType))
         .containsExactly(
             DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
             ResizeServerGroupStage.TYPE,
@@ -138,18 +141,20 @@ class CFRollingRedBlackStrategyTest {
     context.put("targetPercentages", targetPercentageList);
     context.put("source", source);
     context.put("delayBeforeCleanup", 5L);
-    Stage deployServerGroupStage =
-        new Stage(
-            new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
+    StageExecution deployServerGroupStage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "unit"),
+            CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
+            context);
 
     when(targetServerGroupResolver.resolve(any()))
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
     when(resizeStrategySupport.getCapacity(any(), any(), any(), any()))
         .thenReturn(new ResizeStrategy.Capacity(1, 1, 1));
 
-    List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
+    List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
-    assertThat(stages.stream().map(Stage::getType))
+    assertThat(stages.stream().map(StageExecution::getType))
         .containsExactly(
             DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
             ResizeServerGroupStage.TYPE,
@@ -186,17 +191,19 @@ class CFRollingRedBlackStrategyTest {
     expectedDirect.put("instances", 1);
     Map expectedManifest = Collections.singletonMap("direct", expectedDirect);
     ResizeStrategy.Capacity resizeTo4Capacity = new ResizeStrategy.Capacity(4, 4, 4);
-    Stage deployServerGroupStage =
-        new Stage(
-            new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
+    StageExecution deployServerGroupStage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "unit"),
+            CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
+            context);
 
-    List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
+    List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
     assertThat(stages.stream().map(stage -> stage.getContext().get("capacity")))
         .containsExactly(null, resizeTo4Capacity, resizeTo4Capacity, resizeTo4Capacity);
     assertThat(stages.stream().map(stage -> stage.getContext().get("scalePct")))
         .containsExactly(null, 50, 75, 100);
-    assertThat(stages.stream().map(Stage::getType))
+    assertThat(stages.stream().map(StageExecution::getType))
         .containsExactly(
             DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
             ResizeServerGroupStage.TYPE,
@@ -222,9 +229,11 @@ class CFRollingRedBlackStrategyTest {
     context.put("manifest", manifest);
     context.put("targetPercentages", targetPercentageList);
     context.put("source", createSource());
-    Stage deployServerGroupStage =
-        new Stage(
-            new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
+    StageExecution deployServerGroupStage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "unit"),
+            CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
+            context);
     ResizeStrategy.Capacity initialSourceCapacity = new ResizeStrategy.Capacity(8, 8, 8);
     ResizeStrategy.Capacity resetOriginalCapacity =
         new ResizeStrategy.Capacity(initialSourceCapacity.getMax(), 0, 0);
@@ -239,10 +248,10 @@ class CFRollingRedBlackStrategyTest {
     expectedDirect.put("instances", 1);
     Map expectedManifest = Collections.singletonMap("direct", expectedDirect);
 
-    List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
+    List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
     ResizeStrategy.Capacity resizeTo4Capacity = new ResizeStrategy.Capacity(4, 4, 4);
-    assertThat(stages.stream().map(Stage::getType))
+    assertThat(stages.stream().map(StageExecution::getType))
         .containsExactly(
             DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
             ResizeServerGroupStage.TYPE,
@@ -293,9 +302,11 @@ class CFRollingRedBlackStrategyTest {
     application.put("diskQuota", "128M");
     Map<String, Object> body = singletonMap("applications", singletonList(application));
     Response oortServiceResponse = createMockOortServiceResponse(body);
-    Stage deployServerGroupStage =
-        new Stage(
-            new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
+    StageExecution deployServerGroupStage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "unit"),
+            CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
+            context);
     ResizeStrategy.Capacity resizeTo4Capacity = new ResizeStrategy.Capacity(4, 4, 4);
 
     when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
@@ -308,13 +319,13 @@ class CFRollingRedBlackStrategyTest {
     expectedDirect.put("instances", 1);
     Map expectedManifest = Collections.singletonMap("direct", expectedDirect);
 
-    List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
+    List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
     assertThat(stages.stream().map(stage -> stage.getContext().get("capacity")))
         .containsExactly(null, resizeTo4Capacity, resizeTo4Capacity, resizeTo4Capacity);
     assertThat(stages.stream().map(stage -> stage.getContext().get("scalePct")))
         .containsExactly(null, 50, 75, 100);
-    assertThat(stages.stream().map(Stage::getType))
+    assertThat(stages.stream().map(StageExecution::getType))
         .containsExactly(
             DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
             ResizeServerGroupStage.TYPE,
@@ -351,7 +362,8 @@ class CFRollingRedBlackStrategyTest {
     ResizeStrategy.Capacity resetOriginalCapacity =
         new ResizeStrategy.Capacity(initialSourceCapacity.getMax(), 0, 0);
 
-    Stage deployServerGroupStage = new Stage(new Execution(PIPELINE, "unit"), "type", context);
+    StageExecution deployServerGroupStage =
+        new StageExecutionImpl(new PipelineExecutionImpl(PIPELINE, "unit"), "type", context);
     Artifact boundArtifactForStage = Artifact.builder().build();
     Map<String, Object> application = new HashMap<>();
     application.put("instances", "4");
@@ -368,9 +380,9 @@ class CFRollingRedBlackStrategyTest {
         .thenReturn(boundArtifactForStage);
     when(oortService.fetchArtifact(any())).thenReturn(oortServiceResponse);
 
-    List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
+    List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
-    assertThat(stages.stream().map(Stage::getType))
+    assertThat(stages.stream().map(StageExecution::getType))
         .containsExactly(
             DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
             ResizeServerGroupStage.TYPE,

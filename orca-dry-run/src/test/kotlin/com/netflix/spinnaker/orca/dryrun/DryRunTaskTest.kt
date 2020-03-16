@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
@@ -90,7 +90,7 @@ object DryRunTaskTest : Spek({
 
       val stubOutput = mapOf("negative" to "covfefe")
       beforeGroup {
-        whenever(outputStub.supports(any())) doAnswer { it.getArgument<Stage>(0).type == "bake" }
+        whenever(outputStub.supports(any())) doAnswer { it.getArgument<StageExecutionImpl>(0).type == "bake" }
         whenever(outputStub.outputs(pipeline.stageByRef("2"))) doReturn stubOutput
       }
 

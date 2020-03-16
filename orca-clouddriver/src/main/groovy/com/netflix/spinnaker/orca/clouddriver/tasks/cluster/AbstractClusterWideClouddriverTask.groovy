@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
@@ -30,7 +31,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -60,19 +60,19 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
   @Autowired KatoService katoService
   @Autowired TrafficGuard trafficGuard
 
-  protected TaskResult missingClusterResult(Stage stage,
+  protected TaskResult missingClusterResult(StageExecution stage,
                                             ClusterSelection clusterSelection) {
     throw new IllegalStateException("No Cluster details found for $clusterSelection")
   }
 
-  protected TaskResult emptyClusterResult(Stage stage,
+  protected TaskResult emptyClusterResult(StageExecution stage,
                                           ClusterSelection clusterSelection, Map cluster) {
     throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     def clusterSelection = stage.mapTo(ClusterSelection)
     Optional<Map> cluster = oortHelper.getCluster(clusterSelection.getApplication(),
                                                   clusterSelection.credentials,
@@ -166,12 +166,12 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
   }
 
-  protected Map buildOperationPayload(Stage stage, TargetServerGroup serverGroup) {
+  protected Map buildOperationPayload(StageExecution stage, TargetServerGroup serverGroup) {
     ClusterSelection clusterSelection = stage.mapTo(ClusterSelection)
     serverGroup.toClouddriverOperationPayload(clusterSelection.credentials)
   }
 
-  protected List<Map> buildOperationPayloads(Stage stage, TargetServerGroup serverGroup) {
+  protected List<Map> buildOperationPayloads(StageExecution stage, TargetServerGroup serverGroup) {
     [[(getClouddriverOperation()): buildOperationPayload(stage, serverGroup)]]
   }
 
@@ -182,7 +182,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     return serverGroups.findAll { !isActive(it) }
   }
 
-  protected List<TargetServerGroup> filterParentDeploys(Stage stage,
+  protected List<TargetServerGroup> filterParentDeploys(StageExecution stage,
                                                         String account,
                                                         Location location,
                                                         List<TargetServerGroup> clusterServerGroups) {
@@ -190,7 +190,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     return filterParentAndNewerThanParentDeploys(parentDeployedServerGroups, clusterServerGroups)
   }
 
-  List<TargetServerGroup> filterServerGroups(Stage stage,
+  List<TargetServerGroup> filterServerGroups(StageExecution stage,
                                              String account,
                                              Location location,
                                              List<TargetServerGroup> serverGroups) {
@@ -205,7 +205,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     return filterParentDeploys(stage, account, location, serverGroups)
   }
 
-  static List<TargetServerGroup> parentDeployedServerGroups(Stage stage,
+  static List<TargetServerGroup> parentDeployedServerGroups(StageExecution stage,
                                                             String account,
                                                             Location location,
                                                             List<TargetServerGroup> clusterServerGroups) {
@@ -217,11 +217,11 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     ]
     List<TargetServerGroup> deployedServerGroups = []
 
-    stage.ancestors().findAll { Stage ancestorStage ->
+    stage.ancestors().findAll { StageExecution ancestorStage ->
       // Stage type is the context.type value when the stage is running as a child stage of a parallel deploy, or
       // the stage.type attribute when it is running directly as part of an Orchestration or Pipeline
       (deployStageTypes.contains(ancestorStage.type) || deployStageTypes.contains(ancestorStage.context.type)) && ancestorStage.context.'deploy.account.name' == account
-    }.each { Stage parentDeployStage ->
+    }.each { StageExecution parentDeployStage ->
       Map<String, String> dsgs = (parentDeployStage.context.'deploy.server.groups' ?: [:]) as Map
       switch (location.type) {
         case Location.Type.ZONE:

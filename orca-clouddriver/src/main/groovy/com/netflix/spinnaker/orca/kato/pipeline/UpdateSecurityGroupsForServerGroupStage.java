@@ -17,19 +17,22 @@
 package com.netflix.spinnaker.orca.kato.pipeline;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.UpdateInstancesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.UpdateLaunchConfigTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-class UpdateSecurityGroupsForServerGroupStage implements StageDefinitionBuilder {
+class UpdateSecurityGroupsForServerGroupStage
+    implements StageDefinitionBuilder, ForceCacheRefreshAware {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -41,7 +44,7 @@ class UpdateSecurityGroupsForServerGroupStage implements StageDefinitionBuilder 
   }
 
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
         .withTask("updateLaunchConfig", UpdateLaunchConfigTask.class)
         .withTask("updateInstances", UpdateInstancesTask.class);

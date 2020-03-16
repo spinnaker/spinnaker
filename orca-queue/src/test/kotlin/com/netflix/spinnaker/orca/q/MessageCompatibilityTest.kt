@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.q
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.q.Message
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek

@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.ext.mapTo
-import com.netflix.spinnaker.orca.kayenta.model.KayentaCanaryContext
+import com.netflix.spinnaker.orca.kayenta.KayentaCanaryContext
 import com.netflix.spinnaker.orca.kayenta.pipeline.RunCanaryPipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -32,7 +32,7 @@ class AggregateCanaryResultsTask : Task {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun execute(stage: Stage): TaskResult {
+  override fun execute(stage: StageExecution): TaskResult {
     val canaryConfig = stage.mapTo<KayentaCanaryContext>("/canaryConfig")
     val intervalStageId = stage.context["intervalStageId"] as String
     val runCanaryStages = stage

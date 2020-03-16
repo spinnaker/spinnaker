@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
@@ -45,7 +46,7 @@ class CreateBakeTaskSpec extends Specification {
 
   @Subject
     task = new CreateBakeTask()
-  Stage bakeStage
+  StageExecutionImpl bakeStage
   def mapper = OrcaObjectMapper.newInstance()
 
   ArtifactUtils artifactUtils = Stub() {
@@ -66,7 +67,7 @@ class CreateBakeTaskSpec extends Specification {
     baseLabel: "release"
   ]
 
-  Execution pipeline = pipeline {
+  PipelineExecutionImpl pipeline = pipeline {
     stage {
       type = "bake"
       context = bakeConfig

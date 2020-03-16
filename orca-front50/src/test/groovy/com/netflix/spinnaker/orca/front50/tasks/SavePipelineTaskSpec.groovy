@@ -17,11 +17,11 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,7 +44,7 @@ class SavePipelineTaskSpec extends Specification {
       name: 'my pipeline',
       stages: []
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
@@ -73,7 +73,7 @@ class SavePipelineTaskSpec extends Specification {
       stages: [],
       id: 'existing-pipeline-id'
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
     Integer expectedIndex = 14
@@ -107,7 +107,7 @@ class SavePipelineTaskSpec extends Specification {
       id: 'existing-pipeline-id',
       index: newIndex
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
     Map<String, Object> existingPipeline = [
@@ -143,7 +143,7 @@ class SavePipelineTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
@@ -175,7 +175,7 @@ class SavePipelineTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
@@ -207,7 +207,7 @@ class SavePipelineTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
@@ -230,7 +230,7 @@ class SavePipelineTaskSpec extends Specification {
       name: 'my pipeline',
       stages: []
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
@@ -252,7 +252,7 @@ class SavePipelineTaskSpec extends Specification {
       name: 'my pipeline',
       stages: []
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
       pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes),
       isSavingMultiplePipelines: true
     ])

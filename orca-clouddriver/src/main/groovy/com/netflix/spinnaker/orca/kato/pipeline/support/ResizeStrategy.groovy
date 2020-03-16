@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 
 interface ResizeStrategy {
@@ -97,5 +97,5 @@ interface ResizeStrategy {
   }
 
   boolean handles(ResizeAction resizeAction)
-  CapacitySet capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig)
+  CapacitySet capacityForOperation(StageExecution stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig)
 }

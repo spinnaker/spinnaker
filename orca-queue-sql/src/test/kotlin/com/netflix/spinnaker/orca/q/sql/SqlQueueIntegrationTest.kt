@@ -32,9 +32,9 @@ import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.config.JedisConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
@@ -77,7 +77,7 @@ class SqlTestConfig {
       registerModule(KotlinModule())
       registerModule(
         SimpleModule()
-          .addDeserializer(Execution.ExecutionType::class.java, ExecutionTypeDeserializer())
+          .addDeserializer(ExecutionType::class.java, ExecutionTypeDeserializer())
           .addDeserializer(Class::class.java, TaskTypeDeserializer(taskResolver))
       )
       disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

@@ -26,11 +26,12 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -185,7 +186,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
         AuthenticatedRequest.propagate(
                 () ->
                     executionLauncher.start(
-                        Execution.ExecutionType.ORCHESTRATION,
+                        ExecutionType.ORCHESTRATION,
                         objectMapper.writeValueAsString(cleanupOperation)),
                 systemUser)
             .call();
@@ -237,7 +238,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
 
   public boolean hasCompletedExecution(PinnedServerGroupTag pinnedServerGroupTag) {
     try {
-      Execution execution =
+      PipelineExecution execution =
           executionRepository.retrieve(
               pinnedServerGroupTag.executionType, pinnedServerGroupTag.executionId);
 
@@ -330,7 +331,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
     public String location;
     public String serverGroup;
 
-    public Execution.ExecutionType executionType;
+    public ExecutionType executionType;
     public String executionId;
     public String stageId;
 

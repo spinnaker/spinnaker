@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean

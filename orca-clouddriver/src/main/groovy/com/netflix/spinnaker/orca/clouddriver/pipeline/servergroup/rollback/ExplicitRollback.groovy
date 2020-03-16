@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -27,9 +28,9 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,8 +39,6 @@ import javax.annotation.Nullable
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
-
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Slf4j
 class ExplicitRollback implements Rollback {
@@ -87,10 +86,10 @@ class ExplicitRollback implements Rollback {
 
   @JsonIgnore
   @Override
-  List<Stage> buildStages(Stage parentStage) {
+  List<StageExecution> buildStages(StageExecution parentStage) {
     Map disableServerGroupContext = new HashMap(parentStage.context)
     disableServerGroupContext.serverGroupName = rollbackServerGroupName
-    def disableServerGroupStage = newStage(
+    def disableServerGroupStage = StageExecutionFactory.newStage(
       parentStage.execution, disableServerGroupStage.type, "Disable ${disableServerGroupContext.serverGroupName} due to rollback", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
@@ -104,7 +103,7 @@ class ExplicitRollback implements Rollback {
     Map enableServerGroupContext = new HashMap(parentStage.context)
     enableServerGroupContext.targetHealthyDeployPercentage = targetHealthyRollbackPercentage
     enableServerGroupContext.serverGroupName = restoreServerGroupName
-    def enableServerGroupStage = newStage(
+    def enableServerGroupStage = StageExecutionFactory.newStage(
       parentStage.execution, enableServerGroupStage.type, "Enable ${enableServerGroupContext.serverGroupName} due to rollback", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
@@ -133,7 +132,7 @@ class ExplicitRollback implements Rollback {
     }
 
     if (delayBeforeDisableSeconds != null && delayBeforeDisableSeconds > 0) {
-      def waitStage = newStage(
+      def waitStage = StageExecutionFactory.newStage(
         parentStage.execution, waitStage.type, "waitBeforeDisable", [waitTime: delayBeforeDisableSeconds], parentStage, SyntheticStageOwner.STAGE_AFTER
       )
       stages << waitStage
@@ -148,7 +147,7 @@ class ExplicitRollback implements Rollback {
     return stages
   }
 
-  @Nullable TargetServerGroup lookupServerGroup(Stage parentStage, String serverGroupName) {
+  @Nullable TargetServerGroup lookupServerGroup(StageExecution parentStage, String serverGroupName) {
     def fromContext = parentStage.mapTo(ResizeStrategy.Source)
 
     try {
@@ -172,7 +171,7 @@ class ExplicitRollback implements Rollback {
     }
   }
 
-  @Nullable Stage buildResizeStage(Stage parentStage) {
+  @Nullable StageExecution buildResizeStage(StageExecution parentStage) {
     TargetServerGroup rollbackServerGroup = lookupServerGroup(parentStage, rollbackServerGroupName)
     if (!rollbackServerGroup) {
       return null
@@ -211,13 +210,13 @@ class ExplicitRollback implements Rollback {
       targetHealthyDeployPercentage: targetHealthyRollbackPercentage
     ]
 
-    return newStage(parentStage.execution, resizeServerGroupStage.type,
+    return StageExecutionFactory.newStage(parentStage.execution, resizeServerGroupStage.type,
       "Resize Server Group: ${restoreServerGroupName} to (min: ${newRestoreCapacity.min}, max: ${newRestoreCapacity.max}, desired: ${newRestoreCapacity.desired})",
       resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER)
   }
 
-  Stage buildCaptureSourceServerGroupCapacityStage(Stage parentStage,
-                                                   ResizeStrategy.Source source) {
+  StageExecution buildCaptureSourceServerGroupCapacityStage(StageExecution parentStage,
+                                                                ResizeStrategy.Source source) {
     Map captureSourceServerGroupCapacityContext = [
       useSourceCapacity: true,
       source           : [
@@ -228,7 +227,7 @@ class ExplicitRollback implements Rollback {
         cloudProvider  : source.cloudProvider
       ]
     ]
-    return newStage(
+    return StageExecutionFactory.newStage(
       parentStage.execution,
       captureSourceServerGroupCapacityStage.type,
       "Snapshot Source Server Group",
@@ -238,8 +237,8 @@ class ExplicitRollback implements Rollback {
     )
   }
 
-  Stage buildApplySourceServerGroupCapacityStage(Stage parentStage,
-                                                 ResizeStrategy.Source source) {
+  StageExecution buildApplySourceServerGroupCapacityStage(StageExecution parentStage,
+                                                              ResizeStrategy.Source source) {
     Map applySourceServerGroupCapacityContext = [
       credentials  : source.credentials,
       cloudProvider: source.cloudProvider,
@@ -251,7 +250,7 @@ class ExplicitRollback implements Rollback {
         cloudProvider  : source.cloudProvider
       ]
     ]
-    return newStage(
+    return StageExecutionFactory.newStage(
       parentStage.execution,
       applySourceServerGroupCapacityStage.type,
       "Restore Min Capacity From Snapshot due to rollback",

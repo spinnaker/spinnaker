@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.test.model
 
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import groovy.transform.CompileStatic
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import static com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import static groovy.lang.Closure.DELEGATE_FIRST
 import static java.lang.System.currentTimeMillis
 
@@ -28,15 +30,15 @@ import static java.lang.System.currentTimeMillis
 class ExecutionBuilder {
 
   /**
-   * Constructs and returns a {@link Execution} instance.
+   * Constructs and returns a {@link PipelineExecutionImpl} instance.
    *
    * @param builder used for customizing the pipeline.
    * @return a pipeline.
    */
-  static Execution pipeline(
-    @DelegatesTo(value = Execution, strategy = DELEGATE_FIRST)
+  static PipelineExecution pipeline(
+    @DelegatesTo(value = PipelineExecution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
-    def pipeline = Execution.newPipeline("covfefe")
+    def pipeline = PipelineExecutionImpl.newPipeline("covfefe")
     pipeline.trigger = new DefaultTrigger("manual", null, "user@example.com")
     pipeline.buildTime = currentTimeMillis()
 
@@ -48,15 +50,15 @@ class ExecutionBuilder {
   }
 
   /**
-   * Constructs and returns a {@link Execution} instance.
+   * Constructs and returns a {@link PipelineExecutionImpl} instance.
    *
    * @param builder used for customizing the orchestration.
    * @return an orchestration.
    */
-  static Execution orchestration(
-    @DelegatesTo(value = Execution, strategy = DELEGATE_FIRST)
+  static PipelineExecution orchestration(
+    @DelegatesTo(value = PipelineExecution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
-    def orchestration = Execution.newOrchestration("covfefe")
+    def orchestration = PipelineExecutionImpl.newOrchestration("covfefe")
     orchestration.buildTime = currentTimeMillis()
     orchestration.trigger = new DefaultTrigger("manual")
 
@@ -68,15 +70,15 @@ class ExecutionBuilder {
   }
 
   /**
-   * Constructs and returns a {@link Stage} instance.
+   * Constructs and returns a {@link StageExecutionImpl} instance.
    *
    * @param builder used for customizing the stage.
    * @return a stage.
    */
-  static Stage stage(
-    @DelegatesTo(value = Stage, strategy = DELEGATE_FIRST)
+  static StageExecution stage(
+    @DelegatesTo(value = StageExecution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
-    def stage = new Stage()
+    def stage = new StageExecutionImpl()
     stage.type = "test"
 
     def execution = findExecution(builder) ?: pipeline()
@@ -98,11 +100,11 @@ class ExecutionBuilder {
     return stage
   }
 
-  private static Execution findExecution(Closure closure) {
+  private static PipelineExecution findExecution(Closure closure) {
     if (closure.owner instanceof Closure) {
       def enclosingClosure = (closure.owner as Closure)
-      if (enclosingClosure.delegate instanceof Execution) {
-        return enclosingClosure.delegate as Execution
+      if (enclosingClosure.delegate instanceof PipelineExecutionImpl) {
+        return enclosingClosure.delegate as PipelineExecutionImpl
       } else {
         return findExecution(enclosingClosure)
       }
@@ -111,11 +113,11 @@ class ExecutionBuilder {
     }
   }
 
-  private static Stage findParentStage(Closure closure) {
+  private static StageExecution findParentStage(Closure closure) {
     if (closure.owner instanceof Closure) {
       def enclosingClosure = (closure.owner as Closure)
-      if (enclosingClosure.delegate instanceof Stage) {
-        return enclosingClosure.delegate as Stage
+      if (enclosingClosure.delegate instanceof StageExecution) {
+        return enclosingClosure.delegate as StageExecution
       } else {
         return findParentStage(enclosingClosure)
       }

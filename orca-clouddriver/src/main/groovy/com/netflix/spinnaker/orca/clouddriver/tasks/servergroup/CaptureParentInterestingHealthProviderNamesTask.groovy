@@ -17,18 +17,21 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Component
 class CaptureParentInterestingHealthProviderNamesTask implements Task, CloudProviderAware {
 
+  @Nonnull
   @Override
-  public TaskResult execute(Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     def parentStage = stage.execution.stages.find { it.id == stage.parentStageId }
     def interestingHealthProviderNames = parentStage?.context?.interestingHealthProviderNames as List<String>
 

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.peering
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -73,7 +73,7 @@ open class ExecutionCopier(
    * Run copy in parallel
    * Chunks the specified IDs and uses the specified action to perform migrations on separate threads
    */
-  open fun copyInParallel(executionType: Execution.ExecutionType, idsToMigrate: List<String>, state: ExecutionState): MigrationChunkResult {
+  open fun copyInParallel(executionType: ExecutionType, idsToMigrate: List<String>, state: ExecutionState): MigrationChunkResult {
     val queue = ConcurrentLinkedQueue(idsToMigrate.chunked(chunkSize))
 
     val startTime = Instant.now()
@@ -122,7 +122,7 @@ open class ExecutionCopier(
   /**
    * Copies executions (orchestrations or pipelines) and its stages given IDs of the executions
    */
-  private fun copyExecutionChunk(executionType: Execution.ExecutionType, idsToMigrate: List<String>, state: ExecutionState): MigrationChunkResult {
+  private fun copyExecutionChunk(executionType: ExecutionType, idsToMigrate: List<String>, state: ExecutionState): MigrationChunkResult {
     var latestUpdatedAt = 0L
     try {
       // Step 0: Capture the source data for executions and their stages

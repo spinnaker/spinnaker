@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.List;
 
 public interface InterestingHealthProviderNamesSupplier {
-  boolean supports(String cloudProvider, Stage stage);
+  boolean supports(String cloudProvider, StageExecution stage);
 
-  List<String> process(String cloudProvider, Stage stage);
+  List<String> process(String cloudProvider, StageExecution stage);
 }

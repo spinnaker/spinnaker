@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 /**
- * Provides a user-facing notification of a system state of an [Execution].
+ * Provides a user-facing notification of a system state of an [PipelineExecution].
  *
  * Each [SystemNotification] is treated as immutable and stored in an
  * append-only log. In order to finalize/cancel/dismiss a previous

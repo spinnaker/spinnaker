@@ -21,6 +21,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -40,13 +41,13 @@ public class OptionalStageSupport {
    * {@code false}.
    */
   public static boolean isOptional(
-      Stage stage, ContextParameterProcessor contextParameterProcessor) {
+      StageExecution stage, ContextParameterProcessor contextParameterProcessor) {
     Map stageEnabled = (Map) stage.getContext().get("stageEnabled");
     String type = stageEnabled == null ? null : (String) stageEnabled.get("type");
     String optionalType = type == null ? null : type.toLowerCase();
     if (!OPTIONAL_STAGE_TYPES.containsKey(optionalType)) {
       if (stage.getSyntheticStageOwner() != null || stage.getParentStageId() != null) {
-        Stage parentStage =
+        StageExecution parentStage =
             stage.getExecution().getStages().stream()
                 .filter(it -> it.getId().equals(stage.getParentStageId()))
                 .findFirst()
@@ -83,7 +84,7 @@ public class OptionalStageSupport {
 
   /** Determines whether a stage is optional and should be skipped */
   private interface OptionalStageEvaluator {
-    boolean evaluate(Stage stage, ContextParameterProcessor contextParameterProcessor);
+    boolean evaluate(StageExecution stage, ContextParameterProcessor contextParameterProcessor);
   }
 
   /**
@@ -103,7 +104,8 @@ public class OptionalStageSupport {
     }
 
     @Override
-    public boolean evaluate(Stage stage, ContextParameterProcessor contextParameterProcessor) {
+    public boolean evaluate(
+        StageExecution stage, ContextParameterProcessor contextParameterProcessor) {
       String expression =
           contextParameterProcessor
               .process(

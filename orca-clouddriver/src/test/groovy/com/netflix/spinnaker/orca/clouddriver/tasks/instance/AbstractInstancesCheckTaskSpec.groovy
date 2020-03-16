@@ -18,10 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedInput
@@ -42,14 +43,14 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     boolean waitForUpServerGroup = false
 
     @Override
-    protected Map<String, List<String>> getServerGroups(Stage stage) {
+    protected Map<String, List<String>> getServerGroups(StageExecution stage) {
       return [
         'us-west-1': ['front50-v000']
       ]
     }
 
     @Override
-    protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    protected boolean hasSucceeded(StageExecution stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
       hasSucceededSpy.hasSucceeded(asg, instances, interestingHealthProviderNames)
     }
 
@@ -85,8 +86,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
-    def pipeline = Execution.newPipeline("orca")
-    def stage = new Stage(pipeline, "whatever", [
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage = new StageExecutionImpl(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"]
@@ -125,8 +126,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
-    def pipeline = Execution.newPipeline("orca")
-    def stage = new Stage(pipeline, "whatever", [
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage = new StageExecutionImpl(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"],
@@ -177,8 +178,8 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
-    def pipeline = Execution.newPipeline("orca")
-    def stage = new Stage(pipeline, "whatever", [
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage = new StageExecutionImpl(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"],

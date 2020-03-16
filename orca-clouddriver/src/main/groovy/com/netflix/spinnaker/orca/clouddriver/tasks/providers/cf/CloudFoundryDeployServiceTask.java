@@ -18,14 +18,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +43,7 @@ public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTas
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
     Map<String, Object> context = bindArtifactIfNecessary(stage);
@@ -64,7 +64,7 @@ public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTas
   }
 
   @NotNull
-  private Map<String, Object> bindArtifactIfNecessary(@Nonnull Stage stage) {
+  private Map<String, Object> bindArtifactIfNecessary(@Nonnull StageExecution stage) {
     Map<String, Object> context = stage.getContext();
     ServiceManifest manifest = mapper.convertValue(context.get("manifest"), ServiceManifest.class);
     CloudFoundryManifestContext manifestContext =

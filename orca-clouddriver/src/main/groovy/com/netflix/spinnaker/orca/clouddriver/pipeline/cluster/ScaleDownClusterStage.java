@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ScaleDownClusterTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForScaleDownClusterTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

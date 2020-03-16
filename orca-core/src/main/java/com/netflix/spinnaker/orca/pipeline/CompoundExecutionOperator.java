@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
@@ -50,7 +50,7 @@ public class CompoundExecutionOperator {
 
   public void cancel(ExecutionType executionType, String executionId, String user, String reason) {
     doInternal(
-        (Execution execution) -> runner.cancel(execution, user, reason),
+        (PipelineExecution execution) -> runner.cancel(execution, user, reason),
         () -> repository.cancel(executionType, executionId, user, reason),
         "cancel",
         executionType,
@@ -66,7 +66,7 @@ public class CompoundExecutionOperator {
       @NonNull String executionId,
       @Nullable String pausedBy) {
     doInternal(
-        (Execution execution) -> runner.reschedule(execution),
+        (PipelineExecution execution) -> runner.reschedule(execution),
         () -> repository.pause(executionType, executionId, pausedBy),
         "pause",
         executionType,
@@ -79,7 +79,7 @@ public class CompoundExecutionOperator {
       @Nullable String user,
       @NonNull Boolean ignoreCurrentStatus) {
     doInternal(
-        (Execution execution) -> runner.unpause(execution),
+        (PipelineExecution execution) -> runner.unpause(execution),
         () -> repository.resume(executionType, executionId, user, ignoreCurrentStatus),
         "resume",
         executionType,
@@ -87,7 +87,7 @@ public class CompoundExecutionOperator {
   }
 
   private void doInternal(
-      Consumer<Execution> runnerAction,
+      Consumer<PipelineExecution> runnerAction,
       Runnable repositoryAction,
       String action,
       ExecutionType executionType,
@@ -95,7 +95,7 @@ public class CompoundExecutionOperator {
     try {
       runWithRetries(
           () -> {
-            Execution execution = repository.retrieve(executionType, executionId);
+            PipelineExecution execution = repository.retrieve(executionType, executionId);
             if (repository.handlesPartition(execution.getPartition())) {
               runnerAction.accept(execution);
             } else {

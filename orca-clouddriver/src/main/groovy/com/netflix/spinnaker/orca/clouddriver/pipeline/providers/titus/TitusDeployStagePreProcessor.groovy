@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.titus
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,7 +34,7 @@ class TitusDeployStagePreProcessor implements DeployStagePreProcessor {
   ApplySourceServerGroupCapacityStage applySourceServerGroupSnapshotStage
 
   @Override
-  List<StepDefinition> additionalSteps(Stage stage) {
+  List<StepDefinition> additionalSteps(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)
 
@@ -52,13 +52,13 @@ class TitusDeployStagePreProcessor implements DeployStagePreProcessor {
   }
 
   @Override
-  boolean supports(Stage stage) {
+  boolean supports(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     return stageData.cloudProvider == "titus" // && stageData.useSourceCapacity
   }
 
   @Override
-  List<StageDefinition> afterStageDefinitions(Stage stage) {
+  List<StageDefinition> afterStageDefinitions(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
     Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)

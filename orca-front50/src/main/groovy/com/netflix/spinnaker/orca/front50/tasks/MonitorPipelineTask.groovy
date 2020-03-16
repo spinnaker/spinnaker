@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+
 import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 
 @Slf4j
 @Component
@@ -39,9 +40,9 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
   long timeout = TimeUnit.HOURS.toMillis(12)
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     String pipelineId = stage.context.executionId
-    Execution childPipeline = executionRepository.retrieve(PIPELINE, pipelineId)
+    PipelineExecution childPipeline = executionRepository.retrieve(PIPELINE, pipelineId)
 
     if (childPipeline.status == ExecutionStatus.SUCCEEDED) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([status: childPipeline.status]).outputs(childPipeline.getContext()).build()
@@ -95,7 +96,7 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
     return TaskResult.builder(ExecutionStatus.RUNNING).context([status: childPipeline.status]).build()
   }
 
-  private static String buildExceptionMessage(String pipelineName, String message, Stage stage) {
+  private static String buildExceptionMessage(String pipelineName, String message, StageExecution stage) {
     "Exception in child pipeline stage (${pipelineName}: ${stage.name ?: stage.type}): ${message}"
   }
 }

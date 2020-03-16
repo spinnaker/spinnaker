@@ -135,7 +135,7 @@ class PackageInfoSpec extends Specification {
   @Unroll("#filename -> #result")
   def "All the matching packages get replaced with the build ones, while others just pass-through"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
     PackageInfo packageInfo = new PackageInfo(bakeStage,
@@ -174,7 +174,7 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "Find the right package, don't be dependant on artifact order"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     boolean extractBuildDetails = false
     def allowMissingPackageInstallation = true
 
@@ -448,7 +448,7 @@ class PackageInfoSpec extends Specification {
 
   def "Raise an exception if allowMissingPackageInstallation is false and there's no match"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
     PackageInfo packageInfo = new PackageInfo(bakeStage,
@@ -475,7 +475,7 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "getArtifactSourceBuildInfo: get buildInfo from nearest trigger with artifact"() {
     given:
-    Stage stage = new Stage(context: [package: "package"])
+    StageExecutionImpl stage = new StageExecutionImpl(context: [package: "package"])
     PackageInfo packageInfo = new PackageInfo(stage, [], null, null, true, true, null)
 
     expect:
@@ -566,7 +566,7 @@ class PackageInfoSpec extends Specification {
   @Unroll("#requestPackage -> #result")
   def "should consume kork artifact format when only artifacts are present"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
 
@@ -617,7 +617,7 @@ class PackageInfoSpec extends Specification {
   @Unroll("#requestPackage -> #result")
   def "should consume kork artifact format there are other build and trigger artifacts"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
 
@@ -659,7 +659,7 @@ class PackageInfoSpec extends Specification {
 
   def "should fail if artifact is present with different versions in artifact and either trigger or build info"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
 
@@ -701,7 +701,7 @@ class PackageInfoSpec extends Specification {
 
   def "should work if the same artifact is present in different places"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = DEB
     boolean extractBuildDetails = false
 
@@ -741,7 +741,7 @@ class PackageInfoSpec extends Specification {
 
   def "should work if the same RPM artifact is present in different places"() {
     given:
-    Stage bakeStage = new Stage()
+    StageExecutionImpl bakeStage = new StageExecutionImpl()
     PackageType packageType = RPM
     boolean extractBuildDetails = false
 

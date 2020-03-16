@@ -22,8 +22,8 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,7 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
             "pipelineId",
             "Lookup pipeline ID given the name of the pipeline in the current application",
             new FunctionParameter(
-                Execution.class,
+                PipelineExecution.class,
                 "execution",
                 "The execution containing the currently executing stage"),
             new FunctionParameter(
@@ -68,7 +68,7 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
    * @param pipelineName name of the pipeline to lookup
    * @return the id of the pipeline or null if pipeline not found
    */
-  public static String pipelineId(Execution execution, String pipelineName) {
+  public static String pipelineId(PipelineExecution execution, String pipelineName) {
     if (Strings.isNullOrEmpty(pipelineName)) {
       throw new SpelHelperFunctionException(
           "pipelineName must be specified for function #pipelineId");

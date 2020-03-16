@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.IgorService;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +54,7 @@ public class MonitorGoogleCloudBuildTask extends RetryableIgorTask<GoogleCloudBu
 
   @Override
   @Nonnull
-  protected GoogleCloudBuildStageDefinition mapStage(@Nonnull Stage stage) {
+  protected GoogleCloudBuildStageDefinition mapStage(@Nonnull StageExecution stage) {
     return stage.mapTo(GoogleCloudBuildStageDefinition.class);
   }
 }

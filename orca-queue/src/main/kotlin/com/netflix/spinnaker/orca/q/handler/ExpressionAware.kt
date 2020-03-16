@@ -24,8 +24,9 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ERROR
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.SpelEvaluatorVersion
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.SUMMARY
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.pipeline.ExpressionAwareStageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.StageContext
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.slf4j.Logger
@@ -46,7 +47,7 @@ interface ExpressionAware {
   val log: Logger
     get() = LoggerFactory.getLogger(javaClass)
 
-  fun Stage.withMergedContext(): Stage {
+  fun StageExecution.withMergedContext(): StageExecution {
     val evalSummary = ExpressionEvaluationSummary()
     val processed = processEntries(this, evalSummary)
     val execution = execution
@@ -99,7 +100,7 @@ interface ExpressionAware {
     return this
   }
 
-  fun Stage.includeExpressionEvaluationSummary() {
+  fun StageExecution.includeExpressionEvaluationSummary() {
     when {
       hasFailedExpressions() ->
         try {
@@ -112,11 +113,11 @@ interface ExpressionAware {
     }
   }
 
-  fun Stage.hasFailedExpressions(): Boolean =
+  fun StageExecution.hasFailedExpressions(): Boolean =
     (SUMMARY in this.context) &&
       ((this.context[SUMMARY] as Map<*, *>).size > 0)
 
-  fun Stage.shouldFailOnFailedExpressionEvaluation(): Boolean {
+  fun StageExecution.shouldFailOnFailedExpressionEvaluation(): Boolean {
     return this.hasFailedExpressions() && this.context.containsKey("failOnFailedExpressions") &&
       this.context["failOnFailedExpressions"] as Boolean
   }
@@ -131,14 +132,16 @@ interface ExpressionAware {
       mapOf("details" to mapOf("errors" to mergedErrors))
     }
 
-  private fun processEntries(stage: Stage, summary: ExpressionEvaluationSummary): StageContext {
+  private fun processEntries(stage: StageExecution, summary: ExpressionEvaluationSummary): StageContext {
     var shouldContinueProcessing = true
 
     val spelVersion = contextParameterProcessor.getEffectiveSpelVersionToUse(stage.execution.spelEvaluator)
     if (SpelEvaluatorVersion.V4 == spelVersion) {
       // Let the stage process its expressions first if it wants (e.g. see EvaluateVariables stage)
       val stageBuilder = stageDefinitionBuilderFactory.builderFor(stage)
-      shouldContinueProcessing = stageBuilder.processExpressions(stage, contextParameterProcessor, summary)
+      if (stageBuilder is ExpressionAwareStageDefinitionBuilder) {
+        shouldContinueProcessing = stageBuilder.processExpressions(stage, contextParameterProcessor, summary)
+      }
     }
 
     if (shouldContinueProcessing) {

@@ -16,17 +16,20 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.client.Response
+
+import javax.annotation.Nonnull
+
 import static java.util.concurrent.TimeUnit.HOURS
 import static java.util.concurrent.TimeUnit.MINUTES
 
@@ -37,10 +40,11 @@ class RegisterCanaryTask implements Task {
   @Autowired
   MineService mineService
 
+  @Nonnull
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(@Nonnull StageExecution stage) {
     String app = stage.context.application ?: stage.execution.application
-    Stage deployStage = stage.execution.stages.find {
+    StageExecution deployStage = stage.execution.stages.find {
       it.parentStageId == stage.parentStageId && it.type == DeployCanaryStage.PIPELINE_CONFIG_TYPE
     }
 
@@ -88,7 +92,7 @@ class RegisterCanaryTask implements Task {
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
-  Map buildCanary(String app, Stage stage) {
+  Map buildCanary(String app, StageExecution stage) {
     Map c = stage.context.canary
 //    c.canaryDeployments.each {
 //      it["@class"] = ".ClusterCanaryDeployment"

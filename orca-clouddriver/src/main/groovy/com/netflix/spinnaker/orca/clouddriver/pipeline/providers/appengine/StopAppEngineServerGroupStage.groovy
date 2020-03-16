@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.appengine
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine.StopAppEngineServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine.WaitForAppEngineServerGroupStopTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
@@ -33,7 +33,7 @@ class StopAppEngineServerGroupStage extends TargetServerGroupLinearStageSupport 
   public static final String PIPELINE_CONFIG_TYPE = "stopServerGroup"
 
   @Override
-  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("stopServerGroup", StopAppEngineServerGroupTask)

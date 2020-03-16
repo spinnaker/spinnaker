@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -28,8 +28,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 
 class WaitForDestroyedAsgTaskSpec extends Specification {
   @Subject
@@ -59,7 +59,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
       "regions": [region],
       "asgName": asgName,
     ])
@@ -100,7 +100,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
         "regions": ["us-east-1"],
         "asgName": "app-test-v000",
         "remainingInstances": ["i-123"]
@@ -127,7 +127,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.objectMapper = objectMapper
 
     and:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
         "regions": ["us-east-1"],
         "asgName": "app-test-v000",
         "remainingInstances": ['i-123', 'i-234', 'i-345']

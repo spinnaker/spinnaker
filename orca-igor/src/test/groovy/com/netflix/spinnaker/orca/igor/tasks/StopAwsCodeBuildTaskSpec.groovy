@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -30,7 +30,7 @@ class StopAwsCodeBuildTaskSpec extends Specification {
   def PROJECT_NAME = "test"
   def ARN = "arn:aws:codebuild:us-west-2:123456789012:build/test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
 
-  Execution execution = Mock(Execution)
+  PipelineExecutionImpl execution = Mock(PipelineExecutionImpl)
   IgorService igorService = Mock(IgorService)
 
   @Subject
@@ -39,7 +39,7 @@ class StopAwsCodeBuildTaskSpec extends Specification {
   def "should stop a build"() {
     given:
     def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
-    def stage = new Stage(execution, "awsCodeBuild", [
+    def stage = new StageExecutionImpl(execution, "awsCodeBuild", [
         account: ACCOUNT,
         buildInfo: [
             arn: ARN
@@ -58,7 +58,7 @@ class StopAwsCodeBuildTaskSpec extends Specification {
   def "should do nothing if buildInfo doesn't exist"() {
     given:
     def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
-    def stage = new Stage(execution, "awsCodeBuild", [account: ACCOUNT, projectName: PROJECT_NAME])
+    def stage = new StageExecutionImpl(execution, "awsCodeBuild", [account: ACCOUNT, projectName: PROJECT_NAME])
 
     when:
     TaskResult result = task.execute(stage)

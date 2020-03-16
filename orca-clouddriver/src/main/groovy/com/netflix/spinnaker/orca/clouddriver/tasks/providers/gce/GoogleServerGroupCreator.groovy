@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +40,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
   ObjectMapper objectMapper
 
   @Override
-  List<Map> getOperations(Stage stage) {
+  List<Map> getOperations(StageExecution stage) {
     def operation = [:]
 
     // If this stage was synthesized by a parallel deploy stage, the operation properties will be under 'cluster'.
@@ -68,7 +68,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     return [[(ServerGroupCreator.OPERATION): operation]]
   }
 
-  private Artifact getImageArtifact(Stage stage) {
+  private Artifact getImageArtifact(StageExecution stage) {
     def stageContext = stage.getContext()
 
     def artifactId = stageContext.imageArtifactId as String
@@ -79,7 +79,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     return artifactUtils.getBoundArtifactForStage(stage, artifactId, imageArtifact)
   }
 
-  private String getImage(Stage stage) {
+  private String getImage(StageExecution stage) {
     String image
 
     withImageFromPrecedingStage(stage, null, cloudProvider) {

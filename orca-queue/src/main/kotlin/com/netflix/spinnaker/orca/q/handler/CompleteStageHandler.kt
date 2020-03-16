@@ -18,15 +18,17 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.afterStages
@@ -34,9 +36,7 @@ import com.netflix.spinnaker.orca.ext.failureStatus
 import com.netflix.spinnaker.orca.ext.firstAfterStages
 import com.netflix.spinnaker.orca.ext.syntheticStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -163,7 +163,7 @@ class CompleteStageHandler(
   }
 
   // TODO: this should be done out of band by responding to the StageComplete event
-  private fun trackResult(stage: Stage) {
+  private fun trackResult(stage: StageExecution) {
     // We only want to record durations of parent-level stages; not synthetics.
     if (stage.parentStageId != null) {
       return
@@ -197,27 +197,27 @@ class CompleteStageHandler(
   /**
    * Plan any outstanding synthetic after stages.
    */
-  private fun Stage.planAfterStages() {
+  private fun StageExecution.planAfterStages() {
     var hasPlannedStages = false
 
-    builder().buildAfterStages(this) { it: Stage ->
+    builder().buildAfterStages(this) {
       repository.addStage(it)
       hasPlannedStages = true
     }
 
     if (hasPlannedStages) {
-      this.execution = repository.retrieve(this.execution.type, this.execution.id)
+      this.setExecution(repository.retrieve(this.execution.type, this.execution.id))
     }
   }
 
   /**
    * Plan any outstanding synthetic on failure stages.
    */
-  private fun Stage.planOnFailureStages(): Boolean {
+  private fun StageExecution.planOnFailureStages(): Boolean {
     // Avoid planning failure stages if _any_ with the same name are already complete
     val previouslyPlannedAfterStageNames = afterStages().filter { it.status.isComplete }.map { it.name }
 
-    val graph = StageGraphBuilder.afterStages(this)
+    val graph = StageGraphBuilderImpl.afterStages(this)
     builder().onFailureStages(this, graph)
 
     val onFailureStages = graph.build().toList()
@@ -241,7 +241,7 @@ class CompleteStageHandler(
     }
   }
 
-  private fun Stage.removeNotStartedSynthetics() {
+  private fun StageExecution.removeNotStartedSynthetics() {
     syntheticStages()
       .filter { it.status == NOT_STARTED }
       .forEach { stage ->
@@ -257,12 +257,12 @@ class CompleteStageHandler(
       }
   }
 
-  private fun Stage.determineStatus(): ExecutionStatus {
-    val syntheticStatuses = syntheticStages().map(Stage::getStatus)
-    val taskStatuses = tasks.map(Task::getStatus)
+  private fun StageExecution.determineStatus(): ExecutionStatus {
+    val syntheticStatuses = syntheticStages().map(StageExecution::getStatus)
+    val taskStatuses = tasks.map(TaskExecution::getStatus)
     val planningStatus = if (hasPlanningFailure()) listOf(failureStatus()) else emptyList()
     val allStatuses = syntheticStatuses + taskStatuses + planningStatus
-    val afterStageStatuses = afterStages().map(Stage::getStatus)
+    val afterStageStatuses = afterStages().map(StageExecution::getStatus)
     return when {
       allStatuses.isEmpty() -> NOT_STARTED
       allStatuses.contains(TERMINAL) -> failureStatus() // handle configured 'if stage fails' options correctly
@@ -279,5 +279,5 @@ class CompleteStageHandler(
   }
 }
 
-private fun Stage.hasPlanningFailure() =
+private fun StageExecution.hasPlanningFailure() =
   context["beforeStagePlanningFailed"] == true

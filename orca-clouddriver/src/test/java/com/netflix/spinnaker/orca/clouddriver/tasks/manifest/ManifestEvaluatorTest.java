@@ -28,7 +28,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.Source;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.List;
@@ -75,7 +75,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void textManifestSuccess() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     DeployManifestContext context =
         DeployManifestContext.builder().source(Source.Text).manifests(manifests).build();
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
@@ -85,7 +85,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void nullTextManifestFailure() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     DeployManifestContext context =
         DeployManifestContext.builder().source(Source.Text).manifests(null).build();
 
@@ -96,7 +96,7 @@ final class ManifestEvaluatorTest {
   @Test
   void artifactManifestIgnoreNullYAMLDocuments() {
 
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Artifact manifestArtifact =
         Artifact.builder()
             .artifactAccount("my-artifact-account")
@@ -131,7 +131,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void artifactManifestSuccess() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Artifact manifestArtifact = Artifact.builder().artifactAccount("my-artifact-account").build();
     DeployManifestContext context =
         DeployManifestContext.builder()
@@ -151,7 +151,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void artifactManifestByIdSuccess() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Artifact manifestArtifact =
         Artifact.builder()
             .artifactAccount("my-artifact-account")
@@ -175,7 +175,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void artifactManifestMissingFailure() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     DeployManifestContext context =
         DeployManifestContext.builder()
             .source(Source.Artifact)
@@ -190,7 +190,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void artifactManifestNoAccountFailure() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Artifact manifestArtifact = Artifact.builder().build();
     DeployManifestContext context =
         DeployManifestContext.builder()
@@ -208,7 +208,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void artifactManifestSkipSpelEvaluation() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Artifact manifestArtifact =
         Artifact.builder()
             .artifactAccount("my-artifact-account")
@@ -232,7 +232,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void requiredArtifacts() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Artifact artifactA = Artifact.builder().name("artifact-a").build();
     Artifact artifactB = Artifact.builder().name("artifact-b").build();
     BindArtifact bindArtifact = new BindArtifact();
@@ -256,7 +256,7 @@ final class ManifestEvaluatorTest {
 
   @Test
   void optionalArtifacts() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     DeployManifestContext context =
         DeployManifestContext.builder().source(Source.Text).manifests(manifests).build();
     ImmutableList<Artifact> optionalArtifacts =

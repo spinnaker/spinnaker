@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import org.springframework.mock.env.MockEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -56,7 +54,7 @@ class HighlanderStrategySpec extends Specification {
         ctx.interestingHealthProviderNames = interestingHealthProviderNames
       }
 
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", ctx)
       def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
 
     when:

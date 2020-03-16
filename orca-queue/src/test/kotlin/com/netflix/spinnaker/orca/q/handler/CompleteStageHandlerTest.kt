@@ -17,19 +17,19 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.StageResolver
-import com.netflix.spinnaker.orca.api.SimpleStage
-import com.netflix.spinnaker.orca.api.SimpleStageInput
-import com.netflix.spinnaker.orca.api.SimpleStageOutput
-import com.netflix.spinnaker.orca.api.SimpleStageStatus
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStageInput
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStageOutput
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStageStatus
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -37,14 +37,14 @@ import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.fixture.task
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -111,11 +111,11 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val stageWithTaskAndAfterStages = object : StageDefinitionBuilder {
     override fun getType() = "stageWithTaskAndAfterStages"
 
-    override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+    override fun taskGraph(stage: StageExecution, builder: TaskNode.Builder) {
       builder.withTask("dummy", DummyTask::class.java)
     }
 
-    override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    override fun afterStages(parent: StageExecution, graph: StageGraphBuilder) {
       graph.add {
         it.type = singleTaskStage.type
         it.name = "After Stage"
@@ -127,11 +127,11 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val stageThatBlowsUpPlanningAfterStages = object : StageDefinitionBuilder {
     override fun getType() = "stageThatBlowsUpPlanningAfterStages"
 
-    override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+    override fun taskGraph(stage: StageExecution, builder: TaskNode.Builder) {
       builder.withTask("dummy", DummyTask::class.java)
     }
 
-    override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    override fun afterStages(parent: StageExecution, graph: StageGraphBuilder) {
       throw RuntimeException("there is some problem actually")
     }
   }
@@ -139,7 +139,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val stageWithNothingButAfterStages = object : StageDefinitionBuilder {
     override fun getType() = "stageWithNothingButAfterStages"
 
-    override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    override fun afterStages(parent: StageExecution, graph: StageGraphBuilder) {
       graph.add {
         it.type = singleTaskStage.type
         it.name = "After Stage"
@@ -1267,7 +1267,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   }
 
   describe("surfacing expression evaluation errors") {
-    fun exceptionErrors(stages: List<Stage>): List<*> =
+    fun exceptionErrors(stages: List<StageExecution>): List<*> =
       stages.flatMap {
         ((it.context["exception"] as Map<*, *>)["details"] as Map<*, *>)["errors"] as List<*>
       }

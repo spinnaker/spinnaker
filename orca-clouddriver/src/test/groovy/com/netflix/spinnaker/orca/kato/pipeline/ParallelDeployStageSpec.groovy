@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -33,7 +33,7 @@ class ParallelDeployStageSpec extends Specification {
       trigger = new JenkinsTrigger("master", "job", 1, null)
       application = "orca"
     }
-    def bakeStage = new Stage(pipeline, "deploy", "Deploy!", stageContext)
+    def bakeStage = new StageExecutionImpl(pipeline, "deploy", "Deploy!", stageContext)
     def builder = new ParallelDeployStage()
 
     when:
@@ -92,7 +92,7 @@ class ParallelDeployStageSpec extends Specification {
     }
 
     and:
-    def deployStage = new Stage(strategyPipeline, "deploy", "Deploy!", data.stageContext)
+    def deployStage = new StageExecutionImpl(strategyPipeline, "deploy", "Deploy!", data.stageContext)
     def builder = new ParallelDeployStage()
 
     when:

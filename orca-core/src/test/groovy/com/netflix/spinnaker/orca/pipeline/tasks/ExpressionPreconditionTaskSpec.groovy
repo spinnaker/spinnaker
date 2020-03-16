@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.pipeline.tasks
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ExpressionPreconditionTaskSpec extends Specification {

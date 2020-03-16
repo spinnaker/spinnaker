@@ -22,7 +22,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,26 +44,26 @@ public class ArtifactExpressionFunctionProvider implements ExpressionFunctionPro
             "triggerResolvedArtifact",
             "Looks up the an artifact in current execution given its name. If multiple artifacts are found, only 1 will be returned.",
             new FunctionParameter(
-                Execution.class, "execution", "The execution to search for artifacts"),
+                PipelineExecution.class, "execution", "The execution to search for artifacts"),
             new FunctionParameter(String.class, "name", "The name of the resolved artifact")),
         new FunctionDefinition(
             "triggerResolvedArtifactByType",
             "Looks up the an artifact in current execution given its type. If multiple artifacts are found, only 1 will be returned.",
             new FunctionParameter(
-                Execution.class, "execution", "The execution to search for artifacts"),
+                PipelineExecution.class, "execution", "The execution to search for artifacts"),
             new FunctionParameter(String.class, "type", "The type of the resolved artifact")));
   }
 
-  public static Artifact triggerResolvedArtifact(Execution execution, String name) {
+  public static Artifact triggerResolvedArtifact(PipelineExecution execution, String name) {
     return triggerResolvedArtifactBy(execution, name, artifact -> name.equals(artifact.getName()));
   }
 
-  public static Artifact triggerResolvedArtifactByType(Execution execution, String type) {
+  public static Artifact triggerResolvedArtifactByType(PipelineExecution execution, String type) {
     return triggerResolvedArtifactBy(execution, type, artifact -> type.equals(artifact.getType()));
   }
 
   private static Artifact triggerResolvedArtifactBy(
-      Execution execution, String nameOrType, Predicate<Artifact> predicate) {
+      PipelineExecution execution, String nameOrType, Predicate<Artifact> predicate) {
     return execution.getTrigger().getResolvedExpectedArtifacts().stream()
         .filter(
             expectedArtifact ->

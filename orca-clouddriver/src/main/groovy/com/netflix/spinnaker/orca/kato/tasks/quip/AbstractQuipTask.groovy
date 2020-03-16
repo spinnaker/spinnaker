@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter

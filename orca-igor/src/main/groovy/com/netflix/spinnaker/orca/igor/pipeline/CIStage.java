@@ -15,14 +15,14 @@
  */
 package com.netflix.spinnaker.orca.igor.pipeline;
 
-import com.netflix.spinnaker.orca.CancellableStage;
-import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
 import com.netflix.spinnaker.orca.igor.tasks.*;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
   private final StopJenkinsJobTask stopJenkinsJobTask;
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
     String jobType = StringUtils.capitalize(getType());
     builder
@@ -60,7 +60,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
 
   @Override
   @SuppressWarnings("unchecked")
-  public void prepareStageForRestart(@Nonnull Stage stage) {
+  public void prepareStageForRestart(@Nonnull StageExecution stage) {
     Object buildInfo = stage.getContext().get("buildInfo");
     if (buildInfo != null) {
       Map<String, Object> restartDetails =
@@ -75,7 +75,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
   }
 
   @Override
-  public Result cancel(final Stage stage) {
+  public Result cancel(final StageExecution stage) {
     log.info(
         String.format(
             "Cancelling stage (stageId: %s, executionId: %s context: %s)",
@@ -94,7 +94,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
   }
 
   @Override
-  public void onFailureStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
+  public void onFailureStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
     CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
     if (stageDefinition.getPropertyFile() != null
         && !stageDefinition.getPropertyFile().equals("")) {
@@ -103,7 +103,7 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
           stage.getId(),
           stage.getExecution().getId());
       graph.add(
-          (Stage s) -> {
+          (StageExecution s) -> {
             s.setType(new GetPropertiesStage().getType());
             s.setName("Try to get properties file");
             Map<String, Object> context = new HashMap<>();

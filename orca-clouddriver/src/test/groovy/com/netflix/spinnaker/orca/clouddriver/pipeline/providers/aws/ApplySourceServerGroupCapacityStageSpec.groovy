@@ -20,7 +20,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.entitytags.DeleteEntityTagsStage
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -52,7 +52,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
   def "should not generate any stages when 'upsertEntityTags' is not enabled"() {
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     stageBuilder.afterStages(stage, graph)
     def afterStages = graph.build()
 
@@ -65,7 +65,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
   def "should not generate any stages when there are no entity tags"() {
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     stageBuilder.afterStages(stage, graph)
     def afterStages = graph.build()
 
@@ -78,7 +78,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
   def "should not generate any stages when an exception is raised"() {
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     stageBuilder.afterStages(stage, graph)
     def afterStages = graph.build()
 
@@ -98,7 +98,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     stage.context.putAll(context)
 
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     stageBuilder.afterStages(stage, graph)
     def afterStages = graph.build()
 
@@ -122,7 +122,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
 
   def "should generate a delete entity tags stage when the server group has a `spinnaker:pinned_capacity` entity tag"() {
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     stageBuilder.afterStages(stage, graph)
     def afterStages = graph.build()
 

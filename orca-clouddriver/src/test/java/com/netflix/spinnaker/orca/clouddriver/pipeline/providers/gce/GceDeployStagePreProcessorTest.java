@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSour
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StageDefinition;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StepDefinition;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +50,7 @@ class GceDeployStagePreProcessorTest {
 
   @Test
   void redBlackStrategyTest() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Map<String, Object> context = createDefaultContext();
     context.put("strategy", "redblack");
     stage.setContext(context);
@@ -78,7 +78,7 @@ class GceDeployStagePreProcessorTest {
 
   @Test
   void redBlackStrategyNoExistingServerGroupTest() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Map<String, Object> context = createDefaultContext();
     context.put("strategy", "redblack");
     stage.setContext(context);
@@ -106,7 +106,7 @@ class GceDeployStagePreProcessorTest {
 
   @Test
   void noneStrategyTest() {
-    Stage stage = new Stage();
+    StageExecutionImpl stage = new StageExecutionImpl();
     Map<String, Object> context = createDefaultContext();
     context.put("strategy", "none");
     stage.setContext(context);

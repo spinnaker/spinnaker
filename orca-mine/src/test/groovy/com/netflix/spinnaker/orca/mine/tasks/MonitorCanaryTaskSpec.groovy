@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.mine.tasks
 
 import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -56,7 +56,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ],
       status: resultStatus
     ]
-    def stage = new Stage(Execution.newPipeline("foo"), "canary", [canary: canaryConf])
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("foo"), "canary", [canary: canaryConf])
 
     when:
     TaskResult result = task.execute(stage)
@@ -95,7 +95,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ],
       status: [status: 'RUNNING', complete: false]
     ]
-    def stage = new Stage(Execution.newPipeline("foo"), "canary", [canary: canaryConf])
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("foo"), "canary", [canary: canaryConf])
 
     when:
     TaskResult result = task.execute(stage)
@@ -138,7 +138,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def canaryStageId = UUID.randomUUID().toString()
-    def stage = new Stage(Execution.newPipeline("foo"), "canary", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("foo"), "canary", [
       canaryStageId: canaryStageId,
       canary: canaryConf,
       scaleUp: [
@@ -214,7 +214,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def canaryStageId = UUID.randomUUID().toString()
-    def stage = new Stage(Execution.newPipeline("foo"), "canary", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("foo"), "canary", [
       canaryStageId: canaryStageId,
       canary: canaryConf,
       deployedClusterPairs: [[

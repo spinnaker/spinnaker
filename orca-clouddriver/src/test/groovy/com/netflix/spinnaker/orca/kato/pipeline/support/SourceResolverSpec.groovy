@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -67,7 +67,7 @@ class SourceResolverSpec extends Specification {
 
     and:
     def context = exampleContexts[exampleContextName]
-    def stage = new Stage(Execution.newPipeline("orca"), "test", context + [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", context + [
       application: "app", stack: "test", account: "test", availabilityZones: ["us-west-1": []]
     ])
 
@@ -106,8 +106,8 @@ class SourceResolverSpec extends Specification {
     )
 
     when:
-    def stage = new Stage(
-      Execution.newPipeline("orca"),
+    def stage = new StageExecutionImpl(
+      PipelineExecutionImpl.newPipeline("orca"),
       "test",
       [
         application: "app",
@@ -154,8 +154,8 @@ class SourceResolverSpec extends Specification {
     )
 
     when:
-    def stage = new Stage(
-      Execution.newPipeline("orca"),
+    def stage = new StageExecutionImpl(
+      PipelineExecutionImpl.newPipeline("orca"),
       "test",
       [
         cloudProvider: "cloudfoundry",
@@ -193,8 +193,8 @@ class SourceResolverSpec extends Specification {
     SourceResolver resolver = new SourceResolver(mapper: new ObjectMapper())
 
     when:
-    def stage = new Stage(
-      Execution.newPipeline("orca"),
+    def stage = new StageExecutionImpl(
+      PipelineExecutionImpl.newPipeline("orca"),
       "test",
       [
         application: "app",
@@ -263,8 +263,8 @@ class SourceResolverSpec extends Specification {
     source.region == "us-west-1"
 
     where:
-    stage = new Stage(
-      Execution.newPipeline("orca"),
+    stage = new StageExecutionImpl(
+      PipelineExecutionImpl.newPipeline("orca"),
       "test",
       [
         application: "foo",

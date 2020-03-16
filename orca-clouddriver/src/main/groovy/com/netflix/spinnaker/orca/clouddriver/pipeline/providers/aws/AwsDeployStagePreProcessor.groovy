@@ -17,11 +17,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.CheckPreconditionsStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -36,7 +36,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   CheckPreconditionsStage checkPreconditionsStage
 
   @Override
-  List<StepDefinition> additionalSteps(Stage stage) {
+  List<StepDefinition> additionalSteps(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)
 
@@ -54,7 +54,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   }
 
   @Override
-  List<StageDefinition> beforeStageDefinitions(Stage stage) {
+  List<StageDefinition> beforeStageDefinitions(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
 
@@ -82,7 +82,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   }
 
   @Override
-  List<StageDefinition> afterStageDefinitions(Stage stage) {
+  List<StageDefinition> afterStageDefinitions(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
     Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)
@@ -100,7 +100,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   }
 
   @Override
-  boolean supports(Stage stage) {
+  boolean supports(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     return stageData.cloudProvider == "aws" // && stageData.useSourceCapacity
   }

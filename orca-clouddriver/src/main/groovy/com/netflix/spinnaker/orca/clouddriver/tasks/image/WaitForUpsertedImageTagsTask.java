@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +37,7 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
   private Long waitForUpsertedImageTagsTimeoutMillis;
 
   @Override
-  public TaskResult execute(Stage stage) {
+  public TaskResult execute(StageExecution stage) {
     String cloudProvider = getCloudProvider(stage);
 
     ImageTagger tagger =

@@ -15,15 +15,15 @@
  */
 package com.netflix.spinnaker.orca.notifications.scheduling;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.LongTaskTimer;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.time.Clock;
 import java.time.Instant;
@@ -54,10 +54,10 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   private final Logger log =
       LoggerFactory.getLogger(OldPipelineCleanupPollingNotificationAgent.class);
 
-  private Func1<Execution, Boolean> filter =
-      new Func1<Execution, Boolean>() {
+  private Func1<PipelineExecution, Boolean> filter =
+      new Func1<PipelineExecution, Boolean>() {
         @Override
-        public Boolean call(Execution execution) {
+        public Boolean call(PipelineExecution execution) {
           if (!COMPLETED_STATUSES.contains(execution.getStatus().toString())) {
             return false;
           }
@@ -72,7 +72,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
         }
       };
 
-  private Func1<Execution, PipelineExecutionDetails> mapper =
+  private Func1<? super PipelineExecution, PipelineExecutionDetails> mapper =
       execution ->
           new PipelineExecutionDetails(
               execution.getId(),
@@ -157,7 +157,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
     }
   }
 
-  private void cleanupApp(Observable<Execution> observable) {
+  private void cleanupApp(Observable<PipelineExecution> observable) {
     List<PipelineExecutionDetails> allPipelines =
         observable.filter(filter).map(mapper).toList().toBlocking().single();
 

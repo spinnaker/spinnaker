@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.orca.webhook.pipeline
 
 import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties.PreconfiguredWebhook
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFoundException
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookUnauthorizedException
@@ -28,6 +28,8 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Component
 class PreconfiguredWebhookStage extends WebhookStage {
@@ -51,7 +53,7 @@ class PreconfiguredWebhookStage extends WebhookStage {
   }.collect { it.name }
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     def preconfiguredWebhook = webhookService.getPreconfiguredWebhooks().find { stage.type == it.type }
 
     if (!preconfiguredWebhook) {

@@ -16,13 +16,18 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+
+import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,19 +37,19 @@ import org.springframework.stereotype.Component
 class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage {
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("waitForJudgment", WaitForManualJudgmentTask.class)
   }
 
   @Override
-  void prepareStageForRestart(Stage stage) {
+  void prepareStageForRestart(@Nonnull StageExecution stage) {
     stage.context.remove("judgmentStatus")
     stage.context.remove("lastModifiedBy")
   }
 
   @Override
-  Optional<User> authenticatedUser(Stage stage) {
+  Optional<User> authenticatedUser(StageExecution stage) {
     def stageData = stage.mapTo(StageData)
     if (stageData.state != StageData.State.CONTINUE || !stage.lastModified?.user || !stageData.propagateAuthenticationContext) {
       return Optional.empty()
@@ -68,7 +73,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     EchoService echoService
 
     @Override
-    TaskResult execute(Stage stage) {
+    TaskResult execute(StageExecution stage) {
       StageData stageData = stage.mapTo(StageData)
       String notificationState
       ExecutionStatus executionStatus
@@ -93,7 +98,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
       return TaskResult.builder(executionStatus).context(outputs).build()
     }
 
-    Map processNotifications(Stage stage, StageData stageData, String notificationState) {
+    Map processNotifications(StageExecution stage, StageData stageData, String notificationState) {
       if (echoService) {
         // sendNotifications will be true if using the new scheme for configuration notifications.
         // The new scheme matches the scheme used by the other stages.
@@ -171,7 +176,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
       return new Date(lastNotified.time + notifyEveryMs) <= now
     }
 
-    void notify(EchoService echoService, Stage stage, String notificationState) {
+    void notify(EchoService echoService, StageExecution stage, String notificationState) {
       echoService.create(new EchoService.Notification(
         notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
         to: address ? [address] : (publisherName ? [publisherName] : null),

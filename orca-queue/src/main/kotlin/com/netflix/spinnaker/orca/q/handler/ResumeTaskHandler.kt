@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.ResumeTask
 import com.netflix.spinnaker.orca.q.RunTask
@@ -48,6 +49,6 @@ class ResumeTaskHandler(
   }
 
   @Suppress("UNCHECKED_CAST")
-  private val com.netflix.spinnaker.orca.pipeline.model.Task.type
+  private val TaskExecution.type
     get() = taskResolver.getTaskClass(implementingClass)
 }

@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.huaweicloud;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.MortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupUpserter;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +39,7 @@ public class HuaweiCloudSecurityGroupUpserter implements SecurityGroupUpserter, 
   @Autowired MortService mortService;
 
   @Override
-  public SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
+  public SecurityGroupUpserter.OperationContext getOperationContext(StageExecution stage) {
 
     MortService.SecurityGroup securityGroup = new MortService.SecurityGroup();
     securityGroup.setName((String) stage.getContext().get("securityGroupName"));
@@ -80,7 +80,7 @@ public class HuaweiCloudSecurityGroupUpserter implements SecurityGroupUpserter, 
 
   @Override
   public boolean isSecurityGroupUpserted(
-      MortService.SecurityGroup upsertedSecurityGroup, Stage stage) {
+      MortService.SecurityGroup upsertedSecurityGroup, StageExecution stage) {
     if (upsertedSecurityGroup == null) {
       return false;
     }

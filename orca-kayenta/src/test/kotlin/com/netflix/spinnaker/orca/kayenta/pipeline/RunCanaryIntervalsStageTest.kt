@@ -20,8 +20,8 @@ import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.kayenta.CanaryScope
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.values
 import com.netflix.spinnaker.spek.where
@@ -65,7 +65,7 @@ object RunCanaryIntervalsStageTest : Spek({
           )
         }
 
-        val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+        val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
           .let { graph ->
             builder.beforeStages(kayentaCanaryStage, graph)
             graph.build()
@@ -114,7 +114,7 @@ object RunCanaryIntervalsStageTest : Spek({
           )
         }
 
-        val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+        val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
           .let { graph ->
             builder.beforeStages(kayentaCanaryStage, graph)
             graph.build()
@@ -174,7 +174,7 @@ object RunCanaryIntervalsStageTest : Spek({
           }
 
           val builder = RunCanaryIntervalsStage(clock)
-          val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+          val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
             .let { graph ->
               builder.beforeStages(kayentaCanaryStage, graph)
               graph.build()
@@ -243,7 +243,7 @@ object RunCanaryIntervalsStageTest : Spek({
           )
         }
 
-        val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+        val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
           .let { graph ->
             builder.beforeStages(kayentaCanaryStage, graph)
             graph.build()
@@ -328,7 +328,7 @@ object RunCanaryIntervalsStageTest : Spek({
           }
 
           val builder = RunCanaryIntervalsStage(clock)
-          val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+          val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
             .let { graph ->
               builder.beforeStages(kayentaCanaryStage, graph)
               graph.build()
@@ -371,7 +371,7 @@ object RunCanaryIntervalsStageTest : Spek({
           }
 
           val builder = RunCanaryIntervalsStage(clock)
-          val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+          val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
             .let { graph ->
               builder.beforeStages(kayentaCanaryStage, graph)
               graph.build()
@@ -407,7 +407,7 @@ object RunCanaryIntervalsStageTest : Spek({
         )
       }
 
-      val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+      val aroundStages = StageGraphBuilderImpl.beforeStages(kayentaCanaryStage)
         .let { graph ->
           builder.beforeStages(kayentaCanaryStage, graph)
           graph.build()
@@ -440,14 +440,14 @@ data class CanaryRanges(
 /**
  * Get [scopeName] control scope from all [RunCanaryPipelineStage]s.
  */
-fun Iterable<Stage>.controlScopes(scopeName: String = "default"): List<CanaryScope> =
+fun Iterable<StageExecution>.controlScopes(scopeName: String = "default"): List<CanaryScope> =
   filter { it.type == RunCanaryPipelineStage.STAGE_TYPE }
     .map { it.mapTo<CanaryScope>("/scopes/$scopeName/controlScope") }
 
 /**
  * Get wait time from any [WaitStage]s.
  */
-fun List<Stage>.waitTimes(): List<Long> =
+fun List<StageExecution>.waitTimes(): List<Long> =
   filter { it.type == "wait" }
     .map { it.mapTo<Long>("/waitTime") }
 

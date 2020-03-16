@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.cf.pipeline.expressions.functions;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider.FunctionDefinition;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +46,7 @@ class ServiceKeyExpressionFunctionProviderTest {
             functionDefinition -> {
               assertThat(functionDefinition.getName()).isEqualTo("cfServiceKey");
               assertThat(functionDefinition.getParameters().get(0).getType())
-                  .isEqualTo(Execution.class);
+                  .isEqualTo(PipelineExecution.class);
               assertThat(functionDefinition.getParameters().get(1).getType())
                   .isEqualTo(String.class);
             });
@@ -66,35 +67,36 @@ class ServiceKeyExpressionFunctionProviderTest {
         createKatoTaskMap(SUCCEEDED, singletonList(singletonMap("serviceKey", serviceKey)));
     Map<String, Object> katoTaskMapWithoutResults = createKatoTaskMap(SUCCEEDED, emptyList());
     Map<String, Object> katoTaskMapRunning = createKatoTaskMap(RUNNING, emptyList());
-    Execution execution = new Execution(PIPELINE, "stage-name-1", "application-name");
+    PipelineExecutionImpl execution =
+        new PipelineExecutionImpl(PIPELINE, "stage-name-1", "application-name");
     Map<String, Object> contextWithServiceKey = createContextMap(katoTaskMapWithResults);
     Map<String, Object> contextWithoutServiceKey = createContextMap(katoTaskMapWithoutResults);
     Map<String, Object> contextWithRunningTask = createContextMap(katoTaskMapRunning);
 
-    Stage stage1 =
-        new Stage(
-            new Execution(PIPELINE, "orca"),
+    StageExecutionImpl stage1 =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "orca"),
             "createServiceKey",
             "stage-name-1",
             contextWithServiceKey);
     stage1.setStatus(SUCCEEDED);
-    Stage stage2 =
-        new Stage(
-            new Execution(PIPELINE, "orca"),
+    StageExecutionImpl stage2 =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "orca"),
             "deployService",
             "stage-name-2",
             contextWithoutServiceKey);
     stage2.setStatus(SUCCEEDED);
-    Stage stage3 =
-        new Stage(
-            new Execution(PIPELINE, "orca"),
+    StageExecutionImpl stage3 =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "orca"),
             "createServiceKey",
             "stage-name-3",
             contextWithoutServiceKey);
     stage3.setStatus(SUCCEEDED);
-    Stage stage4 =
-        new Stage(
-            new Execution(PIPELINE, "orca"),
+    StageExecutionImpl stage4 =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "orca"),
             "createServiceKey",
             "stage-name-4",
             contextWithRunningTask);
@@ -127,12 +129,13 @@ class ServiceKeyExpressionFunctionProviderTest {
             .put("history", emptyList())
             .put("resultObjects", emptyList())
             .build();
-    Execution execution = new Execution(PIPELINE, "stage-name-1", "application-name");
+    PipelineExecutionImpl execution =
+        new PipelineExecutionImpl(PIPELINE, "stage-name-1", "application-name");
     Map<String, Object> contextWithoutServiceKey = createContextMap(katoTaskMapWithoutResults);
 
-    Stage stage =
-        new Stage(
-            new Execution(PIPELINE, "orca"),
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "orca"),
             "createServiceKey",
             "stage-name-3",
             contextWithoutServiceKey);

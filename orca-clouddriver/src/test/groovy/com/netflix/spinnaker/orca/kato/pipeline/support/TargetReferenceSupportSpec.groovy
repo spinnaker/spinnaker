@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -34,7 +34,7 @@ class TargetReferenceSupportSpec extends Specification {
   OortService oort
   TargetReferenceSupport subject
 
-  def pipeline = Execution.newPipeline("orca")
+  def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   def cluster = [serverGroups: [
                                 [
@@ -98,7 +98,7 @@ class TargetReferenceSupportSpec extends Specification {
       target     : target,
       credentials: "prod"
     ]
-    def stage = new Stage(pipeline, type, config)
+    def stage = new StageExecutionImpl(pipeline, type, config)
 
     when:
     def targets = subject.getTargetAsgReferences(stage)
@@ -135,7 +135,7 @@ class TargetReferenceSupportSpec extends Specification {
       target      : "ancestor_asg",
       credentials : "prod"
     ]
-    def stage = new Stage(pipeline, "test", config)
+    def stage = new StageExecutionImpl(pipeline, "test", config)
     def response = mapper.writeValueAsBytes(
       [serverGroups: [[
         name  : "kato-main-v001",
@@ -169,7 +169,7 @@ class TargetReferenceSupportSpec extends Specification {
       target      : target,
       credentials : "prod"
     ]
-    def stage = new Stage(pipeline, "test", config)
+    def stage = new StageExecutionImpl(pipeline, "test", config)
     def response = mapper.writeValueAsBytes([serverGroups: []])
 
     when:
@@ -194,7 +194,7 @@ class TargetReferenceSupportSpec extends Specification {
       target     : target,
       credentials: "prod"
     ]
-    def stage = new Stage(pipeline, type, config)
+    def stage = new StageExecutionImpl(pipeline, type, config)
 
     when:
     subject.getTargetAsgReferences(stage)
@@ -238,12 +238,12 @@ class TargetReferenceSupportSpec extends Specification {
     ]
 
 
-    def rootStage = new Stage(pipeline, "root", config)
+    def rootStage = new StageExecutionImpl(pipeline, "root", config)
 
-    def stage = new Stage(pipeline, "test", config)
+    def stage = new StageExecutionImpl(pipeline, "test", config)
     stage.parentStageId = rootStage.id
 
-    def determineTargetStage = new Stage(pipeline, DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE, upstreamTargets)
+    def determineTargetStage = new StageExecutionImpl(pipeline, DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE, upstreamTargets)
     determineTargetStage.parentStageId = rootStage.id
 
     pipeline.stages << rootStage << stage << determineTargetStage
@@ -272,7 +272,7 @@ class TargetReferenceSupportSpec extends Specification {
       asgName    : "kato-main-v000",
       credentials: "prod"
     ]
-    def stage = new Stage(pipeline, "test", config)
+    def stage = new StageExecutionImpl(pipeline, "test", config)
 
     when:
     def targets = subject.getTargetAsgReferences(stage)
@@ -299,7 +299,7 @@ class TargetReferenceSupportSpec extends Specification {
         asgName    : "kato-main-v000",
         credentials: "prod"
     ]
-    def stage = new Stage(pipeline, "test", config)
+    def stage = new StageExecutionImpl(pipeline, "test", config)
 
     when:
     subject.getDynamicallyBoundTargetAsgReference(stage)
@@ -318,7 +318,7 @@ class TargetReferenceSupportSpec extends Specification {
       asgName    : "kato-main-v000",
       credentials: "prod"
     ]
-    def stage = new Stage(pipeline, "test", config)
+    def stage = new StageExecutionImpl(pipeline, "test", config)
 
     when:
     subject.getDynamicallyBoundTargetAsgReference(stage)

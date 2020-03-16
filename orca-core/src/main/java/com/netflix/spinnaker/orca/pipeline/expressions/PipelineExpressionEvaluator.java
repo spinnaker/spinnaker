@@ -22,7 +22,10 @@ import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
 import com.netflix.spinnaker.kork.expressions.ExpressionsSupport;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.orca.pipeline.model.*;
 import java.util.*;
 import java.util.function.Function;
@@ -114,8 +117,8 @@ public class PipelineExpressionEvaluator {
   private static Class[] extraAllowedReturnTypes =
       new Class[] {
         Artifact.class,
-        Execution.class,
-        Stage.class,
+        PipelineExecution.class,
+        StageExecution.class,
         Trigger.class,
         BuildInfo.class,
         JenkinsArtifact.class,
@@ -123,8 +126,8 @@ public class PipelineExpressionEvaluator {
         ConcourseBuildInfo.class,
         SourceControl.class,
         ExecutionStatus.class,
-        Execution.AuthenticationDetails.class,
-        Execution.PausedDetails.class
+        PipelineExecution.AuthenticationDetails.class,
+        PipelineExecution.PausedDetails.class
       };
 
   private final ExpressionParser parser = new SpelExpressionParser();
@@ -183,7 +186,7 @@ public class PipelineExpressionEvaluator {
               .forEach(
                   f -> {
                     if (!f.getParameters().isEmpty()
-                        && f.getParameters().get(0).getType() == Execution.class) {
+                        && f.getParameters().get(0).getType() == PipelineExecution.class) {
                       this.executionAwareFunctions.add(f.getName());
                     }
                   });

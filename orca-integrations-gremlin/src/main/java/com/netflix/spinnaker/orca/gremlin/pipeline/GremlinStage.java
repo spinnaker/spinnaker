@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.orca.gremlin.pipeline;
 
-import com.netflix.spinnaker.orca.CancellableStage;
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.gremlin.GremlinService;
 import com.netflix.spinnaker.orca.gremlin.tasks.LaunchGremlinAttackTask;
 import com.netflix.spinnaker.orca.gremlin.tasks.MonitorGremlinAttackTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
@@ -24,14 +24,14 @@ public class GremlinStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired private GremlinService gremlinService;
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
         .withTask("launchGremlinAttack", LaunchGremlinAttackTask.class)
         .withTask("monitorGremlinAttack", MonitorGremlinAttackTask.class);
   }
 
   @Override
-  public Result cancel(Stage stage) {
+  public Result cancel(StageExecution stage) {
     final Map<String, Object> ctx = stage.getContext();
     final boolean isAttackCompleted =
         Optional.ofNullable(ctx.get(TERMINAL_KEY))

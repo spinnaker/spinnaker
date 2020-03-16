@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.LambdaFunctionForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.LambdaFunctionTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +29,7 @@ public class LambdaFunctionStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "lambdaFunction";
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
         .withTask(LambdaFunctionTask.TASK_NAME, LambdaFunctionTask.class)
         .withTask("monitorLambdaFunction", MonitorKatoTask.class)

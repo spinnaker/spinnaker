@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 import static java.util.stream.Collectors.toList;
 
 import com.netflix.spinnaker.kork.telemetry.Instrumented;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.time.Instant;
 import java.util.*;
 import javax.annotation.Nonnull;
@@ -29,15 +29,15 @@ import javax.annotation.Nullable;
 import rx.Observable;
 
 public interface ExecutionRepository {
-  void store(@Nonnull Execution execution);
+  void store(@Nonnull PipelineExecution execution);
 
-  void storeStage(@Nonnull Stage stage);
+  void storeStage(@Nonnull StageExecution stage);
 
-  void updateStageContext(@Nonnull Stage stage);
+  void updateStageContext(@Nonnull StageExecution stage);
 
-  void removeStage(@Nonnull Execution execution, @Nonnull String stageId);
+  void removeStage(@Nonnull PipelineExecution execution, @Nonnull String stageId);
 
-  void addStage(@Nonnull Stage stage);
+  void addStage(@Nonnull StageExecution stage);
 
   @Instrumented(metricName = "cancelNullReason")
   void cancel(@Nonnull ExecutionType type, @Nonnull String id);
@@ -65,24 +65,25 @@ public interface ExecutionRepository {
 
   @Nonnull
   @Instrumented(metricName = "retrieveById")
-  Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id)
+  PipelineExecution retrieve(@Nonnull ExecutionType type, @Nonnull String id)
       throws ExecutionNotFoundException;
 
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
   @Nonnull
   @Instrumented(metricName = "retrieveByType")
-  Observable<Execution> retrieve(@Nonnull ExecutionType type);
+  Observable<PipelineExecution> retrieve(@Nonnull ExecutionType type);
 
   @Nonnull
   @Instrumented(metricName = "retrieveByCriteria")
-  Observable<Execution> retrieve(@Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
+  Observable<PipelineExecution> retrieve(
+      @Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
 
   @Nonnull
-  Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
+  Observable<PipelineExecution> retrievePipelinesForApplication(@Nonnull String application);
 
   @Nonnull
-  Observable<Execution> retrievePipelinesForPipelineConfigId(
+  Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
 
   /**
@@ -94,7 +95,7 @@ public interface ExecutionRepository {
    *     page to control pagination
    */
   @Nonnull
-  List<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+  List<PipelineExecution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
       @Nonnull List<String> pipelineConfigIds,
       long buildTimeStartBoundary,
       long buildTimeEndBoundary,
@@ -108,7 +109,7 @@ public interface ExecutionRepository {
    *     sort the results
    */
   @Nonnull
-  List<Execution> retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+  List<PipelineExecution> retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
       @Nonnull List<String> pipelineConfigIds,
       long buildTimeStartBoundary,
       long buildTimeEndBoundary,
@@ -117,32 +118,32 @@ public interface ExecutionRepository {
   @Deprecated // Use the non-rx interface instead
   @Nonnull
   @Instrumented(metricName = "retrieveOrchestrationsForApplicationSortedAsc")
-  Observable<Execution> retrieveOrchestrationsForApplication(
+  Observable<PipelineExecution> retrieveOrchestrationsForApplication(
       @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
   @Nonnull
-  List<Execution> retrieveOrchestrationsForApplication(
+  List<PipelineExecution> retrieveOrchestrationsForApplication(
       @Nonnull String application,
       @Nonnull ExecutionCriteria criteria,
       @Nullable ExecutionComparator sorter);
 
   @Nonnull
-  Execution retrieveByCorrelationId(
+  PipelineExecution retrieveByCorrelationId(
       @Nonnull ExecutionType executionType, @Nonnull String correlationId)
       throws ExecutionNotFoundException;
 
   @Deprecated
   @Nonnull
-  Execution retrieveOrchestrationForCorrelationId(@Nonnull String correlationId)
+  PipelineExecution retrieveOrchestrationForCorrelationId(@Nonnull String correlationId)
       throws ExecutionNotFoundException;
 
   @Deprecated
   @Nonnull
-  Execution retrievePipelineForCorrelationId(@Nonnull String correlationId)
+  PipelineExecution retrievePipelineForCorrelationId(@Nonnull String correlationId)
       throws ExecutionNotFoundException;
 
   @Nonnull
-  List<Execution> retrieveBufferedExecutions();
+  List<PipelineExecution> retrieveBufferedExecutions();
 
   @Nonnull
   List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType);
@@ -250,17 +251,17 @@ public interface ExecutionRepository {
     }
   }
 
-  enum ExecutionComparator implements Comparator<Execution> {
+  enum ExecutionComparator implements Comparator<PipelineExecution> {
     NATURAL_ASC {
       @Override
-      public int compare(Execution a, Execution b) {
+      public int compare(PipelineExecution a, PipelineExecution b) {
         return b.getId().compareTo(a.getId());
       }
     },
 
     NATURAL_DESC {
       @Override
-      public int compare(Execution a, Execution b) {
+      public int compare(PipelineExecution a, PipelineExecution b) {
         return a.getId().compareTo(b.getId());
       }
     },
@@ -271,7 +272,7 @@ public interface ExecutionRepository {
      */
     START_TIME_OR_ID {
       @Override
-      public int compare(Execution a, Execution b) {
+      public int compare(PipelineExecution a, PipelineExecution b) {
         Long aStartTime = a.getStartTime();
         Long bStartTime = b.getStartTime();
 
@@ -293,7 +294,7 @@ public interface ExecutionRepository {
 
     BUILD_TIME_DESC {
       @Override
-      public int compare(Execution a, Execution b) {
+      public int compare(PipelineExecution a, PipelineExecution b) {
         Long aBuildTime = Optional.ofNullable(a.getBuildTime()).orElse(0L);
         Long bBuildTime = Optional.ofNullable(b.getBuildTime()).orElse(0L);
 
@@ -307,7 +308,7 @@ public interface ExecutionRepository {
 
     BUILD_TIME_ASC {
       @Override
-      public int compare(Execution a, Execution b) {
+      public int compare(PipelineExecution a, PipelineExecution b) {
         Long aBuildTime = Optional.ofNullable(a.getBuildTime()).orElse(0L);
         Long bBuildTime = Optional.ofNullable(b.getBuildTime()).orElse(0L);
 

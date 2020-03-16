@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryUnshareServiceTask;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +42,9 @@ class CloudFoundryUnshareServiceStagePreprocessorTest {
     Map<String, Object> context = new HashMap<>();
     context.put("cloudProvider", "my-cloud");
     context.put("manifest", Collections.singletonMap("type", "direct"));
-    Stage stage = new Stage(new Execution(PIPELINE, "orca"), "unshareService", context);
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(PIPELINE, "orca"), "unshareService", context);
 
     TaskNode.Builder builder = new TaskNode.Builder(TaskNode.GraphType.FULL);
     preprocessor.addSteps(builder, stage);

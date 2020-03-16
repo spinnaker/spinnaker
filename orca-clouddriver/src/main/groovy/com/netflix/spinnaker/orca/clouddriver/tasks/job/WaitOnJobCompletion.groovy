@@ -20,12 +20,12 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -53,19 +53,19 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
   static final String REFRESH_TYPE = "Job"
 
   @Override @Nullable
-  TaskResult onTimeout(@Nonnull Stage stage) {
+  TaskResult onTimeout(@Nonnull StageExecution stage) {
     jobUtils.cancelWait(stage)
 
     return null
   }
 
   @Override
-  void onCancel(@Nonnull Stage stage) {
+  void onCancel(@Nonnull StageExecution stage) {
     jobUtils.cancelWait(stage)
   }
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     String account = getCredentials(stage)
     Map<String, List<String>> jobs = stage.context."deploy.jobs"
 

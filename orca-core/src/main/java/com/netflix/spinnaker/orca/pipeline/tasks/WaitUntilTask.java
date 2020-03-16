@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING;
 import static java.util.Collections.singletonMap;
 
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.WaitUntilStage;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +41,7 @@ public class WaitUntilTask implements RetryableTask {
   }
 
   @Override
-  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+  public @Nonnull TaskResult execute(@Nonnull StageExecution stage) {
     WaitUntilStage.WaitUntilStageContext context =
         stage.mapTo(WaitUntilStage.WaitUntilStageContext.class);
 
@@ -66,7 +66,7 @@ public class WaitUntilTask implements RetryableTask {
   }
 
   @Override
-  public long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+  public long getDynamicBackoffPeriod(StageExecution stage, Duration taskDuration) {
     WaitUntilStage.WaitUntilStageContext context =
         stage.mapTo(WaitUntilStage.WaitUntilStageContext.class);
 

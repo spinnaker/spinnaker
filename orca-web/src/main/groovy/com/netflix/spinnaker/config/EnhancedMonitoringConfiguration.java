@@ -18,8 +18,8 @@ package com.netflix.spinnaker.config;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.util.HashMap;
 import java.util.List;
@@ -73,7 +73,7 @@ public class EnhancedMonitoringConfiguration {
 
     for (String application : configuration.getApplications()) {
       try {
-        List<Execution> executions =
+        List<PipelineExecution> executions =
             executionRepository
                 .retrieveOrchestrationsForApplication(
                     application,

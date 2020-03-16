@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
   @Shared
-  Execution pipeline = Execution.newPipeline("orca")
+  PipelineExecutionImpl pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   @Unroll
   void 'should be #expectedResult for #instanceDetails with #interestingHealthProviderNames relevant health providers (WaitForDownInstances)'() {
@@ -37,7 +37,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
         return localInstanceDetails.find { it.instanceId == instanceId }
       }
     }
-    def stage = new Stage(pipeline, "waitForDownInstance", [
+    def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
       instanceIds                   : localInstanceDetails*.instanceId,
       interestingHealthProviderNames: interestingHealthProviderNames
     ])
@@ -78,7 +78,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
         return localInstanceDetails.find { it.instanceId == instanceId }
       }
     }
-    def stage = new Stage(pipeline, "waitForDownInstance", [
+    def stage = new StageExecutionImpl(pipeline, "waitForDownInstance", [
       instanceIds                   : localInstanceDetails*.instanceId,
       interestingHealthProviderNames: interestingHealthProviderNames
     ])

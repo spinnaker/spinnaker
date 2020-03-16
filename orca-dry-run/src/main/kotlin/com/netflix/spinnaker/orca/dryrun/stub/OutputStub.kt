@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.dryrun.stub
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
 /**
  * Certain stages may benefit from outputting dummy data in order that they
@@ -28,15 +28,15 @@ interface OutputStub {
   /**
    * Return `true` if a stage is supported by this stub.
    */
-  fun supports(stage: Stage): Boolean
+  fun supports(stage: StageExecution): Boolean
 
   /**
    * Generate stub output. This can be based on things in the stage context if
    * necessary.
    */
-  fun outputs(stage: Stage): Map<String, Any>
+  fun outputs(stage: StageExecution): Map<String, Any>
 
   @Suppress("UNCHECKED_CAST")
-  val Stage.regions: List<String>
+  val StageExecution.regions: List<String>
     get() = context["regions"] as List<String>? ?: emptyList()
 }

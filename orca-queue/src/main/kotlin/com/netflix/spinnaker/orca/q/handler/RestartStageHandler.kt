@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartStage
@@ -67,7 +67,7 @@ class RestartStageHandler(
     }
   }
 
-  private fun restartParentPipelineIfNeeded(message: RestartStage, topStage: Stage) {
+  private fun restartParentPipelineIfNeeded(message: RestartStage, topStage: StageExecution) {
     if (topStage.execution.trigger !is PipelineTrigger) {
       return
     }
@@ -91,11 +91,11 @@ class RestartStageHandler(
   /**
    * Inform the parent stage when it restarts that the child is already running
    */
-  private fun Stage.addSkipRestart() {
+  private fun StageExecution.addSkipRestart() {
     context["_skipPipelineRestart"] = true
   }
 
-  private fun Stage.addRestartDetails(user: String?) {
+  private fun StageExecution.addRestartDetails(user: String?) {
     context["restartDetails"] = mapOf(
       "restartedBy" to (user ?: "anonymous"),
       "restartTime" to clock.millis(),
@@ -103,7 +103,7 @@ class RestartStageHandler(
     )
   }
 
-  private fun Stage.reset() {
+  private fun StageExecution.reset() {
     if (status.isComplete) {
       status = NOT_STARTED
       startTime = null
@@ -118,7 +118,7 @@ class RestartStageHandler(
     downstreamStages().forEach { it.reset() }
   }
 
-  private fun Stage.removeSynthetics() {
+  private fun StageExecution.removeSynthetics() {
     execution
       .stages
       .filter { it.parentStageId == id }

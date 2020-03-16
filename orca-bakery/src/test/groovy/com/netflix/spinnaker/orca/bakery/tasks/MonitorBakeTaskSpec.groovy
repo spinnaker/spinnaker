@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
@@ -43,7 +43,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "should return #taskStatus if bake is #bakeState"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def stage = new StageExecutionImpl(pipeline, "bake", [region: "us-west-1", status: previousStatus])
     def bakery = Mock(BakeryService) {
       lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState, result: bakeResult))
     }
@@ -82,7 +82,7 @@ class MonitorBakeTaskSpec extends Specification {
     given:
     def id = randomUUID().toString()
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def stage = new StageExecutionImpl(pipeline, "bake", [region: "us-west-1", status: previousStatus])
     def bakery = Mock(BakeryService) {
       lookupStatus(stage.context.region, id) >> Observable.from(
         new BakeStatus(id: id, state: state, result: null)
@@ -122,7 +122,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "outputs the updated bake status"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
+    def stage = new StageExecutionImpl(pipeline, "bake", [region: "us-west-1", status: previousStatus])
     def bakery = Mock(BakeryService) {
       lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
     }

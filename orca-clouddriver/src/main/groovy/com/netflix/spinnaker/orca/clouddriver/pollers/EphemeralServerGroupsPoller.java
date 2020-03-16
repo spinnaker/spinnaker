@@ -25,11 +25,11 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import groovy.util.logging.Slf4j;
@@ -135,7 +135,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
         AuthenticatedRequest.propagate(
                 () ->
                     executionLauncher.start(
-                        Execution.ExecutionType.ORCHESTRATION,
+                        ExecutionType.ORCHESTRATION,
                         objectMapper.writeValueAsString(cleanupOperation)),
                 systemUser)
             .call();

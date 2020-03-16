@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
-import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
-import com.netflix.spinnaker.orca.ExecutionStatus
+
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import org.springframework.mock.env.MockEnvironment
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -56,7 +56,7 @@ class CreateServerGroupStageSpec extends Specification {
         "strategy"            : strategy
       ]
       tasks = [
-        new Task(status: failedTask ? ExecutionStatus.TERMINAL : ExecutionStatus.SUCCEEDED)
+        new TaskExecutionImpl(status: failedTask ? ExecutionStatus.TERMINAL : ExecutionStatus.SUCCEEDED)
       ]
     }
 
@@ -67,7 +67,7 @@ class CreateServerGroupStageSpec extends Specification {
     }
 
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     createServerGroupStage.onFailureStages(stage, graph)
     def onFailureStageContexts = graph.build()*.getContext()
 
@@ -113,7 +113,7 @@ class CreateServerGroupStageSpec extends Specification {
     }
 
     when:
-    def graph = StageGraphBuilder.afterStages(stage)
+    def graph = StageGraphBuilderImpl.afterStages(stage)
     createServerGroupStage.onFailureStages(stage, graph)
     def onFailureStageContexts = graph.build()*.getContext()
 

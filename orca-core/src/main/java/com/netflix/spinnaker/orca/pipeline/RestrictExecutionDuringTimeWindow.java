@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.*;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.*;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
 import static java.util.Calendar.*;
 import static java.util.Collections.singletonList;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -51,7 +53,7 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
   public static final String TYPE = "restrictExecutionDuringTimeWindow";
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask(
         "suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask.class);
 
@@ -140,7 +142,7 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
     String timeZoneId;
 
     @Override
-    public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+    public @Nonnull TaskResult execute(@Nonnull StageExecution stage) {
       Instant now = Instant.now();
       Instant scheduledTime;
       try {
@@ -254,7 +256,7 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
      * @return
      */
     @VisibleForTesting
-    private Instant getTimeInWindow(Stage stage, Instant scheduledTime) {
+    private Instant getTimeInWindow(StageExecution stage, Instant scheduledTime) {
       // Passing in the current date to allow unit testing
       try {
         RestrictedExecutionWindowConfig config = stage.mapTo(RestrictedExecutionWindowConfig.class);

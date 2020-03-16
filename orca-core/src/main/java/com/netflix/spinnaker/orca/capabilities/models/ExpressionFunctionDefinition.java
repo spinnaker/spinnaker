@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.capabilities.models;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -45,7 +45,7 @@ public class ExpressionFunctionDefinition {
     parameters = new ArrayList<>();
     for (ExpressionFunctionProvider.FunctionParameter parameter :
         functionDefinition.getParameters()) {
-      if (parameter.getType() != Execution.class) {
+      if (parameter.getType() != PipelineExecution.class) {
         parameters.add(new ExpressionFunctionParameterDefinition(parameter));
       }
     }

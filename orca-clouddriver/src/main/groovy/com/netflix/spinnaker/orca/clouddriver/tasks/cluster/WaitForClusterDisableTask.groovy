@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.beans.factory.annotation.Value
@@ -49,7 +49,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
   }
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     def taskResult = super.execute(stage)
 
     def duration = System.currentTimeMillis() - stage.startTime
@@ -62,7 +62,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
   }
 
   @Override
-  boolean isServerGroupOperationInProgress(Stage stage,
+  boolean isServerGroupOperationInProgress(StageExecution stage,
                                            List<Map> interestingHealthProviderNames,
                                            Optional<TargetServerGroup> serverGroup) {
     // null vs empty interestingHealthProviderNames do mean very different things to Spinnaker
@@ -88,7 +88,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
     return !(platformHealthType && interestingHealthProviderNames == [platformHealthType])
   }
 
-  private String getPlatformHealthType(Stage stage, TargetServerGroup targetServerGroup) {
+  private String getPlatformHealthType(StageExecution stage, TargetServerGroup targetServerGroup) {
     def platformHealthType = targetServerGroup.instances.collect { instance ->
       HealthHelper.findPlatformHealth(instance.health)
     }?.find {

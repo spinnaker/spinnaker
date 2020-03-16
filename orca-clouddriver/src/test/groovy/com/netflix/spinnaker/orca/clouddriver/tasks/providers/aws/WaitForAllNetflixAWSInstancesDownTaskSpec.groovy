@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+
 import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Shared
@@ -32,7 +34,7 @@ import spock.lang.Unroll
 class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Subject task = new WaitForAllNetflixAWSInstancesDownTask() {
     @Override
-    void verifyServerGroupsExist(Stage stage) {
+    void verifyServerGroupsExist(StageExecution stage) {
       // do nothing
     }
   }
@@ -47,7 +49,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
 
   void "should fetch server group"() {
     given:
-    def pipeline = Execution.newPipeline("orca")
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
     task.objectMapper = mapper
     def response = mapper.writeValueAsString([
       region   : "us-west-1",
@@ -68,7 +70,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(pipeline, "asgActionWaitForDownInstances", [
+    def stage = new StageExecutionImpl(pipeline, "asgActionWaitForDownInstances", [
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"
@@ -82,7 +84,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "")
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "")
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)

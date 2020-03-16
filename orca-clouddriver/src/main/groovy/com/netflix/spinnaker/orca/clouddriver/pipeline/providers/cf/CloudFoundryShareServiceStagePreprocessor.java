@@ -16,23 +16,23 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker.ShareServiceStagePreprocessor;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryShareServiceTask;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CloudFoundryShareServiceStagePreprocessor implements ShareServiceStagePreprocessor {
   @Override
-  public boolean supports(Stage stage) {
+  public boolean supports(StageExecution stage) {
     return "cloudfoundry".equals(stage.mapTo(StageData.class).getCloudProvider());
   }
 
   @Override
-  public void addSteps(TaskNode.Builder builder, Stage stage) {
+  public void addSteps(TaskNode.Builder builder, StageExecution stage) {
     builder
         .withTask("shareService", CloudFoundryShareServiceTask.class)
         .withTask("monitorShareService", CloudFoundryMonitorKatoServicesTask.class);

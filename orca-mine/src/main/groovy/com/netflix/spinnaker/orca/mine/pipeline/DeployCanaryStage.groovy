@@ -18,21 +18,22 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.FindImageFromClusterTask
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -40,6 +41,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
+
+import static com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl.newOrchestration
 import static java.util.Collections.emptyList
 
 @Component
@@ -58,19 +63,20 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   @Autowired
   MortService mortService
 
+  @Nonnull
   @Override
   String getType() {
     PIPELINE_CONFIG_TYPE
   }
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("completeDeployCanary", CompleteDeployCanaryTask)
   }
 
   @Override
   @CompileDynamic
-  protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
+  protected Collection<Map<String, Object>> parallelContexts(StageExecution stage) {
     List<Map> baselineAmis = findBaselineAmis(stage)
     Map defaultStageContext = stage.context
     List<Map> canaryDeployments = defaultStageContext.clusterPairs
@@ -100,7 +106,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   }
 
   @CompileDynamic
-  List<Map> findBaselineAmis(Stage stage) {
+  List<Map> findBaselineAmis(StageExecution stage) {
     Set<String> regions = stage.context.clusterPairs.collect {
       if (it.canary.availabilityZones) {
         it.canary.availabilityZones?.keySet() + it.baseline.availabilityZones?.keySet()
@@ -110,7 +116,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
     }.flatten()
 
     def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions, cloudProvider: stage.context.baseline.cloudProvider ?: 'aws']
-    Stage s = new Stage(Execution.newOrchestration(stage.execution.application), "findImage", findImageCtx)
+    StageExecution s = new StageExecutionImpl(newOrchestration(stage.execution.application), "findImage", findImageCtx)
     try {
       TaskResult result = findImage.execute(s)
       return result.context.amiDetails
@@ -149,8 +155,9 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       this.mortService = mortService
     }
 
+    @Nonnull
     @CompileDynamic
-    TaskResult execute(Stage stage) {
+    TaskResult execute(@Nonnull StageExecution stage) {
       def context = stage.context
       def allStages = stage.execution.stages
       def deployStages = allStages.findAll {
@@ -228,8 +235,8 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
   @Override
   @CompileDynamic
-  CancellableStage.Result cancel(Stage stage) {
-    def canary = stage.ancestors { Stage s, StageDefinitionBuilder stageBuilder ->
+  CancellableStage.Result cancel(StageExecution stage) {
+    def canary = stage.ancestors { StageExecution s, StageDefinitionBuilder stageBuilder ->
       stageBuilder instanceof CanaryStage
     } first()
     return ((CanaryStage) canary.stageBuilder).cancel(canary.stage)

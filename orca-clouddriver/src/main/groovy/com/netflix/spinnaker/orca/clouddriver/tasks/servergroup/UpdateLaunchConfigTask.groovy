@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Component
 @Slf4j
@@ -40,8 +42,9 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
   @Value('${default.bake.account:default}')
   String defaultBakeAccount
 
+  @Nonnull
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(@Nonnull StageExecution stage) {
     def ops
     def cloudProvider = getCloudProvider(stage)
     if (cloudProvider == "aws") {
@@ -64,7 +67,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
     ]).build()
   }
 
-  private getAwsOps(Stage stage) {
+  private getAwsOps(StageExecution stage) {
     def operation = new HashMap(stage.context)
     operation.amiName = getImage(stage)
     operation.asgName = operation.asgName ?: operation.serverGroupName
@@ -82,7 +85,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
     ops
   }
 
-  private String getImage(Stage stage) {
+  private String getImage(StageExecution stage) {
     String amiName = stage.context.amiName
     String targetRegion = stage.context.region
     withImageFromPrecedingStage(stage, targetRegion, "aws") {

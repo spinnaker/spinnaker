@@ -19,25 +19,25 @@ package com.netflix.spinnaker.orca.q.handler
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.assertj.assertSoftly
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.StageResolver
-import com.netflix.spinnaker.orca.api.SimpleStage
-import com.netflix.spinnaker.orca.api.SimpleStageInput
-import com.netflix.spinnaker.orca.api.SimpleStageOutput
-import com.netflix.spinnaker.orca.api.SimpleStageStatus
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStageInput
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStageOutput
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStageStatus
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
-import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -558,7 +558,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
-          argumentCaptor<Stage>().apply {
+          argumentCaptor<StageExecution>().apply {
             verify(repository, times(3)).addStage(capture())
             assertSoftly {
               assertThat(firstValue.type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
@@ -599,7 +599,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
-          argumentCaptor<Stage>().apply {
+          argumentCaptor<StageExecution>().apply {
             verify(repository, times(4)).addStage(capture())
             assertSoftly {
               assertThat(firstValue.type)
@@ -861,7 +861,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("builds tasks for the main branch") {
         val stage = pipeline.stageById(message.stageId)
-        assertThat(stage.tasks.map(Task::getName)).isEqualTo(listOf("post-branch"))
+        assertThat(stage.tasks.map(TaskExecution::getName)).isEqualTo(listOf("post-branch"))
       }
 
       it("builds synthetic stages for each parallel branch") {
@@ -914,12 +914,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       it("builds tasks for the branch") {
         val stage = pipeline.stageById(message.stageId)
         assertThat(stage.tasks).isNotEmpty
-        assertThat(stage.tasks.map(Task::getName)).isEqualTo(listOf("dummy"))
+        assertThat(stage.tasks.map(TaskExecution::getName)).isEqualTo(listOf("dummy"))
       }
 
       it("does not build more synthetic stages") {
         val stage = pipeline.stageById(message.stageId)
-        assertThat(pipeline.stages.mapNotNull(Stage::getParentStageId))
+        assertThat(pipeline.stages.mapNotNull(StageExecution::getParentStageId))
           .doesNotContain(stage.id)
       }
     }

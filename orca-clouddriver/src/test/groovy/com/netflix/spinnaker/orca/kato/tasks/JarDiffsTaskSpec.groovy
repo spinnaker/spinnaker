@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -41,7 +41,7 @@ class JarDiffsTaskSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
 
   @Shared
-  Execution pipeline = Execution.newPipeline("orca")
+  PipelineExecutionImpl pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   def setup() {
     GroovyMock(OortHelper, global: true)
@@ -168,7 +168,7 @@ class JarDiffsTaskSpec extends Specification {
     def pipe = pipeline {
       application = "app"
     }
-    def stage = new Stage(pipe, 'jarDiff', config)
+    def stage = new StageExecutionImpl(pipe, 'jarDiff', config)
 
     stage.context << deployContext
 
@@ -206,7 +206,7 @@ class JarDiffsTaskSpec extends Specification {
     def pipe = pipeline {
       application = "app"
     }
-    def stage = new Stage(pipe, 'jarDiff', config)
+    def stage = new StageExecutionImpl(pipe, 'jarDiff', config)
 
     stage.context << deployContext
 
@@ -236,7 +236,7 @@ class JarDiffsTaskSpec extends Specification {
 
   def "return success if retries limit hit"() {
     given:
-    def stage = new Stage(pipeline, "jarDiffs", [jarDiffsRetriesRemaining: 0])
+    def stage = new StageExecutionImpl(pipeline, "jarDiffs", [jarDiffsRetriesRemaining: 0])
 
     when:
     def result = task.execute(stage)

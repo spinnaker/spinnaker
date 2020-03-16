@@ -17,13 +17,15 @@ package com.netflix.spinnaker.orca.pipelinetemplate.pipeline;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.PlanTemplateDependentsTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.UpdatePipelineTemplateTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
@@ -44,7 +46,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
   private UpdatePipelineStage updatePipelineStage;
 
   @Override
-  public void taskGraph(Stage stage, Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull Builder builder) {
     if (!Boolean.valueOf(
         stage.getContext().getOrDefault("skipPlanDependents", "false").toString())) {
       builder.withTask("planDependentPipelines", PlanTemplateDependentsTask.class);
@@ -54,7 +56,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
   }
 
   @Override
-  public void afterStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
+  public void afterStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
     if (front50Service == null) {
       return;
     }
@@ -69,8 +71,9 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
     }
 
     PipelineTemplate pipelineTemplate =
-        stage.decodeBase64(
-            "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
+        ((StageExecutionImpl) stage)
+            .decodeBase64(
+                "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
 
     List<Map<String, Object>> dependentPipelines =
         front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), true);
@@ -80,7 +83,8 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
         .forEach(graph::append);
   }
 
-  private Stage configureSavePipelineStage(Stage stage, Map<String, Object> pipeline) {
+  private StageExecution configureSavePipelineStage(
+      StageExecution stage, Map<String, Object> pipeline) {
     Map<String, Object> context = new HashMap<>();
 
     try {
@@ -93,7 +97,7 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
           String.format("Failed converting pipeline to JSON: %s", pipeline.get("id")), e);
     }
 
-    return StageDefinitionBuilder.newStage(
+    return StageExecutionFactory.newStage(
         stage.getExecution(),
         updatePipelineStage.getType(),
         "updateDependentPipeline",

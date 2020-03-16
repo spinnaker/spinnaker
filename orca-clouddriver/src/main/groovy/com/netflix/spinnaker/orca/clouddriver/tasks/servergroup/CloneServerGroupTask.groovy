@@ -17,18 +17,20 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone.CloneDescriptionDecorator
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Slf4j
 @Component
@@ -42,8 +44,9 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
   @Autowired
   ObjectMapper mapper
 
+  @Nonnull
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(@Nonnull StageExecution stage) {
     def operation = [:]
     operation.putAll(stage.context)
     String targetRegion = operation.region ?: operation.availabilityZones?.keySet()?.getAt(0) ?: operation.source?.region
@@ -80,7 +83,7 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
   }
 
-  private List<Map<String, Object>> getDescriptions(Stage stage, Map operation) {
+  private List<Map<String, Object>> getDescriptions(StageExecution stage, Map operation) {
     log.info("Generating descriptions (cloudProvider: ${operation.cloudProvider}, getCloudProvider: ${getCloudProvider(operation)}, credentials: ${operation.credentials}, availabilityZones: ${operation.availabilityZones})")
 
     List<Map<String, Object>> descriptions = []

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,7 +31,7 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
   def ACCOUNT = "my-account"
   def BUILD_ID = "0cc67a01-714f-49c7-aaf3-d09b5ec1a18a"
 
-  Execution execution = Mock(Execution)
+  PipelineExecutionImpl execution = Mock(PipelineExecutionImpl)
   IgorService igorService = Mock(IgorService)
 
   @Subject
@@ -44,7 +44,7 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
       .id(BUILD_ID)
       .status(GoogleCloudBuild.Status.valueOf(buildStatus))
       .build()
-    def stage = new Stage(execution, "googleCloudBuild", [
+    def stage = new StageExecutionImpl(execution, "googleCloudBuild", [
       account: ACCOUNT,
       buildInfo: [
         id: BUILD_ID
@@ -74,7 +74,7 @@ class MonitorGoogleCloudBuildTaskSpec extends Specification {
 
   def "task returns RUNNING when communcation with igor fails"() {
     given:
-    def stage = new Stage(execution, "googleCloudBuild", [
+    def stage = new StageExecutionImpl(execution, "googleCloudBuild", [
       account: ACCOUNT,
       buildInfo: [
         id: BUILD_ID

@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.orca.igor.pipeline;
 
-import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.igor.tasks.MonitorWerckerJobStartedTask;
 import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask;
 import org.springframework.stereotype.Component;

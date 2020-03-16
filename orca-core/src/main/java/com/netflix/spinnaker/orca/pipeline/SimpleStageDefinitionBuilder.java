@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import com.netflix.spinnaker.orca.api.SimpleStage;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage;
 import javax.annotation.Nonnull;
 
 public class SimpleStageDefinitionBuilder implements StageDefinitionBuilder {
@@ -27,7 +29,7 @@ public class SimpleStageDefinitionBuilder implements StageDefinitionBuilder {
     this.simpleStage = simpleStage;
   }
 
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     SimpleTask task = new SimpleTask(simpleStage);
     builder.withTask(simpleStage.getName(), task.getClass());
   }

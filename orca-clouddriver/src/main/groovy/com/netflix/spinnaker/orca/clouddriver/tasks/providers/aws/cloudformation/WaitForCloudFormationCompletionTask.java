@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +54,7 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     try {
       Map task = ((List<Map>) stage.getContext().get("kato.tasks")).iterator().next();
       Map result = ((List<Map>) task.get("resultObjects")).iterator().next();
@@ -137,7 +137,7 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
         .orElse(CloudFormationStates.NOT_YET_READY.toString());
   }
 
-  private boolean isEmptyChangeSet(Stage stage, Map<String, ?> stack) {
+  private boolean isEmptyChangeSet(StageExecution stage, Map<String, ?> stack) {
     if ((boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false)) {
       String status = getChangeSetInfo(stack, stage.getContext(), "status");
       String statusReason = getChangeSetInfo(stack, stage.getContext(), "statusReason");

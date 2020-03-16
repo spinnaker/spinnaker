@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.*;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.*;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import groovy.transform.CompileStatic;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,7 +57,7 @@ public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAw
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     TaskId taskId = stage.mapTo("/kato.last.task.id", TaskId.class);
     List<Map<String, Object>> katoTasks =
         Optional.ofNullable((List<Map<String, Object>>) stage.getContext().get("kato.tasks"))

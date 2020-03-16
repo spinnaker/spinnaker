@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.pipeline.model.support
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 
 /**
  * Provides a [predicate] & [deserializer] pair for custom trigger types.
@@ -24,6 +24,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Trigger
  * The [predicate] will return true if the [deserializer] should be used
  * for the provided JsonNode. If more than one [predicate] returns true,
  * the first supplier will be chosen.
+ *
+ * TODO(rz): Refactor so that JsonNode is not needed (for orca-api compat)
  */
 interface CustomTriggerDeserializerSupplier {
   val predicate: (node: JsonNode) -> Boolean

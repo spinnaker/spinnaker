@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 
 class DetermineTerminationPhaseInstancesTaskSpec extends Specification {
@@ -27,7 +27,7 @@ class DetermineTerminationPhaseInstancesTaskSpec extends Specification {
   def 'should get next instanceIds'() {
     given:
     def context = [termination: [concurrentRelaunches: concurrentRelaunches], terminationInstanceIds: terminationInstanceIds]
-    def stage = new Stage(Execution.newOrchestration("orca"), 'test', context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), 'test', context)
 
     when:
     def result = task.execute(stage)

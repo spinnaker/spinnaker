@@ -17,16 +17,15 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
 
 import javax.annotation.Nonnull
-
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Deprecated
 abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuilder {
@@ -40,8 +39,8 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
   DetermineTargetReferenceStage determineTargetReferenceStage
 
   @Override
-  void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    List<Stage> stages = composeTargets(parent)
+  void beforeStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
+    List<StageExecution> stages = composeTargets(parent)
 
     stages
       .findAll({ it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE })
@@ -49,15 +48,15 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
   }
 
   @Override
-  void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    List<Stage> stages = composeTargets(parent)
+  void afterStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
+    List<StageExecution> stages = composeTargets(parent)
 
     stages
       .findAll({ it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER })
       .forEach({ graph.append(it) })
   }
 
-  List<Stage> composeTargets(Stage stage) {
+  List<StageExecution> composeTargets(StageExecution stage) {
     stage.resolveStrategyParams()
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       return composeDynamicTargets(stage)
@@ -66,7 +65,7 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
     return composeStaticTargets(stage)
   }
 
-  private List<Stage> composeStaticTargets(Stage stage) {
+  private List<StageExecution> composeStaticTargets(StageExecution stage) {
     def descriptionList = buildStaticTargetDescriptions(stage)
     if (descriptionList.empty) {
       throw new TargetReferenceNotFoundException("Could not find any server groups for specified target")
@@ -76,13 +75,13 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
 
     if (descriptionList.size()) {
       return descriptionList.collect {
-        newStage(stage.execution, this.type, this.type, it, stage, SyntheticStageOwner.STAGE_AFTER)
+        StageExecutionFactory.newStage(stage.execution, this.type, this.type, it, stage, SyntheticStageOwner.STAGE_AFTER)
       }
     }
     return []
   }
 
-  private List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage) {
+  private List<Map<String, Object>> buildStaticTargetDescriptions(StageExecution stage) {
     List<TargetReference> targets = targetReferenceSupport.getTargetAsgReferences(stage)
 
     return targets.collect { TargetReference target ->
@@ -99,7 +98,7 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
     }
   }
 
-  private List<Stage> composeDynamicTargets(Stage stage) {
+  private List<StageExecution> composeDynamicTargets(StageExecution stage) {
     def stages = []
 
     // We only want to determine the target ASGs once per stage, so only inject if this is the root stage, i.e.
@@ -110,7 +109,7 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
       def configuredRegions = stage.context.regions
       Map injectedContext = new HashMap(stage.context)
       injectedContext.regions = new ArrayList(configuredRegions)
-      stages << newStage(
+      stages << StageExecutionFactory.newStage(
         stage.execution,
         determineTargetReferenceStage.type,
         "determineTargetReferences",
@@ -124,7 +123,7 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
         for (region in configuredRegions) {
           def description = new HashMap(stage.context)
           description.region = region
-          stages << newStage(
+          stages << StageExecutionFactory.newStage(
             stage.execution, this.type, this.type, description, stage, SyntheticStageOwner.STAGE_AFTER
           )
         }

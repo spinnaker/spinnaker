@@ -17,8 +17,8 @@ package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.qos.BufferAction.BUFFER

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 
 interface SecurityGroupUpserter {
@@ -27,13 +27,13 @@ interface SecurityGroupUpserter {
    * @return the OperationContext object that contains the cloud provider-specific list of operations as well as
    * cloud provider-specific output key/value pairs to be included in the task's output.
    */
-  OperationContext getOperationContext(Stage stage)
+  OperationContext getOperationContext(StageExecution stage)
 
   /**
    * @return true when, according to the underlying cloud provider, the security group has been updated to match the
    * specified security group.
    */
-  boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, Stage stage)
+  boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, StageExecution stage)
 
   /**
    * @return The cloud provider type that this object supports.

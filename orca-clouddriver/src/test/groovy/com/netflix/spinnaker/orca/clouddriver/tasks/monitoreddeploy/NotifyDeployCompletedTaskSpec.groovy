@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployCompletedStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
@@ -29,8 +29,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Mo
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorService
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRequest
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStageConfig
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import spock.lang.Specification
 
@@ -38,7 +38,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class NotifyDeployCompletedTaskSpec extends Specification {
   ObjectMapper mapper = new ObjectMapper()
-  Execution pipe = pipeline {
+  PipelineExecutionImpl pipe = pipeline {
   }
 
   def "should indicate deployment success or failure when no rollback is performed"() {
@@ -68,7 +68,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     stageData.deploymentMonitor.id = "LogMonitorId"
     stageData.application = pipe.application
 
-    def stage = new Stage(pipe, NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
+    def stage = new StageExecutionImpl(pipe, NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
     stage.context.put("hasDeploymentFailed", false)
 
     when:
@@ -130,9 +130,9 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     stageData.application = pipe.application
 
 
-    def notifyCompleteStage = new Stage(pipe, NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
-    def rollbackStage = new Stage(pipe, RollbackClusterStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
-    def createServerGroupStage = new Stage(pipe, CreateServerGroupStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
+    def notifyCompleteStage = new StageExecutionImpl(pipe, NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
+    def rollbackStage = new StageExecutionImpl(pipe, RollbackClusterStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
+    def createServerGroupStage = new StageExecutionImpl(pipe, CreateServerGroupStage.PIPELINE_CONFIG_TYPE, mapper.convertValue(stageData, Map))
     rollbackStage.status = ExecutionStatus.SUCCEEDED
 
     notifyCompleteStage.setParentStageId(createServerGroupStage.getId())

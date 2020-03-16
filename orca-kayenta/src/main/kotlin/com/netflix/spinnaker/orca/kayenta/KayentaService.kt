@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import retrofit.http.Body
 import retrofit.http.GET
 import retrofit.http.POST

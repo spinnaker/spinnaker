@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class NoOpTask implements Task {
+  @Nonnull
   @Override
-  public TaskResult execute(Stage ignored) {
+  public TaskResult execute(@Nonnull StageExecution ignored) {
     return TaskResult.SUCCEEDED;
   }
 }

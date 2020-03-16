@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.snapshot
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 
 class DeleteSnapshotTaskSpec extends Specification {
@@ -34,7 +34,7 @@ class DeleteSnapshotTaskSpec extends Specification {
       snapshotIds  : ["snap-08e97a12bceb0b750"]
     ]
 
-    def stage = new Stage(Execution.newPipeline("orca"), "deleteSnapshot", context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "deleteSnapshot", context)
 
     and:
     List<Map> operations = []

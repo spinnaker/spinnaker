@@ -18,8 +18,13 @@ package com.netflix.spinnaker.orca.kato.pipeline;
 import static java.lang.String.format;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
+import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask;
@@ -28,18 +33,16 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CaptureParentInt
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.*;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RollingPushStage implements StageDefinitionBuilder {
+public class RollingPushStage implements StageDefinitionBuilder, ForceCacheRefreshAware {
 
   public static final String PIPELINE_CONFIG_TYPE = "rollingPush";
 
@@ -48,7 +51,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
   @Autowired private DynamicConfigService dynamicConfigService;
 
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     boolean taggingEnabled = featuresService.areEntityTagsAvailable();
     builder
         .withTask(
@@ -92,18 +95,19 @@ public class RollingPushStage implements StageDefinitionBuilder {
     builder.withTask("pushComplete", PushCompleteTask.class);
   }
 
-  private boolean shouldWaitForTermination(Stage stage) {
+  private boolean shouldWaitForTermination(StageExecution stage) {
     Map termination = (Map) stage.getContext().get("termination");
     return termination != null && termination.containsKey("waitTime");
   }
 
   @Component
-  public static class PushCompleteTask implements com.netflix.spinnaker.orca.Task {
+  public static class PushCompleteTask implements Task {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Nonnull
     @Override
-    public TaskResult execute(Stage stage) {
+    public TaskResult execute(@Nonnull StageExecution stage) {
       log.info(
           format(
               "Rolling Push completed for %s in %s / %s",

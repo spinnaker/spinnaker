@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.instance
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -47,7 +47,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
    * For instances that are not part of any server group (stand alone instances), we ensure the instance no longer
    * exists and do not expect it to be recreated.
    */
-  List<TerminatingInstance> remainingInstances(Stage stage) {
+  List<TerminatingInstance> remainingInstances(StageExecution stage) {
     List<TerminatingInstance> terminatingInstances
     if (stage.context[TERMINATE_REMAINING_INSTANCES]) {
       terminatingInstances = Arrays.asList(stage.mapTo("/" + TERMINATE_REMAINING_INSTANCES, TerminatingInstance[]))
@@ -77,7 +77,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
         getRemainingInstancesFromSearch(stage, terminatingInstances)
   }
 
-  List<TerminatingInstance> getRemainingInstancesFromServerGroup(Stage stage, String serverGroupName, List<TerminatingInstance> terminatingInstances) {
+  List<TerminatingInstance> getRemainingInstancesFromServerGroup(StageExecution stage, String serverGroupName, List<TerminatingInstance> terminatingInstances) {
     String account = getCredentials(stage)
     String cloudProvider = getCloudProvider(stage)
     String location = stage.context.region
@@ -109,7 +109,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
   /**
    * This is a fallback mechanism for terminating instances not part of a server group (aka standalone instances).
    */
-  List<TerminatingInstance> getRemainingInstancesFromSearch(Stage stage, List<TerminatingInstance> terminatingInstances) {
+  List<TerminatingInstance> getRemainingInstancesFromSearch(StageExecution stage, List<TerminatingInstance> terminatingInstances) {
     String cloudProvider = getCloudProvider(stage)
     return terminatingInstances.findAll { TerminatingInstance terminatingInstance ->
       List<Map> searchResult

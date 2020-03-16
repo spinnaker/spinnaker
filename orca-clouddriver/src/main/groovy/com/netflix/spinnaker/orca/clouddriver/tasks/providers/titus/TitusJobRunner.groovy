@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -33,7 +33,7 @@ class TitusJobRunner implements JobRunner {
   List<String> defaultSecurityGroups = DEFAULT_SECURITY_GROUPS
 
   @Override
-  List<Map> getOperations(Stage stage) {
+  List<Map> getOperations(StageExecution stage) {
     def operation = [:]
     operation.putAll(stage.context)
     if (stage.context.containsKey("cluster")) {
@@ -53,7 +53,7 @@ class TitusJobRunner implements JobRunner {
   }
 
   @Override
-  Map<String, Object> getAdditionalOutputs(Stage stage, List<Map> operations) {
+  Map<String, Object> getAdditionalOutputs(StageExecution stage, List<Map> operations) {
     if (stage.context.cluster?.application) {
       return [
           application: stage.context.cluster.application

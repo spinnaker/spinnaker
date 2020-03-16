@@ -20,9 +20,9 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -47,7 +47,7 @@ class OptionalStageSupportSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(pipeline, "", [
+    def stage = new StageExecutionImpl(pipeline, "", [
       stageEnabled: optionalConfig
     ])
 

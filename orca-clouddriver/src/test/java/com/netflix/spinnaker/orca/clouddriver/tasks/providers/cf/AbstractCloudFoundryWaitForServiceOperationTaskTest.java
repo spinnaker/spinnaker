@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.AbstractWaitForServiceTask;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -66,7 +66,9 @@ class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWait
     context.put("service.instance.name", serviceInstanceName);
 
     TaskResult result =
-        task.execute(new Stage(new Execution(PIPELINE, "orca"), operationType, context));
+        task.execute(
+            new StageExecutionImpl(
+                new PipelineExecutionImpl(PIPELINE, "orca"), operationType, context));
 
     assertThat(result.getStatus().toString()).isEqualTo(expectedStatus.toString());
   }

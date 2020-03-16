@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.peering
 
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 
 open class PeeringMetrics(
   peeredId: String,
@@ -31,7 +31,7 @@ open class PeeringMetrics(
   private val peeringNumStagesDeletedId = registry.createId("pollers.peering.numStagesDeleted").withTag("peerId", peeredId)
   private val peeringNumErrorsId = registry.createId("pollers.peering.numErrors").withTag("peerId", peeredId)
 
-  open fun recordLag(executionType: Execution.ExecutionType, block: () -> Unit) {
+  open fun recordLag(executionType: ExecutionType, block: () -> Unit) {
     registry
       .timer(peeringLagTimerId.tag(executionType))
       .record {
@@ -39,37 +39,37 @@ open class PeeringMetrics(
       }
   }
 
-  open fun incrementNumPeered(executionType: Execution.ExecutionType, state: ExecutionState, count: Int) {
+  open fun incrementNumPeered(executionType: ExecutionType, state: ExecutionState, count: Int) {
     registry
       .counter(peeringNumPeeredId.tag(executionType, state))
       .increment(count.toLong())
   }
 
-  open fun incrementNumDeleted(executionType: Execution.ExecutionType, count: Int) {
+  open fun incrementNumDeleted(executionType: ExecutionType, count: Int) {
     registry
       .counter(peeringNumDeletedId.tag(executionType))
       .increment(count.toLong())
   }
 
-  open fun incrementNumErrors(executionType: Execution.ExecutionType) {
+  open fun incrementNumErrors(executionType: ExecutionType) {
     registry
       .counter(peeringNumErrorsId.tag(executionType))
       .increment()
   }
 
-  open fun incrementNumStagesDeleted(executionType: Execution.ExecutionType, count: Int) {
+  open fun incrementNumStagesDeleted(executionType: ExecutionType, count: Int) {
     registry
       .counter(peeringNumStagesDeletedId.tag(executionType))
       .increment(count.toLong())
   }
 }
 
-internal fun Id.tag(executionType: Execution.ExecutionType): Id {
+internal fun Id.tag(executionType: ExecutionType): Id {
   return this
     .withTag("executionType", executionType.toString())
 }
 
-internal fun Id.tag(executionType: Execution.ExecutionType, state: ExecutionState): Id {
+internal fun Id.tag(executionType: ExecutionType, state: ExecutionState): Id {
   return this
     .withTag("executionType", executionType.toString())
     .withTag("state", state.toString())

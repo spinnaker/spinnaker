@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.ext
 
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 
 inline fun <reified T : Task> TaskNode.Builder.withTask(name: String) =
   withTask(name, T::class.java)

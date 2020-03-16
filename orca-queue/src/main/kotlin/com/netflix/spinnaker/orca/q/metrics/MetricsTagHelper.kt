@@ -17,15 +17,16 @@
 package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.BasicTag
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class MetricsTagHelper : CloudProviderAware {
   companion object {
     private val helper = MetricsTagHelper()
 
-    fun commonTags(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus): Iterable<BasicTag> =
+    fun commonTags(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus): Iterable<BasicTag> =
       arrayListOf(
         BasicTag("status", status.toString()),
         BasicTag("executionType", stage.execution.type.name.capitalize()),
@@ -33,7 +34,7 @@ class MetricsTagHelper : CloudProviderAware {
         BasicTag("cloudProvider", helper.getCloudProvider(stage).valueOrNa())
       )
 
-    fun detailedTaskTags(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus): Iterable<BasicTag> =
+    fun detailedTaskTags(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus): Iterable<BasicTag> =
       arrayListOf(
         BasicTag("stageType", stage.type),
         BasicTag("taskType", taskModel.implementingClass),

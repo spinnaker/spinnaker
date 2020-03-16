@@ -19,11 +19,10 @@ package com.netflix.spinnaker.orca.webhook.pipeline
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.netflix.spinnaker.kork.exceptions.UserException
-import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
@@ -50,7 +49,7 @@ class WebhookStage implements StageDefinitionBuilder {
   }
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     StageData stageData = stage.mapTo(StageData)
 
     if (stageData.monitorOnly && !stageData.waitForCompletion) {
@@ -74,7 +73,7 @@ class WebhookStage implements StageDefinitionBuilder {
   }
 
   @Override
-  void onFailureStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
+  void onFailureStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
     new MonitorWebhookTask(webhookService).onCancel(stage)
   }
 

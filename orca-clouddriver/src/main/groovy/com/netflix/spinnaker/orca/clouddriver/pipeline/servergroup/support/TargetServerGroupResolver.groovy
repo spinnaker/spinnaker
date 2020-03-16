@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -41,7 +41,7 @@ class TargetServerGroupResolver {
   @Autowired
   RetrySupport retrySupport
 
-  List<TargetServerGroup> resolve(Stage stage) {
+  List<TargetServerGroup> resolve(StageExecution stage) {
     resolveByParams(TargetServerGroup.Params.fromStage(stage))
   }
 
@@ -104,7 +104,7 @@ class TargetServerGroupResolver {
    * fromPreviousStage looks back at this execution's stages to find the stage at which the TargetServerGroups were
    * resolved.
    */
-  static TargetServerGroup fromPreviousStage(Stage stage) {
+  static TargetServerGroup fromPreviousStage(StageExecution stage) {
     // The DetermineTargetServerGroupStage has all the TargetServerGroups we want - go find it!
     def dtsgStage = stage.ancestors().find { isDTSGStage(it) }
 
@@ -141,7 +141,7 @@ class TargetServerGroupResolver {
     return tsg
   }
 
-  private static boolean isDTSGStage(Stage stage) {
+  private static boolean isDTSGStage(StageExecution stage) {
     return stage.type == DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
   }
 

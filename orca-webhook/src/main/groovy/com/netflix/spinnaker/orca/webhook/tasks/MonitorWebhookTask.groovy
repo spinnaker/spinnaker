@@ -20,10 +20,10 @@ package com.netflix.spinnaker.orca.webhook.tasks
 import com.google.common.base.Strings
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
@@ -45,7 +45,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   WebhookService webhookService
 
   @Override
-  long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+  long getDynamicBackoffPeriod(StageExecution stage, Duration taskDuration) {
     if (taskDuration.toMillis() > TimeUnit.MINUTES.toMillis(1)) {
       // task has been running > 1min, drop retry interval to every 15 sec
       return Math.max(backoffPeriod, TimeUnit.SECONDS.toMillis(15))
@@ -60,7 +60,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
   }
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
     if (Strings.isNullOrEmpty(stageData.statusEndpoint) || Strings.isNullOrEmpty(stageData.statusJsonPath)) {
@@ -167,7 +167,7 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     return TaskResult.builder(ExecutionStatus.RUNNING).context(response ? responsePayload : originalResponse).build()
   }
 
-  @Override void onCancel(@Nonnull Stage stage) {
+  @Override void onCancel(@Nonnull StageExecution stage) {
     WebhookStage.StageData stageData = stage.mapTo(WebhookStage.StageData)
 
     // Only do cancellation if we made the initial webhook request and the user specified a cancellation endpoint

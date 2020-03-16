@@ -26,16 +26,16 @@ import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.ext.withTask
@@ -43,14 +43,14 @@ import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.listeners.DelegatingApplicationEventMulticaster
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
-import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -532,7 +532,7 @@ abstract class QueueIntegrationTest {
     }
   }
 
-  private fun Stage.wasShorterThan(lengthMs: Long): Boolean {
+  private fun StageExecution.wasShorterThan(lengthMs: Long): Boolean {
     val start = startTime
     val end = endTime
     return if (start == null || end == null) {
@@ -733,7 +733,7 @@ abstract class QueueIntegrationTest {
 
     whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doAnswer {
-      val stage = it.arguments.first() as Stage
+      val stage = it.arguments.first() as StageExecution
       if (stage.refId == "1") {
         TaskResult.builder(SUCCEEDED).outputs(mapOf("foo" to false)).build()
       } else {
@@ -790,7 +790,7 @@ abstract class QueueIntegrationTest {
 
     whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doAnswer {
-      val stage = it.arguments.first() as Stage
+      val stage = it.arguments.first() as StageExecution
       if (stage.refId == "1") {
         TaskResult.builder(SUCCEEDED).outputs(mapOf("foo" to false)).build()
       } else {
@@ -827,7 +827,7 @@ abstract class QueueIntegrationTest {
 
     whenever(dummyTask.getDynamicTimeout(any())) doReturn 2000L
     whenever(dummyTask.execute(any())) doAnswer {
-      val stage = it.arguments.first() as Stage
+      val stage = it.arguments.first() as StageExecution
       if (stage.refId == "1") {
         TaskResult.ofStatus(TERMINAL)
       } else {
@@ -873,7 +873,7 @@ class TestConfig {
 
   @Bean
   fun dummyStage() = object : StageDefinitionBuilder {
-    override fun taskGraph(stage: Stage, builder: Builder) {
+    override fun taskGraph(stage: StageExecution, builder: Builder) {
       builder.withTask<DummyTask>("dummy")
     }
 
@@ -882,10 +882,10 @@ class TestConfig {
 
   @Bean
   fun parallelStage() = object : StageDefinitionBuilder {
-    override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
+    override fun beforeStages(parent: StageExecution, graph: StageGraphBuilder) {
       listOf("us-east-1", "us-west-2", "eu-west-1")
         .map { region ->
-          newStage(parent.execution, "dummy", "dummy $region", parent.context + mapOf("region" to region), parent, STAGE_BEFORE)
+          StageExecutionFactory.newStage(parent.execution, "dummy", "dummy $region", parent.context + mapOf("region" to region), parent, STAGE_BEFORE)
         }
         .forEach { graph.add(it) }
     }
@@ -897,11 +897,11 @@ class TestConfig {
   fun syntheticFailureStage() = object : StageDefinitionBuilder {
     override fun getType() = "syntheticFailure"
 
-    override fun taskGraph(stage: Stage, builder: Builder) {
+    override fun taskGraph(stage: StageExecution, builder: Builder) {
       builder.withTask<DummyTask>("dummy")
     }
 
-    override fun onFailureStages(stage: Stage, graph: StageGraphBuilder) {
+    override fun onFailureStages(stage: StageExecution, graph: StageGraphBuilder) {
       graph.add {
         it.type = "dummy"
         it.name = "onFailure1"
@@ -919,13 +919,13 @@ class TestConfig {
   @Bean
   fun pipelineStage(@Autowired repository: ExecutionRepository): StageDefinitionBuilder =
     object : CancellableStage, StageDefinitionBuilder {
-      override fun taskGraph(stage: Stage, builder: Builder) {
+      override fun taskGraph(stage: StageExecution, builder: Builder) {
         builder.withTask<DummyTask>("dummy")
       }
 
       override fun getType() = "pipeline"
 
-      override fun cancel(stage: Stage?): CancellableStage.Result {
+      override fun cancel(stage: StageExecution?): CancellableStage.Result {
         repository.cancel(PIPELINE, stage!!.context["executionId"] as String)
         return CancellableStage.Result(stage, mapOf("foo" to "bar"))
       }

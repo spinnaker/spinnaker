@@ -20,11 +20,11 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -76,7 +76,7 @@ public class MonitorFront50Task implements RetryableTask {
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 was not enabled. Fix this by setting front50.enabled: true");

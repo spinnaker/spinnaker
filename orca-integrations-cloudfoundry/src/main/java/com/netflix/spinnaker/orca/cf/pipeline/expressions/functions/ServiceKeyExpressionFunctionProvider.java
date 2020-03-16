@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.cf.pipeline.expressions.functions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
@@ -50,11 +50,13 @@ public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionP
             "cfServiceKey",
             "A shortcut to refer to a service key which has been created in the given stage",
             new FunctionParameter(
-                Execution.class, "execution", "The execution within which to search for stages"),
+                PipelineExecution.class,
+                "execution",
+                "The execution within which to search for stages"),
             new FunctionParameter(String.class, "idOrName", "A stage name or stage ID to match")));
   }
 
-  public static Map<String, Object> cfServiceKey(Execution execution, String idOrName) {
+  public static Map<String, Object> cfServiceKey(PipelineExecution execution, String idOrName) {
     return execution.getStages().stream()
         .filter(matchesServiceKeyStage(idOrName))
         .findFirst()
@@ -83,7 +85,7 @@ public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionP
         .orElse(Collections.emptyMap());
   }
 
-  private static Predicate<Stage> matchesServiceKeyStage(String idOrName) {
+  private static Predicate<StageExecution> matchesServiceKeyStage(String idOrName) {
     return stage ->
         CREATE_SERVICE_KEY_STAGE_NAME.equals(stage.getType())
             && stage.getStatus() == ExecutionStatus.SUCCEEDED

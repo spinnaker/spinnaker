@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class TitusInterestingHealthProviderNamesSupplier
   }
 
   @Override
-  public boolean supports(String cloudProvider, Stage stage) {
+  public boolean supports(String cloudProvider, StageExecution stage) {
     if (!cloudProvider.equals(TITUS)) {
       return false;
     }
@@ -64,9 +64,9 @@ public class TitusInterestingHealthProviderNamesSupplier
   }
 
   @Override
-  public List<String> process(String cloudProvider, Stage stage) {
+  public List<String> process(String cloudProvider, StageExecution stage) {
     try {
-      StageData stageData = (StageData) stage.mapTo(StageData.class);
+      StageData stageData = stage.mapTo(StageData.class);
       Optional<StageData.Source> sourceData = Optional.ofNullable(sourceResolver.getSource(stage));
       if (sourceData.isPresent()) {
         StageData.Source source = sourceData.get();

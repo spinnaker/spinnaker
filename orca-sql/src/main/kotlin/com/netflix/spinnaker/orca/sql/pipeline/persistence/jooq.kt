@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.Record

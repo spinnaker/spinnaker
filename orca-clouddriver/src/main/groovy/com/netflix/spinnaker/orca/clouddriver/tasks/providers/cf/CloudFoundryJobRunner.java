@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import groovy.util.logging.Slf4j;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class CloudFoundryJobRunner implements JobRunner {
   private final TargetServerGroupResolver resolver;
 
   @Override
-  public List<Map> getOperations(Stage stage) {
+  public List<Map> getOperations(StageExecution stage) {
     Map<String, Object> stageContext = stage.getContext();
     String targetServerGroup = (String) stageContext.get("target");
     String accountName = (String) stageContext.get("credentials");
@@ -73,7 +73,7 @@ public class CloudFoundryJobRunner implements JobRunner {
   }
 
   @Override
-  public Map<String, Object> getAdditionalOutputs(Stage stage, List<Map> operations) {
+  public Map<String, Object> getAdditionalOutputs(StageExecution stage, List<Map> operations) {
     return Collections.emptyMap();
   }
 }

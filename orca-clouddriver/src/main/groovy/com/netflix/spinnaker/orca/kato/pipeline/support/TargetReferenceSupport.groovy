@@ -18,13 +18,12 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.ResponseStatus
 import retrofit.RetrofitError
 
 @Deprecated
@@ -68,7 +67,7 @@ class TargetReferenceSupport {
    * @param stage - used to convert the stage context to a {@link TargetReference} type
    * @return a list of ASG references, collated by their region
    */
-  List<TargetReference> getTargetAsgReferences(Stage stage) {
+  List<TargetReference> getTargetAsgReferences(StageExecution stage) {
     def config = stage.mapTo(TargetReferenceConfiguration)
     if (isDynamicallyBound(stage) && !isDTRStage(stage)) {
       // The DetermineTargetReferences stage has all the TargetReferences we want - go find it!
@@ -151,7 +150,7 @@ class TargetReferenceSupport {
     targetReferences
   }
 
-  TargetReference getDynamicallyBoundTargetAsgReference(Stage stage) {
+  TargetReference getDynamicallyBoundTargetAsgReference(StageExecution stage) {
     def target = getTargetAsgReferences(stage).find {
       ((List) stage.context.regions).contains(it.region)
     }
@@ -161,15 +160,15 @@ class TargetReferenceSupport {
     target
   }
 
-  static boolean isDTRStage(Stage stage) {
+  static boolean isDTRStage(StageExecution stage) {
     return stage.type == DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE
   }
 
-  static boolean sameParent(Stage a, Stage b) {
+  static boolean sameParent(StageExecution a, StageExecution b) {
     return a.parentStageId == b.parentStageId
   }
 
-  static boolean isParentOf(Stage a, Stage b) {
+  static boolean isParentOf(StageExecution a, StageExecution b) {
     return a.id == b.parentStageId
   }
 
@@ -180,7 +179,7 @@ class TargetReferenceSupport {
     return existingServerGroups.groupBy { Map sg -> sg.region }
   }
 
-  boolean isDynamicallyBound(Stage stage) {
+  boolean isDynamicallyBound(StageExecution stage) {
     def config = stage.mapTo(TargetReferenceConfiguration)
     config.target == TargetReferenceConfiguration.Target.ancestor_asg_dynamic ||
       config.target == TargetReferenceConfiguration.Target.current_asg_dynamic ||

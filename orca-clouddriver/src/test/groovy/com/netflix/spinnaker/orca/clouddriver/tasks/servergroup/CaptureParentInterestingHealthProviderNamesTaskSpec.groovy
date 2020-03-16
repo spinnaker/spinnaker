@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -31,8 +31,8 @@ class CaptureParentInterestingHealthProviderNamesTaskSpec extends Specification 
   @Unroll
   def "should verify interesting health provider names from parent stage"() {
     given:
-    Stage currentStage
-    Stage parentStage
+    StageExecutionImpl currentStage
+    StageExecutionImpl parentStage
     pipeline {
       parentStage = stage {
         id = "parent"

@@ -27,7 +27,7 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.validation.exception.StageValidationException;
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class StageValidator {
     this.schemaRoot = (schemaRoot + "/").replaceAll("//", "/");
   }
 
-  public boolean isValid(Stage stage) {
+  public boolean isValid(StageExecution stage) {
     Optional<Schema> schema = loadSchema(stage);
     if (!schema.isPresent()) {
       return true;
@@ -90,7 +90,7 @@ public class StageValidator {
    * Load schema and exclude any conditional properties that are not enabled for the current stage's
    * cloud provider.
    */
-  private Optional<Schema> loadSchema(Stage stage) {
+  private Optional<Schema> loadSchema(StageExecution stage) {
     String stageType = stage.getType();
     Optional<String> cloudProvider = getCloudProvider(stage);
 
@@ -154,7 +154,7 @@ public class StageValidator {
     }
   }
 
-  private static Optional<String> getCloudProvider(Stage stage) {
+  private static Optional<String> getCloudProvider(StageExecution stage) {
     Map context = Optional.ofNullable(stage.getContext()).orElse(new HashMap<>());
     if (context.containsKey("cloudProvider")) {
       return Optional.of((String) context.get("cloudProvider"));

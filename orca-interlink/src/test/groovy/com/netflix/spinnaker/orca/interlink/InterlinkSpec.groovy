@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.interlink
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.interlink.events.*
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -24,15 +25,12 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-
 class InterlinkSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
-  @Shared def cancel = new CancelInterlinkEvent(ORCHESTRATION, "execId", "user", "reason")
-  @Shared def pause = new PauseInterlinkEvent(PIPELINE, "execId", "user")
-  @Shared def resume = new ResumeInterlinkEvent(PIPELINE, "execId", "user", false).withPartition("partition")
-  @Shared def delete = new DeleteInterlinkEvent(ORCHESTRATION, "execId").withPartition("partition")
+  @Shared def cancel = new CancelInterlinkEvent(ExecutionType.ORCHESTRATION, "execId", "user", "reason")
+  @Shared def pause = new PauseInterlinkEvent(ExecutionType.PIPELINE, "execId", "user")
+  @Shared def resume = new ResumeInterlinkEvent(ExecutionType.PIPELINE, "execId", "user", false).withPartition("partition")
+  @Shared def delete = new DeleteInterlinkEvent(ExecutionType.ORCHESTRATION, "execId").withPartition("partition")
 
   @Unroll
   def "can parse execution event type #event.getEventType()"() {

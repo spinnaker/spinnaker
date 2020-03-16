@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 import spock.lang.Subject
@@ -14,7 +14,7 @@ class ResizeStrategySupportSpec extends Specification {
   def "test min logic in performScalingAndPinning() with unpinMin=#unpinMin originalMin=#originalMin savedMin=#savedMin"() {
     given:
     resizeStrategySupport = new ResizeStrategySupport()
-    Stage stage = ExecutionBuilder.stage {}
+    StageExecutionImpl stage = ExecutionBuilder.stage {}
     stage.context = [
       unpinMinimumCapacity: unpinMin,
       source: [

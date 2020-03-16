@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.image.DeleteImageStage;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +46,7 @@ public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask
   }
 
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     DeleteImageStage.DeleteImageRequest deleteImageRequest =
         stage.mapTo(DeleteImageStage.DeleteImageRequest.class);
     List<String> deleteResult =

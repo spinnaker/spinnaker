@@ -19,14 +19,14 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class ScaleToServerGroupResizeStrategySpec extends Specification {
-  Stage stage = new Stage(Execution.newPipeline("orca"), "Scale", [:])
+  StageExecutionImpl stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "Scale", [:])
   OortHelper oortHelper = Mock(OortHelper)
 
   def resizeConfig = new ResizeStrategy.OptionalConfiguration()

@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.tasks.image
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.MonitorDeleteImageTask
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -40,7 +40,7 @@ class MonitorDeleteImageTaskSpec extends Specification {
       1 * getByAmiId("aws", "test", "us-east-1",  "ami-321") >> { error(404) }
     }
 
-    def stage = new Stage(Execution.newPipeline("orca"), "deleteImage", context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "deleteImage", context)
     def task = new MonitorDeleteImageTask(oortService)
 
     expect:
@@ -61,7 +61,7 @@ class MonitorDeleteImageTaskSpec extends Specification {
       1 * getByAmiId("aws", "test", "us-east-1",  "ami-321") >> { error(500) }
     }
 
-    def stage = new Stage(Execution.newPipeline("orca"), "deleteImage", context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "deleteImage", context)
     def task = new MonitorDeleteImageTask(oortService)
 
     expect:

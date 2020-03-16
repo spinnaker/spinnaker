@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.TaskResolver
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
 import com.netflix.spinnaker.orca.q.migration.OrcaToKeikoSerializationMigrator
 import com.netflix.spinnaker.orca.q.migration.TaskTypeDeserializer

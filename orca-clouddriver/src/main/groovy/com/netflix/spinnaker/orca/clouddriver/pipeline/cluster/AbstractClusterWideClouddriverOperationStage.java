@@ -21,6 +21,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
@@ -28,17 +33,13 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.beans.Introspector;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 public abstract class AbstractClusterWideClouddriverOperationStage
-    implements StageDefinitionBuilder {
+    implements StageDefinitionBuilder, ForceCacheRefreshAware {
 
   private final DynamicConfigService dynamicConfigService;
 
@@ -59,20 +60,20 @@ public abstract class AbstractClusterWideClouddriverOperationStage
   }
 
   @Override
-  public final void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public final void beforeStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     addAdditionalBeforeStages(parent, graph);
   }
 
   @Override
-  public final void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public final void afterStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     addAdditionalAfterStages(parent, graph);
   }
 
   protected void addAdditionalBeforeStages(
-      @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
+      @Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {}
 
   protected void addAdditionalAfterStages(
-      @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
+      @Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {}
 
   public static class ClusterSelection {
     private final String cluster;
@@ -161,7 +162,7 @@ public abstract class AbstractClusterWideClouddriverOperationStage
   }
 
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     stage.resolveStrategyParams();
     Class<? extends AbstractClusterWideClouddriverTask> operationTask = getClusterOperationTask();
     String name = getStepName(operationTask.getSimpleName());

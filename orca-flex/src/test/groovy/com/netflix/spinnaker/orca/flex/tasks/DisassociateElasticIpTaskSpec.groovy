@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.flex.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.flex.model.ElasticIpResult
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 
 class DisassociateElasticIpTaskSpec extends Specification {
@@ -35,7 +35,7 @@ class DisassociateElasticIpTaskSpec extends Specification {
     def task = new DisassociateElasticIpTask(flexService: flexService)
 
     when:
-    def result = task.execute(new Stage(Execution.newPipeline("orca"), "associateElasticIp", [
+    def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "associateElasticIp", [
       account  : account,
       region   : region,
       cluster  : cluster,

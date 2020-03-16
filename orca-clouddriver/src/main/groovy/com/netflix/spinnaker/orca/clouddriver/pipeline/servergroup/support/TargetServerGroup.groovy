@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.InheritConstructors
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
@@ -187,7 +187,7 @@ class TargetServerGroup {
     }
   }
 
-  static boolean isDynamicallyBound(Stage stage) {
+  static boolean isDynamicallyBound(StageExecution stage) {
     Params.fromStage(stage).target?.isDynamic()
   }
 
@@ -251,7 +251,7 @@ class TargetServerGroup {
       moniker?.cluster ?: cluster ?: Names.parseName(serverGroupName)?.cluster
     }
 
-    static Params fromStage(Stage stage) {
+    static Params fromStage(StageExecution stage) {
       Params p = stage.mapTo(Params)
 
       if (stage.context.region) {

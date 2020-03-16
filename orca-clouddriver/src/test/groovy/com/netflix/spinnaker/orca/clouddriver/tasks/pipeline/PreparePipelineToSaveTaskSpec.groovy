@@ -16,10 +16,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -37,7 +37,7 @@ class PreparePipelineToSaveTaskSpec extends Specification {
         [ name: "pipeline1" ]
       ]
     ]
-    def result = task.execute(new Stage(Execution.newPipeline("orca"), "whatever", context))
+    def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", context))
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -53,7 +53,7 @@ class PreparePipelineToSaveTaskSpec extends Specification {
         [ name: "pipeline2" ]
       ]
     ]
-    def result = task.execute(new Stage(Execution.newPipeline("orca"), "whatever", context))
+    def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", context))
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -64,7 +64,7 @@ class PreparePipelineToSaveTaskSpec extends Specification {
   void 'fail to prepare pipeline for save pipeline task with no pipelines'() {
     when:
     def context = [:]
-    def result = task.execute(new Stage(Execution.newPipeline("orca"), "whatever", context))
+    def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", context))
 
     then:
     result.status == ExecutionStatus.TERMINAL

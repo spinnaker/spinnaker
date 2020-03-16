@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 public class PackageInfo {
 
   private final ObjectMapper mapper;
-  private final Stage stage;
+  private final StageExecution stage;
   private final List<Artifact> artifacts;
   private final String versionDelimiter;
   private final String packageType;
@@ -53,7 +53,7 @@ public class PackageInfo {
   private final List<Pattern> packageFilePatterns = new ArrayList<>();
 
   public PackageInfo(
-      Stage stage,
+      StageExecution stage,
       List<Artifact> artifacts,
       String packageType,
       String versionDelimiter,
@@ -384,9 +384,9 @@ public class PackageInfo {
   }
 
   private static Map<String, Object> findBuildInfoInUpstreamStage(
-      Stage currentStage, List<Pattern> packageFilePatterns) {
+      StageExecution currentStage, List<Pattern> packageFilePatterns) {
 
-    Stage upstreamStage =
+    StageExecution upstreamStage =
         currentStage.findAncestor(
             it -> {
               Map<String, Object> buildInfo =

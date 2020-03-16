@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.qos.bufferpolicy
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.qos.BufferAction
 import com.netflix.spinnaker.orca.qos.BufferAction.ENQUEUE
 import com.netflix.spinnaker.orca.qos.BufferPolicy
@@ -28,7 +28,7 @@ class NaiveBufferPolicy(
   private val configService: DynamicConfigService
 ) : BufferPolicy {
 
-  override fun apply(execution: Execution): BufferResult {
+  override fun apply(execution: PipelineExecution): BufferResult {
     if (!configService.isEnabled("qos.buffer-policy.naive", true)) {
       return BufferResult(ENQUEUE, false, "Naive policy is disabled")
     }

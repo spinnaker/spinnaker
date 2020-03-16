@@ -16,12 +16,13 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.front50.Front50Service;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class PlanTemplateDependentsTask implements RetryableTask {
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 is not enabled. Fix this by setting front50.enabled: true");
@@ -62,8 +63,9 @@ public class PlanTemplateDependentsTask implements RetryableTask {
 
     PipelineTemplate pipelineTemplate =
         (PipelineTemplate)
-            stage.decodeBase64(
-                "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
+            ((StageExecutionImpl) stage)
+                .decodeBase64(
+                    "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
 
     List<Map<String, Object>> dependentPipelines =
         front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), false);

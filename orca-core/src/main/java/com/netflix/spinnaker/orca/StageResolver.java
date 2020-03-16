@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca;
 
 import static java.lang.String.format;
 
-import com.netflix.spinnaker.orca.api.SimpleStage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage;
 import com.netflix.spinnaker.orca.pipeline.SimpleStageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

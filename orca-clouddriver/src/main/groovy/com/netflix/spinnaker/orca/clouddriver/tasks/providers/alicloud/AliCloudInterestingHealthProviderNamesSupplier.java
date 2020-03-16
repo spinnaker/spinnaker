@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.alicloud;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.InterestingHealthProviderNamesSupplier;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class AliCloudInterestingHealthProviderNamesSupplier
   private static final String ALICLOUD = "alicloud";
 
   @Override
-  public boolean supports(String cloudProvider, Stage stage) {
+  public boolean supports(String cloudProvider, StageExecution stage) {
     if (cloudProvider.equals(ALICLOUD)) {
       return true;
     }
@@ -36,7 +36,7 @@ public class AliCloudInterestingHealthProviderNamesSupplier
   }
 
   @Override
-  public List<String> process(String cloudProvider, Stage stage) {
+  public List<String> process(String cloudProvider, StageExecution stage) {
     return Arrays.asList("AlibabaCloud");
   }
 }

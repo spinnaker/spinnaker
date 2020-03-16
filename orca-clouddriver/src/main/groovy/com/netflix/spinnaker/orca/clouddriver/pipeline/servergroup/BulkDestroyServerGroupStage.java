@@ -17,17 +17,20 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.*;
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BulkDestroyServerGroupStage implements StageDefinitionBuilder, Nameable {
+public class BulkDestroyServerGroupStage
+    implements StageDefinitionBuilder, Nameable, ForceCacheRefreshAware {
   private static final String PIPELINE_CONFIG_TYPE = "bulkDestroyServerGroup";
 
   private final DynamicConfigService dynamicConfigService;
@@ -38,7 +41,7 @@ public class BulkDestroyServerGroupStage implements StageDefinitionBuilder, Name
   }
 
   @Override
-  public void taskGraph(Stage stage, TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     // TODO(cfieber): how to do locking here...
     // inject an acquire lock stage per distinct cluster in the operation?
     // break into several parallel bulk ops based on cluster and lock/unlock around those?

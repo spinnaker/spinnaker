@@ -19,11 +19,11 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +41,7 @@ class SourceResolver {
   @Autowired
   TargetServerGroupResolver resolver
 
-  StageData.Source getSource(Stage stage) throws RetrofitError, JsonParseException, JsonMappingException {
+  StageData.Source getSource(StageExecution stage) throws RetrofitError, JsonParseException, JsonMappingException {
     def stageData = stage.mapTo(StageData)
     if (stageData.source) {
       // targeting a source in a different account and region

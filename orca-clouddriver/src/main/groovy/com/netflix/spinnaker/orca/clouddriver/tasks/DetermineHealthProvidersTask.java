@@ -18,16 +18,16 @@ package com.netflix.spinnaker.orca.clouddriver.tasks;
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.moniker.Moniker;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.InterestingHealthProviderNamesSupplier;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,7 +68,7 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
   }
 
   @Override
-  public TaskResult execute(Stage stage) {
+  public TaskResult execute(StageExecution stage) {
     Optional<InterestingHealthProviderNamesSupplier> healthProviderNamesSupplierOptional =
         interestingHealthProviderNamesSuppliers.stream()
             .filter(supplier -> supplier.supports(getCloudProvider(stage), stage))

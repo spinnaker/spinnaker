@@ -19,9 +19,9 @@ import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -49,12 +49,13 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
             "deployedServerGroups",
             "Returns the list of server groups that were deployed in the specified stages",
             new FunctionParameter(
-                Execution.class, "execution", "The execution to search for stages within"),
+                PipelineExecution.class, "execution", "The execution to search for stages within"),
             new FunctionParameter(
                 String[].class, "ids", "A list of stage name or stage IDs to search")));
   }
 
-  public static List<Map<String, Object>> deployedServerGroups(Execution execution, String... id) {
+  public static List<Map<String, Object>> deployedServerGroups(
+      PipelineExecution execution, String... id) {
     List<Map<String, Object>> deployedServerGroups = new ArrayList<>();
     execution.getStages().stream()
         .filter(matchesDeployedStage(id))
@@ -122,7 +123,7 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
     List<Map<String, Object>> deployments;
   }
 
-  private static Predicate<Stage> matchesDeployedStage(String... id) {
+  private static Predicate<StageExecution> matchesDeployedStage(String... id) {
     List<String> idsOrNames = Arrays.asList(id);
     if (!idsOrNames.isEmpty()) {
       return stage ->

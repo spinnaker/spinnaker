@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -42,7 +42,7 @@ class BakeryImageAccessDescriptionDecorator implements CloneDescriptionDecorator
   }
 
   @Override
-  void decorate(Map<String, Object> operation, List<Map<String, Object>> descriptions, Stage stage) {
+  void decorate(Map<String, Object> operation, List<Map<String, Object>> descriptions, StageExecution stage) {
     def allowLaunchDescriptions = targetRegions(operation).collect { String region ->
       [
         allowLaunchDescription: [

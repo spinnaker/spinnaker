@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -38,7 +38,7 @@ class FindImageFromClusterTaskSpec extends Specification {
   RegionCollector regionCollector = Mock(RegionCollector)
 
   def setup() {
-    regionCollector.getRegionsFromChildStages(_ as Stage) >> { stage -> new HashSet<String>() }
+    regionCollector.getRegionsFromChildStages(_ as StageExecutionImpl) >> { stage -> new HashSet<String>() }
 
     task.oortService = oortService
     task.objectMapper = new ObjectMapper()
@@ -51,7 +51,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage(pipe, "findImage", [
+    def stage = new StageExecutionImpl(pipe, "findImage", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -106,7 +106,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       application = "orca" // Should be ignored.
     }
 
-    def stage = new Stage(pipe, "findImage", [
+    def stage = new StageExecutionImpl(pipe, "findImage", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -188,7 +188,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage(pipe, "findImage", [
+    def stage = new StageExecutionImpl(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider          : cloudProvider,
       cluster                : "foo-test",
@@ -269,7 +269,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage(pipe, "findImage", [
+    def stage = new StageExecutionImpl(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider          : "cloudProvider",
       cluster                : "foo-test",
@@ -332,7 +332,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "contextAppName" // Should be ignored.
     }
-    def stage = new Stage(pipe, "findImage", [
+    def stage = new StageExecutionImpl(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider          : "aws",
       cluster                : "foo-test",
@@ -397,7 +397,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       application = "orca" // Should be ignored.
     }
 
-    def stage = new Stage(pipe, "whatever", [
+    def stage = new StageExecutionImpl(pipe, "whatever", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -436,7 +436,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = pipeline {
       application = "orca" // Should be ignored.
     }
-    def stage = new Stage(pipe, 'findImageFromCluster', [
+    def stage = new StageExecutionImpl(pipe, 'findImageFromCluster', [
       cluster: cluster,
       moniker: moniker,
     ])

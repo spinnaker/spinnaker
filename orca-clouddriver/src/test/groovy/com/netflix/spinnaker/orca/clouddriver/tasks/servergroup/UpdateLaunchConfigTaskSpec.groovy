@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import rx.Observable
 import spock.lang.Specification
@@ -120,29 +120,29 @@ class UpdateLaunchConfigTaskSpec extends Specification {
       }
 
     and:
-      def bakeStage1 = new Stage(stage.execution, "bake")
+      def bakeStage1 = new StageExecutionImpl(stage.execution, "bake")
       bakeStage1.id = UUID.randomUUID()
       bakeStage1.refId = "1a"
       stage.execution.stages << bakeStage1
 
       def bakeSynthetic1 =
-        new Stage(stage.execution, "bake in $region", [ami: amiName, region: region, cloudProvider: "aws"])
+        new StageExecutionImpl(stage.execution, "bake in $region", [ami: amiName, region: region, cloudProvider: "aws"])
       bakeSynthetic1.id = UUID.randomUUID()
       bakeSynthetic1.parentStageId = bakeStage1.id
       stage.execution.stages << bakeSynthetic1
 
-      def bakeStage2 = new Stage(stage.execution, "bake")
+      def bakeStage2 = new StageExecutionImpl(stage.execution, "bake")
       bakeStage2.id = UUID.randomUUID()
       bakeStage2.refId = "2a"
       stage.execution.stages << bakeStage2
 
-      def bakeSynthetic2 = new Stage(stage.execution, "bake in $region",
+      def bakeSynthetic2 = new StageExecutionImpl(stage.execution, "bake in $region",
                                              [ami: "parallel-branch-ami", region: region, cloudProvider: "aws"])
       bakeSynthetic2.id = UUID.randomUUID()
       bakeSynthetic2.parentStageId = bakeStage2.id
       stage.execution.stages << bakeSynthetic2
 
-      def intermediateStage = new Stage(stage.execution, "whatever")
+      def intermediateStage = new StageExecutionImpl(stage.execution, "whatever")
       intermediateStage.id = UUID.randomUUID()
       intermediateStage.refId = "1b"
       stage.execution.stages << intermediateStage

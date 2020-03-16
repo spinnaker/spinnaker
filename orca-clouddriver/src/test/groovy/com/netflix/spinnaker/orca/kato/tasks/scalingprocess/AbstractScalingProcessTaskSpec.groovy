@@ -20,8 +20,8 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,7 +35,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
   @Unroll
   def "should only resume/suspend scaling processes that are not already in the target state"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), null, context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), null, context)
     def targetReferenceSupport = Mock(TargetReferenceSupport) {
       1 * getTargetAsgReferences(stage) >> {
         return targetReferences
@@ -91,7 +91,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
     given:
     TargetReferenceSupport targetReferenceSupport = Mock()
 
-    def stage = new Stage(Execution.newPipeline("orca"), null, sD("targetAsg", ["Launch"]))
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), null, sD("targetAsg", ["Launch"]))
     def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
 
     when:
@@ -107,7 +107,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
     TargetReferenceSupport targetReferenceSupport = Mock()
     KatoService katoService = Mock(KatoService)
 
-    def stage = new Stage(Execution.newPipeline("orca"), null, sD("targetAsg", ["Launch"]))
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), null, sD("targetAsg", ["Launch"]))
     def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
 
     when:

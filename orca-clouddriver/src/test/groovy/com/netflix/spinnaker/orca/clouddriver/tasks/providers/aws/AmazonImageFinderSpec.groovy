@@ -20,8 +20,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 import java.util.stream.Collectors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -39,7 +39,7 @@ class AmazonImageFinderSpec extends Specification {
 
   def "uses appversion tag to filter image results on package name"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
       regions: ["us-west-1", "us-west-2"]
     ])
     def tags = [
@@ -128,7 +128,7 @@ class AmazonImageFinderSpec extends Specification {
 
   def "should match most recently created image per region"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
       regions: ["us-west-1", "us-west-2"]
     ])
     def tags = [
@@ -187,7 +187,7 @@ class AmazonImageFinderSpec extends Specification {
 
   def "should skip images with incomplete information"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", [
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
       regions: ["us-west-2"]
     ])
     def tags = [

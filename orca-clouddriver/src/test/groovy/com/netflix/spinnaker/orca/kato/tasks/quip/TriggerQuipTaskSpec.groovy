@@ -18,11 +18,11 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import java.nio.charset.Charset
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
@@ -50,12 +50,12 @@ class TriggerQuipTaskSpec extends Specification {
   String app = 'foo'
 
   @Shared
-  Execution pipe = pipeline {
+  PipelineExecutionImpl pipe = pipeline {
     application = app
   }
 
   @Shared
-  def versionStage = new Stage(pipe, "quickPatch", ["version": "1.2"]).with {
+  def versionStage = new StageExecutionImpl(pipe, "quickPatch", ["version": "1.2"]).with {
     pipe.stages << it
     return it
   }
@@ -74,7 +74,7 @@ class TriggerQuipTaskSpec extends Specification {
   @Unroll
   def "successfully trigger quip on #instances.size() instance(s)"() {
     given:
-    def stage = new Stage(pipe, 'triggerQuip', [
+    def stage = new StageExecutionImpl(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account"     : account,
       "region"      : region,
@@ -112,7 +112,7 @@ class TriggerQuipTaskSpec extends Specification {
 
   def "checks versions and skips up to date instances in skipUpToDate mode"() {
     given:
-    def stage = new Stage(pipe, 'triggerQuip', [
+    def stage = new StageExecutionImpl(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account"     : account,
       "region"      : region,
@@ -153,7 +153,7 @@ class TriggerQuipTaskSpec extends Specification {
 
   @Unroll
   def "servers return errors, expect RUNNING"() {
-    def stage = new Stage(pipe, 'triggerQuip', [
+    def stage = new StageExecutionImpl(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account"     : account,
       "region"      : region,
@@ -199,7 +199,7 @@ class TriggerQuipTaskSpec extends Specification {
   @Unroll
   def 'missing configuration data'() {
     given:
-    def stage = new Stage(pipe, 'triggerQuip', [
+    def stage = new StageExecutionImpl(pipe, 'triggerQuip', [
       "clusterName": cluster,
       "account"    : account,
       "region"     : region,
@@ -230,7 +230,7 @@ class TriggerQuipTaskSpec extends Specification {
   }
 
   def "skipUpToDate with getVersion retries"() {
-    def stage = new Stage(pipe, 'triggerQuip', [
+    def stage = new StageExecutionImpl(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account"     : account,
       "region"      : region,

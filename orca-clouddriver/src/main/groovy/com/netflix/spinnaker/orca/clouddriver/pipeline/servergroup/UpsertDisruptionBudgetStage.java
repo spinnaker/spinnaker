@@ -16,19 +16,20 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup;
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.UpsertDisruptionBudgetTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpsertDisruptionBudgetStage implements StageDefinitionBuilder {
   @Override
-  public void taskGraph(@NotNull Stage stage, @NotNull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull @NotNull TaskNode.Builder builder) {
     builder
         .withTask("upsertDisruptionBudget", UpsertDisruptionBudgetTask.class)
         .withTask("monitorUpsertDisruptionBudget", MonitorKatoTask.class)

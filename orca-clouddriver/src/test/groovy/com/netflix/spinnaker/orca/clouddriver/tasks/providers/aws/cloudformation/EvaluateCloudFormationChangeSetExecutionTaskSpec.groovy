@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -31,7 +31,7 @@ class EvaluateCloudFormationChangeSetExecutionTaskSpec extends Specification {
   @Unroll
   def "should put in context if the changeSet if a replacement if not present"(){
     given:
-      def pipeline = Execution.newPipeline('orca')
+      def pipeline = PipelineExecutionImpl.newPipeline('orca')
       def context = [
         cloudProvider: 'aws',
         changeSetName: 'changeSetName',
@@ -50,7 +50,7 @@ class EvaluateCloudFormationChangeSetExecutionTaskSpec extends Specification {
           ]
         ]
       ]
-      def stage = new Stage(pipeline, 'test', 'test', context)
+      def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
       stage.setOutputs(outputs)
     when:
       def result = evaluateCloudFormationChangeSetExecutionTask.execute(stage)
@@ -68,7 +68,7 @@ class EvaluateCloudFormationChangeSetExecutionTaskSpec extends Specification {
   @Unroll
   def "Should return succeed if already set in context changeSetIsReplacement to false"(){
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       cloudProvider: 'aws',
       changeSetName: 'changeSetName',
@@ -88,7 +88,7 @@ class EvaluateCloudFormationChangeSetExecutionTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     stage.setOutputs(outputs)
     when:
     def result = evaluateCloudFormationChangeSetExecutionTask.execute(stage)
@@ -100,7 +100,7 @@ class EvaluateCloudFormationChangeSetExecutionTaskSpec extends Specification {
   @Unroll
   def "Should set actionOnReplacement in context with the value from UI"(){
     given:
-    def pipeline = Execution.newPipeline('orca')
+    def pipeline = PipelineExecutionImpl.newPipeline('orca')
     def context = [
       cloudProvider: 'aws',
       changeSetName: 'changeSetName',
@@ -121,7 +121,7 @@ class EvaluateCloudFormationChangeSetExecutionTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new Stage(pipeline, 'test', 'test', context)
+    def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
     stage.setOutputs(outputs)
     when:
     def result = evaluateCloudFormationChangeSetExecutionTask.execute(stage)

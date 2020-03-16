@@ -15,14 +15,18 @@
  */
 package com.netflix.spinnaker.orca;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.security.User;
 import java.util.Optional;
 
 /**
  * This interface allows an implementing StageDefinitionBuilder to override the default pipeline
  * authentication context.
+ *
+ * <p>TODO(rz): Move to orca-api. Need to rearrange kork, however, since it would require a
+ * dependency on kork-security, which includes a bunch of extra dependencies. Perhaps a new kork-api
+ * module for just the User class?
  */
 public interface AuthenticatedStage {
-  Optional<User> authenticatedUser(Stage stage);
+  Optional<User> authenticatedUser(StageExecution stage);
 }

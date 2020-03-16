@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 class MonitorWebhookTaskSpec extends Specification {
 
-  def pipeline = Execution.newPipeline("orca")
+  def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   @Subject
   MonitorWebhookTask monitorWebhookTask = new MonitorWebhookTask()
@@ -39,7 +39,7 @@ class MonitorWebhookTaskSpec extends Specification {
   @Unroll
   def "should fail if required parameter #parameter is missing"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
@@ -62,7 +62,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
   def "should fail if no parameters are supplied"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [:])
+    def stage = new StageExecutionImpl(pipeline, "webhook", [:])
 
     when:
     monitorWebhookTask.execute stage
@@ -74,7 +74,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
   def "should fail in case of URL validation error"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status'])
 
@@ -94,7 +94,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
   def "should retry in case of name resolution error"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status'])
 
@@ -113,7 +113,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
   def "should retry in case of timeout"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status'])
 
@@ -133,7 +133,7 @@ class MonitorWebhookTaskSpec extends Specification {
   @Unroll
   def "should be #expectedTaskStatus in case of #statusCode"() {
     setup:
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
@@ -167,7 +167,7 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Mock(WebhookService) {
       1 * getStatus("https://my-service.io/api/status/123", [Authorization: "Basic password"]) >> new ResponseEntity<Map>([status:"RUNNING"], HttpStatus.OK)
     }
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
@@ -190,7 +190,7 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Mock(WebhookService) {
       1 * getStatus("https://my-service.io/api/status/123", null) >> new ResponseEntity<Map>([status:"TERMINAL"], HttpStatus.OK)
     }
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
@@ -212,7 +212,7 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Mock(WebhookService) {
       1 * getStatus("https://my-service.io/api/status/123", [:]) >> new ResponseEntity<Map>([status:42], HttpStatus.OK)
     }
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
@@ -235,7 +235,7 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Mock(WebhookService) {
       1 * getStatus("https://my-service.io/api/status/123", null) >> new ResponseEntity<Map>([status:100], HttpStatus.OK)
     }
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS',
@@ -257,7 +257,7 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Mock(WebhookService) {
       1 * getStatus("https://my-service.io/api/status/123", null) >> new ResponseEntity<Map>([status:"SUCCESS"], HttpStatus.OK)
     }
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.doesnt.exist',
       successStatuses: 'SUCCESS'
@@ -276,7 +276,7 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Mock(WebhookService) {
       1 * getStatus("https://my-service.io/api/status/123", null) >> new ResponseEntity<Map>([status:["some", "complex", "list"]], HttpStatus.OK)
     }
-    def stage = new Stage(pipeline, "webhook", [
+    def stage = new StageExecutionImpl(pipeline, "webhook", [
       statusEndpoint: 'https://my-service.io/api/status/123',
       statusJsonPath: '$.status',
       successStatuses: 'SUCCESS'

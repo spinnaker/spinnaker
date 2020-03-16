@@ -18,19 +18,66 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 
 data class DefaultTrigger
 @JvmOverloads constructor(
-  override val type: String,
-  override val correlationId: String? = null,
-  override val user: String? = "[anonymous]",
-  override val parameters: Map<String, Any> = mutableMapOf(),
-  override val artifacts: List<Artifact> = mutableListOf(),
-  override val notifications: List<Map<String, Any>> = mutableListOf(),
-  override var isRebake: Boolean = false,
-  override var isDryRun: Boolean = false,
-  override var isStrategy: Boolean = false
+  private val type: String,
+  private val correlationId: String? = null,
+  private val user: String? = "[anonymous]",
+  private val parameters: MutableMap<String, Any> = mutableMapOf(),
+  private val artifacts: MutableList<Artifact> = mutableListOf(),
+  private val notifications: MutableList<MutableMap<String, Any>> = mutableListOf(),
+  private var isRebake: Boolean = false,
+  private var isDryRun: Boolean = false,
+  private var isStrategy: Boolean = false
 ) : Trigger {
-  override var other: Map<String, Any> = mutableMapOf()
-  override var resolvedExpectedArtifacts: List<ExpectedArtifact> = mutableListOf()
+  private var other: MutableMap<String, Any> = mutableMapOf()
+  private var resolvedExpectedArtifacts: MutableList<ExpectedArtifact> = mutableListOf()
+
+  override fun getType(): String = type
+
+  override fun getCorrelationId(): String? = correlationId
+
+  override fun getUser(): String? = user
+
+  override fun getParameters(): MutableMap<String, Any> = parameters
+
+  override fun getArtifacts(): MutableList<Artifact> = artifacts
+
+  override fun isRebake(): Boolean = isRebake
+
+  override fun setRebake(rebake: Boolean) {
+    isRebake = rebake
+  }
+
+  override fun isDryRun(): Boolean = isDryRun
+
+  override fun setDryRun(dryRun: Boolean) {
+    isDryRun = dryRun
+  }
+
+  override fun isStrategy(): Boolean = isStrategy
+
+  override fun setStrategy(strategy: Boolean) {
+    isStrategy = strategy
+  }
+
+  override fun setResolvedExpectedArtifacts(resolvedExpectedArtifacts: MutableList<ExpectedArtifact>) {
+    this.resolvedExpectedArtifacts = resolvedExpectedArtifacts
+  }
+
+  override fun getNotifications(): MutableList<MutableMap<String, Any>> = notifications
+
+  override fun getOther(): MutableMap<String, Any> = other
+
+  override fun getResolvedExpectedArtifacts(): MutableList<ExpectedArtifact> = resolvedExpectedArtifacts
+
+  override fun setOther(key: String, value: Any) {
+    this.other[key] = value
+  }
+
+  override fun setOther(other: MutableMap<String, Any>) {
+    this.other = other
+  }
 }

@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer.UpsertLoadBa
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+
 /**
  * @deprecated use {@link UpsertLoadBalancerStage} instead.
  */
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Component
 class UpsertAmazonLoadBalancerStage extends UpsertLoadBalancerStage {
   public static final String PIPELINE_CONFIG_TYPE = "upsertAmazonLoadBalancer"
 
+  @Nonnull
   @Override
   String getType() {
     return PIPELINE_CONFIG_TYPE

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.pipeline.util;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class RegionCollector {
    * @param stage Stage for which to traverse the regions for
    * @return union of all regions or an empty set
    */
-  public @NotNull Set<String> getRegionsFromChildStages(Stage stage) {
+  public @NotNull Set<String> getRegionsFromChildStages(StageExecution stage) {
     Set<String> deployRegions = new HashSet<>();
     Map<String, Object> context = stage.getContext();
     String stageCloudProviderType =
@@ -29,7 +29,7 @@ public class RegionCollector {
                 "cloudProviderType",
                 context.getOrDefault("cloudProvider", CloudProviderAware.DEFAULT_CLOUD_PROVIDER));
 
-    List<Stage> childStages = stage.allDownstreamStages();
+    List<StageExecution> childStages = stage.allDownstreamStages();
 
     childStages.stream()
         .filter(it -> "deploy".equals(it.getType()))

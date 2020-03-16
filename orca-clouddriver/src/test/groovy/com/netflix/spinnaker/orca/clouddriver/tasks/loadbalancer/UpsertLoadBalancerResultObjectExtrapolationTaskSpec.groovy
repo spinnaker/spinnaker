@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -46,8 +46,8 @@ class UpsertLoadBalancerResultObjectExtrapolationTaskSpec extends Specification 
 
   void "should put extrapolate resulting DNS name from resultObjects"() {
     setup:
-    def pipeline = Execution.newPipeline("orca")
-    def stage = new Stage(pipeline, "whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage = new StageExecutionImpl(pipeline, "whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
 
     when:
     def result = task.execute(stage)

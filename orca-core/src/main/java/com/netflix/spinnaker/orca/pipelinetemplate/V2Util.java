@@ -18,10 +18,9 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Execution.PipelineSource;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,7 +78,7 @@ public class V2Util {
     }
 
     if (!spelEvaluatedPipeline.containsKey("source")) {
-      Execution.PipelineSource source = new PipelineSource();
+      PipelineExecution.PipelineSource source = new PipelineExecution.PipelineSource();
       source.setType("templatedPipeline");
       source.setVersion("v2");
       spelEvaluatedPipeline.put("source", new ObjectMapper().convertValue(source, Map.class));

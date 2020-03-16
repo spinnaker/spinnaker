@@ -16,19 +16,21 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
-import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.igor.tasks.GetBuildPropertiesTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
 import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Component
 @CompileStatic
@@ -38,7 +40,7 @@ class ScriptStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired StopJenkinsJobTask stopJenkinsJobTask
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("startScript", StartScriptTask)
       .withTask("waitForScriptStart", MonitorQueuedJenkinsJobTask)
@@ -50,7 +52,7 @@ class ScriptStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  void prepareStageForRestart(Stage stage) {
+  void prepareStageForRestart(@Nonnull StageExecution stage) {
     if (stage.context.buildInfo) {
       if (!stage.context.restartDetails) stage.context.restartDetails = [:]
       stage.context.restartDetails["previousBuildInfo"] = stage.context.buildInfo
@@ -60,7 +62,7 @@ class ScriptStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  Result cancel(Stage stage) {
+  Result cancel(StageExecution stage) {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
 
     try {

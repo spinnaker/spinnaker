@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.dcos.DcosServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
@@ -25,8 +25,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes.Kuberne
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus.TitusServerGroupCreator
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -44,7 +44,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
   @Unroll
   def "should set interestingHealthProviderNames based on application config"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "", stageContext)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", stageContext)
 
     if (application) {
       1 * front50Service.get(application.name) >> application

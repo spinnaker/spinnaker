@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
-import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
+
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import org.springframework.core.env.StandardEnvironment
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -56,7 +55,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     def stage = pipeline.stageByRef(ref)
 
     when:
-    def graph = StageGraphBuilder.beforeStages(stage)
+    def graph = StageGraphBuilderImpl.beforeStages(stage)
     supportStage.beforeStages(stage, graph)
 
     then:
@@ -79,7 +78,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     }
 
     when:
-    def graph = StageGraphBuilder.beforeStages(stage)
+    def graph = StageGraphBuilderImpl.beforeStages(stage)
     supportStage.beforeStages(stage, graph)
     def syntheticStages = graph.build().toList()
 
@@ -112,7 +111,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     ]
 
     when:
-    def graph = StageGraphBuilder.beforeStages(stage)
+    def graph = StageGraphBuilderImpl.beforeStages(stage)
     supportStage.beforeStages(stage, graph)
     def syntheticStages = graph.build().toList()
 
@@ -145,14 +144,14 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     ]
 
     when:
-    def graph = StageGraphBuilder.beforeStages(stage)
+    def graph = StageGraphBuilderImpl.beforeStages(stage)
     supportStage.beforeStages(stage, graph)
 
     then:
     graph.build()*.name == beforeNames
 
     when:
-    graph = StageGraphBuilder.afterStages(stage)
+    graph = StageGraphBuilderImpl.afterStages(stage)
     supportStage.afterStages(stage, graph)
 
     then:
@@ -183,7 +182,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
   class TestSupport extends TargetServerGroupLinearStageSupport {
     @Override
-    void preStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
+    void preStatic(Map<String, Object> descriptor, StageGraphBuilderImpl graph) {
       graph.add {
         it.type = "whatever"
         it.name = "preStatic"
@@ -192,7 +191,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     }
 
     @Override
-    void postStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
+    void postStatic(Map<String, Object> descriptor, StageGraphBuilderImpl graph) {
       graph.add {
         it.type = "whatever"
         it.name = "postStatic"
@@ -201,7 +200,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     }
 
     @Override
-    void preDynamic(Map<String, Object> context, StageGraphBuilder graph) {
+    void preDynamic(Map<String, Object> context, StageGraphBuilderImpl graph) {
       graph.add {
         it.type = "whatever"
         it.name = "preDynamic"
@@ -210,7 +209,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     }
 
     @Override
-    void postDynamic(Map<String, Object> context, StageGraphBuilder graph) {
+    void postDynamic(Map<String, Object> context, StageGraphBuilderImpl graph) {
       graph.add {
         it.type = "whatever"
         it.name = "postDynamic"

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -28,12 +28,12 @@ public class EvaluateHealthRequest extends RequestBase {
   private List<String> newInstances = new ArrayList<>();
   private int currentProgress;
 
-  public EvaluateHealthRequest(Stage stage) {
+  public EvaluateHealthRequest(StageExecution stage) {
     super(stage);
   }
 
   @Override
-  protected void fromStage(Stage stage) {
+  protected void fromStage(StageExecution stage) {
     super.fromStage(stage);
     MonitoredDeployInternalStageData stageData =
         stage.mapTo(MonitoredDeployInternalStageData.class);

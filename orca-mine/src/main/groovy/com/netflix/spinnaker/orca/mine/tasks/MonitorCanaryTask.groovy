@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+
 import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -43,7 +44,7 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Overri
   KatoService katoService
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(StageExecution stage) {
     Map context = stage.context
     // add a 15-minute buffer to accommodate backoffs, etc.
     Integer canaryDuration = Integer.parseInt((stage.context.canary.canaryConfig?.lifetimeHours ?: "2").toString())
@@ -94,7 +95,7 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Overri
     return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
   }
 
-  String getCloudProvider(List<Map> operations, Stage stage){
+  String getCloudProvider(List<Map> operations, StageExecution stage){
     return operations && !operations.empty ? operations.first()?.values().first()?.cloudProvider : getCloudProvider(stage) ?: 'aws'
   }
 }

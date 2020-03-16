@@ -2,14 +2,14 @@ package com.netflix.spinnaker.orca.gremlin.tasks;
 
 import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.TERMINAL_KEY;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.gremlin.AttackStatus;
 import com.netflix.spinnaker.orca.gremlin.GremlinService;
 import com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,7 @@ public class MonitorGremlinAttackTask implements OverridableTimeoutRetryableTask
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     final Map<String, Object> ctx = stage.getContext();
 
     final String apiKey = GremlinStage.getApiKey(ctx);

@@ -16,29 +16,29 @@
 
 package com.netflix.spinnaker.orca.listeners;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.Task;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 
 public interface StageListener {
-  default void beforeTask(Persister persister, Stage stage, Task task) {
+  default void beforeTask(Persister persister, StageExecution stage, TaskExecution task) {
     // do nothing
   }
 
-  default void beforeStage(Persister persister, Stage stage) {
+  default void beforeStage(Persister persister, StageExecution stage) {
     // do nothing
   }
 
   default void afterTask(
       Persister persister,
-      Stage stage,
-      Task task,
+      StageExecution stage,
+      TaskExecution task,
       ExecutionStatus executionStatus,
       boolean wasSuccessful) {
     // do nothing
   }
 
-  default void afterStage(Persister persister, Stage stage) {
+  default void afterStage(Persister persister, StageExecution stage) {
     // do nothing
   }
 }

@@ -20,16 +20,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
-import lombok.NonNull;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
@@ -49,8 +49,9 @@ public class ConsumeArtifactTask implements Task {
     this.retrySupport = retrySupport;
   }
 
+  @Nonnull
   @Override
-  public TaskResult execute(@NonNull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     Map<String, Object> task = stage.getContext();
     String artifactId = (String) task.get("consumeArtifactId");
 

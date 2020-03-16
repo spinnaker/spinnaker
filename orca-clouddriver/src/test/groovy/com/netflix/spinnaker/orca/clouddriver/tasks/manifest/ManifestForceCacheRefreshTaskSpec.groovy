@@ -18,11 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +32,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 
@@ -626,8 +626,8 @@ class ManifestForceCacheRefreshTaskSpec extends Specification {
     return new Response("", status, "", [], null)
   }
 
-  private Stage mockStage(Map context) {
-    Stage stage = new Stage(new Execution(PIPELINE, "test"), "whatever", context)
+  private StageExecutionImpl mockStage(Map context) {
+    StageExecutionImpl stage = new StageExecutionImpl(new PipelineExecutionImpl(PIPELINE, "test"), "whatever", context)
     stage.setStartTime(now.toEpochMilli())
     return stage
   }

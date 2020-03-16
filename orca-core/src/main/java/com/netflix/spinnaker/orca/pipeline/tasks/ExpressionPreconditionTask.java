@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL;
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.SUMMARY;
 import static java.util.Collections.singletonMap;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -49,7 +49,7 @@ public class ExpressionPreconditionTask implements PreconditionTask {
   }
 
   @Override
-  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+  public @Nonnull TaskResult execute(@Nonnull StageExecution stage) {
     StageData stageData = stage.mapTo("/context", StageData.class);
 
     Map<String, Object> result =
@@ -73,7 +73,7 @@ public class ExpressionPreconditionTask implements PreconditionTask {
   }
 
   private static void ensureEvaluationSummaryIncluded(
-      Map<String, Object> result, Stage stage, String expression) {
+      Map<String, Object> result, StageExecution stage, String expression) {
     if (!expression.trim().startsWith("$") && result.containsKey(SUMMARY)) {
       Map<String, Object> context = stage.getContext();
       Map<String, Object> summaryFromContext = (Map<String, Object>) context.get(SUMMARY);

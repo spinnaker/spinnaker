@@ -20,14 +20,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ScaleRelativeResizeStrategySpec extends Specification {
   OortHelper oortHelper = Mock(OortHelper)
-  Stage stage = ExecutionBuilder.stage {}
+  StageExecutionImpl stage = ExecutionBuilder.stage {}
   ScaleRelativeResizeStrategy strategy = new ScaleRelativeResizeStrategy(oortHelper: oortHelper)
 
   @Unroll

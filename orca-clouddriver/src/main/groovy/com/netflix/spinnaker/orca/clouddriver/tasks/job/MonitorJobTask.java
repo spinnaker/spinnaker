@@ -20,10 +20,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,14 +54,14 @@ public class MonitorJobTask extends MonitorKatoTask {
   }
 
   @Override
-  public @Nullable TaskResult onTimeout(@Nonnull Stage stage) {
+  public @Nullable TaskResult onTimeout(@Nonnull StageExecution stage) {
     jobUtils.cancelWait(stage);
 
     return null;
   }
 
   @Override
-  public void onCancel(@Nonnull Stage stage) {
+  public void onCancel(@Nonnull StageExecution stage) {
     jobUtils.cancelWait(stage);
   }
 }

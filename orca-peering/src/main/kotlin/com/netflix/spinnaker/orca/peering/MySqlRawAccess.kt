@@ -2,7 +2,7 @@ package com.netflix.spinnaker.orca.peering
 
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.sql.routing.withPool
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.impl.DSL
@@ -34,7 +34,7 @@ open class MySqlRawAccess(
     maxPacketSize -= 8192
   }
 
-  override fun getCompletedExecutionIds(executionType: Execution.ExecutionType, partitionName: String?, updatedAfter: Long): List<ExecutionDiffKey> {
+  override fun getCompletedExecutionIds(executionType: ExecutionType, partitionName: String?, updatedAfter: Long): List<ExecutionDiffKey> {
     val partitionConstraint = if (partitionName == null) {
       field("`partition`").isNull
     } else {
@@ -52,7 +52,7 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun getActiveExecutionIds(executionType: Execution.ExecutionType, partitionName: String?): List<String> {
+  override fun getActiveExecutionIds(executionType: ExecutionType, partitionName: String?): List<String> {
     val partitionConstraint = if (partitionName == null) {
       field("`partition`").isNull
     } else {
@@ -69,7 +69,7 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun getStageIdsForExecutions(executionType: Execution.ExecutionType, executionIds: List<String>): List<String> {
+  override fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<String> {
     return withPool(poolName) {
       jooq
         .select(field("id"))
@@ -79,7 +79,7 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun getExecutions(executionType: Execution.ExecutionType, ids: List<String>): org.jooq.Result<Record> {
+  override fun getExecutions(executionType: ExecutionType, ids: List<String>): org.jooq.Result<Record> {
     return withPool(poolName) {
       jooq.select(DSL.asterisk())
         .from(getExecutionTable(executionType))
@@ -88,7 +88,7 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun getStages(executionType: Execution.ExecutionType, stageIds: List<String>): org.jooq.Result<Record> {
+  override fun getStages(executionType: ExecutionType, stageIds: List<String>): org.jooq.Result<Record> {
     return withPool(poolName) {
       jooq.select(DSL.asterisk())
         .from(getStagesTable(executionType))
@@ -97,7 +97,7 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun deleteStages(executionType: Execution.ExecutionType, stageIdsToDelete: List<String>) {
+  override fun deleteStages(executionType: ExecutionType, stageIdsToDelete: List<String>) {
     withPool(poolName) {
       for (chunk in stageIdsToDelete.chunked(chunkSize)) {
         jooq
@@ -108,7 +108,7 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun deleteExecutions(executionType: Execution.ExecutionType, pipelineIdsToDelete: List<String>) {
+  override fun deleteExecutions(executionType: ExecutionType, pipelineIdsToDelete: List<String>) {
     withPool(poolName) {
       for (chunk in pipelineIdsToDelete.chunked(chunkSize)) {
         jooq

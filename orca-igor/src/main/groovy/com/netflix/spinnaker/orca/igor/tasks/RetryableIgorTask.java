@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +47,7 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
   }
 
   @Override
-  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+  public @Nonnull TaskResult execute(@Nonnull StageExecution stage) {
     T stageDefinition = mapStage(stage);
     int errors = stageDefinition.getConsecutiveErrors();
     try {
@@ -65,7 +65,7 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
 
   protected abstract @Nonnull TaskResult tryExecute(@Nonnull T stageDefinition);
 
-  protected abstract @Nonnull T mapStage(@Nonnull Stage stage);
+  protected abstract @Nonnull T mapStage(@Nonnull StageExecution stage);
 
   private TaskResult resetErrorCount(TaskResult result) {
     Map<String, Object> newContext =

@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+
 import java.util.concurrent.TimeUnit
 import javax.annotation.Nonnull
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -44,7 +46,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired RetrySupport retrySupport
 
   @Override
-  void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  void afterStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     Map canaryStageId = [
       canaryStageId   : parent.id,
       failPipeline    : parent.context.failPipeline,
@@ -67,7 +69,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   }
 
   @Override
-  Result cancel(Stage stage) {
+  Result cancel(StageExecution stage) {
     Collection<Map<String, Object>> disableContexts = []
     Collection<Map<String, Object>> destroyContexts = []
 
@@ -138,7 +140,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
     }
 
     def destroyResults = destroyContexts.collect {
-      def destroyStage = new Stage()
+      def destroyStage = new StageExecutionImpl()
       destroyStage.execution = stage.execution
       destroyStage.context.putAll(it)
       destroyServerGroupTask.execute(destroyStage)

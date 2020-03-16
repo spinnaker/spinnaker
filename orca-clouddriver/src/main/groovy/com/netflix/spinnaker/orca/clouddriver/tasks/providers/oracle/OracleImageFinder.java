@@ -11,9 +11,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oracle;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ public class OracleImageFinder implements ImageFinder {
 
   @Override
   public Collection<ImageDetails> byTags(
-      Stage stage, String packageName, Map<String, String> freeformTags) {
+      StageExecution stage, String packageName, Map<String, String> freeformTags) {
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
