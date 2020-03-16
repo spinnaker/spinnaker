@@ -48,7 +48,7 @@ The core code making up Spinnaker’s microservices is found in the other https
 = Using Spinnaker
 
 Spinnaker users should refer to the main
-Spinnaker site and https://www.spinnaker.io/setup/[Installation] guide.
+https://www.spinnaker.io/[Spinnaker site] and https://www.spinnaker.io/setup/[Installation] guide.
 
 For more information on how Spinnaker is designed, see the https://www.spinnaker.io/concepts/[Documentation Overview].
 
