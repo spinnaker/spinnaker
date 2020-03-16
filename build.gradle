@@ -88,6 +88,9 @@ allprojects {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8188'
       }
     }
+    tasks.withType(Javadoc) {
+      failOnError = false
+    }
   }
 }
 
