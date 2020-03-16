@@ -6,7 +6,8 @@ image:https://travis-ci.org/spinnaker/spinnaker.svg?branch=master["Build Status"
 = Welcome to the Spinnaker Project
 
 Spinnaker is an open-source continuous delivery platform for releasing software changes with high velocity and confidence.
-Through a powerful abstraction layer, Spinnaker provides compelling tooling that empowers developers to own their application code from commit to delivery.
+Through a powerful abstraction layer, Spinnaker provides compelling tooling that empowers developers to own their application code from commit to delivery. As the most mature and widely productionalized continuous delivery platform, Spinnaker can apply the expertise of Netflix, Google, Microsoft,
+ and Amazon to your SDLC. User companies include Target, Salesforce, Airbnb, Cerner, Adobe, and JPMorgan Chase.
 
 Manage your SDLC in Spinnaker using the GUI (graphical user interface), or config-as-code. View, manage, and construct [application](https://www.spinnaker.io/concepts/#application) workflows involving one or all of these resources: 
 
@@ -28,8 +29,7 @@ Facilitate GitOps, and grant developers control of provisioning infrastructure f
 With Spinnaker, create a “paved road” for application delivery, with guardrails that ensure only valid infrastructure and configuration reach production.
 Free development teams from burdensome ops provisioning while automating reinforcement of business and regulatory requirements. Delivery automation
 strategies such as canary deployments provide the safety necessary to capture value from quick innovation, while protecting against business and end-user
- impact. As the most mature and widely productionalized continuous delivery platform, Spinnaker can apply the expertise of Netflix, Google, Microsoft,
- and Amazon to your SDLC. User companies include Target, Salesforce, Airbnb, Cerner, Adobe, and JPMorgan Chase.
+ impact.
  
 = Tech Specs
 
