@@ -12,7 +12,7 @@ const helpContents: { [key: string]: string } = {
   'ecs.serverGroup.detail':
     '<p>An environment variable available within your container, and on which you should base your application configuration at runtime.</p>  <p>Typical values for this parameter are <i>app</i>, <i>worker</i>, <i>migrator</i>, etc.  Keep this parameter short!</p>',
   'ecs.capacity.overwrite':
-    "<p>Checking this box will have the previous server group's capacity overwrite the new <i>desired containers</i> parameter if a previous server group exists.</p>",
+    "<p>Checking this box will have the previous server group's capacity overwrite the new <i>min</i>, <i>max</i> and <i>desired capacity</i> parameters if a previous server group exists.</p>",
   'ecs.capacity.desired': '<p>The starting number of containers, before any autoscaling happens.</p>',
   'ecs.capacity.minimum':
     '<p>The minimum number of containers you can reach as a result of autoscaling.</p> <p>Typically, this represents the bare minimum you can afford to run without impacting your capacity to meet your SLA (Service Level Agreement) objectives</p>',
