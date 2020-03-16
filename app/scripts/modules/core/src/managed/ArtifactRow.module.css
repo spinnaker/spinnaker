@@ -1,10 +1,14 @@
 .ArtifactRow {
   height: 48px;
   display: block;
-}
-.ArtifactRow:hover {
   cursor: pointer;
+}
+.ArtifactRow:not(.selected):hover {
   background-image: linear-gradient(to bottom, rgba(160, 180, 220, 0.15), rgba(160, 180, 220, 0.15));
+}
+
+.selected {
+  background-color: var(--color-white);
 }
 
 .content {
@@ -24,6 +28,9 @@
 }
 .sha {
   font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .name {
   font-size: 12px;

@@ -1,4 +1,5 @@
 import React from 'react';
+import classNames from 'classnames';
 
 import { IManagedArtifactSummary, IManagedArtifactVersion } from '../domain/IManagedEntity';
 import { ISelectedArtifact } from './Environments';
@@ -13,13 +14,16 @@ interface IArtifactsListProps {
   selectedArtifact: ISelectedArtifact;
 }
 
-export function ArtifactsList({ artifacts, artifactSelected }: IArtifactsListProps) {
+export function ArtifactsList({ artifacts, selectedArtifact, artifactSelected }: IArtifactsListProps) {
   return (
     <div>
       {artifacts.map(({ versions, name }) =>
         versions.map((version, i) => (
           <ArtifactRow
             key={`${name}-${version.version}-${i}`} // appending index until name-version is guaranteed to be unique
+            isSelected={
+              selectedArtifact && selectedArtifact.name === name && selectedArtifact.version === version.version
+            }
             clickHandler={artifactSelected}
             version={version}
             name={name}
@@ -32,17 +36,21 @@ export function ArtifactsList({ artifacts, artifactSelected }: IArtifactsListPro
 }
 
 interface IArtifactRowProps {
+  isSelected: boolean;
   clickHandler: (artifact: ISelectedArtifact) => void;
   version: IManagedArtifactVersion;
   name: string;
   stages: any[];
 }
 
-export function ArtifactRow({ clickHandler, version, name, stages }: IArtifactRowProps) {
+export function ArtifactRow({ isSelected, clickHandler, version, name, stages }: IArtifactRowProps) {
   const versionString = version.version;
   const { packageName, version: packageVersion, buildNumber, commit } = parseName(versionString);
   return (
-    <div className={styles.ArtifactRow} onClick={() => clickHandler({ name, version: versionString })}>
+    <div
+      className={classNames(styles.ArtifactRow, { [styles.selected]: isSelected })}
+      onClick={() => clickHandler({ name, version: versionString })}
+    >
       <div className={styles.content}>
         <div className={styles.version}>
           <Pill text={buildNumber ? `#${buildNumber}` : packageVersion || versionString} />

@@ -2,7 +2,6 @@ import React from 'react';
 import { keyBy } from 'lodash';
 
 import { IManagedEnviromentSummary, IManagedResourceSummary, IManagedArtifactSummary } from '../domain/IManagedEntity';
-import { ISelectedArtifact } from './Environments';
 import { getKindName } from './ManagedReader';
 import { NoticeCard } from './NoticeCard';
 import { ObjectRow } from './ObjectRow';
@@ -24,10 +23,9 @@ interface IEnvironmentsListProps {
   environments: IManagedEnviromentSummary[];
   resources: IManagedResourceSummary[];
   artifacts: IManagedArtifactSummary[];
-  selectedArtifact: ISelectedArtifact;
 }
 
-export function EnvironmentsList({ environments, resources, artifacts, selectedArtifact }: IEnvironmentsListProps) {
+export function EnvironmentsList({ environments, resources, artifacts }: IEnvironmentsListProps) {
   const resourcesMap = keyBy(resources, 'id');
 
   return (
@@ -35,11 +33,9 @@ export function EnvironmentsList({ environments, resources, artifacts, selectedA
       <NoticeCard
         icon="search"
         text={undefined}
-        title={
-          selectedArtifact
-            ? `Showing ${selectedArtifact.name} ${selectedArtifact.version}`
-            : `${artifacts.length} artifacts is deployed in 2 environments with no issues detected.`
-        }
+        title={`${artifacts.length} artifacts ${
+          artifacts.length === 1 ? 'is' : 'are'
+        } deployed in 2 environments with no issues detected.`}
         isActive={true}
         noticeType={'ok'}
       />

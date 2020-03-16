@@ -7,6 +7,7 @@ import { IManagedApplicationEnvironmentSummary } from '../domain/IManagedEntity'
 import { ColumnHeader } from './ColumnHeader';
 import { ArtifactsList } from './ArtifactsList';
 import { EnvironmentsList } from './EnvironmentsList';
+import { ArtifactDetail } from './ArtifactDetail';
 
 import styles from './Environments.module.css';
 
@@ -30,6 +31,12 @@ export function Environments(props: IEnvironmentsProps) {
 
   const totalContentWidth = isFiltersOpen ? CONTENT_WIDTH + 248 + 'px' : CONTENT_WIDTH + 'px';
 
+  const selectedArtifactDetails =
+    selectedArtifact &&
+    environments.artifacts
+      .find(({ name }) => name === selectedArtifact.name)
+      ?.versions.find(({ version }) => version === selectedArtifact.version);
+
   return (
     <div style={{ width: '100%' }}>
       <span>For there shall be no greater pursuit than that towards desired state.</span>
@@ -41,14 +48,29 @@ export function Environments(props: IEnvironmentsProps) {
             <ArtifactsList
               {...environments}
               selectedArtifact={selectedArtifact}
-              artifactSelected={clickedArtifact =>
-                setSelectedArtifact(isEqual(clickedArtifact, selectedArtifact) ? null : clickedArtifact)
-              }
+              artifactSelected={clickedArtifact => {
+                if (!isEqual(clickedArtifact, selectedArtifact)) {
+                  setSelectedArtifact(clickedArtifact);
+                }
+              }}
             />
           </div>
           <div className={styles.environmentsColumn}>
-            <ColumnHeader text="Environments" icon="search" />
-            <EnvironmentsList {...environments} selectedArtifact={selectedArtifact} />
+            {/* This view switcheroo will be handled via the router soon,
+                but for now let's do it in component local state.  */}
+            {!selectedArtifact && (
+              <>
+                <ColumnHeader text="Environments" icon="search" />
+                <EnvironmentsList {...environments} />
+              </>
+            )}
+            {selectedArtifact && (
+              <ArtifactDetail
+                name={selectedArtifact.name}
+                version={selectedArtifactDetails}
+                onRequestClose={() => setSelectedArtifact(null)}
+              />
+            )}
           </div>
         </div>
       </div>
