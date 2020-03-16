@@ -21,7 +21,7 @@ Manage your SDLC in Spinnaker using the GUI (graphical user interface), or confi
 - Functions
 
 
-Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Natively, use Spinnaker’s Clouddriver to deploy to all of the major public cloud providers, and the Kubernetes V2 provider for Kubernetes deployments. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery [pipelines](https://www.spinnaker.io/concepts/#firewall).
+Facilitate GitOps, and grant developers control of provisioning infrastructure for apps. Use Spinnaker’s Clouddriver to deploy to all of the major public cloud providers and Kubernetes. You may even orchestrate configuration and firmware changes as part of Spinnaker delivery [pipelines](https://www.spinnaker.io/concepts/#firewall).
 
 = Why Do I Need Spinnaker?
 
