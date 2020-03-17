@@ -36,6 +36,7 @@ public class KubernetesSettings {
   String serviceType = "ClusterIP";
   String nodePort = null;
   Boolean useExecHealthCheck = true;
+  List<String> customHealthCheckExecCommands = new ArrayList<>();
   Boolean useTcpProbe = false;
   KubernetesSecurityContext securityContext = null;
   DeploymentStrategy deploymentStrategy = null;
