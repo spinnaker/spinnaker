@@ -48,6 +48,7 @@ class TitusInstance implements Instance {
   final String providerType = TitusCloudProvider.ID
   final String cloudProvider = TitusCloudProvider.ID
   String privateIpAddress
+  String agentId
 
   TitusInstance() {}
 
@@ -84,6 +85,8 @@ class TitusInstance implements Instance {
 
     // expose containerIp as privateIpAddress to remain consistent with aws
     privateIpAddress = task.containerIp ?: task.data?.ipAddresses?.nfvpc
+
+    agentId = task.agentId
   }
 
   @Override
@@ -93,6 +96,10 @@ class TitusInstance implements Instance {
 
   String getContainerIp() {
     placement.getContainerIp()
+  }
+
+  String getAgentId() {
+    agentId
   }
 
   String getHostIp() {

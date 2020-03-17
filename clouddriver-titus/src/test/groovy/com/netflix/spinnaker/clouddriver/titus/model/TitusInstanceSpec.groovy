@@ -42,7 +42,8 @@ class TitusInstanceSpec extends Specification {
     submittedAt: launchDate,
     region: 'us-east-1',
     host: 'ec2-1-2-3-4.compute-1.amazonaws.com',
-    data: [ipAddresses: [nfvpc: '4.5.6.7'], NetworkConfiguration: [EniIPAddress: '1.2.3.4']]
+    data: [ipAddresses: [nfvpc: '4.5.6.7'], NetworkConfiguration: [EniIPAddress: '1.2.3.4']],
+    agentId: 'i-abc123'
   )
 
   void 'valid titus instance is created from a titus task'() {
@@ -72,6 +73,7 @@ class TitusInstanceSpec extends Specification {
     titusInstance.submittedAt == task.submittedAt.time
     titusInstance.finishedAt == null
     titusInstance.privateIpAddress == task.data.ipAddresses.nfvpc
+    titusInstance.agentId == task.agentId
   }
 
   void 'can handle null ports'() {
