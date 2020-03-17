@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.core.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
@@ -11,6 +12,7 @@ import com.netflix.spinnaker.keel.persistence.PromotionStatus
 /**
  * Summarized data about a specific environment, mostly for use by the UI.
  */
+@JsonPropertyOrder(value = ["name"])
 data class EnvironmentSummary(
   @JsonIgnore val environment: Environment,
   val artifacts: Set<ArtifactVersions>

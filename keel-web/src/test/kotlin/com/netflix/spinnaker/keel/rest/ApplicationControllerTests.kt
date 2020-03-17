@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Moniker
@@ -11,10 +12,17 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.pause.ActuationPauser
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -23,15 +31,23 @@ import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import java.nio.charset.StandardCharsets
+import java.time.Clock
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -46,7 +62,7 @@ import strikt.assertions.containsExactly
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
+  classes = [TestConfiguration::class, KeelApplication::class, MockEurekaConfiguration::class],
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
@@ -66,14 +82,47 @@ internal class ApplicationControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var actuationPauser: ActuationPauser
 
+  @MockkBean(relaxed = true)
+  lateinit var dynamicConfigService: DynamicConfigService
+
+  @MockkBean(relaxed = true)
+  lateinit var cloudDriverService: CloudDriverService
+
   private val jsonMapper = configuredObjectMapper()
 
   private val yamlMapper = configuredYamlMapper()
 
   object Fixture {
+    private val clock = Clock.systemUTC()
+
     const val application = "fnord"
 
     val artifact = DebianArtifact(name = application, deliveryConfigName = "manifest", statuses = setOf(ArtifactStatus.RELEASE))
+
+    val images = (0..3).map { n ->
+      val timestamp = clock.instant().toString()
+      NamedImage(
+        imageName = "fnord-1.0.$n-h001",
+        attributes = mapOf(
+          "virtualizationType" to "hvm",
+          "creationDate" to timestamp
+        ),
+        tagsByImageId = mapOf(
+          "ami-00$n" to mapOf(
+            "build_host" to "https://jenkins/",
+            "appversion" to "fnord-1.0.$n-h001/JENKINS-job/001",
+            "creator" to "lpollo@netflix.com",
+            "base_ami_version" to "nflx-base-5.292.0-h988",
+            "creation_time" to timestamp
+          )
+        ),
+        accounts = setOf("test"),
+        amis = mapOf(
+          "us-west-2" to listOf("ami-00$n"),
+          "us-east-1" to listOf("ami-00$n")
+        )
+      )
+    }
 
     val environments = listOf("test", "staging", "production").associateWith { name ->
       Environment(name = name, resources = setOf(
@@ -109,7 +158,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
     val deliveryConfig = DeliveryConfig(
       name = "manifest",
       application = application,
-      serviceAccount = "keel@spinnaker",
+      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
       artifacts = setOf(artifact),
       environments = environments.values.toSet()
     )
@@ -117,6 +166,26 @@ internal class ApplicationControllerTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
+
+    before {
+      with(dynamicConfigService) {
+        every {
+          getConfig(String::class.java, "images.default-account", any())
+        } returns "test"
+        every {
+          isEnabled("ssl.blacklist", any())
+        } returns false
+      }
+      with(cloudDriverService) {
+        coEvery {
+          namedImages(
+            user = DEFAULT_SERVICE_ACCOUNT,
+            imageName = any(),
+            account = "test"
+          )
+        } returns images as List<NamedImage>
+      }
+    }
 
     after {
       deliveryConfigRepository.dropAll()
@@ -135,17 +204,23 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
         }
         artifactRepository.register(artifact)
-        artifactRepository.store(artifact, "1.0.0", ArtifactStatus.RELEASE)
-        artifactRepository.store(artifact, "1.0.1", ArtifactStatus.RELEASE)
-        artifactRepository.store(artifact, "1.0.2", ArtifactStatus.RELEASE)
-        artifactRepository.store(artifact, "1.0.3", ArtifactStatus.RELEASE)
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.0", "test")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.0", "staging")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.0", "production")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.1", "test")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.1", "staging")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.2", "test")
-        artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.0.3", "test")
+        artifactRepository.store(artifact, "fnord-1.0.0-h001", ArtifactStatus.RELEASE)
+        artifactRepository.store(artifact, "fnord-1.0.1-h001", ArtifactStatus.RELEASE)
+        artifactRepository.store(artifact, "fnord-1.0.2-h001", ArtifactStatus.RELEASE)
+        artifactRepository.store(artifact, "fnord-1.0.3-h001", ArtifactStatus.RELEASE)
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.0-h001", "test")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.0-h001", "staging")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.0-h001", "production")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.1-h001", "test")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.1-h001", "staging")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.2-h001", "test")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.3-h001", "test")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.0-h001", "test")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.0-h001", "staging")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.0-h001", "production")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.1-h001", "test")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.1-h001", "staging")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.2-h001", "test")
       }
 
       test("can get basic summary by application") {
@@ -208,6 +283,10 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             - id: "ec2:cluster:test:fnord-test"
               kind: "ec2/cluster@v1"
               status: "CREATED"
+              artifact:
+                name: "fnord"
+                type: "deb"
+                desiredVersion: "fnord-1.0.3-h001"
               moniker:
                 app: "fnord"
                 stack: "test"
@@ -219,6 +298,10 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             - id: "ec2:cluster:test:fnord-staging"
               kind: "ec2/cluster@v1"
               status: "CREATED"
+              artifact:
+                name: "fnord"
+                type: "deb"
+                desiredVersion: "fnord-1.0.1-h001"
               moniker:
                 app: "fnord"
                 stack: "staging"
@@ -230,6 +313,10 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             - id: "ec2:cluster:test:fnord-production"
               kind: "ec2/cluster@v1"
               status: "CREATED"
+              artifact:
+                name: "fnord"
+                type: "deb"
+                desiredVersion: "fnord-1.0.0-h001"
               moniker:
                 app: "fnord"
                 stack: "production"
@@ -261,13 +348,13 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 statuses:
                 - "RELEASE"
                 versions:
-                  current: "1.0.2"
+                  current: "fnord-1.0.2-h001"
                   pending: []
                   approved:
-                  - "1.0.3"
+                  - "fnord-1.0.3-h001"
                   previous:
-                  - "1.0.0"
-                  - "1.0.1"
+                  - "fnord-1.0.0-h001"
+                  - "fnord-1.0.1-h001"
                   vetoed: []
               name: "test"
               resources:
@@ -278,13 +365,13 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 statuses:
                 - "RELEASE"
                 versions:
-                  current: "1.0.1"
+                  current: "fnord-1.0.1-h001"
                   pending:
-                  - "1.0.2"
-                  - "1.0.3"
+                  - "fnord-1.0.2-h001"
+                  - "fnord-1.0.3-h001"
                   approved: []
                   previous:
-                  - "1.0.0"
+                  - "fnord-1.0.0-h001"
                   vetoed: []
               name: "staging"
               resources:
@@ -295,11 +382,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 statuses:
                 - "RELEASE"
                 versions:
-                  current: "1.0.0"
+                  current: "fnord-1.0.0-h001"
                   pending:
-                  - "1.0.1"
-                  - "1.0.2"
-                  - "1.0.3"
+                  - "fnord-1.0.1-h001"
+                  - "fnord-1.0.2-h001"
+                  - "fnord-1.0.3-h001"
                   approved: []
                   previous: []
                   vetoed: []
@@ -326,31 +413,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             - name: "fnord"
               type: "deb"
               versions:
-              - version: "1.0.0"
-                environments:
-                - name: "test"
-                  state: "previous"
-                - name: "staging"
-                  state: "previous"
-                - name: "production"
-                  state: "current"
-              - version: "1.0.1"
-                environments:
-                - name: "test"
-                  state: "previous"
-                - name: "staging"
-                  state: "current"
-                - name: "production"
-                  state: "pending"
-              - version: "1.0.2"
-                environments:
-                - name: "test"
-                  state: "current"
-                - name: "staging"
-                  state: "pending"
-                - name: "production"
-                  state: "pending"
-              - version: "1.0.3"
+              - version: "fnord-1.0.3-h001"
                 environments:
                 - name: "test"
                   state: "approved"
@@ -358,6 +421,30 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   state: "pending"
                 - name: "production"
                   state: "pending"
+              - version: "fnord-1.0.2-h001"
+                environments:
+                - name: "test"
+                  state: "current"
+                - name: "staging"
+                  state: "pending"
+                - name: "production"
+                  state: "pending"
+              - version: "fnord-1.0.1-h001"
+                environments:
+                - name: "test"
+                  state: "previous"
+                - name: "staging"
+                  state: "current"
+                - name: "production"
+                  state: "pending"
+              - version: "fnord-1.0.0-h001"
+                environments:
+                - name: "test"
+                  state: "previous"
+                - name: "staging"
+                  state: "previous"
+                - name: "production"
+                  state: "current"
             """.trimIndent()
           ))
       }
@@ -458,4 +545,18 @@ internal class ApplicationControllerTests : JUnit5Minutests {
       }
     }
   }
+}
+
+@Configuration
+class TestConfiguration {
+  @Bean
+  fun imageService() = mockk<ImageService>()
+
+  @Bean
+  fun imageResolver(dynamicConfigService: DynamicConfigService, repository: KeelRepository, imageService: ImageService) =
+    ImageResolver(dynamicConfigService, repository, imageService)
+
+  @Bean
+  fun resolvers(imageResolver: ImageResolver) =
+    listOf(imageResolver) as List<Resolver<ComputeResourceSpec>>
 }

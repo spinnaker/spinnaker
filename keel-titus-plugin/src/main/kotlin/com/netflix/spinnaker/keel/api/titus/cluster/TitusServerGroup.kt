@@ -20,7 +20,7 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.UnhappyControl
-import com.netflix.spinnaker.keel.api.VersionedArtifact
+import com.netflix.spinnaker.keel.api.VersionedArtifactContainer
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
@@ -70,7 +70,7 @@ data class TitusServerGroup(
   override val maxDiffCount: Int? = null,
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
   override val unhappyWaitTime: Duration? = null
-) : VersionedArtifact, UnhappyControl
+) : VersionedArtifactContainer, UnhappyControl
 
 val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)

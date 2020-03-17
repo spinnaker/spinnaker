@@ -18,8 +18,8 @@
 
 package com.netflix.spinnaker.keel.api.plugins
 
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 
 /**
@@ -27,11 +27,18 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
  * opinions, or resolving references.
  */
 interface Resolver<T : ResourceSpec> : (Resource<T>) -> Resource<T> {
-  val supportedKind: ResourceKind
+  val supportedKind: SupportedKind<T>
 }
 
 fun <T : ResourceSpec> Iterable<Resolver<*>>.supporting(
   resource: Resource<T>
 ): Iterable<Resolver<T>> =
-  filter { it.supportedKind == resource.kind }
+  filter { it.supportedKind.kind == resource.kind }
     .filterIsInstance<Resolver<T>>()
+
+fun <T : ComputeResourceSpec, R : Resolver<T>> Iterable<R>.supportingComputeResources(
+  resource: Resource<T>
+): Iterable<R> =
+  filter { it.supportedKind.kind == resource.kind &&
+    ComputeResourceSpec::class.java.isAssignableFrom(resource.spec.javaClass)
+  }

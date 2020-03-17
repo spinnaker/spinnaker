@@ -17,18 +17,53 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.id
 
 /**
  * A summary version of a resource that contains identifying information, location information, and status.
  * This powers the UI view of resource status.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder(value = ["id", "kind", "status", "moniker", "locations", "artifact"])
 data class ResourceSummary(
-  val id: String,
-  val kind: ResourceKind,
+  @JsonIgnore
+  val resource: Resource<*>,
   val status: ResourceStatus,
-  val moniker: Moniker?,
-  val locations: Locations<*>?
+  val artifact: ResourceArtifactSummary? = null
+) {
+  val id: String = resource.id
+  val kind: ResourceKind = resource.kind
+  val moniker: Moniker? = if (resource.spec is Monikered) {
+    (resource.spec as Monikered).moniker
+  } else {
+    null
+  }
+  val locations: Locations<*>? = if (resource.spec is Locatable<*>) {
+    SimpleLocations(
+      account = (resource.spec as Locatable<*>).locations.account,
+      vpc = (resource.spec as Locatable<*>).locations.vpc,
+      regions = (resource.spec as Locatable<*>).locations.regions.map { SimpleRegionSpec(it.name) }.toSet()
+    )
+  } else {
+    null
+  }
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class ResourceArtifactSummary(
+  val name: String,
+  val type: ArtifactType,
+  val desiredVersion: String
 )

@@ -19,7 +19,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 
 abstract class SimpleResourceHandler<T : ResourceSpec>(
-  resolvers: List<Resolver<*>>
+  resolvers: List<Resolver<T>>
 ) : ResourceHandler<T, T>(resolvers) {
 
   /**

@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import org.springframework.stereotype.Component
@@ -41,7 +42,10 @@ abstract class NetworkResolver<T : Locatable<SubnetAwareLocations>>(
 
 @Component
 class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClusterSpec>(cloudDriverCache) {
-  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("cluster")
+  override val supportedKind = SupportedKind(
+    SPINNAKER_EC2_API_V1.qualify("cluster"),
+    ClusterSpec::class.java
+  )
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> =
     resource.run {
@@ -57,7 +61,10 @@ class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolv
 
 @Component
 class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClassicLoadBalancerSpec>(cloudDriverCache) {
-  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer")
+  override val supportedKind = SupportedKind(
+    SPINNAKER_EC2_API_V1.qualify("classic-load-balancer"),
+    ClassicLoadBalancerSpec::class.java
+  )
 
   override fun invoke(resource: Resource<ClassicLoadBalancerSpec>): Resource<ClassicLoadBalancerSpec> =
     resource.run {
@@ -73,7 +80,10 @@ class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : N
 
 @Component
 class ApplicationLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ApplicationLoadBalancerSpec>(cloudDriverCache) {
-  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("application-load-balancer")
+  override val supportedKind = SupportedKind(
+    SPINNAKER_EC2_API_V1.qualify("application-load-balancer"),
+    ApplicationLoadBalancerSpec::class.java
+  )
 
   override fun invoke(resource: Resource<ApplicationLoadBalancerSpec>): Resource<ApplicationLoadBalancerSpec> =
     resource.run {

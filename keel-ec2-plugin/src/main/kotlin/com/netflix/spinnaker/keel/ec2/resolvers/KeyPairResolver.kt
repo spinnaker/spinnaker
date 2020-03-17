@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import org.slf4j.LoggerFactory
@@ -14,7 +15,10 @@ import org.springframework.stereotype.Component
  * missing key pair details in the [ClusterSpec].
  */
 class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver<ClusterSpec> {
-  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("cluster")
+  override val supportedKind = SupportedKind(
+    SPINNAKER_EC2_API_V1.qualify("cluster"),
+    ClusterSpec::class.java
+  )
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
