@@ -27,6 +27,8 @@ public class ServiceVersion {
 
   public static final String UNKNOWN_VERSION = "unknown";
 
+  public static final String DEFAULT_VERSION = "0.0.0";
+
   private final List<VersionResolver> resolvers;
   private final ApplicationContext applicationContext;
 
@@ -62,7 +64,10 @@ public class ServiceVersion {
         }
       }
 
-      resolvedServiceVersion = UNKNOWN_VERSION;
+      if (resolvedServiceVersion == null || resolvedServiceVersion.isEmpty()) {
+        log.warn("Unable to determine the service version, setting it to unknown");
+        resolvedServiceVersion = UNKNOWN_VERSION;
+      }
     }
 
     return resolvedServiceVersion;

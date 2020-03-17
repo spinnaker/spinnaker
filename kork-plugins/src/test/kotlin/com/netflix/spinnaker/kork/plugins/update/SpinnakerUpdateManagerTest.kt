@@ -33,6 +33,8 @@ import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.hasSize
+import strikt.assertions.isA
+import strikt.assertions.isNull
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -109,6 +111,10 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
 
       // Previously loaded plugin is still loaded
       expectThat(pluginManager.plugins).hasSize(1)
+
+      // Get the plugin release matching the service name, if not found we should receive null
+      expectThat(subject.getLastPluginRelease(plugin.id, "orca")).isA<PluginInfo.PluginRelease>()
+      expectThat(subject.getLastPluginRelease(plugin.id, "deck")).isNull()
     }
   }
 
@@ -188,7 +194,7 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
         provider = "Spinnaker"
         releases = listOf(
           PluginInfo.PluginRelease().apply {
-            requires = "orca"
+            requires = "orca>=0.0.0"
             version = pluginBuilder.version
             date = Date.from(Instant.now())
             url = releasePath.toUri().toURL().toString()
