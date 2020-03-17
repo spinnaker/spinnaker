@@ -803,7 +803,10 @@ class SqlArtifactRepository(
         ?: error("Artifact not found: name=$artifactName, type=$artifactType, deliveryConfig=${deliveryConfig.name}")
 
       val environmentUid = jooq
-        .select(ENVIRONMENT.UID).from(ENVIRONMENT).where(ENVIRONMENT.NAME.eq(environmentName))
+        .select(ENVIRONMENT.UID)
+        .from(ENVIRONMENT)
+        .where(ENVIRONMENT.NAME.eq(environmentName))
+        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
         .limit(1)
         .fetchOne(ENVIRONMENT.UID)
         ?: error("Environment '$environmentName not found")
@@ -815,8 +818,7 @@ class SqlArtifactRepository(
           ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS
         )
         .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactUid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
