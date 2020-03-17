@@ -66,11 +66,14 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
       $scope.command = {
         rollbackType: rollbackType,
         rollbackContext: {
+          imageId: previousServerGroup ? previousServerGroup.imageId : undefined,
           rollbackServerGroupName: serverGroup.name,
           restoreServerGroupName: previousServerGroup ? previousServerGroup.name : undefined,
           targetHealthyRollbackPercentage: healthyPercent,
           delayBeforeDisableSeconds: 0,
         },
+        targetGroups: serverGroup.targetGroups,
+        securityGroups: serverGroup.securityGroups,
       };
 
       $scope.minHealthy = function(percent) {
@@ -93,9 +96,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
 
         if (rollbackType === 'PREVIOUS_IMAGE') {
           // no need to validate when using an explicit image
-          // return true;
-          // KLUDGE: temporarily disabling previous image rollbacks for titus because they do not work properly
-          return false;
+          return true;
         }
 
         return command.rollbackContext.restoreServerGroupName !== undefined;
