@@ -128,7 +128,7 @@ public class KubernetesValidationUtil {
   // When validating a kind, we'll allow kinds that are either valid or unknown. This is to support
   // the case where a user is deploying a multi-manifest (perhaps from a Helm chart) that contains
   // a CRD and an object using that CRD.
-  private static ImmutableSet<KubernetesKindStatus> validKindStatuses =
+  private static final ImmutableSet<KubernetesKindStatus> validKindStatuses =
       ImmutableSet.of(KubernetesKindStatus.VALID, KubernetesKindStatus.UNKNOWN);
 
   private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
