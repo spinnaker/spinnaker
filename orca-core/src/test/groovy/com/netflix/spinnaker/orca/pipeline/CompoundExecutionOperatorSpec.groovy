@@ -17,18 +17,24 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.MDC
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
+import java.util.function.Consumer
+
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 
 class CompoundExecutionOperatorSpec extends Specification {
   ExecutionRepository repository = Mock(ExecutionRepository)
   ExecutionRunner runner = Mock(ExecutionRunner)
   def execution = Mock(PipelineExecution)
+  def stage = Mock(StageExecution)
 
   def setupSpec() {
     MDC.clear()
@@ -37,27 +43,83 @@ class CompoundExecutionOperatorSpec extends Specification {
   @Subject
   CompoundExecutionOperator operator = new CompoundExecutionOperator(repository, runner, new RetrySupport())
 
-  def 'should not push messages on the queue for foreign executions'() {
+  @Unroll
+  def '#method call should not push messages on the queue for foreign executions'() {
     when:
-    operator.cancel(ExecutionType.PIPELINE, "id")
+    operator."$method"(*args)
 
-    then: 'we never call runner.cancel(), only repository.cancel()'
-    1 * repository.retrieve(ExecutionType.PIPELINE, "id") >> execution
+    then: 'we never call runner.$method(), only repository.$method()'
     _ * execution.getPartition() >> "foreign"
+    _ * execution.stageById('stageId') >> stage
+    _ * stage.getId() >> "stageId"
+
+    _ * repository.retrieve(PIPELINE, "id") >> execution
     1 * repository.handlesPartition("foreign") >> false
-    1 * repository.cancel(ExecutionType.PIPELINE, "id", "anonymous", null)
-    0 * _
+    1 * repository."$repoMethod"(*_)
+    0 * runner._(*_)
+
+    where:
+    method        | repoMethod   | args
+    'cancel'      | 'cancel'     | [PIPELINE, "id"]
+    'pause'       | 'pause'      | [PIPELINE, "id", "user"]
+    'resume'      | 'resume'     | [PIPELINE, "id", "user", false]
+    'updateStage' | 'storeStage' | [PIPELINE, "id", "stageId", {} ]
   }
 
-  def 'should handle both the queue and the execution repository for local executions'() {
+  @Unroll
+  def 'should not push messages on the queue if the repository action fails'() {
+    given:
+    def runnerAction = Mock(Consumer)
+
     when:
-    operator.cancel(ExecutionType.PIPELINE, "id")
+    def returnedExecution = operator.doInternal(
+        runnerAction,
+        { throw new RuntimeException("repository action is failing") },
+        "faily action",
+        PIPELINE,
+        "id"
+    )
+
+    then: 'we never call the runner action'
+    _ * repository.retrieve(PIPELINE, "id") >> execution
+    _ * execution.getPartition() >> "local"
+    _ * repository.handlesPartition("local") >> true
+
+    returnedExecution == null
+    0 * runnerAction.accept(execution)
+  }
+
+  @Unroll
+  def '#method call should handle both the queue and the execution repository for local executions'() {
+    when:
+    operator."$method"(*args)
 
     then: 'we call both runner.cancel() and repository.cancel()'
-    1 * repository.retrieve(ExecutionType.PIPELINE, "id") >> execution
+    1 * repository.retrieve(PIPELINE, "id") >> execution
     _ * execution.getPartition() >> "local"
     1 * repository.handlesPartition("local") >> true
-    1 * repository.cancel(ExecutionType.PIPELINE, "id", "anonymous", null)
-    1 * runner.cancel(execution, "anonymous", null)
+    1 * repository."$method"(*_)
+    1 * runner."$runnerMethod"(*_)
+
+    where:
+    method   | runnerMethod | args
+    'cancel' | 'cancel'     | [PIPELINE, "id"]
+    'pause'  | 'reschedule' | [PIPELINE, "id", "user"]
+    'resume' | 'unpause'    | [PIPELINE, "id", "user", false]
+  }
+
+  def 'updateStage() updates the stage'() {
+    given:
+    StageExecutionImpl stage = new StageExecutionImpl(id: 'stageId')
+
+    when:
+    operator.updateStage(PIPELINE, 'id', 'stageId',
+        { it.setLastModified(new StageExecution.LastModifiedDetails(user: 'user')) })
+
+    then:
+    _ * repository.retrieve(PIPELINE, 'id') >> execution
+    1 * execution.stageById('stageId') >> stage
+    1 * repository.storeStage(stage)
+    stage.getLastModified().getUser() == 'user'
   }
 }

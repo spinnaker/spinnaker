@@ -340,27 +340,12 @@ class TaskControllerSpec extends Specification {
     pipeline.stages.add(pipelineStage)
 
     when:
-    def response = mockMvc.perform(patch("/pipelines/$pipeline.id/stages/s1").content(
+    mockMvc.perform(patch("/pipelines/$pipeline.id/stages/s1").content(
       objectMapper.writeValueAsString([judgmentStatus: "stop"])
     ).contentType(MediaType.APPLICATION_JSON)).andReturn().response
 
     then:
-    1 * executionRepository.retrieve(pipeline.type, pipeline.id) >> pipeline
-    1 * executionRepository.storeStage({ stage ->
-      stage.id == "s1" &&
-        stage.lastModified.allowedAccounts.isEmpty() &&
-        stage.lastModified.user == "anonymous" &&
-        stage.context == [
-        judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
-      ]
-    } as StageExecutionImpl)
-    1 * executionRunner.reschedule(pipeline)
-    0 * _
-
-    and:
-    objectMapper.readValue(response.contentAsString, Map).stages*.context == [
-      [value: "1", judgmentStatus: "stop", lastModifiedBy: "anonymous"]
-    ]
+    1 * executionOperator.updateStage(pipeline.type, pipeline.id, pipelineStage.id, _)
   }
 
   void '/applications/{application}/pipelines/search should return pipelines of all types if triggerTypes if not provided'() {

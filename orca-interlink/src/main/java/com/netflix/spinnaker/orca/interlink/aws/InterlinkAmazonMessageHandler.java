@@ -65,7 +65,7 @@ public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler
       MDC.put(Header.EXECUTION_ID.getHeader(), event.getExecutionId());
 
       if (executionRepository.handlesPartition(event.getPartition())) {
-        event.applyTo(executionOperator);
+        event.withObjectMapper(objectMapper).applyTo(executionOperator);
       } else {
         log.debug(
             "Execution repository with local partition {} can't handle this event {} so it will not be applied",

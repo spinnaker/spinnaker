@@ -22,6 +22,12 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.interlink.Interlink
+import com.netflix.spinnaker.orca.interlink.events.CancelInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.PauseInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.ResumeInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.PatchStageInterlinkEvent
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -82,10 +88,10 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
     new SqlExecutionRepository("test", previousDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null)
   }
 
-  ExecutionRepository createExecutionRepository(String partition) {
+  ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
     return com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null),
+        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink),
         "namespace")
   }
 
@@ -174,6 +180,60 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
 
     then:
     thrown(ForeignExecutionException)
+
+    when:
+    StageExecution stage = e.stages.find()
+    stage.context.putAll([skipRemainingWait: true])
+    repo.storeStage(stage)
+
+    then:
+    thrown(ForeignExecutionException)
+  }
+
+  def "sends interlink events for foreign executions if available"() {
+    given:
+    Interlink interlink = Mock(Interlink)
+    ExecutionRepository repo = createExecutionRepository("test", interlink)
+    PipelineExecution e = new PipelineExecutionImpl(PIPELINE, "myapp")
+    e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [foo: 'FOO']))
+    repo.store(e)
+
+    currentDatabase.context
+        .update(DSL.table("pipelines"))
+        .set(DSL.field("`partition`"), DSL.value("foreign"))
+        .execute()
+
+    when:
+    repo.pause(PIPELINE, e.id, "test@user.com")
+
+    then:
+    1 * interlink.publish(_ as PauseInterlinkEvent)
+
+    when:
+    repo.resume(PIPELINE, e.id, "test@user.com")
+
+    then:
+    1 * interlink.publish(_ as ResumeInterlinkEvent)
+
+    when:
+    repo.cancel(PIPELINE, e.id)
+
+    then:
+    1 * interlink.publish(_ as CancelInterlinkEvent)
+
+    when:
+    repo.delete(PIPELINE, e.id)
+
+    then:
+    1 * interlink.publish(_ as DeleteInterlinkEvent)
+
+    when:
+    StageExecution stage = e.stages.find()
+    stage.context.putAll([skipRemainingWait: true])
+    repo.storeStage(stage)
+
+    then:
+    1 * interlink.publish(_ as PatchStageInterlinkEvent)
   }
 
   def "can store a pipeline with a provided ULID"() {

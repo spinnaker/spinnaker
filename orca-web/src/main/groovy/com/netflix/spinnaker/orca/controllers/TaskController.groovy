@@ -20,18 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.models.*
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
-import com.netflix.spinnaker.orca.pipeline.EvaluateVariablesStage
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
-import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -465,26 +460,19 @@ class TaskController {
   PipelineExecution updatePipelineStage(
     @PathVariable String id,
     @PathVariable String stageId, @RequestBody Map context) {
-    def pipeline = executionRepository.retrieve(PIPELINE, id)
-    def stage = pipeline.stages.find { it.id == stageId }
-    if (stage) {
-      stage.context.putAll(context)
-      validateStageUpdate(stage)
+    return executionOperator.updateStage(PIPELINE, id, stageId,
+        { stage ->
+          stage.context.putAll(context)
+          validateStageUpdate(stage)
+          stage.lastModified = new StageExecution.LastModifiedDetails(
+              user: AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
+              allowedAccounts: AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.split(",") ?: [],
+              lastModifiedTime: System.currentTimeMillis()
+          )
 
-      stage.lastModified = new StageExecution.LastModifiedDetails(
-        user: AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
-        allowedAccounts: AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.split(",") ?: [],
-        lastModifiedTime: System.currentTimeMillis()
-      )
-
-      // `lastModifiedBy` is deprecated (pending a update to deck)
-      stage.context["lastModifiedBy"] = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-
-      executionRepository.storeStage(stage)
-
-      executionRunner.reschedule(pipeline)
-    }
-    pipeline
+          // `lastModifiedBy` is deprecated (pending a update to deck)
+          stage.context["lastModifiedBy"] = stage.lastModified.user
+        })
   }
 
   // If other execution mutations need validation, factor this out.

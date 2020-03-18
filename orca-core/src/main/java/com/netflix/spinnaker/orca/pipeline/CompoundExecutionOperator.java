@@ -19,26 +19,25 @@ package com.netflix.spinnaker.orca.pipeline;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.NonNull;
+import lombok.Value;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Value
+@NonFinal
 public class CompoundExecutionOperator {
-  private ExecutionRepository repository;
-  private ExecutionRunner runner;
-  private RetrySupport retrySupport;
-
-  public CompoundExecutionOperator(
-      ExecutionRepository repository, ExecutionRunner runner, RetrySupport retrySupport) {
-    this.repository = repository;
-    this.runner = runner;
-    this.retrySupport = retrySupport;
-  }
+  ExecutionRepository repository;
+  ExecutionRunner runner;
+  RetrySupport retrySupport;
 
   public void cancel(ExecutionType executionType, String executionId) {
     cancel(
@@ -66,7 +65,7 @@ public class CompoundExecutionOperator {
       @NonNull String executionId,
       @Nullable String pausedBy) {
     doInternal(
-        (PipelineExecution execution) -> runner.reschedule(execution),
+        runner::reschedule,
         () -> repository.pause(executionType, executionId, pausedBy),
         "pause",
         executionType,
@@ -79,33 +78,58 @@ public class CompoundExecutionOperator {
       @Nullable String user,
       @NonNull Boolean ignoreCurrentStatus) {
     doInternal(
-        (PipelineExecution execution) -> runner.unpause(execution),
+        runner::unpause,
         () -> repository.resume(executionType, executionId, user, ignoreCurrentStatus),
         "resume",
         executionType,
         executionId);
   }
 
-  private void doInternal(
+  public PipelineExecution updateStage(
+      @NonNull ExecutionType executionType,
+      @NonNull String executionId,
+      @NonNull String stageId,
+      @NonNull Consumer<StageExecution> stageUpdater) {
+    return doInternal(
+        runner::reschedule,
+        () -> {
+          PipelineExecution execution = repository.retrieve(executionType, executionId);
+          StageExecution stage = execution.stageById(stageId);
+
+          // mutates stage in place
+          stageUpdater.accept(stage);
+
+          repository.storeStage(stage);
+        },
+        "reschedule",
+        executionType,
+        executionId);
+  }
+
+  private PipelineExecution doInternal(
       Consumer<PipelineExecution> runnerAction,
       Runnable repositoryAction,
       String action,
       ExecutionType executionType,
       String executionId) {
+    PipelineExecution toReturn = null;
     try {
-      runWithRetries(
-          () -> {
-            PipelineExecution execution = repository.retrieve(executionType, executionId);
-            if (repository.handlesPartition(execution.getPartition())) {
-              runnerAction.accept(execution);
-            } else {
-              log.info(
-                  "Not pushing queue message action='{}' for execution with foreign partition='{}'",
-                  action,
-                  execution.getPartition());
-            }
-          });
       runWithRetries(repositoryAction);
+
+      toReturn =
+          runWithRetries(
+              () -> {
+                PipelineExecution execution = repository.retrieve(executionType, executionId);
+                if (repository.handlesPartition(execution.getPartition())) {
+                  runnerAction.accept(execution);
+                } else {
+                  log.info(
+                      "Not pushing queue message action='{}' for execution with foreign partition='{}'",
+                      action,
+                      execution.getPartition());
+                }
+                return execution;
+              });
     } catch (Exception e) {
       log.error(
           "Failed to {} execution with executionType={} and executionId={}",
@@ -114,6 +138,11 @@ public class CompoundExecutionOperator {
           executionId,
           e);
     }
+    return toReturn;
+  }
+
+  private <T> T runWithRetries(Supplier<T> action) {
+    return retrySupport.retry(action, 5, Duration.ofMillis(100), false);
   }
 
   private void runWithRetries(Runnable action) {

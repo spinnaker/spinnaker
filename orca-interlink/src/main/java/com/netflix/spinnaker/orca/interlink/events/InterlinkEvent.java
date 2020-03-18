@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.interlink.events;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import javax.validation.constraints.NotNull;
@@ -29,7 +30,8 @@ import javax.validation.constraints.NotNull;
   @JsonSubTypes.Type(value = CancelInterlinkEvent.class, name = "CANCEL"),
   @JsonSubTypes.Type(value = PauseInterlinkEvent.class, name = "PAUSE"),
   @JsonSubTypes.Type(value = ResumeInterlinkEvent.class, name = "RESUME"),
-  @JsonSubTypes.Type(value = DeleteInterlinkEvent.class, name = "DELETE")
+  @JsonSubTypes.Type(value = DeleteInterlinkEvent.class, name = "DELETE"),
+  @JsonSubTypes.Type(value = PatchStageInterlinkEvent.class, name = "PATCH")
 })
 public interface InterlinkEvent {
   enum EventType {
@@ -37,6 +39,7 @@ public interface InterlinkEvent {
     PAUSE,
     DELETE,
     RESUME,
+    PATCH
   }
 
   @JsonIgnore
@@ -61,5 +64,9 @@ public interface InterlinkEvent {
   @NotNull
   default String getFingerprint() {
     return getEventType() + ":" + getExecutionType() + ":" + getExecutionId();
+  }
+
+  default InterlinkEvent withObjectMapper(ObjectMapper objectMapper) {
+    return this;
   }
 }

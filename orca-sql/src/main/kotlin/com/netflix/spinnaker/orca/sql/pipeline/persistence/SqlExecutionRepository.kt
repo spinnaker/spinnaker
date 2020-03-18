@@ -21,23 +21,24 @@ import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.interlink.events.PauseInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.CancelInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent
 import com.netflix.spinnaker.orca.interlink.events.ResumeInterlinkEvent
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.interlink.events.PatchStageInterlinkEvent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
@@ -129,14 +130,13 @@ class SqlExecutionRepository(
   }
 
   override fun storeStage(stage: StageExecution) {
-    withPool(poolName) {
-      jooq.transactional { storeStageInternal(it, stage) }
+    doForeignAware(PatchStageInterlinkEvent(stage.execution.type, stage.execution.id, stage.id, mapper.writeValueAsString(stage))) {
+      _, dslContext ->
+      jooq.transactional { storeStageInternal(dslContext, stage) }
     }
   }
 
   override fun updateStageContext(stage: StageExecution) {
-    validateHandledPartitionOrThrow(stage.execution)
-
     storeStage(stage)
   }
 
@@ -192,7 +192,7 @@ class SqlExecutionRepository(
         execution.cancellationReason = reason
       }
       if (execution.status == NOT_STARTED) {
-        execution.status = CANCELED
+        execution.status = ExecutionStatus.CANCELED
       }
 
       storeExecutionInternal(dslContext, execution)
