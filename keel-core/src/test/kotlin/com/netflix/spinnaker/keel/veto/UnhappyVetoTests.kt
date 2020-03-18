@@ -54,7 +54,7 @@ class UnhappyVetoTests : JUnit5Minutests {
         getConfig(String::class.java, "veto.unhappy.waiting-time", any())
       } returns "PT10M"
     }
-    val subject = UnhappyVeto(resourceRepository, diffFingerprintRepository, unhappyRepository, dynamicConfigService)
+    val subject = UnhappyVeto(resourceRepository, diffFingerprintRepository, unhappyRepository, dynamicConfigService, "PT10M")
   }
 
   fun tests() = rootContext<Fixture> {

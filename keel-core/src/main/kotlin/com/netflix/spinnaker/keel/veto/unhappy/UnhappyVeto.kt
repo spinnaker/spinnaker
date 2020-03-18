@@ -44,8 +44,8 @@ class UnhappyVeto(
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val unhappyVetoRepository: UnhappyVetoRepository,
   private val dynamicConfigService: DynamicConfigService,
-  @Value("veto.unhappy.waiting-time")
-  private val configuredWaitingTime: String = "PT10M"
+  @Value("\${veto.unhappy.waiting-time:PT10M}")
+  private val configuredWaitingTime: String
 ) : Veto {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
