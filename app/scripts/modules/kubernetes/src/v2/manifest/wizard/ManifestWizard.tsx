@@ -84,9 +84,7 @@ export class ManifestWizard extends React.Component<IKubernetesManifestModalProp
               label="Basic Settings"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => (
-                <WizardManifestBasicSettings ref={innerRef} formik={formik} app={application} />
-              )}
+              render={({ innerRef }) => <WizardManifestBasicSettings ref={innerRef} formik={formik} />}
             />
 
             <WizardPage

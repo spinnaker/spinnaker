@@ -173,9 +173,6 @@ const helpContents: { [key: string]: string } = {
   'kubernetes.manifest.account': `
       <p>A Spinnaker account corresponds to a physical Kubernetes cluster. If you are unsure which account to use, talk to your Spinnaker admin.</p>
   `,
-  'kubernetes.manifest.application': `
-      <p>This is the Spinnaker application that your manifest will be deployed to. An application is generally used to group resources that belong to a single service.</p>
-  `,
   'kubernetes.manifest.cluster': `
       <p>A cluster is a grouping of resources (often across multiple versions of a resource) within an application.</p>
   `,

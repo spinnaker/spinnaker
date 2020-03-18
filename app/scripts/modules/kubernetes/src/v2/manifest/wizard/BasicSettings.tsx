@@ -1,23 +1,17 @@
 import React from 'react';
 import { FormikProps } from 'formik';
 
-import { AccountSelectInput, Application, HelpField, IAccount } from '@spinnaker/core';
+import { AccountSelectInput, HelpField, IAccount } from '@spinnaker/core';
 
 import { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps {
-  app: Application;
   accounts: IAccount[];
   onAccountSelect: (account: string) => void;
   selectedAccount: string;
 }
 
-export function ManifestBasicSettings({
-  app,
-  accounts,
-  onAccountSelect,
-  selectedAccount,
-}: IManifestBasicSettingsProps) {
+export function ManifestBasicSettings({ accounts, onAccountSelect, selectedAccount }: IManifestBasicSettingsProps) {
   return (
     <div className="form-horizontal">
       <div className="form-group">
@@ -34,20 +28,11 @@ export function ManifestBasicSettings({
           />
         </div>
       </div>
-      <div className="form-group">
-        <div className="col-md-3 sm-label-right">
-          Application <HelpField id="kubernetes.manifest.application" />
-        </div>
-        <div className="col-md-7">
-          <input type="text" className="form-control input-sm no-spel" readOnly={true} value={app.name} />
-        </div>
-      </div>
     </div>
   );
 }
 
 export interface IWizardManifestBasicSettingsProps {
-  app: Application;
   formik: FormikProps<IKubernetesManifestCommandData>;
 }
 
@@ -59,10 +44,9 @@ export class WizardManifestBasicSettings extends React.Component<IWizardManifest
   };
 
   public render() {
-    const { formik, app } = this.props;
+    const { formik } = this.props;
     return (
       <ManifestBasicSettings
-        app={app}
         accounts={formik.values.metadata.backingData.accounts}
         onAccountSelect={this.accountUpdated}
         selectedAccount={formik.values.command.account}

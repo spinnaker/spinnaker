@@ -125,7 +125,6 @@ export class DeployManifestStageForm extends React.Component<
       <div className="form-horizontal">
         <h4>Basic Settings</h4>
         <ManifestBasicSettings
-          app={this.props.application}
           accounts={this.props.accounts}
           onAccountSelect={accountName => this.props.formik.setFieldValue('account', accountName)}
           selectedAccount={stage.account}

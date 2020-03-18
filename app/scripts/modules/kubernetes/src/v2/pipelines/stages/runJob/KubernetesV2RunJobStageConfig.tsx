@@ -210,7 +210,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
   };
 
   public render() {
-    const { application, stage } = this.props;
+    const { stage } = this.props;
 
     let outputSource = <div />;
     if (stage.consumeArtifactSource === 'propertyFile') {
@@ -223,7 +223,6 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
       <div className="container-fluid form-horizontal">
         <h4>Basic Settings</h4>
         <ManifestBasicSettings
-          app={application}
           selectedAccount={stage.account || ''}
           accounts={this.state.credentials}
           onAccountSelect={(selectedAccount: string) => this.accountChanged(selectedAccount)}
