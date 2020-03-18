@@ -4,7 +4,7 @@ import { StageConfigField } from '../../common/stageConfigField/StageConfigField
 import { CheckboxInput, TextInput } from 'core/presentation';
 import { MapEditor } from 'core/forms';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
-import { StageArtifactSelectorDelegate } from 'core/artifact';
+import { excludeAllTypesExcept, ArtifactTypePatterns, StageArtifactSelectorDelegate } from 'core/artifact';
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 
 interface IBakeHelmConfigFormProps {
@@ -12,6 +12,18 @@ interface IBakeHelmConfigFormProps {
 }
 
 export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps & IFormikStageConfigInjectedProps> {
+  private static readonly excludedArtifactTypes = excludeAllTypesExcept(
+    ArtifactTypePatterns.BITBUCKET_FILE,
+    ArtifactTypePatterns.CUSTOM_OBJECT,
+    ArtifactTypePatterns.EMBEDDED_BASE64,
+    ArtifactTypePatterns.GCS_OBJECT,
+    ArtifactTypePatterns.GITHUB_FILE,
+    ArtifactTypePatterns.GITLAB_FILE,
+    ArtifactTypePatterns.S3_OBJECT,
+    ArtifactTypePatterns.HELM_CHART,
+    ArtifactTypePatterns.HTTP_FILE,
+  );
+
   public componentDidMount() {
     const stage = this.props.formik.values;
     if (stage.inputArtifacts && stage.inputArtifacts.length === 0) {
@@ -121,7 +133,7 @@ export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps
         <h4>Template Artifact</h4>
         <StageArtifactSelectorDelegate
           artifact={this.getInputArtifact(stage, 0).artifact}
-          excludedArtifactTypePatterns={[]}
+          excludedArtifactTypePatterns={BakeHelmConfigForm.excludedArtifactTypes}
           expectedArtifactId={this.getInputArtifact(stage, 0).id}
           helpKey="pipeline.config.bake.manifest.expectedArtifact"
           label="Expected Artifact"
