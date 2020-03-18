@@ -29,6 +29,8 @@ import org.springframework.core.annotation.AliasFor
 class OkHttpClientConfigurationProperties {
   long connectTimeoutMs = 15000
   long readTimeoutMs = 20000
+  int maxRequests = 64
+  int maxRequestsPerHost = 5
 
   boolean propagateSpinnakerHeaders = true
 

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config
 
+import okhttp3.Dispatcher
+
 import static com.google.common.base.Preconditions.checkState
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
@@ -60,10 +62,15 @@ class OkHttp3ClientConfiguration {
    * @return OkHttpClient w/ <optional> key and trust stores
    */
   OkHttpClient.Builder create() {
+    Dispatcher dispatcher = new Dispatcher()
+    dispatcher.setMaxRequests(okHttpClientConfigurationProperties.maxRequests)
+    dispatcher.setMaxRequestsPerHost(okHttpClientConfigurationProperties.maxRequestsPerHost)
+
     OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
       .connectTimeout(okHttpClientConfigurationProperties.connectTimeoutMs, TimeUnit.MILLISECONDS)
       .readTimeout(okHttpClientConfigurationProperties.readTimeoutMs, TimeUnit.MILLISECONDS)
       .retryOnConnectionFailure(okHttpClientConfigurationProperties.retryOnConnectionFailure)
+      .dispatcher(dispatcher)
       .connectionPool(new ConnectionPool(
         okHttpClientConfigurationProperties.connectionPool.maxIdleConnections,
         okHttpClientConfigurationProperties.connectionPool.keepAliveDurationMs,
