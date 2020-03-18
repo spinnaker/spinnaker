@@ -2,15 +2,22 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
+import com.netflix.spinnaker.keel.api.application
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.telemetry.EnvironmentsCheckTimedOut
+import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -25,6 +32,7 @@ class CheckScheduler(
   private val environmentPromotionChecker: EnvironmentPromotionChecker,
   @Value("\${keel.resource-check.min-age-duration:60s}") private val resourceCheckMinAgeDuration: Duration,
   @Value("\${keel.resource-check.batch-size:1}") private val resourceCheckBatchSize: Int,
+  @Value("\${keel.resource-check.timeout-duration:2m}") private val checkTimeout: Duration,
   private val publisher: ApplicationEventPublisher,
   private val agentLockRepository: AgentLockRepository
 ) : CoroutineScope {
@@ -54,7 +62,18 @@ class CheckScheduler(
         repository
           .resourcesDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
           .forEach {
-            launch { resourceActuator.checkResource(it) }
+            try {
+              /**
+               * Allow individual resource checks to timeout but catch the `CancellationException`
+               * to prevent the cancellation of all coroutines under [job]
+               */
+              withTimeout(checkTimeout.toMillis()) {
+                launch { resourceActuator.checkResource(it) }
+              }
+            } catch (e: TimeoutCancellationException) {
+              log.error("Timed out checking resource ${it.id}", e)
+              publisher.publishEvent(ResourceCheckTimedOut(it.kind, it.id, it.application))
+            }
           }
       }
 
@@ -75,7 +94,21 @@ class CheckScheduler(
         repository
           .deliveryConfigsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
           .forEach {
-            launch { environmentPromotionChecker.checkEnvironments(it) }
+            try {
+              /**
+               * Sets the timeout to (checkTimeout * environmentCount), since a delivery-config's
+               * environments are checked sequentially within one coroutine job.
+               *
+               * TODO: consider refactoring environmentPromotionChecker so that it can be called for
+               *  individual environments, allowing fairer timeouts.
+               */
+              withTimeout(checkTimeout.toMillis() * max(it.environments.size, 1)) {
+                launch { environmentPromotionChecker.checkEnvironments(it) }
+              }
+            } catch (e: TimeoutCancellationException) {
+              log.error("Timed out checking environments for ${it.application}/${it.name}", e)
+              publisher.publishEvent(EnvironmentsCheckTimedOut(it.application, it.name))
+            }
           }
       }
 

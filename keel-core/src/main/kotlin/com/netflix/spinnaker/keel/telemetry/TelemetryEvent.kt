@@ -11,6 +11,12 @@ data class ResourceCheckSkipped(
   val skipper: String = "unknown"
 ) : TelemetryEvent()
 
+data class ResourceCheckTimedOut(
+  val kind: ResourceKind,
+  val id: String,
+  val application: String
+) : TelemetryEvent()
+
 data class ArtifactVersionUpdated(
   val name: String,
   val type: ArtifactType
@@ -23,4 +29,9 @@ data class ArtifactVersionApproved(
   val artifactName: String,
   val artifactType: ArtifactType,
   val artifactVersion: String
+) : TelemetryEvent()
+
+data class EnvironmentsCheckTimedOut(
+  val application: String,
+  val deliveryConfigName: String
 ) : TelemetryEvent()

@@ -59,6 +59,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         environmentPromotionChecker = environmentPromotionChecker,
         resourceCheckMinAgeDuration = Duration.ofMinutes(5),
         resourceCheckBatchSize = 2,
+        checkTimeout = Duration.ofMinutes(2),
         publisher = publisher,
         agentLockRepository = agentLockRepository
       )

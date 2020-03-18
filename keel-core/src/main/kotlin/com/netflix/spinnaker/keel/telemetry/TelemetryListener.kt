@@ -49,6 +49,29 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
+  @EventListener(ResourceCheckTimedOut::class)
+  fun onResourceCheckTimedOut(event: ResourceCheckTimedOut) {
+    spectator.counter(
+      RESOURCE_CHECK_TIMED_OUT_ID,
+      listOf(
+        BasicTag("kind", event.kind.kind),
+        BasicTag("resourceId", event.id),
+        BasicTag("application", event.application)
+      )
+    ).safeIncrement()
+  }
+
+  @EventListener(EnvironmentsCheckTimedOut::class)
+  fun onEnvironmentsCheckTimedOut(event: EnvironmentsCheckTimedOut) {
+    spectator.counter(
+      ENVIRONMENT_CHECK_TIMED_OUT_ID,
+      listOf(
+        BasicTag("application", event.application),
+        BasicTag("deliveryConfig", event.deliveryConfigName)
+      )
+    ).safeIncrement()
+  }
+
   @EventListener(ArtifactVersionUpdated::class)
   fun onArtifactVersionUpdated(event: ArtifactVersionUpdated) {
     spectator.counter(
@@ -119,10 +142,12 @@ class TelemetryListener(
   companion object {
     private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
     private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
+    private const val RESOURCE_CHECK_TIMED_OUT_ID = "keel.resource.check.timeout"
     private const val RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID = "keel.resource.actuation.launched"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
     private const val ARTIFACT_APPROVED_COUNTER_ID = "keel.artifact.approved"
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"
     private const val ENVIRONMENT_CHECK_DRIFT_GAUGE = "keel.environment.check.drift"
+    private const val ENVIRONMENT_CHECK_TIMED_OUT_ID = "keel.environment.check.timeout"
   }
 }
