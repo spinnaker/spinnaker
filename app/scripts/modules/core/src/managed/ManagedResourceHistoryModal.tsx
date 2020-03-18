@@ -216,7 +216,8 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
                 layout={tableLayout}
                 columns={['Where', 'What', 'When']}
                 expandable={historyEvents.some(
-                  ({ delta, tasks, message, reason }) => delta || tasks || message || reason,
+                  ({ delta, tasks, message, reason, exceptionMessage }) =>
+                    delta || tasks || message || reason || exceptionMessage,
                 )}
               >
                 {historyEvents
