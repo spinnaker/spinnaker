@@ -63,7 +63,7 @@ open class MySqlRawAccess(
       jooq
         .select(field("id"))
         .from(getExecutionTable(executionType))
-        .where(field("status").notIn(*completedStatuses.toTypedArray())
+        .where(field("status").`in`(*activeStatuses.toTypedArray())
           .and(partitionConstraint))
         .fetch(field("id"), String::class.java)
     }

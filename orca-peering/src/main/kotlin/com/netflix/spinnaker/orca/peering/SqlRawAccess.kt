@@ -28,6 +28,7 @@ abstract class SqlRawAccess(
 ) {
   val log: Logger = LoggerFactory.getLogger(this.javaClass)
   val completedStatuses = ExecutionStatus.COMPLETED.map { it.toString() }
+  val activeStatuses = ExecutionStatus.values().map { it.toString() }.filter { !completedStatuses.contains(it) }
 
   /**
    *  Returns a list of execution IDs and their update_at times for completed executions
