@@ -49,7 +49,7 @@ class OldPipelineCleanupPollingNotificationAgent(
   @Value("\${pollers.old-pipeline-cleanup.threshold-days:30}") private val thresholdDays: Long,
   @Value("\${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}") private val minimumPipelineExecutions: Int,
   @Value("\${pollers.old-pipeline-cleanup.chunk-size:1}") private val chunkSize: Int,
-  @Value("\${sql.partition-name}") private val partitionName: String?
+  @Value("\${sql.partition-name:#{null}}") private val partitionName: String?
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   companion object {

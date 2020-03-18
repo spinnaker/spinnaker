@@ -43,7 +43,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
   @Value("\${pollers.top-application-execution-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
   @Value("\${pollers.top-application-execution-cleanup.threshold:2000}") private val threshold: Int,
   @Value("\${pollers.top-application-execution-cleanup.chunk-size:1}") private val chunkSize: Int,
-  @Value("\${sql.partition-name}") private val partitionName: String?
+  @Value("\${sql.partition-name:#{null}}") private val partitionName: String?
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   private val log = LoggerFactory.getLogger(TopApplicationExecutionCleanupPollingNotificationAgent::class.java)
