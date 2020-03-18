@@ -1,1 +1,10 @@
-kork-plugins.* @ajordens @rzienert @cfieber
+* @spinnaker/sig-platform
+kork-artifacts.* @spinnaker/sig-spin-as-code
+kork-aws.* @spinnaker/sig-aws
+kork-dynomite.* @robzienert
+kork-hystrix.* @spinnaker/sig-ops
+kork-plugins.* @spinnaker/plugins-working-group
+kork-secrets.* @spinnaker/sig-security
+kork-security.* @spinnaker/sig-security
+kork-stackdriver.* @spinnaker/sig-ops
+kork-telemetry.* @spinnaker/sig-ops
