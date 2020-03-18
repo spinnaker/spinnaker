@@ -23,6 +23,8 @@ dependencies {
   api "com.netflix.spectator:spectator-web-spring"
   api "com.google.apis:google-api-services-monitoring"
 
+  implementation "org.slf4j:slf4j-api"
+
   // Force component bringing this in to already support spring boot configure.
   compileOnly "org.springframework.boot:spring-boot-autoconfigure"
 

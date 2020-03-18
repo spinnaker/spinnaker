@@ -32,7 +32,7 @@ ext {
     resilience4j   : "1.0.0",
     retrofit       : "1.9.0",
     retrofit2      : "2.7.1",
-    spectator      : "0.75.0",
+    spectator      : "0.103.0",
     spek           : "1.2.1",
     springBoot     : "2.2.4.RELEASE",
     springCloud    : "Greenwich.SR2",
@@ -80,7 +80,7 @@ dependencies {
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
     api("com.natpryce:hamkrest:1.4.2.2")
-    api("com.netflix.archaius:archaius-core:0.7.5")
+    api("com.netflix.archaius:archaius-core:0.7.7")
     api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")
     api("com.netflix.dyno:dyno-jedis:1.7.2")
     api("com.netflix.eureka:eureka-client:1.9.18")
@@ -92,6 +92,8 @@ dependencies {
     api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-gc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-jvm:${versions.spectator}")
+    api("com.netflix.spectator:spectator-nflx-plugin:${versions.spectator}")
+    api("com.netflix.spectator:spectator-reg-atlas:${versions.spectator}")
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spinnaker.embedded-redis:embedded-redis:0.8.0")
     api("com.netflix.spinnaker.moniker:moniker:0.2.0")
