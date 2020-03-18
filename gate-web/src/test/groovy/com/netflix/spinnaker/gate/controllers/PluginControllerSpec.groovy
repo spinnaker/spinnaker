@@ -66,9 +66,16 @@ class PluginControllerSpec extends Specification {
     spinnakerExtensionsConfigProperties.applicationName == 'spinnakerpluginstest'
   }
 
+  def 'upsert api should fail when sent no content-type'() {
+    expect:
+    this.mockMvc.perform(MockMvcRequestBuilders.post("/pluginInfo")).andExpect(status().isUnsupportedMediaType())
+  }
+
   def 'upsert api should fail when sent no content'() {
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.post("/pluginInfo")).andExpect(status().isInternalServerError())
+    this.mockMvc.perform(MockMvcRequestBuilders.post("/pluginInfo")
+                .header('Content-Type', "application/json"))
+                .andExpect(status().isBadRequest())
   }
 
   def 'upsert api should succeed when sent content'() {
