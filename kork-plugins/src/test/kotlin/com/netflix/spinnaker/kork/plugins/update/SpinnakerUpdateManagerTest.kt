@@ -25,6 +25,13 @@ import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.time.Instant
+import java.util.Date
 import org.pf4j.DefaultPluginStatusProvider
 import org.pf4j.update.DefaultUpdateRepository
 import org.pf4j.update.PluginInfo
@@ -35,13 +42,6 @@ import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isNull
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import java.time.Instant
-import java.util.Date
 
 class SpinnakerUpdateManagerTest : JUnit5Minutests {
 

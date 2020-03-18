@@ -17,10 +17,10 @@ package com.netflix.spinnaker.kork.plugins.finders
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.validate
+import java.util.Properties
 import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginDescriptor
 import org.pf4j.PropertiesPluginDescriptorFinder
-import java.util.Properties
 
 /**
  * Decorates the default [PluginDescriptor] created from [PropertiesPluginDescriptorFinder]

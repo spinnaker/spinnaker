@@ -18,10 +18,6 @@ package com.netflix.spinnaker.kork.plugins.bundle
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import strikt.api.expect
-import strikt.api.expectThat
-import strikt.api.expectThrows
-import strikt.assertions.isTrue
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -32,6 +28,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import strikt.api.expect
+import strikt.api.expectThat
+import strikt.api.expectThrows
+import strikt.assertions.isTrue
 
 class PluginBundleExtractorTest : JUnit5Minutests {
 

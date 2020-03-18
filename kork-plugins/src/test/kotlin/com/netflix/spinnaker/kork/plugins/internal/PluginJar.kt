@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.plugins.internal
 
-import org.pf4j.ManifestPluginDescriptorFinder
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -25,6 +24,7 @@ import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import org.pf4j.ManifestPluginDescriptorFinder
 
 class PluginJar(
   val path: Path,

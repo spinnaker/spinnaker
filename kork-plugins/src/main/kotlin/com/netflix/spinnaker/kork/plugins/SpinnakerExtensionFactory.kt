@@ -21,10 +21,10 @@ import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.sdk.PluginSdksImpl
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
+import java.lang.reflect.InvocationTargetException
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
-import java.lang.reflect.InvocationTargetException
 
 /**
  * Creates extensions, injecting in dependencies as needed.

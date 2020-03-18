@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.netflix.spectator.api.BasicTag
-import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Clock
+import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Functions
 import com.netflix.spectator.api.Id
@@ -29,6 +29,8 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import java.lang.reflect.Method
+import java.util.stream.Collectors
 import org.springframework.beans.factory.ObjectProvider
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -36,8 +38,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
-import java.lang.reflect.Method
-import java.util.stream.Collectors
 
 class MetricInvocationAspectTest : JUnit5Minutests {
 

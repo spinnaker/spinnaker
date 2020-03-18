@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.kork.sql.telemetry
 
+import java.util.concurrent.TimeUnit
 import org.jooq.ExecuteContext
 import org.jooq.impl.DefaultExecuteListener
 import org.jooq.tools.StopWatch
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
 
 class JooqSlowQueryLogger(
   slowQuerySecondsThreshold: Long = 1

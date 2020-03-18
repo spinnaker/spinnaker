@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.kork.plugins.update.repository
 
+import java.net.URL
 import org.pf4j.update.DefaultUpdateRepository
 import org.pf4j.update.FileDownloader
 import org.pf4j.update.FileVerifier
 import org.pf4j.update.SimpleFileDownloader
 import org.pf4j.update.verifier.CompoundVerifier
-import java.net.URL
 
 /**
  * PF4J forces extensible for configurability. This class just makes it a little more reasonable to bring your own

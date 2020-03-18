@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.kork.plugins.update.downloader
 
-import org.pf4j.update.FileDownloader
-import org.pf4j.update.SimpleFileDownloader
 import java.net.URL
 import java.nio.file.Path
+import org.pf4j.update.FileDownloader
+import org.pf4j.update.SimpleFileDownloader
 
 /**
  * Composes [SupportingFileDownloader]s, downloading through whichever supports the given file URL. If no provided

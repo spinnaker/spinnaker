@@ -20,6 +20,11 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.version.ServiceVersion
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import org.pf4j.PluginManager
 import org.pf4j.PluginRuntimeException
 import org.pf4j.update.PluginInfo.PluginRelease
@@ -27,11 +32,6 @@ import org.pf4j.update.UpdateManager
 import org.pf4j.update.UpdateRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 
 /**
  * TODO(jonsie): We have disabled [org.pf4j.update.UpdateManager] update, load, and start plugin

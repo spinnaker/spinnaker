@@ -29,12 +29,12 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.kork.annotations.Alpha
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import java.lang.RuntimeException
+import java.lang.reflect.ParameterizedType
+import java.util.Properties
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.EnumerablePropertySource
-import java.lang.reflect.ParameterizedType
-import java.lang.RuntimeException
-import java.util.Properties
 
 /**
  * Resolves extension config from the parent Spring Environment.

@@ -20,18 +20,18 @@ import com.netflix.spinnaker.kork.plugins.internal.PluginZip
 import com.netflix.spinnaker.kork.plugins.internal.TestPlugin
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.junit.jupiter.api.io.TempDir
-import org.pf4j.PropertiesPluginDescriptorFinder
-import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isTrue
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Properties
+import org.junit.jupiter.api.io.TempDir
+import org.pf4j.PropertiesPluginDescriptorFinder
+import strikt.api.expectThat
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
+import strikt.assertions.isTrue
 
 class SpinnakerPropertiesPluginDescriptorFinderTest : JUnit5Minutests {
 

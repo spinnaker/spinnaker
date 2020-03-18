@@ -18,13 +18,13 @@ package com.netflix.spinnaker.kork.plugins.update.downloader
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.plugins.config.Configurable
 import com.netflix.spinnaker.kork.plugins.update.downloader.internal.DefaultProcessRunner
-import org.pf4j.update.FileDownloader
-import org.slf4j.LoggerFactory
 import java.io.FileNotFoundException
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.pf4j.update.FileDownloader
+import org.slf4j.LoggerFactory
 
 /**
  * Runs a local process to handle the downloading of a plugin binary.

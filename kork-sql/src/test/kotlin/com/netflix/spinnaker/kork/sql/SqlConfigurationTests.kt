@@ -20,22 +20,21 @@ import com.netflix.spinnaker.kork.PlatformComponents
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import org.jooq.DSLContext
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.junit.jupiter.api.extension.ExtendWith
-import strikt.assertions.isA
 
 internal class SqlConfigurationTests {
 

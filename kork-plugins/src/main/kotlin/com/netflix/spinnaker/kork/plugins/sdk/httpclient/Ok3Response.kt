@@ -17,10 +17,10 @@ package com.netflix.spinnaker.kork.plugins.sdk.httpclient
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Response
-import okhttp3.ResponseBody
 import java.io.InputStream
 import java.lang.Exception
 import java.util.Optional
+import okhttp3.ResponseBody
 
 class Ok3Response(
   private val objectMapper: ObjectMapper,

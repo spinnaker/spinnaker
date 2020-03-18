@@ -17,12 +17,12 @@ package com.netflix.spinnaker.kork.plugins.update.downloader
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.github.resilience4j.retry.Retry
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 /**
  * Downloads plugin binaries from Front50.

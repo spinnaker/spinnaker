@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import java.util.Objects
 import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginDescriptor
-import java.util.Objects
 
 /**
  * Decorates the default [PluginDescriptor] with additional Spinnaker-specific metadata.

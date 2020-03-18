@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.kork.plugins.finders
 
 import com.netflix.spinnaker.kork.plugins.pluginref.PluginRef
+import java.nio.file.Path
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginDescriptorFinder
-import java.nio.file.Path
 
 /**
  * A [PluginDescriptorFinder] that uses a [PluginRef] to determine the root directory to

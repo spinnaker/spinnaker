@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import java.lang.reflect.Method
 import org.slf4j.MDC
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -28,7 +29,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
-import java.lang.reflect.Method
 
 class LogInvocationAspectTest : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {

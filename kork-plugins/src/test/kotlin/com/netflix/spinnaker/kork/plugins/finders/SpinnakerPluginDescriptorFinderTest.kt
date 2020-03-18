@@ -20,12 +20,12 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.nio.file.Paths
 import org.pf4j.CompoundPluginDescriptorFinder
 import org.pf4j.RuntimeMode
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import java.nio.file.Paths
 
 class SpinnakerPluginDescriptorFinderTest : JUnit5Minutests {
 

@@ -22,17 +22,17 @@ import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import org.pf4j.PluginClassLoader
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginLoader
 import org.pf4j.PluginManager
 import strikt.api.expectThat
-import strikt.assertions.isTrue
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import strikt.assertions.isTrue
 
 abstract class SpinnakerPluginLoadersTCK : JUnit5Minutests {
 

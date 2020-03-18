@@ -19,12 +19,12 @@ package com.netflix.spinnaker.kork.plugins.pluginref
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.kork.exceptions.UserException
-import org.pf4j.Plugin
-import org.pf4j.PluginDescriptor
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.pf4j.Plugin
+import org.pf4j.PluginDescriptor
 
 /**
  * A [PluginRef] is a type of [Plugin] that exists as a pointer to an actual Plugin for use

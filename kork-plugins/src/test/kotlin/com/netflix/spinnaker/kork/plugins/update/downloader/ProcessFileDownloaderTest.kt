@@ -20,11 +20,11 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.net.URL
+import java.nio.file.Paths
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import java.net.URL
-import java.nio.file.Paths
 
 class ProcessFileDownloaderTest : JUnit5Minutests {
 

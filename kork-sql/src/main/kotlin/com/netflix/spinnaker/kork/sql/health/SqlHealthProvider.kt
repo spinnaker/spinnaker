@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.kork.sql.health
 
 import com.netflix.spectator.api.Registry
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
 
 class SqlHealthProvider(
   private val jooq: DSLContext,

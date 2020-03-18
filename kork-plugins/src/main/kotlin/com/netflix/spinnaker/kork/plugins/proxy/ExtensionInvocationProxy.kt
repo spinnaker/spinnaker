@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.kork.plugins.proxy
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
-import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState
 import java.lang.RuntimeException
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException

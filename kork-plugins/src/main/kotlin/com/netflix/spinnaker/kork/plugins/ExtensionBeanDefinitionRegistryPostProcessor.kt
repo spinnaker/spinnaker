@@ -23,13 +23,12 @@ import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoReleaseProvider
+import kotlin.jvm.javaClass
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
 import org.springframework.context.ApplicationEventPublisher
-
-import kotlin.jvm.javaClass
 
 /**
  * The primary point of integration between PF4J and Spring, this class is invoked early

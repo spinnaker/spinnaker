@@ -21,6 +21,8 @@ import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilder
 import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.nio.file.Files
+import java.nio.file.Path
 import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginState
 import org.pf4j.PluginWrapper
@@ -34,8 +36,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
-import java.nio.file.Files
-import java.nio.file.Path
 
 class PluginSystemTest : JUnit5Minutests {
 

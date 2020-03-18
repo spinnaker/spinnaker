@@ -17,9 +17,9 @@ package com.netflix.spinnaker.kork.test.mimicker.producers
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.security.SecureRandom
 import strikt.api.expectThat
 import strikt.assertions.isNotSameInstanceAs
-import java.security.SecureRandom
 
 class MonikerProducerTest : JUnit5Minutests {
 

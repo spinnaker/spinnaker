@@ -17,13 +17,13 @@ package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.CONFIG_NAMESPACE
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.DEFAULT_ROOT_PATH
+import kotlin.collections.set
 import org.pf4j.PluginStatusProvider
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent
 import org.springframework.context.ApplicationListener
 import org.springframework.core.env.Environment
 import org.springframework.core.env.MapPropertySource
-import kotlin.collections.set
 
 /**
  * Backs plugin status by the Spring environment, instead of using text files.

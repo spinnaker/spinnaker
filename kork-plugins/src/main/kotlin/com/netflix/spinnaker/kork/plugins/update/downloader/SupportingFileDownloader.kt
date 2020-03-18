@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins.update.downloader
 
-import org.pf4j.update.FileDownloader
 import java.net.URL
+import org.pf4j.update.FileDownloader
 
 /**
  * A [FileDownloader] that can inspect a URL prior to downloading the provided file.

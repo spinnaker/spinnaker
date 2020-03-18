@@ -21,6 +21,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import java.net.URL
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.MutablePropertySources
@@ -31,7 +32,6 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
-import java.net.URL
 
 class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 

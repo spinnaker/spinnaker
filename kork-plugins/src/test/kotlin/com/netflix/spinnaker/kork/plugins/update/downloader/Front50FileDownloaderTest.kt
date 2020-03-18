@@ -19,6 +19,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import java.net.URL
 import okhttp3.Call
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -29,7 +30,6 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.net.URL
 
 class Front50FileDownloaderTest : JUnit5Minutests {
 

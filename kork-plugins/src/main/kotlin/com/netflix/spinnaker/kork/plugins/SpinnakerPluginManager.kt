@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerJarPluginLoader
 import com.netflix.spinnaker.kork.plugins.repository.PluginRefPluginRepository
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import com.netflix.spinnaker.kork.version.ServiceVersion
+import java.nio.file.Path
 import org.pf4j.CompoundPluginLoader
 import org.pf4j.CompoundPluginRepository
 import org.pf4j.DefaultPluginManager
@@ -36,7 +37,6 @@ import org.pf4j.PluginRepository
 import org.pf4j.PluginStatusProvider
 import org.pf4j.PluginWrapper
 import org.pf4j.VersionManager
-import java.nio.file.Path
 
 /**
  * The primary entry-point to the plugins system from a provider-side (services, libs, CLIs, and so-on).

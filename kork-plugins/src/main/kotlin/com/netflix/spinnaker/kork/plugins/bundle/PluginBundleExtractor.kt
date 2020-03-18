@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.kork.plugins.bundle
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import java.nio.file.Path
 import org.pf4j.util.FileUtils
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
 
 /**
  * Provides extraction capabilities for plugin bundles.

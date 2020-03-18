@@ -17,10 +17,10 @@ package com.netflix.spinnaker.kork.test.mimicker.producers
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.security.SecureRandom
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isGreaterThan
-import java.security.SecureRandom
 
 class RandomProducerTest : JUnit5Minutests {
 

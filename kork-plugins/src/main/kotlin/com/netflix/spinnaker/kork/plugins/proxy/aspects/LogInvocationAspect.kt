@@ -18,10 +18,10 @@ package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
-import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 /**
  * Logs the invoked extension and method name.  Additionally adds the plugin-id and plugin-extension

@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.sql.config
 
-import org.jooq.SQLDialect
 import java.util.concurrent.TimeUnit
+import org.jooq.SQLDialect
 
 @Suppress("MagicNumber")
 data class ConnectionPoolProperties(

@@ -16,12 +16,12 @@
 package com.netflix.spinnaker.kork.plugins.loaders
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import java.nio.file.Path
 import org.pf4j.DefaultPluginLoader
 import org.pf4j.PluginClassLoader
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginManager
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
 
 /**
  * Allows altering the a plugin's [ClassLoader] based on the plugin's `unsafe` flag.

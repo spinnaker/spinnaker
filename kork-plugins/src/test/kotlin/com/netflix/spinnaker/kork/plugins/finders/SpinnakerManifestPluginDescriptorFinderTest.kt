@@ -20,16 +20,16 @@ import com.netflix.spinnaker.kork.plugins.internal.PluginJar
 import com.netflix.spinnaker.kork.plugins.internal.TestPlugin
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.jar.Manifest
 import org.junit.jupiter.api.io.TempDir
 import org.pf4j.ManifestPluginDescriptorFinder
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import java.io.FileOutputStream
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.jar.Manifest
 
 class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
 

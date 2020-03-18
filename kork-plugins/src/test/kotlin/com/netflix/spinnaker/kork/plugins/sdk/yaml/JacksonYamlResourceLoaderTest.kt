@@ -20,11 +20,11 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.message
-import strikt.assertions.get
 
 class JacksonYamlResourceLoaderTest : JUnit5Minutests {
 

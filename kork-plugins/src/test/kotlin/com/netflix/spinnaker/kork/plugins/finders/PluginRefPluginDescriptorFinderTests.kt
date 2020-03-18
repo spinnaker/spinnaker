@@ -18,13 +18,13 @@ package com.netflix.spinnaker.kork.plugins.finders
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.nio.file.Path
+import java.nio.file.Paths
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginDescriptorFinder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import java.nio.file.Path
-import java.nio.file.Paths
 
 class PluginRefPluginDescriptorFinderTests : JUnit5Minutests {
 

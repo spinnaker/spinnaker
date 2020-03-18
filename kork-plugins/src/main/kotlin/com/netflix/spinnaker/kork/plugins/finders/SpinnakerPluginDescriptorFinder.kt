@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.kork.plugins.finders
 
+import java.nio.file.Path
 import org.pf4j.CompoundPluginDescriptorFinder
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginDescriptorFinder
 import org.pf4j.RuntimeMode
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
 
 /**
  * Decorates [PluginDescriptor]s as [SpinnakerPluginDescriptor]s.

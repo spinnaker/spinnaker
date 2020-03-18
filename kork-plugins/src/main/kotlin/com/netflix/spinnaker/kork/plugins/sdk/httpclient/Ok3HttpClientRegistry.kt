@@ -22,9 +22,9 @@ import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClient
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.OkHttp3ClientFactory
+import java.util.concurrent.ConcurrentHashMap
 import okhttp3.OkHttpClient
 import org.springframework.core.env.Environment
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Configures and provides [HttpClient]s to an extension.

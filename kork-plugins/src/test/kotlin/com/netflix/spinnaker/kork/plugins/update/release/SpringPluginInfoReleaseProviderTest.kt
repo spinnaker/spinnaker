@@ -24,14 +24,14 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Instant
+import java.util.Date
 import org.pf4j.update.PluginInfo
 import org.springframework.core.env.ConfigurableEnvironment
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.time.Instant
-import java.util.Date
 
 class SpringPluginInfoReleaseProviderTest : JUnit5Minutests {
 

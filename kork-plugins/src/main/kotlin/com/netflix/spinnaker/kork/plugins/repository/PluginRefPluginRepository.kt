@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.kork.plugins.repository
 
 import com.netflix.spinnaker.kork.plugins.pluginref.PluginRef
+import java.nio.file.Path
 import org.pf4j.BasePluginRepository
 import org.pf4j.Plugin
 import org.pf4j.PluginRepository
 import org.pf4j.util.ExtensionFileFilter
-import java.nio.file.Path
 
 /**
  * A [PluginRepository] supporting [PluginRef] type [Plugin]s by matching files with the extension [PluginRef.EXTENSION].

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.kork.plugins.proxy.aspects
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import io.mockk.every
 import io.mockk.mockk
-import org.pf4j.ExtensionPoint
 import java.lang.reflect.Method
+import org.pf4j.ExtensionPoint
 
 internal fun createPluginDescriptor(pluginId: String, version: String): SpinnakerPluginDescriptor {
   val descriptor: SpinnakerPluginDescriptor = mockk(relaxed = true)

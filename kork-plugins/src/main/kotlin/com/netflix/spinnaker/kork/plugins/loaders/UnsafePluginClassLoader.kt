@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.kork.plugins.loaders
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
-import org.pf4j.PluginClassLoader
-import org.pf4j.PluginManager
 import java.net.URL
 import java.net.URLClassLoader
 import java.util.Enumeration
+import org.pf4j.PluginClassLoader
+import org.pf4j.PluginManager
 
 /**
  * The [UnsafePluginClassLoader] allows a plugin to use the parent classloader. Caution should

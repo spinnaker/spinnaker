@@ -19,13 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClient
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Request
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Response
+import java.io.IOException
+import java.net.URL
 import okhttp3.Headers
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import org.slf4j.LoggerFactory
-import java.io.IOException
-import java.net.URL
 
 /**
  * An OkHttp3 [HttpClient] implementation.

@@ -18,13 +18,13 @@ package com.netflix.spinnaker.kork.plugins.loaders
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.pluginref.PluginRef
+import java.nio.file.Path
 import org.pf4j.BasePluginLoader
 import org.pf4j.PluginClassLoader
 import org.pf4j.PluginClasspath
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginLoader
 import org.pf4j.PluginManager
-import java.nio.file.Path
 
 /**
  * A [PluginLoader] that can produce a [PluginClassLoader] from a [PluginRef].

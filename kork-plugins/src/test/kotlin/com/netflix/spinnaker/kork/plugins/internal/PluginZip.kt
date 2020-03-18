@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.kork.plugins.internal
 
-import org.pf4j.PropertiesPluginDescriptorFinder
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Path
 import java.util.Properties
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import org.pf4j.PropertiesPluginDescriptorFinder
 
 class PluginZip(
   val path: Path,

@@ -24,6 +24,10 @@ import com.netflix.spinnaker.kork.sql.migration.SpringLiquibaseProxy
 import com.netflix.spinnaker.kork.sql.routing.NamedDataSourceRouter
 import com.netflix.spinnaker.kork.sql.routing.StaticDataSourceLookup
 import com.netflix.spinnaker.kork.sql.telemetry.JooqSlowQueryLogger
+import java.lang.reflect.Field
+import java.security.Security
+import java.sql.Connection
+import javax.sql.DataSource
 import liquibase.integration.spring.SpringLiquibase
 import org.jooq.DSLContext
 import org.jooq.impl.DataSourceConnectionProvider
@@ -47,10 +51,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import sun.net.InetAddressCachePolicy
-import java.lang.reflect.Field
-import java.security.Security
-import java.sql.Connection
-import javax.sql.DataSource
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")

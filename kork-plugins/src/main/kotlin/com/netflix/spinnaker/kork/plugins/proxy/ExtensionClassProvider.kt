@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.plugins.proxy
 
-import org.pf4j.ExtensionPoint
 import java.lang.reflect.Proxy
+import org.pf4j.ExtensionPoint
 
 /**
  * For use in service code to determine the proxied target extension class.

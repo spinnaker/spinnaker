@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.sql.routing
 
-import org.springframework.jdbc.datasource.lookup.DataSourceLookup
 import javax.sql.DataSource
+import org.springframework.jdbc.datasource.lookup.DataSourceLookup
 
 class StaticDataSourceLookup(
   /**

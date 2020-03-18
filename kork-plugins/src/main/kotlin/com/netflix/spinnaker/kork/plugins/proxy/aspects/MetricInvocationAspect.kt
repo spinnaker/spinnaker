@@ -24,12 +24,12 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.ObjectProvider
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.TimeUnit
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.ObjectProvider
 
 /**
  * Adds metric instrumentation to extension method invocations.

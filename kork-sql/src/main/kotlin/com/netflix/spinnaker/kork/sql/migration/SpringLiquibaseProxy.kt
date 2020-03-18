@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.kork.sql.migration
 
 import com.netflix.spinnaker.kork.sql.config.SqlMigrationProperties
+import javax.sql.DataSource
 import liquibase.integration.spring.SpringLiquibase
 import org.springframework.jdbc.datasource.SingleConnectionDataSource
-import javax.sql.DataSource
 
 /**
  * Proxies Spring's Liquibase bean to allow multiple, independent Liquibase

@@ -17,10 +17,10 @@ package com.netflix.spinnaker.kork.plugins.update.downloader.internal
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.update.downloader.ProcessFileDownloader
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Default [ProcessFileDownloader.ProcessRunner] implementation.
