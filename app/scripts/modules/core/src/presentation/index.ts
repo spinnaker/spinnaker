@@ -5,6 +5,7 @@ export * from './FormElements';
 export * from './forms';
 export * from './hooks';
 export * from './HoverablePopover';
+export * from './icons';
 export * from './LabelComponent';
 export * from './labeledValues';
 export * from './LinkWithClipboard';

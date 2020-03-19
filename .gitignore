@@ -2,7 +2,10 @@
 *.swp
 .DS_Store
 ehthumbs.db
-Icon?
+# This "Icon" entry needs its invisible carriage return character preserved
+# to avoid ignoring *any* directory that starts with the name 'icon':
+# https://stackoverflow.com/questions/17556250/how-to-ignore-icon-in-git
+Icon
 Thumbs.db
 
 # IDE Files
