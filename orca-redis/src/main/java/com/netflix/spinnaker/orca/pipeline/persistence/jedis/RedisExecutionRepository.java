@@ -866,6 +866,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
         execution.setPaused(mapper.readValue(map.get("paused"), PausedDetails.class));
       }
       execution.setKeepWaitingPipelines(Boolean.parseBoolean(map.get("keepWaitingPipelines")));
+      if (map.get("spelEvaluator") != null) {
+        execution.setSpelEvaluator(map.get("spelEvaluator"));
+      }
       execution.setOrigin(map.get("origin"));
       if (map.get("source") != null) {
         execution.setSource(
@@ -995,6 +998,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       map.put("authentication", mapper.writeValueAsString(execution.getAuthentication()));
       map.put("paused", mapper.writeValueAsString(execution.getPaused()));
       map.put("keepWaitingPipelines", String.valueOf(execution.isKeepWaitingPipelines()));
+      map.put("spelEvaluator", execution.getSpelEvaluator());
       map.put("origin", execution.getOrigin());
       map.put("source", mapper.writeValueAsString(execution.getSource()));
       map.put("trigger", mapper.writeValueAsString(execution.getTrigger()));
