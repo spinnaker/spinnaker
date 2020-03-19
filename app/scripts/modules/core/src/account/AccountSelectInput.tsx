@@ -102,7 +102,8 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
 
     const { primaryAccounts, secondaryAccounts } = this.state;
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
-    const options: Array<Option<string>> = primaryAccounts.map(a => ({ label: a, value: a }));
+    const options: Array<Option<string>> = [{ label: 'Select...', value: '', disabled: true }];
+    options.push(...primaryAccounts.map(a => ({ label: a, value: a })));
     if (showSeparator) {
       options.push({ label: '---------------', value: '-', disabled: true });
     }
