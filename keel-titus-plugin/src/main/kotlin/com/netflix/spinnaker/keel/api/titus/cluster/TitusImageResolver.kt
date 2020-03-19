@@ -75,7 +75,7 @@ class TitusImageResolver(
     runBlocking {
       val repository = "$organization/$image"
       val images = cloudDriverService.findDockerImages(account, repository, tag)
-      images.first().digest
+      images.firstOrNull()?.digest
         ?: throw NoDigestFound(repository, tag) // sha should be the same in all accounts for titus
     }
 
