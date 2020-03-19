@@ -164,6 +164,16 @@
           >
           </copy-to-clipboard>
         </dd>
+        <dt ng-if="instance.ipv6Addresses.length">Container IPv6</dt>
+        <dd ng-if="instance.ipv6Addresses.length" ng-repeat="ip in instance.ipv6Addresses">
+          {{ip}}
+          <copy-to-clipboard
+            class="copy-to-clipboard"
+            text="'http://[' + ip + ']:' + state.instancePort"
+            tool-tip="'Copy container IP clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
         <dt>Host IP</dt>
         <dd>{{instance.placement.host}}</dd>
       </dl>

@@ -209,9 +209,7 @@
         <dd ng-if="instance.permanentIps" ng-repeat="ip in instance.permanentIps">
           <link-with-clipboard url="'http://' + ip + ':' + state.instancePort" text="ip"> </link-with-clipboard>
         </dd>
-        <dt ng-if="instance.publicIpAddress || instance.ipv6Addresses.length">
-          Public IP Address<span ng-if="instance.ipv6Addresses.length > 1">es</span>
-        </dt>
+        <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
         <dd ng-if="instance.publicIpAddress">
           <link-with-clipboard
             url="'http://' + instance.publicIpAddress + ':' + state.instancePort"
@@ -219,6 +217,9 @@
           >
           </link-with-clipboard>
         </dd>
+        <dt ng-if="instance.ipv6Addresses.length">
+          IPv6 Address<span ng-if="instance.ipv6Addresses.length > 1">es</span>
+        </dt>
         <dd ng-if="instance.ipv6Addresses.length" ng-repeat="ip in instance.ipv6Addresses">
           <link-with-clipboard url="'http://[' + ip + ']:' + state.instancePort" text="ip"> </link-with-clipboard>
         </dd>

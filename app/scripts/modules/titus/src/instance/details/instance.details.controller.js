@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-import { defaults, filter } from 'lodash';
+import { defaults, filter, flatMap } from 'lodash';
 import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from '@spinnaker/amazon';
 
 import {
@@ -120,6 +120,16 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
             $scope.instance.titusUiEndpoint = this.titusUiEndpoint;
             if (overrides.instanceDetailsLoaded) {
               overrides.instanceDetailsLoaded();
+            }
+
+            // Network interfaces are needed for any IPv6 addresses.
+            return InstanceReader.getInstanceDetails(accountDetails.awsAccount, region, instanceDetails.agentId);
+          })
+          .then(instance => {
+            if (instance && instance.networkInterfaces) {
+              $scope.instance.ipv6Addresses = flatMap(instance.networkInterfaces, i =>
+                i.ipv6Addresses.map(a => a.ipv6Address),
+              );
             }
           }, autoClose);
       }
