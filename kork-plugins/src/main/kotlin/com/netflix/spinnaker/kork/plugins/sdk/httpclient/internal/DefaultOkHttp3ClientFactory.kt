@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
+import com.netflix.spinnaker.kork.plugins.sdk.httpclient.OkHttp3ClientFactory
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import okhttp3.OkHttpClient
@@ -27,10 +28,10 @@ import okhttp3.OkHttpClient
 class DefaultOkHttp3ClientFactory(
   private val okHttpClientHttp3MetricsInterceptor: OkHttp3MetricsInterceptor
 ) : OkHttp3ClientFactory {
-  override fun supports(config: HttpClientConfig): Boolean =
-    config.javaClass == HttpClientConfig::class.java
+  override fun supports(baseUrl: String): Boolean =
+    baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
 
-  override fun create(config: HttpClientConfig): OkHttpClient {
+  override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
     return OkHttp3ClientConfiguration(
       OkHttpClientConfigurationProperties().apply {
         config.connectionPool.keepAlive?.let {

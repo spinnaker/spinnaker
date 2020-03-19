@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
+import com.netflix.spinnaker.kork.plugins.sdk.httpclient.OkHttp3ClientFactory
 import okhttp3.OkHttpClient
 
 /**
@@ -26,12 +27,12 @@ class CompositeOkHttpClientFactory(
   private val factories: List<OkHttp3ClientFactory>
 ) : OkHttp3ClientFactory {
 
-  override fun supports(config: HttpClientConfig): Boolean = true
+  override fun supports(baseUrl: String): Boolean = true
 
-  override fun create(config: HttpClientConfig): OkHttpClient {
+  override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
     return factories
-      .firstOrNull { it.supports(config) }
-      ?.create(config)
-      ?: throw IntegrationException("Cannot create http client from config: $config")
+      .firstOrNull { it.supports(baseUrl) }
+      ?.create(baseUrl, config)
+      ?: throw IntegrationException("Cannot create http client ($baseUrl) from config: $config")
   }
 }

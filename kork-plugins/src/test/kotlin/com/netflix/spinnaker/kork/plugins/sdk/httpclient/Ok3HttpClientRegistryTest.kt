@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
-import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.OkHttp3ClientFactory
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -44,7 +43,7 @@ class Ok3HttpClientRegistryTest : JUnit5Minutests {
 
     context("configuring clients") {
       before {
-        every { okHttp3ClientFactory.create(any()) } returns mockkClass(OkHttpClient::class, relaxed = true)
+        every { okHttp3ClientFactory.create(any(), any()) } returns mockkClass(OkHttpClient::class, relaxed = true)
       }
 
       test("throws when no client configured") {
@@ -68,7 +67,7 @@ class Ok3HttpClientRegistryTest : JUnit5Minutests {
           containsKey(config)
         }
 
-        verify(exactly = 1) { okHttp3ClientFactory.create(eq(config)) }
+        verify(exactly = 1) { okHttp3ClientFactory.create(eq("https://example.com"), eq(config)) }
       }
 
       test("get a configured client") {

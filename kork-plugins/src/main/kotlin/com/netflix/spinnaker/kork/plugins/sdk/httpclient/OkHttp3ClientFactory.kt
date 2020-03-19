@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal
+package com.netflix.spinnaker.kork.plugins.sdk.httpclient
 
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
 import okhttp3.OkHttpClient
@@ -27,12 +27,12 @@ import okhttp3.OkHttpClient
 interface OkHttp3ClientFactory {
 
   /**
-   * Returns whether or not the factory supports the provided [config].
+   * Returns whether or not the factory supports the provided [baseUrl].
    */
-  fun supports(config: HttpClientConfig): Boolean
+  fun supports(baseUrl: String): Boolean
 
   /**
    * Creates an [OkHttpClient] with the provided [config].
    */
-  fun create(config: HttpClientConfig): OkHttpClient
+  fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient
 }
