@@ -445,8 +445,13 @@ class AzureServerGroupResourceTemplate {
 
     ScaleSetOsProfileProperty(AzureServerGroupDescription description) {
       //Max length of 10 characters to allow for an aditional postfix within a max length of 15 characters
-      computerNamePrefix = description.getIdentifier().substring(0, 10)
-      log.info("computerNamePrefix will be truncated to 10 characters to maintain Azure restrictions")
+      String osType = description.image.ostype
+      int maxLengthOsSpecific = osType==null||osType.isEmpty()||osType.isAllWhitespace()||osType.equalsIgnoreCase("linux")?10:9
+      int identifierLength=description.getIdentifier().length()
+      //A guard to avoid nullpointer in case identifierLength is less than maxLengthOsSpecific
+      int identifierMaxIndex=identifierLength<maxLengthOsSpecific?identifierLength:maxLengthOsSpecific
+      computerNamePrefix = description.getIdentifier().substring(0, identifierMaxIndex)
+      log.info(String.format("computerNamePrefix will be truncated to %d characters to maintain Azure restrictions",maxLengthOsSpecific))
       adminUsername = "[parameters('${vmUserNameParameterName}')]"
       adminPassword = "[parameters('${vmPasswordParameterName}')]"
       customData = "[base64(parameters('customData'))]"

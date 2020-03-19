@@ -788,7 +788,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
           "dataDisks" : null
         },
         "osProfile" : {
-          "computerNamePrefix" : "azureMASM-",
+          "computerNamePrefix" : "azureMASM",
           "adminUsername" : "[parameters('vmUserName')]",
           "adminPassword" : "[parameters('vmPassword')]",
           "customData" : "[base64(parameters('customData'))]"
