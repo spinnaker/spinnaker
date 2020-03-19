@@ -1,6 +1,20 @@
 import { ArtifactTypePatterns } from './ArtifactTypes';
 
-const unknownArtifactPath = require('./icons/unknown-type-artifact.svg');
+import unknownArtifactIcon from './icons/unknown-type-artifact.svg';
+import dockerIcon from './icons/docker-image-artifact.svg';
+import kubernetesIcon from './icons/kubernetes-artifact.svg';
+import embeddedBase64Icon from './icons/embedded-base64-artifact.svg';
+import gcsObjectIcon from './icons/gcs-file-artifact.svg';
+import gitHubFileIcon from './icons/github-file-artifact.svg';
+import gitRepoIcon from './icons/git-repo-artifact.svg';
+import gitLabFileIcon from './icons/gitlab-file-artifact.svg';
+import bitbucketFileIcon from './icons/bitbucket-file-artifact.svg';
+import s3ObjectIcon from './icons/s3-object-artifact.svg';
+import helmChartIcon from './icons/helm-chart-artifact.svg';
+import ivyFileIcon from './icons/ivy-artifact.svg';
+import jenkinsFileIcon from './icons/jenkins-file-artifact.svg';
+import mavenFileIcon from './icons/maven-artifact.svg';
+import httpFileIcon from './icons/http-artifact.svg';
 
 interface IArtifactIcon {
   type: RegExp;
@@ -16,7 +30,7 @@ export class ArtifactIconService {
 
   public static getPath(type: string) {
     if (type == null) {
-      return unknownArtifactPath;
+      return unknownArtifactIcon;
     }
     const icon = ArtifactIconService.icons.find(entry => entry.type.test(type));
     if (icon === undefined) {
@@ -26,18 +40,18 @@ export class ArtifactIconService {
   }
 }
 
-ArtifactIconService.registerType(ArtifactTypePatterns.CUSTOM_OBJECT, unknownArtifactPath);
-ArtifactIconService.registerType(ArtifactTypePatterns.DOCKER_IMAGE, require('./icons/docker-image-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.KUBERNETES, require('./icons/kubernetes-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.EMBEDDED_BASE64, require('./icons/embedded-base64-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.GCS_OBJECT, require('./icons/gcs-file-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.GITHUB_FILE, require('./icons/github-file-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.GIT_REPO, require('./icons/git-repo-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.GITLAB_FILE, require('./icons/gitlab-file-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.BITBUCKET_FILE, require('./icons/bitbucket-file-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.S3_OBJECT, require('./icons/s3-object-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.HELM_CHART, require('./icons/helm-chart-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.IVY_FILE, require('./icons/ivy-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.JENKINS_FILE, require('./icons/jenkins-file-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.MAVEN_FILE, require('./icons/maven-artifact.svg'));
-ArtifactIconService.registerType(ArtifactTypePatterns.HTTP_FILE, require('./icons/http-artifact.svg'));
+ArtifactIconService.registerType(ArtifactTypePatterns.CUSTOM_OBJECT, unknownArtifactIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.DOCKER_IMAGE, dockerIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.KUBERNETES, kubernetesIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.EMBEDDED_BASE64, embeddedBase64Icon);
+ArtifactIconService.registerType(ArtifactTypePatterns.GCS_OBJECT, gcsObjectIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.GITHUB_FILE, gitHubFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.GIT_REPO, gitRepoIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.GITLAB_FILE, gitLabFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.BITBUCKET_FILE, bitbucketFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.S3_OBJECT, s3ObjectIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.HELM_CHART, helmChartIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.IVY_FILE, ivyFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.JENKINS_FILE, jenkinsFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.MAVEN_FILE, mavenFileIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.HTTP_FILE, httpFileIcon);

@@ -28,6 +28,8 @@ import {
 
 import { CloudFoundryInstanceDetails } from 'cloudfoundry/instance/details';
 
+import cloudFoundryLogo from './logo/cf.logo.svg';
+
 import 'cloudfoundry/common/applicationName.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
@@ -51,7 +53,7 @@ import './pipeline/stages/runJob/cloudfoundryRunJob.module';
 CloudProviderRegistry.registerProvider('cloudfoundry', {
   name: 'Cloud Foundry',
   logo: {
-    path: require('./logo/cf.logo.svg'),
+    path: cloudFoundryLogo,
   },
   loadBalancer: {
     transformer: CloudFoundryLoadBalancerTransformer,

@@ -21,7 +21,9 @@ import { AwsLoadBalancerTransformer } from './loadBalancer/loadBalancer.transfor
 import { AwsFunctionTransformer } from './function/function.transformer';
 import './deploymentStrategy/rollingPush.strategy';
 
+import amazonLogo from './logo/amazon.logo.svg';
 import './logo/aws.logo.less';
+
 import { AmazonCloneServerGroupModal } from './serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AmazonLoadBalancerChoiceModal } from './loadBalancer/configure/AmazonLoadBalancerChoiceModal';
 
@@ -109,7 +111,7 @@ module(AMAZON_MODULE, [
   CloudProviderRegistry.registerProvider('aws', {
     name: 'Amazon',
     logo: {
-      path: require('./logo/amazon.logo.svg'),
+      path: amazonLogo,
     },
     image: {
       reader: AwsImageReader,

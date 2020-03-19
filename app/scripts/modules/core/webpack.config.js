@@ -109,6 +109,14 @@ module.exports = {
         ],
       },
       {
+        test: /\.svg$/,
+        issuer: {
+          test: /\.(tsx?|js)$/,
+        },
+        use: [{ loader: '@svgr/webpack' }],
+        exclude: exclusionPattern,
+      },
+      {
         test: /\.html$/,
         exclude: exclusionPattern,
         use: [

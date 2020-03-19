@@ -20,7 +20,9 @@ import { CONTAINER_REACT } from './serverGroup/configure/wizard/container/Contai
 import { TASK_DEFINITION_REACT } from './serverGroup/configure/wizard/taskDefinition/TaskDefinition';
 import { ECS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
 
+import ecsLogo from './logo/ecs.logo.svg';
 import './logo/ecs.logo.less';
+
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER } from './serverGroup/configure/wizard/CloneServerGroup.ecs.controller';
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGS_COMPONENT } from './serverGroup/configure/wizard/advancedSettings/advancedSettings.component';
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMPONENT } from './serverGroup/configure/wizard/horizontalScaling/horizontalScaling.component';
@@ -80,7 +82,7 @@ module(ECS_MODULE, [
 ]).config(function() {
   CloudProviderRegistry.registerProvider('ecs', {
     name: 'EC2 Container Service',
-    logo: { path: require('./logo/ecs.logo.svg') },
+    logo: { path: ecsLogo },
     serverGroup: {
       transformer: 'ecsServerGroupTransformer',
       detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),

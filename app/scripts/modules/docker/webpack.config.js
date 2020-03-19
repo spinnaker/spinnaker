@@ -92,6 +92,14 @@ module.exports = {
         use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
       },
       {
+        test: /\.svg$/,
+        issuer: {
+          test: /\.(tsx?|js)$/,
+        },
+        use: [{ loader: '@svgr/webpack' }],
+        exclude: exclusionPattern,
+      },
+      {
         test: /\.html$/,
         exclude: exclusionPattern,
         use: [

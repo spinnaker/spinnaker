@@ -189,6 +189,14 @@ function configure(env, webpackOpts) {
           ],
         },
         {
+          test: /\.svg$/,
+          issuer: {
+            test: /\.(tsx?|js)$/,
+          },
+          use: [{ loader: '@svgr/webpack' }],
+          exclude: /node_modules/,
+        },
+        {
           test: /\.html$/,
           use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
         },

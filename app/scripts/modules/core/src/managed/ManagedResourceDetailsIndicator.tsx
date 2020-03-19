@@ -11,6 +11,7 @@ import { ReactInjector } from 'core/reactShims';
 
 import { toggleResourcePause } from './toggleResourceManagement';
 import { ManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
+import managedDeliveryLogo from './icons/md-logo-color.svg';
 
 import './ManagedResourceDetailsIndicator.css';
 
@@ -77,7 +78,7 @@ export const ManagedResourceDetailsIndicator = ({
     <div className="flex-container-h middle ManagedResourceDetailsIndicator">
       <HoverablePopover template={helpText} placement="left">
         <div className="md-logo flex-container-h middle">
-          <img src={require('./icons/md-logo-color.svg')} width="36px" />
+          <img src={managedDeliveryLogo} width="36px" />
         </div>
       </HoverablePopover>
       <div className="flex-container-v middle flex-1 sp-margin-l-left">

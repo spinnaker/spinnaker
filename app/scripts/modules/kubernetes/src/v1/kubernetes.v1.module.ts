@@ -12,6 +12,9 @@ import { KubernetesSecurityGroupReader } from 'kubernetes/shared/securityGroup/s
 import 'kubernetes/shared/validation/applicationName.validator';
 import 'kubernetes/shared/help/kubernetes.help';
 import 'kubernetes/shared/logo/kubernetes.logo.less';
+
+import kubernetesLogo from '../shared/logo/kubernetes.logo.svg';
+
 import { KUBERNETES_V1_AUTOSCALER_AUTOSCALER_WRITE_SERVICE } from './autoscaler/autoscaler.write.service';
 import { KUBERNETES_V1_CLUSTER_CLUSTER_KUBERNETES_MODULE } from './cluster/cluster.kubernetes.module';
 import { KUBERNETES_V1_CONTAINER_CONFIGURER_DIRECTIVE } from './container/configurer.directive';
@@ -94,7 +97,7 @@ module(KUBERNETES_V1_MODULE, [
       resultFormatter: 'kubernetesSearchResultFormatter',
     },
     logo: {
-      path: require('../shared/logo/kubernetes.logo.svg'),
+      path: kubernetesLogo,
     },
     image: {
       reader: 'kubernetesImageReader',
