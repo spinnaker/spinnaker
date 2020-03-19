@@ -32,6 +32,7 @@ import org.pf4j.CompoundPluginRepository
 import org.pf4j.DefaultPluginManager
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginDescriptorFinder
+import org.pf4j.PluginFactory
 import org.pf4j.PluginLoader
 import org.pf4j.PluginRepository
 import org.pf4j.PluginStatusProvider
@@ -63,6 +64,8 @@ open class SpinnakerPluginManager(
     sdkFactories
   )
   private val bundleExtractor = PluginBundleExtractor()
+
+  private val spinnakerPluginFactory = SpinnakerPluginFactory(sdkFactories, configFactory)
 
   private inner class ExtensionFactoryDelegate : ExtensionFactory {
     override fun <T : Any?> create(extensionClass: Class<T>?): T = springExtensionFactory.create(extensionClass)
@@ -122,4 +125,6 @@ open class SpinnakerPluginManager(
   override fun createPluginRepository(): PluginRepository = CompoundPluginRepository()
     .add(PluginRefPluginRepository(getPluginsRoot()), this::isDevelopment)
     .add(super.createPluginRepository())
+
+  override fun getPluginFactory(): PluginFactory = spinnakerPluginFactory
 }
