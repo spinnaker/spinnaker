@@ -177,7 +177,7 @@ public class InstrumentedProxy implements InvocationHandler {
         }
       }
 
-      if (!processed) {
+      if (!processed && !instrumentedMethods.containsKey(method) && !seenMethods.contains(method)) {
         addInstrumentedMethod(
             instrumentedMethods,
             method,
