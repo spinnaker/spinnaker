@@ -215,7 +215,7 @@ class KubernetesClientApiAdapter {
       desired.spec.replicas = targetSize
 
       final Map[] jsonPatch = determineJsonPatch(current, desired);
-      V1beta1StatefulSet statefulSet = apiInstance.patchNamespacedStatefulSet(name, namespace, jsonPatch, null, null, null, false)
+      V1beta1StatefulSet statefulSet = apiInstance.patchNamespacedStatefulSet(name, namespace, jsonPatch, null, null, null, null)
 
       return statefulSet
     }
