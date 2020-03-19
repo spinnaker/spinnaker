@@ -52,6 +52,11 @@ class TerminateInstanceAndDecrementAsgAtomicOperation implements AtomicOperation
     task.updateStatus BASE_PHASE, "Initializing termination of $description.instance in $description.asgName"
     def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
     def asg = getAsg(autoScaling, description.asgName)
+    if (!asg.instances*.instanceId.contains(description.instance)) {
+      task.updateStatus BASE_PHASE, "Cannot terminate invalid instance $description.instance in server group $asg.autoScalingGroupName"
+      throw new IllegalArgumentException("Invalid instance $description.instance for $asg.autoScalingGroupName")
+    }
+
     if (asg.minSize == asg.desiredCapacity) {
       if (description.adjustMinIfNecessary) {
         int newMin = asg.minSize - 1
