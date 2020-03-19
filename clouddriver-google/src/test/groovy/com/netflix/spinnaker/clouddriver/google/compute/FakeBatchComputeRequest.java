@@ -24,6 +24,7 @@ import com.google.api.services.compute.ComputeRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 public final class FakeBatchComputeRequest<RequestT extends ComputeRequest<ResponseT>, ResponseT>
     implements BatchComputeRequest<RequestT, ResponseT> {
@@ -47,6 +48,8 @@ public final class FakeBatchComputeRequest<RequestT extends ComputeRequest<Respo
         if (details == null) {
           details = new GoogleJsonError();
           details.setCode(e.getStatusCode());
+          details.setMessage(e.getMessage());
+        } else if (StringUtils.isEmpty(details.getMessage())) {
           details.setMessage(e.getMessage());
         }
         request.callback.onFailure(details, e.getHeaders());
