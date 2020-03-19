@@ -3,6 +3,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.front50.Front50Service
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +18,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 class Front50Config {
   @Bean
   fun front50Endpoint(@Value("\${front50.base-url}") front50BaseUrl: String): HttpUrl =
-    HttpUrl.parse(front50BaseUrl)
+    front50BaseUrl.toHttpUrlOrNull()
       ?: throw BeanCreationException("Invalid URL: $front50BaseUrl")
 
   @Bean

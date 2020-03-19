@@ -76,6 +76,16 @@ subprojects {
 
   configurations.all {
     exclude("javax.servlet", "servlet-api")
+
+    resolutionStrategy {
+      var okHttpVersion = "4.4.1"
+      force(
+        "com.squareup.okhttp3:okhttp:$okHttpVersion",
+        "com.squareup.okhttp3:okhttp-urlconnection:$okHttpVersion",
+        "com.squareup.okhttp3:okhttp-sse:$okHttpVersion",
+        "com.squareup.okhttp3:mockwebserver:$okHttpVersion",
+        "com.squareup.okhttp3:logging-interceptor:$okHttpVersion")
+    }
   }
 }
 

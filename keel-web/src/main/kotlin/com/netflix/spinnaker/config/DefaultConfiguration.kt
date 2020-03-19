@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import de.huxhorn.sulky.ulid.ULID
 import java.time.Clock
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.getBeansOfType
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -36,6 +37,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
+import org.springframework.scheduling.TaskScheduler
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 
 @EnableFiatAutoConfig
 @Configuration
@@ -113,4 +116,14 @@ class DefaultConfiguration {
     resolvers
       .filter { ComputeResourceSpec::class.java.isAssignableFrom(it.supportedKind.specClass) }
       .map { it as Resolver<ComputeResourceSpec> }
+
+  @Bean
+  fun taskScheduler(
+    @Value("\${keel.scheduler.pool-size:5}") poolSize: Int
+  ): TaskScheduler {
+    val scheduler = ThreadPoolTaskScheduler()
+    scheduler.threadNamePrefix = "scheduler-"
+    scheduler.poolSize = poolSize
+    return scheduler
+  }
 }

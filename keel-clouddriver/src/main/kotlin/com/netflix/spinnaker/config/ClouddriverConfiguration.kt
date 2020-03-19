@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
@@ -37,7 +38,7 @@ class ClouddriverConfiguration {
 
   @Bean
   fun clouddriverEndpoint(@Value("\${clouddriver.base-url}") clouddriverBaseUrl: String): HttpUrl =
-    HttpUrl.parse(clouddriverBaseUrl)
+    clouddriverBaseUrl.toHttpUrlOrNull()
       ?: throw BeanCreationException("Invalid URL: $clouddriverBaseUrl")
 
   @Bean

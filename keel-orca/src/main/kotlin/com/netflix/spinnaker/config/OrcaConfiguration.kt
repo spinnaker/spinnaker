@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -34,7 +35,7 @@ class OrcaConfiguration {
 
   @Bean
   fun orcaEndpoint(@Value("\${orca.base-url}") orcaBaseUrl: String) =
-    HttpUrl.parse(orcaBaseUrl)
+          orcaBaseUrl.toHttpUrlOrNull()
 
   @Bean
   fun orcaService(

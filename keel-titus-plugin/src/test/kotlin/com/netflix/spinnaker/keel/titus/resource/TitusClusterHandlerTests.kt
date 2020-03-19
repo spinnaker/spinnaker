@@ -68,8 +68,8 @@ import java.time.Clock
 import java.time.Duration
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import okhttp3.MediaType
-import okhttp3.ResponseBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import retrofit2.Response
@@ -523,5 +523,5 @@ private fun <E, T : Iterable<E>> Assertion.Builder<T>.containsDistinctElements()
   }
 
 val RETROFIT_NOT_FOUND = HttpException(
-  Response.error<Any>(404, ResponseBody.create(MediaType.parse("application/json"), ""))
+  Response.error<Any>(404, "".toResponseBody("application/json".toMediaTypeOrNull()))
 )

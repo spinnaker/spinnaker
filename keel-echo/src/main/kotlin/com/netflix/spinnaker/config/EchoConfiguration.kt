@@ -3,6 +3,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.echo.EchoService
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
@@ -15,7 +16,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 class EchoConfiguration {
   @Bean
   fun echoEndpoint(@Value("\${echo.base-url}") echoBaseUrl: String): HttpUrl =
-    HttpUrl.parse(echoBaseUrl)
+    echoBaseUrl.toHttpUrlOrNull()
       ?: throw BeanCreationException("Invalid URL: $echoBaseUrl")
 
   @Bean
