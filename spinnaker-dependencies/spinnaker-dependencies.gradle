@@ -71,7 +71,7 @@ dependencies {
     api("com.google.auth:google-auth-library-oauth2-http:0.18.0")
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0")
     api("com.google.apis:google-api-services-cloudbuild:v1-rev836-1.25.0")
-    api("com.google.apis:google-api-services-compute:alpha-rev20190905-1.30.3")
+    api("com.google.apis:google-api-services-compute:alpha-rev20200225-1.30.9")
     api("com.google.apis:google-api-services-iam:v1-rev267-1.25.0")
     api("com.google.apis:google-api-services-monitoring:v3-rev477-1.25.0")
     api("com.google.apis:google-api-services-storage:v1-rev141-1.25.0")
