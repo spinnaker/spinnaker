@@ -26,8 +26,8 @@ dependencies {
   implementation "org.eclipse.aether:aether-impl:1.1.0"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "org.eclipse.jgit:org.eclipse.jgit:5.4.2.201908231537-r"
-  implementation "org.eclipse.jgit:org.eclipse.jgit.archive:5.4.2.201908231537-r"
+  implementation "org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r"
+  implementation "org.eclipse.jgit:org.eclipse.jgit.archive:5.7.0.202003110725-r"
 
   testImplementation "com.github.tomakehurst:wiremock:latest.release"
   testImplementation "org.assertj:assertj-core"

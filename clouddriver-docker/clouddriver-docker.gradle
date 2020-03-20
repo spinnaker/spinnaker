@@ -13,7 +13,7 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.retrofit:retrofit"
-  implementation "org.apache.commons:commons-compress:1.14"
+  implementation "org.apache.commons:commons-compress:1.20"
   implementation "commons-io:commons-io:2.6"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
