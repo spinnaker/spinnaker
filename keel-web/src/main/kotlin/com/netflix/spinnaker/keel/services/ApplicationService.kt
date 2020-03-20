@@ -1,11 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.plugins.supportingComputeResources
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
@@ -15,7 +10,7 @@ import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.PromotionStatus
-import com.netflix.spinnaker.keel.persistence.ResourceArtifactSummary
+import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.persistence.ResourceSummary
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
@@ -26,7 +21,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class ApplicationService(
-  private val resolvers: List<Resolver<ComputeResourceSpec>>,
   private val pauser: ActuationPauser,
   private val repository: KeelRepository,
   private val artifactRepository: ArtifactRepository
@@ -46,26 +40,12 @@ class ApplicationService(
     var resources = repository.getSummaryByApplication(application)
 
     resources = resources.map { summary ->
-      summary.resource.let { resource ->
-        if (resource.spec is ComputeResourceSpec) {
-          resolvers.supportingComputeResources(resource as Resource<ComputeResourceSpec>)
-            .fold(resource) { computeResource, resolver ->
-              log.debug("Applying ${resolver.javaClass.simpleName} to ${computeResource.id}")
-              resolver(computeResource)
-            }.let { computeResource ->
-              if (computeResource.spec.deliveryArtifact != null && computeResource.spec.artifactVersion != null) {
-                summary.copy(artifact = ResourceArtifactSummary(
-                  name = computeResource.spec.deliveryArtifact!!.name,
-                  type = computeResource.spec.deliveryArtifact!!.type,
-                  desiredVersion = computeResource.spec.artifactVersion!!
-                ))
-              } else {
-                summary
-              }
-            }
-        } else {
-          summary
-        }
+      if (pauser.resourceIsPaused(summary.id)) {
+        // we only update the status if the individual resource is paused,
+        // because the application pause is reflected in the response as a top level key.
+        summary.copy(status = ResourceStatus.PAUSED)
+      } else {
+        summary
       }
     }
 
@@ -146,4 +126,4 @@ class ApplicationService(
 
   private val ArtifactVersions.key: String
     get() = "${type.name}:$name"
-  }
+}

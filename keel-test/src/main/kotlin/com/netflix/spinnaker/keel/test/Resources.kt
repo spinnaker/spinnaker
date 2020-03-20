@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.VersionedArtifactContainer
+import com.netflix.spinnaker.keel.api.VersionedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.generateId
@@ -154,7 +154,7 @@ data class DummyArtifactVersionedResourceSpec(
   override val application: String = "fnord",
   override val artifactVersion: String? = "fnord-42.0",
   override val deliveryArtifact: DeliveryArtifact? = DebianArtifact(name = "fnord")
-) : ResourceSpec, VersionedArtifactContainer
+) : ResourceSpec, VersionedArtifact
 
 data class DummyResource(
   val id: String = randomString(),

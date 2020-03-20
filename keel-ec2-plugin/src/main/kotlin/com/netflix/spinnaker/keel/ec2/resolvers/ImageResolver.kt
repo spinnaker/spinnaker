@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
@@ -37,10 +36,7 @@ class ImageResolver(
   private val imageService: ImageService
 ) : Resolver<ClusterSpec> {
 
-  override val supportedKind = SupportedKind(
-    SPINNAKER_EC2_API_V1.qualify("cluster"),
-    ClusterSpec::class.java
-  )
+  override val supportedKind = SPINNAKER_EC2_API_V1.qualify("cluster")
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

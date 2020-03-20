@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
-import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
@@ -110,12 +108,6 @@ class DefaultConfiguration {
   fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =
     FilterRegistrationBean(AuthenticatedRequestFilter(true))
       .apply { order = HIGHEST_PRECEDENCE }
-
-  @Bean
-  fun computeResourceResolvers(resolvers: List<Resolver<*>>): List<Resolver<ComputeResourceSpec>> =
-    resolvers
-      .filter { ComputeResourceSpec::class.java.isAssignableFrom(it.supportedKind.specClass) }
-      .map { it as Resolver<ComputeResourceSpec> }
 
   @Bean
   fun taskScheduler(

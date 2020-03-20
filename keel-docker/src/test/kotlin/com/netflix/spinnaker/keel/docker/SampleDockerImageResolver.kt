@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 
 class SampleDockerImageResolver(
@@ -30,10 +29,7 @@ class SampleDockerImageResolver(
 ) : DockerImageResolver<SampleSpecWithContainer>(
   repository
 ) {
-  override val supportedKind = SupportedKind(
-    SAMPLE_API_VERSION.qualify("sample"),
-    SampleSpecWithContainer::class.java
-  )
+  override val supportedKind = SAMPLE_API_VERSION.qualify("sample")
 
   override fun getContainerFromSpec(resource: Resource<SampleSpecWithContainer>) =
     resource.spec.container
