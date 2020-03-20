@@ -5,6 +5,8 @@ import { load } from 'js-yaml';
 
 import { AccountService, Application, IMoniker, IArtifactAccount, IAccountDetails } from '@spinnaker/core';
 
+import { ManifestSource } from './ManifestSource';
+
 const LAST_APPLIED_CONFIGURATION = 'kubectl.kubernetes.io/last-applied-configuration';
 
 export interface IKubernetesManifestCommandData {
@@ -21,7 +23,7 @@ export interface IKubernetesManifestCommand {
   moniker: IMoniker;
   manifestArtifactId?: string;
   manifestArtifactAccount?: string;
-  source?: string;
+  source: ManifestSource;
   versioned?: boolean;
 }
 
@@ -50,7 +52,6 @@ export class KubernetesManifestCommandBuilder {
 
   public static copyAndCleanCommand(input: IKubernetesManifestCommand): IKubernetesManifestCommand {
     const command = cloneDeep(input);
-    delete command.source;
     return command;
   }
 
@@ -114,6 +115,7 @@ export class KubernetesManifestCommandBuilder {
             account,
             versioned,
             manifestArtifactAccount,
+            source: ManifestSource.TEXT,
           },
           metadata: {
             backingData,
