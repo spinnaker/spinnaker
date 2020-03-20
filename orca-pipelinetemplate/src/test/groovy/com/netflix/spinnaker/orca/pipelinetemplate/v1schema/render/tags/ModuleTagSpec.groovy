@@ -203,4 +203,37 @@ class ModuleTagSpec extends Specification {
     then:
     result == '1'
   }
+
+  def 'can use variables defined in the pipelineTemplate'() {
+    given:
+    PipelineTemplate pipelineTemplate = new PipelineTemplate(
+      variables: [
+        new PipelineTemplate.Variable(
+          name: 'myConfig',
+          type: 'object',
+          defaultValue: [
+            myApp: [
+              key1: 'value1',
+              key2: 'value2'
+            ]
+          ]
+        )
+      ],
+      modules: [
+        new TemplateModule(
+          id: 'myModule',
+          variables: [
+            [name: 'app'] as NamedHashMap,
+          ],
+          definition: "{{ myConfig[app].key2 }}")
+      ]
+    )
+    RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [:])
+
+    when:
+    def result = renderer.render("{% module myModule app=myApp %}", context)
+
+    then:
+    result == 'value2'
+  }
 }

@@ -18,7 +18,12 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
-import com.hubspot.jinjava.interpret.*;
+import com.hubspot.jinjava.interpret.Context;
+import com.hubspot.jinjava.interpret.InterpretException;
+import com.hubspot.jinjava.interpret.JinjavaInterpreter;
+import com.hubspot.jinjava.interpret.TemplateStateException;
+import com.hubspot.jinjava.interpret.TemplateSyntaxException;
+import com.hubspot.jinjava.interpret.UnknownTokenException;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
@@ -31,7 +36,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -87,6 +96,7 @@ public class ModuleTag implements Tag {
             template,
             (Map<String, Object>) context.get("trigger"));
     moduleContext.setLocation("module:" + moduleId);
+    RenderUtil.addTemplateVariablesToContext(template, moduleContext);
 
     // Assign parameters into the context
     Map<String, String> paramPairs = new HashMap<>();

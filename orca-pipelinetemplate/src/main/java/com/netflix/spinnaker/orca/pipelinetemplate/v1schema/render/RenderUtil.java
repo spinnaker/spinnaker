@@ -95,14 +95,19 @@ public class RenderUtil {
       PipelineTemplate template, TemplateConfiguration configuration, Map<String, Object> trigger) {
     RenderContext context =
         new DefaultRenderContext(configuration.getPipeline().getApplication(), template, trigger);
+    addTemplateVariablesToContext(template, context);
+    if (configuration.getPipeline().getVariables() != null) {
+      context.getVariables().putAll(configuration.getPipeline().getVariables());
+    }
+    return context;
+  }
+
+  public static void addTemplateVariablesToContext(
+      PipelineTemplate template, RenderContext context) {
     if (template != null && template.getVariables() != null) {
       template.getVariables().stream()
           .filter(v -> (v.isNullable() && v.getDefaultValue() == null) || v.hasDefaultValue())
           .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
     }
-    if (configuration.getPipeline().getVariables() != null) {
-      context.getVariables().putAll(configuration.getPipeline().getVariables());
-    }
-    return context;
   }
 }
