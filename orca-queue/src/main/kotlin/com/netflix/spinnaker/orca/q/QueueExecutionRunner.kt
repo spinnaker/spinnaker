@@ -45,4 +45,8 @@ class QueueExecutionRunner(
   override fun cancel(execution: PipelineExecution, user: String, reason: String?) {
     queue.push(CancelExecution(execution, user, reason))
   }
+
+  override fun startPending(pipelineConfigId: String, purge: Boolean) {
+    queue.push(StartWaitingExecutions(pipelineConfigId, purge))
+  }
 }

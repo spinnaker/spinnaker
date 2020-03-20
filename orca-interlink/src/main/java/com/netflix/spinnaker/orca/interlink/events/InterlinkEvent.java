@@ -24,14 +24,27 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import javax.validation.constraints.NotNull;
 
-/** Common interface for all interlink event messages */
+/**
+ * Common interface for interlink events
+ *
+ * <p>Interlink events are published to communicate across orca peers. When an orca encounters an
+ * operation it can't handle due its partition not matching that of the execution/request it will
+ * generally broadcast an interlink event which will be handled by an orca instance (listening on
+ * interlink) whose partition matches that of the execution.
+ *
+ * <p>Interlink events don't have a delivery guarantee, since most such events are triggered by a
+ * user action this lack of guarantee is not a problem.
+ *
+ * <p>The resulting repository mutations of interlink events will then be peered by the PeeringAgent
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "eventType")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = CancelInterlinkEvent.class, name = "CANCEL"),
   @JsonSubTypes.Type(value = PauseInterlinkEvent.class, name = "PAUSE"),
   @JsonSubTypes.Type(value = ResumeInterlinkEvent.class, name = "RESUME"),
   @JsonSubTypes.Type(value = DeleteInterlinkEvent.class, name = "DELETE"),
-  @JsonSubTypes.Type(value = PatchStageInterlinkEvent.class, name = "PATCH")
+  @JsonSubTypes.Type(value = PatchStageInterlinkEvent.class, name = "PATCH"),
+  @JsonSubTypes.Type(value = StartPendingInterlinkEvent.class, name = "START_PENDING")
 })
 public interface InterlinkEvent {
   enum EventType {
@@ -39,7 +52,8 @@ public interface InterlinkEvent {
     PAUSE,
     DELETE,
     RESUME,
-    PATCH
+    PATCH,
+    START_PENDING,
   }
 
   @JsonIgnore

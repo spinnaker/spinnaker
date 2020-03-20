@@ -39,4 +39,8 @@ public interface ExecutionRunner {
       @Nonnull PipelineExecution execution, @Nonnull String user, @Nullable String reason) {
     throw new UnsupportedOperationException();
   }
+
+  default void startPending(@Nonnull String pipelineConfigId, boolean purgeQueue) {
+    throw new UnsupportedOperationException();
+  }
 }
