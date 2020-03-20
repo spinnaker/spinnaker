@@ -13,6 +13,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.zaxxer.hikari.HikariDataSource
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -86,32 +87,15 @@ class SqlCacheSpec extends WriteableCacheSpec {
     def where = ((SqlCache) cache).getRelWhere(relPrefixes, queryPrefix)
 
     then:
-    where == expected
+    where.toString() == expected
 
     where:
-    filter                                                 || queryPrefix      || expected
-    RelationshipCacheFilter.none()                         || "meowdy=partner" || "meowdy=partner"
-    null                                                   || "meowdy=partner" || "meowdy=partner"
-    RelationshipCacheFilter.include("instances", "images") || null             || "(rel_type LIKE 'instances%' OR rel_type LIKE 'images%')"
-    RelationshipCacheFilter.include("images")              || "meowdy=partner" || "meowdy=partner AND (rel_type LIKE 'images%')"
-    null                                                   || null             || "1=1"
-  }
-
-  @Unroll
-  def 'max length of table name is checked'() {
-    when:
-    def realName = ((SqlCache) cache).checkTableName("cats_v1_", name, suffix)
-
-    then:
-    realName == expected
-
-    where:
-    name              || expected                                                             || suffix
-    "foo"             || "cats_v1_test_foo"                                                   || ""
-    "abcdefghij" * 10 || "cats_v1_test_abcdefghijabcdefghijabcdefghijabcdeaa7d0fee7e891a66"   || ""
-    "abcdefghij" * 10 || "cats_v1_test_abcdefghijabcdefghijabcdefghija9246690b33571ecc_rel"   || "_rel"
-    "abcdefghij" * 10 || "cats_v1_test_abcdefghijabcdefghijabcdefghijabcdefe546a736182e553"   || "suffix"*10
-
+    filter                                                 || queryPrefix                       || expected
+    RelationshipCacheFilter.none()                         || DSL.field("meowdy").eq("partner") || "meowdy = 'partner'"
+    null                                                   || DSL.field("meowdy").eq("partner") || "meowdy = 'partner'"
+    RelationshipCacheFilter.include("instances", "images") || null                              || "(\n  rel_type like 'instances%'\n  or rel_type like 'images%'\n)"
+    RelationshipCacheFilter.include("images")              || DSL.field("meowdy").eq("partner") || "(\n  meowdy = 'partner'\n  and rel_type like 'images%'\n)"
+    null                                                   || null                              || "1 = 1"
   }
 
   @Override

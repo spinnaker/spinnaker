@@ -17,6 +17,7 @@ package com.netflix.spinnaker.cats.sql.cache
 
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.config.SqlConstraints
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 
 /**
  * Provides utility methods for clouddriver's SQL naming conventions.
@@ -47,7 +48,8 @@ class SqlNames(
    * It always keeps prefix with tableNamespace but can shorten name and suffix in that order.
    * @return computed table name
    */
-  private fun checkTableName(prefix: String, name: String, suffix: String): String {
+  @VisibleForTesting
+  internal fun checkTableName(prefix: String, name: String, suffix: String): String {
     var base = prefix
     if (tableNamespace != null) {
       base = "${prefix + tableNamespace}_"

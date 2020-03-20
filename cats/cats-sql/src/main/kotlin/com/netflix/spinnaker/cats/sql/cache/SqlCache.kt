@@ -1431,10 +1431,10 @@ class SqlCache(
     var relWhere: Condition = noCondition()
 
     if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
-      relWhere = field("rel_type").like(relationshipPrefixes[0])
+      relWhere = field("rel_type").like("${relationshipPrefixes[0]}%")
 
       for (i in 1 until relationshipPrefixes.size) {
-        relWhere = relWhere.or(field("rel_type").like(relationshipPrefixes[i]))
+        relWhere = relWhere.or(field("rel_type").like("${relationshipPrefixes[i]}%"))
       }
     }
 

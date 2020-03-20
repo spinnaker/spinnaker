@@ -62,3 +62,9 @@ dependencies {
   testImplementation "org.testcontainers:mysql"
   testImplementation "mysql:mysql-connector-java"
 }
+
+test {
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "junit-jupiter"
+  }
+}
