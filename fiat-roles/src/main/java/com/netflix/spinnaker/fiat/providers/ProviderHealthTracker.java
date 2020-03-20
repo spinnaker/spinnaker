@@ -50,7 +50,7 @@ public class ProviderHealthTracker {
   }
 
   @Data
-  class HealthView {
+  public class HealthView {
     boolean providerHealthy = ProviderHealthTracker.this.isProviderHealthy();
     long msSinceLastSuccess = ProviderHealthTracker.this.getStaleness();
     long lastSuccessfulUpdateTime = ProviderHealthTracker.this.lastSuccessfulUpdateTimeMs.get();

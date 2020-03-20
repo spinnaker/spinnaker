@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +36,17 @@ public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
 
   @Autowired @Setter List<HealthTrackable> providers;
 
+  @Autowired @Setter Registry registry;
+
   private AtomicBoolean previousHealthCheckIsUp = new AtomicBoolean(false);
+
+  private AtomicBoolean upOnce = new AtomicBoolean(false);
+
+  private Id id(String name, HealthTrackable provider) {
+    return registry
+        .createId("fiat.resourceProvider." + name)
+        .withTag("provider", provider.getClass().getSimpleName());
+  }
 
   @Override
   protected void doHealthCheck(Health.Builder builder) throws Exception {
@@ -43,18 +55,32 @@ public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
       builder.withDetail(
           provider.getClass().getSimpleName(), provider.getHealthTracker().getHealthView());
       isDown = isDown || !provider.getHealthTracker().isProviderHealthy();
+      registry
+          .gauge(id("healthy", provider))
+          .set(provider.getHealthTracker().isProviderHealthy() ? 1 : 0);
+      long dataAge = provider.getHealthTracker().getHealthView().getMsSinceLastSuccess();
+      long timeTillStaleMillis =
+          provider.getHealthTracker().getHealthView().getMaximumStalenessTimeMs() - dataAge;
+      registry
+          .gauge(id("dataAgeSeconds", provider).withTag("stale", timeTillStaleMillis < 0))
+          .set(((double) dataAge) / 1000.0d);
     }
 
     if (isDown) {
       if (previousHealthCheckIsUp.getAndSet(false)) {
         log.warn("Server is now UNHEALTHY");
       }
-      builder.down();
+      if (upOnce.get()) {
+        builder.up();
+      } else {
+        builder.down();
+      }
     } else {
       if (!previousHealthCheckIsUp.getAndSet(true)) {
         log.info("Server is now HEALTHY. Hooray!");
       }
       builder.up();
+      upOnce.set(true);
     }
   }
 }
