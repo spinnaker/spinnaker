@@ -26,10 +26,11 @@ import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.pf4j.ExtensionPoint;
 
 /** A discrete unit of work in a pipeline execution that does one thing and one thing only. */
 @Beta
-public interface Task {
+public interface Task extends ExtensionPoint {
   /**
    * Execute the business logic of the task, using the provided stage execution state.
    *
