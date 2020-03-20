@@ -20,6 +20,7 @@ import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSe
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
 import { SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';
+import { ManifestSource } from '../../../manifest/ManifestSource';
 
 interface IPatchManifestStageConfigFormProps {
   stageFieldUpdated: () => void;
@@ -34,8 +35,6 @@ export class PatchManifestStageForm extends React.Component<
   IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps,
   IPatchManifestStageConfigFormState
 > {
-  public readonly textSource = 'text';
-  public readonly artifactSource = 'artifact';
   private readonly excludedManifestArtifactTypes = [
     ArtifactTypePatterns.DOCKER_IMAGE,
     ArtifactTypePatterns.KUBERNETES,
@@ -47,7 +46,7 @@ export class PatchManifestStageForm extends React.Component<
   public constructor(props: IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
     super(props);
     const patchBody: any[] = get(props.formik.values, 'patchBody');
-    const isTextManifest: boolean = get(props.formik.values, 'source') === this.textSource;
+    const isTextManifest: boolean = get(props.formik.values, 'source') === ManifestSource.TEXT;
     this.state = {
       rawManifest: !isEmpty(patchBody) && isTextManifest ? yamlDocumentsToString(patchBody) : '',
     };
@@ -97,7 +96,7 @@ export class PatchManifestStageForm extends React.Component<
   };
 
   private getSourceOptions = (): Array<Option<string>> => {
-    return map([this.textSource, this.artifactSource], option => ({
+    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], option => ({
       label: capitalize(option),
       value: option,
     }));
@@ -123,12 +122,12 @@ export class PatchManifestStageForm extends React.Component<
             value={stage.source}
           />
         </StageConfigField>
-        {stage.source === this.textSource && (
+        {stage.source === ManifestSource.TEXT && (
           <StageConfigField label="Manifest">
             <YamlEditor onChange={this.handleRawManifestChange} value={this.state.rawManifest} />
           </StageConfigField>
         )}
-        {stage.source === this.artifactSource && (
+        {stage.source === ManifestSource.ARTIFACT && (
           <>
             <StageArtifactSelectorDelegate
               artifact={stage.manifestArtifact}

@@ -6,6 +6,7 @@ import { AccountService, FormikStageConfig, IAccountDetails, IStage, IStageConfi
 
 import { DeployManifestStageForm } from './DeployManifestStageForm';
 import { defaultTrafficManagementConfig } from './ManifestDeploymentOptions';
+import { ManifestSource } from '../../../manifest/ManifestSource';
 
 interface IDeployManifestStageConfigState {
   accounts: IAccountDetails[];
@@ -23,7 +24,7 @@ export class DeployManifestStageConfig extends React.Component<IStageConfigProps
     const { stage: initialStageConfig } = props;
     const stage = cloneDeep(initialStageConfig);
     if (!stage.source) {
-      stage.source = 'text';
+      stage.source = ManifestSource.TEXT;
     }
     if (!stage.skipExpressionEvaluation) {
       stage.skipExpressionEvaluation = false;

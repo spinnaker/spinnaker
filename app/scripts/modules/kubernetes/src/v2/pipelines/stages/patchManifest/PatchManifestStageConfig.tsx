@@ -3,6 +3,7 @@ import { defaults } from 'lodash';
 
 import { FormikStageConfig, IStage, IStageConfigProps } from '@spinnaker/core';
 import { PatchManifestStageForm } from './PatchManifestStageForm';
+import { ManifestSource } from '../../../manifest/ManifestSource';
 
 export class PatchManifestStageConfig extends React.Component<IStageConfigProps> {
   private readonly stage: IStage;
@@ -11,7 +12,7 @@ export class PatchManifestStageConfig extends React.Component<IStageConfigProps>
     super(props);
     defaults(props.stage, {
       app: props.application.name,
-      source: 'text',
+      source: ManifestSource.TEXT,
       options: {
         record: true,
         mergeStrategy: 'strategic',

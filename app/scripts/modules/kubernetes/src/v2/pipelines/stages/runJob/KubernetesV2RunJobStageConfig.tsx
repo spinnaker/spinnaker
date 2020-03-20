@@ -22,6 +22,7 @@ import {
 import { ManifestBasicSettings } from 'kubernetes/v2/manifest/wizard/BasicSettings';
 import { ManifestBindArtifactsSelectorDelegate } from '../deployManifest/ManifestBindArtifactsSelectorDelegate';
 import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
+import { ManifestSource } from '../../../manifest/ManifestSource';
 
 export interface IKubernetesRunJobStageConfigState {
   credentials: IAccount[];
@@ -29,8 +30,6 @@ export interface IKubernetesRunJobStageConfigState {
 }
 
 export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigProps> {
-  public readonly textSource = 'text';
-  public readonly artifactSource = 'artifact';
   public state: IKubernetesRunJobStageConfigState = {
     credentials: [],
   };
@@ -49,7 +48,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
       stage.application = application.name;
     }
     if (!stage.source) {
-      stage.source = this.textSource;
+      stage.source = ManifestSource.TEXT;
     }
   }
 
@@ -189,7 +188,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
   }
 
   private getSourceOptions = (): Array<Option<string>> => {
-    return map([this.textSource, this.artifactSource], option => ({
+    return map([ManifestSource.TEXT, ManifestSource.ARTIFACT], option => ({
       label: capitalize(option),
       value: option,
     }));
@@ -235,10 +234,10 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
             value={stage.source}
           />
         </StageConfigField>
-        {stage.source === this.textSource && (
+        {stage.source === ManifestSource.TEXT && (
           <YamlEditor value={this.state.rawManifest} onChange={this.handleRawManifestChange} />
         )}
-        {stage.source === this.artifactSource && (
+        {stage.source === ManifestSource.ARTIFACT && (
           <>
             <StageArtifactSelectorDelegate
               artifact={stage.manifestArtifact}
