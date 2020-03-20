@@ -5,9 +5,10 @@ import styles from './ObjectRow.module.css';
 interface IObjectRowProps {
   icon: string;
   title: string;
+  metadata?: JSX.Element;
 }
 
-export const ObjectRow = ({ icon, title }: IObjectRowProps) => {
+export const ObjectRow = ({ icon, title, metadata }: IObjectRowProps) => {
   const depth = 0;
   return (
     <div className={styles.ObjectRow} style={getStylesFromDepth(depth)}>
@@ -16,7 +17,7 @@ export const ObjectRow = ({ icon, title }: IObjectRowProps) => {
         <span className={styles.rowTitle}>{title}</span>
       </div>
       <div className={styles.centerCol} style={{ flex: `0 0 ${200 + depth * 16}px` }}>
-        {'unknown version'}
+        {metadata}
       </div>
     </div>
   );
