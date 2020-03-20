@@ -47,7 +47,7 @@ export interface IManagedArtifactVersion {
   version: string;
   environments: Array<{
     name: string;
-    state: string;
+    state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed';
     deployedAt?: string;
     replacedAt?: string;
     replacedBy?: string;

@@ -50,11 +50,36 @@
   height: 6px;
   padding-bottom: 2px;
 }
+
 .stage {
-  background-color: #00b237;
   flex: 1 1 auto;
   margin-right: 2px;
+
+  &.current {
+    background-color: #00b237;
+  }
+
+  &.approved {
+    background-color: #4bafff;
+  }
+
+  &.deploying {
+    background-color: #4bafff;
+  }
+
+  &.pending {
+    background-color: var(--color-porcelain);
+  }
+
+  &.previous {
+    background-color: var(--color-nobel);
+  }
+
+  &.vetoed {
+    background-color: #be0000;
+  }
 }
+
 .stage:last-child {
   margin-right: 0;
 }

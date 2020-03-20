@@ -27,7 +27,6 @@ export function ArtifactsList({ artifacts, selectedArtifact, artifactSelected }:
             clickHandler={artifactSelected}
             version={version}
             name={name}
-            stages={[4, 3, 0]}
           />
         )),
       )}
@@ -40,10 +39,9 @@ interface IArtifactRowProps {
   clickHandler: (artifact: ISelectedArtifact) => void;
   version: IManagedArtifactVersion;
   name: string;
-  stages: any[];
 }
 
-export function ArtifactRow({ isSelected, clickHandler, version, name, stages }: IArtifactRowProps) {
+export function ArtifactRow({ isSelected, clickHandler, version, name }: IArtifactRowProps) {
   const versionString = version.version;
   const { packageName, version: packageVersion, buildNumber, commit } = parseName(versionString);
   return (
@@ -62,8 +60,8 @@ export function ArtifactRow({ isSelected, clickHandler, version, name, stages }:
         {/* Holding spot for status bubbles */}
       </div>
       <div className={styles.stages}>
-        {stages.map((_stage, i) => (
-          <span key={i} className={styles.stage} />
+        {version.environments.map(({ name, state }) => (
+          <span key={name} className={classNames(styles.stage, styles[state])} />
         ))}
       </div>
     </div>
