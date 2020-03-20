@@ -19,8 +19,9 @@ package com.netflix.spinnaker.igor.gcb;
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -39,8 +40,8 @@ public class GoogleCloudBuildController {
 
   @RequestMapping(value = "/accounts", method = RequestMethod.GET)
   @PostFilter("hasPermission(filterObject, 'BUILD_SERVICE', 'READ')")
-  public ImmutableList<String> getAccounts() {
-    return googleCloudBuildAccountRepository.getAccounts();
+  public List<String> getAccounts() {
+    return Lists.newArrayList(googleCloudBuildAccountRepository.getAccounts());
   }
 
   @RequestMapping(
@@ -75,25 +76,27 @@ public class GoogleCloudBuildController {
 
   @RequestMapping(value = "/builds/{account}/{buildId}/artifacts", method = RequestMethod.GET)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
-  public ImmutableList<Artifact> getArtifacts(
-      @PathVariable String account, @PathVariable String buildId) {
-    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getArtifacts(buildId);
+  public List<Artifact> getArtifacts(@PathVariable String account, @PathVariable String buildId) {
+    return Lists.newArrayList(
+        googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getArtifacts(buildId));
   }
 
   @RequestMapping(
       value = "/artifacts/extract/{account}",
       method = RequestMethod.PUT,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ImmutableList<Artifact> extractArtifacts(
+  public List<Artifact> extractArtifacts(
       @PathVariable String account, @RequestBody String serializedBuild) {
     Build build = googleCloudBuildParser.parse(serializedBuild, Build.class);
-    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).extractArtifacts(build);
+    return Lists.newArrayList(
+        googleCloudBuildAccountRepository.getGoogleCloudBuild(account).extractArtifacts(build));
   }
 
   @RequestMapping(value = "/triggers/{account}", method = RequestMethod.GET)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
-  public ImmutableList<BuildTrigger> listTriggers(@PathVariable String account) {
-    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).listTriggers();
+  public List<BuildTrigger> listTriggers(@PathVariable String account) {
+    return Lists.newArrayList(
+        googleCloudBuildAccountRepository.getGoogleCloudBuild(account).listTriggers());
   }
 
   @RequestMapping(

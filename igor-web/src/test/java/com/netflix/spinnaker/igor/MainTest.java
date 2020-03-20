@@ -16,28 +16,18 @@
 
 package com.netflix.spinnaker.igor;
 
-import com.netflix.hystrix.Hystrix;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorPublisher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RedisConfig.class, Main.class})
 public class MainTest {
-
-  @BeforeClass
-  public static void setUp() {
-    Hystrix.reset();
-  }
+  @MockBean HystrixSpectatorPublisher hystrixSpectatorPublisher;
 
   @Test
   public void startupTest() {}
-
-  @AfterClass
-  public static void tearDown() {
-    Hystrix.reset();
-  }
 }
