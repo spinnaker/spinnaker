@@ -56,6 +56,4 @@ If you're interested in a detailed walkthrough of the Spinnaker systems, check t
 
 = Setting Up Spinnaker For Development
 
-To pull Spinnaker from source and set it up to run locally against any of the https://www.spinnaker.io/setup/install/providers/#supported-providers[Cloud Providers],
-
-follow the https://spinnaker.io/guides/developer/getting-set-up/[Developer Setup Guide]
+To pull Spinnaker from source and set it up to run locally against any of the https://www.spinnaker.io/setup/install/providers/#supported-providers[Cloud Providers], follow the https://spinnaker.io/guides/developer/getting-set-up/[Developer Setup Guide]
