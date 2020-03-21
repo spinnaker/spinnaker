@@ -58,6 +58,7 @@ class ArtifactController(
   )
   @ResponseStatus(ACCEPTED)
   fun register(@RequestBody artifact: DeliveryArtifact) {
+    repository.register(artifact)
     publisher.publishEvent(ArtifactRegisteredEvent(artifact))
   }
 

@@ -80,6 +80,7 @@ class ImageHandler(
       log.debug("Latest known version of $name = null")
       if (!artifactRepository.isRegistered(name, type)) {
         // we clearly care about this artifact, let's register it.
+        artifactRepository.register(this)
         publisher.publishEvent(ArtifactRegisteredEvent(this))
       }
     }
@@ -117,37 +118,37 @@ class ImageHandler(
       "reference" to artifactRef,
       "metadata" to emptyMap<String, Any>(),
       "provenance" to "n/a"
-      )
+    )
 
     log.info("baking new image for {}", resource.spec.artifactName)
     val description = "Bake ${resourceDiff.desired.appVersion}"
 
     try {
       val taskRef = taskLauncher.submitJob(
-      user = resource.serviceAccount,
-      application = resource.application,
-      notifications = emptySet(),
-      subject = description,
-      description = description,
-      correlationId = resource.id,
-      stages = listOf(
-        Job(
-          "bake",
-          mapOf(
-            "amiSuffix" to "",
-            "baseOs" to resource.spec.baseOs,
-            "baseLabel" to resource.spec.baseLabel.name.toLowerCase(),
-            "cloudProviderType" to "aws",
-            "package" to artifactRef.substringAfterLast("/"),
-            "regions" to resource.spec.regions,
-            "storeType" to resource.spec.storeType.name.toLowerCase(),
-            "user" to "keel",
-            "vmType" to "hvm"
+        user = resource.serviceAccount,
+        application = resource.application,
+        notifications = emptySet(),
+        subject = description,
+        description = description,
+        correlationId = resource.id,
+        stages = listOf(
+          Job(
+            "bake",
+            mapOf(
+              "amiSuffix" to "",
+              "baseOs" to resource.spec.baseOs,
+              "baseLabel" to resource.spec.baseLabel.name.toLowerCase(),
+              "cloudProviderType" to "aws",
+              "package" to artifactRef.substringAfterLast("/"),
+              "regions" to resource.spec.regions,
+              "storeType" to resource.spec.storeType.name.toLowerCase(),
+              "user" to "keel",
+              "vmType" to "hvm"
+            )
           )
-        )
-      ),
-      artifacts = listOf(artifact)
-    )
+        ),
+        artifacts = listOf(artifact)
+      )
       return listOf(Task(id = taskRef.id, name = description))
     } catch (e: Exception) {
       log.error("Error launching orca bake for: ${description.toLowerCase()}")

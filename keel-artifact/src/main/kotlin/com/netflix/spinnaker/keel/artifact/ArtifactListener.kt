@@ -62,10 +62,12 @@ class ArtifactListener(
       }
   }
 
+  /**
+   * Fetch latest version of an artifact after it is registered.
+   */
   @EventListener(ArtifactRegisteredEvent::class)
   fun onArtifactRegisteredEvent(event: ArtifactRegisteredEvent) {
     val artifact = event.artifact
-    artifactRepository.register(artifact)
 
     if (artifactRepository.versions(artifact).isEmpty()) {
       when (artifact) {
