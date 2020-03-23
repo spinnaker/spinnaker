@@ -48,6 +48,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.VETOED
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import java.time.Duration
 import java.time.Instant
 
@@ -249,7 +250,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
 inline fun <reified T : ResourceSpec> ResourceRepository.get(id: String): Resource<T> =
   get(id).also { check(it.spec is T) } as Resource<T>
 
-sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
+sealed class NoSuchResourceException(override val message: String?) : SystemException(message)
 
 class NoSuchResourceId(id: String) : NoSuchResourceException("No resource with id $id exists in the repository")
 class NoSuchApplication(application: String) : NoSuchResourceException("No resource with application name $application exists in the repository")

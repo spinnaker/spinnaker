@@ -1,3 +1,5 @@
 package com.netflix.spinnaker.keel.exceptions
 
-class ExportError(message: String) : RuntimeException(message)
+import com.netflix.spinnaker.kork.exceptions.SystemException
+
+class ExportError(message: String) : SystemException(message)

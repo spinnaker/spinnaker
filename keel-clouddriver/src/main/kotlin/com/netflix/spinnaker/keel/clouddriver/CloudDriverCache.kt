@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 
 interface CloudDriverCache {
   fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary
@@ -33,4 +34,4 @@ interface CloudDriverCache {
     credentialBy(account).attributes["defaultKeyPair"] as String
 }
 
-class ResourceNotFound(message: String) : RuntimeException(message)
+class ResourceNotFound(message: String) : IntegrationException(message)

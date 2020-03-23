@@ -5,6 +5,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.UID
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.exceptions.UserException
 
 interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfig> {
 
@@ -142,10 +144,10 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String)
 }
 
-sealed class NoSuchDeliveryConfigException(message: String) : RuntimeException(message)
+sealed class NoSuchDeliveryConfigException(message: String) : UserException(message)
 class NoSuchDeliveryConfigName(name: String) : NoSuchDeliveryConfigException("No delivery config named $name exists in the repository")
 
 class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType, reference: String) :
   RuntimeException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
 
-class OrphanedResourceException(id: String) : RuntimeException("Resource $id exists without being a part of a delivery config")
+class OrphanedResourceException(id: String) : SystemException("Resource $id exists without being a part of a delivery config")

@@ -10,6 +10,7 @@ dependencies {
   implementation(project(":keel-igor"))
   implementation(project(":keel-orca"))
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
   implementation("com.netflix.spinnaker.kork:kork-security")
   implementation("com.netflix.frigga:frigga")
 

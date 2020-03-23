@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 
@@ -181,4 +182,4 @@ class ImageHandler(
     current != null && (current as Image).regions.size != desired.regions.size
 }
 
-class BaseAmiNotFound(baseImage: String) : RuntimeException("Could not find a base AMI for base image $baseImage")
+class BaseAmiNotFound(baseImage: String) : IntegrationException("Could not find a base AMI for base image $baseImage")
