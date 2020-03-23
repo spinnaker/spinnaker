@@ -87,8 +87,8 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
           findIndex(newExpectedArtifacts, e => e.id === expectedArtifact.id),
           1,
         );
+        ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipelineParam.stages);
       }
-      ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipelineParam.stages);
     });
     updateExpectedArtifacts(newExpectedArtifacts);
   }
