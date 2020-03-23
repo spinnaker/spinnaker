@@ -123,7 +123,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
             }
 
             // Network interfaces are needed for any IPv6 addresses.
-            return InstanceReader.getInstanceDetails(accountDetails.awsAccount, region, instanceDetails.agentId);
+            return InstanceReader.getInstanceDetails(accountDetails.environment, region, instanceDetails.agentId);
           })
           .then(instance => {
             if (instance && instance.networkInterfaces) {
