@@ -26,7 +26,7 @@ export function EnvironmentsList({ environments, resourcesById, artifacts }: IEn
           artifacts.length === 1 ? 'artifact is' : 'artifacts are'
         } deployed in 2 environments with no issues detected.`}
         isActive={true}
-        noticeType={'ok'}
+        noticeType="success"
       />
       {environments.map(({ name, resources }) => (
         <div key={name}>

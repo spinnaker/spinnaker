@@ -3,14 +3,15 @@ import classNames from 'classnames';
 import styles from './NoticeCard.module.css';
 
 interface INoticeCardProps {
-  title: string;
-  text: string;
+  title: JSX.Element | string;
+  text: JSX.Element | string;
   icon: string;
-  noticeType: 'ok'; // TypeScript doesn't like this being arbitrary strings because it can't validate styles[noticeType]
+  noticeType: 'success' | 'neutral' | 'info' | 'error';
   isActive: boolean;
+  className?: string;
 }
 
-export function NoticeCard({ title, text, icon, noticeType, isActive }: INoticeCardProps) {
+export function NoticeCard({ title, text, icon, noticeType, isActive, className }: INoticeCardProps) {
   const NoticeCardClasses = classNames({
     [styles.NoticeCard]: true,
     [styles[noticeType]]: noticeType,
@@ -22,10 +23,10 @@ export function NoticeCard({ title, text, icon, noticeType, isActive }: INoticeC
   });
 
   return (
-    <div className={NoticeCardClasses}>
+    <div className={classNames(NoticeCardClasses, className)}>
       {icon && (
         <div className={IconContainerClasses}>
-          <i className={`ico icon-${icon}`} />
+          <i className={classNames(styles.icon, 'ico', `icon-${icon}`)} />
         </div>
       )}
       {title && <div className={styles.title}>{title}</div>}

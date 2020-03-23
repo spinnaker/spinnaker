@@ -60,11 +60,11 @@
   }
 
   &.approved {
-    background-color: #4bafff;
+    background-color: var(--color-status-info);
   }
 
   &.deploying {
-    background-color: #4bafff;
+    background-color: var(--color-status-info);
   }
 
   &.pending {
@@ -76,7 +76,7 @@
   }
 
   &.vetoed {
-    background-color: #be0000;
+    background-color: var(--color-status-error);
   }
 }
 

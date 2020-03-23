@@ -8,11 +8,10 @@
   color: #444;
 }
 .NoticeCard.active {
-  background-color: #fff0a0;
+  background-color: #e7e7e7;
 }
-.NoticeCard.warning {
-  background-color: #ff8282;
-  animation: noticeStrobe 4s linear;
+.NoticeCard.error {
+  background-color: #fff0a0;
 }
 
 .iconContainer {
@@ -23,14 +22,27 @@
   align-items: center;
   justify-content: center;
   border-radius: 48px;
-}
-.iconContainer.warning {
-  background-color: #ff8282;
   color: #ffffff;
+
+  .icon {
+    font-size: 24px;
+  }
 }
-.iconContainer.ok {
+
+.iconContainer.success {
   background-color: #00b237;
-  color: #ffffff;
+}
+
+.iconContainer.neutral {
+  background-color: var(--color-nobel);
+}
+
+.iconContainer.info {
+  background-color: var(--color-status-info);
+}
+
+.iconContainer.error {
+  background-color: var(--color-status-error);
 }
 
 .title {
@@ -44,25 +56,4 @@
   flex: 0 0 100%;
   margin-top: 8px;
   align-self: center;
-}
-
-@keyframes noticeStrobe {
-  0% {
-    background-color: transparent;
-  }
-  20% {
-    background-color: colorWarn;
-  }
-  40% {
-    background-color: transparent;
-  }
-  60% {
-    background-color: colorWarn;
-  }
-  80% {
-    background-color: transparent;
-  }
-  100% {
-    background-color: colorWarn;
-  }
 }
