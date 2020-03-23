@@ -97,4 +97,29 @@ describe('ArtifactReferenceService', () => {
       expect(remover).toHaveBeenCalledTimes(0);
     });
   });
+
+  describe('removeReferencesFromStages', () => {
+    it('removes each specified artifact reference from the given stages', () => {
+      registerTestStage(['pathToId', 'pathToListOfIds', 'nestedPathTo.id', 'nestedPathToListOf.ids']);
+      const stages = [
+        stage({
+          type: 'testStage',
+          pathToId: 'artifact-1',
+          pathToListOfIds: ['artifact-2', 'artifact-3'],
+          nestedPathTo: { id: 'artifact-4' },
+          nestedPathToListOf: { ids: ['artifact-5'] },
+          unregisteredPath: 'artifact-1',
+        }),
+      ];
+      ArtifactReferenceService.removeReferencesFromStages(
+        ['artifact-1', 'artifact-2', 'artifact-4', 'artifact-5'],
+        stages,
+      );
+      expect(stages[0].pathToId).toBe(null);
+      expect(stages[0].pathToListOfIds).toEqual(['artifact-3']);
+      expect(stages[0].nestedPathTo.id).toBe(null);
+      expect(stages[0].nestedPathToListOf.ids).toEqual([]);
+      expect(stages[0].unregisteredPath).toEqual('artifact-1');
+    });
+  });
 });
