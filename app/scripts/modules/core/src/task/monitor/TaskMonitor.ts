@@ -80,8 +80,9 @@ export class TaskMonitor {
     }
   }
 
-  public closeModal = (): void => {
+  public closeModal = (evt?: React.MouseEvent<any>): void => {
     try {
+      evt && evt.stopPropagation();
       this.modalInstance.dismiss();
     } catch (ignored) {
       // modal was already closed
