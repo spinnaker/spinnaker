@@ -2,6 +2,9 @@ _**IMPORTANT:** This service is currently under development and is not ready for
 
 
 ---
+
+![Release](https://github.com/spinnaker/keel/workflows/Release/badge.svg)
+
 # High Level Project Overview
 Keel is the service where much of our work on the new Managed Delivery iniative is happening. For a high level overview of the Managed Delivery project and its goals, [check out our introductory post on the Spinnaker blog](https://blog.spinnaker.io/managed-delivery-evolving-continuous-delivery-at-netflix-eb74877fb33c).
 
