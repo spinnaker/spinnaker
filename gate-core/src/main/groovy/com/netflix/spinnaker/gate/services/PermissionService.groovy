@@ -27,6 +27,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -42,6 +43,10 @@ class PermissionService {
   FiatService fiatService
 
   @Autowired
+  @Qualifier("fiatLoginService")
+  Optional<FiatService> fiatLoginService
+
+  @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
   @Autowired
@@ -51,12 +56,16 @@ class PermissionService {
     return fiatStatus.isEnabled()
   }
 
+  private FiatService getFiatServiceForLogin() {
+    return fiatLoginService.orElse(fiatService);
+  }
+
   void login(String userId) {
     if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "login") {
         try {
           AuthenticatedRequest.allowAnonymous({
-            fiatService.loginUser(userId, "")
+            fiatServiceForLogin.loginUser(userId, "")
             permissionEvaluator.invalidatePermission(userId)
           })
         } catch (RetrofitError e) {
@@ -71,7 +80,7 @@ class PermissionService {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "loginWithRoles") {
         try {
           AuthenticatedRequest.allowAnonymous({
-            fiatService.loginWithRoles(userId, roles)
+            fiatServiceForLogin.loginWithRoles(userId, roles)
             permissionEvaluator.invalidatePermission(userId)
           })
         } catch (RetrofitError e) {
@@ -85,7 +94,7 @@ class PermissionService {
     if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "logout") {
         try {
-          fiatService.logoutUser(userId)
+          fiatServiceForLogin.logoutUser(userId)
           permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
           throw classifyError(e)
@@ -98,7 +107,7 @@ class PermissionService {
     if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "sync") {
         try {
-          fiatService.sync(Collections.emptyList())
+          fiatServiceForLogin.sync(Collections.emptyList())
         } catch (RetrofitError e) {
           throw classifyError(e)
         }
