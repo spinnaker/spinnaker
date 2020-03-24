@@ -51,7 +51,7 @@ class SqlUnhappyVetoRepository(
     }
   }
 
-  override fun getVetoStatus(resourceId: String): UnhappyVetoStatus {
+  override fun getOrCreateVetoStatus(resourceId: String, application: String, wait: Duration): UnhappyVetoStatus {
     sqlRetry.withRetry(READ) {
       jooq
         .select(UNHAPPY_VETO.RECHECK_TIME)
@@ -65,7 +65,9 @@ class SqlUnhappyVetoRepository(
           shouldRecheck = recheckTime < clock.instant().toEpochMilli()
         )
       }
-    return UnhappyVetoStatus()
+
+    markUnhappyForWaitingTime(resourceId, application, wait)
+    return UnhappyVetoStatus(shouldSkip = true, shouldRecheck = false)
   }
 
   override fun getAll(): Set<String> {

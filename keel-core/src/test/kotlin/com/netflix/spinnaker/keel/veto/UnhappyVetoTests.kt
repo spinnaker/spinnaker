@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryUnhappyVetoRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
@@ -64,10 +63,9 @@ class UnhappyVetoTests : JUnit5Minutests {
       unhappyRepository.flush()
     }
 
-    context("resource is happy") {
+    context("happy diffCount") {
       before {
-        every { resourceRepository.getStatus(r.id) } returns ResourceStatus.HAPPY
-        every { diffFingerprintRepository.diffCount(r.id) } returns 6
+        every { diffFingerprintRepository.diffCount(r.id) } returns 1
       }
 
       test("happy resources aren't vetoed") {
@@ -75,14 +73,10 @@ class UnhappyVetoTests : JUnit5Minutests {
       }
     }
 
-    context("resource is unhappy") {
-      before {
-        every { resourceRepository.getStatus(r.id) } returns UNHAPPY
-      }
-
+    context("unhappy diffCount") {
       context("diff has been seen more than 10 times") {
         before {
-          every { diffFingerprintRepository.diffCount(r.id) } returns 6
+          every { diffFingerprintRepository.diffCount(r.id) } returns 11
         }
 
         test("unhappy resources are vetoed") {

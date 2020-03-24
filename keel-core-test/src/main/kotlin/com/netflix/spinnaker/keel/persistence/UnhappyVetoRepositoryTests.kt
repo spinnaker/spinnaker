@@ -36,6 +36,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
   val clock = MutableClock()
   val resourceId = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
   val application = "keeldemo"
+  val waitDuration = Duration.ofMinutes(10)
 
   data class Fixture<T : UnhappyVetoRepository>(
     val subject: T
@@ -75,7 +76,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       }
 
       test("should skip right after we mark unhappy") {
-        val vetoStatus = subject.getVetoStatus(resourceId)
+        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
         expect {
           that(vetoStatus.shouldSkip).isEqualTo(true)
           that(vetoStatus.shouldRecheck).isEqualTo(false)
@@ -84,7 +85,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
 
       test("9 minutes later we should still skip") {
         clock.incrementBy(Duration.ofMinutes(9))
-        val vetoStatus = subject.getVetoStatus(resourceId)
+        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
         expect {
           that(vetoStatus.shouldSkip).isEqualTo(true)
           that(vetoStatus.shouldRecheck).isEqualTo(false)
@@ -93,7 +94,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
 
       test("11 minutes later don't skip, instead recheck") {
         clock.incrementBy(Duration.ofMinutes(11))
-        val vetoStatus = subject.getVetoStatus(resourceId)
+        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
         expect {
           that(vetoStatus.shouldSkip).isEqualTo(false)
           that(vetoStatus.shouldRecheck).isEqualTo(true)

@@ -36,8 +36,12 @@ class InMemoryUnhappyVetoRepository(
     resources.remove(resourceId)
   }
 
-  override fun getVetoStatus(resourceId: String): UnhappyVetoStatus {
-    val record = resources[resourceId] ?: return UnhappyVetoStatus()
+  override fun getOrCreateVetoStatus(resourceId: String, application: String, wait: Duration): UnhappyVetoStatus {
+    val record = resources[resourceId]
+    if (record == null) {
+      resources[resourceId] = Record(application, calculateExpirationTime(wait))
+      return UnhappyVetoStatus(shouldSkip = true, shouldRecheck = false)
+    }
     return UnhappyVetoStatus(
       shouldSkip = record.recheckTime > clock.instant(),
       shouldRecheck = record.recheckTime < clock.instant()

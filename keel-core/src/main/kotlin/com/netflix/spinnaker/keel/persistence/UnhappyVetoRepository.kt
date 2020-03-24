@@ -51,7 +51,11 @@ abstract class UnhappyVetoRepository(
   /**
    * Calculates whether a resource should be skipped or rechecked at this instant
    */
-  abstract fun getVetoStatus(resourceId: String): UnhappyVetoStatus
+  abstract fun getOrCreateVetoStatus(
+    resourceId: String,
+    application: String,
+    wait: Duration = Duration.parse(waitingTime)
+  ): UnhappyVetoStatus
 
   /**
    * Returns all currently vetoed resources

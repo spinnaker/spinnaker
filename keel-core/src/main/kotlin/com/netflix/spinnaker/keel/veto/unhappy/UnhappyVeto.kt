@@ -59,7 +59,7 @@ class UnhappyVeto(
       return allowedResponse()
     }
 
-    val vetoStatus = unhappyVetoRepository.getVetoStatus(resourceId)
+    val vetoStatus = unhappyVetoRepository.getOrCreateVetoStatus(resourceId, application, waitingTime(resource))
     if (vetoStatus.shouldSkip) {
       return deniedResponse(unhappyMessage(resource))
     }
