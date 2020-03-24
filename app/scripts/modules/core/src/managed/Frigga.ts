@@ -24,5 +24,5 @@ export function parseName(amiName: string): IParsedVersionComponents {
     const buildNumber = buildString?.substring(1);
     return { packageName, version, buildNumber, commit };
   }
-  return null;
+  return { packageName: null, version: null, buildNumber: null, commit: null };
 }

@@ -4,6 +4,7 @@ import { IManagedEnviromentSummary, IManagedResourceSummary, IManagedArtifactSum
 
 import { NoticeCard } from './NoticeCard';
 import { ManagedResourceObject } from './ManagedResourceObject';
+import { EnvironmentRow } from './EnvironmentRow';
 
 function shouldDisplayResource(resource: IManagedResourceSummary) {
   //TODO: naively filter on presence of moniker but how should we really decide what to display?
@@ -29,15 +30,14 @@ export function EnvironmentsList({ environments, resourcesById, artifacts }: IEn
         noticeType="success"
       />
       {environments.map(({ name, resources }) => (
-        <div key={name}>
-          <h3>{name.toUpperCase()}</h3>
+        <EnvironmentRow key={name} name={name} isProd={true}>
           {resources
             .map(resourceId => resourcesById[resourceId])
             .filter(shouldDisplayResource)
             .map(resource => (
               <ManagedResourceObject key={resource.id} resource={resource} />
             ))}
-        </div>
+        </EnvironmentRow>
       ))}
     </div>
   );

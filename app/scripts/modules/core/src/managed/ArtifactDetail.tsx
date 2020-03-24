@@ -11,6 +11,7 @@ import { NoticeCard } from './NoticeCard';
 import { Pill } from './Pill';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { parseName } from './Frigga';
+import { EnvironmentRow } from './EnvironmentRow';
 
 import './ArtifactDetail.less';
 
@@ -55,8 +56,7 @@ export const ArtifactDetail = ({
             parseName(replacedBy || '') || {};
 
           return (
-            <div key={name}>
-              <h3>{name.toUpperCase()}</h3>
+            <EnvironmentRow key={name} name={name} isProd={true}>
               {state === 'deploying' && (
                 <NoticeCard
                   className="sp-margin-l-right"
@@ -137,7 +137,7 @@ export const ArtifactDetail = ({
                   <ManagedResourceObject key={resource.id} resource={resource} />
                 </div>
               ))}
-            </div>
+            </EnvironmentRow>
           );
         })}
       </div>
