@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.deploy;
 
 import static java.lang.String.format;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -134,16 +133,10 @@ public class DescriptionAuthorizer<T> {
                   "descriptionClass", description.getClass().getSimpleName()))
           .increment();
 
-      String rawJson = null;
-      try {
-        rawJson = objectMapper.writeValueAsString(description);
-      } catch (JsonProcessingException ignored) {
-      }
-
       log.warn(
-          "No application(s) specified for operation with account restriction (type: {}, rawJson: {})",
+          "No application(s) specified for operation with account restriction (type: {}, account: {})",
           description.getClass().getSimpleName(),
-          rawJson);
+          account);
     }
 
     registry
