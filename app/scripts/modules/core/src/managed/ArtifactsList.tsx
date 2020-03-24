@@ -17,16 +17,20 @@ interface IArtifactsListProps {
 export function ArtifactsList({ artifacts, selectedArtifact, artifactSelected }: IArtifactsListProps) {
   return (
     <div>
-      {artifacts.map(({ versions, name }) =>
+      {artifacts.map(({ versions, name, type }) =>
         versions.map((version, i) => (
           <ArtifactRow
             key={`${name}-${version.version}-${i}`} // appending index until name-version is guaranteed to be unique
             isSelected={
-              selectedArtifact && selectedArtifact.name === name && selectedArtifact.version === version.version
+              selectedArtifact &&
+              selectedArtifact.name === name &&
+              selectedArtifact.type === type &&
+              selectedArtifact.version === version.version
             }
             clickHandler={artifactSelected}
             version={version}
             name={name}
+            type={type}
           />
         )),
       )}
@@ -39,15 +43,16 @@ interface IArtifactRowProps {
   clickHandler: (artifact: ISelectedArtifact) => void;
   version: IManagedArtifactVersion;
   name: string;
+  type: string;
 }
 
-export function ArtifactRow({ isSelected, clickHandler, version, name }: IArtifactRowProps) {
+export function ArtifactRow({ isSelected, clickHandler, version, name, type }: IArtifactRowProps) {
   const versionString = version.version;
   const { packageName, version: packageVersion, buildNumber, commit } = parseName(versionString);
   return (
     <div
       className={classNames(styles.ArtifactRow, { [styles.selected]: isSelected })}
-      onClick={() => clickHandler({ name, version: versionString })}
+      onClick={() => clickHandler({ name, type, version: versionString })}
     >
       <div className={styles.content}>
         <div className={styles.version}>

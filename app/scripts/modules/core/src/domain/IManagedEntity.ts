@@ -17,11 +17,14 @@ export interface IManagedResourceSummary {
   kind: string;
   status: ManagedResourceStatus;
   isPaused: boolean;
-  artifact?: any;
   moniker: IMoniker;
   locations: {
     account: string;
     regions: Array<{ name: string }>;
+  };
+  artifact?: {
+    name: string;
+    type: string;
   };
 }
 

@@ -16,6 +16,7 @@ const CONTENT_WIDTH = 1200;
 
 export interface ISelectedArtifact {
   name: string;
+  type: string;
   version: string;
 }
 
@@ -83,6 +84,7 @@ export function Environments({ app }: IEnvironmentsProps) {
             {selectedArtifact && (
               <ArtifactDetail
                 name={selectedArtifact.name}
+                type={selectedArtifact.type}
                 version={selectedArtifactDetails}
                 resourcesByEnvironment={resourcesByEnvironment}
                 onRequestClose={() => setSelectedArtifact(null)}
