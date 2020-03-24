@@ -260,7 +260,7 @@ export class ServerGroupBasicSettings
             </div>
           </div>
         )}
-        <ServerGroupDetailsField formik={formik} />
+        <ServerGroupDetailsField app={app} formik={formik} />
         {values.viewState.imageSourceText && (
           <div className="form-group">
             <div className="col-md-3 sm-label-right">Image Source</div>

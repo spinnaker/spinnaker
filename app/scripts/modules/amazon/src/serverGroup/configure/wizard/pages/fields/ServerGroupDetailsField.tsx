@@ -1,10 +1,11 @@
 import React from 'react';
 import { FormikProps } from 'formik';
 
-import { HelpField, Overridable } from '@spinnaker/core';
+import { Application, HelpField, Overridable } from '@spinnaker/core';
 import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export interface DetailsFieldProps {
+  app: Application;
   formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
