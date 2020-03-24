@@ -87,6 +87,9 @@ public class DeploymentConfiguration extends Node {
 
   Canary canary = new Canary();
 
+  // For backwards compatibility, removed in spinnaker/halyard#1520
+  @JsonIgnore String plugins = "";
+
   Spinnaker spinnaker = new Spinnaker();
 
   Webhook webhook = new Webhook();
