@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.echo.services.IgorService;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoint;
 import retrofit.Endpoints;
-import retrofit.RequestInterceptor;
 import retrofit.RestAdapter.Builder;
 import retrofit.RestAdapter.LogLevel;
 import retrofit.converter.JacksonConverter;
@@ -45,7 +45,7 @@ public class IgorConfig {
       Endpoint igorEndpoint,
       Ok3Client ok3Client,
       LogLevel retrofitLogLevel,
-      RequestInterceptor spinnakerRequestInterceptor) {
+      SpinnakerRequestInterceptor spinnakerRequestInterceptor) {
     log.info("igor service loaded");
     return new Builder()
         .setEndpoint(igorEndpoint)

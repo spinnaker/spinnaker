@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.OkHttpClient;
@@ -64,13 +65,17 @@ public class Front50Config {
 
   @Bean
   public Front50Service front50Service(
-      Endpoint front50Endpoint, OkHttpClient okHttpClient, LogLevel retrofitLogLevel) {
+      Endpoint front50Endpoint,
+      OkHttpClient okHttpClient,
+      LogLevel retrofitLogLevel,
+      SpinnakerRequestInterceptor spinnakerRequestInterceptor) {
     log.info("front50 service loaded");
 
     return new Builder()
         .setEndpoint(front50Endpoint)
         .setConverter(new JacksonConverter())
         .setClient(new OkClient(okHttpClient))
+        .setRequestInterceptor(spinnakerRequestInterceptor)
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(Front50Service.class))
         .build()
