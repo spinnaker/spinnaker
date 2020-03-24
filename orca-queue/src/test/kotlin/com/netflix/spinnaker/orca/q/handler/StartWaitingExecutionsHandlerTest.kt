@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.interlink.Interlink
-import com.netflix.spinnaker.orca.interlink.events.StartPendingInterlinkEvent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
@@ -55,14 +52,13 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
   val queue = mock<Queue>()
   val repository = mock<ExecutionRepository>()
   val pipelineQueue = mock<PendingExecutionService>()
-  val interlink = mock<Interlink>()
 
   fun resetMocks() {
     reset(queue, repository)
   }
 
   subject(GROUP) {
-    StartWaitingExecutionsHandler(queue, repository, pipelineQueue, null)
+    StartWaitingExecutionsHandler(queue, repository, pipelineQueue)
   }
 
   val configId = UUID.randomUUID().toString()
@@ -72,6 +68,7 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
       beforeGroup {
         whenever(pipelineQueue.depth(configId)) doReturn 0
       }
+
       afterGroup(::resetMocks)
 
       on("receiving the message") {
@@ -80,27 +77,6 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
       it("does nothing") {
         verifyZeroInteractions(queue)
-      }
-    }
-
-    given("there is a configured interlink") {
-      beforeGroup {
-        whenever(pipelineQueue.depth(configId)) doReturn 0
-      }
-      afterGroup(::resetMocks)
-
-      val handler = StartWaitingExecutionsHandler(queue, repository, pipelineQueue, interlink)
-
-      on("receiving the message") {
-        handler.handle(StartWaitingExecutions(configId))
-      }
-
-      it("pushed nothing onto the queue but published an event onto interlink") {
-        verifyZeroInteractions(queue)
-        verify(interlink).publish(
-          StartPendingInterlinkEvent(ExecutionType.PIPELINE,
-            configId,
-            false))
       }
     }
 

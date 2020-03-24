@@ -25,7 +25,6 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.NonNull;
 import lombok.Value;
@@ -62,8 +61,8 @@ public class CompoundExecutionOperator {
   }
 
   public void pause(
-      @Nonnull ExecutionType executionType,
-      @Nonnull String executionId,
+      @NonNull ExecutionType executionType,
+      @NonNull String executionId,
       @Nullable String pausedBy) {
     doInternal(
         runner::reschedule,
@@ -74,10 +73,10 @@ public class CompoundExecutionOperator {
   }
 
   public void resume(
-      @Nonnull ExecutionType executionType,
-      @Nonnull String executionId,
+      @NonNull ExecutionType executionType,
+      @NonNull String executionId,
       @Nullable String user,
-      @Nonnull Boolean ignoreCurrentStatus) {
+      @NonNull Boolean ignoreCurrentStatus) {
     doInternal(
         runner::unpause,
         () -> repository.resume(executionType, executionId, user, ignoreCurrentStatus),
@@ -105,10 +104,6 @@ public class CompoundExecutionOperator {
         "reschedule",
         executionType,
         executionId);
-  }
-
-  public void startPending(@Nonnull String pipelineConfigId, boolean purgeQueue) {
-    runner.startPending(pipelineConfigId, purgeQueue);
   }
 
   private PipelineExecution doInternal(

@@ -21,7 +21,6 @@ dependencies {
   api(project(":orca-core"))
   api(project(":orca-api"))
   implementation(project(":orca-kotlin"))
-  implementation(project(":orca-interlink"))
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
   implementation("com.netflix.spinnaker.keiko:keiko-core:$keikoVersion")

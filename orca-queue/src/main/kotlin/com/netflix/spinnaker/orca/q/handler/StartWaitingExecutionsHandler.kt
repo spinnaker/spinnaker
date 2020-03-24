@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
-import com.netflix.spinnaker.orca.interlink.Interlink
-import com.netflix.spinnaker.orca.interlink.events.StartPendingInterlinkEvent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.ExecutionLevel
@@ -35,8 +32,7 @@ import org.springframework.stereotype.Component
 class StartWaitingExecutionsHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
-  private val pendingExecutionService: PendingExecutionService,
-  private val interlink: Interlink?
+  private val pendingExecutionService: PendingExecutionService
 ) : OrcaMessageHandler<StartWaitingExecutions> {
 
   private val log: Logger get() = LoggerFactory.getLogger(javaClass)
@@ -44,7 +40,7 @@ class StartWaitingExecutionsHandler(
   override val messageType = StartWaitingExecutions::class.java
 
   override fun handle(message: StartWaitingExecutions) {
-    val pendingMessage = if (message.purgeQueue) {
+    if (message.purgeQueue) {
       // when purging the queue, run the latest message and discard the rest
       pendingExecutionService.popNewest(message.pipelineConfigId)
         .also { _ ->
@@ -65,20 +61,12 @@ class StartWaitingExecutionsHandler(
       // when not purging the queue, run the messages in the order they came in
       pendingExecutionService.popOldest(message.pipelineConfigId)
     }
-
-    if (pendingMessage != null) {
-
-      // spoiler, it always is!
-      if (pendingMessage is ExecutionLevel) {
-        log.info("Starting queued pipeline {} {} {}", pendingMessage.application, pendingMessage.executionId)
+      ?.let {
+        // spoiler, it always is!
+        if (it is ExecutionLevel) {
+          log.info("Starting queued pipeline {} {} {}", it.application, it.executionId)
+        }
+        queue.push(it)
       }
-      queue.push(pendingMessage)
-    } else {
-      interlink?.publish(
-        StartPendingInterlinkEvent(
-          ExecutionType.PIPELINE,
-          message.pipelineConfigId,
-          message.purgeQueue))
-    }
   }
 }

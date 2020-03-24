@@ -26,14 +26,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-/**
- * This event is published on the interlink as a result of a user PAUSING an execution on an orca
- * instance that can't handle the partition for the given execution.
- *
- * <p>The event is then handled by an orca instance (listening on interlink) whose partition matches
- * that of the execution. The resulting repository mutations of this event will then be peered by
- * the PeeringAgent
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
