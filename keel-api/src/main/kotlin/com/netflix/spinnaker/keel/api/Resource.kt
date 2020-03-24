@@ -14,6 +14,25 @@ data class Resource<T : ResourceSpec>(
     require(metadata["application"].isValidApplication()) { "application must be a valid application" }
   }
 
+  /**
+   * Attempts to find an artifact in the delivery config based on information in this resource's spec.
+   */
+  fun findAssociatedArtifact(deliveryConfig: DeliveryConfig) =
+    if (spec is ComputeResourceSpec) {
+      // prefer reference-based artifact info
+      spec.completeArtifactReferenceOrNull()
+        ?.let { ref ->
+          deliveryConfig.matchingArtifactByReference(ref.artifactReference, ref.artifactType)
+        }
+        // if not found, then try old-style image provider info
+        ?: spec.completeArtifactOrNull()
+          ?.let { art ->
+            deliveryConfig.matchingArtifactByName(art.artifactName, art.artifactType)
+          }
+    } else {
+      null
+    }
+
   // TODO: this is kinda dirty, but because we add uid to the metadata when persisting we don't really want to consider it in equality checks
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

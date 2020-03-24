@@ -21,13 +21,13 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.UnhappyControl
-import com.netflix.spinnaker.keel.api.VersionedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.titus.exceptions.ErrorResolvingContainerException
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
@@ -38,6 +38,8 @@ import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.docker.ReferenceProvider
+import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import java.time.Duration
 
 /**
@@ -52,21 +54,42 @@ data class TitusClusterSpec(
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   val overrides: Map<String, TitusServerGroupSpec> = emptyMap(),
   @JsonIgnore
-  override val deliveryArtifact: DeliveryArtifact? = null,
+  override val artifactType: ArtifactType? = ArtifactType.docker,
+  @JsonIgnore
+  private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
   @JsonIgnore
   override val artifactVersion: String? = null,
+  @JsonIgnore
+  val containerProvider: ContainerProvider,
   @JsonIgnore
   override val maxDiffCount: Int? = 2,
   @JsonIgnore
   // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
   override val unhappyWaitTime: Duration? = Duration.ZERO
-) : Monikered, Locatable<SimpleLocations>, VersionedArtifact, UnhappyControl {
+) : ComputeResourceSpec, Monikered, Locatable<SimpleLocations>, UnhappyControl {
 
   @JsonIgnore
   override val id = "${locations.account}:$moniker"
 
   val defaults: TitusServerGroupSpec
     @JsonUnwrapped get() = _defaults
+
+  // Returns the artifact name set by resolvers, or attempts to find the artifact name from the container provider.
+  override val artifactName: String?
+    @JsonIgnore get() = _artifactName
+      ?: when (containerProvider) {
+        is DigestProvider -> containerProvider.repository()
+        is VersionedTagProvider -> containerProvider.repository()
+        else -> null
+      }
+
+  // Provides a hint as to cluster -> artifact linkage even _without_ resolvers being applied, by delegating to the
+  // image provider.
+  override val artifactReference: String?
+    @JsonIgnore get() = when (containerProvider) {
+      is ReferenceProvider -> containerProvider.reference
+      else -> null
+    }
 
   @JsonCreator
   constructor(
@@ -104,7 +127,8 @@ data class TitusClusterSpec(
       resources = resources,
       tags = tags
     ),
-    overrides
+    overrides,
+    containerProvider = container
   )
 }
 
@@ -213,7 +237,7 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       migrationPolicy = resolveMigrationPolicy(it.name),
       resources = resolveResources(it.name),
       tags = defaults.tags + overrides[it.name]?.tags,
-      deliveryArtifact = deliveryArtifact,
+      artifactName = artifactName,
       artifactVersion = artifactVersion
     )
   }

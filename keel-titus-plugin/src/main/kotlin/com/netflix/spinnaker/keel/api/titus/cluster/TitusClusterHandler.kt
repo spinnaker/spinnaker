@@ -168,7 +168,8 @@ class TitusClusterHandler(
       moniker = exportable.moniker,
       locations = locations,
       _defaults = base.exportSpec(exportable.moniker.app),
-      overrides = mutableMapOf()
+      overrides = mutableMapOf(),
+      containerProvider = base.container
     )
 
     spec.generateOverrides(

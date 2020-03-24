@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.persistence.PromotionStatus
 
 /**
  * Summarized data about a specific environment, mostly for use by the UI.

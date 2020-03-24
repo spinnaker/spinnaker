@@ -8,9 +8,8 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.VersionedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -153,21 +152,15 @@ data class DummyArtifactVersionedResourceSpec(
   val data: String = randomString(),
   override val application: String = "fnord",
   override val artifactVersion: String? = "fnord-42.0",
-  override val deliveryArtifact: DeliveryArtifact? = DebianArtifact(name = "fnord")
-) : ResourceSpec, VersionedArtifact
+  override val artifactName: String? = "fnord",
+  override val artifactType: ArtifactType? = ArtifactType.deb
+) : ResourceSpec, VersionedArtifactProvider
 
 data class DummyResource(
   val id: String = randomString(),
   val data: String = randomString()
 ) {
   constructor(spec: DummyResourceSpec) : this(spec.id, spec.data)
-}
-
-data class DummyArtifactVersionedResource(
-  val id: String = randomString(),
-  val data: String = randomString()
-) {
-  constructor(spec: DummyArtifactVersionedResourceSpec) : this(spec.id, spec.data)
 }
 
 fun randomString(length: Int = 8) =

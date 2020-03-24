@@ -53,7 +53,7 @@ class ImageResolver(
         is ReferenceArtifactImageProvider -> resolveFromReference(resource, imageProvider)
         // todo eb: artifact provider is here for backwards compatibility. Remove?
         is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider.deliveryArtifact as DebianArtifact)
-        is JenkinsImageProvider -> resolveFromJenkinsJob(resource, imageProvider)
+        is JenkinsImageProvider -> resolveFromJenkinsJob(imageProvider)
       }
     }
     return resource.withVirtualMachineImages(image)
@@ -97,7 +97,6 @@ class ImageResolver(
   }
 
   private suspend fun resolveFromJenkinsJob(
-    resource: Resource<ClusterSpec>,
     imageProvider: JenkinsImageProvider
   ): VersionedNamedImage {
     val image = imageService.getNamedImageFromJenkinsInfo(
@@ -139,8 +138,10 @@ class ImageResolver(
 
     return copy(spec = spec.copy(
       overrides = overrides,
-      deliveryArtifact = image.artifact,
-      artifactVersion = image.version))
+      _artifactName = image.artifact?.name
+        ?: error("Artifact not found in image ${image.namedImage.imageName}"),
+      artifactVersion = image.version)
+    )
   }
 
   private fun ServerGroupSpec?.withVirtualMachineImage(image: VirtualMachineImage) =

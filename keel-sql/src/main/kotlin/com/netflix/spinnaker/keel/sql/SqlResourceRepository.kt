@@ -2,11 +2,13 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent.Scope
@@ -14,7 +16,6 @@ import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceSummary
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
@@ -111,32 +112,22 @@ open class SqlResourceRepository(
     }
   }
 
-  fun getUidByApplication(application: String): List<String> {
-    return sqlRetry.withRetry(READ) {
-      jooq
-        .select(RESOURCE.UID)
-        .from(RESOURCE)
-        .where(RESOURCE.APPLICATION.eq(application))
-        .fetch(RESOURCE.UID)
-    }
-  }
-
-  override fun getSummaryByApplication(application: String): List<ResourceSummary> {
-    val resources: List<Resource<*>> = sqlRetry.withRetry(READ) {
+  override fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> {
+    val resourceSummaries: List<ResourceSummary> = sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
         .from(RESOURCE)
-        .where(RESOURCE.APPLICATION.eq(application))
+        .where(RESOURCE.APPLICATION.eq(deliveryConfig.application))
         .fetch()
         .map { (kind, metadata, spec) ->
           Resource(
-            parseKind(kind),
-            objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            objectMapper.readValue(spec, resourceTypeIdentifier.identify(parseKind(kind)))
-          )
+            kind = parseKind(kind),
+            metadata = objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+            spec = objectMapper.readValue(spec, resourceTypeIdentifier.identify(parseKind(kind)))
+          ).toResourceSummary(deliveryConfig)
         }
     }
-    return resources.map { it.toResourceSummary() }
+    return resourceSummaries
   }
 
   // todo: this is not retryable due to overall repository structure: https://github.com/spinnaker/keel/issues/740

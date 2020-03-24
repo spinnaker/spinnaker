@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.UnhappyControl
-import com.netflix.spinnaker.keel.api.VersionedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
@@ -62,7 +62,10 @@ data class TitusServerGroup(
   val delayBeforeScaleDownSec: Int = 0,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
-  override val deliveryArtifact: DeliveryArtifact? = null,
+  override val artifactName: String? = null,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  override val artifactType: ArtifactType? = ArtifactType.docker,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
   override val artifactVersion: String? = null,
@@ -70,7 +73,7 @@ data class TitusServerGroup(
   override val maxDiffCount: Int? = null,
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
   override val unhappyWaitTime: Duration? = null
-) : VersionedArtifact, UnhappyControl
+) : VersionedArtifactProvider, UnhappyControl
 
 val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)

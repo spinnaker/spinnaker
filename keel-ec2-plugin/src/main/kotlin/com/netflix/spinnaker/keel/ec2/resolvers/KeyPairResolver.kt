@@ -27,8 +27,6 @@ class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver
 
   private fun ClusterSpec.withResolvedKeyPairs(account: String): ClusterSpec {
     val defaultKeyPair = cloudDriverCache.defaultKeyPairForAccount(account)
-    assert(defaultKeyPair != null) { "Default key pair missing for account $account in clouddriver config." }
-
     var defaultLaunchConfig: ClusterSpec.LaunchConfigurationSpec? = null
     val overrideLaunchConfigs = mutableMapOf<String, ClusterSpec.LaunchConfigurationSpec>()
 

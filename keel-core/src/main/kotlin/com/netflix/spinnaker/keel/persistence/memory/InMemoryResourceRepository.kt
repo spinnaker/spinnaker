@@ -15,17 +15,19 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.application
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceSummary
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -39,12 +41,14 @@ class InMemoryResourceRepository(
   private val resourceEvents = mutableMapOf<String, MutableList<ResourceEvent>>()
   private val applicationEvents = mutableMapOf<String, MutableList<ApplicationEvent>>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
+  private val resourceArtifacts = mutableMapOf<String, DeliveryArtifact>()
 
   fun dropAll() {
     resources.clear()
     resourceEvents.clear()
     applicationEvents.clear()
     lastCheckTimes.clear()
+    resourceArtifacts.clear()
   }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
@@ -71,11 +75,11 @@ class InMemoryResourceRepository(
       .map { it.value }
       .toList()
 
-  override fun getSummaryByApplication(application: String): List<ResourceSummary> =
+  override fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> =
     resources
-      .filterValues { it.application == application }
+      .filterValues { it.application == deliveryConfig.application }
       .map { (_, resource) ->
-        resource.toResourceSummary()
+        resource.toResourceSummary(deliveryConfig)
       }
 
   override fun store(resource: Resource<*>) {
@@ -92,6 +96,7 @@ class InMemoryResourceRepository(
       ?.also {
         resources.remove(it)
         resourceEvents.remove(it)
+        resourceArtifacts.remove(it)
       }
       ?: throw NoSuchResourceId(id)
   }

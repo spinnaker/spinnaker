@@ -41,31 +41,33 @@ internal class CurrentlyDeployedDockerImageApproverTests : JUnit5Minutests {
       deliveryConfigName = "manifest"
     )
 
+    val referenceProvider = ReferenceProvider(reference = "myart")
     val referenceCluster = resource(
       kind = SPINNAKER_TITUS_API_V1.qualify("cluster"),
       spec = TitusClusterSpec(
         moniker = Moniker("waffles", "api"),
         locations = SimpleLocations(account = "test", regions = setOf(SimpleRegionSpec("us-east-1"))),
         _defaults = TitusServerGroupSpec(
-          container = ReferenceProvider(
-            reference = "myart"
-          )
-        )
+          container = referenceProvider
+        ),
+        containerProvider = referenceProvider
       )
     )
 
+    val digestProvider = DigestProvider(
+      organization = artifact.organization,
+      image = artifact.image,
+      digest = "imadigestyup"
+    )
     val digestCluster = resource(
       kind = SPINNAKER_TITUS_API_V1.qualify("cluster"),
       spec = TitusClusterSpec(
         moniker = Moniker("waffles", "api"),
         locations = SimpleLocations(account = "test", regions = setOf(SimpleRegionSpec("us-east-1"))),
         _defaults = TitusServerGroupSpec(
-          container = DigestProvider(
-            organization = artifact.organization,
-            image = artifact.image,
-            digest = "imadigestyup"
-          )
-        )
+          container = digestProvider
+        ),
+        containerProvider = digestProvider
       )
     )
 

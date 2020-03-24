@@ -15,10 +15,10 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.normalize
-import com.netflix.spinnaker.keel.core.api.resources
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
@@ -91,9 +91,11 @@ class CombinedRepository(
     deliveryConfig.resources.forEach { resource ->
       upsert(resource)
     }
+
     deliveryConfig.artifacts.forEach { artifact ->
       register(artifact)
     }
+
     storeDeliveryConfig(deliveryConfig)
 
     if (old != null) {
@@ -298,8 +300,8 @@ class CombinedRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> =
     resourceRepository.getResourcesByApplication(application)
 
-  override fun getSummaryByApplication(application: String): List<ResourceSummary> =
-    resourceRepository.getSummaryByApplication(application)
+  override fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> =
+    resourceRepository.getResourceSummaries(deliveryConfig)
 
   override fun storeResource(resource: Resource<*>) =
     resourceRepository.store(resource)

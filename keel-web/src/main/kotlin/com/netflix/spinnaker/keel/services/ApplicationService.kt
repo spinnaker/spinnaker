@@ -6,12 +6,10 @@ import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
-import com.netflix.spinnaker.keel.pause.ActuationPauser
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.persistence.PromotionStatus
-import com.netflix.spinnaker.keel.persistence.ResourceStatus
-import com.netflix.spinnaker.keel.persistence.ResourceSummary
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class ApplicationService(
-  private val pauser: ActuationPauser,
   private val repository: KeelRepository,
   private val artifactRepository: ArtifactRepository
 ) {
@@ -36,21 +33,12 @@ class ApplicationService(
    *
    * This function assumes there's a single delivery config associated with the application.
    */
-  fun getResourceSummariesFor(application: String): List<ResourceSummary> {
-    var resources = repository.getSummaryByApplication(application)
-
-    resources = resources.map { summary ->
-      if (pauser.resourceIsPaused(summary.id)) {
-        // we only update the status if the individual resource is paused,
-        // because the application pause is reflected in the response as a top level key.
-        summary.copy(status = ResourceStatus.PAUSED)
-      } else {
-        summary
+  fun getResourceSummariesFor(application: String): List<ResourceSummary> =
+    getFirstDeliveryConfigFor(application)
+      ?.let { deliveryConfig ->
+        repository.getResourceSummaries(deliveryConfig)
       }
-    }
-
-    return resources
-  }
+      ?: emptyList()
 
   /**
    * Returns a list of [EnvironmentSummary] for the specific application.

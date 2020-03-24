@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
@@ -22,7 +23,10 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
+import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
@@ -91,7 +95,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   /**
    * Fetches resource summary, including the status
    */
-  fun getSummaryByApplication(application: String): List<ResourceSummary>
+  fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary>
 
   /**
    * Persists a resource.
@@ -220,10 +224,9 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
     return true
   }
 
-  fun Resource<*>.toResourceSummary() =
+  fun Resource<*>.toResourceSummary(deliveryConfig: DeliveryConfig) =
     ResourceSummary(
-      id = id,
-      kind = kind,
+      resource = this,
       status = getStatus(id), // todo eb: this will become expensive
       moniker = if (spec is Monikered) {
         (spec as Monikered).moniker
@@ -238,8 +241,13 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
         )
       } else {
         null
+      },
+      artifact = deliveryConfig.let {
+        findAssociatedArtifact(it)?.toResourceArtifactSummary()
       }
     )
+
+  private fun DeliveryArtifact.toResourceArtifactSummary() = ResourceArtifactSummary(name, type)
 
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10

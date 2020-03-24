@@ -15,19 +15,19 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.APPROVED
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
-import com.netflix.spinnaker.keel.persistence.PromotionStatus
-import com.netflix.spinnaker.keel.persistence.PromotionStatus.APPROVED
-import com.netflix.spinnaker.keel.persistence.PromotionStatus.CURRENT
-import com.netflix.spinnaker.keel.persistence.PromotionStatus.DEPLOYING
-import com.netflix.spinnaker.keel.persistence.PromotionStatus.PENDING
-import com.netflix.spinnaker.keel.persistence.PromotionStatus.PREVIOUS
-import com.netflix.spinnaker.keel.persistence.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -396,13 +396,7 @@ class SqlArtifactRepository(
 
   override fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes> {
     val artifactsById = deliveryConfig.artifacts
-      .mapNotNull { artifact ->
-        when (val uid = artifact.uidString) {
-          null -> null
-          else -> uid to artifact
-        }
-      }
-      .toMap()
+      .associateBy { it.uidString }
 
     val vetoes: MutableMap<String, EnvironmentArtifactVetoes> = mutableMapOf()
 
@@ -478,7 +472,7 @@ class SqlArtifactRepository(
         ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
         ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
         ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
-      .fetchOne { (status, reference) ->
+      .fetchOne { (_, reference) ->
         if (reference != null && !force) {
           log.warn(
             "Not vetoing artifact version as it appears to have already been an automated rollback target: " +

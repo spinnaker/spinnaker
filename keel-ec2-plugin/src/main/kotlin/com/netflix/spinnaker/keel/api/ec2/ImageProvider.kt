@@ -35,6 +35,9 @@ sealed class ImageProvider
  * Provides image id by reference to a package
  */
 @JsonDeserialize(using = JsonDeserializer.None::class)
+@Deprecated("Non-reference-based artifact providers are no longer supported.",
+  replaceWith = ReplaceWith("ReferenceArtifactImageProvider")
+)
 data class ArtifactImageProvider(
   val deliveryArtifact: DeliveryArtifact,
   @JsonInclude(NON_EMPTY)
@@ -53,6 +56,9 @@ data class ReferenceArtifactImageProvider(
  * Provides an image by reference to a jenkins master, job, and job number
  */
 @JsonDeserialize(using = JsonDeserializer.None::class)
+@Deprecated("Non-reference-based artifact providers are no longer supported.",
+  replaceWith = ReplaceWith("ReferenceArtifactImageProvider")
+)
 data class JenkinsImageProvider(
   val packageName: String,
   val buildHost: String,

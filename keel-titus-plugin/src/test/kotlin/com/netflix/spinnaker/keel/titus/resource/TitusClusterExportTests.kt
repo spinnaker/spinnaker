@@ -87,7 +87,8 @@ internal class TitusClusterExportTests : JUnit5Minutests {
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)
       )
-    )
+    ),
+    containerProvider = container
   )
 
   val serverGroups = spec.resolve()

@@ -55,7 +55,7 @@ class ResourceModelConverter(
       context.defineModel(
         baseType.simpleName,
         ComposedSchema().apply {
-          specTypes.forEach { (kind, specClass) ->
+          specTypes.forEach { (_, specClass) ->
             addOneOfItem(ref("${specClass.simpleName}${baseType.simpleName}"))
           }
           discriminator = Discriminator()

@@ -2,10 +2,10 @@ package com.netflix.spinnaker.keel.api.titus.image
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
-import com.netflix.spinnaker.keel.core.api.matchingArtifact
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -28,7 +28,8 @@ class CurrentlyDeployedDockerImageApprover(
       (resource.spec as? TitusClusterSpec)?.let { spec ->
         if (spec.defaults.container != null && spec.defaults.container is ReferenceProvider) {
           val container = spec.defaults.container as ReferenceProvider
-          val artifact = deliveryConfig.matchingArtifact(container.reference, docker)
+          val artifact = deliveryConfig.matchingArtifactByReference(container.reference, docker)
+            ?: throw NoMatchingArtifactException(deliveryConfig.name, docker, container.reference)
 
           val approvedForEnv = repository.isApprovedFor(
             deliveryConfig = deliveryConfig,

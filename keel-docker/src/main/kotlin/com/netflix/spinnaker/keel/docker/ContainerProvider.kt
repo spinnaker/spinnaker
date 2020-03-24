@@ -30,6 +30,9 @@ data class ReferenceProvider(
 ) : ContainerProvider()
 
 @JsonDeserialize(using = JsonDeserializer.None::class)
+@Deprecated("Non-reference-based artifact providers are no longer supported.",
+  replaceWith = ReplaceWith("ReferenceProvider")
+)
 data class DigestProvider(
   val organization: String, // todo eb: should this be name = org/image instead, for consistency?
   val image: String,
@@ -39,6 +42,9 @@ data class DigestProvider(
 }
 
 @JsonDeserialize(using = JsonDeserializer.None::class)
+@Deprecated("Non-reference-based artifact providers are no longer supported.",
+  replaceWith = ReplaceWith("ReferenceArtifactImageProvider")
+)
 data class VersionedTagProvider(
   val organization: String,
   val image: String,

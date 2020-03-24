@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
-import com.netflix.spinnaker.keel.core.api.matchingArtifact
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.coroutines.runBlocking
@@ -49,7 +48,7 @@ class CurrentlyDeployedImageApprover(
             spec.imageProvider.deliveryArtifact
           }
           is ReferenceArtifactImageProvider -> {
-            deliveryConfig.matchingArtifact(spec.imageProvider.reference, deb)
+            deliveryConfig.matchingArtifactByReference(spec.imageProvider.reference, deb)
           }
           else -> {
             null

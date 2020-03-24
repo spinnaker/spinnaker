@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.netflix.spinnaker.keel.api.ComputeResourceSpec
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Moniker
@@ -12,8 +13,7 @@ import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.UnhappyControl
-import com.netflix.spinnaker.keel.api.VersionedArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
@@ -40,7 +40,7 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
       health = resolveHealth(it.name),
       scaling = resolveScaling(it.name),
       tags = defaults.tags + overrides[it.name]?.tags,
-      deliveryArtifact = deliveryArtifact,
+      artifactName = artifactName,
       artifactVersion = artifactVersion,
       maxDiffCount = maxDiffCount,
       unhappyWaitTime = unhappyWaitTime
@@ -118,7 +118,9 @@ data class ClusterSpec(
   @JsonInclude(NON_EMPTY)
   val overrides: Map<String, ServerGroupSpec> = emptyMap(),
   @JsonIgnore
-  override val deliveryArtifact: DeliveryArtifact? = null,
+  override val artifactType: ArtifactType? = ArtifactType.deb,
+  @JsonIgnore
+  private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
   @JsonIgnore
   override val artifactVersion: String? = null,
   @JsonIgnore
@@ -126,7 +128,7 @@ data class ClusterSpec(
   @JsonIgnore
   // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
   override val unhappyWaitTime: Duration? = Duration.ZERO
-) : Monikered, Locatable<SubnetAwareLocations>, VersionedArtifact, UnhappyControl {
+) : ComputeResourceSpec, Monikered, Locatable<SubnetAwareLocations>, UnhappyControl {
   @JsonIgnore
   override val id = "${locations.account}:$moniker"
 
@@ -139,6 +141,22 @@ data class ClusterSpec(
    */
   val defaults: ServerGroupSpec
     @JsonUnwrapped get() = _defaults
+
+  // Returns the artifact name set by resolvers, or attempts to find the artifact name from the image provider.
+  override val artifactName: String?
+    @JsonIgnore get() = _artifactName
+      ?: when (imageProvider) {
+        is ArtifactImageProvider -> imageProvider.deliveryArtifact.name
+        else -> null
+      }
+
+  // Provides a hint as to cluster -> artifact linkage even _without_ resolvers being applied, by delegating to the
+  // image provider.
+  override val artifactReference: String?
+    @JsonIgnore get() = when (imageProvider) {
+      is ReferenceArtifactImageProvider -> imageProvider.reference
+      else -> null
+    }
 
   @JsonCreator
   constructor(

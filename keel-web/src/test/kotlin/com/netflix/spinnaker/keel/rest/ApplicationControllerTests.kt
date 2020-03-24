@@ -11,10 +11,13 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
-import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
+import com.netflix.spinnaker.keel.persistence.CombinedRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -26,7 +29,9 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
+import io.mockk.mockk
 import java.nio.charset.StandardCharsets
+import java.time.Clock
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -70,18 +75,33 @@ internal class ApplicationControllerTests : JUnit5Minutests {
 
   private val yamlMapper = configuredYamlMapper()
 
-  object Fixture {
-    const val application = "fnord"
+  class Fixture(combinedRepositoryMaker: () -> KeelRepository) {
+    val application = "fnord"
 
-    val artifact = DebianArtifact(name = application, deliveryConfigName = "manifest", statuses = setOf(ArtifactStatus.RELEASE))
+    val artifact = DebianArtifact(
+      name = application,
+      deliveryConfigName = "manifest",
+      reference = "fnord",
+      statuses = setOf(ArtifactStatus.RELEASE)
+    )
+
+    val clusterDefaults = ClusterSpec.ServerGroupSpec(
+      launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
+        instanceType = "m4.2xlarge",
+        ebsOptimized = true,
+        iamRole = "fnordInstanceProfile",
+        keyPair = "fnordKeyPair"
+      )
+    )
 
     val environments = listOf("test", "staging", "production").associateWith { name ->
       Environment(name = name, resources = setOf(
+        // cluster with new-style artifact reference
         resource(
           kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
           spec = ClusterSpec(
-            moniker = Moniker(application, name),
-            imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
+            moniker = Moniker(application, "$name-west"),
+            imageProvider = ReferenceArtifactImageProvider(reference = "fnord"),
             locations = SubnetAwareLocations(
               account = "test",
               vpc = "vpc0",
@@ -93,14 +113,27 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 )
               )
             ),
-            _defaults = ClusterSpec.ServerGroupSpec(
-              launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
-                instanceType = "m4.2xlarge",
-                ebsOptimized = true,
-                iamRole = "fnordInstanceProfile",
-                keyPair = "fnordKeyPair"
+            _defaults = clusterDefaults
+          )
+        ),
+        // cluster with old-style image provider
+        resource(
+          kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
+          spec = ClusterSpec(
+            moniker = Moniker(application, "$name-east"),
+            imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
+            locations = SubnetAwareLocations(
+              account = "test",
+              vpc = "vpc0",
+              subnet = "internal (vpc0)",
+              regions = setOf(
+                SubnetAwareRegionSpec(
+                  name = "us-east-1",
+                  availabilityZones = setOf("us-east-1a", "us-east-1b", "us-east-1c")
+                )
               )
-            )
+            ),
+            _defaults = clusterDefaults
           )
         )
       ))
@@ -113,10 +146,16 @@ internal class ApplicationControllerTests : JUnit5Minutests {
       artifacts = setOf(artifact),
       environments = environments.values.toSet()
     )
+
+    val combinedRepository = combinedRepositoryMaker()
   }
 
+  fun makeCombinedRepository() = CombinedRepository(
+    deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemDefaultZone(), mockk(relaxed = true)
+  )
+
   fun tests() = rootContext<Fixture> {
-    fixture { Fixture }
+    fixture { Fixture(this@ApplicationControllerTests::makeCombinedRepository) }
 
     after {
       deliveryConfigRepository.dropAll()
@@ -127,14 +166,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
 
     context("application with delivery config exists") {
       before {
-        deliveryConfigRepository.store(deliveryConfig)
-        environments.values.forEach { env ->
-          env.resources.forEach { res ->
-            resourceRepository.store(res)
-            resourceRepository.appendHistory(ResourceCreated(res))
-          }
+        combinedRepository.upsertDeliveryConfig(deliveryConfig)
+        // these events are required because Resource.toResourceSummary() relies on events to determine resource status
+        deliveryConfig.environments.flatMap { it.resources }.forEach { resource ->
+          resourceRepository.appendHistory(ResourceValid(resource))
         }
-        artifactRepository.register(artifact)
         artifactRepository.store(artifact, "1.0.0", ArtifactStatus.RELEASE)
         artifactRepository.store(artifact, "1.0.1", ArtifactStatus.RELEASE)
         artifactRepository.store(artifact, "1.0.2", ArtifactStatus.RELEASE)
@@ -205,39 +241,90 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             hasManagedResources: true
             currentEnvironmentConstraints: []
             resources:
-            - id: "ec2:cluster:test:fnord-test"
+            - id: "ec2:cluster:test:fnord-test-west"
               kind: "ec2/cluster@v1"
-              status: "CREATED"
+              status: "HAPPY"
               moniker:
                 app: "fnord"
-                stack: "test"
+                stack: "test-west"
               locations:
                 account: "test"
                 vpc: "vpc0"
                 regions:
                 - name: "us-west-2"
-            - id: "ec2:cluster:test:fnord-staging"
+              artifact:
+                name: "fnord"
+                type: "deb"
+            - id: "ec2:cluster:test:fnord-test-east"
               kind: "ec2/cluster@v1"
-              status: "CREATED"
+              status: "HAPPY"
               moniker:
                 app: "fnord"
-                stack: "staging"
+                stack: "test-east"
+              locations:
+                account: "test"
+                vpc: "vpc0"
+                regions:
+                - name: "us-east-1"
+              artifact:
+                name: "fnord"
+                type: "deb"
+            - id: "ec2:cluster:test:fnord-staging-west"
+              kind: "ec2/cluster@v1"
+              status: "HAPPY"
+              moniker:
+                app: "fnord"
+                stack: "staging-west"
               locations:
                 account: "test"
                 vpc: "vpc0"
                 regions:
                 - name: "us-west-2"
-            - id: "ec2:cluster:test:fnord-production"
+              artifact:
+                name: "fnord"
+                type: "deb"
+            - id: "ec2:cluster:test:fnord-staging-east"
               kind: "ec2/cluster@v1"
-              status: "CREATED"
+              status: "HAPPY"
               moniker:
                 app: "fnord"
-                stack: "production"
+                stack: "staging-east"
+              locations:
+                account: "test"
+                vpc: "vpc0"
+                regions:
+                - name: "us-east-1"
+              artifact:
+                name: "fnord"
+                type: "deb"
+            - id: "ec2:cluster:test:fnord-production-west"
+              kind: "ec2/cluster@v1"
+              status: "HAPPY"
+              moniker:
+                app: "fnord"
+                stack: "production-west"
               locations:
                 account: "test"
                 vpc: "vpc0"
                 regions:
                 - name: "us-west-2"
+              artifact:
+                name: "fnord"
+                type: "deb"
+            - id: "ec2:cluster:test:fnord-production-east"
+              kind: "ec2/cluster@v1"
+              status: "HAPPY"
+              moniker:
+                app: "fnord"
+                stack: "production-east"
+              locations:
+                account: "test"
+                vpc: "vpc0"
+                regions:
+                - name: "us-east-1"
+              artifact:
+                name: "fnord"
+                type: "deb"
             """.trimIndent()
           ))
       }
@@ -271,7 +358,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   vetoed: []
               name: "test"
               resources:
-              - "ec2:cluster:test:fnord-test"
+              - "ec2:cluster:test:fnord-test-west"
+              - "ec2:cluster:test:fnord-test-east"
             - artifacts:
               - name: "fnord"
                 type: "deb"
@@ -288,7 +376,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   vetoed: []
               name: "staging"
               resources:
-              - "ec2:cluster:test:fnord-staging"
+              - "ec2:cluster:test:fnord-staging-west"
+              - "ec2:cluster:test:fnord-staging-east"
             - artifacts:
               - name: "fnord"
                 type: "deb"
@@ -305,7 +394,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   vetoed: []
               name: "production"
               resources:
-              - "ec2:cluster:test:fnord-production"
+              - "ec2:cluster:test:fnord-production-west"
+              - "ec2:cluster:test:fnord-production-east"
             """.trimIndent()
           ))
       }

@@ -85,7 +85,6 @@ class ExceptionHandler(
         // caters to missing properties at the root-level (e.g. serviceAccount)
         is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
         else -> when (rootCause) {
-          null -> ParsingError.OTHER
           is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
           is IllegalStateException -> ParsingError.INVALID_VALUE
           is IllegalArgumentException -> ParsingError.INVALID_VALUE

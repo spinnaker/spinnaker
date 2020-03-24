@@ -110,6 +110,12 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val titusAccount = "titustest"
   val awsAccount = "test"
 
+  val digestProvider = DigestProvider(
+    organization = "spinnaker",
+    image = "keel",
+    digest = "sha:1111"
+  )
+
   val spec = TitusClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
     locations = SimpleLocations(
@@ -117,17 +123,14 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
-      container = DigestProvider(
-        organization = "spinnaker",
-        image = "keel",
-        digest = "sha:1111"
-      ),
+      container = digestProvider,
       capacity = Capacity(1, 6, 4),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)
       )
-    )
+    ),
+    containerProvider = digestProvider
   )
 
   val serverGroups = spec.resolve()

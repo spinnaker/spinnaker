@@ -7,9 +7,15 @@ import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.docker.ReferenceProvider
+import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import dev.minutest.RootContextBuilder
 import dev.minutest.experimental.SKIP
@@ -75,6 +81,18 @@ class ApiDocTests : JUnit5Minutests {
 
   val constraintTypes
     get() = constraintEvaluators.map { it.supportedType.type.kotlin }
+
+  val imageProviderTypes = listOf(
+    ArtifactImageProvider::class,
+    ReferenceArtifactImageProvider::class,
+    JenkinsImageProvider::class
+  )
+
+  val containerProviderTypes = listOf(
+    ReferenceProvider::class,
+    DigestProvider::class,
+    VersionedTagProvider::class
+  )
 
   val api: JsonNode by lazy {
     mvc
@@ -210,6 +228,46 @@ class ApiDocTests : JUnit5Minutests {
             constructRef("ArtifactImageProvider"),
             constructRef("JenkinsImageProvider"),
             constructRef("ReferenceArtifactImageProvider")
+          )
+      }
+
+      imageProviderTypes.map(KClass<*>::simpleName)
+        .forEach { type ->
+          test("ImageProvider sub-type $type has its own schema") {
+            at("/components/schemas/$type")
+              .isObject()
+          }
+        }
+
+      test("schema for ImageProvider is oneOf the sub-types") {
+        at("/components/schemas/ImageProvider")
+          .isObject()
+          .has("oneOf")
+          .path("oneOf")
+          .isArray()
+          .findValuesAsText("\$ref")
+          .containsExactlyInAnyOrder(
+            imageProviderTypes.map { constructRef(it.simpleName) }
+          )
+      }
+
+      containerProviderTypes.map(KClass<*>::simpleName)
+        .forEach { type ->
+          test("ContainerProvider sub-type $type has its own schema") {
+            at("/components/schemas/$type")
+              .isObject()
+          }
+        }
+
+      test("schema for ContainerProvider is oneOf the sub-types") {
+        at("/components/schemas/ContainerProvider")
+          .isObject()
+          .has("oneOf")
+          .path("oneOf")
+          .isArray()
+          .findValuesAsText("\$ref")
+          .containsExactlyInAnyOrder(
+            containerProviderTypes.map { constructRef(it.simpleName) }
           )
       }
 

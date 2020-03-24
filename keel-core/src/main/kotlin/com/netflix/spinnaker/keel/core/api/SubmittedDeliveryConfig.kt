@@ -2,14 +2,10 @@ package com.netflix.spinnaker.keel.core.api
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.Constraint
-import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.docs.Description
-import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import com.netflix.spinnaker.keel.serialization.SubmittedEnvironmentDeserializer
 
 const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
@@ -33,10 +29,3 @@ data class SubmittedEnvironment(
   @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null
 )
-
-val DeliveryConfig.resources: Set<Resource<*>>
-  get() = environments.flatMapTo(mutableSetOf()) { it.resources }
-
-fun DeliveryConfig.matchingArtifact(reference: String, type: ArtifactType): DeliveryArtifact =
-  artifacts.find { it.reference == reference && it.type == type }
-    ?: throw NoMatchingArtifactException(name, type, reference)

@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.VersionedArtifact
+import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -79,38 +79,44 @@ class ResourceActuator(
         val response = vetoEnforcer.canCheck(resource)
         if (!response.allowed) {
           /**
-           * [VersionedArtifact] is a special [resource] sub-type. When a veto response sets
+           * [VersionedArtifactProvider] is a special [resource] sub-type. When a veto response sets
            * [VetoResponse.vetoArtifact] and the resource under evaluation is of type
-           * [VersionedArtifact], blacklist the desired artifact version from the environment
+           * [VersionedArtifactProvider], blacklist the desired artifact version from the environment
            * containing [resource]. This ensures that the environment will be fully restored to
            * a prior good-state.
            */
-          if (response.vetoArtifact && resource.spec is VersionedArtifact) {
+          if (response.vetoArtifact && resource.spec is VersionedArtifactProvider) {
             try {
-              val (version, artifact) = when (desired) {
+              val versionedArtifact = when (desired) {
                 is Map<*, *> -> {
                   if (desired.size > 0) {
-                    val versioned = (desired as Map<String, VersionedArtifact>).values.first()
-                    Pair(versioned.artifactVersion, versioned.deliveryArtifact)
+                    (desired as Map<String, VersionedArtifactProvider>).values.first()
                   } else {
-                    Pair(null, null)
+                    null
                   }
                 }
-                is VersionedArtifact -> Pair(desired.artifactVersion, desired.deliveryArtifact)
-                else -> Pair(null, null)
+                is VersionedArtifactProvider -> desired
+                else -> null
+              }?.let {
+                it.completeVersionedArtifactOrNull()
               }
-              if (version != null && artifact != null) {
-                val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
-                val environment = deliveryConfig.environmentFor(resource)?.name
-                  ?: error("Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name} " +
-                    "while attempting to veto artifact ${artifact.name} version $version")
 
-                artifactRepository.markAsVetoedIn(
-                  deliveryConfig = deliveryConfig,
-                  artifact = artifact,
-                  version = version,
-                  targetEnvironment = environment)
-                // TODO: emit event + metric
+              if (versionedArtifact != null) {
+                with(versionedArtifact) {
+                  val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+                  val environment = deliveryConfig.environmentFor(resource)?.name
+                    ?: error("Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name} " +
+                      "while attempting to veto artifact $artifactType:$artifactName version $artifactVersion")
+                  val artifact = deliveryConfig.matchingArtifactByName(versionedArtifact.artifactName, artifactType)
+                    ?: error("Artifact $artifactType:$artifactName not found in delivery config ${deliveryConfig.name}")
+
+                  artifactRepository.markAsVetoedIn(
+                    deliveryConfig = deliveryConfig,
+                    artifact = artifact,
+                    version = artifactVersion,
+                    targetEnvironment = environment)
+                  // TODO: emit event + metric
+                }
               }
             } catch (e: Exception) {
               log.warn("Failed to veto presumed bad artifact version for ${resource.id}", e)
