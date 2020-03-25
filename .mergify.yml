@@ -23,8 +23,8 @@ pull_request_rules:
         strict: smart
       label:
         add: ["auto merged"]
-  # This rule exists because releases 1.19.x and earlier are configured to build using Travis
-  # instead of Github actions. It can be deleted once we are no longer merging to these branches.
+  # This rule exists to handle release branches that are still building using Travis CI instead of
+  # using Github actions. It can be deleted once all active release branches are running Github actions.
   - name: Automatically merge release branch changes on Travis CI success and release manager review
     conditions:
       - base~=^release-
