@@ -39,8 +39,15 @@ export class WebhookExecutionDetailsCtrl implements IController {
 
   private getProgressMessage(): string {
     const context = this.stage.context || {};
+    const webhook = context.webhook || {};
+    const monitor = webhook.monitor || {};
     const buildInfo = context.buildInfo || {};
-    return buildInfo.progressMessage;
+
+    if (monitor.progressMessage) {
+      return monitor.progressMessage;
+    } else {
+      return buildInfo.progressMessage;
+    }
   }
 
   private getFailureMessage(): string {
@@ -52,8 +59,6 @@ export class WebhookExecutionDetailsCtrl implements IController {
 
     if (error) {
       failureMessage = `Webhook failed: ${error}`;
-    } else if (monitor.progressMessage) {
-      failureMessage = `Webhook failed. Last known progress message: ${monitor.progressMessage}`;
     }
 
     return failureMessage;

@@ -38,13 +38,15 @@
       is-failed="ctrl.stage.isFailed"
       message="ctrl.getException(stage) || ctrl.failureMessage"
     ></stage-failure-message>
-    <div class="well alert-info" ng-if="ctrl.stage.context.progressMessage || ctrl.stage.status">
+    <div class="well alert-info" ng-if="ctrl.progressMessage || ctrl.stage.status">
       <h4>Results</h4>
       <dl class="dl-narrow dl-horizontal ng-scope">
         <dt>Status</dt>
         <dd class="ng-binding">{{ctrl.stage.status}}</dd>
         <dt>Info</dt>
-        <dd class="ng-binding"><p ng-bind-html="ctrl.stage.context.progressMessage | linky:'_blank'"></p></dd>
+        <dd class="ng-binding">
+          <p ng-bind-html="ctrl.progressMessage | linky:'_blank'" style="white-space: pre-line;"></p>
+        </dd>
         <dt>Code</dt>
         <dd class="ng-binding">
           {{ctrl.stage.context.webhook.monitor.statusCodeValue || ctrl.stage.context.webhook.statusCodeValue}}
