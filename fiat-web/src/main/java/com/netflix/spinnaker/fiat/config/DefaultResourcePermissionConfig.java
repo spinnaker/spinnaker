@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 @Configuration
@@ -34,7 +35,7 @@ class DefaultResourcePermissionConfig {
   @ConditionalOnProperty(
       value = "auth.permissions.source.account.resource.enabled",
       matchIfMissing = true)
-  @Order
+  @Order(Ordered.HIGHEST_PRECEDENCE + 100)
   ResourcePermissionSource<Account> accountResourcePermissionSource() {
     return new AccessControlledResourcePermissionSource<>();
   }
@@ -53,7 +54,7 @@ class DefaultResourcePermissionConfig {
   @ConditionalOnProperty(
       value = "auth.permissions.source.application.resource.enabled",
       matchIfMissing = true)
-  @Order
+  @Order(Ordered.HIGHEST_PRECEDENCE + 100)
   ResourcePermissionSource<Application> applicationResourcePermissionSource() {
     return new ApplicationResourcePermissionSource();
   }
@@ -72,7 +73,7 @@ class DefaultResourcePermissionConfig {
   @ConditionalOnProperty(
       value = "auth.permissions.source.build-service.resource.enabled",
       matchIfMissing = true)
-  @Order
+  @Order(Ordered.HIGHEST_PRECEDENCE + 100)
   ResourcePermissionSource<BuildService> buildServiceResourcePermissionSource() {
     return new AccessControlledResourcePermissionSource<>();
   }
@@ -96,6 +97,7 @@ class DefaultResourcePermissionConfig {
 
   @Bean
   @ConditionalOnProperty(value = "auth.permissions.source.application.chaos-monkey.enabled")
+  @Order(Ordered.LOWEST_PRECEDENCE - 100)
   public ResourcePermissionSource<Application> chaosMonkeyApplicationResourcePermissionSource(
       ObjectMapper objectMapper, FiatServerConfigurationProperties configurationProperties) {
     return new ChaosMonkeyApplicationResourcePermissionSource(

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import java.time.Duration;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -24,6 +25,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ProviderCacheConfig {
 
   private int expiresAfterWriteSeconds = 20;
+
+  private Duration refreshInterval = Duration.ofSeconds(15);
 
   private long maximumStalenessTimeMs = Long.MAX_VALUE;
 }

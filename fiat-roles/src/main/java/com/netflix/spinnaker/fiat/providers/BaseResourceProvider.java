@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
 public abstract class BaseResourceProvider<R extends Resource> implements ResourceProvider<R> {
@@ -84,6 +85,12 @@ public abstract class BaseResourceProvider<R extends Resource> implements Resour
         .expireAfterWrite(expireAfterWrite, TimeUnit.SECONDS)
         .maximumSize(1) // Using this cache loader just for the ability to refresh every X seconds.
         .build();
+  }
+
+  @Scheduled(fixedRateString = "${fiat.cache.refresh-interval:PT15S}")
+  public void reloadCache() {
+    Set<R> data = loadAll();
+    cache.put(CACHE_KEY, data);
   }
 
   public void clearCache() {

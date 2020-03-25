@@ -18,7 +18,7 @@ public class DefaultFallbackPermissionsResolver implements FallbackPermissionsRe
 
   @Override
   public boolean shouldResolve(@Nonnull Permissions permissions) {
-    return permissions.isRestricted() && permissions.unpack().get(fallbackFrom).isEmpty();
+    return permissions.isRestricted() && permissions.get(fallbackFrom).isEmpty();
   }
 
   @Override
