@@ -1,11 +1,18 @@
 package com.netflix.spinnaker.keel.services
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
+import com.netflix.spinnaker.keel.core.api.BuildMetadata
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
+import com.netflix.spinnaker.keel.core.api.GitMetadata
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -90,10 +97,7 @@ class ApplicationService(
           }
         }
 
-        ArtifactVersionSummary(
-          version = version,
-          environments = artifactSummariesInEnvironments.toSet()
-        )
+        return@map versionToSummary(artifact, version, artifactSummariesInEnvironments.toSet())
       }.let { artifactVersionSummaries ->
         ArtifactSummary(
           name = artifact.name,
@@ -104,7 +108,54 @@ class ApplicationService(
     }
   }
 
-  private fun getFirstDeliveryConfigFor(application: String): DeliveryConfig? =
+  /**
+   * Takes an artifact version, plus information about the type of artifact, and constructs a summary view.
+   * This should be supplemented/re-written to use actual data from stash/git/etc instead of parsing everything
+   * from the version string.
+   */
+  private fun versionToSummary(
+    artifact: DeliveryArtifact,
+    version: String,
+    environments: Set<ArtifactSummaryInEnvironment>
+  ): ArtifactVersionSummary =
+    when (artifact.type) {
+      deb -> {
+        val appversion = AppVersion.parseName(version)
+        ArtifactVersionSummary(
+          version = version,
+          environments = environments,
+          displayName = appversion?.version ?: version.removePrefix("${artifact.name}-"),
+          build = if (appversion != null) BuildMetadata(id = appversion.buildNumber.toInt()) else null,
+          git = if (appversion != null) GitMetadata(commit = appversion.commit) else null
+        )
+      }
+      docker -> {
+        var build: BuildMetadata? = null
+        var git: GitMetadata? = null
+        val dockerArtifact = artifact as DockerArtifact
+        if (dockerArtifact.hasBuild()) {
+          // todo eb: this could be less brittle
+          val regex = Regex("""^.*-h(\d+).*$""")
+          val result = regex.find(version)
+          if (result != null && result.groupValues.size == 2) {
+            build = BuildMetadata(id = result.groupValues[1].toInt())
+          }
+        }
+        if (dockerArtifact.hasCommit()) {
+          // todo eb: this could be less brittle
+          git = GitMetadata(commit = version.substringAfterLast("."))
+        }
+        ArtifactVersionSummary(
+          version = version,
+          environments = environments,
+          displayName = version,
+          build = build,
+          git = git
+        )
+      }
+    }
+
+  fun getFirstDeliveryConfigFor(application: String): DeliveryConfig? =
     repository.getDeliveryConfigsByApplication(application).also {
       if (it.size > 1) {
         log.warn("Application $application has ${it.size} delivery configs. " +

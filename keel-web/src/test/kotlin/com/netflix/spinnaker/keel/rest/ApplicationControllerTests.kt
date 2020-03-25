@@ -171,17 +171,17 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         deliveryConfig.environments.flatMap { it.resources }.forEach { resource ->
           resourceRepository.appendHistory(ResourceValid(resource))
         }
-        artifactRepository.store(artifact, "1.0.0", ArtifactStatus.RELEASE)
-        artifactRepository.store(artifact, "1.0.1", ArtifactStatus.RELEASE)
-        artifactRepository.store(artifact, "1.0.2", ArtifactStatus.RELEASE)
-        artifactRepository.store(artifact, "1.0.3", ArtifactStatus.RELEASE)
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.0", "test")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.0", "staging")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.0", "production")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.1", "test")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.1", "staging")
-        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "1.0.2", "test")
-        artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.0.3", "test")
+        artifactRepository.store(artifact, "fnord-1.0.0-h0.2add2c9", ArtifactStatus.RELEASE)
+        artifactRepository.store(artifact, "fnord-1.0.1-h1.2add2c9", ArtifactStatus.RELEASE)
+        artifactRepository.store(artifact, "fnord-1.0.2-h2.2add2c9", ArtifactStatus.RELEASE)
+        artifactRepository.store(artifact, "fnord-1.0.3-h3.2add2c9", ArtifactStatus.RELEASE)
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.0-h0.2add2c9", "test")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.0-h0.2add2c9", "staging")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.0-h0.2add2c9", "production")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.1-h1.2add2c9", "test")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.1-h1.2add2c9", "staging")
+        artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, "fnord-1.0.2-h2.2add2c9", "test")
+        artifactRepository.approveVersionFor(deliveryConfig, artifact, "fnord-1.0.3-h3.2add2c9", "test")
       }
 
       test("can get basic summary by application") {
@@ -348,13 +348,13 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 statuses:
                 - "RELEASE"
                 versions:
-                  current: "1.0.2"
+                  current: "fnord-1.0.2-h2.2add2c9"
                   pending: []
                   approved:
-                  - "1.0.3"
+                  - "fnord-1.0.3-h3.2add2c9"
                   previous:
-                  - "1.0.0"
-                  - "1.0.1"
+                  - "fnord-1.0.0-h0.2add2c9"
+                  - "fnord-1.0.1-h1.2add2c9"
                   vetoed: []
               name: "test"
               resources:
@@ -366,13 +366,13 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 statuses:
                 - "RELEASE"
                 versions:
-                  current: "1.0.1"
+                  current: "fnord-1.0.1-h1.2add2c9"
                   pending:
-                  - "1.0.2"
-                  - "1.0.3"
+                  - "fnord-1.0.2-h2.2add2c9"
+                  - "fnord-1.0.3-h3.2add2c9"
                   approved: []
                   previous:
-                  - "1.0.0"
+                  - "fnord-1.0.0-h0.2add2c9"
                   vetoed: []
               name: "staging"
               resources:
@@ -384,11 +384,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 statuses:
                 - "RELEASE"
                 versions:
-                  current: "1.0.0"
+                  current: "fnord-1.0.0-h0.2add2c9"
                   pending:
-                  - "1.0.1"
-                  - "1.0.2"
-                  - "1.0.3"
+                  - "fnord-1.0.1-h1.2add2c9"
+                  - "fnord-1.0.2-h2.2add2c9"
+                  - "fnord-1.0.3-h3.2add2c9"
                   approved: []
                   previous: []
                   vetoed: []
@@ -416,31 +416,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             - name: "fnord"
               type: "deb"
               versions:
-              - version: "1.0.0"
-                environments:
-                - name: "test"
-                  state: "previous"
-                - name: "staging"
-                  state: "previous"
-                - name: "production"
-                  state: "current"
-              - version: "1.0.1"
-                environments:
-                - name: "test"
-                  state: "previous"
-                - name: "staging"
-                  state: "current"
-                - name: "production"
-                  state: "pending"
-              - version: "1.0.2"
-                environments:
-                - name: "test"
-                  state: "current"
-                - name: "staging"
-                  state: "pending"
-                - name: "production"
-                  state: "pending"
-              - version: "1.0.3"
+              - version: "fnord-1.0.3-h3.2add2c9"
+                displayName: "1.0.3"
                 environments:
                 - name: "test"
                   state: "approved"
@@ -448,6 +425,49 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   state: "pending"
                 - name: "production"
                   state: "pending"
+                build:
+                  id: 3
+                git:
+                  commit: "2add2c9"
+              - version: "fnord-1.0.2-h2.2add2c9"
+                displayName: "1.0.2"
+                environments:
+                - name: "test"
+                  state: "current"
+                - name: "staging"
+                  state: "pending"
+                - name: "production"
+                  state: "pending"
+                build:
+                  id: 2
+                git:
+                  commit: "2add2c9"
+              - version: "fnord-1.0.1-h1.2add2c9"
+                displayName: "1.0.1"
+                environments:
+                - name: "test"
+                  state: "previous"
+                - name: "staging"
+                  state: "current"
+                - name: "production"
+                  state: "pending"
+                build:
+                  id: 1
+                git:
+                  commit: "2add2c9"
+              - version: "fnord-1.0.0-h0.2add2c9"
+                displayName: "1.0.0"
+                environments:
+                - name: "test"
+                  state: "previous"
+                - name: "staging"
+                  state: "previous"
+                - name: "production"
+                  state: "current"
+                build:
+                  id: 0
+                git:
+                  commit: "2add2c9"
             """.trimIndent()
           ))
       }
