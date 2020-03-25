@@ -45,6 +45,27 @@ class EvaluateVariablesTaskSpec extends Specification {
     result.outputs.get("myKey2") == "myMy"
   }
 
+  void "Removes null&empty keys"() {
+    setup:
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["variables"] = [
+          ["key": null, "value": null],
+          ["key": null, "value": 1],
+          ["key": "", "value": 1],
+          ["key": "validKey", "value": "validValue"]
+      ]
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.size() == 1
+    result.outputs.get("validKey") == "validValue"
+  }
+
   void "Supports values that are complex objects"() {
     setup:
     def simpleValue = "A simple string";

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -46,7 +47,9 @@ public class EvaluateVariablesTask implements Task {
 
     Map<String, Object> outputs = new HashMap<>();
     for (EvaluateVariablesStage.Variable v : context.getVariables()) {
-      outputs.put(v.getKey(), v.getValue());
+      if (!Strings.isNullOrEmpty(v.getKey())) {
+        outputs.put(v.getKey(), v.getValue());
+      }
     }
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
