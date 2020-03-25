@@ -536,8 +536,11 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
           distributionPolicy.setTargetShape(description.distributionPolicy.targetShape)
         }
 
-        instanceGroupManager.setDistributionPolicy(distributionPolicy)
+        if (distributionPolicy.getZones() || distributionPolicy.getTargetShape()) {
+          instanceGroupManager.setDistributionPolicy(distributionPolicy)
+        }
       }
+
       migCreateOperation = timeExecute(
           compute.regionInstanceGroupManagers().insert(project, region, instanceGroupManager),
           "compute.regionInstanceGroupManagers.insert",
