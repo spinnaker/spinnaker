@@ -19,11 +19,13 @@ package com.netflix.spinnaker.kork.plugins.update
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
+import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.internal.PluginZip
 import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilder
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.MockKSettings.relaxed
 import io.mockk.mockk
 import java.io.File
 import java.nio.file.Files
@@ -128,7 +130,8 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       mockk(relaxed = true),
       listOf(),
       "orca",
-      paths.plugins
+      paths.plugins,
+      PluginBundleExtractor(mockk(relaxed = true))
     )
 
     val repositories = listOf(DefaultUpdateRepository("testing",

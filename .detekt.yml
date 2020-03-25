@@ -3,3 +3,5 @@ style:
     active: false
   MaxLineLength:
     active: false
+  TooManyFunctions:
+    active: false
