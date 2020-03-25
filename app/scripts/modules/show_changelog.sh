@@ -65,11 +65,11 @@ fi
 if [[ "$MARKDOWN" == "true" ]] ; then
   git --no-pager log --pretty=oneline "${STARTSHA}..${ENDSHA}" "$(dirname "$PACKAGEJSON")" | \
     # Use full URL for commit link
-    sed -e "s/^\([^ ]\{8\}\)\([^ ]*\) /[\1]($GITHUB\/commit\/\2) /" | \
+    sed -e "s/^\([^ ]\{8\}\)\([^ ]*\) /([\1]($GITHUB\/commit\/\1\2)) /" | \
     # Use full URL for pull link
     sed -e "s/(\#\([0-9][0-9]*\))$/[#\1]($GITHUB\/pull\/\1)/g" | \
-    # Move commit to the end
-    sed -e "s/^\([^ ]*\) \(.*\)/\2 \1/g" ;
+    # Move commit to the end; add two spaces (a markdown newline) to the end of every commit
+    sed -e "s/^\([^ ]*\) \(.*\)/\2 \1  /g";
 else
   git --no-pager log --pretty=oneline "${STARTSHA}..${ENDSHA}" "$(dirname "$PACKAGEJSON")";
 fi
