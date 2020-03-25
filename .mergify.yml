@@ -1,6 +1,7 @@
 pull_request_rules:
   - name: Automatically merge on CI success and review
     conditions:
+      - base=master
       - status-success=Deck CI
       - 'label=ready to merge'
       - 'approved-reviews-by=@oss-approvers'
@@ -10,6 +11,7 @@ pull_request_rules:
         strict: smart
   - name: Automatically self merge on CI success
     conditions:
+      - base=master
       - status-success=Deck CI
       - 'label=ready to merge'
       - 'label=self merge'
@@ -19,6 +21,7 @@ pull_request_rules:
         strict: smart
   - name: Automatically rebase and merge on CI success and review
     conditions:
+      - base=master
       - status-success=Deck CI
       - 'label=ready to rebase'
       - 'approved-reviews-by=@oss-approvers'
@@ -28,10 +31,33 @@ pull_request_rules:
         strict: smart
   - name: Automatically rebase and self merge on CI success
     conditions:
+      - base=master
       - status-success=Deck CI
       - 'label=ready to rebase'
       - 'label=self merge'
     actions:
       merge:
         method: rebase
+        strict: smart
+  - name: Automatically merge release branch changes on Travis CI success and release manager review
+    conditions:
+      - base~=^release-
+      - status-success=Deck CI
+      - 'label=ready to merge'
+      - 'approved-reviews-by=@release-managers'
+    actions:
+      merge:
+        method: squash
+        strict: smart
+  # This rule exists to handle release branches that are still building using Travis CI instead of
+  # using Github actions. It can be deleted once all active release branches are running Github actions.
+  - name: Automatically merge release branch changes on Travis CI success and release manager review
+    conditions:
+      - base~=^release-
+      - status-success=continuous-integration/travis-ci/pr
+      - 'label=ready to merge'
+      - 'approved-reviews-by=@release-managers'
+    actions:
+      merge:
+        method: squash
         strict: smart
