@@ -27,4 +27,9 @@ import groovy.transform.Canonical
 class KubernetesKindAtomicOperationDescription extends KubernetesAtomicOperationDescription<KubernetesV1Credentials> {
   String kind
   String apiVersion
+
+  @Override
+  boolean requiresApplicationRestriction() {
+    return true;
+  }
 }

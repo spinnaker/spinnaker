@@ -35,4 +35,9 @@ public class KubernetesAtomicOperationDescription<C extends KubernetesCredential
   String account;
 
   KubernetesNamedAccountCredentials<C> credentials;
+
+  @Override
+  public boolean requiresApplicationRestriction() {
+    return false;
+  }
 }
