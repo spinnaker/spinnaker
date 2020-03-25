@@ -121,7 +121,10 @@ public class ManagedController {
   @ApiOperation(
       value = "Create or update a delivery config manifest",
       response = DeliveryConfig.class)
-  @PostMapping(path = "/delivery-configs")
+  @PostMapping(
+      path = "/delivery-configs",
+      consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
+      produces = {APPLICATION_JSON_VALUE})
   DeliveryConfig upsertManifest(@RequestBody DeliveryConfig manifest) {
     return keelService.upsertManifest(manifest);
   }
