@@ -24,13 +24,14 @@ trait ApplicationNameValidator {
   // (e.g. if the length of the app name prevents creating load balancers in AWS) so we
   // just validate the characters and name length.
   Map<String, NameConstraint> cloudProviderNameConstraints = [
-    'appengine' : new NameConstraint(58, '^[a-z0-9]*$'),
-    'aws'       : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
-    'dcos'      : new NameConstraint(127, '^[a-z0-9]*$'),
-    'gce'       : new NameConstraint(63, '^([a-zA-Z][a-zA-Z0-9]*)?$'),
-    'kubernetes': new NameConstraint(63, '^([a-zA-Z][a-zA-Z0-9-]*)$'),
-    'openstack' : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
-    'titus'     : new NameConstraint(250, '^[a-zA-Z_0-9.]*$')
+      'appengine'   : new NameConstraint(58, '^[a-z0-9]*$'),
+      'aws'         : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
+      'dcos'        : new NameConstraint(127, '^[a-z0-9]*$'),
+      'gce'         : new NameConstraint(63, '^([a-zA-Z][a-zA-Z0-9]*)?$'),
+      'kubernetes'  : new NameConstraint(63, '^([a-zA-Z][a-zA-Z0-9-]*)$'),
+      'openstack'   : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
+      'titus'       : new NameConstraint(250, '^[a-zA-Z_0-9.]*$'),
+      'tencentcloud': new NameConstraint(50, '^[a-zA-Z_0-9.\u4e00-\u9fa5-]*$')
   ]
 
   /**
