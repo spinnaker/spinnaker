@@ -27,9 +27,6 @@ open class AssembleUIPluginTask : Zip() {
     this.archiveVersion.set("")
     this.archiveExtension.set("zip")
 
-    this.from(project.files("${project.buildDir}/dist"))
-      .into("/")
-
     project.afterEvaluate {
       dependsOn(project.tasks.getByName("build"))
     }

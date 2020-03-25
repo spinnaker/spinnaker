@@ -42,6 +42,7 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
       it.workingDir = project.projectDir
       it.commandLine = listOf("yarn")
     }
+
     project.tasks.create("yarnBuild", Exec::class.java) {
       it.group = Plugins.GROUP
       it.workingDir = project.projectDir
@@ -50,11 +51,6 @@ class SpinnakerUIExtensionPlugin : Plugin<Project> {
 
     project.afterEvaluate {
       project.tasks.getByName("build").dependsOn("yarn", "yarnBuild")
-      project.tasks
-        .getByName("clean")
-        .doLast {
-          project.delete(project.files("${project.projectDir}/node_modules"))
-        }
     }
   }
 }
