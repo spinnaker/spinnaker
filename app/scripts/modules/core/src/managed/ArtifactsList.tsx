@@ -65,9 +65,9 @@ export function ArtifactRow({ isSelected, clickHandler, version, name, type }: I
         {/* Holding spot for status bubbles */}
       </div>
       <div className={styles.stages}>
-        {version.environments.map(({ name, state }) => (
-          <span key={name} className={classNames(styles.stage, styles[state])} />
-        ))}
+        {version.environments
+          .map(({ name, state }) => <span key={name} className={classNames(styles.stage, styles[state])} />)
+          .reverse()}
       </div>
     </div>
   );
