@@ -5,9 +5,10 @@ GITHUB="https://github.com/spinnaker/deck"
 GITHUB=$(echo "$GITHUB" | sed -e 's/\//\\\//g')
 
 PACKAGEJSON=$1;
+
 if [[ "$PACKAGEJSON" == "" || ! -e "$PACKAGEJSON" ]] ; then
   echo "Shows what commits have been made between two package bumps";
-  echo "usage:   $0 <path-to-package-json> [startVersion] [endVersion] [--expand-links]";
+  echo "usage:   $0 <path-to-package-json> [startVersion] [endVersion] [--markdown]";
   echo;
   echo "example: show changelog since the last published version (unpublished commits)";
   echo "$0 core/package.json";
@@ -20,17 +21,28 @@ if [[ "$PACKAGEJSON" == "" || ! -e "$PACKAGEJSON" ]] ; then
   exit 2;
 fi
 
-STARTVERSION=$2;
-ENDVERSION=$3;
-STARTSHA=HEAD
-ENDSHA=HEAD
+shift
 
 while (( $# )) ; do
     case $1 in
-        --expand-links) EXPANDLINKS=true ;;
+        --markdown)
+          MARKDOWN=true
+          ;;
+        *)
+          if [[ -z "$STARTVERSION" ]] ; then
+            STARTVERSION="$1"
+          elif [[ -z "$ENDVERSION" ]] ; then
+            ENDVERSION="$1"
+          else
+            echo "unknown option $1"
+          fi
+          ;;
     esac
     shift
 done
+
+STARTSHA=HEAD
+ENDSHA=HEAD
 
 # Find the starting SHA
 if [[ -z $STARTVERSION ]] ; then
@@ -46,15 +58,16 @@ fi
 
 if [[ -z "$STARTSHA" || -z "$ENDSHA" ]] ; then
   echo "fatal: Could not determine start and end shas.";
+  echo "start: $STARTSHA end: $ENDSHA"
   exit 5
 fi
 
-if [[ "$EXPANDLINKS" == "true" ]] ; then
+if [[ "$MARKDOWN" == "true" ]] ; then
   git --no-pager log --pretty=oneline "${STARTSHA}..${ENDSHA}" "$(dirname "$PACKAGEJSON")" | \
     # Use full URL for commit link
-    sed -e "s/^/$GITHUB\/commit\//" | \
+    sed -e "s/^\([^ ]\{8\}\)\([^ ]*\) /[\1]($GITHUB\/commit\/\2) /" | \
     # Use full URL for pull link
-    sed -e "s/(\#\([0-9][0-9]*\))$/($GITHUB\/pull\/\1)/g" | \
+    sed -e "s/(\#\([0-9][0-9]*\))$/[#\1]($GITHUB\/pull\/\1)/g" | \
     # Move commit to the end
     sed -e "s/^\([^ ]*\) \(.*\)/\2 \1/g" ;
 else
