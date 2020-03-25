@@ -24,7 +24,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
           <label>
             <input
               type="checkbox"
-              checked={command.rollback.onFailure}
+              checked={command.rollback?.onFailure ?? false}
               onChange={e => this.handleChange('rollback.onFailure', e.target.checked)}
             />
             Rollback to previous server group if deployment fails <HelpField id="strategy.redblack.rollback" />
