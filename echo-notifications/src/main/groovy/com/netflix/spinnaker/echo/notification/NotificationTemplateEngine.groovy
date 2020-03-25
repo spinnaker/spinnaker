@@ -76,7 +76,7 @@ class NotificationTemplateEngine {
 
     @PackageScope
     @VisibleForTesting
-    static Template determineTemplate(Configuration configuration, String templateGroup, Type type, Notification.Type notificationType) {
+    static Template determineTemplate(Configuration configuration, String templateGroup, Type type, String notificationType) {
         def specificTemplate = specificTemplate(templateGroup, type, notificationType)
         def genericTemplate = genericTemplate(templateGroup, type)
 
@@ -89,8 +89,8 @@ class NotificationTemplateEngine {
 
     @PackageScope
     @VisibleForTesting
-    static String specificTemplate(String templateGroup, Type type, Notification.Type notificationType) {
-        return "${templateGroup}/${type.toString().toLowerCase()}-${notificationType.toString().toLowerCase()}.ftl"
+    static String specificTemplate(String templateGroup, Type type, String notificationType) {
+        return "${templateGroup}/${type.toString().toLowerCase()}-${notificationType.toLowerCase()}.ftl"
     }
 
     @PackageScope

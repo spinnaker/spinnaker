@@ -28,15 +28,14 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty("googlechat.enabled")
 class GoogleChatNotificationService implements NotificationService {
-  private static Notification.Type TYPE = Notification.Type.GOOGLECHAT;
 
   @Autowired GoogleChatService chat;
 
   @Autowired NotificationTemplateEngine notificationTemplateEngine;
 
   @Override
-  public boolean supportsType(Notification.Type type) {
-    return type == TYPE;
+  public boolean supportsType(String type) {
+    return "GOOGLECHAT".equals(type.toUpperCase());
   }
 
   @Override

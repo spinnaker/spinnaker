@@ -37,7 +37,6 @@ import javax.mail.internet.MimeMessage
 @Component
 @ConditionalOnProperty('mail.enabled')
 class EmailNotificationService implements NotificationService {
-  private static Notification.Type TYPE = Notification.Type.EMAIL
 
   @Autowired
   JavaMailSender javaMailSender
@@ -49,8 +48,8 @@ class EmailNotificationService implements NotificationService {
   String from
 
   @Override
-  boolean supportsType(Notification.Type type) {
-    return type == TYPE
+  boolean supportsType(String type) {
+    return "EMAIL".equals(type.toUpperCase())
   }
 
   @Override

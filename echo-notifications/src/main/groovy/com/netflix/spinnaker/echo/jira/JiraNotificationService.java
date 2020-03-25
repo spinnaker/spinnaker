@@ -57,8 +57,8 @@ public class JiraNotificationService implements NotificationService {
   }
 
   @Override
-  public boolean supportsType(Notification.Type type) {
-    return type == Notification.Type.JIRA;
+  public boolean supportsType(String type) {
+    return "JIRA".equals(type.toUpperCase());
   }
 
   @Override

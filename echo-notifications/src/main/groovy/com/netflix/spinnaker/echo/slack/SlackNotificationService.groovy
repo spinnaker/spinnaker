@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty('slack.enabled')
 class SlackNotificationService implements NotificationService {
-  protected static Notification.Type TYPE = Notification.Type.SLACK
 
   protected SlackService slack
   protected NotificationTemplateEngine notificationTemplateEngine
@@ -44,8 +43,8 @@ class SlackNotificationService implements NotificationService {
   }
 
   @Override
-  boolean supportsType(Notification.Type type) {
-    return type == TYPE
+  boolean supportsType(String type) {
+    return "SLACK".equals(type.toUpperCase())
   }
 
   @Override

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.slack
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
@@ -41,7 +40,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
 
   def "supports the SLACK notification type"() {
     when:
-    boolean result = service.supportsType(Notification.Type.SLACK)
+    boolean result = service.supportsType("SLACK")
 
     then:
     result == true

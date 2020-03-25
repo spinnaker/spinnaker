@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.pubsub.google;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.echo.api.Notification;
-import com.netflix.spinnaker.echo.api.Notification.Type;
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties.Content;
 import com.netflix.spinnaker.echo.controller.EchoResponse;
@@ -41,8 +40,6 @@ import org.springframework.stereotype.Service;
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.google.enabled:false}")
 public class GooglePubsubNotificationEventListener extends AbstractEventNotificationAgent
     implements NotificationService {
-
-  private static Type TYPE = Type.PUBSUB;
 
   @Autowired private PubsubPublishers publishers;
 
@@ -91,13 +88,13 @@ public class GooglePubsubNotificationEventListener extends AbstractEventNotifica
   }
 
   @Override
-  public boolean supportsType(Type type) {
-    return type == TYPE;
+  public boolean supportsType(String type) {
+    return getNotificationType().toUpperCase().equals(type.toUpperCase());
   }
 
   @Override
   public String getNotificationType() {
-    return TYPE.toString().toLowerCase();
+    return "pubsub";
   }
 
   private void publishNotification(GooglePubsubPublisher p, Notification notification) {

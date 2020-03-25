@@ -40,7 +40,6 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 @Component
 @ConditionalOnProperty('pager-duty.enabled')
 class PagerDutyNotificationService implements NotificationService {
-  private static Notification.Type TYPE = Notification.Type.PAGER_DUTY
 
   @Autowired
   ObjectMapper mapper
@@ -55,8 +54,8 @@ class PagerDutyNotificationService implements NotificationService {
   Front50Service front50Service
 
   @Override
-  boolean supportsType(Notification.Type type) {
-    return type == TYPE
+  boolean supportsType(String type) {
+    return "PAGER_DUTY".equals(type.toUpperCase())
   }
 
   @Override

@@ -32,7 +32,7 @@ class SlackNotificationServiceSpec extends Specification {
 
   def "supports the SLACK notification type"() {
     when:
-    boolean result = service.supportsType(Notification.Type.SLACK)
+    boolean result = service.supportsType("SLACK")
 
     then:
     result == true
@@ -41,7 +41,7 @@ class SlackNotificationServiceSpec extends Specification {
   def "handling a notification causes a Slack message to be sent to each channel in the to field"() {
     given:
     Notification notification = new Notification()
-    notification.notificationType = Notification.Type.SLACK
+    notification.notificationType = "SLACK"
     notification.to = [ "channel1", "channel2" ]
     notification.severity = Notification.Severity.NORMAL
     notification.additionalContext["body"] = "text"

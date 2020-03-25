@@ -49,8 +49,8 @@ class NotificationTemplateEngineSpec extends Specification {
     specificTemplate = Stub(Template)
     genericTemplate = Stub(Template)
     templateGroup | type      | notificationType        | specificTemplateExists
-    "group"       | Type.BODY | Notification.Type.EMAIL | true
-    "group"       | Type.BODY | Notification.Type.EMAIL | false
+    "group"       | Type.BODY | "EMAIL"                 | true
+    "group"       | Type.BODY | "EMAIL"                 | false
   }
 
   @Unroll
@@ -74,14 +74,14 @@ class NotificationTemplateEngineSpec extends Specification {
 
     where:
     templateGroup | type          | notificationType        | content
-    null          | Type.BODY     | Notification.Type.EMAIL | "test"
-    null          | Type.SUBJECT  | Notification.Type.EMAIL | "test"
+    null          | Type.BODY     | "EMAIL"                 | "test"
+    null          | Type.SUBJECT  | "EMAIL"                 | "test"
   }
 
   void "Using a MARKDOWN formatter should leave the original markdown untouched"() {
     given:
     def notification = new Notification(
-      notificationType: Notification.Type.EMAIL,
+      notificationType: "EMAIL",
       to: ["test@netflix.com"],
       severity: Notification.Severity.NORMAL,
       additionalContext: [

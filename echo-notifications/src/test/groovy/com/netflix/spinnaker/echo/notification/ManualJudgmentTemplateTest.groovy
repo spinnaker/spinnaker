@@ -94,7 +94,7 @@ class ManualJudgmentTemplateTest extends Specification {
     Notification buildFullNotification() {
         Notification notification = new Notification()
         notification.templateGroup = "manualJudgment"
-        notification.notificationType = Notification.Type.SLACK
+        notification.notificationType = "SLACK"
         notification.source = new Notification.Source()
         notification.source.application = "testapp"
         notification.source.executionId = "exec-id"

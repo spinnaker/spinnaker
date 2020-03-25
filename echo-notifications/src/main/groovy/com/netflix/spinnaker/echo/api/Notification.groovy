@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import groovy.transform.Canonical
 
 class Notification {
-  Type notificationType
+  String notificationType
   Collection<String> to
   Collection<String> cc
   String templateGroup
@@ -39,19 +39,6 @@ class Notification {
     String executionId
     String application
     String user
-  }
-
-  static enum Type {
-    BEARYCHAT,
-    EMAIL,
-    GITHUB_STATUS,
-    GOOGLECHAT,
-    HIPCHAT, // DEPRECATED/UNUSED; support was removed in commit d175913ab
-    JIRA,
-    PAGER_DUTY,
-    PUBSUB,
-    SMS,
-    SLACK
   }
 
   static enum Severity {

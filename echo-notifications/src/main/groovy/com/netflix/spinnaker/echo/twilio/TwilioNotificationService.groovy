@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty('twilio.enabled')
 class TwilioNotificationService implements NotificationService {
-  private static Notification.Type TYPE = Notification.Type.SMS
 
   @Autowired
   TwilioService twilioService
@@ -43,8 +42,8 @@ class TwilioNotificationService implements NotificationService {
   String from
 
   @Override
-  boolean supportsType(Notification.Type type) {
-    return type == TYPE
+  boolean supportsType(String type) {
+    return "SMS".equals(type.toUpperCase())
   }
 
   @Override

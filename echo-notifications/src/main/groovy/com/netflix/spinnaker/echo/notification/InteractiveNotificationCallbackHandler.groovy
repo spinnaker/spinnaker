@@ -109,7 +109,7 @@ class InteractiveNotificationCallbackHandler {
 
   private InteractiveNotificationService getNotificationService(String source) {
     return notificationServices.find { it ->
-      it.supportsType(Notification.Type.valueOf(source.toUpperCase()))
+      it.supportsType(source.toUpperCase())
     }
   }
 

@@ -61,9 +61,9 @@ class NotificationControllerSpec extends Specification {
   void 'creating a notification delegates to the appropriate service'() {
     given:
     Notification notification = new Notification()
-    notification.notificationType = Notification.Type.SLACK
+    notification.notificationType = "SLACK"
 
-    notificationService.supportsType(Notification.Type.SLACK) >> true
+    notificationService.supportsType("SLACK") >> true
 
     when:
     notificationController.create(notification)
@@ -75,7 +75,7 @@ class NotificationControllerSpec extends Specification {
   void 'interactive notifications are only delegated to interactive notification services'() {
     given:
     Notification notification = new Notification()
-    notification.notificationType = Notification.Type.SLACK
+    notification.notificationType = "SLACK"
     notification.interactiveActions = new Notification.InteractiveActions(
       callbackServiceId: "test",
       callbackMessageId: "test",
@@ -87,8 +87,8 @@ class NotificationControllerSpec extends Specification {
       ]
     )
 
-    notificationService.supportsType(Notification.Type.SLACK) >> true
-    interactiveNotificationService.supportsType(Notification.Type.SLACK) >> true
+    notificationService.supportsType("SLACK") >> true
+    interactiveNotificationService.supportsType("SLACK") >> true
 
     when:
     notificationController.create(notification)
@@ -101,10 +101,10 @@ class NotificationControllerSpec extends Specification {
   void 'only interactive notifications are delegated to interactive notification services'() {
     given:
     Notification nonInteractiveNotification = new Notification()
-    nonInteractiveNotification.notificationType = Notification.Type.PAGER_DUTY
+    nonInteractiveNotification.notificationType = "PAGER_DUTY"
 
-    notificationService.supportsType(Notification.Type.PAGER_DUTY) >> true
-    interactiveNotificationService.supportsType(Notification.Type.SLACK) >> true
+    notificationService.supportsType("PAGER_DUTY") >> true
+    interactiveNotificationService.supportsType("SLACK") >> true
 
     when:
     notificationController.create(nonInteractiveNotification)
@@ -123,7 +123,7 @@ class NotificationControllerSpec extends Specification {
     callbackObject.serviceId = "test"
     callbackObject.user = "john.doe"
 
-    interactiveNotificationService.supportsType(Notification.Type.SLACK) >> true
+    interactiveNotificationService.supportsType("SLACK") >> true
     spinnakerService.notificationCallback(*_) >> { mockResponse() }
 
     when:
@@ -143,7 +143,7 @@ class NotificationControllerSpec extends Specification {
     callbackObject.serviceId = "unknown"
     callbackObject.user = "john.doe"
 
-    interactiveNotificationService.supportsType(Notification.Type.SLACK) >> true
+    interactiveNotificationService.supportsType("SLACK") >> true
     interactiveNotificationService.parseInteractionCallback(request) >> callbackObject
 
     when:
@@ -164,7 +164,7 @@ class NotificationControllerSpec extends Specification {
     callbackObject.serviceId = "test"
     callbackObject.user = "john.doe"
 
-    interactiveNotificationService.supportsType(Notification.Type.SLACK) >> true
+    interactiveNotificationService.supportsType("SLACK") >> true
     spinnakerService.notificationCallback(*_) >> { mockResponse() }
 
     when:

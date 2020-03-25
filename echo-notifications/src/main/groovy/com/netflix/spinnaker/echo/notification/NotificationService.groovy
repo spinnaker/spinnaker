@@ -23,7 +23,7 @@ import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 
 interface NotificationService {
-  boolean supportsType(Notification.Type type)
+  boolean supportsType(String type)
   EchoResponse handle(Notification notification)
 }
 

@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty('bearychat.enabled')
 class BearychatNotificationService implements NotificationService {
-  private static Notification.Type TYPE = Notification.Type.BEARYCHAT
 
   @Autowired
   BearychatService bearychatService
@@ -40,8 +39,8 @@ class BearychatNotificationService implements NotificationService {
   String token
 
   @Override
-  boolean supportsType(Notification.Type type) {
-    return type == TYPE
+  boolean supportsType(String type) {
+    return "BEARYCHAT".equals(type.toUpperCase())
   }
 
   @Override
