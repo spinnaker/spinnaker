@@ -21,10 +21,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Distribution policy for selecting zones in a regional MIG. */
+/** Distribution policy for selecting zones and target shape in a regional MIG. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GoogleDistributionPolicy {
   List<String> zones;
+  String targetShape;
 }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.AcceleratorConfig
 import com.google.api.services.compute.model.Autoscaler
 import com.google.api.services.compute.model.Backend
 import com.google.api.services.compute.model.BackendService
@@ -134,10 +133,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "loadBalancers": ["testlb", "testhttplb"], "instanceMetadata": { "load-balancer-names": "myapp-testlb", "global-load-balancer-names": "myapp-testhttplb", "backend-service-names": "my-backend-service"}, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20160509a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "tags": ["my-tag-1", "my-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1604-xenial-v20200317", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "ubuntu-1604-xenial-v20200317", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1604-xenial-v20200317", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "loadBalancers": ["testlb", "testhttplb"], "instanceMetadata": { "load-balancer-names": "myapp-testlb", "global-load-balancer-names": "myapp-testhttplb", "backend-service-names": "my-backend-service"}, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1604-xenial-v20200317", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "tags": ["my-tag-1", "my-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    *
    * @param description
    * @param priorOutputs
@@ -522,12 +521,21 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def willUpdateIlbs = !description.disableTraffic && internalLoadBalancers
 
     if (isRegional) {
-      if (description.selectZones && description.distributionPolicy && description.distributionPolicy.zones) {
-        log.info("Configuring explicit zones selected for regional server group: ${description.distributionPolicy.zones}")
-        List<DistributionPolicyZoneConfiguration> selectedZones = description.distributionPolicy.zones.collect { String z ->
-          new DistributionPolicyZoneConfiguration().setZone(GCEUtil.buildZoneUrl(project, z))
+      if (description.distributionPolicy) {
+        DistributionPolicy distributionPolicy = new DistributionPolicy()
+
+        if (description.selectZones && description.distributionPolicy.zones) {
+          log.info("Configuring explicit zones selected for regional server group: ${description.distributionPolicy.zones}")
+          List<DistributionPolicyZoneConfiguration> selectedZones = description.distributionPolicy.zones.collect { String z ->
+            new DistributionPolicyZoneConfiguration().setZone(GCEUtil.buildZoneUrl(project, z))
+          }
+          distributionPolicy.setZones(selectedZones)
         }
-        DistributionPolicy distributionPolicy = new DistributionPolicy().setZones(selectedZones)
+
+        if (description.distributionPolicy.targetShape) {
+          distributionPolicy.setTargetShape(description.distributionPolicy.targetShape)
+        }
+
         instanceGroupManager.setDistributionPolicy(distributionPolicy)
       }
       migCreateOperation = timeExecute(

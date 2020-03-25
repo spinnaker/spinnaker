@@ -53,7 +53,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   GoogleAutoHealingPolicy autoHealingPolicy
   Boolean overwriteAncestorAutoHealingPolicy = false
   /**
-   * Optional explicit specification of zones for an RMIG.
+   * Optional explicit specification of zones and target shape for an RMIG.
    */
   GoogleDistributionPolicy distributionPolicy
   // Capacity is optional. If it is specified, capacity.desired takes precedence over targetSize.

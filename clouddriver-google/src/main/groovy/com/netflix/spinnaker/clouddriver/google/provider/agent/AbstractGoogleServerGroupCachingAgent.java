@@ -647,9 +647,11 @@ abstract class AbstractGoogleServerGroupCachingAgent
 
     if (serverGroup.getRegional()) {
       serverGroup.setRegion(Utils.getLocalName(manager.getRegion()));
-      ImmutableList<String> zones = getZones(manager.getDistributionPolicy());
+      DistributionPolicy distributionPolicy = manager.getDistributionPolicy();
+      ImmutableList<String> zones = getZones(distributionPolicy);
       serverGroup.setZones(ImmutableSet.copyOf(zones));
-      serverGroup.setDistributionPolicy(new GoogleDistributionPolicy(zones));
+      serverGroup.setDistributionPolicy(
+          new GoogleDistributionPolicy(zones, getTargetShape(distributionPolicy)));
     } else {
       String zone = Utils.getLocalName(manager.getZone());
       serverGroup.setZone(zone);
@@ -665,6 +667,14 @@ abstract class AbstractGoogleServerGroupCachingAgent
     return distributionPolicy.getZones().stream()
         .map(z -> Utils.getLocalName(z.getZone()))
         .collect(toImmutableList());
+  }
+
+  @Nullable
+  private static String getTargetShape(@Nullable DistributionPolicy distributionPolicy) {
+    if (distributionPolicy == null) {
+      return null;
+    }
+    return distributionPolicy.getTargetShape();
   }
 
   @Nullable
