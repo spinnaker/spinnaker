@@ -63,5 +63,5 @@ jobs:
       - name: Trigger dependency bump workflow
         uses: peter-evans/repository-dispatch@v1
         with:
-         token: ${{ secrets.GITHUB_TOKEN }}
+         token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
          event-type: bump-dependencies
