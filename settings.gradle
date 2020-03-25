@@ -15,6 +15,7 @@
  */
 
 include "orca-api",
+  "orca-api-test",
   "orca-applications",
   "orca-bakery",
   "orca-bom",

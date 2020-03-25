@@ -35,6 +35,7 @@ import redis.clients.jedis.JedisCluster;
 import rx.Scheduler;
 
 @Configuration
+@ConditionalOnProperty(value = "redis.enabled", matchIfMissing = true)
 @Import({JedisClientConfiguration.class, JedisConfiguration.class})
 public class RedisConfiguration {
 
