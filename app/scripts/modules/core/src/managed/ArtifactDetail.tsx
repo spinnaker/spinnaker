@@ -62,7 +62,7 @@ export const ArtifactDetail = ({
               {state === 'deploying' && (
                 <NoticeCard
                   className="sp-margin-l-right"
-                  icon="md-actuation-launched"
+                  icon="cloudProgress"
                   text={undefined}
                   title="Deploying"
                   isActive={true}
@@ -72,7 +72,7 @@ export const ArtifactDetail = ({
               {state === 'current' && deployedAt && (
                 <NoticeCard
                   className="sp-margin-l-right"
-                  icon="cloud-check"
+                  icon="cloudDeployed"
                   text={undefined}
                   title={
                     <span>
@@ -89,7 +89,7 @@ export const ArtifactDetail = ({
               {state === 'previous' && (
                 <NoticeCard
                   className="sp-margin-l-right"
-                  icon="checkbox-indeterminate"
+                  icon="cloudDecommissioned"
                   text={undefined}
                   title={
                     <span className="sp-group-margin-xs-xaxis">
@@ -112,7 +112,7 @@ export const ArtifactDetail = ({
               {state === 'vetoed' && (
                 <NoticeCard
                   className="sp-margin-l-right"
-                  icon="skull"
+                  icon="cloudError"
                   text={undefined}
                   title={
                     <span className="sp-group-margin-xs-xaxis">
@@ -134,7 +134,7 @@ export const ArtifactDetail = ({
               {resourcesByEnvironment[environmentName]
                 .filter(resource => shouldDisplayResource(name, type, resource))
                 .map(resource => (
-                  <div className="flex-container-h middle">
+                  <div key={resource.id} className="flex-container-h middle">
                     <div
                       className={classNames('resource-badge flex-container-h center middle sp-margin-s-right', state)}
                     ></div>

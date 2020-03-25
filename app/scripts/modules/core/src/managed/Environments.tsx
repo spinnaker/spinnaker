@@ -61,7 +61,7 @@ export function Environments({ app }: IEnvironmentsProps) {
         {/* No filters for now but this is where they will go */}
         <div className={styles.mainContent} style={{ flex: `0 1 ${totalContentWidth}` }}>
           <div className={styles.artifactsColumn}>
-            <ColumnHeader text="Artifacts" icon="search" />
+            <ColumnHeader text="Artifacts" icon="artifact" />
             <ArtifactsList
               artifacts={artifacts}
               selectedArtifact={selectedArtifact}
@@ -77,7 +77,7 @@ export function Environments({ app }: IEnvironmentsProps) {
                 but for now let's do it in component local state.  */}
             {!selectedArtifact && (
               <>
-                <ColumnHeader text="Environments" icon="search" />
+                <ColumnHeader text="Environments" icon="environment" />
                 <EnvironmentsList {...{ environments, artifacts, resourcesById }} />
               </>
             )}

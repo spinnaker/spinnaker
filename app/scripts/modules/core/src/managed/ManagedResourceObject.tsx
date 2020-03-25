@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { IconNames } from '../presentation';
 import { IManagedResourceSummary, IManagedEnviromentSummary } from '../domain/IManagedEntity';
 
 import { getKindName } from './ManagedReader';
@@ -12,12 +13,15 @@ export interface IManagedResourceObjectProps {
   artifact?: IManagedEnviromentSummary['artifacts'][0];
 }
 
-const kindIconMap: { [key: string]: string } = {
+const kindIconMap: { [kind: string]: IconNames } = {
   cluster: 'cluster',
+  'security-group': 'cluster',
+  'classic-load-balancer': 'loadBalancer',
+  'application-load-balancer': 'loadBalancer',
 };
 
-function getIconTypeFromKind(kind: string): string {
-  return kindIconMap[getKindName(kind)] ?? 'cluster';
+function getIconTypeFromKind(kind: string) {
+  return kindIconMap[getKindName(kind)] ?? 'placeholder';
 }
 
 export const ManagedResourceObject = ({

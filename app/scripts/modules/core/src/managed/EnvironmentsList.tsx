@@ -21,7 +21,7 @@ export function EnvironmentsList({ environments, resourcesById, artifacts: allAr
   return (
     <div>
       <NoticeCard
-        icon="search"
+        icon="checkBadge"
         text={undefined}
         title={`${allArtifacts.length} ${
           allArtifacts.length === 1 ? 'artifact is' : 'artifacts are'

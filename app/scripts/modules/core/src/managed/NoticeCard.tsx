@@ -1,11 +1,14 @@
 import React from 'react';
 import classNames from 'classnames';
+
+import { Icon, IconNames } from '../presentation';
+
 import styles from './NoticeCard.module.css';
 
 interface INoticeCardProps {
   title: JSX.Element | string;
   text: JSX.Element | string;
-  icon: string;
+  icon: IconNames;
   noticeType: 'success' | 'neutral' | 'info' | 'error';
   isActive: boolean;
   className?: string;
@@ -26,7 +29,7 @@ export function NoticeCard({ title, text, icon, noticeType, isActive, className 
     <div className={classNames(NoticeCardClasses, className)}>
       {icon && (
         <div className={IconContainerClasses}>
-          <i className={classNames(styles.icon, 'ico', `icon-${icon}`)} />
+          <Icon name={icon} appearance="light" size="medium" />
         </div>
       )}
       {title && <div className={styles.title}>{title}</div>}

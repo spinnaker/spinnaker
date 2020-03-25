@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 
+import { Icon } from '../presentation';
+
 import './EnvironmentRow.less';
 
 interface IEnvironmentRowProps {
@@ -30,8 +32,8 @@ export function EnvironmentRow({ name, isProd = false, children }: IEnvironmentR
           <span className={envLabelClasses}>{name}</span>
         </span>
         <div className="expand" onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed && <i className="ico icon-expand" />}
-          {!isCollapsed && <i className="ico icon-collapse" />}
+          {isCollapsed && <Icon name="accordionExpand" size="medium" />}
+          {!isCollapsed && <Icon name="accordionCollapse" size="medium" />}
         </div>
         {/* <div className="select">
             <i className={`ico icon-checkbox-unchecked`}/>

@@ -45,10 +45,6 @@
   /* background-color: rgba(255, 0, 0, 0.1); */
 }
 
-.leftCol i {
-  margin-right: 8px;
-}
-
 .rowTitle {
   overflow: hidden;
   text-overflow: ellipsis;

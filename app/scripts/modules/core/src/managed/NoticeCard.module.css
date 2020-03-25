@@ -22,11 +22,6 @@
   align-items: center;
   justify-content: center;
   border-radius: 48px;
-  color: #ffffff;
-
-  .icon {
-    font-size: 24px;
-  }
 }
 
 .iconContainer.success {
