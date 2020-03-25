@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
 import com.netflix.spinnaker.orca.ext.mapTo
-import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.kayenta.CanaryScope
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl

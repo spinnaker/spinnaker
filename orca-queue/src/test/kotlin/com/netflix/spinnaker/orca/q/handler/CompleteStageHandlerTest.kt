@@ -33,9 +33,9 @@ import com.netflix.spinnaker.orca.api.simplestage.SimpleStageStatus
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.fixture.stage
-import com.netflix.spinnaker.orca.fixture.task
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.orca.api.test.task
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode

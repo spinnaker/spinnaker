@@ -5,8 +5,8 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.DualPendingExecutionServiceConfiguration
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.q.PendingExecutionServiceTest
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartExecution

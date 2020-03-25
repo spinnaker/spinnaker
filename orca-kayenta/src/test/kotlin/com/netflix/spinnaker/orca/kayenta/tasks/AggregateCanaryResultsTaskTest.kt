@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kayenta.tasks
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.kayenta.pipeline.KayentaCanaryStage
 import com.netflix.spinnaker.orca.kayenta.pipeline.RunCanaryPipelineStage
 import com.netflix.spinnaker.spek.values

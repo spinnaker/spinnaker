@@ -17,6 +17,7 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
+  api(project(":orca-api-test"))
   implementation(project(":orca-core"))
   implementation("org.funktionale:funktionale-partials")
   implementation("org.jetbrains.spek:spek-api")

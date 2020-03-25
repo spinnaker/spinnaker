@@ -15,15 +15,14 @@
  */
 package com.netflix.spinnaker.orca.q.admin
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.ext.beforeStages
-import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.fixture.stage
-import com.netflix.spinnaker.orca.fixture.task
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.orca.api.test.task
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -98,7 +97,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         stage {
           refId = "1"
           type = "whatever"
-          status = ExecutionStatus.RUNNING
+          status = RUNNING
         }
       }
       val newPipeline = pipeline {
@@ -108,7 +107,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         stage {
           refId = "1"
           type = "whatever"
-          status = ExecutionStatus.RUNNING
+          status = RUNNING
         }
       }
 
@@ -139,7 +138,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         stage {
           refId = "1"
           type = "whatever"
-          status = ExecutionStatus.RUNNING
+          status = RUNNING
         }
       }
 
@@ -167,7 +166,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         stage {
           refId = "1"
           type = "whatever"
-          status = ExecutionStatus.NOT_STARTED
+          status = NOT_STARTED
         }
       }
 
@@ -196,7 +195,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         stage {
           refId = "1"
           type = "whatever"
-          status = ExecutionStatus.SUCCEEDED
+          status = SUCCEEDED
         }
       }
 
@@ -443,7 +442,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         stage {
           refId = "1"
           type = "whatever"
-          status = ExecutionStatus.NOT_STARTED
+          status = NOT_STARTED
         }
       }
 

@@ -21,7 +21,7 @@ import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.fixture.pipeline
+import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.nhaarman.mockito_kotlin.any

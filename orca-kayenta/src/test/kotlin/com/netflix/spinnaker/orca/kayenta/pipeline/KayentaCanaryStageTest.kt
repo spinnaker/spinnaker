@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
-import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import com.netflix.spinnaker.time.fixedClock
 import org.assertj.core.api.Assertions.assertThat
