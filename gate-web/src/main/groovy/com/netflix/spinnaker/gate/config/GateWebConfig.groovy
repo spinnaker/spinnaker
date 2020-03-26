@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.config
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
-import com.netflix.spinnaker.gate.interceptors.RequestLoggingInterceptor
+
 import com.netflix.spinnaker.gate.interceptors.RequestSheddingInterceptor
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider
 import com.netflix.spinnaker.gate.ratelimit.RateLimiter
@@ -68,9 +68,6 @@ public class GateWebConfig implements WebMvcConfigurer {
   @Value('${rate-limit.learning:true}')
   Boolean rateLimitLearningMode
 
-  @Value('${request-logging.enabled:false}')
-  Boolean requestLogging
-
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
@@ -80,10 +77,6 @@ public class GateWebConfig implements WebMvcConfigurer {
     )
 
     registry.addInterceptor(new RequestIdInterceptor())
-
-    if (requestLogging) {
-      registry.addInterceptor(new RequestLoggingInterceptor())
-    }
 
     if (rateLimiter != null) {
       registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, spectatorRegistry, rateLimiterPrincipalProvider))

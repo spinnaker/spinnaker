@@ -33,6 +33,7 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
+import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.publish.PluginPublishConfiguration
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
@@ -94,6 +95,9 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Value('${retrofit.logLevel:BASIC}')
   String retrofitLogLevel
+
+  @Value('${request-logging.enabled:false}')
+  Boolean requestLogging
 
   @Autowired
   RequestInterceptor spinnakerRequestInterceptor
@@ -377,7 +381,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Bean
   FilterRegistrationBean authenticatedRequestFilter() {
     def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, true))
-    frb.order = Ordered.LOWEST_PRECEDENCE
+    frb.order = Ordered.LOWEST_PRECEDENCE - 1
     return frb
   }
 
@@ -392,6 +396,17 @@ class GateConfig extends RedisHttpSessionConfiguration {
     def frb = new FilterRegistrationBean(securityFilter)
     frb.order = 0
     frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME
+    return frb
+  }
+
+  /**
+   * Request logging filter runs immediately after the AuthenticatedRequestFilter (so that the MDCs set by this
+   * filter are also present in the request log).
+   */
+  @Bean
+  FilterRegistrationBean requestLoggingFilter() {
+    def frb = new FilterRegistrationBean(new RequestLoggingFilter())
+    frb.order = Ordered.LOWEST_PRECEDENCE
     return frb
   }
 
