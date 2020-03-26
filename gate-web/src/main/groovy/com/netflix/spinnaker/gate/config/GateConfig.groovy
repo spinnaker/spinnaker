@@ -96,9 +96,6 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Value('${retrofit.logLevel:BASIC}')
   String retrofitLogLevel
 
-  @Value('${request-logging.enabled:false}')
-  Boolean requestLogging
-
   @Autowired
   RequestInterceptor spinnakerRequestInterceptor
 
@@ -404,6 +401,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
    * filter are also present in the request log).
    */
   @Bean
+  @ConditionalOnProperty("request-logging.enabled")
   FilterRegistrationBean requestLoggingFilter() {
     def frb = new FilterRegistrationBean(new RequestLoggingFilter())
     frb.order = Ordered.LOWEST_PRECEDENCE
