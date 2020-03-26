@@ -16,6 +16,8 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.ResourceValid
@@ -125,48 +127,59 @@ internal class ApplicationControllerTests : JUnit5Minutests {
     )
 
     val environments = listOf("test", "staging", "production").associateWith { name ->
-      Environment(name = name, resources = setOf(
-        // cluster with new-style artifact reference
-        resource(
-          kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
-          spec = ClusterSpec(
-            moniker = Moniker(application, "$name-west"),
-            imageProvider = ReferenceArtifactImageProvider(reference = "fnord"),
-            locations = SubnetAwareLocations(
-              account = "test",
-              vpc = "vpc0",
-              subnet = "internal (vpc0)",
-              regions = setOf(
-                SubnetAwareRegionSpec(
-                  name = "us-west-2",
-                  availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")
-                )
-              )
-            ),
-            _defaults = clusterDefaults
+      Environment(
+        name = name,
+        constraints = if (name == "production") {
+          setOf(
+            ManualJudgementConstraint(),
+            PipelineConstraint(pipelineId = "fakePipeline")
           )
-        ),
-        // cluster with old-style image provider
-        resource(
-          kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
-          spec = ClusterSpec(
-            moniker = Moniker(application, "$name-east"),
-            imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
-            locations = SubnetAwareLocations(
-              account = "test",
-              vpc = "vpc0",
-              subnet = "internal (vpc0)",
-              regions = setOf(
-                SubnetAwareRegionSpec(
-                  name = "us-east-1",
-                  availabilityZones = setOf("us-east-1a", "us-east-1b", "us-east-1c")
+        } else {
+          emptySet()
+        },
+        resources = setOf(
+          // cluster with new-style artifact reference
+          resource(
+            kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
+            spec = ClusterSpec(
+              moniker = Moniker(application, "$name-west"),
+              imageProvider = ReferenceArtifactImageProvider(reference = "fnord"),
+              locations = SubnetAwareLocations(
+                account = "test",
+                vpc = "vpc0",
+                subnet = "internal (vpc0)",
+                regions = setOf(
+                  SubnetAwareRegionSpec(
+                    name = "us-west-2",
+                    availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")
+                  )
                 )
-              )
-            ),
-            _defaults = clusterDefaults
+              ),
+              _defaults = clusterDefaults
+            )
+          ),
+          // cluster with old-style image provider
+          resource(
+            kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
+            spec = ClusterSpec(
+              moniker = Moniker(application, "$name-east"),
+              imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
+              locations = SubnetAwareLocations(
+                account = "test",
+                vpc = "vpc0",
+                subnet = "internal (vpc0)",
+                regions = setOf(
+                  SubnetAwareRegionSpec(
+                    name = "us-east-1",
+                    availabilityZones = setOf("us-east-1a", "us-east-1b", "us-east-1c")
+                  )
+                )
+              ),
+              _defaults = clusterDefaults
+            )
           )
         )
-      ))
+      )
     }
 
     val deliveryConfig = DeliveryConfig(
@@ -499,6 +512,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   state: "pending"
                 - name: "production"
                   state: "pending"
+                  statefulConstraints:
+                  - type: "manual-judgement"
+                    status: "NOT_EVALUATED"
+                  - type: "pipeline"
+                    status: "NOT_EVALUATED"
                 build:
                   id: 3
                 git:
@@ -513,6 +531,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   state: "pending"
                 - name: "production"
                   state: "pending"
+                  statefulConstraints:
+                  - type: "manual-judgement"
+                    status: "NOT_EVALUATED"
+                  - type: "pipeline"
+                    status: "NOT_EVALUATED"
                 build:
                   id: 2
                 git:
@@ -530,6 +553,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                   deployedAt: "2020-03-25T04:00:00Z"
                 - name: "production"
                   state: "pending"
+                  statefulConstraints:
+                  - type: "manual-judgement"
+                    status: "NOT_EVALUATED"
+                  - type: "pipeline"
+                    status: "NOT_EVALUATED"
                 build:
                   id: 1
                 git:
@@ -550,13 +578,15 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                 - name: "production"
                   state: "current"
                   deployedAt: "2020-03-25T02:00:00Z"
-                  constraints:
+                  statefulConstraints:
                   - type: "manual-judgement"
                     status: "OVERRIDE_PASS"
-                    createdAt: "2020-03-25T00:00:00Z"
+                    startedAt: "2020-03-25T00:00:00Z"
                     judgedBy: "lpollo@acme.com"
                     judgedAt: "2020-03-25T01:30:00Z"
                     comment: "Aye!"
+                  - type: "pipeline"
+                    status: "NOT_EVALUATED"
                 build:
                   id: 0
                 git:

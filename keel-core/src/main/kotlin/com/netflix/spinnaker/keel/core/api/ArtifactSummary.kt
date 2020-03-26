@@ -56,14 +56,14 @@ data class ArtifactSummaryInEnvironment(
   val deployedAt: Instant? = null,
   val replacedAt: Instant? = null,
   val replacedBy: String? = null,
-  val constraints: List<EnvironmentConstraintSummary> = emptyList()
+  val statefulConstraints: List<StatefulConstraintSummary> = emptyList()
 )
 
 @JsonInclude(Include.NON_NULL)
-data class EnvironmentConstraintSummary(
+data class StatefulConstraintSummary(
   val type: String,
   val status: ConstraintStatus,
-  val createdAt: Instant,
+  val startedAt: Instant? = null,
   val judgedBy: String? = null,
   val judgedAt: Instant? = null,
   val comment: String? = null,

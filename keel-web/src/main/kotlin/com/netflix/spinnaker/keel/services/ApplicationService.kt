@@ -2,21 +2,23 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintState
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.BuildMetadata
-import com.netflix.spinnaker.keel.core.api.EnvironmentConstraintSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.GitMetadata
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
+import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
@@ -76,6 +78,7 @@ class ApplicationService(
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         environmentSummaries.forEach { environmentSummary ->
+          val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
           environmentSummary.getArtifactPromotionStatus(artifact, version)?.let { status ->
             if (status == PromotionStatus.PENDING) {
               ArtifactSummaryInEnvironment(
@@ -92,11 +95,8 @@ class ApplicationService(
                 version = version
               )
             }?.let { artifactSummaryInEnvironment ->
-              artifactSummaryInEnvironment.copy(
-                constraints = repository
-                  .constraintStateFor(deliveryConfig.name, environmentSummary.name, version)
-                  .map { it.toConstraintSummary() }
-              )
+              addStatefulConstraintSummaries(artifactSummaryInEnvironment, deliveryConfig, environment, version)
+              // TODO: add stateless constraint summaries
             }?.also { artifactSummaryInEnvironment ->
               artifactSummariesInEnvironments.add(artifactSummaryInEnvironment)
             }
@@ -112,6 +112,33 @@ class ApplicationService(
         )
       }
     }
+  }
+
+  /**
+   * Adds details about any stateful constraints in the given environment to the [ArtifactSummaryInEnvironment].
+   * For each constraint type, if it's not yet been evaluated, creates a synthetic constraint summary object
+   * with a [ConstraintStatus.NOT_EVALUATED] status.
+   */
+  private fun addStatefulConstraintSummaries(
+    artifactSummaryInEnvironment: ArtifactSummaryInEnvironment,
+    deliveryConfig: DeliveryConfig,
+    environment: Environment,
+    version: String
+  ): ArtifactSummaryInEnvironment {
+    val constraintStates = repository.constraintStateFor(deliveryConfig.name, environment.name, version)
+    val notEvaluatedConstraints = environment.constraints.filter { constraint ->
+      constraintStates.none { it.type == constraint.type }
+    }.map { constraint ->
+      StatefulConstraintSummary(
+        type = constraint.type,
+        status = ConstraintStatus.NOT_EVALUATED
+      )
+    }
+    return artifactSummaryInEnvironment.copy(
+      statefulConstraints = constraintStates
+        .map { it.toConstraintSummary() } +
+        notEvaluatedConstraints
+    )
   }
 
   /**
@@ -173,5 +200,5 @@ class ApplicationService(
     get() = "${type.name}:$name"
 
   private fun ConstraintState.toConstraintSummary() =
-    EnvironmentConstraintSummary(type, status, createdAt, judgedBy, judgedAt, comment, attributes)
+    StatefulConstraintSummary(type, status, createdAt, judgedBy, judgedAt, comment, attributes)
 }

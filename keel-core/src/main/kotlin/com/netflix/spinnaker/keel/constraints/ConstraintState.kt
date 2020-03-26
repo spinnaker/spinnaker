@@ -34,6 +34,7 @@ val List<ConstraintState>.allPass: Boolean
   get() = all { it.status.passes() }
 
 enum class ConstraintStatus(private val passed: Boolean, private val failed: Boolean) {
+  NOT_EVALUATED(false, false),
   PENDING(false, false),
   PASS(true, false),
   FAIL(false, true),
