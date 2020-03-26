@@ -34,7 +34,6 @@ import javax.validation.constraints.Min
 import kotlin.reflect.KClass
 
 @Configuration
-@ConditionalOnMissingBean(EventRepository::class)
 @EnableConfigurationProperties(MemoryEventRepositoryConfigProperties::class)
 open class MemoryEventRepositoryConfig {
 
@@ -45,6 +44,7 @@ open class MemoryEventRepositoryConfig {
   }
 
   @Bean
+  @ConditionalOnMissingBean(EventRepository::class)
   open fun eventRepository(
     properties: MemoryEventRepositoryConfigProperties,
     applicationEventPublisher: ApplicationEventPublisher,
