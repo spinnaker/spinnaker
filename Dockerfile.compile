@@ -1,5 +1,10 @@
-FROM openjdk:8
+FROM alpine:3.11
+RUN apk add --update \
+    openjdk11 \
+    openjdk8 \
+    && rm -rf /var/cache/apk
 MAINTAINER sig-platform@spinnaker.io
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
 ENV GRADLE_USER_HOME /workspace/.gradle
-ENV GRADLE_OPTS -Xmx2048m
-CMD ./gradlew --no-daemon echo-web:installDist -x test
+ENV GRADLE_OPTS -Xmx4g
+CMD ./gradlew --no-daemon -PenableCrossCompilerPlugin=true echo-web:installDist -x test
