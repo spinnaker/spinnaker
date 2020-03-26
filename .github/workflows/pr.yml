@@ -19,4 +19,4 @@ jobs:
     - name: Build
       env:
         GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-      run: ./gradlew --stacktrace --debug build
+      run: ./gradlew build
