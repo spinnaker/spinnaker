@@ -60,6 +60,9 @@ class RedisPendingExecutionService(
       redis.llen(listName(pipelineConfigId)).toInt()
     }
 
+  override fun pendingIds(): List<String> =
+    throw NotImplementedError("only implemented on SqlPendingExecutionService")
+
   private fun listName(pipelineConfigId: String) =
     "orca.pipeline.queue.$pipelineConfigId"
 }

@@ -177,4 +177,7 @@ class RedisPendingExecutionServiceProxy(
 
   override fun depth(pipelineConfigId: String): Int =
     service.depth(pipelineConfigId)
+
+  override fun pendingIds(): List<String> =
+    service.pendingIds()
 }

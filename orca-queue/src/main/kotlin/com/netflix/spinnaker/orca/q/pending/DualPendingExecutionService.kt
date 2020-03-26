@@ -97,4 +97,7 @@ class DualPendingExecutionService(
   override fun depth(pipelineConfigId: String): Int {
     return previous.depth(pipelineConfigId) + primary.depth(pipelineConfigId)
   }
+
+  override fun pendingIds(): List<String> =
+    throw NotImplementedError("only implemented on SqlPendingExecutionService")
 }

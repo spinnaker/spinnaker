@@ -185,6 +185,17 @@ class SqlPendingExecutionService(
         .fetchOne(0, Int::class.java)
     }
 
+  override fun pendingIds(): List<String> {
+    return jooq
+      .select(configField)
+      .from(pendingTable)
+      .where(
+        shardCondition
+      )
+      .fetch(configField, String::class.java)
+      .distinct()
+  }
+
   private data class MessageContainer(
     val id: String,
     val message: String

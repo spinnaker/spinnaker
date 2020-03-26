@@ -28,4 +28,5 @@ interface PendingExecutionService {
   fun popNewest(pipelineConfigId: String): Message?
   fun purge(pipelineConfigId: String, callback: (Message) -> Unit)
   fun depth(pipelineConfigId: String): Int
+  fun pendingIds(): List<String>
 }

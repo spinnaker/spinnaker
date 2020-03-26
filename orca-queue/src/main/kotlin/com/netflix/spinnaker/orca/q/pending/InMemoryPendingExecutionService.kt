@@ -59,6 +59,8 @@ class InMemoryPendingExecutionService : PendingExecutionService {
     return pendingFor(pipelineConfigId).size
   }
 
+  override fun pendingIds(): List<String> = pending.keys.toList()
+
   private fun pendingFor(pipelineConfigId: String): Deque<Message> =
     pending.computeIfAbsent(pipelineConfigId) { LinkedList() }
 }

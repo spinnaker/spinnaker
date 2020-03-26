@@ -33,6 +33,15 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * This event is published on the interlink as a result of a user "patching" a stage on an orca
+ * instance that can't handle the partition for the given execution. Patching a stage occurs when,
+ * for example, the user skips wait, skips execution window, passes manual judgement
+ *
+ * <p>The event is then handled by an orca instance (listening on interlink) whose partition matches
+ * that of the execution. The resulting repository mutations of this event will then be peered by
+ * the PeeringAgent
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
