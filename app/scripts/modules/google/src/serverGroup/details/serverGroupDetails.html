@@ -106,6 +106,10 @@
             <li ng-repeat="zone in ctrl.serverGroup.zones">{{zone}}</li>
           </ul>
         </dd>
+        <dt ng-if="ctrl.serverGroup.regional && ctrl.isAlphaListed()">Target Shape</dt>
+        <dd ng-if="ctrl.serverGroup.regional && ctrl.isAlphaListed()">
+          {{ctrl.serverGroup.distributionPolicy.targetShape}}
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">

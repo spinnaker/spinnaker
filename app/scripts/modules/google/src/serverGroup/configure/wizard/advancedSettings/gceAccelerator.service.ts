@@ -17,7 +17,7 @@ interface IZoneToAcceleratorTypesMap {
 export interface IGceAcceleratorCommand {
   backingData: any;
   credentials: string;
-  distributionPolicy: { zones: string[] };
+  distributionPolicy: { zones: string[]; targetShape?: string };
   regional: boolean;
   selectZones: boolean;
   zone: string;

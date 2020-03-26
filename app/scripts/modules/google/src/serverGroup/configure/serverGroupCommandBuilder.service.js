@@ -447,7 +447,10 @@ angular
           enableTraffic: true,
           cloudProvider: 'gce',
           selectedProvider: 'gce',
-          distributionPolicy: serverGroup.distributionPolicy,
+          distributionPolicy: {
+            zones: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.zones : [],
+            targetShape: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.targetShape : null,
+          },
           selectZones: serverGroup.selectZones,
           source: {
             account: serverGroup.account,

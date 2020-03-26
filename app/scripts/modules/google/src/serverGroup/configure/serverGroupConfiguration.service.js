@@ -108,6 +108,7 @@ angular
             let networkReloader = $q.when(null);
             let healthCheckReloader = $q.when(null);
             backingData.filtered = {};
+            backingData.distributionPolicyTargetShapes = getDistributionPolicyTargetShapes();
             command.backingData = backingData;
             configureImages(command);
 
@@ -146,6 +147,17 @@ angular
               attachEventHandlers(command);
             });
           });
+      }
+
+      function getDistributionPolicyTargetShapes() {
+        return ['ANY', 'EVEN'];
+      }
+
+      function configureDistributionPolicyTargetShape(command) {
+        const accountDetails = command.backingData.credentialsKeyedByAccount[command.credentials];
+        if (accountDetails.computeVersion === 'ALPHA' && !command.distributionPolicy.targetShape) {
+          command.distributionPolicy.targetShape = 'EVEN';
+        }
       }
 
       function loadAllImages(account) {
@@ -598,6 +610,7 @@ angular
           const defaults = GCEProviderSettings.defaults;
           if (command.regional) {
             command.zone = null;
+            configureDistributionPolicyTargetShape(command);
           } else if (!command.zone) {
             if (command.region === defaults.region) {
               command.zone = defaults.zone;
@@ -661,6 +674,8 @@ angular
 
             angular.extend(result.dirty, configureHealthChecks(command).dirty);
             angular.extend(result.dirty, configureInstanceTypes(command).dirty);
+
+            configureDistributionPolicyTargetShape(command);
           } else {
             command.region = null;
           }
