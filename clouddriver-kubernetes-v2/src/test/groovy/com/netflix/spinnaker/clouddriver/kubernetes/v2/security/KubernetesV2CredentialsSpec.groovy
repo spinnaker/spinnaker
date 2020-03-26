@@ -168,7 +168,7 @@ class KubernetesV2CredentialsSpec extends Specification {
         checkPermissionsOnStartup: true,
         metrics: true
       ))
-    kubectlJobExecutor.topPod(_ as KubernetesV2Credentials, NAMESPACE, _) >> Collections.emptyList()
+    kubectlJobExecutor.topPod(_ as KubernetesV2Credentials, NAMESPACE, _) >> ImmutableList.of()
 
     expect:
     credentials.isMetricsEnabled() == true

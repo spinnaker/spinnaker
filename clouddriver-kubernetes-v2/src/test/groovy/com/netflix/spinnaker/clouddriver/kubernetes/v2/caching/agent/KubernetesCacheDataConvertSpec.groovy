@@ -169,12 +169,10 @@ metadata:
   }
 
   def containerMetric(String containerName) {
-    return KubernetesPodMetric.ContainerMetric.builder()
-      .containerName(containerName)
-      .metrics([
+    return new KubernetesPodMetric.ContainerMetric(containerName, [
         "CPU(cores)": "10m",
         "MEMORY(bytes)": "2Mi"
-      ]).build()
+    ])
   }
 
   def filterRelationships(Collection<String> keys, List<Pair<KubernetesKind, String>> existingResources) {

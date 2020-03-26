@@ -16,26 +16,51 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Map;
+import java.util.Optional;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.*;
 
-@Getter
-@Builder
+@NonnullByDefault
+@Value
 public class KubernetesPodMetric {
   private final String podName;
   private final String namespace;
-  @Builder.Default private final List<ContainerMetric> containerMetrics = new ArrayList<>();
+  private final ImmutableList<ContainerMetric> containerMetrics;
 
-  @Data
   @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
+  @ParametersAreNullableByDefault
+  public KubernetesPodMetric(
+      String podName, String namespace, Iterable<ContainerMetric> containerMetrics) {
+    this.podName = Strings.nullToEmpty(podName);
+    this.namespace = Strings.nullToEmpty(namespace);
+    this.containerMetrics =
+        Optional.ofNullable(containerMetrics)
+            .map(ImmutableList::copyOf)
+            .orElseGet(ImmutableList::of);
+  }
+
   @JsonIgnoreProperties(ignoreUnknown = true)
+  @Value
   public static class ContainerMetric {
-    private String containerName;
-    private Map<String, String> metrics;
+    private final String containerName;
+    private final ImmutableMap<String, String> metrics;
+
+    @JsonCreator
+    @ParametersAreNullableByDefault
+    public ContainerMetric(
+        @JsonProperty("containerName") String containerName,
+        @JsonProperty("metrics") Map<String, String> metrics) {
+      this.containerName = Strings.nullToEmpty(containerName);
+      this.metrics =
+          Optional.ofNullable(metrics).map(ImmutableMap::copyOf).orElseGet(ImmutableMap::of);
+    }
   }
 }

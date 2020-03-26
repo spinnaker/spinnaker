@@ -1,0 +1,7 @@
+POD                             NAME                  CPU(cores)   MEMORY(bytes)
+spinnaker-io-nginx-v000-42gnq   spinnaker-github-io   0m           2Mi
+spinnaker-io-nginx-v000-42gnq   istio-proxy           3m           28Mi
+spinnaker-io-nginx-v000-42gnq   istio-init            0m           0Mi
+spinnaker-io-nginx-v001-jvkgb   spinnaker-github-io   0m           2Mi
+spinnaker-io-nginx-v001-jvkgb   istio-proxy           32m          30Mi
+spinnaker-io-nginx-v001-jvkgb   istio-init            0m           0Mi
