@@ -33,6 +33,12 @@ interface ConstraintEvaluator<T : Constraint> {
 
   val eventPublisher: ApplicationEventPublisher
 
+  /**
+   * returns true if a constraint should be run for every environment in every delivery config, without being
+   * exposed to delivery config author.
+   */
+  fun isImplicit(): Boolean = false
+
   fun canPromote(
     artifact: DeliveryArtifact,
     version: String,

@@ -3,11 +3,13 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.constraints.ArtifactUsedConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
@@ -34,20 +36,27 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
     val repository: KeelRepository = mockk(relaxUnitFun = true)
     // TODO: add stateful constraint specific tests
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>(relaxUnitFun = true)
+    val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val statelessEvaluator = mockk<ConstraintEvaluator<*>>() {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
+      every { isImplicit() } returns false
     }
     val statefulEvaluator = mockk<StatefulConstraintEvaluator<*>>() {
       every { supportedType } returns SupportedConstraintType<ManualJudgementConstraint>("manual-judgment")
+      every { isImplicit() } returns false
     }
-    val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+    val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator>() {
+      every { supportedType } returns SupportedConstraintType<ArtifactUsedConstraint>("artifact-type")
+      every { isImplicit() } returns true
+      every { canPromote(any(), any(), any(), any()) } returns true
+    }
     val subject = EnvironmentPromotionChecker(
       repository,
-      listOf(statelessEvaluator, statefulEvaluator),
+      listOf(statelessEvaluator, statefulEvaluator, implicitStatelessEvaluator),
       publisher
     )
 
-    val artifact = DebianArtifact(name = "fnord")
+    val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest")
     val deliveryConfig = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
@@ -133,6 +142,12 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             repository.vetoedEnvironmentVersions(any())
           } returns emptyList()
+        }
+
+        test("the implicit constraint is checked") {
+          verify {
+            implicitStatelessEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment)
+          }
         }
 
         test("the environment is assigned the latest version of an artifact") {
@@ -237,6 +252,12 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
 
           runBlocking {
             subject.checkEnvironments(deliveryConfig)
+          }
+        }
+
+        test("the implicit constraint is checked") {
+          verify {
+            implicitStatelessEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment)
           }
         }
 

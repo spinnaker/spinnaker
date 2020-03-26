@@ -22,9 +22,18 @@ class EnvironmentPromotionChecker(
   private val constraints: List<ConstraintEvaluator<*>>,
   private val publisher: ApplicationEventPublisher
 ) {
-  private val statefulEvaluators: List<ConstraintEvaluator<*>> = constraints
+  private val implicitConstraints: List<ConstraintEvaluator<*>> = constraints.filter { it.isImplicit() }
+  private val explicitConstraints: List<ConstraintEvaluator<*>> = constraints - implicitConstraints
+
+  // constraints that are only run if they are defined in a delivery config
+  private val statefulEvaluators: List<ConstraintEvaluator<*>> = explicitConstraints
     .filterIsInstance<StatefulConstraintEvaluator<*>>()
-  private val statelessEvaluators = constraints - statefulEvaluators
+  private val statelessEvaluators = explicitConstraints - statefulEvaluators
+
+  // constraints that run for every environment in a delivery config but aren't shown to the user.
+  private val implicitStatefulEvaluators: List<ConstraintEvaluator<*>> = implicitConstraints
+    .filterIsInstance<StatefulConstraintEvaluator<*>>()
+  private val implicitStatelessEvaluators: List<ConstraintEvaluator<*>> = implicitConstraints - implicitStatefulEvaluators
 
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
     val pinnedEnvs: Map<String, PinnedEnvironment> = repository
@@ -70,7 +79,7 @@ class EnvironmentPromotionChecker(
                 hasPin = true
                 pinnedEnvs.versionFor(environment.name, artifact)
               }
-              environment.constraints.isEmpty() -> {
+              environment.constraints.isEmpty() && implicitConstraints.isEmpty() -> {
                 versions.firstOrNull { v ->
                   !vetoedVersions.contains(v)
                 }
@@ -89,8 +98,8 @@ class EnvironmentPromotionChecker(
                        * deployed to a required environment or outside of an allowed time.
                        */
                       val passesConstraints =
-                        checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment) &&
-                          checkConstraints(statefulEvaluators, artifact, deliveryConfig, v, environment)
+                        checkStatelessConstraints(artifact, deliveryConfig, v, environment) &&
+                          checkStatefulConstraints(artifact, deliveryConfig, v, environment)
 
                       versionIsPending = when (environment.constraints.anyStateful) {
                         true -> repository
@@ -116,8 +125,8 @@ class EnvironmentPromotionChecker(
                 .sortedWith(artifact.versioningStrategy.comparator.reversed()) // oldest first
                 .forEach {
                   val passesConstraints: Boolean =
-                    checkConstraints(statelessEvaluators, artifact, deliveryConfig, it, environment) &&
-                    checkConstraints(statefulEvaluators, artifact, deliveryConfig, it, environment)
+                    checkStatelessConstraints(artifact, deliveryConfig, it, environment) &&
+                      checkStatefulConstraints(artifact, deliveryConfig, it, environment)
 
                   if (passesConstraints) {
                     approveVersion(deliveryConfig, artifact, it, environment.name)
@@ -132,7 +141,7 @@ class EnvironmentPromotionChecker(
                    * We don't need to re-invoke stateful constraint evaluators for these, but we still
                    * check stateless constraints to avoid approval outside of allowed-times.
                    */
-                  if (checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment)) {
+                  if (checkStatelessConstraints(artifact, deliveryConfig, v, environment)) {
                     approveVersion(deliveryConfig, artifact, v, environment.name)
                     repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v)
                   }
@@ -179,6 +188,50 @@ class EnvironmentPromotionChecker(
     }
   }
 
+  private fun checkStatelessConstraints(
+    artifact: DeliveryArtifact,
+    deliveryConfig: DeliveryConfig,
+    version: String,
+    environment: Environment
+  ): Boolean =
+    checkImplicitConstraints(implicitStatelessEvaluators, artifact, deliveryConfig, version, environment) &&
+      checkConstraints(statelessEvaluators, artifact, deliveryConfig, version, environment)
+
+  private fun checkStatefulConstraints(
+    artifact: DeliveryArtifact,
+    deliveryConfig: DeliveryConfig,
+    version: String,
+    environment: Environment
+  ): Boolean =
+    checkImplicitConstraints(implicitStatefulEvaluators, artifact, deliveryConfig, version, environment) &&
+      checkConstraints(statefulEvaluators, artifact, deliveryConfig, version, environment)
+
+  /**
+   * Checks constraints for a list of evaluators.
+   * Evaluates the constraint for every environment passed in.
+   * @return true if all constraints pass
+   */
+  private fun checkImplicitConstraints(
+    evaluators: List<ConstraintEvaluator<*>>,
+    artifact: DeliveryArtifact,
+    deliveryConfig: DeliveryConfig,
+    version: String,
+    environment: Environment
+  ): Boolean {
+    return if (evaluators.isEmpty()) {
+      true
+    } else {
+      evaluators.all { evaluator ->
+        evaluator.canPromote(artifact, version, deliveryConfig, environment)
+      }
+    }
+  }
+
+  /**
+   * Checks constraints for a list of evaluators.
+   * Evaluates the constraint only if it's defined on the environment.
+   * @return true if all constraints pass
+   */
   private fun checkConstraints(
     evaluators: List<ConstraintEvaluator<*>>,
     artifact: DeliveryArtifact,
