@@ -65,7 +65,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       if (!app.isStandalone) {
         // augment with target group healthcheck data
         const targetGroups = getAllTargetGroups(app.loadBalancers.data);
-        applyHealthCheckInfoToTargetGroups(displayableMetrics, targetGroups);
+        applyHealthCheckInfoToTargetGroups(displayableMetrics, targetGroups, instance.account);
       }
 
       // backfill details where applicable
@@ -180,6 +180,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       if (instanceSummary && account && region) {
+        instanceSummary.account = account;
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);

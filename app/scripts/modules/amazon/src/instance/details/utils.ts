@@ -1,22 +1,23 @@
-import { flatten, keyBy, isNil } from 'lodash';
+import { flatten, isNil } from 'lodash';
 import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancer, ITargetGroup, IAmazonHealth } from 'amazon/domain';
 
 export const getAllTargetGroups = (
   loadBalancers: IAmazonApplicationLoadBalancer[] | IAmazonNetworkLoadBalancer[],
-): { [name: string]: ITargetGroup } => {
+): ITargetGroup[] => {
   const allTargetGroups = loadBalancers.map(d => d.targetGroups);
-  const targetGroups = keyBy(flatten(allTargetGroups), 'name');
+  const targetGroups = flatten(allTargetGroups);
   return targetGroups;
 };
 
 export const applyHealthCheckInfoToTargetGroups = (
   healthMetrics: IAmazonHealth[],
-  targetGroups: { [name: string]: ITargetGroup },
+  targetGroups: ITargetGroup[],
+  account: string,
 ) => {
   healthMetrics.forEach(metric => {
     if (metric.type === 'TargetGroup') {
       metric.targetGroups.forEach((tg: ITargetGroup) => {
-        const group = targetGroups[tg.name] ?? ({} as ITargetGroup);
+        const group = targetGroups.find(g => g.name === tg.name && g.account === account) ?? ({} as ITargetGroup);
         const useTrafficPort = group.healthCheckPort === 'traffic-port' || isNil(group.healthCheckPort);
         const port = useTrafficPort ? group.port : group.healthCheckPort;
         tg.healthCheckProtocol = group.healthCheckProtocol?.toLowerCase();
