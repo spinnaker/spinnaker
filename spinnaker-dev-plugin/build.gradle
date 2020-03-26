@@ -3,6 +3,7 @@ dependencies {
   compile 'org.owasp:dependency-check-gradle:5.1.0'
   compile "com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion"
   compile 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
+  compile 'com.netflix.nebula:gradle-java-cross-compile-plugin:4.1.0'
 }
 gradlePlugin {
     plugins {
