@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
+import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
@@ -205,5 +206,18 @@ interface KeelRepository {
   ): Boolean
 
   fun deleteVeto(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String)
+
+  /**
+   * Given information about a delivery config, environment, artifact and version, returns a summary that can be
+   * used by the UI, or null if the artifact version is not applicable to the environment.
+   */
+  fun getArtifactSummaryInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactName: String,
+    artifactType: ArtifactType,
+    version: String
+  ): ArtifactSummaryInEnvironment?
+
   // END ArtifactRepository methods
 }

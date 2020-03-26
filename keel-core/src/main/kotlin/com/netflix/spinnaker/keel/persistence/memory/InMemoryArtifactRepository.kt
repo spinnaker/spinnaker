@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -38,7 +39,7 @@ class InMemoryArtifactRepository(
   private val artifacts = mutableMapOf<UUID, DeliveryArtifact>()
 
   private val approvedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
-  private val deployedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
+  private val deployedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<Pair<String, Instant>>>()
   private val vetoedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
   private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, EnvironmentArtifactPin>()
   private val statusByEnvironment = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, PromotionStatus>>()
@@ -222,7 +223,7 @@ class InMemoryArtifactRepository(
   ): Boolean {
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
-    return deployedVersions[key]?.contains(version) ?: false
+    return deployedVersions[key]?.any { (v, _) -> v == version } ?: false
   }
 
   override fun markAsSuccessfullyDeployedTo(
@@ -233,11 +234,12 @@ class InMemoryArtifactRepository(
   ) {
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
+    val deployedVersion = Pair(version, clock.instant())
     val list = deployedVersions[key]
     if (list == null) {
-      deployedVersions[key] = mutableListOf(version)
+      deployedVersions[key] = mutableListOf(deployedVersion)
     } else {
-      list.add(version)
+      list.add(deployedVersion)
     }
 
     val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
@@ -320,7 +322,7 @@ class InMemoryArtifactRepository(
     }
 
     approvedVersions.getOrPut(key, ::mutableListOf).remove(version)
-    deployedVersions.getOrPut(key, ::mutableListOf).remove(version)
+    deployedVersions.getOrPut(key, ::mutableListOf).removeIf { (v, _) -> v == version }
     vetoedVersions.getOrPut(key, ::mutableListOf).add(version)
 
     val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
@@ -455,6 +457,12 @@ class InMemoryArtifactRepository(
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environmentName)
     val statuses = statusByEnvironment.getOrDefault(key, emptyMap<String, String>())
+    val artifactDeployedVersions = deployedVersions[key]
+      ?.sortedBy { (_, deployedAt) -> deployedAt } // ascending because we want to get the replacement deployment using `firstOrNull` below
+    val deployedAt = artifactDeployedVersions?.find { (ver, _) -> ver == version }?.second
+    val (replacedBy, replacedAt) = artifactDeployedVersions?.firstOrNull { (ver, at) ->
+      ver != version && deployedAt != null && at.isAfter(deployedAt) }
+      ?: Pair(null, null)
 
     return ArtifactSummaryInEnvironment(
       environment = environmentName,
@@ -462,9 +470,9 @@ class InMemoryArtifactRepository(
       state = statuses.filterKeys { it == version }.values.firstOrNull()
         ?.toString()?.toLowerCase()
         ?: PromotionStatus.PENDING.name.toLowerCase(),
-      deployedAt = null, // TODO
-      replacedAt = null, // TODO
-      replacedBy = null // TODO
+      deployedAt = deployedAt,
+      replacedAt = replacedAt,
+      replacedBy = replacedBy
     )
   }
 

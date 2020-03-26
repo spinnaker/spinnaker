@@ -837,7 +837,6 @@ class SqlArtifactRepository(
             }
             else -> Pair(null, null)
           }
-
           ArtifactSummaryInEnvironment(
             environment = environmentName,
             version = version,

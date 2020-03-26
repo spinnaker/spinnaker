@@ -56,8 +56,5 @@ private fun ObjectMapper.configureSaneDateTimeRepresentation(): ObjectMapper =
     .enable(WRITE_DATES_WITH_ZONE_ID)
     .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)
     .disable(WRITE_DURATIONS_AS_TIMESTAMPS)
-    .apply {
-      dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-      }
-    }
+    .setTimeZone(TimeZone.getTimeZone("UTC"))
+    .setDateFormat(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))

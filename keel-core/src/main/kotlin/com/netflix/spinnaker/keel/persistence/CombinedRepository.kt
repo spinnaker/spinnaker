@@ -414,5 +414,16 @@ class CombinedRepository(
 
   override fun deleteVeto(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.deleteVeto(deliveryConfig, artifact, version, targetEnvironment)
+
+  override fun getArtifactSummaryInEnvironment(
+    deliveryConfig: DeliveryConfig,
+    environmentName: String,
+    artifactName: String,
+    artifactType: ArtifactType,
+    version: String
+  ) = artifactRepository.getArtifactSummaryInEnvironment(
+    deliveryConfig, environmentName, artifactName, artifactType, version
+  )
+
   // END ArtifactRepository methods
 }

@@ -187,6 +187,10 @@ interface ArtifactRepository {
    */
   fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String, type: ArtifactType)
 
+  /**
+   * Given information about a delivery config, environment, artifact and version, returns a summary that can be
+   * used by the UI.
+   */
   fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
