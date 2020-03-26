@@ -58,12 +58,10 @@ jobs:
             ${{ steps.release_info.outputs.CHANGELOG }}
            draft: false
            prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}
-      - name: Bump dependencies
-        env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          SPINNAKER_GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
-          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        run: |
-          sleep 90
-          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -Pgithub.token="${SPINNAKER_GITHUB_TOKEN}" bumpDependencies
+      - name: Pause before dependency bump
+        run: sleep 90
+      - name: Trigger dependency bump workflow
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
+          event-type: bump-dependencies
