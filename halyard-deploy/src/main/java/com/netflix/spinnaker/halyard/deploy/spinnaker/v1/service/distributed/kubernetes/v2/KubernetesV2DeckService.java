@@ -80,7 +80,7 @@ public class KubernetesV2DeckService extends DeckService
     result.add(
         deckDockerProfileFactory.getProfile(settingsJs, path, deploymentConfiguration, endpoints));
 
-    String filename = "plugin-manifest.js";
+    String filename = "plugin-manifest.json";
     path = Paths.get(settingsPath, filename).toString();
     result.add(
         pluginManifestProfileFactory.getProfile(
