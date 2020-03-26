@@ -23,7 +23,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
   data class Fixture(
     val mapper: ObjectMapper = configuredObjectMapper(),
     val resource: Resource<*>,
-    val clock: Clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+    val clock: Clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
   )
 
   val Fixture.createdEvent: ResourceCreated

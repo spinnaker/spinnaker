@@ -58,7 +58,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
     combinedRepository,
     publisher
   )
-  val clock = Clock.systemDefaultZone()
+  val clock = Clock.systemUTC()
 
   val sg1West = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")
   val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")

@@ -49,7 +49,7 @@ import strikt.assertions.isNotEmpty
 
 class OrcaTaskLauncherTests : JUnit5Minutests {
   class Fixture {
-    val clock = Clock.systemDefaultZone()
+    val clock = Clock.systemUTC()
     val orcaService: OrcaService = mockk()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)

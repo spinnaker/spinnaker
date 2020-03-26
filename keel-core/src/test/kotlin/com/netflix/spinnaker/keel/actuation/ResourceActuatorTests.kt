@@ -76,7 +76,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       actuationPauser,
       vetoEnforcer,
       publisher,
-      Clock.systemDefaultZone())
+      Clock.systemUTC())
   }
 
   fun tests() = rootContext<Fixture> {

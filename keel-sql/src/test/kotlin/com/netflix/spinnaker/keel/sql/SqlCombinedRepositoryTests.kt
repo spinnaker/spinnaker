@@ -17,13 +17,13 @@ internal object SqlCombinedRepositoryTests : CombinedRepositoryTests<SqlDelivery
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
   override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository =
-    SqlDeliveryConfigRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier, objectMapper, sqlRetry)
+    SqlDeliveryConfigRepository(jooq, Clock.systemUTC(), DummyResourceTypeIdentifier, objectMapper, sqlRetry)
 
   override fun createResourceRepository(): SqlResourceRepository =
-    SqlResourceRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier, objectMapper, sqlRetry)
+    SqlResourceRepository(jooq, Clock.systemUTC(), DummyResourceTypeIdentifier, objectMapper, sqlRetry)
 
   override fun createArtifactRepository(): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, Clock.systemDefaultZone(), objectMapper, sqlRetry)
+    SqlArtifactRepository(jooq, Clock.systemUTC(), objectMapper, sqlRetry)
 
   override fun flush() {
     SqlTestUtil.cleanupDb(jooq)

@@ -23,7 +23,7 @@ import java.time.Clock
 import java.time.Instant
 
 class InMemoryDiffFingerprintRepository(
-  private val clock: Clock = Clock.systemDefaultZone()
+  private val clock: Clock = Clock.systemUTC()
 ) : DiffFingerprintRepository {
   private val hashes: MutableMap<String, Record> = mutableMapOf()
 

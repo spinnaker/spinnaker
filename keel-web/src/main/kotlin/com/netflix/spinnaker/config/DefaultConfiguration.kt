@@ -43,7 +43,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 class DefaultConfiguration {
   @Bean
   @ConditionalOnMissingBean
-  fun clock(): Clock = Clock.systemDefaultZone()
+  fun clock(): Clock = Clock.systemUTC()
 
   @Bean
   fun idGenerator(): ULID = ULID()
@@ -60,7 +60,7 @@ class DefaultConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  fun artifactRepository(): ArtifactRepository = InMemoryArtifactRepository()
+  fun artifactRepository(clock: Clock): ArtifactRepository = InMemoryArtifactRepository(clock)
 
   @Bean
   @ConditionalOnMissingBean

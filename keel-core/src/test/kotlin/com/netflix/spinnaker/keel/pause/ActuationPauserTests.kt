@@ -50,7 +50,7 @@ class ActuationPauserTests : JUnit5Minutests {
     }
     val pausedRepository = InMemoryPausedRepository()
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-    val subject = ActuationPauser(resourceRepository, pausedRepository, publisher, Clock.systemDefaultZone())
+    val subject = ActuationPauser(resourceRepository, pausedRepository, publisher, Clock.systemUTC())
   }
 
   fun tests() = rootContext<Fixture> {

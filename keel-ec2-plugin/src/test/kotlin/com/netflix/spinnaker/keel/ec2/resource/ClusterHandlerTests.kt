@@ -83,7 +83,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
-  val clock = Clock.systemDefaultZone()
+  val clock = Clock.systemUTC()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
   val combinedRepository = combinedMockRepository(deliveryConfigRepository = deliveryConfigRepository)

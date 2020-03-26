@@ -88,7 +88,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     val resourceRepositoryProvider: () -> R,
     val artifactRepositoryProvider: () -> A
   ) {
-    private val clock: Clock = Clock.systemDefaultZone()
+    private val clock: Clock = Clock.systemUTC()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
     val resourceTypeIdentifier: ResourceTypeIdentifier =

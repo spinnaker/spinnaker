@@ -25,7 +25,7 @@ abstract class PersistentEvent {
   open val ignoreRepeatedInHistory: Boolean = false
 
   companion object {
-    val clock: Clock = Clock.systemDefaultZone()
+    val clock: Clock = Clock.systemUTC()
   }
 
   enum class Scope {

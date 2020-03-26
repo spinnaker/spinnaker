@@ -34,7 +34,7 @@ import java.time.Instant
 import java.time.Instant.EPOCH
 
 class InMemoryResourceRepository(
-  private val clock: Clock = Clock.systemDefaultZone()
+  private val clock: Clock = Clock.systemUTC()
 ) : ResourceRepository {
 
   private val resources = mutableMapOf<String, Resource<*>>()

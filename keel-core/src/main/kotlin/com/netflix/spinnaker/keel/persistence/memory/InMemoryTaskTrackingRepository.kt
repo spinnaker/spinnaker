@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
 import java.time.Clock
 
 class InMemoryTaskTrackingRepository(
-  private val clock: Clock = Clock.systemDefaultZone()
+  private val clock: Clock = Clock.systemUTC()
 ) : TaskTrackingRepository {
 
   private val tasks: MutableSet<TaskRecord> = mutableSetOf()

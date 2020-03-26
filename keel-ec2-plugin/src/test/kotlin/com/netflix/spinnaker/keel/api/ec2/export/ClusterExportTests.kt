@@ -63,7 +63,7 @@ internal class ClusterExportTests : JUnit5Minutests {
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
-  val clock = Clock.systemDefaultZone()
+  val clock = Clock.systemUTC()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
   val combinedRepository = combinedMockRepository(deliveryConfigRepository = deliveryConfigRepository)

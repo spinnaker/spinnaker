@@ -34,7 +34,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
 
   fun tests() = rootContext<TelemetryListener> {
     fixture {
-      TelemetryListener(registry, Clock.systemDefaultZone())
+      TelemetryListener(registry, Clock.systemUTC())
     }
 
     before {

@@ -14,7 +14,7 @@ import java.time.Instant
 import java.time.Instant.EPOCH
 
 class InMemoryDeliveryConfigRepository(
-  private val clock: Clock = Clock.systemDefaultZone()
+  private val clock: Clock = Clock.systemUTC()
 ) : DeliveryConfigRepository {
 
   private val configs = mutableMapOf<String, DeliveryConfig>()

@@ -12,7 +12,7 @@ class InMemoryArtifactRepositoryTests : ArtifactRepositoryTests<InMemoryArtifact
   }
 
   private val deliveryConfigRepository = InMemoryDeliveryConfigRepository(
-    Clock.systemDefaultZone())
+    Clock.systemUTC())
 
   override fun persist(manifest: DeliveryConfig) {
     deliveryConfigRepository.store(manifest)

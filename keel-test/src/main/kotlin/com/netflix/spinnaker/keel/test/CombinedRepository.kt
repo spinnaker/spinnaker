@@ -18,11 +18,11 @@ fun combinedInMemoryRepository(
   artifactRepository: ArtifactRepository = InMemoryArtifactRepository(),
   resourceRepository: ResourceRepository = InMemoryResourceRepository()
 ): CombinedRepository =
-  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemDefaultZone(), mockk(relaxed = true))
+  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemUTC(), mockk(relaxed = true))
 
 fun combinedMockRepository(
   deliveryConfigRepository: DeliveryConfigRepository = mockk(relaxed = true),
   artifactRepository: ArtifactRepository = mockk(relaxed = true),
   resourceRepository: ResourceRepository = mockk(relaxed = true)
 ): CombinedRepository =
-  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemDefaultZone(), mockk(relaxed = true))
+  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemUTC(), mockk(relaxed = true))

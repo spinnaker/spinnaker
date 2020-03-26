@@ -23,11 +23,14 @@ import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import java.time.Clock
 import java.util.UUID
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class InMemoryArtifactRepository : ArtifactRepository {
+class InMemoryArtifactRepository(
+  private val clock: Clock = Clock.systemUTC()
+) : ArtifactRepository {
   // we want to store versions by name and type, not each artifact, so that we only store them once
   private val versions = mutableMapOf<VersionsKey, MutableList<ArtifactVersionAndStatus>>()
 

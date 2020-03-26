@@ -891,7 +891,7 @@ class ClusterHandler(
       .toSet()
 
   private fun Instant.iso() =
-    atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
+    atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_DATE_TIME)
 
   /**
    * Translates a ServerGroup object to a ClusterSpec.ServerGroupSpec with default values omitted for export.
