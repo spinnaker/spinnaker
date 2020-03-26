@@ -6,6 +6,8 @@ export interface IHelpContents {
 }
 
 const helpContents: { [key: string]: string } = {
+  'core.serverGroup.detail':
+    '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables in naming a cluster.',
   'core.serverGroup.strategy':
     'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
   'cluster.search': `

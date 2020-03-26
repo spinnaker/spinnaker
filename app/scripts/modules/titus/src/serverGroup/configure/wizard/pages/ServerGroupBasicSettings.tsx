@@ -13,6 +13,7 @@ import {
   IWizardPageComponent,
   AccountSelectInput,
   AccountTag,
+  ServerGroupDetailsField,
 } from '@spinnaker/core';
 
 import { DockerImageAndTagSelector, DockerImageUtils } from '@spinnaker/docker';
@@ -149,12 +150,6 @@ export class ServerGroupBasicSettings
     formik.values.clusterChanged(formik.values);
   };
 
-  private freeFormDetailsChanged = (freeFormDetails: string) => {
-    const { formik } = this.props;
-    formik.setFieldValue('freeFormDetails', freeFormDetails);
-    formik.values.clusterChanged(formik.values);
-  };
-
   public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
     this.setState(this.getStateFromProps(nextProps));
   }
@@ -225,7 +220,7 @@ export class ServerGroupBasicSettings
             <input
               type="text"
               className="form-control input-sm no-spel"
-              value={values.stack}
+              value={values.stack || ''}
               onChange={e => this.stackChanged(e.target.value)}
             />
           </div>
@@ -237,26 +232,8 @@ export class ServerGroupBasicSettings
             </div>
           </div>
         )}
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            Detail <HelpField id="aws.serverGroup.detail" />
-          </div>
-          <div className="col-md-7">
-            <input
-              type="text"
-              className="form-control input-sm no-spel"
-              value={values.freeFormDetails}
-              onChange={e => this.freeFormDetailsChanged(e.target.value)}
-            />
-          </div>
-        </div>
-        {errors.freeFormDetails && (
-          <div className="form-group row slide-in">
-            <div className="col-sm-9 col-sm-offset-2 error-message">
-              <span>{errors.freeFormDetails}</span>
-            </div>
-          </div>
-        )}
+
+        <ServerGroupDetailsField app={app} formik={formik} />
 
         {!values.viewState.disableImageSelection && (
           <DockerImageAndTagSelector
