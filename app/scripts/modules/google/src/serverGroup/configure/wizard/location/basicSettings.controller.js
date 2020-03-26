@@ -5,6 +5,8 @@ import { Observable, Subject } from 'rxjs';
 import { extend } from 'lodash';
 
 import {
+  ArtifactsMode,
+  ArtifactsModeService,
   ArtifactTypePatterns,
   ExpectedArtifactSelectorViewController,
   excludeAllTypesExcept,
@@ -141,5 +143,7 @@ angular
         delegate: gceImageDelegate,
         controller: new ExpectedArtifactSelectorViewController(gceImageDelegate),
       };
+
+      this.artifactsEnabled = ArtifactsModeService.artifactsMode !== ArtifactsMode.DISABLED;
     },
   ]);

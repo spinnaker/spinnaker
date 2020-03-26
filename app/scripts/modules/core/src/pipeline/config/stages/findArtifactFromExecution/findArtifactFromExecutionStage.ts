@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
+import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { Registry } from 'core/registry';
-import { SETTINGS } from 'core/config/settings';
 
 import { ExecutionDetailsTasks } from '../common';
 import { FindArtifactFromExecutionCtrl } from '../findArtifactFromExecution/findArtifactFromExecution.controller';
@@ -12,7 +12,7 @@ export const FIND_ARTIFACT_FROM_EXECUTION_STAGE = 'spinnaker.core.pipeline.stage
 
 module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [])
   .config(() => {
-    if (SETTINGS.feature.artifacts) {
+    if (ArtifactsModeService.artifactsMode !== ArtifactsMode.DISABLED) {
       Registry.pipeline.registerStage({
         label: 'Find Artifacts From Execution',
         description: 'Find and bind artifacts from another execution',

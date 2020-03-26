@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Application } from 'core/application';
+import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { IPipeline } from 'core/domain';
 import { PageNavigator, PageSection } from 'core/presentation';
-import { SETTINGS } from 'core/config/settings';
 import { ExecutionOptionsPageContent } from './ExecutionOptionsPageContent';
 import { ExpectedArtifactsPageContent } from './ExpectedArtifactsPageContent';
 import { TriggersPageContent } from './TriggersPageContent';
@@ -22,10 +22,6 @@ export interface ITriggersProps {
 export function Triggers(props: ITriggersProps) {
   const { pipeline, viewState } = props;
 
-  function checkFeatureFlag(flag: string): boolean {
-    return !!SETTINGS.feature[flag];
-  }
-
   // KLUDGE: This value is used as a React key when rendering the Triggers.
   // Whenever the pipeline is reverted, this causes the Triggers to remount and reset formik state.
   const revertCountKLUDGE = viewState.revertCount;
@@ -39,7 +35,7 @@ export function Triggers(props: ITriggersProps) {
         label="Expected Artifacts"
         badge={pipeline.expectedArtifacts ? pipeline.expectedArtifacts.length.toString() : '0'}
         noWrapper={true}
-        visible={!checkFeatureFlag('artifactsRewrite') && checkFeatureFlag('artifacts')}
+        visible={ArtifactsModeService.artifactsMode === ArtifactsMode.LEGACY}
       >
         <ExpectedArtifactsPageContent {...props} />
       </PageSection>

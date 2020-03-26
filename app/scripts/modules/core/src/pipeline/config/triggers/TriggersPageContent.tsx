@@ -3,7 +3,7 @@ import React from 'react';
 import { findIndex } from 'lodash';
 
 import { Application } from 'core/application';
-import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
+import { ArtifactReferenceService, ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { IExpectedArtifact, IPipeline, ITrigger } from 'core/domain';
 import { HelpField } from 'core/help';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
@@ -65,7 +65,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
     updatedTriggers[index] = updatedTrigger;
     PipelineConfigValidator.validatePipeline(pipeline);
     updatePipelineConfig({ triggers: updatedTriggers });
-    if (SETTINGS.feature['artifactsRewrite']) {
+    if (ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD) {
       removeUnusedExpectedArtifacts(pipeline);
     }
   }

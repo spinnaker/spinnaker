@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { SETTINGS } from '@spinnaker/core';
+import { ArtifactsMode, ArtifactsModeService } from '@spinnaker/core';
 
 import { ManifestBindArtifactsSelector, IManifestBindArtifactsSelectorProps } from './ManifestBindArtifactsSelector';
 import {
@@ -12,7 +12,7 @@ export type IManifestBindArtifactsSelectorDelegateProps = IManifestBindArtifacts
   IExpectedArtifactMultiSelectorProps;
 
 export const ManifestBindArtifactsSelectorDelegate = (props: IManifestBindArtifactsSelectorDelegateProps) => {
-  return SETTINGS.feature['artifactsRewrite'] ? (
+  return ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD ? (
     <ManifestBindArtifactsSelector {...props} />
   ) : (
     <PreRewriteManifestBindArtifactSelector {...props} />

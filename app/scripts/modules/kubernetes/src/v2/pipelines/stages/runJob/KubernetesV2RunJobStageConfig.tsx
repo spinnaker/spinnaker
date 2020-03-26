@@ -3,6 +3,8 @@ import Select, { Option } from 'react-select';
 import { map, capitalize } from 'lodash';
 
 import {
+  ArtifactsMode,
+  ArtifactsModeService,
   ArtifactTypePatterns,
   IStageConfigProps,
   AccountService,
@@ -10,7 +12,6 @@ import {
   yamlDocumentsToString,
   IAccount,
   StageArtifactSelector,
-  SETTINGS,
   IExpectedArtifact,
   IArtifact,
   PreRewriteStageArtifactSelector,
@@ -136,10 +137,6 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
     this.props.updateStageField({ propertyFile: event.target.value });
   };
 
-  private checkFeatureFlag(flag: string): boolean {
-    return !!SETTINGS.feature[flag];
-  }
-
   public logSourceForm() {
     const { stage } = this.props;
     return (
@@ -215,7 +212,10 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
     if (stage.consumeArtifactSource === 'propertyFile') {
       outputSource = this.logSourceForm();
     } else if (stage.consumeArtifactSource === 'artifact') {
-      outputSource = this.checkFeatureFlag('artifactsRewrite') ? this.artifactRewriteForm() : this.artifactForm();
+      outputSource =
+        ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD
+          ? this.artifactRewriteForm()
+          : this.artifactForm();
     }
 
     return (

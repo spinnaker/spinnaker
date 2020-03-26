@@ -5,6 +5,7 @@ import { isEqual, pick } from 'lodash';
 import { Option } from 'react-select';
 
 import { Application } from 'core/application';
+import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { SETTINGS } from 'core/config/settings';
 import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from 'core/domain';
 import { HelpField } from 'core/help/HelpField';
@@ -122,13 +123,6 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
   const expectedArtifactOptions =
     pipeline.expectedArtifacts && pipeline.expectedArtifacts.map(e => ({ label: e.displayName, value: e.id }));
 
-  const showArtifactConstraints = SETTINGS.feature['artifactsRewrite'];
-  const showOldArtifactConstraints =
-    !showArtifactConstraints &&
-    SETTINGS.feature['artifacts'] &&
-    pipeline.expectedArtifacts &&
-    pipeline.expectedArtifacts.length > 0;
-
   return (
     <fieldset disabled={trigger.inherited} className={fieldSetClassName}>
       <WatchValue
@@ -163,7 +157,7 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
           />
         )}
 
-        {showOldArtifactConstraints && (
+        {ArtifactsModeService.artifactsMode === ArtifactsMode.LEGACY && pipeline.expectedArtifacts?.length > 0 && (
           <FormikFormField
             name="expectedArtifactIds"
             label="Artifact Constraints"
@@ -172,7 +166,7 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
           />
         )}
 
-        {showArtifactConstraints && (
+        {ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD && (
           <FormikFormField
             name="expectedArtifactIds"
             label="Artifact Constraints"
