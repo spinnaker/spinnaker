@@ -32,6 +32,16 @@ interface OkHttp3ClientFactory {
   fun supports(baseUrl: String): Boolean
 
   /**
+   * Allows custom client factories to modify the base URL before being used by the client.
+   *
+   * This can be handy for when you want to filter [OkHttp3ClientFactory] instances based on a custom (but fake)
+   * HTTP scheme, and normalize it back to a URL that will actually work. For example, Netflix uses a custom
+   * "metatron://my.base.url" format for differentiating between Metatron-secured instances and regular HTTP
+   * services. This method is then used to change the scheme back to "https://".
+   */
+  fun normalizeBaseUrl(baseUrl: String): String = baseUrl
+
+  /**
    * Creates an [OkHttpClient] with the provided [config].
    */
   fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient

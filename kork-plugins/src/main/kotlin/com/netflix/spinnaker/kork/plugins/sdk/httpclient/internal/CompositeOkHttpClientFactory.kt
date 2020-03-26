@@ -29,10 +29,16 @@ class CompositeOkHttpClientFactory(
 
   override fun supports(baseUrl: String): Boolean = true
 
-  override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
+  override fun normalizeBaseUrl(baseUrl: String): String =
+    withFactory(baseUrl) { normalizeBaseUrl(baseUrl) }
+
+  override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient =
+    withFactory(baseUrl) { create(baseUrl, config) }
+
+  private inline fun <reified T> withFactory(baseUrl: String, callback: (OkHttp3ClientFactory) -> T): T {
     return factories
       .firstOrNull { it.supports(baseUrl) }
-      ?.create(baseUrl, config)
-      ?: throw IntegrationException("Cannot create http client ($baseUrl) from config: $config")
+      ?.let(callback)
+      ?: throw IntegrationException("No HttpClientFactory supports the provided baseUrl: $baseUrl")
   }
 }

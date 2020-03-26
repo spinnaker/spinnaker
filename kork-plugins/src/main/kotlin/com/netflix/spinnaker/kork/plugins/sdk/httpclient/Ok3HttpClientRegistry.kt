@@ -45,7 +45,12 @@ class Ok3HttpClientRegistry(
       // Try to reduce the number of OkHttpClient instances that are floating around. We'll only create a new client
       // if the config is different from any other OkHttpClient.
       val okClient = okClients.computeIfAbsent(config) { okHttp3ClientFactory.create(baseUrl, config) }
-      Ok3HttpClient("$pluginId.$name", baseUrl, okClient, objectMapper)
+      Ok3HttpClient(
+        "$pluginId.$name",
+        okHttp3ClientFactory.normalizeBaseUrl(baseUrl),
+        okClient,
+        objectMapper
+      )
     }
   }
 

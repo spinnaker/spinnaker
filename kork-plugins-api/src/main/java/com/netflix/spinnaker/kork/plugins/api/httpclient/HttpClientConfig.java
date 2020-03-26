@@ -180,10 +180,10 @@ public class HttpClientConfig {
   public static class ConnectionConfig {
 
     /** Network connection timeout. */
-    private Duration connectTimeout;
+    private Duration connectTimeout = Duration.ofSeconds(10);
 
     /** Response timeout. */
-    private Duration readTimeout;
+    private Duration readTimeout = Duration.ofSeconds(30);
 
     /** Whether or not to retry on a network connection failure. Defaults to true. */
     private boolean retryOnConnectionFailure = true;
@@ -238,10 +238,10 @@ public class HttpClientConfig {
 
   public static class ConnectionPoolConfig {
     /** Max number of idle connections to keep in memory. */
-    private Integer maxIdleConnections;
+    private Integer maxIdleConnections = 5;
 
     /** The amount of time to keep a connection alive. */
-    private Duration keepAlive;
+    private Duration keepAlive = Duration.ofSeconds(60);
 
     public Integer getMaxIdleConnections() {
       return maxIdleConnections;

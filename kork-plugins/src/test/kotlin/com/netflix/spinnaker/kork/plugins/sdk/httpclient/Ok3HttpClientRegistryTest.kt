@@ -71,6 +71,8 @@ class Ok3HttpClientRegistryTest : JUnit5Minutests {
       }
 
       test("get a configured client") {
+        every { okHttp3ClientFactory.normalizeBaseUrl(eq("https://example.com")) } returns "https://example.com"
+
         subject.configure("myClient", "https://example.com", HttpClientConfig())
 
         expectThat(subject.get("myClient"))
