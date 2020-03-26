@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -127,7 +128,7 @@ class ApplicationService(
   ): ArtifactSummaryInEnvironment {
     val constraintStates = repository.constraintStateFor(deliveryConfig.name, environment.name, version)
     val notEvaluatedConstraints = environment.constraints.filter { constraint ->
-      constraintStates.none { it.type == constraint.type }
+      constraint is StatefulConstraint && constraintStates.none { it.type == constraint.type }
     }.map { constraint ->
       StatefulConstraintSummary(
         type = constraint.type,

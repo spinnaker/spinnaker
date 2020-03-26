@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
@@ -131,6 +132,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         name = name,
         constraints = if (name == "production") {
           setOf(
+            DependsOnConstraint("staging"),
             ManualJudgementConstraint(),
             PipelineConstraint(pipelineId = "fakePipeline")
           )
