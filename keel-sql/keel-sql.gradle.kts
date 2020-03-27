@@ -8,7 +8,22 @@ plugins {
 }
 
 afterEvaluate {
-  tasks.getByName("compileKotlin").dependsOn("generateJooqMetamodel")
+  val parent = project.gradle.parent
+
+  if (parent != null) {
+    logger.lifecycle("Running from composite build. Will copy jOOQ generated files from parent project.")
+    tasks.register<Copy>("copyGeneratedJooqFiles") {
+      from("${parent.rootProject.projectDir}/keel-sql/src/generated/java")
+      into("$projectDir/src/generated/java")
+    }
+  }
+
+  tasks.getByName("compileKotlin") {
+    dependsOn("generateJooqMetamodel")
+    if (parent != null) {
+      dependsOn("copyGeneratedJooqFiles")
+    }
+  }
 }
 
 sourceSets {
