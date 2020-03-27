@@ -11,6 +11,7 @@ import { parseName } from './Frigga';
 export interface IManagedResourceObjectProps {
   resource: IManagedResourceSummary;
   artifact?: IManagedEnviromentSummary['artifacts'][0];
+  depth?: number;
 }
 
 const kindIconMap: { [kind: string]: IconNames } = {
@@ -30,12 +31,14 @@ export const ManagedResourceObject = ({
     moniker: { app, stack, detail },
   },
   artifact,
+  depth,
 }: IManagedResourceObjectProps) => {
   const { version: currentVersion, buildNumber: currentBuild } = parseName(artifact?.versions.current || '') || {};
   return (
     <ObjectRow
       icon={getIconTypeFromKind(kind)}
       title={[app, stack, detail].filter(Boolean).join('-')}
+      depth={depth}
       metadata={
         artifact?.versions.current && (
           <Pill text={currentBuild ? `#${currentBuild}` : currentVersion || artifact.versions.current || 'unknown'} />

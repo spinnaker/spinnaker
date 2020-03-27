@@ -135,10 +135,16 @@ export const ArtifactDetail = ({
                 .filter(resource => shouldDisplayResource(name, type, resource))
                 .map(resource => (
                   <div key={resource.id} className="flex-container-h middle">
-                    <div
-                      className={classNames('resource-badge flex-container-h center middle sp-margin-s-right', state)}
-                    ></div>
-                    <ManagedResourceObject key={resource.id} resource={resource} />
+                    {state === 'deploying' && (
+                      <div
+                        className={classNames('resource-badge flex-container-h center middle sp-margin-s-right', state)}
+                      />
+                    )}
+                    <ManagedResourceObject
+                      key={resource.id}
+                      resource={resource}
+                      depth={state === 'deploying' ? 0 : 1}
+                    />
                   </div>
                 ))}
             </EnvironmentRow>

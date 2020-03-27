@@ -18,33 +18,12 @@
     height: 16px;
     border-radius: 16px;
     border-radius: 50%;
-
-    &.current {
-      background-color: #00b237;
-    }
-
-    &.approved {
-      border: 1px solid var(--color-status-info);
-    }
+    // Negative margin, boooo. But we need it to keep the icons
+    // for each resource aligned with other, non-deploying ones.
+    margin-left: -8px;
 
     &.deploying {
       background-color: var(--color-status-info);
-    }
-
-    &.pending {
-      border: 1px solid rgba(0, 0, 0, 0.5);
-    }
-
-    &.previous {
-      background-color: var(--color-nobel);
-    }
-
-    &.vetoed {
-      background-color: var(--color-status-error);
-    }
-
-    i.fa {
-      color: var(--color-white);
     }
   }
 }
