@@ -7,8 +7,28 @@ plugins {
   id("org.liquibase.gradle") version "2.0.2"
 }
 
+/**
+ *  Workaround to enable composite build -- jOOQ uses the output path in its config XML file relative to current
+ * working directory, which in the composite build is not keel-sql. This causes the generated files to be placed
+ * in the root of the parent project. This task copies them over to the right place, and will only execute in the
+ * context of a composite build.
+ */
+tasks.register<Copy>("copyGeneratedJooqFiles") {
+  doFirst {
+    logger.lifecycle("Running from composite build. Copying jOOQ generated files from parent project.")
+    logger.lifecycle("From: ${project.gradle.parent?.rootProject?.projectDir}/keel-sql/src/generated/java")
+    logger.lifecycle("  To: $projectDir/src/generated/java")
+  }
+  from("${project.gradle.parent?.rootProject?.projectDir}/keel-sql/src/generated/java")
+  into("$projectDir/src/generated/java")
+  dependsOn("generateJooqMetamodel")
+  onlyIf { project.gradle.parent != null }
+}
+
 afterEvaluate {
-  tasks.getByName("compileKotlin").dependsOn("generateJooqMetamodel")
+  tasks.getByName("compileKotlin") {
+    dependsOn("copyGeneratedJooqFiles")
+  }
 }
 
 sourceSets {
