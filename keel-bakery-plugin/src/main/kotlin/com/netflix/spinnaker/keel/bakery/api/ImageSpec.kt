@@ -2,7 +2,9 @@ package com.netflix.spinnaker.keel.bakery.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import java.time.Duration
 
 data class ImageSpec(
   val artifactName: String,
@@ -12,7 +14,13 @@ data class ImageSpec(
   val storeType: StoreType,
   val artifactStatuses: Set<ArtifactStatus> = enumValues<ArtifactStatus>().toSet(),
   override val application: String // the application an image is baked in
-) : ResourceSpec {
+) : ResourceSpec, UnhappyControl {
   @JsonIgnore
   override val id: String = artifactName
+
+  @JsonIgnore
+  override val maxDiffCount = 2
+
+  @JsonIgnore
+  override val unhappyWaitTime = Duration.ZERO
 }
