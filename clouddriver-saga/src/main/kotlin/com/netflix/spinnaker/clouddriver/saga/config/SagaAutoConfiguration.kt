@@ -17,7 +17,6 @@ package com.netflix.spinnaker.clouddriver.saga.config
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
-import com.netflix.spinnaker.clouddriver.event.config.EventSourceAutoConfiguration
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.saga.SagaService
 import com.netflix.spinnaker.clouddriver.saga.persistence.DefaultSagaRepository
@@ -30,10 +29,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 
 @Configuration
-@Import(EventSourceAutoConfiguration::class)
 @EnableConfigurationProperties(SagaProperties::class)
 @ComponentScan("com.netflix.spinnaker.clouddriver.saga.controllers")
 open class SagaAutoConfiguration {

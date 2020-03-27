@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.saga.examples
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.event.config.EventSourceAutoConfiguration
 import com.netflix.spinnaker.clouddriver.saga.Action1
 import com.netflix.spinnaker.clouddriver.saga.Action2
 import com.netflix.spinnaker.clouddriver.saga.Action3
@@ -48,7 +49,8 @@ class SpringExampleTest : JUnit5Minutests {
       fixture {
         ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(
-            SagaAutoConfiguration::class.java
+            SagaAutoConfiguration::class.java,
+            EventSourceAutoConfiguration::class.java
           ))
       }
 
