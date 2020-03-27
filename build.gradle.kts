@@ -27,24 +27,19 @@ allprojects {
     apply(plugin = "spinnaker.project")
   }
 
-  repositories {
-    jcenter() {
-      metadataSources {
-        artifact()
-        mavenPom()
-      }
-    }
-    if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
-      mavenLocal()
-    }
-  }
-
   group = "com.netflix.spinnaker.keel"
 }
 
 subprojects {
   if (name != "keel-bom") {
     apply(plugin = "nebula.kotlin")
+
+    repositories {
+      jcenter()
+      if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
+        mavenLocal()
+      }
+    }
 
     dependencies {
       "annotationProcessor"(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
