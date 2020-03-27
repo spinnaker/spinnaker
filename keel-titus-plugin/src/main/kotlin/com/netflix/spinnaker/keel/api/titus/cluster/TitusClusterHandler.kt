@@ -57,6 +57,7 @@ import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
@@ -126,16 +127,44 @@ class TitusClusterHandler(
             else -> diff.upsertServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
           }
 
+          var tags: Set<String> = emptySet()
+          val version = when {
+            diff.isCapacityOnly() -> null
+            else -> {
+              // calculate the version for the digest
+              tags = getTagsForDigest(desired.container, desired.location.account)
+              if (tags.size == 1) {
+                tags.first()
+              } else {
+                log.debug("Container digest ${desired.container} has multiple tags: $tags")
+                // unclear which "version" to print if there is more than one, so use a shortened version of the digest
+                desired.container.digest.subSequence(0, 7)
+              }
+            }
+          }
+
+          val description = when (version) {
+            null -> "Resizing server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
+            else -> "Upserting server group ${desired.moniker} to $version in ${desired.location.account}/${desired.location.region}"
+          }
           log.info("Upserting server group using task: {}", job)
 
-          async {
+          val result = async {
             taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}",
+              description = description,
               correlationId = "${resource.id}:${desired.location.region}",
               job = job
             )
           }
+
+          tags.forEach { tag ->
+            publisher.publishEvent(ArtifactVersionDeploying(
+              resourceId = resource.id,
+              artifactVersion = tag
+            ))
+          }
+          return@map result
         }
         .map { it.await() }
     }
@@ -319,24 +348,32 @@ class TitusClusterHandler(
       .also { them ->
         if (them.distinctBy { it.container.digest }.size == 1) {
           val container = them.first().container
-          val images = cloudDriverService.findDockerImages(
-            account = getRegistryForTitusAccount(resource.spec.locations.account),
-            repository = container.repository()
-          ).filter { it.digest == container.digest }
-          if (images.isNotEmpty()) {
-            images.forEach { image ->
+          getTagsForDigest(container, resource.spec.locations.account)
+            .forEach { tag ->
               // We publish an event for each tag that matches the digest
               // so that we handle the tags like `latest` where more than one tags have the same digest
               // and we don't care about some of them.
               publisher.publishEvent(ArtifactVersionDeployed(
                 resourceId = resource.id,
-                artifactVersion = image.tag,
+                artifactVersion = tag,
                 provider = "titus"
               ))
             }
-          }
         }
       }
+
+  /**
+   * Get all tags that match a digest, filtering out the "latest" tag.
+   * Note: there may be more than one tag with the same digest
+   */
+  private suspend fun getTagsForDigest(container: DigestProvider, titusAccount: String): Set<String> =
+    cloudDriverService.findDockerImages(
+      account = getRegistryForTitusAccount(titusAccount),
+      repository = container.repository()
+    )
+      .filter { it.digest == container.digest && it.tag != "latest" }
+      .map { it.tag }
+      .toSet()
 
   private suspend fun CloudDriverService.getServerGroups(
     account: String,

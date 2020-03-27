@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_CO
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -48,6 +49,7 @@ import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
@@ -64,6 +66,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID
@@ -308,6 +311,13 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
 
       context("the diff is something other than just capacity") {
+        before {
+          coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
+            listOf(
+              DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"),
+              DockerImage("testregistry", "spinnaker/keel", "im-master-now", "sha:1111")
+            )
+        }
 
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
@@ -317,6 +327,16 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           serverGroups.byRegion(),
           modified.byRegion()
         )
+
+        test("events are fired for the artifact deploying") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+          verify { publisher.publishEvent(ArtifactVersionDeploying(resource.id, "master-h2.blah")) }
+          verify { publisher.publishEvent(ArtifactVersionDeploying(resource.id, "im-master-now")) }
+        }
 
         test("resolving diff clones the current server group") {
           runBlocking {
@@ -401,7 +421,10 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
 
       context("multiple server groups have a diff") {
-
+        before {
+          coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
+            listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
+        }
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentRuntimeOptions(),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()

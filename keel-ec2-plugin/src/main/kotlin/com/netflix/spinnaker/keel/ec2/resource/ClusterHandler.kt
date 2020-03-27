@@ -53,8 +53,10 @@ import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.dependsOn
@@ -117,14 +119,24 @@ class ClusterHandler(
           modifyInPlace(resource, modifyDiffs))
       }
 
+      val version = diffs.first().desired.launchConfiguration.appVersion
+        ?: throw MissingAppVersionException(resource.id)
+
       if (resource.spec.deployWith.isStaggered && createDiffs.isNotEmpty()) {
-        val tasks = upsertStaggered(resource, createDiffs)
+        val tasks = upsertStaggered(resource, createDiffs, version)
         return@coroutineScope tasks + deferred.map { it.await() }
       }
 
       deferred.addAll(
-        upsertUnstaggered(resource, createDiffs)
+        upsertUnstaggered(resource, createDiffs, version)
       )
+
+      if (createDiffs.isNotEmpty()) {
+        publisher.publishEvent(ArtifactVersionDeploying(
+          resourceId = resource.id,
+          artifactVersion = version
+        ))
+      }
 
       return@coroutineScope deferred.map { it.await() }
     }
@@ -161,6 +173,7 @@ class ClusterHandler(
   private suspend fun upsertUnstaggered(
     resource: Resource<ClusterSpec>,
     diffs: List<ResourceDiff<ServerGroup>>,
+    version: String,
     dependsOn: String? = null
   ): List<Deferred<Task>> =
     coroutineScope {
@@ -189,7 +202,7 @@ class ClusterHandler(
           async {
             taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${diff.desired.moniker} in " +
+              description = "Upsert server group ${diff.desired.moniker} to $version in " +
                 "${diff.desired.location.account}/${diff.desired.location.region}",
               correlationId = "${resource.id}:${diff.desired.location.region}",
               stages = stages)
@@ -200,7 +213,8 @@ class ClusterHandler(
 
   private suspend fun upsertStaggered(
     resource: Resource<ClusterSpec>,
-    diffs: List<ResourceDiff<ServerGroup>>
+    diffs: List<ResourceDiff<ServerGroup>>,
+    version: String
   ): List<Task> =
     coroutineScope {
       val regionalDiffs = diffs.associateBy { it.desired.location.region }
@@ -261,12 +275,17 @@ class ClusterHandler(
         val deferred = async {
           taskLauncher.submitJob(
             resource = resource,
-            description = "Upsert server group ${diff.desired.moniker} in " +
+            description = "Upsert server group ${diff.desired.moniker} to $version in " +
               "${diff.desired.location.account}/${diff.desired.location.region}",
             correlationId = "${resource.id}:${diff.desired.location.region}",
             stages = stages
           )
         }
+
+        publisher.publishEvent(ArtifactVersionDeploying(
+          resourceId = resource.id,
+          artifactVersion = version
+        ))
 
         val task = deferred.await()
         priorExecutionId = task.id
@@ -284,7 +303,7 @@ class ClusterHandler(
           .map { it.value }
 
         tasks.addAll(
-          upsertUnstaggered(resource, unstaggeredDiffs, priorExecutionId)
+          upsertUnstaggered(resource, unstaggeredDiffs, version, priorExecutionId)
             .map { it.await() }
         )
       }
