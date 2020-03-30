@@ -825,10 +825,10 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/eslint-plugin@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.6.tgz#f49eb95d45831ddf8352f5790e5ad88752f20521"
-  integrity sha512-aEeu4D/hPuu6mCiBSGRTIcDt0ELwNTTVN3Q0iF8pAwgXxAo2ft0hLtJuKp0KZYXzQKLly4hvcQV6L9/IMsxDQg==
+"@spinnaker/eslint-plugin@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.7.tgz#10c89383e6d3d1e059c3e53f8461808c4d226526"
+  integrity sha512-VKDSLQu+v7r+8BCxIsy3FONw7QUMocz2jG1lG17fG/LbkWvYekQftPEKCqKb/qM8MBhmFgfgHVaEzFCUqoTgHg==
   dependencies:
     lodash "^4.17.15"
 
