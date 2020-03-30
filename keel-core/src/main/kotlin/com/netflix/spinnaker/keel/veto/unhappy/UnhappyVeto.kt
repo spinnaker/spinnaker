@@ -23,7 +23,6 @@ import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -55,28 +54,22 @@ class UnhappyVeto(
     val application = resource.application
 
     if (diffFingerprintRepository.diffCount(resourceId) <= maxDiffCount(resource)) {
-      // if we haven't generated the same diff 10 times, we should keep trying
+      unhappyVetoRepository.delete(resourceId)
       return allowedResponse()
     }
 
     val vetoStatus = unhappyVetoRepository.getOrCreateVetoStatus(resourceId, application, waitingTime(resource))
-    if (vetoStatus.shouldSkip) {
-      return deniedResponse(unhappyMessage(resource))
-    }
-
     // allow for a check every [waitingTime] even if the resource is unhappy
     if (vetoStatus.shouldRecheck) {
       unhappyVetoRepository.markUnhappyForWaitingTime(resourceId, application, waitingTime(resource))
       return allowedResponse()
     }
 
-    return if (resourceRepository.getStatus(resourceId) == UNHAPPY) {
-      unhappyVetoRepository.markUnhappyForWaitingTime(resourceId, application, waitingTime(resource))
-      deniedResponse(unhappyMessage(resource))
-    } else {
-      unhappyVetoRepository.markHappy(resourceId)
-      allowedResponse()
+    if (vetoStatus.shouldSkip) {
+      return deniedResponse(unhappyMessage(resource))
     }
+
+    return allowedResponse()
   }
 
   override fun messageFormat(): Map<String, Any> {

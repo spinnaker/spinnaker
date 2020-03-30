@@ -43,7 +43,7 @@ class SqlUnhappyVetoRepository(
     }
   }
 
-  override fun markHappy(resourceId: String) {
+  override fun delete(resourceId: String) {
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(UNHAPPY_VETO)
         .where(UNHAPPY_VETO.RESOURCE_ID.eq(resourceId))

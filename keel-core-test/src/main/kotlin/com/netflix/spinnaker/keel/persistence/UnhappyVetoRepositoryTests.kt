@@ -65,7 +65,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       }
 
       test("marking happy works") {
-        subject.markHappy(resourceId)
+        subject.delete(resourceId)
         expectThat(subject.getAll()).hasSize(0)
       }
     }

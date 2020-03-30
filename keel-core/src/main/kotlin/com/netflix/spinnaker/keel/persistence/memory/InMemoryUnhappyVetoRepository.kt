@@ -32,7 +32,7 @@ class InMemoryUnhappyVetoRepository(
     resources[resourceId] = Record(application, calculateExpirationTime(wait))
   }
 
-  override fun markHappy(resourceId: String) {
+  override fun delete(resourceId: String) {
     resources.remove(resourceId)
   }
 

@@ -46,7 +46,7 @@ abstract class UnhappyVetoRepository(
   /**
    * Clears unhappy marking for [resourceId]
    */
-  abstract fun markHappy(resourceId: String)
+  abstract fun delete(resourceId: String)
 
   /**
    * Calculates whether a resource should be skipped or rechecked at this instant
