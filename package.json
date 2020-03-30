@@ -184,7 +184,7 @@
     "less-loader": "4.1.0",
     "loader-utils": "1.2.3",
     "md5": "^2.2.1",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "mountebank": "^1.15.0",
     "ngtemplate-loader": "2.0.1",
     "node-libs-browser": "^2.0.0",
