@@ -88,6 +88,14 @@ class CombinedRepository(
       null
     }
 
+    val existingConfigs = getDeliveryConfigsByApplication(deliveryConfig.application)
+
+    if (old == null && existingConfigs.isNotEmpty()) {
+      // we only allow one delivery config, so throw an error if someone is trying to submit a new config
+      // instead of updating the existing config
+      throw TooManyDeliveryConfigsException(deliveryConfig.application, existingConfigs.map { it.name })
+    }
+
     deliveryConfig.resources.forEach { resource ->
       upsert(resource)
     }

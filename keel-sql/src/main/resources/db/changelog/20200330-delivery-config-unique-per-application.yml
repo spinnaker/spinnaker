@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: delivery-config-unique-per-application
+      author: emjburns
+      changes:
+        - createIndex:
+            indexName: delivery_config_application_idx
+            tableName: delivery_config
+            unique: true
+            columns:
+              - column:
+                  name: application
+      rollback:
+        - dropIndex:
+            indexName: delivery_config_application_idx
+            tableName: delivery_config

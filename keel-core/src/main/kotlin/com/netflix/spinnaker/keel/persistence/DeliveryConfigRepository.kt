@@ -150,4 +150,7 @@ class NoSuchDeliveryConfigName(name: String) : NoSuchDeliveryConfigException("No
 class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType, reference: String) :
   RuntimeException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
 
+class TooManyDeliveryConfigsException(application: String, existing: List<String>) :
+  UserException("A delivery config already exists for application $application, and we only allow one per application - please delete existing configs $existing before submitting a new config")
+
 class OrphanedResourceException(id: String) : SystemException("Resource $id exists without being a part of a delivery config")

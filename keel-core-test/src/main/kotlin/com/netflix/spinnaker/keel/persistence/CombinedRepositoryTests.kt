@@ -379,6 +379,39 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           expectThat(subject.allResourceNames().size).isEqualTo(0)
         }
       }
+
+      context("a second delivery config for an app fails to persist") {
+        val submittedConfig1 = SubmittedDeliveryConfig(
+          name = configName,
+          application = "keel",
+          serviceAccount = "keel@spinnaker",
+          artifacts = setOf(DockerArtifact(name = "org/thing-1", deliveryConfigName = configName, reference = "thing")),
+          environments = setOf(
+            SubmittedEnvironment(
+              name = "test",
+              resources = setOf(
+                SubmittedResource(
+                  metadata = mapOf("serviceAccount" to "keel@spinnaker"),
+                  kind = TEST_API_V1.qualify("whatever"),
+                  spec = DummyResourceSpec(data = "o hai")
+                )
+              ),
+              constraints = emptySet()
+            )
+          )
+        )
+
+        val submittedConfig2 = submittedConfig1.copy(name = "double-trouble")
+        test("an error is thrown and config is not persisted") {
+          subject.upsertDeliveryConfig(submittedConfig1)
+          expectCatching {
+            subject.upsertDeliveryConfig(submittedConfig2)
+          }.failed()
+            .isA<TooManyDeliveryConfigsException>()
+
+          expectThat(subject.getDeliveryConfigsByApplication("keel").size).isEqualTo(1)
+        }
+      }
     }
   }
 }
