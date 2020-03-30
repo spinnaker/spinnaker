@@ -69,13 +69,13 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<String> {
+  override fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<ExecutionDiffKey> {
     return withPool(poolName) {
       jooq
-        .select(field("id"))
+        .select(field("id"), field("updated_at"))
         .from(getStagesTable(executionType))
         .where(field("execution_id").`in`(*executionIds.toTypedArray()))
-        .fetch(field("id"), String::class.java)
+        .fetchInto(ExecutionDiffKey::class.java)
     }
   }
 

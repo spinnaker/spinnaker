@@ -43,7 +43,7 @@ abstract class SqlRawAccess(
   /**
    * Returns a list of stage IDs that belong to the given executions
    */
-  abstract fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<String>
+  abstract fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<ExecutionDiffKey>
 
   /**
    * Returns (a list of) full execution DB records with given execution IDs

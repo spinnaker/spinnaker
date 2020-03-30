@@ -165,12 +165,10 @@ class PeeringAgent(
     val pipelineIdsToMigrate = completedPipelineKeys
       .filter { key -> migratedPipelineKeysMap[key.id]?.updated_at ?: 0 < key.updated_at }
       .map { it.id }
-      .toList()
 
     val pipelineIdsToDelete = migratedPipelineKeys
       .filter { key -> !completedPipelineKeysMap.containsKey(key.id) }
       .map { it.id }
-      .toList()
 
     fun getLatestCompletedUpdatedTime() =
       (completedPipelineKeys.map { it.updated_at }.max() ?: 0)

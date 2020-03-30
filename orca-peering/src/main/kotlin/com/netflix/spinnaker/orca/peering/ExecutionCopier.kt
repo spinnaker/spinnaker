@@ -131,7 +131,8 @@ open class ExecutionCopier(
       // We can't have the execution update in the time we capture its stages and the time we capture the execution it self
       // It's totally fine for the stages to be "newer" than the execution since that will be fixed up in the next agent run
       val executionRows = srcDB.getExecutions(executionType, idsToMigrate)
-      val stagesToMigrate = srcDB.getStageIdsForExecutions(executionType, idsToMigrate)
+      val stagesInSource = srcDB.getStageIdsForExecutions(executionType, idsToMigrate)
+      val stagesInSourceHash = stagesInSource.map { it.id }.toHashSet()
 
       // Step 1: Copy over stages before the executions themselves -
       // if we saved executions first the user could request an execution but it wouldn't have any stages yet
@@ -139,21 +140,27 @@ open class ExecutionCopier(
       // It is possible that the source stage list has mutated. Normally, this is only possible when an execution
       // is restarted (e.g. restarting a deploy stage will delete all its synthetic stages and start over).
       // We delete all stages that are no longer in our peer first, then we update/copy all other stages
-      val stagesPresent = destDB.getStageIdsForExecutions(executionType, idsToMigrate)
-      val stagesToMigrateHash = stagesToMigrate.toHashSet()
-      val stagesToDelete = stagesPresent.filter { !stagesToMigrateHash.contains(it) }
-      if (stagesToDelete.any()) {
-        destDB.deleteStages(executionType, stagesToDelete)
-        peeringMetrics.incrementNumStagesDeleted(executionType, stagesToDelete.size)
+      val stagesInDest = destDB.getStageIdsForExecutions(executionType, idsToMigrate)
+      val stagesInDestMap = stagesInDest.map { it.id to it }.toMap()
+
+      val stageIdsToDelete = stagesInDest.filter { !stagesInSourceHash.contains(it.id) }.map { it.id }
+      if (stageIdsToDelete.any()) {
+        destDB.deleteStages(executionType, stageIdsToDelete)
+        peeringMetrics.incrementNumStagesDeleted(executionType, stageIdsToDelete.size)
       }
 
-      for (chunk in stagesToMigrate.chunked(chunkSize)) {
+      val stageIdsToMigrate = stagesInSource
+        .filter { key -> stagesInDestMap[key.id]?.updated_at ?: 0 < key.updated_at }
+        .map { it.id }
+
+      for (chunk in stageIdsToMigrate.chunked(chunkSize)) {
         val stageRows = srcDB.getStages(executionType, chunk)
         destDB.loadRecords(getStagesTable(executionType).name, stageRows)
       }
 
       // Step 2: Copy all executions
-      executionRows.forEach { r -> r.set(DSL.field("partition"), peeredId)
+      executionRows.forEach { r ->
+        r.set(DSL.field("partition"), peeredId)
         latestUpdatedAt = max(latestUpdatedAt, r.get("updated_at", Long::class.java))
       }
       destDB.loadRecords(getExecutionTable(executionType).name, executionRows)
