@@ -14,6 +14,7 @@ import {
   Markdown,
   DeployingIntoManagedClusterWarning,
   TaskReason,
+  ServerGroupDetailsField,
 } from '@spinnaker/core';
 
 import { IAmazonImage } from 'amazon/image';
@@ -21,7 +22,6 @@ import { SubnetSelectField } from 'amazon/subnet';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
-import ServerGroupDetailsField from './fields/ServerGroupDetailsField';
 
 const isExpressionLanguage = (field: string) => field && field.includes('${');
 const isStackPattern = (stack: string) =>
