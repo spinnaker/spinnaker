@@ -4,7 +4,6 @@ import {
   ExecutionDetailsTasks,
   ExpectedArtifactService,
   Registry,
-  SETTINGS,
 } from '@spinnaker/core';
 
 import { DeployStatus } from '../deployManifest/manifestStatus/DeployStatus';
@@ -16,18 +15,16 @@ export class PatchStatus extends DeployStatus {
 }
 
 const STAGE_NAME = 'Patch (Manifest)';
-if (SETTINGS.feature.versionedProviders) {
-  Registry.pipeline.registerStage({
-    label: STAGE_NAME,
-    description: 'Patch a Kubernetes object in place.',
-    key: 'patchManifest',
-    cloudProvider: 'kubernetes',
-    component: PatchManifestStageConfig,
-    executionDetailsSections: [PatchStatus, ExecutionDetailsTasks, ExecutionArtifactTab],
-    producesArtifacts: true,
-    supportsCustomTimeout: true,
-    validators: manifestSelectorValidators(STAGE_NAME),
-    artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
-    artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['manifestArtifactId', 'requiredArtifactIds']),
-  });
-}
+Registry.pipeline.registerStage({
+  label: STAGE_NAME,
+  description: 'Patch a Kubernetes object in place.',
+  key: 'patchManifest',
+  cloudProvider: 'kubernetes',
+  component: PatchManifestStageConfig,
+  executionDetailsSections: [PatchStatus, ExecutionDetailsTasks, ExecutionArtifactTab],
+  producesArtifacts: true,
+  supportsCustomTimeout: true,
+  validators: manifestSelectorValidators(STAGE_NAME),
+  artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
+  artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['manifestArtifactId', 'requiredArtifactIds']),
+});

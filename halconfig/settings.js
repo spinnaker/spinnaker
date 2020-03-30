@@ -178,7 +178,6 @@ window.spinnakerSettings = {
     slack: false,
     snapshots: false,
     travis: travisEnabled,
-    versionedProviders: true,
     wercker: werckerEnabled,
     functions: functionsEnabled,
   },

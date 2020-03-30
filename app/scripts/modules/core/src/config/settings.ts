@@ -49,7 +49,6 @@ export interface IFeatures {
   slack?: boolean;
   snapshots?: boolean;
   travis?: boolean;
-  versionedProviders?: boolean;
   wercker?: boolean;
   savePipelinesStageEnabled?: boolean;
   kustomizeEnabled?: boolean;
