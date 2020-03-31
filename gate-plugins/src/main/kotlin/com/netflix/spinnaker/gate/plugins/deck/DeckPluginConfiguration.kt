@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -32,9 +33,10 @@ open class DeckPluginConfiguration {
   @Bean
   open fun deckPluginCache(
     updateManager: SpinnakerUpdateManager,
-    registry: Registry
+    registry: Registry,
+    springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider
   ): DeckPluginCache =
-      DeckPluginCache(updateManager, PluginBundleExtractor(), registry)
+      DeckPluginCache(updateManager, PluginBundleExtractor(springStrictPluginLoaderStatusProvider), registry)
 
   @Bean
   open fun deckPluginService(
