@@ -278,60 +278,77 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             "artifacts"
           )
       }
-    }
 
-    test("returns bad request for unknown entities") {
-      val request = get("/application/$application?entities=bananas")
-        .accept(MediaType.APPLICATION_JSON_VALUE)
-      mvc.perform(request)
-        .andExpect(status().isBadRequest)
-    }
-
-    test("is backwards-compatible with older version of the API") {
-      var request = get("/application/$application?includeDetails=false")
-        .accept(MediaType.APPLICATION_JSON_VALUE)
-      var result = mvc
-        .perform(request)
-        .andExpect(status().isOk)
-        .andDo { print(it.response.contentAsString) }
-        .andReturn()
-      var response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
-      expectThat(response.keys)
-        .containsExactly(
-          "applicationPaused",
-          "hasManagedResources",
-          "currentEnvironmentConstraints"
-        )
-
-      request = get("/application/$application?includeDetails=true")
-        .accept(MediaType.APPLICATION_JSON_VALUE)
-      result = mvc
-        .perform(request)
-        .andExpect(status().isOk)
-        .andDo { print(it.response.contentAsString) }
-        .andReturn()
-      response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
-      expectThat(response.keys)
-        .containsExactly(
-          "applicationPaused",
-          "hasManagedResources",
-          "currentEnvironmentConstraints",
-          "resources"
-        )
-    }
-
-    test("rejects an unauthorized user from judging constraints") {
-      before {
-        every { authorizationSupport.userCanModifyApplication(application) } returns false
+      test("returns bad request for unknown entities") {
+        val request = get("/application/$application?entities=bananas")
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        mvc.perform(request)
+          .andExpect(status().isBadRequest)
       }
-      val request = post(
-        "/application/$application/environment/prod/constraint",
-        UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
-      )
-        .accept(MediaType.APPLICATION_JSON_VALUE)
-      mvc
-        .perform(request)
-        .andExpect(status().is4xxClientError)
+
+      test("is backwards-compatible with older version of the API") {
+        var request = get("/application/$application?includeDetails=false")
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        var result = mvc
+          .perform(request)
+          .andExpect(status().isOk)
+          .andDo { print(it.response.contentAsString) }
+          .andReturn()
+        var response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
+        expectThat(response.keys)
+          .containsExactly(
+            "applicationPaused",
+            "hasManagedResources",
+            "currentEnvironmentConstraints"
+          )
+
+        request = get("/application/$application?includeDetails=true")
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        result = mvc
+          .perform(request)
+          .andExpect(status().isOk)
+          .andDo { print(it.response.contentAsString) }
+          .andReturn()
+        response = jsonMapper.readValue<Map<String, Any>>(result.response.contentAsString)
+        expectThat(response.keys)
+          .containsExactly(
+            "applicationPaused",
+            "hasManagedResources",
+            "currentEnvironmentConstraints",
+            "resources"
+          )
+      }
+
+      test("rejects an unauthorized user from judging constraints") {
+        before {
+          every { authorizationSupport.userCanModifyApplication(application) } returns false
+        }
+        val request = post(
+          "/application/$application/environment/prod/constraint",
+          UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
+        )
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        mvc
+          .perform(request)
+          .andExpect(status().is4xxClientError)
+      }
+    }
+
+    context("application is not managed") {
+      test("API returns gracefully") {
+        val request = get("/application/bananas")
+          .accept(MediaType.APPLICATION_JSON_VALUE)
+        mvc
+          .perform(request)
+          .andExpect(status().isOk)
+          .andExpect(content().json(
+            """
+              {
+                "hasManagedResources":false
+              }
+            """.trimIndent()
+          ))
+      }
     }
   }
 }

@@ -41,14 +41,11 @@ import org.springframework.stereotype.Component
 @Component
 class ApplicationService(
   private val repository: KeelRepository,
-  private val constraintEvaluators: List<ConstraintEvaluator<*>>
+  constraintEvaluators: List<ConstraintEvaluator<*>>
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-  private val explicitConstraintEvaluators: List<ConstraintEvaluator<*>> = constraintEvaluators.filter { !it.isImplicit() }
-  private val statefulEvaluators: List<ConstraintEvaluator<*>> = explicitConstraintEvaluators
-    .filterIsInstance<StatefulConstraintEvaluator<*>>()
-
-  private val statelessEvaluators = explicitConstraintEvaluators - statefulEvaluators
+  private val statelessEvaluators: List<ConstraintEvaluator<*>> =
+    constraintEvaluators.filter { !it.isImplicit() && it !is StatefulConstraintEvaluator }
 
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
@@ -192,9 +189,9 @@ class ApplicationService(
     version: String,
     artifact: DeliveryArtifact
   ): ArtifactSummaryInEnvironment {
-    val statelessConstraints: List<StatelessConstraintSummary?> = environment.constraints.filter { constraint ->
+    val statelessConstraints: List<StatelessConstraintSummary> = environment.constraints.filter { constraint ->
       constraint !is StatefulConstraint
-    }.map { constraint ->
+    }.mapNotNull { constraint ->
       statelessEvaluators.find { evaluator ->
         evaluator.supportedType.name == constraint.type
       }?.let {

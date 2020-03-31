@@ -64,12 +64,14 @@ class ApplicationController(
       if (includeDetails && !entities.contains("resources")) {
         entities.add("resources")
       }
-      entities.forEach { entity ->
-        results[entity] = when (entity) {
-          "resources" -> applicationService.getResourceSummariesFor(application)
-          "environments" -> applicationService.getEnvironmentSummariesFor(application)
-          "artifacts" -> applicationService.getArtifactSummariesFor(application)
-          else -> throw InvalidRequestException("Unknown entity type: $entity")
+      if (true == results["hasManagedResources"]) {
+        entities.forEach { entity ->
+          results[entity] = when (entity) {
+            "resources" -> applicationService.getResourceSummariesFor(application)
+            "environments" -> applicationService.getEnvironmentSummariesFor(application)
+            "artifacts" -> applicationService.getArtifactSummariesFor(application)
+            else -> throw InvalidRequestException("Unknown entity type: $entity")
+          }
         }
       }
     }
