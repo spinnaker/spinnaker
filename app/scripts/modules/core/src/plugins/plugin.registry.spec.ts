@@ -1,11 +1,12 @@
 import { IStageTypeConfig } from 'core/domain';
+import { IDeckPlugin } from './deck.plugin';
 import { API } from '../api';
-import { IDeckPlugin, IPluginManifest, IPluginMetaData, PluginRegistry } from './plugin.registry';
+import { IPluginMetaData, PluginRegistry } from './plugin.registry';
 import { Registry } from 'core/registry';
 import { mock } from 'angular';
 
 type TestPluginRegistry = PluginRegistry & {
-  load(pluginManifestData: IPluginManifest): Promise<any>;
+  load(pluginMetaData: IPluginMetaData): Promise<any>;
   loadModuleFromUrl(url: string): Promise<any>;
 };
 

@@ -1,18 +1,8 @@
-import { API } from 'core/api';
-import { Registry } from 'core/registry';
-import { IStageTypeConfig } from 'core/domain';
 import { $http } from 'ngimport';
+import { API } from 'core/api';
+import { registerPluginExtensions, IDeckPlugin } from './deck.plugin';
 
-export interface IDeckPlugin {
-  stages?: IStageTypeConfig[];
-  preconfiguredJobStages?: IStageTypeConfig[];
-  initialize?(): void;
-}
-
-export interface IPluginManifest {
-  plugins: IPluginMetaData[];
-}
-
+/** The shape of plugin metadata objects in plugin-manifest.json */
 export interface IPluginMetaData {
   id?: string;
   /** @deprecated use `id` instead */
@@ -126,8 +116,8 @@ export class PluginRegistry {
   /**
    * Loads plugin manifests from Gate and from `/plugin-manifest.json` in the deck resources
    *
-   * plugin-manifest.json should contain an array of IPluginManifest(s) exported as `plugin`, i.e.,
-   * export const plugins = [{ 'name': 'myPlugin', 'version': '1.2.3', 'devUrl': '/plugins/index.js' }]
+   * plugin-manifest.json should contain an array of IPluginMetaData objects, i.e.,
+   * [{ 'name': 'myPlugin', 'version': '1.2.3', 'url': '/plugins/index.js' }]
    */
   public async loadPluginManifest(
     source: ISource,
@@ -166,14 +156,7 @@ export class PluginRegistry {
         );
       }
 
-      const plugin: IDeckPlugin = module.plugin;
-
-      // Register extensions with deck.
-      plugin.stages?.forEach(stage => Registry.pipeline.registerStage(stage));
-      plugin.preconfiguredJobStages?.forEach(stage => Registry.pipeline.registerPreconfiguredJobStage(stage));
-
-      // Run code that currently does not have an extension point
-      plugin.initialize?.();
+      registerPluginExtensions(module.plugin as IDeckPlugin);
 
       return module;
     } catch (error) {
