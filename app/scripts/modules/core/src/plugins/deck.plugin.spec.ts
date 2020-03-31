@@ -1,4 +1,5 @@
 import { registerPluginExtensions } from './deck.plugin';
+import { HelpContentsRegistry } from '../help';
 import { Registry } from '../registry';
 
 describe('deck plugin registerPluginExtensions', () => {
@@ -16,5 +17,14 @@ describe('deck plugin registerPluginExtensions', () => {
     registerPluginExtensions({ preconfiguredJobStages: [stage] });
     expect(registerSpy).toHaveBeenCalledTimes(1);
     expect(registerSpy).toHaveBeenCalledWith(stage);
+  });
+
+  it('should register help', async () => {
+    const registerSpy = spyOn(HelpContentsRegistry, 'register');
+    const help = { key: 'value', key2: 'value2' };
+    registerPluginExtensions({ help });
+    expect(registerSpy).toHaveBeenCalledTimes(2);
+    expect(registerSpy.calls.first().args).toEqual(['key', 'value']);
+    expect(registerSpy.calls.mostRecent().args).toEqual(['key2', 'value2']);
   });
 });
