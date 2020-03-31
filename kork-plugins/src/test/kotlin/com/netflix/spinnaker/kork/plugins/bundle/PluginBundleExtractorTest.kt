@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.bundle
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -39,7 +40,7 @@ import strikt.assertions.isTrue
 class PluginBundleExtractorTest : JUnit5Minutests {
 
   fun tests() = rootContext<PluginBundleExtractor> {
-    fixture { PluginBundleExtractor(environment) }
+    fixture { PluginBundleExtractor(strictPluginLoaderStatusProvider) }
 
     before {
       // Creates 3 zips: Two service plugin zips, and then a bundle zip containing the service plugin zips
@@ -86,11 +87,12 @@ class PluginBundleExtractorTest : JUnit5Minutests {
       }
 
       test("return null if bundle is missing expected service plugin") {
+        every { environment.getProperty("spinnaker.extensibility.strict-plugin-loading") } returns "false"
         expectThat(extractService(ZipBuilder.workspace.resolve("bundle.zip"), "clouddriver")).equals(null)
       }
 
       test("throws if bundle is missing expected service plugin in strict configuration") {
-        every { environment.getProperty("spinnaker.extensibility.strict-plugin-loading") } returns "true"
+        every { environment.getProperty("spinnaker.extensibility.strict-plugin-loading") } returns null
         expectThrows<IntegrationException> {
           extractService(ZipBuilder.workspace.resolve("bundle.zip"), "clouddriver")
         }
@@ -104,7 +106,8 @@ class PluginBundleExtractorTest : JUnit5Minutests {
     }
   }
 
-  val environment: ConfigurableEnvironment = mockk(relaxed = true)
+  private val environment: ConfigurableEnvironment = mockk(relaxed = true)
+  private val strictPluginLoaderStatusProvider = SpringStrictPluginLoaderStatusProvider(environment)
   private class ZipBuilder(
     private val sourceRootPath: Path,
     private val zipFilename: String,

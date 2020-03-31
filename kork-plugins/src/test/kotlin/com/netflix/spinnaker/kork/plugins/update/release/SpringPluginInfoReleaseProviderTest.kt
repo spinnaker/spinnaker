@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.plugins.update.release
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
+import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -74,6 +75,7 @@ class SpringPluginInfoReleaseProviderTest : JUnit5Minutests {
     test("Fails to get a release due to unsatisfied system version, throws PluginNotFoundException") {
       val plugin1ExpectedRelease = plugin1.releases.first()
       val plugin2ExpectedRelease = plugin2.releases.first()
+      every { environment.getProperty("spinnaker.extensibility.strict-plugin-loading") } returns "true"
       every { environment.getProperty("spinnaker.extensibility.plugins.${plugin1.id}.enabled") } returns "true"
       every { environment.getProperty("spinnaker.extensibility.plugins.${plugin2.id}.enabled") } returns "true"
       every { pluginStatusProvider.pluginVersion(plugin1.id) } returns plugin1ExpectedRelease.version
@@ -180,8 +182,9 @@ class SpringPluginInfoReleaseProviderTest : JUnit5Minutests {
     val versionManager = SpinnakerServiceVersionManager("orca")
     val updateManager: SpinnakerUpdateManager = mockk(relaxed = true)
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
+    val strictPluginLoaderStatusProvider = SpringStrictPluginLoaderStatusProvider(environment)
 
     val subject = SpringPluginInfoReleaseProvider(
-      pluginStatusProvider, versionManager, updateManager, pluginManager)
+      pluginStatusProvider, versionManager, updateManager, pluginManager, strictPluginLoaderStatusProvider)
   }
 }

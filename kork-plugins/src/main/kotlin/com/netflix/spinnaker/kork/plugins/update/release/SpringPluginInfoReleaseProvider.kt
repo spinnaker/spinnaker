@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.update.release
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
+import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import org.pf4j.VersionManager
 import org.pf4j.update.PluginInfo
@@ -30,7 +31,8 @@ class SpringPluginInfoReleaseProvider(
   private val pluginStatusProvider: SpringPluginStatusProvider,
   private val versionManager: VersionManager,
   private val updateManager: SpinnakerUpdateManager,
-  private val pluginManager: SpinnakerPluginManager
+  private val pluginManager: SpinnakerPluginManager,
+  private val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider
 ) : PluginInfoReleaseProvider {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -60,7 +62,16 @@ class SpringPluginInfoReleaseProvider(
           .filter { it.version == pluginVersion }
           .firstOrNull { release ->
             versionManager.checkVersionConstraint(pluginManager.systemVersion, release.requires)
-          } ?: throw PluginReleaseNotFoundException(pluginInfo.id, pluginVersion)
+          } ?: if (springStrictPluginLoaderStatusProvider.isStrictPluginLoading()) {
+
+          throw PluginReleaseNotFoundException(pluginInfo.id, pluginVersion)
+        } else {
+          log.warn(
+            "'{}' is enabled with version '{}', but a release version could not " +
+              "be found that satisfies the version and/or the service " +
+              "requirement constraints.", pluginInfo.id, pluginVersion)
+          return null
+        }
       }
       return PluginInfoRelease(pluginInfo.id, release)
     }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostPro
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager;
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager;
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider;
+import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider;
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor;
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory;
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
@@ -149,8 +150,9 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
-  public static PluginBundleExtractor pluginBundleExtractor(Environment environment) {
-    return new PluginBundleExtractor(environment);
+  public static PluginBundleExtractor pluginBundleExtractor(
+      SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider) {
+    return new PluginBundleExtractor(springStrictPluginLoaderStatusProvider);
   }
 
   @Bean
@@ -158,9 +160,14 @@ public class PluginsAutoConfiguration {
       SpringPluginStatusProvider pluginStatusProvider,
       VersionManager versionManager,
       SpinnakerUpdateManager updateManager,
-      SpinnakerPluginManager pluginManager) {
+      SpinnakerPluginManager pluginManager,
+      SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider) {
     return new SpringPluginInfoReleaseProvider(
-        pluginStatusProvider, versionManager, updateManager, pluginManager);
+        pluginStatusProvider,
+        versionManager,
+        updateManager,
+        pluginManager,
+        springStrictPluginLoaderStatusProvider);
   }
 
   @Bean
@@ -203,6 +210,12 @@ public class PluginsAutoConfiguration {
     }
 
     return repositories;
+  }
+
+  @Bean
+  public static SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider(
+      Environment environment) {
+    return new SpringStrictPluginLoaderStatusProvider(environment);
   }
 
   @Bean
