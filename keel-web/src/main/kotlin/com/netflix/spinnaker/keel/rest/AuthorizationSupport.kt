@@ -46,13 +46,26 @@ class AuthorizationSupport(
 
   fun userCanModifySpec(serviceAccount: String, specOrName: Any): Boolean {
     val auth = SecurityContextHolder.getContext().authentication
-    return userCanAccessServiceAccount(auth, serviceAccount, specOrName)
+    return userCanAccessServiceAccount(auth, serviceAccount, "Resource: $specOrName")
+  }
+
+  fun userCanModifyApplication(application: String): Boolean = try {
+    val deliveryConfig = repository.getDeliveryConfigForApplication(application)
+    userCanModifyDeliveryConfig(deliveryConfig.serviceAccount, application, deliveryConfig.name)
+  } catch (e: NoSuchElementException) {
+    // If there are no delivery configs for that application return true so this is handled correctly in the controller.
+    true
+  }
+
+  fun userCanModifyDeliveryConfig(serviceAccount: String, application: String, manifestName: String): Boolean {
+    val auth = SecurityContextHolder.getContext().authentication
+    return userCanAccessServiceAccount(auth, serviceAccount, "Delivery config for application $application: $manifestName")
   }
 
   fun userCanAccessServiceAccount(auth: Authentication, serviceAccount: String, specOrName: Any): Boolean {
     val hasPermission = permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored-svcAcct-auth")
     log.debug(
-      "[AUTH] {} is trying to access service account {}. They{} have permission. Resource: {}",
+      "[AUTH] {} is trying to access service account {}. They{} have permission. {}",
       auth.principal,
       serviceAccount,
       if (hasPermission) "" else " DO NOT",

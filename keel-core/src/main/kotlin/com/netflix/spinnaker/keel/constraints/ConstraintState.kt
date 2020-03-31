@@ -49,7 +49,7 @@ data class UpdatedConstraintStatus(
   val type: String,
   val artifactVersion: String,
   val status: ConstraintStatus,
-  val comment: String?
+  val comment: String? = null
 )
 
 @JsonTypeInfo(

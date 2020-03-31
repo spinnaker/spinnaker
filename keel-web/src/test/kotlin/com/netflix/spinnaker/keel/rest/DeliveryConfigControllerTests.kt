@@ -4,9 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.constraints.ConstraintState
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -23,14 +20,11 @@ import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
-import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -41,8 +35,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.hasSize
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.succeeded
@@ -269,84 +261,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                 ?.constraints
             ).isNotNull()
           }
-
-          context("no environments with stateful constraints have been evaluated") {
-            test("no constraint state") {
-              getProdConstraintResponse(contentType)
-                // Response assertions that aren't dependent on contentType or deserialization
-                .andExpect(status().isOk)
-                .andExpect(content().string(not(containsString("status"))))
-
-              val states = getProdConstraintStates(contentType)
-              expectThat(states).isEmpty()
-            }
-          }
-
-          derivedContext<ResultActions>("interacting with manual judgement") {
-            val constraintStateYaml =
-              """---
-                |type: manual-judgement
-                |artifactVersion: keel-1.0.2
-                |status: OVERRIDE_PASS
-              """.trimMargin()
-
-            val constraintStateJson =
-              """{
-                |  "type": "manual-judgement",
-                |  "artifactVersion": "keel-1.0.2",
-                |  "status": "OVERRIDE_PASS"
-                |}
-              """.trimMargin()
-
-            fixture {
-              val judgement = ConstraintState("keel-manifest", "prod", "keel-1.0.2", "manual-judgement", PENDING)
-              deliveryConfigRepository.storeConstraintState(judgement)
-
-              getProdConstraintResponse(contentType)
-            }
-
-            test("pending manual judgement") {
-              andExpect(status().isOk)
-              andExpect(content().string(containsString("manual-judgement")))
-              andExpect(content().string(containsString("PENDING")))
-            }
-
-            derivedContext<ResultActions>("approving manual judgement") {
-              fixture {
-                val request = post(
-                  "/delivery-configs/keel-manifest/environment/prod/constraint")
-                  .accept(contentType)
-                  .contentType(contentType)
-                  .content(when (contentType) {
-                    APPLICATION_YAML -> constraintStateYaml
-                    else -> constraintStateJson
-                  })
-                  .header("X-SPINNAKER-USER", "keel")
-
-                mvc.perform(request)
-              }
-
-              test("judgement is persisted") {
-                andExpect(status().isOk)
-
-                val judgement = deliveryConfigRepository
-                  .getConstraintState("keel-manifest", "prod", "keel-1.0.2", "manual-judgement")
-
-                expectThat(judgement).isNotNull()
-                expectThat(judgement!!.status).isEqualTo(OVERRIDE_PASS)
-                expectThat(judgement.judgedBy).isEqualTo("keel")
-              }
-
-              test("persisted judgement is in rest response") {
-                val states = getProdConstraintStates(contentType)
-                expectThat(states).hasSize(1)
-                with(states.first()) {
-                  expectThat(status).isEqualTo(OVERRIDE_PASS)
-                  expectThat(judgedBy).isEqualTo("keel")
-                }
-              }
-            }
-          }
         }
 
         derivedContext<ResultActions>("the submitted manifest is missing a required field") {
@@ -397,24 +311,4 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
       }
     }
   }
-
-  private fun getProdConstraintResponse(contentType: MediaType) =
-    mvc.perform(
-      get("/delivery-configs/keel-manifest/environment/prod/constraints")
-        .accept(contentType)
-        .contentType(contentType)
-    )
-
-  private fun getProdConstraintStates(contentType: MediaType): List<ConstraintState> =
-    getProdConstraintResponse(contentType)
-      .andReturn()
-      .response
-      .contentAsString
-      .let {
-        if (contentType == APPLICATION_YAML) {
-          configuredYamlMapper().readValue(it)
-        } else {
-          configuredObjectMapper().readValue(it)
-        }
-      }
 }

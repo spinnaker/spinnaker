@@ -14,15 +14,17 @@ import java.time.Clock
  * A util for generating a combined repository with in memory implementations for tests
  */
 fun combinedInMemoryRepository(
-  deliveryConfigRepository: DeliveryConfigRepository = InMemoryDeliveryConfigRepository(),
-  artifactRepository: ArtifactRepository = InMemoryArtifactRepository(),
-  resourceRepository: ResourceRepository = InMemoryResourceRepository()
+  clock: Clock = Clock.systemUTC(),
+  deliveryConfigRepository: DeliveryConfigRepository = InMemoryDeliveryConfigRepository(clock),
+  artifactRepository: ArtifactRepository = InMemoryArtifactRepository(clock),
+  resourceRepository: ResourceRepository = InMemoryResourceRepository(clock)
 ): CombinedRepository =
-  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemUTC(), mockk(relaxed = true))
+  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, clock, mockk(relaxed = true))
 
 fun combinedMockRepository(
   deliveryConfigRepository: DeliveryConfigRepository = mockk(relaxed = true),
   artifactRepository: ArtifactRepository = mockk(relaxed = true),
-  resourceRepository: ResourceRepository = mockk(relaxed = true)
+  resourceRepository: ResourceRepository = mockk(relaxed = true),
+  clock: Clock = Clock.systemUTC()
 ): CombinedRepository =
-  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, Clock.systemUTC(), mockk(relaxed = true))
+  CombinedRepository(deliveryConfigRepository, artifactRepository, resourceRepository, clock, mockk(relaxed = true))

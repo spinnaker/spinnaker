@@ -44,7 +44,11 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
   val configRepo: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
   val artifactRepo: InMemoryArtifactRepository = InMemoryArtifactRepository()
   val resourceRepo: InMemoryResourceRepository = InMemoryResourceRepository()
-  val repository: KeelRepository = combinedInMemoryRepository(configRepo, artifactRepo, resourceRepo)
+  val repository: KeelRepository = combinedInMemoryRepository(
+    deliveryConfigRepository = configRepo,
+    artifactRepository = artifactRepo,
+    resourceRepository = resourceRepo
+  )
 
   private val artifact = DockerArtifact(name = "spkr/keeldemo", reference = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG, deliveryConfigName = "mydeliveryconfig")
 

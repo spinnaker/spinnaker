@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -27,8 +28,10 @@ import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
+import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -50,6 +53,28 @@ class ApplicationService(
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
   fun getConstraintStatesFor(application: String) = repository.constraintStateFor(application)
+
+  fun getConstraintStatesFor(application: String, environment: String, limit: Int): List<ConstraintState> {
+    val config = repository.getDeliveryConfigForApplication(application)
+    return repository.constraintStateFor(config.name, environment, limit)
+  }
+
+  fun updateConstraintStatus(user: String, application: String, environment: String, status: UpdatedConstraintStatus) {
+    val config = repository.getDeliveryConfigForApplication(application)
+    val currentState = repository.getConstraintState(
+      config.name,
+      environment,
+      status.artifactVersion,
+      status.type) ?: throw InvalidConstraintException(
+      "${config.name}/$environment/${status.type}/${status.artifactVersion}", "constraint not found")
+
+    repository.storeConstraintState(
+      currentState.copy(
+        status = status.status,
+        comment = status.comment ?: currentState.comment,
+        judgedAt = Instant.now(),
+        judgedBy = user))
+  }
 
   /**
    * Returns a list of [ResourceSummary] for the specified application.
