@@ -6,7 +6,7 @@ import styles from './ObjectRow.module.css';
 
 interface IObjectRowProps {
   icon: IconNames;
-  title: string;
+  title: JSX.Element | string;
   metadata?: JSX.Element;
   depth?: number;
 }
