@@ -12,6 +12,24 @@ export enum ManagedResourceStatus {
   UNKNOWN = 'UNKNOWN',
 }
 
+export enum StatefulConstraintStatus {
+  NOT_EVALUATED = 'NOT_EVALUATED',
+  PENDING = 'PENDING',
+  PASS = 'PASS',
+  FAIL = 'FAIL',
+  OVERRIDE_PASS = 'OVERRIDE_PASS',
+  OVERRIDE_FAIL = 'OVERRIDE_FAIL',
+}
+
+export interface IStatefulConstraint {
+  type: string;
+  status: StatefulConstraintStatus;
+  startedAt?: string;
+  judgedAt?: string;
+  judgedBy?: string;
+  comment?: string;
+}
+
 export interface IManagedResourceSummary {
   id: string;
   kind: string;
@@ -54,6 +72,7 @@ export interface IManagedArtifactVersion {
     deployedAt?: string;
     replacedAt?: string;
     replacedBy?: string;
+    statefulConstraints: IStatefulConstraint[];
   }>;
 }
 
