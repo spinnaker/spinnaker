@@ -11,6 +11,7 @@ dependencies {
   implementation(project(":orca-clouddriver"))
   implementation(project(":orca-core"))
 
+  implementation("org.jetbrains:annotations")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-core:2.25.0")
