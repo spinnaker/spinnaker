@@ -409,7 +409,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           }.failed()
             .isA<TooManyDeliveryConfigsException>()
 
-          expectThat(subject.getDeliveryConfigsByApplication("keel").size).isEqualTo(1)
+          expectThat(subject.getDeliveryConfigForApplication("keel").name).isEqualTo(configName)
         }
       }
     }

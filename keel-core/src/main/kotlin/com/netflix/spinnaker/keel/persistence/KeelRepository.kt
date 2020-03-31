@@ -85,7 +85,7 @@ interface KeelRepository {
 
   fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
-  fun getDeliveryConfigsByApplication(application: String): Collection<DeliveryConfig>
+  fun getDeliveryConfigForApplication(application: String): DeliveryConfig
 
   fun deleteDeliveryConfigByApplication(application: String): Int
 

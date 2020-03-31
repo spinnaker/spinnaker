@@ -19,7 +19,7 @@ class EnvironmentController(
   )
   fun list(@PathVariable("application") application: String) =
     repository
-      .getDeliveryConfigsByApplication(application)
-      .flatMap { it.environments }
+      .getDeliveryConfigForApplication(application)
+      .environments
       .map { it.name }
 }

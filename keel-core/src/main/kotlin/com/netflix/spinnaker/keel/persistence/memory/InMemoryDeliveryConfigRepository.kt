@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
 import java.time.Clock
@@ -30,8 +31,8 @@ class InMemoryDeliveryConfigRepository(
     lastCheckTimes.clear()
   }
 
-  override fun getByApplication(application: String) =
-    configs.values.filter { it.application == application }
+  override fun getByApplication(application: String): DeliveryConfig =
+    configs.values.firstOrNull() { it.application == application } ?: throw NoDeliveryConfigForApplication(application)
 
   override fun deleteByApplication(application: String): Int {
     val size = configs.count { it.value.application == application }

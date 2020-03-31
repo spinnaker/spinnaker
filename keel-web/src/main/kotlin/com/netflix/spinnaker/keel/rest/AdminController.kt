@@ -27,9 +27,8 @@ class AdminController(
     @PathVariable("application") application: String
   ) {
     log.debug("Deleting all data for application: $application")
-    repository.getDeliveryConfigsByApplication(application).forEach { config ->
-      repository.deleteDeliveryConfig(config.name)
-    }
+    val config = repository.getDeliveryConfigForApplication(application)
+    repository.deleteDeliveryConfig(config.name)
   }
 
   @GetMapping(

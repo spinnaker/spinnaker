@@ -34,10 +34,9 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
   /**
-   * @return All [DeliveryConfig] instances associated with [application], or an empty collection if
-   * there are none.
+   * @return the [DeliveryConfig] associated with [application], throws [NoDeliveryConfigForApplication] if none
    */
-  fun getByApplication(application: String): Collection<DeliveryConfig>
+  fun getByApplication(application: String): DeliveryConfig
 
   /**
    * Delete the [DeliveryConfig] persisted for an application. This does not delete the underlying
@@ -146,11 +145,12 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
 
 sealed class NoSuchDeliveryConfigException(message: String) : UserException(message)
 class NoSuchDeliveryConfigName(name: String) : NoSuchDeliveryConfigException("No delivery config named $name exists in the repository")
+class NoDeliveryConfigForApplication(application: String) : NoSuchDeliveryConfigException("No delivery config for application $application exists in the repository")
 
 class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType, reference: String) :
   RuntimeException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
 
-class TooManyDeliveryConfigsException(application: String, existing: List<String>) :
-  UserException("A delivery config already exists for application $application, and we only allow one per application - please delete existing configs $existing before submitting a new config")
+class TooManyDeliveryConfigsException(application: String, existing: String) :
+  UserException("A delivery config already exists for application $application, and we only allow one per application - please delete existing config $existing before submitting a new config")
 
 class OrphanedResourceException(id: String) : SystemException("Resource $id exists without being a part of a delivery config")

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -44,11 +44,12 @@ class ApplicationService(
    * This function assumes there's a single delivery config associated with the application.
    */
   fun getResourceSummariesFor(application: String): List<ResourceSummary> =
-    getFirstDeliveryConfigFor(application)
-      ?.let { deliveryConfig ->
-        repository.getResourceSummaries(deliveryConfig)
-      }
-      ?: emptyList()
+    try {
+      val config = repository.getDeliveryConfigForApplication(application)
+      repository.getResourceSummaries(config)
+    } catch (e: NoSuchDeliveryConfigException) {
+      emptyList()
+    }
 
   /**
    * Returns a list of [EnvironmentSummary] for the specific application.
@@ -56,11 +57,12 @@ class ApplicationService(
    * This function assumes there's a single delivery config associated with the application.
    */
   fun getEnvironmentSummariesFor(application: String): List<EnvironmentSummary> =
-    getFirstDeliveryConfigFor(application)
-      ?.let { deliveryConfig ->
-        repository.getEnvironmentSummaries(deliveryConfig)
-      }
-      ?: emptyList()
+    try {
+      val config = repository.getDeliveryConfigForApplication(application)
+      repository.getEnvironmentSummaries(config)
+    } catch (e: NoSuchDeliveryConfigException) {
+      emptyList()
+    }
 
   /**
    * Returns a list of [ArtifactSummary] for the specified application by traversing the list of [EnvironmentSummary]
@@ -69,9 +71,7 @@ class ApplicationService(
    * This function assumes there's a single delivery config associated with the application.
    */
   fun getArtifactSummariesFor(application: String): List<ArtifactSummary> {
-    val deliveryConfig = getFirstDeliveryConfigFor(application)
-      ?: throw InvalidRequestException("No delivery config found for application $application")
-
+    val deliveryConfig = repository.getDeliveryConfigForApplication(application)
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
     return deliveryConfig.artifacts.map { artifact ->
@@ -188,14 +188,6 @@ class ApplicationService(
         )
       }
     }
-
-  fun getFirstDeliveryConfigFor(application: String): DeliveryConfig? =
-    repository.getDeliveryConfigsByApplication(application).also {
-      if (it.size > 1) {
-        log.warn("Application $application has ${it.size} delivery configs. " +
-          "Returning the first one: ${it.first().name}.")
-      }
-    }.firstOrNull()
 
   private val ArtifactVersions.key: String
     get() = "${type.name}:$name"

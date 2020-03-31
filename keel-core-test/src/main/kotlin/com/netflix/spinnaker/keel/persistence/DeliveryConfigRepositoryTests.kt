@@ -21,10 +21,8 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.failed
-import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.succeeded
 
@@ -141,8 +139,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
       test("retrieving config by application returns an empty list") {
         getByApplication()
-          .succeeded()
-          .isEmpty()
+          .failed()
+          .isA<NoSuchDeliveryConfigException>()
       }
     }
 
@@ -163,8 +161,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       test("the config can be retrieved by application") {
         getByApplication()
           .succeeded()
-          .hasSize(1)
-          .first()
           .get(DeliveryConfig::name)
           .isEqualTo(deliveryConfig.name)
       }
@@ -229,7 +225,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         test("artifacts are attached when retrieved by application") {
           getByApplication()
             .succeeded()
-            .first()
             .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
         }
 
@@ -243,7 +238,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         test("environments are attached when retrieved by application") {
           getByApplication()
             .succeeded()
-            .first()
             .get { environments }
             .isEqualTo(deliveryConfig.environments)
         }

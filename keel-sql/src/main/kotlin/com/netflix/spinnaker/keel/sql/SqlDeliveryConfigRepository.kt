@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
@@ -57,7 +58,7 @@ class SqlDeliveryConfigRepository(
 ) : DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun getByApplication(application: String): Collection<DeliveryConfig> =
+  override fun getByApplication(application: String): DeliveryConfig =
     sqlRetry.withRetry(READ) {
       jooq
         .select(
@@ -68,10 +69,10 @@ class SqlDeliveryConfigRepository(
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-        .fetch { (uid, name, application, serviceAccount) ->
+        .fetchOne { (uid, name, application, serviceAccount) ->
           DeliveryConfig(name, application, serviceAccount).attachDependents(uid)
         }
-    }
+    } ?: throw NoDeliveryConfigForApplication(application)
 
   override fun deleteByApplication(application: String): Int {
 
