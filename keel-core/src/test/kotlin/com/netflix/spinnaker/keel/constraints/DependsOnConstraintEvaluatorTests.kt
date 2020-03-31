@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -21,7 +22,7 @@ import strikt.assertions.isTrue
 internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
 
   object Fixture {
-    val artifact = DebianArtifact("fnord")
+    val artifact = DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
     val constrainedEnvironment = Environment(
       name = "staging",
       constraints = setOf(

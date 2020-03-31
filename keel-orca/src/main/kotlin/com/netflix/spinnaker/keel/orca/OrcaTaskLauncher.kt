@@ -95,6 +95,11 @@ class OrcaTaskLauncher(
         Task(id = it.taskId, name = description)
       }
 
+  override suspend fun correlatedTasksRunning(correlationId: String): Boolean =
+    orcaService
+      .getCorrelatedExecutions(correlationId)
+      .isNotEmpty()
+
   private val Resource<*>.notifications: Set<NotificationConfig>
     get() = repository
       .environmentFor(id)

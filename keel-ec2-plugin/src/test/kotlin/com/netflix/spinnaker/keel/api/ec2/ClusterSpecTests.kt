@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
@@ -119,7 +120,10 @@ object Fixture {
       app = "fnord",
       stack = "test"
     ),
-    imageProvider = ArtifactImageProvider(DebianArtifact("fnord")),
+    imageProvider = ArtifactImageProvider(DebianArtifact(
+      name = "fnord",
+      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2", "us-east-1"))
+    )),
     locations = SubnetAwareLocations(
       account = "test",
       vpc = "vpc0",

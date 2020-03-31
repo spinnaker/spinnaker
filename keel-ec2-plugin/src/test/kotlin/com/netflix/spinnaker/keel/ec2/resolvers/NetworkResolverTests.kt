@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
@@ -246,7 +247,10 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
           app = "fnord",
           stack = "test"
         ),
-        imageProvider = ArtifactImageProvider(DebianArtifact("fnord")),
+        imageProvider = ArtifactImageProvider(DebianArtifact(
+          name = "fnord",
+          vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = locations.regions.map(SubnetAwareRegionSpec::name).toSet())
+        )),
         locations = locations,
         _defaults = ServerGroupSpec(
           launchConfiguration = LaunchConfigurationSpec(

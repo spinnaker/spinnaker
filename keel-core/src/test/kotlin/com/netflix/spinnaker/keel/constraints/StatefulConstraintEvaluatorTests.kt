@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.NotificationType
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -38,10 +39,10 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
     class FakeConstraint : StatefulConstraint("fake")
 
     class FakeStatefulConstraintEvaluator(
-      override val repository: KeelRepository,
+      repository: KeelRepository,
       override val eventPublisher: ApplicationEventPublisher,
       val delegate: StatefulConstraintEvaluator<FakeConstraint>
-    ) : StatefulConstraintEvaluator<FakeConstraint>() {
+    ) : StatefulConstraintEvaluator<FakeConstraint>(repository) {
       override fun canPromote(
         artifact: DeliveryArtifact,
         version: String,
@@ -55,7 +56,7 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
       override val supportedType = SupportedConstraintType<FakeConstraint>("fake")
     }
 
-    val artifact = DebianArtifact("fnord")
+    val artifact = DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
 
     val constraint = FakeConstraint()
 

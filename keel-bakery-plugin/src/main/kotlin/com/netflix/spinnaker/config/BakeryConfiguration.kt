@@ -2,15 +2,15 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
-import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.BaseImageCacheProperties
 import com.netflix.spinnaker.keel.bakery.DefaultBaseImageCache
-import com.netflix.spinnaker.keel.bakery.resource.ImageHandler
+import com.netflix.spinnaker.keel.bakery.artifact.BakeCredentials
+import com.netflix.spinnaker.keel.bakery.artifact.ImageHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
-import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -24,25 +24,23 @@ import org.springframework.context.annotation.Configuration
 class BakeryConfiguration {
   @Bean
   fun imageHandler(
-    artifactRepository: ArtifactRepository,
+    keelRepository: KeelRepository,
     baseImageCache: BaseImageCache,
     clouddriverService: CloudDriverService,
-    orcaService: OrcaService,
     igorService: ArtifactService,
     imageService: ImageService,
     publisher: ApplicationEventPublisher,
     taskLauncher: TaskLauncher,
-    normalizers: List<Resolver<*>>
+    @Value("\${bakery.defaults.serviceAccount:keel@spinnaker.io}") defaultServiceAccount: String,
+    @Value("\${bakery.defaults.application:keel}") defaultApplication: String
   ) = ImageHandler(
-    artifactRepository,
+    keelRepository,
     baseImageCache,
-    clouddriverService,
-    orcaService,
     igorService,
     imageService,
     publisher,
     taskLauncher,
-    normalizers
+    BakeCredentials(defaultServiceAccount, defaultApplication)
   )
 
   @Bean

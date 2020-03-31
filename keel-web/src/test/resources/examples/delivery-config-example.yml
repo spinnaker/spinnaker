@@ -6,6 +6,11 @@ artifacts:
 - name: fnord
   type: deb
   reference: fnord
+  vmOptions:
+    baseOs: bionic
+    regions:
+    - us-east-1
+    - us-west-2
 environments:
 - name: test
   constraints: []
@@ -18,16 +23,6 @@ environments:
     regions:
     - name: us-west-2
   resources:
-  - kind: bakery/image@v1
-    spec:
-      artifactName: fnord
-      baseLabel: RELEASE
-      baseOs: bionic-classic
-      regions:
-      - us-east-1
-      - us-west-2
-      storeType: EBS
-      application: fnord
   - kind: ec2/cluster@v1
     spec:
       imageProvider:

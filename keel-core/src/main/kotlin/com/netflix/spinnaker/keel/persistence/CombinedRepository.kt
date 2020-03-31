@@ -339,6 +339,9 @@ class CombinedRepository(
   override fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> =
     resourceRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
 
+  override fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> =
+    artifactRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
+
   override fun getResourceStatus(id: String): ResourceStatus =
     resourceRepository.getStatus(id)
   // END ResourceRepository methods

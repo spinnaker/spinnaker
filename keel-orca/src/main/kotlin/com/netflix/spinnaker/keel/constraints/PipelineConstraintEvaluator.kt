@@ -37,10 +37,10 @@ import org.springframework.stereotype.Component
 @Component
 class PipelineConstraintEvaluator(
   private val orcaService: OrcaService,
-  override val repository: KeelRepository,
+  repository: KeelRepository,
   override val eventPublisher: ApplicationEventPublisher,
   private val clock: Clock
-) : StatefulConstraintEvaluator<PipelineConstraint>() {
+) : StatefulConstraintEvaluator<PipelineConstraint>(repository) {
   override val supportedType = SupportedConstraintType<PipelineConstraint>("pipeline")
   private val log by lazy { getLogger(javaClass) }
 

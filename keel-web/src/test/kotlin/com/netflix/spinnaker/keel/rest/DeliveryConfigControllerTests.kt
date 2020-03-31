@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
@@ -83,7 +84,13 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             name = "keel-manifest",
             application = "keel",
             serviceAccount = "keel@spinnaker",
-            artifacts = setOf(DebianArtifact(name = "keel")),
+            artifacts = setOf(DebianArtifact(
+              name = "keel",
+              vmOptions = VirtualMachineOptions(
+                baseOs = "bionic",
+                regions = setOf("us-west-2")
+              )
+            )),
             environments = setOf(
               SubmittedEnvironment(
                 name = "test",
@@ -134,6 +141,10 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |artifacts:
         |- name: keel
         |  type: deb
+        |  vmOptions:
+        |    baseOs: bionic
+        |    regions:
+        |    - ap-south-1
         |environments:
         |- name: test
         |  resources:
@@ -165,7 +176,13 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |  "artifacts": [
         |    {
         |      "name": "keel",
-        |      "type": "deb"
+        |      "type": "deb",
+        |      "vmOptions": {
+        |        "baseOs": "bionic",
+        |        "regions": [
+        |          "ap-south-1"
+        |        ]
+        |      }
         |    }
         |  ],
         |  "environments": [

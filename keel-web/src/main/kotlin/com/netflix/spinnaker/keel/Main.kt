@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
@@ -76,17 +77,20 @@ class KeelApplication {
   lateinit var instanceIdSupplier: InstanceIdSupplier
 
   @Autowired(required = false)
-  var handlers: List<ResourceHandler<*, *>> = emptyList()
+  var resourceHandlers: List<ResourceHandler<*, *>> = emptyList()
 
   @Autowired(required = false)
   var constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList()
+
+  @Autowired(required = false)
+  var artifactHandlers: List<ArtifactHandler> = emptyList()
 
   @Autowired
   lateinit var objectMappers: List<ObjectMapper>
 
   @PostConstruct
   fun registerResourceSpecSubtypes() {
-    handlers
+    resourceHandlers
       .map { it.supportedKind }
       .forEach { (kind, specClass) ->
         log.info("Registering ResourceSpec sub-type {}: {}", kind, specClass.simpleName)
@@ -119,7 +123,8 @@ class KeelApplication {
         log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
       }
 
-    log.info("Using handlers: {}", handlers.joinToString { it.name })
+    log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
+    log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
   }
 }
 

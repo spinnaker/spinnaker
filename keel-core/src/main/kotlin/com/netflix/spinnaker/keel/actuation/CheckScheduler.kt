@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.telemetry.ArtifactCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.EnvironmentsCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
 import java.time.Duration
@@ -30,6 +31,7 @@ class CheckScheduler(
   private val repository: KeelRepository,
   private val resourceActuator: ResourceActuator,
   private val environmentPromotionChecker: EnvironmentPromotionChecker,
+  private val artifactHandlers: Collection<ArtifactHandler>,
   @Value("\${keel.resource-check.min-age-duration:60s}") private val resourceCheckMinAgeDuration: Duration,
   @Value("\${keel.resource-check.batch-size:1}") private val resourceCheckBatchSize: Int,
   @Value("\${keel.resource-check.timeout-duration:2m}") private val checkTimeout: Duration,
@@ -116,6 +118,36 @@ class CheckScheduler(
       log.debug("Scheduled environment validation complete")
     } else {
       log.debug("Scheduled environment validation disabled")
+    }
+  }
+
+  @Scheduled(fixedDelayString = "\${keel.artifact-check.frequency:PT1S}")
+  fun checkArtifacts() {
+    if (enabled.get()) {
+      log.debug("Starting scheduled artifact validation…")
+      publisher.publishEvent(ScheduledArtifactCheckStarting)
+      val job = launch {
+        repository.artifactsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+          .forEach { artifact ->
+            try {
+              withTimeout(checkTimeout.toMillis()) {
+                launch {
+                  artifactHandlers.forEach { handler ->
+                    handler.handle(artifact)
+                  }
+                }
+              }
+            } catch (e: TimeoutCancellationException) {
+              log.error("Timed out checking artifact $artifact from ${artifact.deliveryConfigName}", e)
+              publisher.publishEvent(ArtifactCheckTimedOut(artifact.name, artifact.deliveryConfigName))
+            }
+          }
+      }
+
+      runBlocking { job.join() }
+      log.debug("Scheduled artifact validation complete")
+    } else {
+      log.debug("Scheduled artifact validation disabled")
     }
   }
 

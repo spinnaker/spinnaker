@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -388,7 +389,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             name = "fnord-manifest",
             application = "fnord",
             serviceAccount = "keel@spin",
-            artifacts = setOf(DebianArtifact("fnord")),
+            artifacts = setOf(DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))),
             environments = setOf(Environment(name = "staging", resources = setOf(resource)))
           )
           runBlocking {

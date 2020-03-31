@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -65,7 +66,10 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       mapOf("ap-south-1" to listOf(imageId))
     )
 
-    val artifact = DebianArtifact(name = "fnord")
+    val artifact = DebianArtifact(
+      name = "fnord",
+      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("ap-south-1"))
+    )
 
     val nonArtifactCluster = resource(
       kind = SPINNAKER_EC2_API_V1.qualify("cluster"),

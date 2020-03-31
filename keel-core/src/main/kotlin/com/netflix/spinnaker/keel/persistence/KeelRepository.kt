@@ -147,6 +147,8 @@ interface KeelRepository {
 
   fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>>
 
+  fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact>
+
   fun getResourceStatus(id: String): ResourceStatus
   // END ResourceRepository methods
 

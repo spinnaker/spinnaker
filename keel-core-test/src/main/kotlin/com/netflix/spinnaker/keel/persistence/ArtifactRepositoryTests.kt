@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
@@ -24,7 +25,9 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.first
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
@@ -44,10 +47,26 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val subject: T
   ) {
     // the artifact built off a feature branch
-    val artifact1 = DebianArtifact("keeldemo", deliveryConfigName = "my-manifest", reference = "candidate", statuses = setOf(SNAPSHOT))
+    val artifact1 = DebianArtifact(
+      name = "keeldemo",
+      deliveryConfigName = "my-manifest",
+      reference = "candidate",
+      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
+      statuses = setOf(SNAPSHOT)
+    )
     // the artifact built off of master
-    val artifact2 = DebianArtifact("keeldemo", deliveryConfigName = "my-manifest", reference = "master", statuses = setOf(RELEASE))
-    val artifact3 = DockerArtifact("docker", deliveryConfigName = "my-manifest", reference = "docker-artifact")
+    val artifact2 = DebianArtifact(
+      name = "keeldemo",
+      deliveryConfigName = "my-manifest",
+      reference = "master",
+      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
+      statuses = setOf(RELEASE)
+    )
+    val artifact3 = DockerArtifact(
+      name = "docker",
+      deliveryConfigName = "my-manifest",
+      reference = "docker-artifact"
+    )
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
     val manifest = DeliveryConfig(
@@ -144,6 +163,15 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     context("the artifact is known") {
       before {
         subject.register(artifact1)
+      }
+
+      test("VM options are persisted and read correctly") {
+        expectThat(subject.get(artifact1.name, artifact1.type, artifact1.deliveryConfigName!!))
+          .hasSize(1)
+          .first()
+          .isA<DebianArtifact>()
+          .get { vmOptions }
+          .isEqualTo(artifact1.vmOptions)
       }
 
       test("re-registering the same artifact does not raise an exception") {

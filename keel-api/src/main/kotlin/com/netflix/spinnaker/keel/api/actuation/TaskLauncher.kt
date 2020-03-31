@@ -57,4 +57,6 @@ interface TaskLauncher {
     type: SubjectType,
     artifacts: List<Map<String, Any?>> = emptyList()
   ): Task
+
+  suspend fun correlatedTasksRunning(correlationId: String): Boolean
 }

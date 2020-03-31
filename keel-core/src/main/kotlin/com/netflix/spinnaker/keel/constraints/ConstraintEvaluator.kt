@@ -55,8 +55,9 @@ data class SupportedConstraintType<T : Constraint>(
 inline fun <reified T : Constraint> SupportedConstraintType(name: String): SupportedConstraintType<T> =
   SupportedConstraintType(name, T::class.java)
 
-abstract class StatefulConstraintEvaluator<T : Constraint> : ConstraintEvaluator<T> {
-  abstract val repository: KeelRepository
+abstract class StatefulConstraintEvaluator<T : Constraint>(
+  protected val repository: KeelRepository
+) : ConstraintEvaluator<T> {
 
   override fun canPromote(
     artifact: DeliveryArtifact,

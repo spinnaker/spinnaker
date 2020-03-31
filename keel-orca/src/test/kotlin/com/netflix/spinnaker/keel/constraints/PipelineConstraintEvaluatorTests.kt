@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
@@ -45,7 +46,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
   ) {
     val type = "pipeline"
     val orcaService: OrcaService = mockk()
-    val artifact = DebianArtifact("fnord")
+    val artifact = DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
     val version = "1.1"
     val environment = Environment(
       name = "prod",

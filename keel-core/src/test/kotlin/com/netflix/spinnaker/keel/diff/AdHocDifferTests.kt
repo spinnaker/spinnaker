@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.diff
 
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -54,7 +55,7 @@ class AdHocDifferTests : JUnit5Minutests {
       name = "keel-manifest",
       application = "keel",
       serviceAccount = "keel@spinnaker",
-      artifacts = setOf(DebianArtifact(name = "keel")),
+      artifacts = setOf(DebianArtifact(name = "keel", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))),
       environments = setOf(
         SubmittedEnvironment(
           name = "test",

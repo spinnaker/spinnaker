@@ -4,6 +4,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.patterns.PolledMeter
+import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
@@ -23,6 +24,7 @@ class TelemetryListener(
 ) {
   private val lastResourceCheck: AtomicReference<Instant> = createDriftGauge(RESOURCE_CHECK_DRIFT_GAUGE)
   private val lastEnvironmentCheck: AtomicReference<Instant> = createDriftGauge(ENVIRONMENT_CHECK_DRIFT_GAUGE)
+  private val lastArtifactCheck: AtomicReference<Instant> = createDriftGauge(ARTIFACT_CHECK_DRIFT_GAUGE)
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
@@ -118,6 +120,11 @@ class TelemetryListener(
     lastEnvironmentCheck.set(clock.instant())
   }
 
+  @EventListener(ScheduledArtifactCheckStarting::class)
+  fun onScheduledCheckStarting(event: ScheduledArtifactCheckStarting) {
+    lastArtifactCheck.set(clock.instant())
+  }
+
   private fun createDriftGauge(name: String): AtomicReference<Instant> {
     return PolledMeter
       .using(spectator)
@@ -144,6 +151,7 @@ class TelemetryListener(
     private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
     private const val RESOURCE_CHECK_TIMED_OUT_ID = "keel.resource.check.timeout"
     private const val RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID = "keel.resource.actuation.launched"
+    private const val ARTIFACT_CHECK_DRIFT_GAUGE = "keel.artifact.check.drift"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
     private const val ARTIFACT_APPROVED_COUNTER_ID = "keel.artifact.approved"
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"

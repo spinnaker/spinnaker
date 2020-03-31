@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
@@ -33,7 +34,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     .provenance("https://my.jenkins.master/jobs/fnord-release/58")
     .build()
 
-  val debianArtifact = DebianArtifact(name = "fnord", deliveryConfigName = "fnord-config")
+  val debianArtifact = DebianArtifact(name = "fnord", deliveryConfigName = "fnord-config", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
   val dockerArtifact = DockerArtifact(name = "fnord/myimage", tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB, deliveryConfigName = "fnord-config")
 
   data class ArtifactFixture(
@@ -54,7 +55,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           artifacts = listOf(korkDeb),
           details = emptyMap()
         ),
-        artifact = DebianArtifact(name = "fnord", deliveryConfigName = "fnord-config")
+        artifact = debianArtifact
       )
     }
 
@@ -127,12 +128,12 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
   fun artifactRegisteredEventTests() = rootContext<RegisteredFixture> {
     fixture {
+      DebianArtifact(name = "fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))).let {
       RegisteredFixture(
-        event = ArtifactRegisteredEvent(
-          DebianArtifact(name = "fnord")
-        ),
-        artifact = DebianArtifact(name = "fnord")
+        event = ArtifactRegisteredEvent(it),
+        artifact = it
       )
+    }
     }
 
     context("artifact is already registered") {

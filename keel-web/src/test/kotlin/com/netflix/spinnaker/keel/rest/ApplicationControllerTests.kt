@@ -10,7 +10,9 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
@@ -114,8 +116,9 @@ internal class ApplicationControllerTests : JUnit5Minutests {
     val artifact = DebianArtifact(
       name = application,
       deliveryConfigName = "manifest",
+      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2", "us-east-1")),
       reference = "fnord",
-      statuses = setOf(ArtifactStatus.RELEASE)
+      statuses = setOf(RELEASE)
     )
 
     val clusterDefaults = ClusterSpec.ServerGroupSpec(

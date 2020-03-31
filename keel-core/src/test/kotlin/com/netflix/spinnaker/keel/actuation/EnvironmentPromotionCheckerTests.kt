@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.constraints.ArtifactUsedConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintState
@@ -56,7 +57,11 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
       publisher
     )
 
-    val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest")
+    val artifact = DebianArtifact(
+      name = "fnord",
+      deliveryConfigName = "my-manifest",
+      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
+    )
     val deliveryConfig = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",

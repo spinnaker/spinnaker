@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ManualJudgementConstraintEvaluator(
-  override val repository: KeelRepository,
+  repository: KeelRepository,
   private val clock: Clock,
   override val eventPublisher: ApplicationEventPublisher
-) : StatefulConstraintEvaluator<ManualJudgementConstraint>() {
+) : StatefulConstraintEvaluator<ManualJudgementConstraint>(repository) {
 
   override val supportedType = SupportedConstraintType<ManualJudgementConstraint>("manual-judgement")
 

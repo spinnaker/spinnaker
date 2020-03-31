@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 
 private val objectMapper: ObjectMapper = configuredObjectMapper()
@@ -50,7 +51,7 @@ fun mapToArtifact(
         val statuses: Set<ArtifactStatus> = details["statuses"]?.let { it ->
           try {
             objectMapper.convertValue<Set<ArtifactStatus>>(it)
-          } catch (e: java.lang.IllegalArgumentException) {
+          } catch (e: IllegalArgumentException) {
             null
           }
         } ?: emptySet()
@@ -58,7 +59,10 @@ fun mapToArtifact(
           name = name,
           statuses = statuses,
           reference = reference,
-          deliveryConfigName = deliveryConfigName
+          deliveryConfigName = deliveryConfigName,
+          vmOptions = details["vmOptions"]?.let {
+            objectMapper.convertValue<VirtualMachineOptions>(it)
+          } ?: error("vmOptions is required")
         )
       }
       docker -> {

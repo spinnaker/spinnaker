@@ -116,3 +116,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200330-delivery-config-unique-per-application.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200325-create-artifact-last-checked-table.yml
+      relativeToChangelogFile: true

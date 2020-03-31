@@ -63,7 +63,6 @@ class ApiDocCompatibilityTests : JUnit5Minutests {
         "EC2 application load balancer" to "/examples/alb-example.yml",
         "EC2 classic load balancer" to "/examples/clb-example.yml",
         "EC2 cluster with auto-scaling" to "/examples/ec2-cluster-with-autoscaling-example.yml",
-        "Bakery image" to "/examples/image-example.yml",
         "EC2 security group" to "/examples/security-group-example.yml",
         "Simple Titus cluster" to "/examples/simple-titus-cluster-example.yml",
         "Titus cluster" to "/examples/titus-cluster-example.yml",

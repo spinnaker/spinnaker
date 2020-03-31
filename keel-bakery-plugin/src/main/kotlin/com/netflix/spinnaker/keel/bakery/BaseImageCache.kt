@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.bakery
 
-import com.netflix.spinnaker.keel.bakery.api.BaseLabel
+import com.netflix.spinnaker.keel.api.artifacts.BaseLabel
 
 interface BaseImageCache {
   /**

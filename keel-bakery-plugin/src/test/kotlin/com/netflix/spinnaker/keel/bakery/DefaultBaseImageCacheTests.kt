@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.bakery
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.bakery.api.BaseLabel.PREVIOUS
-import com.netflix.spinnaker.keel.bakery.api.BaseLabel.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.PREVIOUS
+import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat

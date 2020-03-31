@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -39,7 +40,9 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.security.MessageDigest
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
+import java.time.Instant.EPOCH
 import java.time.ZoneOffset
 import javax.xml.bind.DatatypeConverter
 import org.jooq.DSLContext
@@ -83,6 +86,12 @@ class SqlArtifactRepository(
         .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
         .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
         .execute()
+      jooq.insertInto(ARTIFACT_LAST_CHECKED)
+        .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, id)
+        .set(ARTIFACT_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+        .onDuplicateKeyUpdate()
+        .set(ARTIFACT_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+        .execute()
     }
   }
 
@@ -102,7 +111,10 @@ class SqlArtifactRepository(
 
   private fun DebianArtifact.detailsAsJson() =
     objectMapper.writeValueAsString(
-      mapOf("statuses" to statuses)
+      mapOf(
+        "vmOptions" to vmOptions,
+        "statuses" to statuses
+      )
     )
 
   override fun get(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact> {
@@ -846,6 +858,36 @@ class SqlArtifactRepository(
             replacedBy = replacedBy
           )
         }
+    }
+  }
+
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> {
+    val now = clock.instant()
+    val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
+    return sqlRetry.withRetry(WRITE) {
+      jooq.inTransaction {
+        select(DELIVERY_ARTIFACT.UID, DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
+          .from(DELIVERY_ARTIFACT, ARTIFACT_LAST_CHECKED)
+          .where(DELIVERY_ARTIFACT.UID.eq(ARTIFACT_LAST_CHECKED.ARTIFACT_UID))
+          .and(ARTIFACT_LAST_CHECKED.AT.lessOrEqual(cutoff))
+          .orderBy(ARTIFACT_LAST_CHECKED.AT)
+          .limit(limit)
+          .forUpdate()
+          .fetch()
+          .also {
+            it.forEach { (uid, _, _, _, _, _) ->
+              insertInto(ARTIFACT_LAST_CHECKED)
+                .set(ARTIFACT_LAST_CHECKED.ARTIFACT_UID, uid)
+                .set(ARTIFACT_LAST_CHECKED.AT, now.toLocal())
+                .onDuplicateKeyUpdate()
+                .set(ARTIFACT_LAST_CHECKED.AT, now.toLocal())
+                .execute()
+            }
+          }
+          .map { (_, name, type, details, reference, deliveryConfigName) ->
+            mapToArtifact(name, ArtifactType.valueOf(type), details, reference, deliveryConfigName)
+          }
+      }
     }
   }
 

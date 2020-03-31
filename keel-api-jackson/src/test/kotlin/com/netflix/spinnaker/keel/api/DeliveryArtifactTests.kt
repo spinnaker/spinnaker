@@ -18,7 +18,15 @@ internal class DeliveryArtifactTests : JUnit5Minutests {
       {
         "name": "fnord",
         "type": "deb",
-        "deliveryConfigName": "my-delivery-config"
+        "deliveryConfigName": "my-delivery-config",
+        "vmOptions": {
+          "baseLabel": "RELEASE",
+          "baseOs": "bionic",
+          "storeType": "EBS",
+          "regions": [
+            "ap-south-1"
+          ]
+        }
       }
     """.trimIndent()
 

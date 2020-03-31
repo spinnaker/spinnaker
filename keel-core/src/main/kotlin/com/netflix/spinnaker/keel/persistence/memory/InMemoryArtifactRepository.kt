@@ -24,7 +24,9 @@ import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
+import java.time.Instant.EPOCH
 import java.util.UUID
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -44,6 +46,7 @@ class InMemoryArtifactRepository(
   private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, EnvironmentArtifactPin>()
   private val statusByEnvironment = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, PromotionStatus>>()
   private val vetoReference = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, String>>()
+  private val lastCheckTimes = mutableMapOf<DeliveryArtifact, Instant>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   fun dropAll() {
@@ -55,6 +58,7 @@ class InMemoryArtifactRepository(
     pinnedVersions.clear()
     statusByEnvironment.clear()
     vetoReference.clear()
+    lastCheckTimes.clear()
   }
 
   private data class VersionsKey(
@@ -81,6 +85,7 @@ class InMemoryArtifactRepository(
       artifacts[id] = artifact
     }
     versions.putIfAbsent(VersionsKey(artifact.name, artifact.type), mutableListOf())
+    lastCheckTimes[artifact] = EPOCH
   }
 
   private fun getId(artifact: DeliveryArtifact): UUID? =
@@ -474,6 +479,20 @@ class InMemoryArtifactRepository(
       replacedAt = replacedAt,
       replacedBy = replacedBy
     )
+  }
+
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> {
+    val cutoff = clock.instant().minus(minTimeSinceLastCheck)
+    return lastCheckTimes
+      .filter { it.value <= cutoff }
+      .keys
+      .take(limit)
+      .also { artifacts ->
+        artifacts.forEach {
+          lastCheckTimes[it] = clock.instant()
+        }
+      }
+      .toList()
   }
 
   private data class ArtifactVersionAndStatus(

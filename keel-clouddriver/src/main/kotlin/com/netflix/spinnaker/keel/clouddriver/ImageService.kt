@@ -101,7 +101,7 @@ class ImageService(
    * Returns the latest image that is present in all regions.
    * Each ami must have tags.
    */
-  suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: List<String>): NamedImage? =
+  suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: Collection<String>): NamedImage? =
     cloudDriverService.namedImages(
       user = DEFAULT_SERVICE_ACCOUNT,
       imageName = appVersion.toImageName().replace("~", "_"),

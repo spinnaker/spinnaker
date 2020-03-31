@@ -57,10 +57,10 @@ import org.springframework.stereotype.Component
 class CanaryConstraintEvaluator(
   private val handlers: List<CanaryConstraintDeployHandler>,
   private val orcaService: OrcaService,
-  override val repository: KeelRepository,
+  repository: KeelRepository,
   private val clock: Clock,
   override val eventPublisher: ApplicationEventPublisher
-) : StatefulConstraintEvaluator<CanaryConstraint>() {
+) : StatefulConstraintEvaluator<CanaryConstraint>(repository) {
   override val supportedType = SupportedConstraintType<CanaryConstraint>("canary")
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val correlatedMessagePrefix = "Correlated canary tasks found"

@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
@@ -21,6 +24,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   private val repository: KeelRepository = mockk()
   private val resourceActuator = mockk<ResourceActuator>(relaxUnitFun = true)
   private val environmentPromotionChecker = mockk<EnvironmentPromotionChecker>()
+  private val artifactHandler = mockk<ArtifactHandler>(relaxUnitFun = true)
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
   class DummyScheduledAgent(override val lockTimeoutSeconds: Long) : ScheduledAgent {
@@ -51,12 +55,26 @@ internal object CheckSchedulerTests : JUnit5Minutests {
     )
   )
 
+  private val artifacts = listOf(
+    DebianArtifact(
+      name = "fnord",
+      vmOptions = VirtualMachineOptions(
+        baseOs = "bionic-classic",
+        regions = setOf("us-west-2", "us-east-1")
+      )
+    ),
+    DockerArtifact(
+      name = "fnord-but-like-in-a-container"
+    )
+  )
+
   fun tests() = rootContext<CheckScheduler> {
     fixture {
       CheckScheduler(
         repository = repository,
         resourceActuator = resourceActuator,
         environmentPromotionChecker = environmentPromotionChecker,
+        artifactHandlers = listOf(artifactHandler),
         resourceCheckMinAgeDuration = Duration.ofMinutes(5),
         resourceCheckBatchSize = 2,
         checkTimeout = Duration.ofMinutes(2),
@@ -66,32 +84,62 @@ internal object CheckSchedulerTests : JUnit5Minutests {
     }
 
     context("scheduler is disabled") {
-      test("nothing happens") {
+      before {
         checkResources()
+      }
 
+      test("no resources are checked") {
         verify { resourceActuator wasNot Called }
+      }
+
+      test("no environments are checked") {
+        verify { environmentPromotionChecker wasNot Called }
+      }
+
+      test("no artifacts are checked") {
+        verify { artifactHandler wasNot Called }
       }
     }
 
     context("scheduler is enabled") {
       before {
         onApplicationUp()
-
-        every {
-          repository.resourcesDueForCheck(any(), any())
-        } returns resources
       }
 
       after {
         onApplicationDown()
       }
 
-      test("all resources are checked") {
-        checkResources()
+      context("checking resources") {
+        before {
+          every {
+            repository.resourcesDueForCheck(any(), any())
+          } returns resources
 
-        resources.forEach { resource ->
-          coVerify(timeout = 500) {
-            resourceActuator.checkResource(resource)
+          checkResources()
+        }
+        test("all resources are checked") {
+          resources.forEach { resource ->
+            coVerify(timeout = 500) {
+              resourceActuator.checkResource(resource)
+            }
+          }
+        }
+      }
+
+      context("checking artifacts") {
+        before {
+          every {
+            repository.artifactsDueForCheck(any(), any())
+          } returns artifacts
+
+          checkArtifacts()
+        }
+        test("all artifacts are checked") {
+          artifacts.forEach { artifact ->
+            coVerify(timeout = 500) {
+              artifactHandler.handle(artifact)
+            }
           }
         }
       }

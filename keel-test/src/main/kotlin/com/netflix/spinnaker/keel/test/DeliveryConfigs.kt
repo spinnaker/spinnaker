@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -17,7 +18,7 @@ fun deliveryConfig(
   resource: Resource<*> = resource(),
   env: Environment = Environment("test", setOf(resource)),
   configName: String = "myconfig",
-  artifact: DeliveryArtifact = DebianArtifact(name = "fnord", deliveryConfigName = configName),
+  artifact: DeliveryArtifact = DebianArtifact(name = "fnord", deliveryConfigName = configName, vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))),
   deliveryConfig: DeliveryConfig = DeliveryConfig(
     name = configName,
     application = "fnord",
