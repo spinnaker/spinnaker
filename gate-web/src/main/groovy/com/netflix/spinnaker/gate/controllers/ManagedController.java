@@ -170,21 +170,21 @@ public class ManagedController {
   @ApiOperation(
       value = "List up-to {limit} current constraint states for an environment",
       response = ConstraintState.class)
-  @GetMapping(path = "/delivery-configs/{name}/environment/{environment}/constraints")
+  @GetMapping(path = "/application/{application}/environment/{environment}/constraints")
   List<ConstraintState> getConstraintState(
-      @PathVariable("name") String name,
+      @PathVariable("application") String application,
       @PathVariable("environment") String environment,
       @RequestParam(value = "limit", required = false, defaultValue = "10") String limit) {
-    return keelService.getConstraintState(name, environment, Integer.valueOf(limit));
+    return keelService.getConstraintState(application, environment, Integer.valueOf(limit));
   }
 
   @ApiOperation(value = "Update the status of an environment constraint")
-  @PostMapping(path = "/delivery-configs/{name}/environment/{environment}/constraint")
+  @PostMapping(path = "/application/{application}/environment/{environment}/constraint")
   void updateConstraintStatus(
-      @PathVariable("name") String name,
+      @PathVariable("application") String application,
       @PathVariable("environment") String environment,
       @RequestBody ConstraintStatus status) {
-    keelService.updateConstraintStatus(name, environment, status);
+    keelService.updateConstraintStatus(application, environment, status);
   }
 
   @ApiOperation(value = "Get managed details about an application", response = Map.class)

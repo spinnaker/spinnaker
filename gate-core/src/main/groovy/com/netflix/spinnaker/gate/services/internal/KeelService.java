@@ -73,15 +73,15 @@ public interface KeelService {
   @Headers("Accept: application/json")
   Map validateManifest(@Body DeliveryConfig manifest);
 
-  @GET("/delivery-configs/{name}/environment/{environment}/constraints")
+  @GET("/application/{application}/environment/{environment}/constraints")
   List<ConstraintState> getConstraintState(
-      @Path("name") String name,
+      @Path("application") String application,
       @Path("environment") String environment,
       @Query("limit") Integer limit);
 
-  @POST("/delivery-configs/{name}/environment/{environment}/constraint")
+  @POST("/application/{application}/environment/{environment}/constraint")
   Response updateConstraintStatus(
-      @Path("name") String name,
+      @Path("application") String application,
       @Path("environment") String environment,
       @Body ConstraintStatus status);
 
