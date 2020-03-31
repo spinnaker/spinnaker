@@ -24,12 +24,12 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.nio.file.Files
+import java.nio.file.Paths
 import org.pf4j.update.PluginInfo
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import java.nio.file.Files
-import java.nio.file.Paths
 
 class DeckPluginCacheTest : JUnit5Minutests {
 

@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spectator.api.Registry
-import org.slf4j.LoggerFactory
 import java.io.File
+import org.slf4j.LoggerFactory
 
 /**
  * Provides Deck with means of discovering what plugins it needs to download and a standard interface for

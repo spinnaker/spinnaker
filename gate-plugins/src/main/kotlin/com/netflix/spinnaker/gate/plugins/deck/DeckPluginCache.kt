@@ -19,11 +19,11 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
-import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Scheduled
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 
 /**
  * Responsible for keeping an up-to-date cache of all plugins that Deck needs to know about.

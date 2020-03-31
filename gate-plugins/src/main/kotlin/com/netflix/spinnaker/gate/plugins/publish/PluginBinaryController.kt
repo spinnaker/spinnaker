@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import io.swagger.annotations.ApiOperation
+import java.lang.String.format
 import lombok.SneakyThrows
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -32,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import java.lang.String.format
 
 @RestController
 @RequestMapping("/plugins/upload")

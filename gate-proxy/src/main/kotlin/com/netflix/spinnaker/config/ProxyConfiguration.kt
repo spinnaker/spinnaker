@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.config
 
 import com.squareup.okhttp.OkHttpClient
-import org.slf4j.LoggerFactory
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Configuration
 import java.io.File
 import java.security.KeyStore
 import java.security.cert.X509Certificate
@@ -31,6 +27,10 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
+import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableConfigurationProperties(

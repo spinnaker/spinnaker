@@ -23,6 +23,9 @@ import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.squareup.okhttp.Request
 import com.squareup.okhttp.RequestBody
 import com.squareup.okhttp.internal.http.HttpMethod
+import java.net.SocketException
+import java.util.stream.Collectors
+import javax.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -34,9 +37,6 @@ import org.springframework.web.bind.annotation.RequestMethod.POST
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
-import java.net.SocketException
-import java.util.stream.Collectors
-import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping(value = ["/proxies"])

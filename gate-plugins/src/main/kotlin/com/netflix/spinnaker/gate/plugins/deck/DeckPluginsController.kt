@@ -17,6 +17,8 @@ package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
+import java.util.concurrent.TimeUnit
+import javax.servlet.http.HttpServletResponse
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,8 +27,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/plugins/deck")
