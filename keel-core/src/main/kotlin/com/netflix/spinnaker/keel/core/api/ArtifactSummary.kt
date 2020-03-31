@@ -56,7 +56,8 @@ data class ArtifactSummaryInEnvironment(
   val deployedAt: Instant? = null,
   val replacedAt: Instant? = null,
   val replacedBy: String? = null,
-  val statefulConstraints: List<StatefulConstraintSummary> = emptyList()
+  val statefulConstraints: List<StatefulConstraintSummary> = emptyList(),
+  val statelessConstraints: List<StatelessConstraintSummary?> = emptyList()
 )
 
 @JsonInclude(Include.NON_NULL)
@@ -69,3 +70,21 @@ data class StatefulConstraintSummary(
   val comment: String? = null,
   val attributes: ConstraintStateAttributes? = null
 )
+
+@JsonInclude(Include.NON_NULL)
+data class StatelessConstraintSummary(
+  val type: String,
+  val currentlyPassing: Boolean,
+  val attributes: ConstraintMetadata? = null
+)
+
+abstract class ConstraintMetadata()
+
+data class DependOnConstraintMetadata(
+  val environment: String
+) : ConstraintMetadata()
+
+data class AllowedTimesConstraintMetadata(
+  val windows: List<TimeWindow>,
+  val timezone: String? = null
+) : ConstraintMetadata()

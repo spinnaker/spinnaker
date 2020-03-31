@@ -8,18 +8,25 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.BuildMetadata
+import com.netflix.spinnaker.keel.core.api.DependOnConstraintMetadata
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.GitMetadata
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
+import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
+import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import org.slf4j.LoggerFactory
@@ -30,9 +37,15 @@ import org.springframework.stereotype.Component
  */
 @Component
 class ApplicationService(
-  private val repository: KeelRepository
+  private val repository: KeelRepository,
+  private val constraintEvaluators: List<ConstraintEvaluator<*>>
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+  private val explicitConstraintEvaluators: List<ConstraintEvaluator<*>> = constraintEvaluators.filter { !it.isImplicit() }
+  private val statefulEvaluators: List<ConstraintEvaluator<*>> = explicitConstraintEvaluators
+    .filterIsInstance<StatefulConstraintEvaluator<*>>()
+
+  private val statelessEvaluators = explicitConstraintEvaluators - statefulEvaluators
 
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
@@ -97,10 +110,12 @@ class ApplicationService(
               )
             }?.let { artifactSummaryInEnvironment ->
               addStatefulConstraintSummaries(artifactSummaryInEnvironment, deliveryConfig, environment, version)
-              // TODO: add stateless constraint summaries
-            }?.also { artifactSummaryInEnvironment ->
-              artifactSummariesInEnvironments.add(artifactSummaryInEnvironment)
             }
+              ?.let { artifactSummaryInEnvironment ->
+                addStatelessConstraintSummaries(artifactSummaryInEnvironment, deliveryConfig, environment, version, artifact)
+              }?.also { artifactSummaryInEnvironment ->
+                artifactSummariesInEnvironments.add(artifactSummaryInEnvironment)
+              }
           }
         }
 
@@ -139,6 +154,39 @@ class ApplicationService(
       statefulConstraints = constraintStates
         .map { it.toConstraintSummary() } +
         notEvaluatedConstraints
+    )
+  }
+
+  /**
+   * Adds details about any stateless constraints in the given environment to the [ArtifactSummaryInEnvironment].
+   */
+  private fun addStatelessConstraintSummaries(
+    artifactSummaryInEnvironment: ArtifactSummaryInEnvironment,
+    deliveryConfig: DeliveryConfig,
+    environment: Environment,
+    version: String,
+    artifact: DeliveryArtifact
+  ): ArtifactSummaryInEnvironment {
+    val statelessConstraints: List<StatelessConstraintSummary?> = environment.constraints.filter { constraint ->
+      constraint !is StatefulConstraint
+    }.map { constraint ->
+      statelessEvaluators.find { evaluator ->
+        evaluator.supportedType.name == constraint.type
+      }?.let {
+        StatelessConstraintSummary(
+          type = constraint.type,
+          currentlyPassing = it.canPromote(artifact, version = version, deliveryConfig = deliveryConfig, targetEnvironment = environment),
+          attributes = when (constraint) {
+            is DependsOnConstraint -> DependOnConstraintMetadata(constraint.environment)
+            is TimeWindowConstraint -> AllowedTimesConstraintMetadata(constraint.windows, constraint.tz)
+            else -> null
+          }
+        )
+      }
+    }
+
+    return artifactSummaryInEnvironment.copy(
+      statelessConstraints = statelessConstraints
     )
   }
 

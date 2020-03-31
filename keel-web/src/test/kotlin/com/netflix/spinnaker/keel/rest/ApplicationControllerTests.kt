@@ -519,6 +519,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                     status: "NOT_EVALUATED"
                   - type: "pipeline"
                     status: "NOT_EVALUATED"
+                  statelessConstraints:
+                  - type: "depends-on"
+                    currentlyPassing: false
+                    attributes:
+                      environment: "staging"
                 build:
                   id: 3
                 git:
@@ -538,6 +543,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                     status: "NOT_EVALUATED"
                   - type: "pipeline"
                     status: "NOT_EVALUATED"
+                  statelessConstraints:
+                  - type: "depends-on"
+                    currentlyPassing: false
+                    attributes:
+                      environment: "staging"
                 build:
                   id: 2
                 git:
@@ -560,6 +570,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                     status: "NOT_EVALUATED"
                   - type: "pipeline"
                     status: "NOT_EVALUATED"
+                  statelessConstraints:
+                  - type: "depends-on"
+                    currentlyPassing: true
+                    attributes:
+                      environment: "staging"
                 build:
                   id: 1
                 git:
@@ -589,6 +604,11 @@ internal class ApplicationControllerTests : JUnit5Minutests {
                     comment: "Aye!"
                   - type: "pipeline"
                     status: "NOT_EVALUATED"
+                  statelessConstraints:
+                  - type: "depends-on"
+                    currentlyPassing: true
+                    attributes:
+                      environment: "staging"
                 build:
                   id: 0
                 git:
