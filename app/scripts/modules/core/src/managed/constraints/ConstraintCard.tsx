@@ -16,8 +16,10 @@ const constraintCardAppearanceByStatus = {
   [OVERRIDE_FAIL]: 'error',
 } as const;
 
-const throwUnsupportedConstraintError = (type: string) => {
-  throw new Error(`Unsupported constraint type ${type} — did you check for constraint support before rendering?`);
+const logUnsupportedConstraintError = (type: string) => {
+  console.error(
+    new Error(`Unsupported constraint type ${type} — did you check for constraint support before rendering?`),
+  );
 };
 
 export interface IConstraintCardProps {
@@ -29,7 +31,8 @@ export const ConstraintCard = ({ constraint, className }: IConstraintCardProps) 
   const { type, status } = constraint;
 
   if (!isConstraintSupported(type)) {
-    throwUnsupportedConstraintError(type);
+    logUnsupportedConstraintError(type);
+    return null;
   }
 
   const { iconName, shortSummary } = getStatefulConstraintConfig(type);
