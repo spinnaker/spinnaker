@@ -154,14 +154,25 @@ class ApplicationService(
   ): ArtifactVersionSummary =
     when (artifact.type) {
       deb -> {
-        val appversion = AppVersion.parseName(version)
-        ArtifactVersionSummary(
+        var summary = ArtifactVersionSummary(
           version = version,
           environments = environments,
-          displayName = appversion?.version ?: version.removePrefix("${artifact.name}-"),
-          build = if (appversion != null) BuildMetadata(id = appversion.buildNumber.toInt()) else null,
-          git = if (appversion != null) GitMetadata(commit = appversion.commit) else null
+          displayName = version.removePrefix("${artifact.name}-")
         )
+
+        // attempt to parse helpful info from the appversion.
+        // todo: replace, this is brittle
+        val appversion = AppVersion.parseName(version)
+        if (appversion?.version != null) {
+          summary = summary.copy(displayName = appversion.version)
+        }
+        if (appversion?.buildNumber != null) {
+          summary = summary.copy(build = BuildMetadata(id = appversion.buildNumber.toInt()))
+        }
+        if (appversion?.commit != null) {
+          summary = summary.copy(git = GitMetadata(commit = appversion.commit))
+        }
+        summary
       }
       docker -> {
         var build: BuildMetadata? = null
