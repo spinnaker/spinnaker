@@ -1,3 +1,4 @@
+import { SearchResultType, searchResultTypeRegistry } from '../search/searchResult';
 import { registerPluginExtensions } from './deck.plugin';
 import { HelpContentsRegistry } from '../help';
 import { Registry } from '../registry';
@@ -26,5 +27,13 @@ describe('deck plugin registerPluginExtensions', () => {
     expect(registerSpy).toHaveBeenCalledTimes(2);
     expect(registerSpy.calls.first().args).toEqual(['key', 'value']);
     expect(registerSpy.calls.mostRecent().args).toEqual(['key2', 'value2']);
+  });
+
+  it('should register search', async () => {
+    const registerSpy = spyOn(searchResultTypeRegistry, 'register');
+    const search = {} as SearchResultType;
+    registerPluginExtensions({ search: [search] });
+    expect(registerSpy).toHaveBeenCalledTimes(1);
+    expect(registerSpy).toHaveBeenCalledWith(search);
   });
 });
