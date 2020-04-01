@@ -14,13 +14,13 @@ export interface IDeckPlugin {
 }
 
 /** Given a plugin, registers the plugin's extensions */
-export function registerPluginExtensions(plugin: IDeckPlugin) {
+export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> {
   // Register the plugin's extensions with deck.
   plugin.stages?.forEach(stage => Registry.pipeline.registerStage(stage));
   plugin.preconfiguredJobStages?.forEach(stage => Registry.pipeline.registerPreconfiguredJobStage(stage));
   toPairs(plugin.help ?? {}).forEach(([key, value]) => HelpContentsRegistry.register(key, value));
   plugin.search?.forEach(search => searchResultTypeRegistry.register(search));
 
-  // Run code that currently does not have an extension point
-  plugin.initialize?.();
+  // Run arbitrary initialization code
+  return Promise.resolve(plugin.initialize?.());
 }

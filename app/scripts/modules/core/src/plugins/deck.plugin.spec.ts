@@ -4,6 +4,23 @@ import { HelpContentsRegistry } from '../help';
 import { Registry } from '../registry';
 
 describe('deck plugin registerPluginExtensions', () => {
+  it('returns a promise', async () => {
+    const promiseLike = registerPluginExtensions({});
+    expect(promiseLike).toBeDefined();
+    expect(promiseLike.then).toBeDefined();
+    expect(typeof promiseLike.then).toBe('function');
+  });
+
+  it('returns a promise that resolves to the return value of initialize', async () => {
+    const result = await registerPluginExtensions({ initialize: () => 'anything' });
+    expect(result).toBe('anything');
+  });
+
+  it('returns a promise that unwraps a promise returned by initialize', async () => {
+    const result = await registerPluginExtensions({ initialize: () => Promise.resolve('anything') });
+    expect(result).toBe('anything');
+  });
+
   it('should register stages', async () => {
     const registerSpy = spyOn(Registry.pipeline, 'registerStage');
     const stage = { key: 'test' };

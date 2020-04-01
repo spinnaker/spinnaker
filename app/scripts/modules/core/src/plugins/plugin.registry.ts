@@ -156,9 +156,7 @@ export class PluginRegistry {
         );
       }
 
-      registerPluginExtensions(module.plugin as IDeckPlugin);
-
-      return module;
+      return registerPluginExtensions(module.plugin as IDeckPlugin).then(() => module);
     } catch (error) {
       console.error(`Failed to load plugin code from ${pluginUrl}`);
       throw error;
