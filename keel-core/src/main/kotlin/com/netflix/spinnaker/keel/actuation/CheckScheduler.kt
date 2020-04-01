@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -61,24 +62,25 @@ class CheckScheduler(
       publisher.publishEvent(ScheduledResourceCheckStarting)
 
       val job = launch {
-        repository
-          .resourcesDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
-          .forEach {
-            try {
-              /**
-               * Allow individual resource checks to timeout but catch the `CancellationException`
-               * to prevent the cancellation of all coroutines under [job]
-               */
-              withTimeout(checkTimeout.toMillis()) {
-                launch { resourceActuator.checkResource(it) }
+        supervisorScope {
+          repository
+            .resourcesDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+            .forEach {
+              try {
+                /**
+                 * Allow individual resource checks to timeout but catch the `CancellationException`
+                 * to prevent the cancellation of all coroutines under [job]
+                 */
+                withTimeout(checkTimeout.toMillis()) {
+                  launch { resourceActuator.checkResource(it) }
+                }
+              } catch (e: TimeoutCancellationException) {
+                log.error("Timed out checking resource ${it.id}", e)
+                publisher.publishEvent(ResourceCheckTimedOut(it.kind, it.id, it.application))
               }
-            } catch (e: TimeoutCancellationException) {
-              log.error("Timed out checking resource ${it.id}", e)
-              publisher.publishEvent(ResourceCheckTimedOut(it.kind, it.id, it.application))
             }
-          }
+        }
       }
-
       runBlocking { job.join() }
       log.debug("Scheduled resource validation complete")
     } else {
@@ -93,25 +95,27 @@ class CheckScheduler(
       publisher.publishEvent(ScheduledEnvironmentCheckStarting)
 
       val job = launch {
-        repository
-          .deliveryConfigsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
-          .forEach {
-            try {
-              /**
-               * Sets the timeout to (checkTimeout * environmentCount), since a delivery-config's
-               * environments are checked sequentially within one coroutine job.
-               *
-               * TODO: consider refactoring environmentPromotionChecker so that it can be called for
-               *  individual environments, allowing fairer timeouts.
-               */
-              withTimeout(checkTimeout.toMillis() * max(it.environments.size, 1)) {
-                launch { environmentPromotionChecker.checkEnvironments(it) }
+        supervisorScope {
+          repository
+            .deliveryConfigsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+            .forEach {
+              try {
+                /**
+                 * Sets the timeout to (checkTimeout * environmentCount), since a delivery-config's
+                 * environments are checked sequentially within one coroutine job.
+                 *
+                 * TODO: consider refactoring environmentPromotionChecker so that it can be called for
+                 *  individual environments, allowing fairer timeouts.
+                 */
+                withTimeout(checkTimeout.toMillis() * max(it.environments.size, 1)) {
+                  launch { environmentPromotionChecker.checkEnvironments(it) }
+                }
+              } catch (e: TimeoutCancellationException) {
+                log.error("Timed out checking environments for ${it.application}/${it.name}", e)
+                publisher.publishEvent(EnvironmentsCheckTimedOut(it.application, it.name))
               }
-            } catch (e: TimeoutCancellationException) {
-              log.error("Timed out checking environments for ${it.application}/${it.name}", e)
-              publisher.publishEvent(EnvironmentsCheckTimedOut(it.application, it.name))
             }
-          }
+        }
       }
 
       runBlocking { job.join() }
@@ -127,21 +131,23 @@ class CheckScheduler(
       log.debug("Starting scheduled artifact validation…")
       publisher.publishEvent(ScheduledArtifactCheckStarting)
       val job = launch {
-        repository.artifactsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
-          .forEach { artifact ->
-            try {
-              withTimeout(checkTimeout.toMillis()) {
-                launch {
-                  artifactHandlers.forEach { handler ->
-                    handler.handle(artifact)
+        supervisorScope {
+          repository.artifactsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+            .forEach { artifact ->
+              try {
+                withTimeout(checkTimeout.toMillis()) {
+                  launch {
+                    artifactHandlers.forEach { handler ->
+                      handler.handle(artifact)
+                    }
                   }
                 }
+              } catch (e: TimeoutCancellationException) {
+                log.error("Timed out checking artifact $artifact from ${artifact.deliveryConfigName}", e)
+                publisher.publishEvent(ArtifactCheckTimedOut(artifact.name, artifact.deliveryConfigName))
               }
-            } catch (e: TimeoutCancellationException) {
-              log.error("Timed out checking artifact $artifact from ${artifact.deliveryConfigName}", e)
-              publisher.publishEvent(ArtifactCheckTimedOut(artifact.name, artifact.deliveryConfigName))
             }
-          }
+        }
       }
 
       runBlocking { job.join() }
