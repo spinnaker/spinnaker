@@ -119,3 +119,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200325-create-artifact-last-checked-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200401-resource-check-veto.yml
+      relativeToChangelogFile: true

@@ -10,7 +10,7 @@ internal class InMemoryDeliveryConfigRepositoryTests : DeliveryConfigRepositoryT
   override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): InMemoryDeliveryConfigRepository =
     InMemoryDeliveryConfigRepository()
 
-  override fun createResourceRepository(): InMemoryResourceRepository =
+  override fun createResourceRepository(resourceTypeIdentifier: ResourceTypeIdentifier): InMemoryResourceRepository =
     InMemoryResourceRepository()
 
   override fun createArtifactRepository(): InMemoryArtifactRepository =

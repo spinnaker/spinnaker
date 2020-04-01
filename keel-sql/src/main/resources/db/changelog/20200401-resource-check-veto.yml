@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: resource-check-ignore
+      author: fletch
+      changes:
+      - addColumn:
+          tableName: resource_last_checked
+          columns:
+          - column:
+              name: ignore
+              type: boolean
+              defaultValue: false
+              constraints:
+                nullable: false
+      rollback:
+      - dropColumn:
+          tableName: resource
+          columnName: ignore

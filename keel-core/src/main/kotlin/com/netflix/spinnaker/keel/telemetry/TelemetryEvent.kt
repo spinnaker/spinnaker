@@ -17,6 +17,10 @@ data class ResourceCheckTimedOut(
   val application: String
 ) : TelemetryEvent()
 
+data class ResourceLoadFailed(
+  val ex: Throwable
+) : TelemetryEvent()
+
 data class ArtifactVersionUpdated(
   val name: String,
   val type: ArtifactType

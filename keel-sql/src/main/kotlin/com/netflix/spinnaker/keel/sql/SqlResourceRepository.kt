@@ -314,6 +314,7 @@ open class SqlResourceRepository(
           .from(RESOURCE, RESOURCE_LAST_CHECKED)
           .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
           .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
+          .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(true))
           .orderBy(RESOURCE_LAST_CHECKED.AT)
           .limit(limit)
           .forUpdate()
@@ -328,10 +329,20 @@ open class SqlResourceRepository(
                 .execute()
             }
           }
-          .map { (_, kind, metadata, spec) ->
-            constructResource(kind, metadata, spec)
-          }
       }
+        .map { (uid, kind, metadata, spec) ->
+          try {
+            constructResource(kind, metadata, spec)
+          } catch (e: Exception) {
+            jooq.insertInto(RESOURCE_LAST_CHECKED)
+              .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
+              .set(RESOURCE_LAST_CHECKED.IGNORE, true)
+              .onDuplicateKeyUpdate()
+              .set(RESOURCE_LAST_CHECKED.IGNORE, true)
+              .execute()
+            throw e
+          }
+        }
     }
   }
 

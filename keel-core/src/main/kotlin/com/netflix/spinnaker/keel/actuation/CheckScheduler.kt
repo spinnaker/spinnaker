@@ -9,10 +9,7 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.EnvironmentsCheckTimedOut
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckTimedOut
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.CoroutineContext
-import kotlin.math.max
+import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -26,6 +23,10 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
+import kotlin.math.max
 
 @Component
 class CheckScheduler(
@@ -63,20 +64,27 @@ class CheckScheduler(
 
       val job = launch {
         supervisorScope {
-          repository
-            .resourcesDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
-            .forEach {
-              try {
-                /**
-                 * Allow individual resource checks to timeout but catch the `CancellationException`
-                 * to prevent the cancellation of all coroutines under [job]
-                 */
-                withTimeout(checkTimeout.toMillis()) {
-                  launch { resourceActuator.checkResource(it) }
+          runCatching {
+            repository
+              .resourcesDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+          }
+            .onFailure {
+              publisher.publishEvent(ResourceLoadFailed(it))
+            }
+            .onSuccess {
+              it.forEach {
+                try {
+                  /**
+                   * Allow individual resource checks to timeout but catch the `CancellationException`
+                   * to prevent the cancellation of all coroutines under [job]
+                   */
+                  withTimeout(checkTimeout.toMillis()) {
+                    launch { resourceActuator.checkResource(it) }
+                  }
+                } catch (e: TimeoutCancellationException) {
+                  log.error("Timed out checking resource ${it.id}", e)
+                  publisher.publishEvent(ResourceCheckTimedOut(it.kind, it.id, it.application))
                 }
-              } catch (e: TimeoutCancellationException) {
-                log.error("Timed out checking resource ${it.id}", e)
-                publisher.publishEvent(ResourceCheckTimedOut(it.kind, it.id, it.application))
               }
             }
         }

@@ -4,9 +4,11 @@ import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
+import com.netflix.spinnaker.keel.telemetry.ResourceLoadFailed
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -111,18 +113,35 @@ internal object CheckSchedulerTests : JUnit5Minutests {
       }
 
       context("checking resources") {
-        before {
-          every {
-            repository.resourcesDueForCheck(any(), any())
-          } returns resources
+        context("resources are read from the database") {
+          before {
+            every {
+              repository.resourcesDueForCheck(any(), any())
+            } returns resources
 
-          checkResources()
-        }
-        test("all resources are checked") {
-          resources.forEach { resource ->
-            coVerify(timeout = 500) {
-              resourceActuator.checkResource(resource)
+            checkResources()
+          }
+
+          test("all resources are checked") {
+            resources.forEach { resource ->
+              coVerify(timeout = 500) {
+                resourceActuator.checkResource(resource)
+              }
             }
+          }
+        }
+
+        context("resources cannot be loaded from the database") {
+          before {
+            every {
+              repository.resourcesDueForCheck(any(), any())
+            } throws UnsupportedKind("some-invalid-kind")
+
+            checkResources()
+          }
+
+          test("an event is published") {
+            verify { publisher.publishEvent(match<Any> { it is ResourceLoadFailed }) }
           }
         }
       }
@@ -135,6 +154,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
 
           checkArtifacts()
         }
+
         test("all artifacts are checked") {
           artifacts.forEach { artifact ->
             coVerify(timeout = 500) {

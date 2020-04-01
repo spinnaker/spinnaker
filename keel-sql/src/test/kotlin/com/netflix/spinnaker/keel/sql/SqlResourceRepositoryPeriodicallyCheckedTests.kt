@@ -3,23 +3,31 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyCheckedTests
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.rootContext
 import java.time.Clock
+import java.time.Duration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsKey
+import strikt.assertions.failed
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.succeeded
 
 internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   ResourceRepositoryPeriodicallyCheckedTests<SqlResourceRepository>() {
@@ -103,6 +111,55 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
             expectThat(uid)
               .isEqualTo(metadataMap["uid"].toString())
           }
+      }
+    }
+  }
+
+  class UnreadableResourceFixture(
+    val factory: (Clock) -> SqlResourceRepository
+  ) {
+    val clock = MutableClock()
+    val subject: SqlResourceRepository = factory(clock)
+
+    fun nextResults(): Collection<Resource<*>> =
+      subject.itemsDueForCheck(Duration.ofMinutes(30), 2)
+  }
+
+  fun unreadableResourceTests() = rootContext<Fixture<Resource<out ResourceSpec>, SqlResourceRepository>> {
+    fixture {
+      Fixture(factory, { count ->
+        listOf(
+          resource(kind = TEST_API_V1.qualify("unreadable"), id = "unreadable").also(subject::store)
+        ) +
+          (2..count).map { i ->
+            resource(id = "readable-$i").also(subject::store)
+          }
+      }, updateOne)
+    }
+
+    before { createAndStore(4) }
+
+    after { flush() }
+
+    context("there's an unreadable resource in the database") {
+      test("fetching next items throws an exception the first time it is called") {
+        expectCatching { nextResults() }.failed().isA<UnsupportedKind>()
+      }
+
+      test("subsequent calls will start returning valid results") {
+        expectCatching { nextResults() }.failed().isA<UnsupportedKind>()
+        expectCatching { nextResults() }.succeeded().hasSize(2)
+        expectCatching { nextResults() }.succeeded().hasSize(0)
+      }
+
+      test("after the last check time limit has passed we never try to read the unreadable resource again") {
+        expectCatching { nextResults() }.failed().isA<UnsupportedKind>()
+        expectCatching { nextResults() }.succeeded().hasSize(2)
+        expectCatching { nextResults() }.succeeded().hasSize(0)
+        clock.incrementBy(Duration.ofMinutes(31))
+        expectCatching { nextResults() }.succeeded().hasSize(2)
+        expectCatching { nextResults() }.succeeded().hasSize(1)
+        expectCatching { nextResults() }.succeeded().hasSize(0)
       }
     }
   }
