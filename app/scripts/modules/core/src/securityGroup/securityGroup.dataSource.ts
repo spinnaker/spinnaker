@@ -32,6 +32,7 @@ module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run([
       sref: '.insight.firewalls',
       optional: true,
       icon: 'fa fa-xs fa-fw fa-lock',
+      iconName: 'spMenuSecurityGroups',
       loader: loadSecurityGroups,
       onLoad: addSecurityGroups,
       afterLoad: addTags,

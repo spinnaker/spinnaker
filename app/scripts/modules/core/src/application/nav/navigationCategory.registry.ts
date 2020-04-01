@@ -1,9 +1,11 @@
 import { cloneDeep } from 'lodash';
+import { IconNames } from 'core/presentation';
 
 export interface INavigationCategory {
   key: string;
   label: string;
   icon?: string;
+  iconName?: IconNames;
   primary: boolean;
   order: number;
 }

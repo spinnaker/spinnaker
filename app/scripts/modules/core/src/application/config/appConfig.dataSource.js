@@ -12,5 +12,6 @@ module(CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE, [APP_CONFIG_STATES]).run(fu
     sref: '.config',
     active: '**.config.**',
     defaultData: [],
+    iconName: 'spMenuConfig',
   });
 });
