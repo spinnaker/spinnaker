@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { isEqual, keyBy } from 'lodash';
 
+import { SETTINGS } from 'core/config/settings';
+import { Spinner } from 'core/widgets';
 import { useDataSource } from '../presentation/hooks';
 import { Application, ApplicationDataSource } from '../application';
 import { IManagedApplicationEnvironmentSummary, IManagedResourceSummary } from '../domain';
@@ -24,11 +26,16 @@ interface IEnvironmentsProps {
   app: Application;
 }
 
+const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
+
 export function Environments({ app }: IEnvironmentsProps) {
   const dataSource: ApplicationDataSource<IManagedApplicationEnvironmentSummary> = app.getDataSource('environments');
   const {
-    data: { environments, artifacts, resources },
+    data: { environments, artifacts, resources, hasManagedResources },
+    status,
+    loaded,
   } = useDataSource(dataSource);
+  const loadFailure = status === 'ERROR';
 
   const [selectedArtifact, setSelectedArtifact] = useState<ISelectedArtifact>();
   const [isFiltersOpen] = useState(false);
@@ -51,6 +58,36 @@ export function Environments({ app }: IEnvironmentsProps) {
         ?.versions.find(({ version }) => version === selectedArtifact.version),
     [selectedArtifact, artifacts],
   );
+
+  if (loadFailure) {
+    return (
+      <div style={{ width: '100%' }}>
+        <h4 className="text-center">There was an error loading environments.</h4>
+      </div>
+    );
+  }
+
+  if (!loaded) {
+    return (
+      <div style={{ width: '100%' }}>
+        <Spinner size="medium" message="Loading environments ..." />
+      </div>
+    );
+  }
+
+  const unmanaged = loaded && !hasManagedResources;
+  const gettingStartedLink = SETTINGS.managedDelivery?.gettingStartedUrl || defaultGettingStartedUrl;
+  if (unmanaged) {
+    return (
+      <div style={{ width: '100%' }}>
+        Welcome! This application does not have any environments or artifacts. Check out the{' '}
+        <a href={gettingStartedLink} target="_blank">
+          getting started guide
+        </a>{' '}
+        to set some up!
+      </div>
+    );
+  }
 
   const totalContentWidth = isFiltersOpen ? CONTENT_WIDTH + 248 + 'px' : CONTENT_WIDTH + 'px';
 

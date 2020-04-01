@@ -108,6 +108,7 @@ export interface ISpinnakerSettings {
   gateUrl: string;
   gitSources: string[];
   managedDelivery?: {
+    gettingStartedUrl?: string;
     defaultManifest: string;
     manifestBasePath: string;
   };
