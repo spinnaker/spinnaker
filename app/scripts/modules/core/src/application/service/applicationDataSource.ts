@@ -12,6 +12,7 @@ import { Application } from '../application.model';
 
 export interface IFetchStatus {
   status: 'NOT_INITIALIZED' | 'FETCHING' | 'FETCHED' | 'ERROR';
+  loaded: boolean;
   error?: any;
   lastRefresh: number;
   data: any;
@@ -322,6 +323,8 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   public dataUpdated(data?: T): void {
     if (this.loaded) {
       this.updateData(data !== undefined ? data : this.data);
+      const updatedStatus = { data: this.data, ...this.status$.value };
+      this.status$.next(updatedStatus);
     }
   }
 
@@ -370,6 +373,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     this.status$ = new BehaviorSubject({
       status: 'NOT_INITIALIZED',
+      loaded: this.loaded,
       lastRefresh: 0,
       error: null,
       data: this.data,
@@ -403,6 +407,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     fetchStream$.withLatestFrom(nextTick$).subscribe(([fetchStatus, _void]) => {
       // Update mutable flags
       this.statusUpdated(fetchStatus);
+      fetchStatus.loaded = this.loaded;
 
       if (fetchStatus.status === 'FETCHED') {
         this.updateData(fetchStatus.data);

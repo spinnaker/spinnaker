@@ -126,10 +126,12 @@ export class Application {
 
     const noneLeftToFetch = statuses.every(({ status }) => ['FETCHED', 'NOT_INITIALIZED'].includes(status));
     const lastFetch = statuses.reduce((latest, status) => Math.max(latest, status.lastRefresh || 0), 0);
+    const allLoaded = statuses.every(({ loaded }) => loaded);
 
     return {
       status: rolledUpStatus,
       lastRefresh: noneLeftToFetch ? lastFetch : this.lastRefresh,
+      loaded: allLoaded,
       data: undefined,
     };
   }
