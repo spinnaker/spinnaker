@@ -93,7 +93,12 @@ public class GateWebConfig implements WebMvcConfigurer {
 
   @Bean
   Filter eTagFilter() {
-    new ShallowEtagHeaderFilter()
+    // Note that this filter also sets the content-length for us, which we want so as not to produce a chunked response.
+    ShallowEtagHeaderFilter filter = new ShallowEtagHeaderFilter()
+
+    // Writing a weak ETag so that we still get a gzip'ed response
+    filter.setWriteWeakETag(true)
+    return filter
   }
 
   @Bean
