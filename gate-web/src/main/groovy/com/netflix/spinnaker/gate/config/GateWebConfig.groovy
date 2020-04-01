@@ -37,12 +37,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 import retrofit.RetrofitError
 
+import javax.servlet.Filter
 import javax.servlet.http.HttpServletResponse
 
 @Configuration
@@ -87,6 +89,11 @@ public class GateWebConfig implements WebMvcConfigurer {
   @Bean
   HandlerMappingIntrospector mvcHandlerMappingIntrospector(ApplicationContext context) {
     return new HandlerMappingIntrospector(context)
+  }
+
+  @Bean
+  Filter eTagFilter() {
+    new ShallowEtagHeaderFilter()
   }
 
   @Bean
