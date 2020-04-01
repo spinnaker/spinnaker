@@ -10,7 +10,7 @@ export interface IDeckPlugin {
   help?: { [helpKey: string]: string };
   search?: SearchResultType[];
 
-  initialize?(): void;
+  initialize?(plugin: IDeckPlugin): void;
 }
 
 /** Given a plugin, registers the plugin's extensions */
@@ -21,6 +21,6 @@ export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> 
   toPairs(plugin.help ?? {}).forEach(([key, value]) => HelpContentsRegistry.register(key, value));
   plugin.search?.forEach(search => searchResultTypeRegistry.register(search));
 
-  // Run arbitrary initialization code
-  return Promise.resolve(plugin.initialize?.());
+  // Run arbitrary plugin initialization code
+  return Promise.resolve(plugin.initialize?.(plugin));
 }

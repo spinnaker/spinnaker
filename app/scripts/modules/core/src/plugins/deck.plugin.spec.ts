@@ -1,5 +1,5 @@
 import { SearchResultType, searchResultTypeRegistry } from '../search/searchResult';
-import { registerPluginExtensions } from './deck.plugin';
+import { IDeckPlugin, registerPluginExtensions } from './deck.plugin';
 import { HelpContentsRegistry } from '../help';
 import { Registry } from '../registry';
 
@@ -19,6 +19,12 @@ describe('deck plugin registerPluginExtensions', () => {
   it('returns a promise that unwraps a promise returned by initialize', async () => {
     const result = await registerPluginExtensions({ initialize: () => Promise.resolve('anything') });
     expect(result).toBe('anything');
+  });
+
+  it('initialize() receives the IDeckPlugin object as the first argument', async () => {
+    const plugin: IDeckPlugin = { initialize: jasmine.createSpy('initialize') };
+    await registerPluginExtensions(plugin);
+    expect(plugin.initialize).toHaveBeenCalledWith(plugin);
   });
 
   it('should register stages', async () => {
