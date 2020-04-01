@@ -140,8 +140,7 @@ export class PluginRegistry {
   private async load(pluginMetaData: IPluginMetaData) {
     this.validateMetaData(pluginMetaData);
 
-    // Use `devUrl` from the manifest, if it exists.
-    // This will be the case during local development.
+    // Use `url` from the manifest, if it exists. This will be the case during local development.
     const { devUrl, url } = pluginMetaData;
     const gateUrl = `${API.baseUrl}/plugins/deck/${pluginMetaData.id}/${pluginMetaData.version}/index.js`;
     const pluginUrl = url ?? devUrl ?? gateUrl;
