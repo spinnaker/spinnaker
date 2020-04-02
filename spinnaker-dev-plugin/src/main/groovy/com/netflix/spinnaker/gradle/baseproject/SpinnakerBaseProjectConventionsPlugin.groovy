@@ -5,6 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
 
 class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
@@ -16,6 +17,9 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
         convention.sourceCompatibility = JavaVersion.VERSION_1_8
         convention.targetCompatibility = JavaVersion.VERSION_1_8
       }
+      // Nebula insists on building Javadoc, but we don't do anything with it
+      // and it seems to cause lots of errors.
+      project.tasks.withType(Javadoc) { (it as Javadoc).setFailOnError(false) }
       project.tasks.withType(Jar) { setImplementationOssVersion((it as Jar), project) }
       project.afterEvaluate {
         project.tasks
