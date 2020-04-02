@@ -1,6 +1,5 @@
 server:
-  port: ${services.clouddriver.port:7002}
-  address: ${services.clouddriver.host:localhost}
+  port: 7002
   ssl:
     enabled: false
   compression:
@@ -343,3 +342,24 @@ spring:
 #  port: 22
 #  proxyRegion: us-west-1
 #  proxyCluster: my-credentials-cluster
+
+---
+# This profile is used in HA deployments for a clouddriver that handles read-only requests from
+# other services
+spring:
+  profiles: ro
+
+redis:
+  connection: ${services.redisRo.baseUrl}
+
+caching:
+  writeEnabled: false
+
+---
+# This profile is used in HA deployments for a clouddriver that handles mutating requests from
+# other services, but does not run caching agents
+spring:
+  profiles: rw
+
+caching:
+  writeEnabled: false
