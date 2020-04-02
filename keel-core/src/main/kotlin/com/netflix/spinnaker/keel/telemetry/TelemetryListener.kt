@@ -63,6 +63,11 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
+  @EventListener(ResourceLoadFailed::class)
+  fun onResourceLoadFailed(event: ResourceLoadFailed) {
+    spectator.counter(RESOURCE_LOAD_FAILED_ID).safeIncrement()
+  }
+
   @EventListener(EnvironmentsCheckTimedOut::class)
   fun onEnvironmentsCheckTimedOut(event: EnvironmentsCheckTimedOut) {
     spectator.counter(
@@ -150,6 +155,7 @@ class TelemetryListener(
     private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
     private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
     private const val RESOURCE_CHECK_TIMED_OUT_ID = "keel.resource.check.timeout"
+    private const val RESOURCE_LOAD_FAILED_ID = "keel.resource.load.failed"
     private const val RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID = "keel.resource.actuation.launched"
     private const val ARTIFACT_CHECK_DRIFT_GAUGE = "keel.artifact.check.drift"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
