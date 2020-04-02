@@ -21,6 +21,7 @@ export class TravisExecutionDetailsCtrl implements IController {
     this.stage = this.$scope.stage;
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
+    this.$scope.$watch('stage.refId', () => (this.stage = $scope.stage));
   }
 
   public initialized(): void {
