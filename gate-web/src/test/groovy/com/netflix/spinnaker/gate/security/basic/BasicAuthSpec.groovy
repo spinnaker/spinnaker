@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @GateSystemTest
-@SpringBootTest
+@SpringBootTest(properties = ["fiat.enabled=false"])
 @ContextConfiguration(
   classes = [Main, GateConfig, BasicAuthConfig, BasicTestConfig, RedisTestConfig],
   initializers = YamlFileApplicationContextInitializer
