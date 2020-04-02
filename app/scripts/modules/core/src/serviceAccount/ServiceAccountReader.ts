@@ -16,4 +16,16 @@ export class ServiceAccountReader {
         .get();
     }
   }
+
+  public static getServiceAccountsForApplication(application: string): IPromise<string[]> {
+    if (!SETTINGS.feature.fiatEnabled) {
+      return $q.resolve([]);
+    } else {
+      return API.one('auth')
+        .one('user')
+        .one('serviceAccounts')
+        .withParams({ application: application })
+        .get();
+    }
+  }
 }
