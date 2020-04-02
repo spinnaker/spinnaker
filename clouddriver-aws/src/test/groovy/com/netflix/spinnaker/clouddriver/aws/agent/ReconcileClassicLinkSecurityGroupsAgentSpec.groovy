@@ -32,6 +32,7 @@ import spock.lang.Specification
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 /**
  * ReconcileClassicLinkSecurityGroupsAgentSpec.
@@ -53,8 +54,12 @@ class ReconcileClassicLinkSecurityGroupsAgentSpec extends Specification {
 
   def agent = buildAgent(test)
 
+  // We convert this to a Date in "should filter instances that havent been up
+  // long enough", but Date objects can't store nanosecond precision, meaning
+  // our before/after calculations are off by nanoseconds. Just truncate this
+  // down to something a Date can handle.
   @Shared
-  Instant currentTime = Instant.now()
+  Instant currentTime = Instant.now().truncatedTo(ChronoUnit.MILLIS)
 
   private ReconcileClassicLinkSecurityGroupsAgent buildAgent(NetflixAmazonCredentials account) {
     return new ReconcileClassicLinkSecurityGroupsAgent(

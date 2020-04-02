@@ -38,13 +38,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/applications/{application}/serverGroupManagers")
 public class ServerGroupManagerController {
-  final List<ServerGroupManagerProvider> serverGroupManagerProviders;
+  final List<ServerGroupManagerProvider<ServerGroupManager>> serverGroupManagerProviders;
 
   final RequestQueue requestQueue;
 
   @Autowired
   public ServerGroupManagerController(
-      List<ServerGroupManagerProvider> serverGroupManagerProviders, RequestQueue requestQueue) {
+      List<ServerGroupManagerProvider<ServerGroupManager>> serverGroupManagerProviders,
+      RequestQueue requestQueue) {
     this.serverGroupManagerProviders = serverGroupManagerProviders;
     this.requestQueue = requestQueue;
   }
@@ -66,7 +67,6 @@ public class ServerGroupManagerController {
             })
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
-        .map(i -> (ServerGroupManager) i)
         .collect(Collectors.toSet());
   }
 }
