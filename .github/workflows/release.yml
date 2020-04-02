@@ -58,5 +58,3 @@ jobs:
             ${{ steps.release_info.outputs.CHANGELOG }}
            draft: false
            prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}
-      - name: Codecov
-        uses: codecov/codecov-action@v1.0.6
