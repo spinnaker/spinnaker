@@ -25,4 +25,4 @@ jobs:
       env:
         GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
         ENABLE_INTEGRATION_TESTS: true
-      run: ./gradlew build javadoc
+      run: ./gradlew -PenableCrossCompilerPlugin=true build javadoc
