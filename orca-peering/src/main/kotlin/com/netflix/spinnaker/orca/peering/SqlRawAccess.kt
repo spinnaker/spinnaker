@@ -41,6 +41,11 @@ abstract class SqlRawAccess(
   abstract fun getActiveExecutionIds(executionType: ExecutionType, partitionName: String?): List<String>
 
   /**
+   * Returns a list of execution IDs that have been deleted since the specified "cursor" (0 means give me all known deletions)
+   */
+  abstract fun getDeletedExecutions(sinceCursor: Int): List<DeletedExecution>
+
+  /**
    * Returns a list of stage IDs that belong to the given executions
    */
   abstract fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<ExecutionDiffKey>
@@ -61,9 +66,9 @@ abstract class SqlRawAccess(
   abstract fun deleteStages(executionType: ExecutionType, stageIdsToDelete: List<String>)
 
   /**
-   * Delete specified executions
+   * Delete specified executions, returns count deleted
    */
-  abstract fun deleteExecutions(executionType: ExecutionType, pipelineIdsToDelete: List<String>)
+  abstract fun deleteExecutions(executionType: ExecutionType, pipelineIdsToDelete: List<String>): Int
 
   /**
    * Load given records into the specified table using jooq loader api
@@ -73,5 +78,11 @@ abstract class SqlRawAccess(
   data class ExecutionDiffKey(
     val id: String,
     val updated_at: Long
+  )
+
+  data class DeletedExecution(
+    val id: Int,
+    val execution_id: String,
+    val execution_type: String
   )
 }

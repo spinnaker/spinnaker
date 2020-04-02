@@ -70,6 +70,8 @@ public interface ExecutionRepository {
 
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
+  void delete(@Nonnull ExecutionType type, @Nonnull List<String> idsToDelete);
+
   @Nonnull
   @Instrumented(metricName = "retrieveByType")
   Observable<PipelineExecution> retrieve(@Nonnull ExecutionType type);

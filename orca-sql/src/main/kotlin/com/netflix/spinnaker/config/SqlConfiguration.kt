@@ -55,7 +55,8 @@ class SqlConfiguration {
     SpringLiquibaseProxy(properties)
 
   @ConditionalOnProperty("execution-repository.sql.enabled")
-  @Bean fun sqlExecutionRepository(
+  @Bean
+  fun sqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
     registry: Registry,
@@ -76,7 +77,8 @@ class SqlConfiguration {
     }
 
   @ConditionalOnProperty("execution-repository.sql.enabled", "execution-repository.sql.secondary.enabled")
-  @Bean fun secondarySqlExecutionRepository(
+  @Bean
+  fun secondarySqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
     registry: Registry,
@@ -96,10 +98,12 @@ class SqlConfiguration {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
 
-  @Bean fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
+  @Bean
+  fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
     SqlHealthcheckActivator(dsl, registry)
 
-  @Bean("dbHealthIndicator") fun dbHealthIndicator(
+  @Bean("dbHealthIndicator")
+  fun dbHealthIndicator(
     sqlHealthcheckActivator: SqlHealthcheckActivator,
     sqlProperties: SqlProperties,
     dynamicConfigService: DynamicConfigService

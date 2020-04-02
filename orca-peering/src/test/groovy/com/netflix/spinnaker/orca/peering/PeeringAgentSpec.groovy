@@ -98,7 +98,7 @@ class PeeringAgentSpec extends Specification {
       0 * dest.deleteExecutions(executionType, _)
       0 * metrics.incrementNumDeleted(executionType, _)
     } else {
-      1 * dest.deleteExecutions(executionType, toDelete)
+      1 * dest.deleteExecutions(executionType, toDelete) >> toDelete.size()
       1 * metrics.incrementNumDeleted(executionType, toDelete.size())
     }
 
@@ -153,7 +153,7 @@ class PeeringAgentSpec extends Specification {
       0 * dest.deleteExecutions(executionType, _)
       0 * metrics.incrementNumDeleted(executionType, _)
     } else {
-      1 * dest.deleteExecutions(executionType, toDelete)
+      1 * dest.deleteExecutions(executionType, toDelete) >> toDelete.size()
       1 * metrics.incrementNumDeleted(executionType, toDelete.size())
     }
 
@@ -215,6 +215,62 @@ class PeeringAgentSpec extends Specification {
   }
 
   @Unroll
+  def "deletes executions"() {
+    given:
+    def peeringAgent = constructPeeringAgent()
+    def origCursor = 10
+    peeringAgent.deletedExecutionCursor = origCursor
+
+    when:
+    peeringAgent.peerDeletedExecutions()
+
+    then:
+    1 * src.getDeletedExecutions(peeringAgent.deletedExecutionCursor) >> deletedIds
+
+    1 * dest.deleteExecutions(ORCHESTRATION, orchestrationsToDelete) >> numDeletedOrch
+    1 * metrics.incrementNumDeleted(ORCHESTRATION, numDeletedOrch)
+
+    1 * dest.deleteExecutions(PIPELINE, pipelinesToDelete) >> numDeletedPipes
+    1 * metrics.incrementNumDeleted(PIPELINE, numDeletedPipes)
+
+    peeringAgent.deletedExecutionCursor == (deletedIds.max { it.id }?.id ?: origCursor)
+    where:
+    deletedIds                           || orchestrationsToDelete | pipelinesToDelete | numDeletedOrch | numDeletedPipes
+    []                                   || []                     | []                | 0              | 0
+    [dPKey(11, "ID1"), dOKey(12, "ID2")] || ["ID2"]                | ["ID1"]           | 1              | 1
+    [dPKey(11, "ID1"), dPKey(12, "ID2")] || []                     | ["ID1", "ID2"]    | 1              | 1
+    [dOKey(81, "ID1"), dOKey(92, "ID2")] || ["ID1", "ID2"]         | []                | 2              | 0
+  }
+
+  @Unroll
+  def "doesn't update delete cursor on failure"() {
+    given:
+    def peeringAgent = constructPeeringAgent()
+    def origCursor = 10
+    peeringAgent.deletedExecutionCursor = origCursor
+
+    when:
+    peeringAgent.peerDeletedExecutions()
+
+    then:
+    1 * src.getDeletedExecutions(peeringAgent.deletedExecutionCursor) >> deletedIds
+
+    1 * dest.deleteExecutions(ORCHESTRATION, orchestrationsToDelete) >> numDeletedOrch
+    1 * metrics.incrementNumDeleted(ORCHESTRATION, numDeletedOrch)
+
+    1 * dest.deleteExecutions(PIPELINE, pipelinesToDelete) >> {throw new Exception("SQL failed")}
+    0 * metrics.incrementNumDeleted(PIPELINE, _)
+
+    peeringAgent.deletedExecutionCursor == origCursor
+
+    where:
+    deletedIds                           || orchestrationsToDelete | pipelinesToDelete | numDeletedOrch
+    []                                   || []                     | []                | 0
+    [dPKey(11, "ID1"), dOKey(12, "ID2")] || ["ID2"]                | ["ID1"]           | 1
+    [dPKey(11, "ID1"), dPKey(12, "ID2")] || []                     | ["ID1", "ID2"]    | 1
+  }
+
+  @Unroll
   def "doesn't delete the world"() {
     given:
     def dynamicConfigService = Mock(DynamicConfigService)
@@ -225,7 +281,6 @@ class PeeringAgentSpec extends Specification {
     dynamicConfigService.getConfig(Integer.class, "pollers.peering.max-allowed-delete-count", 100) >> { return 1 }
 
     def copyCallCount = (int)Math.signum(toCopy.size())
-    def deleteCallCount = toDelete.size() > 0 ? 1 : 0
     def deleteFailureCount = toDelete.size() > 0 ? 0 : 1
 
     when:
@@ -240,7 +295,7 @@ class PeeringAgentSpec extends Specification {
       0 * dest.deleteExecutions(executionType, _)
       0 * metrics.incrementNumDeleted(executionType, _)
     } else {
-      1 * dest.deleteExecutions(executionType, toDelete)
+      1 * dest.deleteExecutions(executionType, toDelete) >> toDelete.size()
       1 * metrics.incrementNumDeleted(executionType, toDelete.size())
     }
     deleteFailureCount * metrics.incrementNumErrors(executionType)
@@ -259,7 +314,15 @@ class PeeringAgentSpec extends Specification {
     ORCHESTRATION | [key("ID3", 30)] | [key("IDx", 10), key("ID3", 10)]                 || ["IDx"]  | ["ID3"]
   }
 
-  private static def key(id, updated_at) {
+  private static def key(String id, long updated_at) {
     return new SqlRawAccess.ExecutionDiffKey(id, updated_at)
+  }
+
+  private static def dPKey(int id, String execution_id ) {
+    return new SqlRawAccess.DeletedExecution(id, execution_id, PIPELINE.toString())
+  }
+
+  private static def dOKey(int id, String execution_id ) {
+    return new SqlRawAccess.DeletedExecution(id, execution_id, ORCHESTRATION.toString())
   }
 }

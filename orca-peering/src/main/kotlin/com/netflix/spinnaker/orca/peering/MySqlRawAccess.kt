@@ -69,6 +69,16 @@ open class MySqlRawAccess(
     }
   }
 
+  override fun getDeletedExecutions(sinceCursor: Int): List<DeletedExecution> {
+    return withPool(poolName) {
+      jooq
+        .select(field("id"), field("execution_id"), field("execution_type"))
+        .from(table("deleted_executions"))
+        .where(field("id").gt(sinceCursor))
+        .fetchInto(DeletedExecution::class.java)
+    }
+  }
+
   override fun getStageIdsForExecutions(executionType: ExecutionType, executionIds: List<String>): List<ExecutionDiffKey> {
     return withPool(poolName) {
       jooq
@@ -108,7 +118,13 @@ open class MySqlRawAccess(
     }
   }
 
-  override fun deleteExecutions(executionType: ExecutionType, pipelineIdsToDelete: List<String>) {
+  override fun deleteExecutions(executionType: ExecutionType, pipelineIdsToDelete: List<String>): Int {
+    var countDeleted = 0
+
+    if (pipelineIdsToDelete.isEmpty()) {
+      return countDeleted
+    }
+
     withPool(poolName) {
       for (chunk in pipelineIdsToDelete.chunked(chunkSize)) {
         jooq
@@ -116,12 +132,14 @@ open class MySqlRawAccess(
           .where(field("execution_id").`in`(*chunk.toTypedArray()))
           .execute()
 
-        jooq
+        countDeleted += jooq
           .deleteFrom(getExecutionTable(executionType))
           .where(field("id").`in`(*chunk.toTypedArray()))
           .execute()
       }
     }
+
+    return countDeleted
   }
 
   override fun loadRecords(tableName: String, records: org.jooq.Result<Record>): Int {

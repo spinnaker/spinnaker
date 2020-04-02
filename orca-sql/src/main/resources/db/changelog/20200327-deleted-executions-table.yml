@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-deleted-executions-table
+      author: mvulfson
+      changes:
+        - sql:
+            dbms: mysql
+            sql: CREATE TABLE `deleted_executions` (id INT AUTO_INCREMENT, execution_id char(26) NOT NULL, execution_type ENUM("pipeline", "orchestration") NOT NULL, deleted_at DATETIME NOT NULL, CONSTRAINT deleted_executions_pk PRIMARY KEY (id))
+    rollback:
+      - dropTable:
+          tableName: deleted_executions

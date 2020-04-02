@@ -138,6 +138,12 @@ class RedisInstrumentedExecutionRepository(
     }
   }
 
+  override fun delete(type: ExecutionType, idsToDelete: List<String>) {
+    withMetrics("delete") {
+      executionRepository.delete(type, idsToDelete)
+    }
+  }
+
   override fun retrieve(type: ExecutionType, id: String): PipelineExecution {
     return withMetrics("retrieve2") {
       executionRepository.retrieve(type, id)

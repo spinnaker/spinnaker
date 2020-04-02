@@ -123,6 +123,11 @@ class InMemoryExecutionRepository : ExecutionRepository {
     storageFor(type).remove(id)
   }
 
+  override fun delete(type: ExecutionType, idsToDelete: MutableList<String>) {
+    val storage = storageFor(type)
+    idsToDelete.forEach { id -> storage.remove(id) }
+  }
+
   override fun hasExecution(type: ExecutionType, id: String): Boolean {
     return storageFor(type).containsKey(id)
   }

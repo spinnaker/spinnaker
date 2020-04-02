@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.peering
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import java.time.Duration
 
 open class PeeringMetrics(
   peeredId: String,
@@ -31,12 +32,18 @@ open class PeeringMetrics(
   private val peeringNumStagesDeletedId = registry.createId("pollers.peering.numStagesDeleted").withTag("peerId", peeredId)
   private val peeringNumErrorsId = registry.createId("pollers.peering.numErrors").withTag("peerId", peeredId)
 
-  open fun recordLag(executionType: ExecutionType, block: () -> Unit) {
+  open fun recordOverallLag(block: () -> Unit) {
     registry
-      .timer(peeringLagTimerId.tag(executionType))
+      .timer(peeringLagTimerId.withTag("executionType", "OVER_ALL"))
       .record {
         block()
       }
+  }
+
+  open fun recordLag(executionType: ExecutionType, duration: Duration) {
+    registry
+      .timer(peeringLagTimerId.tag(executionType))
+      .record(duration)
   }
 
   open fun incrementNumPeered(executionType: ExecutionType, state: ExecutionState, count: Int) {

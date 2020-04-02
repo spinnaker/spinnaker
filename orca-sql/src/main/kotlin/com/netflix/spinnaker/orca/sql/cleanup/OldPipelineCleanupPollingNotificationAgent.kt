@@ -16,20 +16,14 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.LongTaskTimer
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
-import com.netflix.spinnaker.orca.sql.pipeline.persistence.transactional
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
@@ -39,64 +33,24 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 @Component
-@ConditionalOnExpression("\${pollers.old-pipeline-cleanup.enabled:false} && !\${execution-repository.redis.enabled:false}")
+@ConditionalOnExpression("\${pollers.old-pipeline-cleanup.enabled:false} && \${execution-repository.sql.enabled:false}")
 class OldPipelineCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val registry: Registry,
+  registry: Registry,
+  private val executionRepository: ExecutionRepository,
   @Value("\${pollers.old-pipeline-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
   @Value("\${pollers.old-pipeline-cleanup.threshold-days:30}") private val thresholdDays: Long,
   @Value("\${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}") private val minimumPipelineExecutions: Int,
   @Value("\${pollers.old-pipeline-cleanup.chunk-size:1}") private val chunkSize: Int,
   @Value("\${sql.partition-name:#{null}}") private val partitionName: String?
-) : AbstractPollingNotificationAgent(clusterLock) {
+) : AbstractCleanupPollingAgent(
+  clusterLock,
+  pollingIntervalMs,
+  registry) {
 
-  companion object {
-    internal val retrySupport = RetrySupport()
-  }
-
-  private val log = LoggerFactory.getLogger(OldPipelineCleanupPollingNotificationAgent::class.java)
-
-  private val deletedId: Id
-  private val errorsCounter: Counter
-  private val invocationTimer: LongTaskTimer
-
-  private val completedStatuses = ExecutionStatus.COMPLETED.map { it.toString() }
-
-  init {
-    deletedId = registry.createId("pollers.oldPipelineCleanup.deleted")
-    errorsCounter = registry.counter("pollers.oldPipelineCleanup.errors")
-
-    invocationTimer = com.netflix.spectator.api.patterns.LongTaskTimer.get(
-      registry, registry.createId("pollers.oldPipelineCleanup.timing")
-    )
-  }
-
-  override fun getPollingInterval(): Long {
-    return pollingIntervalMs
-  }
-
-  override fun getNotificationType(): String {
-    return OldPipelineCleanupPollingNotificationAgent::class.java.simpleName
-  }
-
-  override fun tick() {
-    val timerId = invocationTimer.start()
-    val startTime = System.currentTimeMillis()
-
-    try {
-      log.info("Agent {} started", notificationType)
-      performCleanup()
-    } catch (e: Exception) {
-      log.error("Agent {} failed to perform cleanup", javaClass, e)
-    } finally {
-      log.info("Agent {} completed in {}ms", notificationType, System.currentTimeMillis() - startTime)
-      invocationTimer.stop(timerId)
-    }
-  }
-
-  private fun performCleanup() {
+  override fun performCleanup() {
     val thresholdMillis = Instant.ofEpochMilli(clock.millis()).minus(thresholdDays, ChronoUnit.DAYS).toEpochMilli()
 
     val candidateApplications = jooq
@@ -171,14 +125,10 @@ class OldPipelineCleanupPollingNotificationAgent(
     var queryBuilder = jooq
       .select(field("id"))
       .from(table("pipelines"))
-      .where(
-        field("build_time").le(thresholdMillis).and(
-          "status IN (${completedStatuses.joinToString(",") { "'$it'" }})"
-        ).and(
-          field("application").eq(application)
-        ).and(
-          field("config_id").eq(pipelineConfigId)
-        )
+      .where(field("build_time").le(thresholdMillis)
+        .and(field("status").`in`(*completedStatuses.toTypedArray()))
+        .and(field("application").eq(application))
+        .and(field("config_id").eq(pipelineConfigId))
       )
 
     if (partitionName != null) {
@@ -190,22 +140,11 @@ class OldPipelineCleanupPollingNotificationAgent(
     val executionsToRemove = queryBuilder
       .orderBy(field("build_time").desc())
       .limit(minimumPipelineExecutions, Int.MAX_VALUE)
-      .fetch()
-      .map { it.getValue(field("id")) }
+      .fetch(field("id"), String::class.java)
 
     executionsToRemove.chunked(chunkSize).forEach { ids ->
       deletedExecutionCount.addAndGet(ids.size)
-      jooq.transactional(retrySupport) {
-        it.delete(table("correlation_ids")).where(
-          "pipeline_id IN (${ids.joinToString(",") { "'$it'" }})"
-        ).execute()
-        it.delete(table("pipeline_stages")).where(
-          "execution_id IN (${ids.joinToString(",") { "'$it'" }})"
-        ).execute()
-        it.delete(table("pipelines")).where(
-          "id IN (${ids.joinToString(",") { "'$it'" }})"
-        ).execute()
-      }
+      executionRepository.delete(ExecutionType.PIPELINE, ids)
 
       registry.counter(deletedId.withTag("application", application)).add(ids.size.toDouble())
     }

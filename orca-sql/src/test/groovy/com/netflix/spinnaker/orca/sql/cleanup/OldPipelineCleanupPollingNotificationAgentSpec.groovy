@@ -57,6 +57,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     currentDatabase.context,
     Clock.systemDefaultZone(),
     new NoopRegistry(),
+    executionRepository,
     0,
     10, // threshold days
     5,  // minimum pipeline executions

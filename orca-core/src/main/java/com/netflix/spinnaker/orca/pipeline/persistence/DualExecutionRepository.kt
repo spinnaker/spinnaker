@@ -164,6 +164,14 @@ class DualExecutionRepository(
     return select(type, id).delete(type, id)
   }
 
+  override fun delete(type: ExecutionType, idsToDelete: MutableList<String>) {
+    // NOTE: Not a great implementation, but this method right now is only used on SqlExecutionRepository which has
+    // a performant implementation
+    idsToDelete.forEach { id ->
+      delete(type, id)
+    }
+  }
+
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> {
     return Observable.merge(
       primary.retrieve(type),

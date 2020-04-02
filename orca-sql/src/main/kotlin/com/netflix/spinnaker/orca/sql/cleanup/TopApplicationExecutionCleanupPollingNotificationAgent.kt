@@ -16,81 +16,38 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.LongTaskTimer
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
-import com.netflix.spinnaker.orca.sql.pipeline.persistence.transactional
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicInteger
 
 @Component
-@ConditionalOnExpression("\${pollers.top-application-execution-cleanup.enabled:false} && !\${execution-repository.redis.enabled:false}")
+@ConditionalOnExpression("\${pollers.top-application-execution-cleanup.enabled:false} && \${execution-repository.sql.enabled:false}")
 class TopApplicationExecutionCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
-  private val registry: Registry,
-  private val retrySupport: RetrySupport,
+  registry: Registry,
+  private val executionRepository: ExecutionRepository,
   @Value("\${pollers.top-application-execution-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
   @Value("\${pollers.top-application-execution-cleanup.threshold:2000}") private val threshold: Int,
   @Value("\${pollers.top-application-execution-cleanup.chunk-size:1}") private val chunkSize: Int,
   @Value("\${sql.partition-name:#{null}}") private val partitionName: String?
-) : AbstractPollingNotificationAgent(clusterLock) {
+) : AbstractCleanupPollingAgent(
+  clusterLock,
+  pollingIntervalMs,
+  registry) {
 
-  private val log = LoggerFactory.getLogger(TopApplicationExecutionCleanupPollingNotificationAgent::class.java)
-
-  private val deletedId: Id
-  private val errorsCounter: Counter
-  private val invocationTimer: LongTaskTimer
-
-  private val completedStatuses = ExecutionStatus.COMPLETED.map { it.toString() }
-
-  init {
-    deletedId = registry.createId("pollers.topApplicationExecutionCleanup.deleted")
-    errorsCounter = registry.counter("pollers.topApplicationExecutionCleanup.errors")
-
-    invocationTimer = com.netflix.spectator.api.patterns.LongTaskTimer.get(
-      registry, registry.createId("pollers.topApplicationExecutionCleanup.timing")
-    )
-  }
-
-  override fun getPollingInterval(): Long {
-    return pollingIntervalMs
-  }
-
-  override fun getNotificationType(): String {
-    return TopApplicationExecutionCleanupPollingNotificationAgent::class.java.simpleName
-  }
-
-  override fun tick() {
-    val timerId = invocationTimer.start()
-    val startTime = System.currentTimeMillis()
-
-    try {
-      log.info("Agent {} started", notificationType)
-      performCleanup()
-    } catch (e: Exception) {
-      log.error("Agent {} failed to perform cleanup", e)
-    } finally {
-      log.info("Agent {} completed in {}ms", notificationType, System.currentTimeMillis() - startTime)
-      invocationTimer.stop(timerId)
-    }
-  }
-
-  private fun performCleanup() {
+  override fun performCleanup() {
     var queryBuilder = jooq
       .select(DSL.field("application"), DSL.count(DSL.field("id")).`as`("count"))
       .from(DSL.table("orchestrations"))
-      .where("1=1")
+      .where(DSL.noCondition())
 
     if (partitionName != null) {
       queryBuilder = queryBuilder
@@ -101,27 +58,27 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
     val applicationsWithOldOrchestrations = queryBuilder
       .groupBy(DSL.field("application"))
       .having(DSL.count(DSL.field("id")).gt(threshold))
-      .fetch()
+      .fetch(DSL.field("application"), String::class.java)
 
-    applicationsWithOldOrchestrations.forEach {
-      val application = it.getValue(DSL.field("application")) as String? ?: return@forEach
+    applicationsWithOldOrchestrations
+      .filter { !it.isNullOrEmpty() }
+      .forEach { application ->
+        try {
+          val startTime = System.currentTimeMillis()
 
-      try {
-        val startTime = System.currentTimeMillis()
-
-        log.debug("Cleaning up old orchestrations for $application")
-        val deletedOrchestrationCount = performCleanup(application)
-        log.debug(
-          "Cleaned up {} old orchestrations for {} in {}ms",
-          deletedOrchestrationCount,
-          application,
-          System.currentTimeMillis() - startTime
-        )
-      } catch (e: Exception) {
-        log.error("Failed to cleanup old orchestrations for $application", e)
-        errorsCounter.increment()
+          log.debug("Cleaning up old orchestrations for $application")
+          val deletedOrchestrationCount = performCleanup(application)
+          log.debug(
+            "Cleaned up {} old orchestrations for {} in {}ms",
+            deletedOrchestrationCount,
+            application,
+            System.currentTimeMillis() - startTime
+          )
+        } catch (e: Exception) {
+          log.error("Failed to cleanup old orchestrations for $application", e)
+          errorsCounter.increment()
+        }
       }
-    }
   }
 
   /**
@@ -134,31 +91,19 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
       .select(DSL.field("id"))
       .from(DSL.table("orchestrations"))
       .where(
-        DSL.field("application").eq(application).and(
-          "status IN (${completedStatuses.joinToString(",") { "'$it'" }})"
-        )
+        DSL.field("application").eq(application)
+          .and(DSL.field("status").`in`(*completedStatuses.toTypedArray()))
       )
       .orderBy(DSL.field("build_time").desc())
       .limit(threshold, Int.MAX_VALUE)
-      .fetch()
-      .map { it.getValue(DSL.field("id")) }
+      .fetch(DSL.field("id"), String::class.java)
 
     log.debug("Found {} old orchestrations for {}", executionsToRemove.size, application)
 
     executionsToRemove.chunked(chunkSize).forEach { ids ->
       deletedExecutionCount.addAndGet(ids.size)
-      jooq.transactional(retrySupport) {
-        it.delete(DSL.table("correlation_ids")).where(
-          "orchestration_id IN (${ids.joinToString(",") { "'$it'" }})"
-        ).execute()
-        it.delete(DSL.table("orchestration_stages")).where(
-          "execution_id IN (${ids.joinToString(",") { "'$it'" }})"
-        ).execute()
-        it.delete(DSL.table("orchestrations")).where(
-          "id IN (${ids.joinToString(",") { "'$it'" }})"
-        ).execute()
-      }
 
+      executionRepository.delete(ExecutionType.ORCHESTRATION, ids)
       registry.counter(deletedId.withTag("application", application)).add(ids.size.toDouble())
     }
 

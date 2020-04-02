@@ -366,6 +366,14 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  public void delete(@Nonnull ExecutionType type, @Nonnull List<String> idsToDelete) {
+    // NOTE: Not a great implementation, but this method right now is only used on
+    // SqlExecutionRepository which has
+    // a performant implementation
+    idsToDelete.forEach(id -> delete(type, id));
+  }
+
+  @Override
   public @Nonnull Observable<PipelineExecution> retrievePipelinesForApplication(
       @Nonnull String application) {
     List<Observable<PipelineExecution>> observables =
