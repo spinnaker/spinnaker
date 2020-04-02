@@ -22,6 +22,8 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
+import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.front50.Front50Service
 
 import javax.servlet.http.HttpServletResponse
@@ -75,6 +77,7 @@ class OperationsControllerSpec extends Specification {
     _ * isEnabled() >> { return false }
   }
   def front50Service = Mock(Front50Service)
+  def jobService = Mock(JobService)
 
   @Subject
     controller = new OperationsController(
@@ -88,7 +91,8 @@ class OperationsControllerSpec extends Specification {
       artifactUtils: artifactUtils,
       fiatService: fiatService,
       fiatStatus: fiatStatus,
-      front50Service: front50Service
+      front50Service: front50Service,
+      jobService: jobService
     )
 
   @Unroll
@@ -763,6 +767,22 @@ class OperationsControllerSpec extends Specification {
     startedPipeline.id == '1234'
     startedPipeline.trigger.type == 'manual'
     startedPipeline.trigger.parameters.key1 == 'value1'
+  }
+
+  def "should return only jobs that are enabled"() {
+    given:
+    TitusPreconfiguredJobProperties jobProps1 = new TitusPreconfiguredJobProperties(enabled: true, label: 'job1')
+    TitusPreconfiguredJobProperties jobProps2 = new TitusPreconfiguredJobProperties(enabled: false, label: 'job2')
+    TitusPreconfiguredJobProperties jobProps3 = new TitusPreconfiguredJobProperties(label: 'job3')
+
+    when:
+    def preconfiguredWebhooks = controller.preconfiguredJob()
+
+    then:
+    1* jobService.getPreconfiguredStages() >> [jobProps1, jobProps2, jobProps3]
+    preconfiguredWebhooks.size() == 2
+    preconfiguredWebhooks.find { it.label == 'job1' }
+    preconfiguredWebhooks.find { it.label == 'job3' }
   }
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(

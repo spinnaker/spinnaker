@@ -412,16 +412,17 @@ class OperationsController {
     if (!jobService) {
       return []
     }
-    return jobService?.getPreconfiguredStages().collect{
-      [ label: it.label,
-        description: it.description,
-        type: it.type,
-        waitForCompletion: it.waitForCompletion,
-        noUserConfigurableFields: true,
-        parameters: it.parameters,
-        producesArtifacts: it.producesArtifacts,
-        uiType: it.uiType
-      ]
+    // Only allow enabled jobs for configuration in pipelines.
+    return jobService.getPreconfiguredStages().findAll { it.enabled } .collect {
+        [label                   : it.label,
+         description             : it.description,
+         type                    : it.type,
+         waitForCompletion       : it.waitForCompletion,
+         noUserConfigurableFields: true,
+         parameters              : it.parameters,
+         producesArtifacts       : it.producesArtifacts,
+         uiType                  : it.uiType
+        ]
     }
   }
 
