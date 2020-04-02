@@ -132,8 +132,18 @@ public class AuthorizeController {
   }
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
-  public Set<ServiceAccount.View> getServiceAccounts(@PathVariable String userId) {
-    return new HashSet<>(getUserPermissionView(userId).getServiceAccounts());
+  public Set<? extends Viewable.BaseView> getServiceAccounts(
+      @PathVariable String userId,
+      @RequestParam(name = "expand", defaultValue = "false") boolean expand) {
+    Set<ServiceAccount.View> serviceAccounts = getUserPermissionView(userId).getServiceAccounts();
+    if (!expand) {
+      return serviceAccounts;
+    }
+
+    return serviceAccounts.stream()
+        .map(ServiceAccount.View::getName)
+        .map(this::getUserPermissionView)
+        .collect(Collectors.toSet());
   }
 
   @RequestMapping(
