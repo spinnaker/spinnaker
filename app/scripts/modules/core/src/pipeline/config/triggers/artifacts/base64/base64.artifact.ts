@@ -6,10 +6,13 @@ import { Registry } from 'core/registry';
 
 import './base64.artifact.less';
 
+export const BASE_64_ARTIFACT_TYPE = 'embedded/base64';
+export const BASE_64_ARTIFACT_ACCOUNT = 'embedded-artifact';
+
 controllerFn.$inject = ['artifact'];
 function controllerFn(artifact: IArtifact) {
   this.artifact = artifact;
-  this.artifact.type = 'embedded/base64';
+  this.artifact.type = BASE_64_ARTIFACT_TYPE;
 }
 
 export const BASE64_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.base64';
@@ -17,7 +20,7 @@ module(BASE64_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
     label: 'Base64',
     typePattern: ArtifactTypePatterns.EMBEDDED_BASE64,
-    type: 'embedded/base64',
+    type: BASE_64_ARTIFACT_TYPE,
     description: 'An artifact that includes its referenced resource as part of its payload.',
     key: 'base64',
     isDefault: false,
