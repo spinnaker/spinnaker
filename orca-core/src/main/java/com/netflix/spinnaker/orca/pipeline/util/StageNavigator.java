@@ -17,14 +17,11 @@
 package com.netflix.spinnaker.orca.pipeline.util;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
+import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,13 +31,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class StageNavigator {
-  private final Map<String, StageDefinitionBuilder> stageDefinitionBuilders;
+  private final StageResolver stageResolver;
 
   @Autowired
-  public StageNavigator(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
-    this.stageDefinitionBuilders =
-        stageDefinitionBuilders.stream()
-            .collect(toMap(StageDefinitionBuilder::getType, Function.identity()));
+  public StageNavigator(StageResolver stageResolver) {
+    this.stageResolver = stageResolver;
   }
 
   /**
@@ -49,7 +44,7 @@ public class StageNavigator {
    */
   public List<Result> ancestors(StageExecution startingStage) {
     return startingStage.ancestors().stream()
-        .map(it -> new Result(it, stageDefinitionBuilders.get(it.getType())))
+        .map(it -> new Result(it, stageResolver.getStageDefinitionBuilder(it.getType())))
         .collect(toList());
   }
 

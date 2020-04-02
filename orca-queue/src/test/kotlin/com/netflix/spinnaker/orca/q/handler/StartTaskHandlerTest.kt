@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.StageResolver
+import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.events.TaskStarted
@@ -56,7 +56,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val taskResolver = TaskResolver(emptyList())
-  val stageResolver = StageResolver(emptyList(), emptyList<SimpleStage<Object>>())
+  val stageResolver = DefaultStageResolver(emptyList(), emptyList<SimpleStage<Object>>())
   val clock = fixedClock()
 
   subject(GROUP) {

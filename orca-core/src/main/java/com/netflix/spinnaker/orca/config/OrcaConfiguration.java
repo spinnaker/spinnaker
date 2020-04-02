@@ -24,6 +24,8 @@ import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
+import com.netflix.spinnaker.orca.DefaultStageResolver;
+import com.netflix.spinnaker.orca.DynamicStageResolver;
 import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
@@ -211,11 +213,22 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public StageResolver stageResolver(
+  @ConditionalOnProperty("dynamic-stage-resolver.enabled")
+  public DynamicStageResolver dynamicStageResolver(
+      DynamicConfigService dynamicConfigService,
+      Collection<StageDefinitionBuilder> stageDefinitionBuilders,
+      Optional<List<SimpleStage<?>>> simpleStages) {
+    return new DynamicStageResolver(
+        dynamicConfigService, stageDefinitionBuilders, simpleStages.orElse(null));
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(StageResolver.class)
+  public DefaultStageResolver defaultStageResolver(
       Collection<StageDefinitionBuilder> stageDefinitionBuilders,
       Optional<List<SimpleStage>> simpleStages) {
     List<SimpleStage> stages = simpleStages.orElseGet(ArrayList::new);
-    return new StageResolver(stageDefinitionBuilders, stages);
+    return new DefaultStageResolver(stageDefinitionBuilders, stages);
   }
 
   @Bean(name = EVENT_LISTENER_FACTORY_BEAN_NAME)

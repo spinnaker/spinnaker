@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.StageResolver
+import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.TaskExecutionInterceptor
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
@@ -100,7 +100,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
   val contextParameterProcessor = ContextParameterProcessor()
   val dynamicConfigService: DynamicConfigService = mock()
   val taskExecutionInterceptors: List<TaskExecutionInterceptor> = listOf(mock())
-  val stageResolver = StageResolver(emptyList(), emptyList<SimpleStage<Object>>())
+  val stageResolver = DefaultStageResolver(emptyList(), emptyList<SimpleStage<Object>>())
 
   subject(GROUP) {
     RunTaskHandler(

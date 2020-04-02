@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -37,7 +38,7 @@ class StageNavigatorSpec extends Specification {
   ]
 
   @Subject
-  def stageNavigator = new StageNavigator(stageBuilders)
+  def stageNavigator = new StageNavigator(new DefaultStageResolver(stageBuilders, []))
 
   def execution = PipelineExecutionImpl.newPipeline("orca")
 

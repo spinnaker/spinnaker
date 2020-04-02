@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.REDIRECT
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.StageResolver
+import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.api.test.pipeline
@@ -71,7 +71,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
-  val stageResolver = StageResolver(emptyList(), emptyList<SimpleStage<Object>>())
+  val stageResolver = DefaultStageResolver(emptyList(), emptyList<SimpleStage<Object>>())
 
   subject(GROUP) {
     CompleteTaskHandler(queue, repository, DefaultStageDefinitionBuilderFactory(stageResolver), ContextParameterProcessor(), publisher, clock, NoopRegistry())

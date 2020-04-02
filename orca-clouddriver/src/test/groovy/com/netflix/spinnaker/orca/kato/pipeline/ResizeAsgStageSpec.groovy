@@ -17,23 +17,16 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import spock.lang.Shared
 import spock.lang.Specification
 
 class ResizeAsgStageSpec extends Specification {
 
-  @Shared
-  def stageNavigator = new StageNavigator([])
-
-  def mapper = OrcaObjectMapper.newInstance()
   def targetReferenceSupport = Mock(TargetReferenceSupport)
   def resizeSupport = new ResizeSupport(targetReferenceSupport: targetReferenceSupport)
   def stageBuilder = new ResizeAsgStage()

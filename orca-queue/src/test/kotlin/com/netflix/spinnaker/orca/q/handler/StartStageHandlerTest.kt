@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CON
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.StageResolver
+import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageInput
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageOutput
@@ -120,7 +120,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       repository,
       stageNavigator,
       DefaultStageDefinitionBuilderFactory(
-        StageResolver(
+        DefaultStageResolver(
           listOf(
             singleTaskStage,
             multiTaskStage,

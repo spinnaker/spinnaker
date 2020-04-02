@@ -25,9 +25,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class StageResolverSpec extends Specification {
+class DefaultStageResolverSpec extends Specification {
   @Subject
-  def stageResolver = new StageResolver([
+  def stageResolver = new DefaultStageResolver([
     new WaitStage(),
     new AliasedStageDefinitionBuilder()
   ],
@@ -49,7 +49,7 @@ class StageResolverSpec extends Specification {
 
   def "should raise exception on duplicate alias"() {
     when:
-    new StageResolver([
+    new DefaultStageResolver([
       new AliasedStageDefinitionBuilder(),
       new AliasedStageDefinitionBuilder()
     ],
@@ -75,12 +75,12 @@ class StageResolverSpec extends Specification {
 
   class TestSimpleStage implements SimpleStage {
     @Override
-    public SimpleStageOutput execute(SimpleStageInput input) {
+    SimpleStageOutput execute(SimpleStageInput input) {
       return new SimpleStageOutput();
     }
 
     @Override
-    public String getName() {
+    String getName() {
       return "simpleApiStage";
     }
   }
