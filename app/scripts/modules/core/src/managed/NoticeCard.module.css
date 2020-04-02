@@ -44,7 +44,13 @@
   font-weight: bold;
   flex: 1 1 1px;
   min-height: 24px;
-  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
 }
 
 .text {

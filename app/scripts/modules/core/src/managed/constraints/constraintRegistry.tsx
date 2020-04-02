@@ -13,13 +13,21 @@ const throwUnhandledStatusError = (status: string) => {
 
 const { NOT_EVALUATED, PENDING, FAIL, OVERRIDE_PASS, OVERRIDE_FAIL } = StatefulConstraintStatus;
 
+export interface IConstraintOverrideAction {
+  title: string;
+  pass: boolean;
+}
+
 interface IStatefulConstraintConfig {
   iconName: IconNames;
-  shortSummary: (constraint: IStatefulConstraint) => JSX.Element | string;
+  shortSummary: (constraint: IStatefulConstraint) => React.ReactNode;
+  overrideActions: { [status in StatefulConstraintStatus]?: IConstraintOverrideAction[] };
 }
 
 export const isConstraintSupported = (type: string) => statefulConstraintOptionsByType.hasOwnProperty(type);
 export const getStatefulConstraintConfig = (type: string) => statefulConstraintOptionsByType[type];
+export const getStatefulConstraintActions = ({ type, status }: IStatefulConstraint) =>
+  statefulConstraintOptionsByType[type]?.overrideActions?.[status] ?? null;
 
 // Later, this will become a "proper" registry so we can separate configs
 // into their own files and extend them dynamically at runtime.
@@ -61,5 +69,17 @@ export const statefulConstraintOptionsByType: { [type: string]: IStatefulConstra
           return throwUnhandledStatusError(status);
       }
     },
+    overrideActions: {
+      [PENDING]: [
+        {
+          title: 'Reject',
+          pass: false,
+        },
+        {
+          title: 'Approve',
+          pass: true,
+        },
+      ],
+    },
   },
-} as const;
+};

@@ -120,6 +120,7 @@ export function Environments({ app }: IEnvironmentsProps) {
             )}
             {selectedArtifact && (
               <ArtifactDetail
+                application={app}
                 name={selectedArtifact.name}
                 type={selectedArtifact.type}
                 version={selectedArtifactDetails}

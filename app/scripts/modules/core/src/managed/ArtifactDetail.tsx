@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 
 import { relativeTime, timestamp } from '../utils';
 import { IManagedArtifactVersion, IManagedResourceSummary } from '../domain';
+import { Application } from '../application';
 import { useEventListener } from '../presentation';
 
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
@@ -23,6 +24,7 @@ function shouldDisplayResource(name: string, type: string, resource: IManagedRes
 }
 
 export interface IArtifactDetailProps {
+  application: Application;
   name: string;
   type: string;
   version: IManagedArtifactVersion;
@@ -31,6 +33,7 @@ export interface IArtifactDetailProps {
 }
 
 export const ArtifactDetail = ({
+  application,
   name,
   type,
   version: { version, environments },
@@ -66,7 +69,14 @@ export const ArtifactDetail = ({
                   statefulConstraints
                     .filter(({ type }) => isConstraintSupported(type))
                     .map(constraint => (
-                      <ConstraintCard key={constraint.type} className="sp-margin-l-right" constraint={constraint} />
+                      <ConstraintCard
+                        key={constraint.type}
+                        className="sp-margin-l-right"
+                        application={application}
+                        environment={environmentName}
+                        version={version}
+                        constraint={constraint}
+                      />
                     ))}
                 {state === 'deploying' && (
                   <NoticeCard
