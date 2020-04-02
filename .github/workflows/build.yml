@@ -27,7 +27,7 @@ jobs:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        run: ./gradlew -PenablePublishing=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" build snapshot --stacktrace
+        run: ./gradlew -PenablePublishing=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" build snapshot jacocoAggregateReport --stacktrace
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
         if: github.ref == 'refs/heads/master'
