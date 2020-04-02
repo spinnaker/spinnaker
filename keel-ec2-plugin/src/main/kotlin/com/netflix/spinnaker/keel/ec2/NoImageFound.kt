@@ -26,4 +26,4 @@ class NoImageFoundForRegions(artifactName: String, regions: Collection<String>) 
   ResourceCurrentlyUnresolvable("No image found for artifact $artifactName in regions ${regions.joinToString()}")
 
 class NoImageSatisfiesConstraints(artifactName: String, environment: String) :
-  ResourceCurrentlyUnresolvable("No image found for artifact $artifactName in environment $environment")
+  ResourceCurrentlyUnresolvable("No image found for artifact $artifactName that satisfies constraints in environment $environment")
