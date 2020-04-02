@@ -159,6 +159,7 @@ open class SqlResourceRepository(
       .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
       .onDuplicateKeyUpdate()
       .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+      .set(RESOURCE_LAST_CHECKED.IGNORE, false)
       .execute()
   }
 
