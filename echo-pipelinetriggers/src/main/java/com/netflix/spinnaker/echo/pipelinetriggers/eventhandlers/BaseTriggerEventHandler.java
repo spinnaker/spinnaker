@@ -52,7 +52,7 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
   protected final ObjectMapper objectMapper;
 
-  BaseTriggerEventHandler(
+  public BaseTriggerEventHandler(
       Registry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
