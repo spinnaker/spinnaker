@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { mountWithState, mountWithStore } from 'enzyme-redux';
 import { createMockStore } from 'redux-test-utils';
-import Select from 'react-select';
+import Select, { Option, ReactSelectProps } from 'react-select';
 
 import { noop } from '@spinnaker/core';
 import * as Actions from 'kayenta/actions';
@@ -52,13 +52,15 @@ describe('<StackdriverMetricTypeSelector />', () => {
       state,
     );
 
-    expect(
-      component
-        .find(Select)
-        .first()
-        .props()
-        .options.map(o => o.value),
-    ).toEqual(['compute.googleapis.com/disk/read_ops_count', 'compute.googleapis.com/disk/throttled_read_ops_count']);
+    const allProps: any = component
+      .find(Select)
+      .first()
+      .props();
+
+    expect(allProps.options.map((o: Option) => o.value)).toEqual([
+      'compute.googleapis.com/disk/read_ops_count',
+      'compute.googleapis.com/disk/throttled_read_ops_count',
+    ]);
   });
 
   it('queries for metric descriptors matching selected metric type on component mount', () => {
@@ -79,11 +81,8 @@ describe('<StackdriverMetricTypeSelector />', () => {
       <Component value="compute.googleapis.com/disk/read_ops_count" onChange={noop} />,
       store,
     );
-
-    component
-      .find(Select)
-      .props()
-      .onInputChange('redis');
+    const allProps: ReactSelectProps = component.find(Select).props();
+    allProps.onInputChange('redis');
 
     expect(
       store.isActionDispatched({

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { mount } from 'enzyme';
 import { createMockStore } from 'redux-test-utils';
 import { Provider } from 'react-redux';
-import Select from 'react-select';
+import Select, { Option } from 'react-select';
 
 import { noop, ValidationMessage } from '@spinnaker/core';
 
@@ -39,14 +39,16 @@ describe('<FilterTemplateSelector />', () => {
   });
   it('builds options from filter template map', () => {
     const component = buildComponent(defaultProps);
+    const allProps: any = component
+      .find(Select)
+      .first()
+      .props();
 
-    expect(
-      component
-        .find(Select)
-        .first()
-        .props()
-        .options.map(o => o.value),
-    ).toEqual(['my-filter-template', 'my-other-filter-template', null]); // null is "Create new" option
+    expect(allProps.options.map((o: Option) => o.value)).toEqual([
+      'my-filter-template',
+      'my-other-filter-template',
+      null,
+    ]); // null is "Create new" option
   });
 
   it('renders filter template', () => {
