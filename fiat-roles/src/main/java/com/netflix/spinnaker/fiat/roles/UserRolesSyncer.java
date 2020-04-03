@@ -36,6 +36,7 @@ import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -273,10 +274,11 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
     long count =
         timeIt(
             "syncUsers",
-            () ->
-                permissionsResolver.resolve(extUsers).values().stream()
-                    .map(permission -> permissionsRepository.put(permission))
-                    .count());
+            () -> {
+              Collection<UserPermission> values = permissionsResolver.resolve(extUsers).values();
+              values.forEach(permissionsRepository::put);
+              return values.size();
+            });
     log.info("Synced {} non-anonymous user roles.", count);
     return count;
   }

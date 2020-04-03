@@ -12,9 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow
+      # Install Java 8 for cross-compilation support. Setting it up before
+      # Java 11 means it comes later in $PATH (because of how setup-java works)
       - uses: actions/setup-java@v1
         with:
           java-version: 8
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
       - uses: actions/cache@v1
         with:
           path: ~/.gradle
@@ -37,7 +42,7 @@ jobs:
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
         run: |
-          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" candidate
+          ./gradlew -PenableCrossCompilerPlugin=true -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" candidate
       - name: Release build
         if: steps.release_info.outputs.IS_CANDIDATE == 'false'
         env:
@@ -45,7 +50,7 @@ jobs:
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
           GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
         run: |
-          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
+          ./gradlew -PenableCrossCompilerPlugin=true -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" final
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
         uses: actions/create-release@v1
