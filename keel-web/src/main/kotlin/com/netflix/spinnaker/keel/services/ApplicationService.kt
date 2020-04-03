@@ -106,7 +106,12 @@ class ApplicationService(
    * This function assumes there's a single delivery config associated with the application.
    */
   fun getArtifactSummariesFor(application: String): List<ArtifactSummary> {
-    val deliveryConfig = repository.getDeliveryConfigForApplication(application)
+    val deliveryConfig = try {
+      repository.getDeliveryConfigForApplication(application)
+    } catch (e: NoSuchDeliveryConfigException) {
+      return emptyList()
+    }
+
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
     return deliveryConfig.artifacts.map { artifact ->
