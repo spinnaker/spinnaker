@@ -25,7 +25,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @SpringBootTest(
     classes = {MetricsReportingConfiguration.class, Main.class},
-    webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+    webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+    value = "spring.application.name=kayenta")
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"base", "prometheus", "graphite", "cases"})
 public abstract class BaseIntegrationTest {

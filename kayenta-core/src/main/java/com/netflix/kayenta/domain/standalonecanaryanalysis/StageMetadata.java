@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.domain.standalonecanaryanalysis;
 
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
@@ -31,20 +31,22 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@ApiModel(description = "Metadata around an Orca stage of the canary analysis pipeline execution")
+@ApiModel(
+    description =
+        "Metadata around an Orca StageExecution of the canary analysis pipeline execution")
 public class StageMetadata {
   @NotNull
-  @ApiModelProperty(value = "The stage type")
+  @ApiModelProperty(value = "The StageExecution type")
   String type;
 
   @NotNull
-  @ApiModelProperty(value = "The stage name")
+  @ApiModelProperty(value = "The StageExecution name")
   String name;
 
   @NotNull
   @ApiModelProperty(value = "The Orca execution status of the stage")
   ExecutionStatus status;
 
-  @ApiModelProperty(value = "The execution id if the stage is a runCanary stage")
+  @ApiModelProperty(value = "The execution id if the StageExecution is a runCanary stage")
   String executionId;
 }

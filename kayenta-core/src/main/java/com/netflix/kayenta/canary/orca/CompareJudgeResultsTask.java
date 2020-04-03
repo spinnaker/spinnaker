@@ -22,10 +22,10 @@ import com.netflix.kayenta.canary.CanaryJudge;
 import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +73,7 @@ public class CompareJudgeResultsTask implements RetryableTask {
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     Map<String, Object> context = stage.getContext();
     Map judge1Result = (Map) context.get("judge1Result");
     Map judge2Result = (Map) context.get("judge2Result");

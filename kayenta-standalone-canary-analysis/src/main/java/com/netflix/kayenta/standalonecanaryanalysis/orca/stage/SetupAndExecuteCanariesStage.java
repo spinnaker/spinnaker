@@ -28,11 +28,11 @@ import com.netflix.kayenta.canary.CanaryScopePair;
 import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionRequest;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.RunCanaryContext;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
-import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,8 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * This stage setups up the canary execution stages and executes / monitors them. This stage will
- * trigger the GenerateCanaryAnalysisResultStage always.
+ * This StageExecution setups up the canary execution stages and executes / monitors them. This
+ * StageExecution will trigger the GenerateCanaryAnalysisResultStage always.
  */
 @Component
 public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
@@ -67,13 +67,13 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
   }
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     // Do nothing, is there a better way to do this? All the real logic is in the before stages
     // method.
   }
 
   @Override
-  public void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public void beforeStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     CanaryAnalysisConfig canaryAnalysisConfig =
         kayentaObjectMapper.convertValue(
             parent.getContext().get(CANARY_ANALYSIS_CONFIG_CONTEXT_KEY),
@@ -84,7 +84,7 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
 
     if (canaryAnalysisExecutionRequest.getScopes().isEmpty()) {
       throw new IllegalArgumentException(
-          "Canary stage configuration must contain at least one scope.");
+          "Canary StageExecution configuration must contain at least one scope.");
     }
 
     // Calculate start, end, lifetime and judgement intervals.
@@ -94,7 +94,8 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
     Duration lifetime = calculateLifetime(start, endTime, canaryAnalysisExecutionRequest);
     Duration analysisInterval = calculateAnalysisInterval(canaryAnalysisExecutionRequest, lifetime);
 
-    // If a wait time was defined at the wait stage to the execution pipeline for the defined wait
+    // If a wait time was defined at the wait StageExecution to the execution pipeline for the
+    // defined wait
     // time.
     if (canaryAnalysisExecutionRequest
         .getBeginCanaryAnalysisAfterAsInstant()
@@ -113,7 +114,7 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
           });
     }
 
-    // For each interval add a wait and execute canary stage to the execution pipeline
+    // For each interval add a wait and execute canary StageExecution to the execution pipeline
     int numberOfJudgements = Math.toIntExact((lifetime.toMinutes() / analysisInterval.toMinutes()));
     for (int i = 1; i < numberOfJudgements + 1; i++) {
       final int index = i;
@@ -175,7 +176,7 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
       lifetime = canaryAnalysisExecutionRequest.getLifetimeDuration();
     } else {
       throw new IllegalArgumentException(
-          "Canary stage configuration must include either `endTime` or `lifetimeDuration`.");
+          "Canary StageExecution configuration must include either `endTime` or `lifetimeDuration`.");
     }
 
     return lifetime;
@@ -293,17 +294,18 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
   }
 
   @Override
-  public void onFailureStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public void onFailureStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     addAlwaysRunResultStage(parent, graph);
   }
 
   @Override
-  public void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public void afterStages(@Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     addAlwaysRunResultStage(parent, graph);
   }
 
   /** Always run the GenerateCanaryAnalysisResultStage. */
-  private void addAlwaysRunResultStage(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  private void addAlwaysRunResultStage(
+      @Nonnull StageExecution parent, @Nonnull StageGraphBuilder graph) {
     graph.append(
         stage -> {
           stage.setType(GenerateCanaryAnalysisResultStage.STAGE_TYPE);

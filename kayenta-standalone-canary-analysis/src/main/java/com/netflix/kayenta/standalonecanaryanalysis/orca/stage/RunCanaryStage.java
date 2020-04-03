@@ -18,12 +18,13 @@ package com.netflix.kayenta.standalonecanaryanalysis.orca.stage;
 
 import com.netflix.kayenta.standalonecanaryanalysis.orca.task.MonitorCanaryTask;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.task.RunCanaryTask;
-import com.netflix.spinnaker.orca.CancellableStage;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class RunCanaryStage implements StageDefinitionBuilder, CancellableStage 
   public static final String STAGE_NAME_PREFIX = "Run Canary #";
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
         .withTask("runCanary", RunCanaryTask.class)
         .withTask("monitorCanary", MonitorCanaryTask.class);
@@ -60,14 +61,14 @@ public class RunCanaryStage implements StageDefinitionBuilder, CancellableStage 
   }
 
   @Override
-  public Result cancel(Stage stage) {
+  public Result cancel(StageExecution stage) {
     Map<String, Object> context = stage.getContext();
     String canaryPipelineExecutionId =
         (String) context.getOrDefault("canaryPipelineExecutionId", null);
 
     if (canaryPipelineExecutionId != null) {
       log.info(
-          "Cancelling stage (stageId: {}: executionId: {}, canaryPipelineExecutionId: {}, context: {})",
+          "Cancelling StageExecution (stageId: {}: executionId: {}, canaryPipelineExecutionId: {}, context: {})",
           stage.getId(),
           stage.getExecution().getId(),
           canaryPipelineExecutionId,
@@ -76,9 +77,8 @@ public class RunCanaryStage implements StageDefinitionBuilder, CancellableStage 
       try {
         log.info("Cancelling pipeline execution {}...", canaryPipelineExecutionId);
 
-        Execution pipeline =
-            executionRepository.retrieve(
-                Execution.ExecutionType.PIPELINE, canaryPipelineExecutionId);
+        PipelineExecution pipeline =
+            executionRepository.retrieve(ExecutionType.PIPELINE, canaryPipelineExecutionId);
 
         if (pipeline.getStatus().isComplete()) {
           log.debug(
@@ -88,12 +88,12 @@ public class RunCanaryStage implements StageDefinitionBuilder, CancellableStage 
           return new CancellableStage.Result(stage, new HashMap<>());
         }
 
-        executionRepository.cancel(Execution.ExecutionType.PIPELINE, canaryPipelineExecutionId);
+        executionRepository.cancel(ExecutionType.PIPELINE, canaryPipelineExecutionId);
         executionRepository.updateStatus(
-            Execution.ExecutionType.PIPELINE, canaryPipelineExecutionId, ExecutionStatus.CANCELED);
+            ExecutionType.PIPELINE, canaryPipelineExecutionId, ExecutionStatus.CANCELED);
       } catch (Exception e) {
         log.error(
-            "Failed to cancel stage (stageId: {}, executionId: {}), e: {}",
+            "Failed to cancel StageExecution (stageId: {}, executionId: {}), e: {}",
             stage.getId(),
             stage.getExecution().getId(),
             e.getMessage(),
@@ -101,7 +101,7 @@ public class RunCanaryStage implements StageDefinitionBuilder, CancellableStage 
       }
     } else {
       log.info(
-          "Not cancelling stage (stageId: {}: executionId: {}, context: {}) since no canary pipeline execution id exists",
+          "Not cancelling StageExecution (stageId: {}: executionId: {}, context: {}) since no canary pipeline execution id exists",
           stage.getId(),
           stage.getExecution().getId(),
           stage.getContext());

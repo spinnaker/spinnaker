@@ -23,9 +23,9 @@ import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
-import com.netflix.spinnaker.orca.RetryableTask;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
@@ -68,7 +68,7 @@ public class SignalFxFetchTask implements RetryableTask {
   // independent implementations from being tightly coupled,
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     Map<String, Object> context = stage.getContext();
     SignalFxCanaryScope canaryScope;
     try {

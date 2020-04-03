@@ -31,8 +31,9 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -190,17 +191,16 @@ public class CanaryJudgesController {
   @ApiOperation(value = "Retrieve the results of a judge comparison")
   @GetMapping(value = "/comparison/{executionId:.+}")
   public Map getJudgeComparisonResults(@PathVariable String executionId) {
-    Execution pipeline =
-        executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
+    PipelineExecution pipeline = executionRepository.retrieve(ExecutionType.PIPELINE, executionId);
     String canaryExecutionId = pipeline.getId();
-    Stage compareJudgeResultsStage =
+    StageExecution compareJudgeResultsStage =
         pipeline.getStages().stream()
             .filter(stage -> stage.getRefId().equals("compareJudgeResults"))
             .findFirst()
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
-                        "Unable to find stage 'compareJudgeResults' in pipeline ID '"
+                        "Unable to find StageExecution 'compareJudgeResults' in pipeline ID '"
                             + canaryExecutionId
                             + "'"));
     Map<String, Object> compareJudgeResultsOutputs = compareJudgeResultsStage.getOutputs();
@@ -213,7 +213,7 @@ public class CanaryJudgesController {
     }
 
     // Propagate all the pipeline exceptions we can locate.
-    List<Stage> stagesWithException =
+    List<StageExecution> stagesWithException =
         pipeline.getStages().stream()
             .filter(stage -> stage.getContext().containsKey("exception"))
             .collect(Collectors.toList());

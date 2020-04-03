@@ -17,7 +17,7 @@ package com.netflix.kayenta.events;
 
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
 import com.netflix.kayenta.canary.ExecutionMapper;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,12 +39,12 @@ public class CanaryExecutionCompletedProducer extends AbstractExecutionCompleteE
   }
 
   @Override
-  public boolean shouldProcessExecution(Execution execution) {
+  public boolean shouldProcessExecution(PipelineExecution execution) {
     return ExecutionMapper.PIPELINE_NAME.equals(execution.getName());
   }
 
   @Override
-  public void processCompletedPipelineExecution(Execution execution) {
+  public void processCompletedPipelineExecution(PipelineExecution execution) {
     CanaryExecutionStatusResponse canaryExecutionStatusResponse =
         executionMapper.fromExecution(execution);
     CanaryExecutionCompletedEvent canaryExecutionCompletedEvent =

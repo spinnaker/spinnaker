@@ -18,7 +18,7 @@ package com.netflix.kayenta.domain.standalonecanaryanalysis;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.kayenta.canary.results.CanaryResult;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.LinkedList;

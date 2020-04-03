@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.kayenta.orca.controllers;
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -48,7 +48,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/pipelines")
 @Slf4j
 public class PipelineController {
-
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
   private final ObjectMapper kayentaObjectMapper;
@@ -73,7 +72,6 @@ public class PipelineController {
     this.healthIndicator = new CompositeHealthIndicator(healthAggregator, healthIndicators);
     this.postProcessor = postProcessor;
   }
-
   // TODO(duftler): Expose /inservice and /outofservice endpoints.
   @Scheduled(initialDelay = 10000, fixedDelay = 5000)
   void startOrcaQueueProcessing() {
@@ -82,7 +80,6 @@ public class PipelineController {
       if (health.getStatus() == Status.UP) {
         upAtLeastOnce = true;
         context.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)));
-
         // Cancel the scheduled task.
         postProcessor.postProcessBeforeDestruction(this, null);
         log.info("Health indicators are all reporting UP; starting orca queue processing");
@@ -102,8 +99,8 @@ public class PipelineController {
 
   @ApiOperation(value = "Retrieve a pipeline execution")
   @RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
-  Execution getPipeline(@PathVariable String executionId) {
-    return executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
+  PipelineExecution getPipeline(@PathVariable String executionId) {
+    return executionRepository.retrieve(PIPELINE, executionId);
   }
 
   @ApiOperation(value = "Cancel a pipeline execution")
@@ -111,10 +108,7 @@ public class PipelineController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String executionId) {
     log.info("Cancelling pipeline execution {}...", executionId);
-
-    Execution pipeline =
-        executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
-
+    PipelineExecution pipeline = executionRepository.retrieve(PIPELINE, executionId);
     if (pipeline.getStatus().isComplete()) {
       log.debug(
           "Not changing status of pipeline execution {} to CANCELED since execution is already completed: {}",
@@ -122,32 +116,27 @@ public class PipelineController {
           pipeline.getStatus());
       return;
     }
-
-    executionRepository.cancel(Execution.ExecutionType.PIPELINE, executionId);
-    executionRepository.updateStatus(
-        Execution.ExecutionType.PIPELINE, executionId, ExecutionStatus.CANCELED);
+    executionRepository.cancel(PIPELINE, executionId);
+    executionRepository.updateStatus(PIPELINE, executionId, ExecutionStatus.CANCELED);
   }
 
   @ApiOperation(value = "Delete a pipeline execution")
   @RequestMapping(value = "/{executionId}", method = RequestMethod.DELETE)
   ResponseEntity delete(@PathVariable String executionId) {
     log.info("Deleting pipeline execution {}...", executionId);
-
-    Execution pipeline =
-        executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
+    PipelineExecution pipeline = executionRepository.retrieve(PIPELINE, executionId);
     if (!pipeline.getStatus().isComplete()) {
       log.info("Not deleting incomplete pipeline with id {}", executionId);
       return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
-
-    executionRepository.delete(Execution.ExecutionType.PIPELINE, executionId);
+    executionRepository.delete(PIPELINE, executionId);
     return new ResponseEntity(HttpStatus.OK);
   }
 
   @ApiOperation(value = "List all pipeline IDs")
   @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
-    return executionRepository.retrieveAllExecutionIds(Execution.ExecutionType.PIPELINE);
+    return executionRepository.retrieveAllExecutionIds(PIPELINE);
   }
 
   private static class FeatureNotEnabledException extends RuntimeException {
@@ -158,11 +147,8 @@ public class PipelineController {
 
   private String startPipeline(Map config) throws Exception {
     String json = kayentaObjectMapper.writeValueAsString(config);
-
     log.info("Requested pipeline: {}", json);
-
-    Execution pipeline = executionLauncher.start(Execution.ExecutionType.PIPELINE, json);
-
+    PipelineExecution pipeline = executionLauncher.start(PIPELINE, json);
     return pipeline.getId();
   }
 }

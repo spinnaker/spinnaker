@@ -19,7 +19,7 @@ package com.netflix.kayenta.standalonecanaryanalysis.event;
 import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.events.AbstractExecutionCompleteEventProcessor;
 import com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisService;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -40,12 +40,12 @@ public class StandaloneCanaryAnalysisExecutionCompletedProducer
   }
 
   @Override
-  public boolean shouldProcessExecution(Execution execution) {
+  public boolean shouldProcessExecution(PipelineExecution execution) {
     return CanaryAnalysisService.CANARY_ANALYSIS_PIPELINE_NAME.equals(execution.getName());
   }
 
   @Override
-  public void processCompletedPipelineExecution(Execution execution) {
+  public void processCompletedPipelineExecution(PipelineExecution execution) {
     CanaryAnalysisExecutionStatusResponse canaryAnalysisExecution =
         canaryAnalysisService.getCanaryAnalysisExecution(execution.getId(), null);
     applicationEventPublisher.publishEvent(

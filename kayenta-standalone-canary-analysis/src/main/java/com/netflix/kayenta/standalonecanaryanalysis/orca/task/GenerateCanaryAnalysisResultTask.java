@@ -18,7 +18,7 @@ package com.netflix.kayenta.standalonecanaryanalysis.orca.task;
 
 import static com.netflix.kayenta.standalonecanaryanalysis.orca.task.MonitorCanaryTask.CANARY_EXECUTION_STATUS_RESPONSE;
 import static com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisService.CANARY_ANALYSIS_CONFIG_CONTEXT_KEY;
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,10 +28,10 @@ import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecuti
 import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryExecutionResult;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.RunCanaryStage;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,7 +61,7 @@ public class GenerateCanaryAnalysisResultTask implements Task {
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     // Get the request out of the context
     CanaryAnalysisConfig canaryAnalysisConfig =
         kayentaObjectMapper.convertValue(
@@ -71,7 +71,7 @@ public class GenerateCanaryAnalysisResultTask implements Task {
         canaryAnalysisConfig.getExecutionRequest();
 
     // Get the stages that have the canary execution results
-    List<Stage> runCanaryStages = getRunCanaryStages(stage);
+    List<StageExecution> runCanaryStages = getRunCanaryStages(stage);
 
     // Get the ordered canary scores as a Linked List.)
     LinkedList<Double> canaryScores =
@@ -124,7 +124,7 @@ public class GenerateCanaryAnalysisResultTask implements Task {
                                           new IllegalStateException(
                                               "Expected completed runCanaryStage to have canaryExecutionStatusResponse in context"));
 
-                          // Get the canaryExecutionStatusResponse out of the stage context
+                          // Get the canaryExecutionStatusResponse out of the StageExecution context
                           CanaryExecutionStatusResponse canaryExecutionStatusResponse =
                               kayentaObjectMapper.convertValue(
                                   data, CanaryExecutionStatusResponse.class);
@@ -206,7 +206,7 @@ public class GenerateCanaryAnalysisResultTask implements Task {
 
   /** Gets the run canary stages that contain the results */
   @NotNull
-  protected List<Stage> getRunCanaryStages(@Nonnull Stage stage) {
+  protected List<StageExecution> getRunCanaryStages(@Nonnull StageExecution stage) {
     // Collect the Run Canary Stages where the parent id is itself
     // Sorting by number after the # in the name
     return stage.getExecution().getStages().stream()

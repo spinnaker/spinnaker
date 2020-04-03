@@ -18,7 +18,7 @@ package com.netflix.kayenta.domain.standalonecanaryanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.List;
@@ -54,7 +54,7 @@ public class CanaryAnalysisExecutionStatusResponse {
   @NotNull
   @ApiModelProperty(
       value =
-          "This is a map of stage statuses which is useful for gaining insight into progress of the execution.")
+          "This is a map of StageExecution statuses which is useful for gaining insight into progress of the execution.")
   protected List<StageMetadata> stageStatus;
 
   @NotNull

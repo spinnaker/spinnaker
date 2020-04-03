@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Internal wrapper object for passing all the data received from the canary analysis endpoints as a
- * single object for cleaner method signatures and Orca stage contexts.
+ * single object for cleaner method signatures and Orca StageExecution contexts.
  */
 @Data
 @Builder

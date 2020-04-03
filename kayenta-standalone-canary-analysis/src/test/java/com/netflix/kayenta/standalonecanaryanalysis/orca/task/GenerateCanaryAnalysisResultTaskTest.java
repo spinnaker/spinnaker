@@ -25,8 +25,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -60,21 +61,21 @@ public class GenerateCanaryAnalysisResultTaskTest {
   @Test
   public void
       test_that_getRunCanaryStages_returns_the_expected_sorted_list_of_stages_sorted_by_the_number_in_the_stage_name() {
-    Stage stage = mock(Stage.class);
-    Execution execution = mock(Execution.class);
+    StageExecution stage = mock(StageExecution.class);
+    PipelineExecution execution = mock(PipelineExecution.class);
     when(stage.getExecution()).thenReturn(execution);
     when(execution.getStages())
         .thenReturn(
             ImmutableList.of(
-                new Stage(
+                new StageExecutionImpl(
                     null, STAGE_TYPE, "foo #1", Maps.newHashMap(ImmutableMap.of("index", "0"))),
-                new Stage(
+                new StageExecutionImpl(
                     null, STAGE_TYPE, "foo #3", Maps.newHashMap(ImmutableMap.of("index", "2"))),
-                new Stage(
+                new StageExecutionImpl(
                     null, STAGE_TYPE, "foo #2", Maps.newHashMap(ImmutableMap.of("index", "1"))),
-                new Stage(
+                new StageExecutionImpl(
                     null, STAGE_TYPE, "foo #4", Maps.newHashMap(ImmutableMap.of("index", "3")))));
-    List<Stage> actual = task.getRunCanaryStages(stage);
+    List<StageExecution> actual = task.getRunCanaryStages(stage);
     for (int i = 0; i < 4; i++) {
       assertEquals(String.valueOf(i), actual.get(i).getContext().get("index"));
     }

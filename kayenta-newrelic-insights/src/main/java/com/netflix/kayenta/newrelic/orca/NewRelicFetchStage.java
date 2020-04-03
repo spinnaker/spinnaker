@@ -16,9 +16,9 @@
 
 package com.netflix.kayenta.newrelic.orca;
 
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import javax.annotation.Nonnull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,7 @@ public class NewRelicFetchStage {
   StageDefinitionBuilder newRelicFetchStageBuilder() {
     return new StageDefinitionBuilder() {
       @Override
-      public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+      public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
         builder.withTask("newrelicFetch", NewRelicFetchTask.class);
       }
 

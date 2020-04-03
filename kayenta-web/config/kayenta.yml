@@ -142,7 +142,7 @@ kayenta:
 #    endpoint:
 #      baseUrl: http://remotejudge.example.com/path/to/service
 
-# Enable the SCAPE endpoint that has the same user experience that the Canary Stage in Deck/Orca has.
+# Enable the SCAPE endpoint that has the same user experience that the Canary StageExecution in Deck/Orca has.
   standaloneCanaryAnalysis:
     enabled: false
 

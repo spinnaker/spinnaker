@@ -101,7 +101,7 @@ public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest 
     executionRequest.setScopes(ImmutableMap.of("default", canaryScopePair));
     request.setExecutionRequest(executionRequest);
 
-    // trigger a canary stage execution with the request
+    // trigger a canary StageExecution execution with the request
     ValidatableResponse canaryExRes =
         given()
             .contentType("application/json")
@@ -118,7 +118,7 @@ public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest 
     String canaryExecutionId =
         canaryExRes.extract().body().jsonPath().getString("canaryExecutionId");
 
-    // poll for the stage to complete
+    // poll for the StageExecution to complete
     ValidatableResponse response;
     do {
       response =

@@ -89,7 +89,7 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
     String canaryAnalysisExecutionId =
         canaryAnalysisExRes.extract().body().jsonPath().getString("canaryAnalysisExecutionId");
 
-    // poll for the stage to complete
+    // poll for the StageExecution to complete
     ValidatableResponse response;
     do {
       response =

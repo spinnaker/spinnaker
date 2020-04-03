@@ -23,8 +23,9 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
@@ -165,8 +166,8 @@ public class CanaryController {
 
     // First look in the online cache.  If nothing is found there, look in our storage for the ID.
     try {
-      Execution pipeline =
-          executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
+      PipelineExecution pipeline =
+          executionRepository.retrieve(ExecutionType.PIPELINE, canaryExecutionId);
       return executionMapper.fromExecution(pipeline);
     } catch (ExecutionNotFoundException e) {
       StorageService storageService =
@@ -213,7 +214,7 @@ public class CanaryController {
     }
 
     String canaryPipelineConfigId = application + "-standard-canary-pipeline";
-    List<Execution> executions =
+    List<PipelineExecution> executions =
         executionRepository
             .retrievePipelinesForPipelineConfigId(canaryPipelineConfigId, executionCriteria)
             .toList()

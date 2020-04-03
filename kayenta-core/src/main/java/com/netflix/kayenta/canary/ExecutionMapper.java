@@ -28,11 +28,11 @@ import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.canary.results.CanaryResult;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.io.IOException;
 import java.time.Duration;
@@ -88,7 +88,7 @@ public class ExecutionMapper {
    * @param pipeline The Orca canary pipeline execution for the canary.
    * @return the canary execution status response.
    */
-  public CanaryExecutionStatusResponse fromExecution(Execution pipeline) {
+  public CanaryExecutionStatusResponse fromExecution(PipelineExecution pipeline) {
     if (!PIPELINE_NAME.equals(pipeline.getName())) {
       throw new IllegalArgumentException(
           String.format(
@@ -96,13 +96,14 @@ public class ExecutionMapper {
               PIPELINE_NAME, pipeline.getName()));
     }
 
-    Stage judgeStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_JUDGE);
+    StageExecution judgeStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_JUDGE);
     Map<String, Object> judgeOutputs = judgeStage.getOutputs();
 
-    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
+    StageExecution contextStage =
+        getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
     Map<String, Object> contextContext = contextStage.getContext();
 
-    Stage mixerStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_MIX_METRICS);
+    StageExecution mixerStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_MIX_METRICS);
     Map<String, Object> mixerOutputs = mixerStage.getOutputs();
 
     CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder
@@ -139,7 +140,8 @@ public class ExecutionMapper {
     Map<String, String> stageStatus =
         pipeline.getStages().stream()
             .collect(
-                Collectors.toMap(Stage::getRefId, s -> s.getStatus().toString().toLowerCase()));
+                Collectors.toMap(
+                    StageExecution::getRefId, s -> s.getStatus().toString().toLowerCase()));
 
     Boolean isComplete = pipeline.getStatus().isComplete();
     String pipelineStatus = pipeline.getStatus().toString().toLowerCase();
@@ -187,7 +189,7 @@ public class ExecutionMapper {
     }
 
     // Propagate the first canary pipeline exception we can locate.
-    Stage stageWithException =
+    StageExecution stageWithException =
         pipeline.getStages().stream()
             .filter(stage -> stage.getContext().containsKey("exception"))
             .findFirst()
@@ -202,15 +204,16 @@ public class ExecutionMapper {
   }
 
   // Some older (stored) results have the execution request only in the judge context.
-  public String getCanaryExecutionRequestFromJudgeContext(Execution pipeline) {
-    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_JUDGE);
+  public String getCanaryExecutionRequestFromJudgeContext(PipelineExecution pipeline) {
+    StageExecution contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_JUDGE);
     Map<String, Object> context = contextStage.getContext();
 
     return (String) context.get("canaryExecutionRequest");
   }
 
-  public CanaryExecutionRequest getCanaryExecutionRequest(Execution pipeline) {
-    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
+  public CanaryExecutionRequest getCanaryExecutionRequest(PipelineExecution pipeline) {
+    StageExecution contextStage =
+        getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
     Map<String, Object> context = contextStage.getContext();
 
     String canaryExecutionRequestJSON = (String) context.get("canaryExecutionRequest");
@@ -231,8 +234,9 @@ public class ExecutionMapper {
     return canaryExecutionRequest;
   }
 
-  public CanaryConfig getCanaryConfig(Execution pipeline) {
-    Stage contextStage = getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
+  public CanaryConfig getCanaryConfig(PipelineExecution pipeline) {
+    StageExecution contextStage =
+        getStageFromExecution(pipeline, CanaryStageNames.REFID_SET_CONTEXT);
     Map<String, Object> context = contextStage.getContext();
 
     Map<String, Object> canaryConfigMap = (Map<String, Object>) context.get("canaryConfig");
@@ -240,13 +244,13 @@ public class ExecutionMapper {
   }
 
   /**
-   * Fetches a stage via its ref id from the Orca pipeline execution.
+   * Fetches a StageExecution via its ref id from the Orca pipeline execution.
    *
    * @param pipeline The Orca pipeline Execution
    * @param refId The reference id for the stage
    * @return The stage.
    */
-  protected Stage getStageFromExecution(Execution pipeline, String refId) {
+  protected StageExecution getStageFromExecution(PipelineExecution pipeline, String refId) {
     String canaryExecutionId = pipeline.getId();
     return pipeline.getStages().stream()
         .filter(stage -> refId.equals(stage.getRefId()))
@@ -255,7 +259,7 @@ public class ExecutionMapper {
             () ->
                 new IllegalArgumentException(
                     String.format(
-                        "Unable to find stage '%s' in pipeline ID '%s'",
+                        "Unable to find StageExecution '%s' in pipeline ID '%s'",
                         refId, canaryExecutionId)));
   }
 
@@ -482,7 +486,7 @@ public class ExecutionMapper {
             pipelineBuilder.withStage(
                 (String) context.get("stageType"), (String) context.get("refId"), context));
 
-    Execution pipeline = pipelineBuilder.withLimitConcurrent(false).build();
+    PipelineExecution pipeline = pipelineBuilder.withLimitConcurrent(false).build();
 
     executionRepository.store(pipeline);
 
@@ -604,7 +608,7 @@ public class ExecutionMapper {
             .withStage("canaryJudge", "Perform Analysis with Judge 2", canaryJudgeContext2)
             .withStage("compareJudgeResults", "Compare Judge Results", compareJudgeResultsContext);
 
-    Execution pipeline = pipelineBuilder.withLimitConcurrent(false).build();
+    PipelineExecution pipeline = pipelineBuilder.withLimitConcurrent(false).build();
 
     executionRepository.store(pipeline);
 
@@ -617,7 +621,7 @@ public class ExecutionMapper {
     return CanaryExecutionResponse.builder().canaryExecutionId(pipeline.getId()).build();
   }
 
-  private void handleStartupFailure(Execution execution, Throwable failure) {
+  private void handleStartupFailure(PipelineExecution execution, Throwable failure) {
     final String canceledBy = "system";
     final String reason = "Failed on startup: " + failure.getMessage();
     final ExecutionStatus status = ExecutionStatus.TERMINAL;

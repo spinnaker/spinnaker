@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller for triggering logic that is representative of what happens in the Spinnaker Canary
- * Analysis Stage of a pipeline.
+ * Analysis StageExecution of a pipeline.
  */
 @RestController(
     value =
@@ -77,7 +77,7 @@ public class StandaloneCanaryAnalysisController {
    * @param user The initiating user
    * @param application The application under test
    * @param parentPipelineExecutionId The parent pipeline execution id, if this is being executed as
-   *     a stage in another pipeline
+   *     a StageExecution in another pipeline
    * @param metricsAccountName The account that has the metrics for the application under test
    * @param configurationAccountName The account that has the supplied canary config id
    * @param storageAccountName The account that will be used to store results
@@ -102,7 +102,7 @@ public class StandaloneCanaryAnalysisController {
           final String application,
       @ApiParam(
               value =
-                  "The parent pipeline execution id, if this is being executed as a stage in another pipeline",
+                  "The parent pipeline execution id, if this is being executed as a StageExecution in another pipeline",
               example = "01CYZCD53RBX2KR2Q9GY0218UI")
           @RequestParam(required = false)
           final String parentPipelineExecutionId,
@@ -166,7 +166,7 @@ public class StandaloneCanaryAnalysisController {
    * @param user The initiating user
    * @param application The application under test
    * @param parentPipelineExecutionId The parent pipeline execution id, if this is being executed as
-   *     a stage in another pipeline
+   *     a StageExecution in another pipeline
    * @param metricsAccountName The account that has the metrics for the application under test
    * @param storageAccountName The account that will be used to store results
    * @param canaryAnalysisAdhocExecutionRequest Wrapper around the canary analysis execution request
@@ -189,7 +189,7 @@ public class StandaloneCanaryAnalysisController {
           final String application,
       @ApiParam(
               value =
-                  "The parent pipeline execution id, if this is being executed as a stage in another pipeline",
+                  "The parent pipeline execution id, if this is being executed as a StageExecution in another pipeline",
               example = "01CYZCD53RBX2KR2Q9GY0218UI")
           @RequestParam(required = false)
           final String parentPipelineExecutionId,

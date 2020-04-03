@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.orca.task;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryAdhocExecutionRequest;
@@ -27,9 +27,9 @@ import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.RunCanaryContext;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,7 @@ public class RunCanaryTask implements Task {
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     RunCanaryContext context =
         kayentaObjectMapper.convertValue(stage.getContext(), RunCanaryContext.class);
 

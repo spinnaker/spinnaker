@@ -16,8 +16,9 @@
 
 package com.netflix.kayenta.events;
 
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.events.ExecutionComplete;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,17 +40,17 @@ public abstract class AbstractExecutionCompleteEventProcessor
 
   @Override
   public void onApplicationEvent(ExecutionComplete event) {
-    if (event.getExecutionType() != Execution.ExecutionType.PIPELINE) {
+    if (event.getExecutionType() != ExecutionType.PIPELINE) {
       return;
     }
-    Execution execution =
-        executionRepository.retrieve(Execution.ExecutionType.PIPELINE, event.getExecutionId());
+    PipelineExecution execution =
+        executionRepository.retrieve(ExecutionType.PIPELINE, event.getExecutionId());
     if (shouldProcessExecution(execution)) {
       processCompletedPipelineExecution(execution);
     }
   }
 
-  public abstract boolean shouldProcessExecution(Execution execution);
+  public abstract boolean shouldProcessExecution(PipelineExecution execution);
 
-  public abstract void processCompletedPipelineExecution(Execution execution);
+  public abstract void processCompletedPipelineExecution(PipelineExecution execution);
 }

@@ -16,10 +16,10 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.orca.task;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED;
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -30,12 +30,13 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.MonitorKayentaCanaryContext;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.Stats;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
-import com.netflix.spinnaker.orca.Task;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.time.Duration;
 import java.util.HashMap;
@@ -91,12 +92,12 @@ public class MonitorCanaryTask implements Task, OverridableTimeoutRetryableTask 
 
   @Nonnull
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(@Nonnull StageExecution stage) {
     MonitorKayentaCanaryContext context = stage.mapTo(MonitorKayentaCanaryContext.class);
 
-    Execution pipeline =
+    PipelineExecution pipeline =
         executionRepository.retrieve(
-            Execution.ExecutionType.PIPELINE, context.getCanaryPipelineExecutionId());
+            ExecutionType.PIPELINE, context.getCanaryPipelineExecutionId());
 
     CanaryExecutionStatusResponse statusResponse = executionMapper.fromExecution(pipeline);
 
