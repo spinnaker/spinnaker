@@ -28,6 +28,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.TaskExecutionInterceptor
+import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -42,6 +44,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution.PausedDe
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl.STAGE_TIMEOUT_OVERRIDE_KEY
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CompleteTask
@@ -67,7 +70,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
@@ -92,9 +95,13 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val stageNavigator: StageNavigator = mock()
-  val task: DummyTask = mock()
+  val task: DummyTask = mock {
+    on { aliases() } doReturn emptyList<String>()
+  }
   val cloudProviderAwareTask: DummyCloudProviderAwareTask = mock()
-  val timeoutOverrideTask: DummyTimeoutOverrideTask = mock()
+  val timeoutOverrideTask: DummyTimeoutOverrideTask = mock() {
+    on { aliases() } doReturn emptyList<String>()
+  }
   val exceptionHandler: ExceptionHandler = mock()
   val clock = fixedClock()
   val contextParameterProcessor = ContextParameterProcessor()
@@ -109,7 +116,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       stageNavigator,
       DefaultStageDefinitionBuilderFactory(stageResolver),
       contextParameterProcessor,
-      listOf(task, timeoutOverrideTask, cloudProviderAwareTask),
+      TaskResolver(mutableListOf(task, timeoutOverrideTask, cloudProviderAwareTask) as Collection<Task>?),
       clock,
       listOf(exceptionHandler),
       taskExecutionInterceptors,
@@ -134,6 +141,129 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
       val stage = pipeline.stages.first()
       val message = RunTask(pipeline.type, pipeline.id, "foo", stage.id, "1", DummyTask::class.java)
+
+      and("has no context updates outputs") {
+        val taskResult = TaskResult.SUCCEEDED
+
+        beforeGroup {
+          taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
+          taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
+          whenever(task.execute(any())) doReturn taskResult
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("executes the task") {
+          verify(task).execute(pipeline.stages.first())
+        }
+
+        it("completes the task") {
+          verify(queue).push(check<CompleteTask> {
+            assertThat(it.status).isEqualTo(SUCCEEDED)
+          })
+        }
+
+        it("does not update the stage or global context") {
+          verify(repository, never()).storeStage(any())
+        }
+      }
+
+      and("has context updates") {
+        val stageOutputs = mapOf("foo" to "covfefe")
+        val taskResult = TaskResult.builder(SUCCEEDED).context(stageOutputs).build()
+
+        beforeGroup {
+          taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
+          taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
+          whenever(task.execute(any())) doReturn taskResult
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("updates the stage context") {
+          verify(repository).storeStage(check {
+            assertThat(stageOutputs).isEqualTo(it.context)
+          })
+        }
+      }
+
+      and("has outputs") {
+        val outputs = mapOf("foo" to "covfefe")
+        val taskResult = TaskResult.builder(SUCCEEDED).outputs(outputs).build()
+
+        beforeGroup {
+          taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
+          taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
+          whenever(task.execute(any())) doReturn taskResult
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("updates the stage outputs") {
+          verify(repository).storeStage(check {
+            assertThat(it.outputs).isEqualTo(outputs)
+          })
+        }
+      }
+
+      and("outputs a stageTimeoutMs value") {
+        val outputs = mapOf(
+          "foo" to "covfefe",
+          "stageTimeoutMs" to Long.MAX_VALUE
+        )
+        val taskResult = TaskResult.builder(SUCCEEDED).outputs(outputs).build()
+
+        beforeGroup {
+          taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
+          taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
+          whenever(task.execute(any())) doReturn taskResult
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("does not write stageTimeoutMs to outputs") {
+          verify(repository).storeStage(check {
+            assertThat(it.outputs)
+              .containsKey("foo")
+              .doesNotContainKey("stageTimeoutMs")
+          })
+        }
+      }
+    }
+
+    describe("that completes successfully prefering specified TaskExecution implementingClass") {
+      val pipeline = pipeline {
+        stage {
+          type = "whatever"
+          task {
+            id = "1"
+            startTime = clock.instant().toEpochMilli()
+            implementingClass = task.javaClass.canonicalName
+          }
+        }
+      }
+      val stage = pipeline.stages.first()
+      val message = RunTask(pipeline.type, pipeline.id, "foo", stage.id, "1", WaitTask::class.java)
 
       and("has no context updates outputs") {
         val taskResult = TaskResult.SUCCEEDED
@@ -544,7 +674,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("does not execute the task") {
-        verifyZeroInteractions(task)
+        verify(task).aliases()
+        verifyNoMoreInteractions(task)
       }
     }
 
@@ -622,7 +753,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("does not execute the task") {
-        verifyZeroInteractions(task)
+        verify(task).aliases()
+        verifyNoMoreInteractions(task)
       }
     }
 
@@ -1040,7 +1172,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
                 startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
                 task {
                   id = "1"
-
                   status = RUNNING
                   startTime = clock.instant().minusMillis(timeout.toMillis() - 1).toEpochMilli()
                 }
@@ -1077,7 +1208,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
                   startTime = clock.instant().minusMillis(timeoutOverride.toMillis() + 1).toEpochMilli()
                   task {
                     id = "1"
-
                     status = RUNNING
                     startTime = clock.instant().minusMillis(timeout.toMillis() - 1).toEpochMilli()
                   }
@@ -1513,7 +1643,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     }
 
     it("does not run any tasks") {
-      verifyZeroInteractions(task)
+      verify(task).aliases()
+      verifyNoMoreInteractions(task)
     }
 
     it("emits an error event") {

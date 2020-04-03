@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage;
+import com.netflix.spinnaker.orca.pipeline.SimpleTask;
+import java.util.*;
 import javax.annotation.Nonnull;
 
 /**
@@ -44,6 +44,10 @@ public class TaskResolver {
    *     alias
    */
   public TaskResolver(Collection<Task> tasks, boolean allowFallback) {
+    this(tasks, Collections.emptyList(), true);
+  }
+
+  public TaskResolver(Collection<Task> tasks, List<SimpleStage> stages, boolean allowFallback) {
     for (Task task : tasks) {
       taskByAlias.put(task.getClass().getCanonicalName(), task);
       for (String alias : task.aliases()) {
@@ -58,6 +62,9 @@ public class TaskResolver {
 
         taskByAlias.put(alias, task);
       }
+    }
+    for (SimpleStage stage : stages) {
+      taskByAlias.put(stage.getClass().getCanonicalName(), new SimpleTask(stage));
     }
 
     this.allowFallback = allowFallback;
@@ -82,6 +89,23 @@ public class TaskResolver {
   }
 
   /**
+   * Fetch a {@code Task} by {@code Class type}.
+   *
+   * @param taskType Task type (class of task)
+   * @return the Task matching {@code taskType}
+   * @throws NoSuchTaskException if Task does not exist
+   */
+  @Nonnull
+  public Task getTask(@Nonnull Class<? extends Task> taskType) {
+    Task matchingTask =
+        taskByAlias.values().stream()
+            .filter((Task task) -> taskType.isAssignableFrom(task.getClass()))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchTaskException(taskType.getCanonicalName()));
+    return matchingTask;
+  }
+
+  /**
    * @param taskTypeIdentifier Task identifier (class name or alias)
    * @return Task Class
    * @throws NoSuchTaskException if task does not exist
@@ -103,13 +127,13 @@ public class TaskResolver {
     }
   }
 
-  class DuplicateTaskAliasException extends IllegalStateException {
+  public class DuplicateTaskAliasException extends IllegalStateException {
     DuplicateTaskAliasException(String message) {
       super(message);
     }
   }
 
-  class NoSuchTaskException extends IllegalArgumentException {
+  public class NoSuchTaskException extends IllegalArgumentException {
     NoSuchTaskException(String taskTypeIdentifier) {
       super("No task found for '" + taskTypeIdentifier + "'");
     }

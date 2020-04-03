@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.TaskExecutionInterceptor
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -76,7 +77,7 @@ class RunTaskHandler(
   override val stageNavigator: StageNavigator,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   override val contextParameterProcessor: ContextParameterProcessor,
-  private val tasks: Collection<Task>,
+  private val taskResolver: TaskResolver,
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
   private val taskExecutionInterceptors: List<TaskExecutionInterceptor>,
@@ -200,15 +201,18 @@ class RunTaskHandler(
 
   private fun RunTask.withTask(block: (StageExecution, TaskExecution, Task) -> Unit) =
     withTask { stage, taskModel ->
-      tasks
-        .find { taskType.isAssignableFrom(it.javaClass) }
-        .let { task ->
-          if (task == null) {
-            queue.push(InvalidTaskType(this, taskType.name))
-          } else {
-            block.invoke(stage, taskModel, task)
-          }
+      try {
+        taskResolver.getTask(taskModel.implementingClass)
+      } catch (e: TaskResolver.NoSuchTaskException) {
+        try {
+          taskResolver.getTask(taskType)
+        } catch (e: TaskResolver.NoSuchTaskException) {
+          queue.push(InvalidTaskType(this, taskType.name))
+          null
         }
+      }?.let {
+        block.invoke(stage, taskModel, it)
+      }
     }
 
   private fun Task.backoffPeriod(taskModel: TaskExecution, stage: StageExecution): TemporalAmount =

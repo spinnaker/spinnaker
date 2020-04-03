@@ -208,8 +208,10 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public TaskResolver taskResolver(Collection<Task> tasks) {
-    return new TaskResolver(tasks, true);
+  public TaskResolver taskResolver(
+      Collection<Task> tasks, Optional<List<SimpleStage>> simpleStages) {
+    List<SimpleStage> stages = simpleStages.orElseGet(ArrayList::new);
+    return new TaskResolver(tasks, stages, true);
   }
 
   @Bean

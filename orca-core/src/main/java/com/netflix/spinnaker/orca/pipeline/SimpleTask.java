@@ -36,14 +36,12 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.ResolvableType;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 public class SimpleTask implements Task {
   private SimpleStage simpleStage;
 
-  SimpleTask(@Nullable SimpleStage simpleStage) {
+  public SimpleTask(@Nullable SimpleStage simpleStage) {
     this.simpleStage = simpleStage;
   }
 

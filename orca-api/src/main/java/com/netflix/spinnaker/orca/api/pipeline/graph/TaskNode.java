@@ -110,6 +110,17 @@ public interface TaskNode {
     }
 
     /**
+     * Adds a task to the current graph.
+     *
+     * @param task the task node to add
+     * @return this builder with the new task appended.
+     */
+    public Builder withTask(TaskNode task) {
+      graph.add(task);
+      return this;
+    }
+
+    /**
      * Adds a sub-graph of tasks that may loop if any of them return {@link
      * ExecutionStatus#REDIRECT}. The sub-graph will run after any previously added tasks and before
      * any subsequently added ones. If the final task in the sub-graph returns {@link
@@ -162,8 +173,23 @@ public interface TaskNode {
     }
   }
 
+  /**
+   * This is an abstraction above TaskDefinition that allows more flexibility for the implementing
+   * class name.
+   */
+  interface DefinedTask {
+
+    /** @return name of the task */
+    @Nonnull
+    String getName();
+
+    /** @return name of the class implementing the stage */
+    @Nonnull
+    String getImplementingClassName();
+  }
+
   /** An individual task. */
-  class TaskDefinition implements TaskNode {
+  class TaskDefinition implements TaskNode, DefinedTask {
     private final String name;
     private final Class<? extends Task> implementingClass;
 
@@ -178,6 +204,11 @@ public interface TaskNode {
 
     public @Nonnull Class<? extends Task> getImplementingClass() {
       return implementingClass;
+    }
+
+    @Override
+    public @Nonnull String getImplementingClassName() {
+      return getImplementingClass().getCanonicalName();
     }
   }
 }
