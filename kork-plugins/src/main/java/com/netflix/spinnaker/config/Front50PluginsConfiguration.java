@@ -33,6 +33,8 @@ import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.pf4j.update.UpdateRepository;
 import org.pf4j.update.verifier.CompoundVerifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -46,6 +48,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @Configuration
 @ConditionalOnProperty("spinnaker.extensibility.repositories.front50.enabled")
 public class Front50PluginsConfiguration {
+
+  private static final Logger log = LoggerFactory.getLogger(Front50PluginsConfiguration.class);
 
   @Bean
   public static PluginOkHttpClientProvider pluginsOkHttpClient(Environment environment) {
@@ -117,8 +121,8 @@ public class Front50PluginsConfiguration {
   /**
    * We are a bit inconsistent with how we configure service URLs, so we proceed in this order:
    *
-   * <p>1) {@code front50.base-url} 2) {@code services.front50.base-url} 3) {@code
-   * spinnaker.extensibility.repositories.front50.url}
+   * <p>1) {@code spinnaker.extensibility.repositories.front50.url} 2) {@code front50.base-url} 3)
+   * spinnaker.extensibility.repositories.front50.url} * {@code services.front50.base-url}
    *
    * @param environment The Spring environment
    * @param front50RepositoryProps Front50 update repository configuration
@@ -126,12 +130,20 @@ public class Front50PluginsConfiguration {
    */
   private static URL getFront50Url(
       Environment environment, PluginRepositoryProperties front50RepositoryProps) {
-    return Binder.get(environment)
-        .bind("front50.base-url", Bindable.of(URL.class))
-        .orElseGet(
-            () ->
-                Binder.get(environment)
-                    .bind("services.front50.base-url", Bindable.of(URL.class))
-                    .orElseGet(front50RepositoryProps::getUrl));
+    try {
+      return front50RepositoryProps.getUrl();
+    } catch (Exception e) {
+      log.warn(
+          "Front50 update repository URL is either not specified or malformed, falling back "
+              + "to default configuration",
+          e);
+      return Binder.get(environment)
+          .bind("front50.base-url", Bindable.of(URL.class))
+          .orElseGet(
+              () ->
+                  Binder.get(environment)
+                      .bind("services.front50.base-url", Bindable.of(URL.class))
+                      .get());
+    }
   }
 }
