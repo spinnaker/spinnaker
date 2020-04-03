@@ -21,29 +21,57 @@ import java.io.InputStream
 import java.lang.Exception
 import java.util.Optional
 import okhttp3.ResponseBody
+import org.slf4j.LoggerFactory
 
 class Ok3Response(
   private val objectMapper: ObjectMapper,
-  private val body: ResponseBody?,
-  private val exception: Exception?,
-  private val statusCode: Int,
-  private val headers: Map<String, String>
+  private val response: okhttp3.Response?,
+  private val exception: Exception?
 ) : Response {
-  override fun getBody(): InputStream? = body?.byteStream()
+
+  /**
+   * Ok3HttpClient will close the response immediately after creating this response object.
+   *
+   * Using `peekBody` will copy the response body into a different scope so that the original can be closed
+   * and this object can exist as long as it needs to.
+   */
+  private val responseBody: ResponseBody? = response?.peekBody(Long.MAX_VALUE)
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  override fun getBody(): InputStream? {
+    return responseBody?.use { it.byteStream() }
+  }
 
   override fun <T : Any> getBody(expectedType: Class<T>): T? {
-    if (body == null) {
-      return null
-    }
-    return objectMapper.convertValue(body.byteStream(), expectedType)
+    val body = responseBody?.use { it.string() } ?: return null
+    return objectMapper.readValue(body, expectedType)
   }
 
   override fun getException(): Optional<Exception> =
     Optional.ofNullable(exception)
 
   override fun getStatusCode(): Int =
-    statusCode
+    response?.code() ?: -1
 
   override fun getHeaders(): Map<String, String> =
-    headers
+    response
+      ?.headers()
+      ?.toMultimap()
+      ?.map { it.key to it.value.joinToString(",") }
+      ?.toMap()
+      ?: emptyMap()
+
+  /**
+   * This method should not be called by anyone, as it's the Java finalization method and will be used to cleanup
+   * any open streams when the object is destroyed.
+   */
+  fun finalize() {
+    try {
+      response?.body()?.close()
+      responseBody?.close()
+    } catch (e: Exception) {
+      log.warn("Failed to cleanup resource", e)
+    }
+  }
 }

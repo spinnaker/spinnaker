@@ -17,6 +17,7 @@ dependencies {
   implementation project(":kork-web")
   implementation("com.squareup.retrofit2:retrofit")
   implementation("com.squareup.retrofit2:converter-jackson")
+  implementation("com.squareup.okhttp3:logging-interceptor")
 
   implementation "org.pf4j:pf4j"
   implementation "org.pf4j:pf4j-update"
@@ -33,6 +34,7 @@ dependencies {
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
 
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

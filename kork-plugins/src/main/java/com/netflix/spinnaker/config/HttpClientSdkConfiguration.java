@@ -15,7 +15,16 @@
  */
 package com.netflix.spinnaker.config;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory;
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.HttpClientSdkFactory;
@@ -55,7 +64,17 @@ public class HttpClientSdkConfiguration {
     OkHttp3ClientConfiguration config =
         new OkHttp3ClientConfiguration(okHttpClientProperties, okHttp3MetricsInterceptor);
 
+    // TODO(rz): It'd be nice to make this customizable, but I'm not sure how to do that without
+    //  bringing Jackson into the Plugin SDK (quite undesirable).
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new Jdk8Module());
+    objectMapper.registerModule(new JavaTimeModule());
+    objectMapper.registerModule(new KotlinModule());
+    objectMapper.disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
+    objectMapper.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+    objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES);
+    objectMapper.disable(FAIL_ON_EMPTY_BEANS);
+    objectMapper.setSerializationInclusion(NON_NULL);
 
     return new HttpClientSdkFactory(
         new CompositeOkHttpClientFactory(okHttpClientFactories), environment, objectMapper, config);

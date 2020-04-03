@@ -34,6 +34,8 @@ public class HttpClientConfig {
   /** Connection pool-related configuration options. */
   private final ConnectionPoolConfig connectionPool = new ConnectionPoolConfig();
 
+  private final LoggingConfig logging = new LoggingConfig();
+
   public SecurityConfig getSecurity() {
     return security;
   }
@@ -44,6 +46,10 @@ public class HttpClientConfig {
 
   public ConnectionPoolConfig getConnectionPool() {
     return connectionPool;
+  }
+
+  public LoggingConfig getLogging() {
+    return logging;
   }
 
   public static class SecurityConfig {
@@ -275,6 +281,40 @@ public class HttpClientConfig {
       int result = maxIdleConnections != null ? maxIdleConnections.hashCode() : 0;
       result = 31 * result + (keepAlive != null ? keepAlive.hashCode() : 0);
       return result;
+    }
+  }
+
+  public static class LoggingConfig {
+    public enum LoggingLevel {
+      NONE,
+      BASIC,
+      HEADERS,
+      BODY
+    }
+
+    private LoggingLevel level = LoggingLevel.BASIC;
+
+    public LoggingLevel getLevel() {
+      return level;
+    }
+
+    public void setLevel(LoggingLevel level) {
+      this.level = level;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      LoggingConfig that = (LoggingConfig) o;
+
+      return level == that.level;
+    }
+
+    @Override
+    public int hashCode() {
+      return level != null ? level.hashCode() : 0;
     }
   }
 

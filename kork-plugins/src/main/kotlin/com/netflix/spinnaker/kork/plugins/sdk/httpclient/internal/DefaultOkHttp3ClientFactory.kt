@@ -16,11 +16,14 @@
 package com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
+import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig.LoggingConfig.LoggingLevel
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.OkHttp3ClientFactory
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 
 /**
  * Configures a standard [OkHttpClient].
@@ -32,8 +35,8 @@ class DefaultOkHttp3ClientFactory(
     baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
 
   override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
-    return OkHttp3ClientConfiguration(
-      OkHttpClientConfigurationProperties().apply {
+    return OkHttpClientConfigurationProperties()
+      .apply {
         config.connectionPool.keepAlive?.let {
           connectionPool.keepAliveDurationMs = it.toMillis().toInt()
         }
@@ -61,9 +64,23 @@ class DefaultOkHttp3ClientFactory(
           tlsVersions = config.security.tlsVersions
           cipherSuites = config.security.cipherSuites
         }
-      },
-      // TODO(rz): Add plugin ID to the metrics. Requires refactoring existing metrics interceptor.
-      okHttpClientHttp3MetricsInterceptor
-    ).create().build()
+      }
+      .let {
+        // TODO(rz): Add plugin ID to the metrics. Requires refactoring existing metrics interceptor.
+        OkHttp3ClientConfiguration(it, okHttpClientHttp3MetricsInterceptor).create()
+      }
+      .also {
+        if (config.logging.level != LoggingLevel.NONE) {
+          it.addInterceptor(HttpLoggingInterceptor().apply {
+            level = when (config.logging.level) {
+              LoggingLevel.BASIC -> HttpLoggingInterceptor.Level.BASIC
+              LoggingLevel.HEADERS -> HttpLoggingInterceptor.Level.HEADERS
+              LoggingLevel.BODY -> HttpLoggingInterceptor.Level.BODY
+              else -> throw SystemException("Unsupported logging level: ${config.logging.level}")
+            }
+          })
+        }
+      }
+      .build()
   }
 }

@@ -87,10 +87,8 @@ class Ok3HttpClient(
 
       Ok3Response(
         objectMapper = objectMapper,
-        body = null,
-        exception = io,
-        statusCode = -1,
-        headers = emptyMap()
+        response = null,
+        exception = io
       )
     }
   }
@@ -98,7 +96,7 @@ class Ok3HttpClient(
   private fun requestBuilder(request: Request): okhttp3.Request.Builder =
     okhttp3.Request.Builder()
       .tag("$name.${request.name}")
-      .url(URL(baseUrl + request.path))
+      .url(URL((baseUrl + request.path).replace("//", "/")))
       .headers(Headers.of(request.headers))
 
   private fun Request.okHttpRequestBody(): RequestBody =
@@ -107,10 +105,8 @@ class Ok3HttpClient(
   private fun okhttp3.Response.toGenericResponse(): Response {
     return Ok3Response(
       objectMapper = objectMapper,
-      body = body(),
-      exception = null,
-      statusCode = code(),
-      headers = headers().toMultimap().map { it.key to it.value.joinToString(",") }.toMap()
+      response = this,
+      exception = null
     )
   }
 }
