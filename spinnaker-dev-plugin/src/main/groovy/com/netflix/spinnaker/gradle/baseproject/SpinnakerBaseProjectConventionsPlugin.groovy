@@ -1,13 +1,18 @@
 package com.netflix.spinnaker.gradle.baseproject
 
+import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.java.archives.Manifest
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
 
+@CompileStatic
 class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
@@ -21,12 +26,10 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
       // and it seems to cause lots of errors.
       project.tasks.withType(Javadoc) { (it as Javadoc).setFailOnError(false) }
       project.tasks.withType(Jar) { setImplementationOssVersion((it as Jar), project) }
-      project.afterEvaluate {
-        project.tasks
-          .getByName("clean")
-          .doLast {
-            project.delete(project.files("${project.projectDir}/plugins"))
-          }
+
+      project.plugins.withType(BasePlugin) {
+        Delete clean = project.getTasks().getByName(BasePlugin.CLEAN_TASK_NAME) as Delete;
+        clean.delete("${project.projectDir}/plugins")
       }
     }
 
@@ -41,7 +44,7 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
       String ossVersionProperty = "ossVersion"
       if (project.hasProperty(ossVersionProperty)) {
         jar.manifest {
-          it.attributes(["Implementation-OSS-Version": project.property(ossVersionProperty)])
+          (it as Manifest).attributes(["Implementation-OSS-Version": project.property(ossVersionProperty)])
         }
       }
     }
