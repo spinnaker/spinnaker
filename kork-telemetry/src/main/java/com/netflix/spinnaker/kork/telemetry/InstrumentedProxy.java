@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,7 +79,7 @@ public class InstrumentedProxy implements InvocationHandler {
   private final String metricNamespace;
   private final Map<String, String> tags;
 
-  private final Map<Method, MethodMetrics> instrumentedMethods = new HashMap<>();
+  private final Map<Method, MethodMetrics> instrumentedMethods = new ConcurrentHashMap<>();
   private final List<Method> seenMethods = new ArrayList<>();
 
   public InstrumentedProxy(Registry registry, Object target, String metricNamespace) {
@@ -177,7 +178,7 @@ public class InstrumentedProxy implements InvocationHandler {
         }
       }
 
-      if (!processed && !instrumentedMethods.containsKey(method) && !seenMethods.contains(method)) {
+      if (!processed && !instrumentedMethods.containsKey(method)) {
         addInstrumentedMethod(
             instrumentedMethods,
             method,
@@ -207,16 +208,7 @@ public class InstrumentedProxy implements InvocationHandler {
       return;
     }
 
-    for (Map.Entry<Method, MethodMetrics> existingMethodMetric : existingMethodMetrics.entrySet()) {
-      if (existingMethodMetric
-          .getValue()
-          .invocationsId
-          .name()
-          .equals(methodMetrics.invocationsId.name())) {
-        throw new MetricNameCollisionException(target, existingMethodMetric.getKey(), method);
-      }
-    }
-    existingMethodMetrics.put(method, methodMetrics);
+    existingMethodMetrics.putIfAbsent(method, methodMetrics);
   }
 
   private static boolean isMethodAllowed(Method method) {
@@ -256,10 +248,12 @@ public class InstrumentedProxy implements InvocationHandler {
   }
 
   private static class MetricNameCollisionException extends IllegalStateException {
-    public MetricNameCollisionException(Object target, Method method1, Method method2) {
+    public MetricNameCollisionException(
+        Object target, String metricName, Method method1, Method method2) {
       super(
           format(
-              "Metric name collision detected between methods '%s' and '%s' in '%s'",
+              "Metric name (%s) collision detected between methods '%s' and '%s' in '%s'",
+              metricName,
               method1.toGenericString(),
               method2.toGenericString(),
               target.getClass().getSimpleName()));
