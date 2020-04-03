@@ -20,16 +20,23 @@ import com.netflix.spinnaker.fiat.config.LdapConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
+import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.Attributes;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.support.LdapEncoder;
@@ -93,10 +100,49 @@ public class LdapUserRolesProvider implements UserRolesProvider {
         .collect(Collectors.toList());
   }
 
+  private class UserGroupMapper implements AttributesMapper<List<Pair<String, Role>>> {
+    public List<Pair<String, Role>> mapFromAttributes(Attributes attrs) throws NamingException {
+      String group = attrs.get(configProps.getGroupRoleAttributes()).get().toString();
+      Role role = new Role(group).setSource(Role.Source.LDAP);
+      List<Pair<String, Role>> member = new ArrayList<>();
+      for (NamingEnumeration<?> members = attrs.get(configProps.getGroupUserAttributes()).getAll();
+          members.hasMore(); ) {
+        try {
+          String user =
+              String.valueOf(configProps.getUserDnPattern().parse(members.next().toString())[0]);
+          member.add(Pair.of(user, role));
+        } catch (ParseException e) {
+          e.printStackTrace();
+        }
+      }
+      return member;
+    }
+  }
+
   @Override
   public Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
     if (StringUtils.isEmpty(configProps.getGroupSearchBase())) {
       return new HashMap<>();
+    }
+
+    if (users.size() > configProps.getThresholdToUseGroupMembership()
+        && StringUtils.isNotEmpty(configProps.getGroupUserAttributes())) {
+      Set<String> userIds = users.stream().map(ExternalUser::getId).collect(Collectors.toSet());
+      return ldapTemplate
+          .search(
+              configProps.getGroupSearchBase(),
+              MessageFormat.format(
+                  configProps.getGroupSearchFilter(),
+                  "*",
+                  "*"), // Passing two wildcard params like loadRoles
+              new UserGroupMapper())
+          .stream()
+          .flatMap(List::stream)
+          .filter(p -> userIds.contains(p.getKey()))
+          .collect(
+              Collectors.groupingBy(
+                  Pair::getKey,
+                  Collectors.mapping(Pair::getValue, Collectors.toCollection(ArrayList::new))));
     }
 
     // ExternalUser is used here as a simple data type to hold the username/roles combination.
