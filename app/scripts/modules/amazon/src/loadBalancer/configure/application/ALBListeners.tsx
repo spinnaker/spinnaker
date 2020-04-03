@@ -1,7 +1,7 @@
 import React from 'react';
 import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
-import { difference, flatten, get, some, uniq } from 'lodash';
+import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 
 import {
@@ -113,6 +113,11 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
       errors.listeners = `Target group ${unusedTargetGroupNames[0]} is unused.`;
     } else if (unusedTargetGroupNames.length > 1) {
       errors.listeners = `Target groups ${unusedTargetGroupNames.join(', ')} are unused.`;
+    }
+
+    const { listeners } = values;
+    if (uniqBy(listeners, 'port').length < listeners.length) {
+      errors.listenerPorts = 'Multiple listeners cannot use the same port.';
     }
 
     const missingRuleFields = values.listeners.find(l => {
@@ -578,6 +583,11 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
                 </div>
               </div>
             ))}
+            {errors.listenerPorts && (
+              <div className="wizard-pod-row-errors">
+                <ValidationMessage type="error" message={errors.listenerPorts} />
+              </div>
+            )}
             {errors.listeners && (
               <div className="wizard-pod-row-errors">
                 <ValidationMessage type="error" message={errors.listeners} />

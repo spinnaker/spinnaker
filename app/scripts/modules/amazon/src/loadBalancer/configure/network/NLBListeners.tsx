@@ -1,5 +1,5 @@
 import React from 'react';
-import { difference, flatten, uniq } from 'lodash';
+import { difference, flatten, uniq, uniqBy } from 'lodash';
 
 import { ValidationMessage, IWizardPageComponent } from '@spinnaker/core';
 
@@ -32,6 +32,11 @@ export class NLBListeners extends React.Component<INLBListenersProps>
       errors.listeners = `Target group ${unusedTargetGroupNames[0]} is unused.`;
     } else if (unusedTargetGroupNames.length > 1) {
       errors.listeners = `Target groups ${unusedTargetGroupNames.join(', ')} are unused.`;
+    }
+
+    const { listeners } = values;
+    if (uniqBy(listeners, 'port').length < listeners.length) {
+      errors.listenerPorts = 'Multiple listeners cannot use the same port.';
     }
 
     return errors;
@@ -170,6 +175,11 @@ export class NLBListeners extends React.Component<INLBListenersProps>
                 </div>
               </div>
             ))}
+            {errors.listenerPorts && (
+              <div className="wizard-pod-row-errors">
+                <ValidationMessage type="error" message={errors.listenerPorts} />
+              </div>
+            )}
             {errors.listeners && (
               <div className="wizard-pod-row-errors">
                 <ValidationMessage type="error" message={errors.listeners} />
