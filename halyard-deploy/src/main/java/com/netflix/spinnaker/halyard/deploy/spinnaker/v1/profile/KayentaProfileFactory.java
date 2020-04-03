@@ -75,6 +75,16 @@ public class KayentaProfileFactory extends SpringProfileFactory {
     }
   }
 
+  @Override
+  protected String baseReleaseWithPlugins() {
+    return "1.20.0";
+  }
+
+  @Override
+  protected String concreteReleaseWithPlugins() {
+    return "1.20.0";
+  }
+
   @EqualsAndHashCode(callSuper = true)
   @Data
   private static class KayentaConfigWrapper extends SpringProfileConfig {
