@@ -19,7 +19,20 @@ module.exports = {
 };
 
 function spinnakerSharedLibraries() {
-  const libraries = ['lodash', 'react', 'react-dom', '@spinnaker/core'];
+  // Updates here should also be added in core/src/plugins/sharedLibraries.ts
+  const libraries = [
+    '@spinnaker/core',
+    '@uirouter/core',
+    '@uirouter/react',
+    '@uirouter/rx',
+    'lodash',
+    'prop-types',
+    'react',
+    'react-dom',
+    'rxjs',
+    'rxjs/Observable',
+    'tslib',
+  ];
 
   function getGlobalVariable(libraryName) {
     const prefix = 'spinnaker.plugins.sharedLibraries';
