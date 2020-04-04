@@ -3,6 +3,7 @@
   "compileOnSave": true,
   "compilerOptions": {
     "allowJs": false,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": "src",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

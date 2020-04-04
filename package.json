@@ -43,6 +43,7 @@
     "lodash-decorators": "^4.4.1",
     "memoize-one": "4.0.2",
     "moment-timezone": "^0.4.0",
+    "n3-charts": "^2.0.28",
     "ngimport": "^0.6.0",
     "react": "~16.8.0",
     "react-ace": "6.4.0",
@@ -78,8 +79,8 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
-    "@spinnaker/amazon": "^0.0.222",
-    "@spinnaker/core": "0.0.428",
+    "@spinnaker/amazon": "^0.0.249",
+    "@spinnaker/core": "0.0.469",
     "@spinnaker/styleguide": "^1.0.12",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",
