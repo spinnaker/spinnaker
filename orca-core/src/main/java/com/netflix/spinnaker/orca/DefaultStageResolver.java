@@ -73,7 +73,8 @@ public class DefaultStageResolver implements StageResolver {
             type, stageDefinitionBuilderByAlias.get(typeAlias));
 
     if (stageDefinitionBuilder == null) {
-      throw new NoSuchStageDefinitionBuilderException(type, stageDefinitionBuilderByAlias.keySet());
+      throw new NoSuchStageDefinitionBuilderException(
+          type, typeAlias, stageDefinitionBuilderByAlias.keySet());
     }
 
     return stageDefinitionBuilder;

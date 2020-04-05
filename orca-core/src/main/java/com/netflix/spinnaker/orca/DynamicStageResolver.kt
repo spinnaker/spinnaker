@@ -80,7 +80,7 @@ class DynamicStageResolver(
     }
 
     if (builder == null) {
-      throw StageResolver.NoSuchStageDefinitionBuilderException(type, stageDefinitionBuildersByAlias.keys)
+      throw StageResolver.NoSuchStageDefinitionBuilderException(type, typeAlias, stageDefinitionBuildersByAlias.keys)
     }
 
     return builder

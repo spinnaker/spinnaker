@@ -59,11 +59,12 @@ public interface StageResolver {
   }
 
   class NoSuchStageDefinitionBuilderException extends IllegalArgumentException {
-    NoSuchStageDefinitionBuilderException(String type, Collection<String> knownTypes) {
+    NoSuchStageDefinitionBuilderException(
+        String type, String alias, Collection<String> knownTypes) {
       super(
           format(
-              "No StageDefinitionBuilder implementation for %s found (knownTypes: %s)",
-              type, String.join(",", knownTypes)));
+              "No StageDefinitionBuilder implementation for %s(alias: %s) found (knownTypes: %s)",
+              type, alias, String.join(",", knownTypes)));
     }
   }
 }

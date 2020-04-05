@@ -44,7 +44,12 @@ public class StageNavigator {
    */
   public List<Result> ancestors(StageExecution startingStage) {
     return startingStage.ancestors().stream()
-        .map(it -> new Result(it, stageResolver.getStageDefinitionBuilder(it.getType())))
+        .map(
+            it ->
+                new Result(
+                    it,
+                    stageResolver.getStageDefinitionBuilder(
+                        it.getType(), (String) it.getContext().get("alias"))))
         .collect(toList());
   }
 
