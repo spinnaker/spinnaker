@@ -17,7 +17,7 @@ export interface IManagedResourceObjectProps {
 
 const kindIconMap: { [kind: string]: IconNames } = {
   cluster: 'cluster',
-  'security-group': 'cluster',
+  'security-group': 'securityGroup',
   'classic-load-balancer': 'loadBalancer',
   'application-load-balancer': 'loadBalancer',
 };

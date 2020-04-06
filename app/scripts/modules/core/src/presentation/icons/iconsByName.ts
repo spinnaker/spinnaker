@@ -22,6 +22,7 @@ import { ReactComponent as instances } from './vectors/instances.svg';
 import { ReactComponent as loadBalancer } from './vectors/loadBalancer.svg';
 import { ReactComponent as manualJudgement } from './vectors/manualJudgement.svg';
 import { ReactComponent as placeholder } from './vectors/placeholder.svg';
+import { ReactComponent as securityGroup } from './vectors/securityGroup.svg';
 import { ReactComponent as servergroupAws } from './vectors/servergroupAws.svg';
 import { ReactComponent as spel } from './vectors/spel.svg';
 import { ReactComponent as templateFull } from './vectors/templateFull.svg';
@@ -106,6 +107,7 @@ export const iconsByName = {
   mdUnknown,
   md,
   placeholder,
+  securityGroup,
   servergroupAws,
   spCIBranch,
   spCIBuild,
