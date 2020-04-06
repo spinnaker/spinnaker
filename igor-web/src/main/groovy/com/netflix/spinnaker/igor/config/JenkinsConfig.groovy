@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -91,16 +92,13 @@ class JenkinsConfig {
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsService(
                 host.name,
-                (JenkinsClient) InstrumentedProxy.proxy(
+                jenkinsClient(
+                    host,
+                    jenkinsOkHttpClientProvider.provide(host),
+                    jenkinsRetrofitRequestInterceptorProvider.provide(host),
                     registry,
-                    jenkinsClient(
-                        host,
-                        jenkinsOkHttpClientProvider.provide(host),
-                        jenkinsRetrofitRequestInterceptorProvider.provide(host),
-                        igorConfigurationProperties.client.timeout
-                    ),
-                    "jenkinsClient",
-                    [master: host.name]),
+                    igorConfigurationProperties.client.timeout
+                ),
                 host.csrf,
                 host.permissions.build()
             )]
@@ -123,6 +121,7 @@ class JenkinsConfig {
     static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host,
                                        OkHttpClient client,
                                        RequestInterceptor requestInterceptor,
+                                       Registry registry,
                                        int timeout = 30000) {
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
 
@@ -170,6 +169,12 @@ class JenkinsConfig {
             client.setSslSocketFactory(sslContext.socketFactory)
         }
 
+        if (registry == null) {
+            log.warn("no registry provided, OkHttpMetricsInterceptor will not be created for JenkinsClient")
+        } else {
+            client.interceptors().add(new OkHttpMetricsInterceptor({ -> registry }, true))
+        }
+
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(host.address))
             .setRequestInterceptor(new RequestInterceptor() {
@@ -179,15 +184,16 @@ class JenkinsConfig {
                     requestInterceptor.intercept(request)
                 }
             })
+            .setLogLevel(RestAdapter.LogLevel.BASIC)
             .setClient(new OkClient(client))
             .setConverter(new JacksonConverter(getObjectMapper()))
             .build()
             .create(JenkinsClient)
     }
 
-    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, int timeout = 30000) {
+    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, Registry registry = null, int timeout = 30000) {
         OkHttpClient client = new OkHttpClient()
-        jenkinsClient(host, client, RequestInterceptor.NONE, timeout)
+        jenkinsClient(host, client, RequestInterceptor.NONE, registry, timeout)
     }
 
     static class TrustAllTrustManager implements X509TrustManager {
