@@ -3,6 +3,7 @@ import { ReactComponent as accordionExpand } from './vectors/accordionExpand.svg
 import { ReactComponent as accordionExpandAll } from './vectors/accordionExpandAll.svg';
 import { ReactComponent as artifact } from './vectors/artifact.svg';
 import { ReactComponent as build } from './vectors/build.svg';
+import { ReactComponent as caretRight } from './vectors/caretRight.svg';
 import { ReactComponent as checkBadge } from './vectors/checkBadge.svg';
 import { ReactComponent as checkboxIndeterminate } from './vectors/checkboxIndeterminate.svg';
 import { ReactComponent as checkboxChecked } from './vectors/checkboxChecked.svg';
@@ -76,6 +77,7 @@ export const iconsByName = {
   canaryRunning,
   canaryPass,
   canaryMarginal,
+  caretRight,
   checkBadge,
   checkboxIndeterminate,
   checkboxChecked,

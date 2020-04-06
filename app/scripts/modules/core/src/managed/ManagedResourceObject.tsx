@@ -1,12 +1,12 @@
 import React from 'react';
 import { useSref } from '@uirouter/react';
 
-import { IconNames } from '../presentation';
+import { Icon, IconNames } from '../presentation';
 import { IManagedResourceSummary, IManagedEnviromentSummary } from '../domain/IManagedEntity';
 
 import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
-import { Pill } from './Pill';
+import { AnimatingPill, Pill } from './Pill';
 import { parseName } from './Frigga';
 
 export interface IManagedResourceObjectProps {
@@ -57,10 +57,22 @@ const getResourceRoutingInfo = (
 
 export const ManagedResourceObject = ({ resource, artifact, depth }: IManagedResourceObjectProps) => {
   const { version: currentVersion, buildNumber: currentBuild } = parseName(artifact?.versions.current || '') || {};
+  const { version: deployingVersion, buildNumber: deployingBuild } =
+    parseName(artifact?.versions.deploying || '') || {};
   const { kind } = resource;
   const resourceName = getResourceName(resource);
   const routingInfo = getResourceRoutingInfo(resource) ?? { state: '', params: {} };
   const route = useSref(routingInfo.state, routingInfo.params);
+
+  const currentPill = artifact?.versions.current ? (
+    <Pill text={currentBuild ? `#${currentBuild}` : currentVersion || artifact.versions.current || 'unknown'} />
+  ) : null;
+  const deployingPill = artifact?.versions.deploying ? (
+    <>
+      <Icon appearance="neutral" name="caretRight" size="medium" />
+      <AnimatingPill text={deployingBuild ? `#${deployingBuild}` : deployingVersion || artifact.versions.deploying} />
+    </>
+  ) : null;
 
   return (
     <ObjectRow
@@ -68,9 +80,10 @@ export const ManagedResourceObject = ({ resource, artifact, depth }: IManagedRes
       title={route ? <a {...route}>{resourceName}</a> : resourceName}
       depth={depth}
       metadata={
-        artifact?.versions.current && (
-          <Pill text={currentBuild ? `#${currentBuild}` : currentVersion || artifact.versions.current || 'unknown'} />
-        )
+        <>
+          {currentPill}
+          {deployingPill}
+        </>
       }
     />
   );
