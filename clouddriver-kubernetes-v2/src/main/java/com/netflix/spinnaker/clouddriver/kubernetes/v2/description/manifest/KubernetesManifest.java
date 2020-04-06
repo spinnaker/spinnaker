@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +106,15 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public String getName() {
     return (String) getMetadata().get("name");
+  }
+
+  @JsonIgnore
+  public boolean hasGenerateName() {
+    if (!Strings.isNullOrEmpty(this.getName())) {
+      // If a name is present, it will be used instead of a generateName
+      return false;
+    }
+    return !Strings.isNullOrEmpty((String) getMetadata().get("generateName"));
   }
 
   @JsonIgnore

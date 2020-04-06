@@ -502,6 +502,34 @@ public class KubectlJobExecutor {
     return null;
   }
 
+  public KubernetesManifest create(
+      KubernetesV2Credentials credentials, KubernetesManifest manifest) {
+    List<String> command = kubectlAuthPrefix(credentials);
+
+    String manifestAsJson = gson.toJson(manifest);
+
+    // Read from stdin
+    command.add("create");
+    command.add("-o");
+    command.add("json");
+    command.add("-f");
+    command.add("-");
+
+    JobResult<String> status =
+        jobExecutor.runJob(
+            new JobRequest(command, new ByteArrayInputStream(manifestAsJson.getBytes())));
+
+    if (status.getResult() != JobResult.Result.SUCCESS) {
+      throw new KubectlException("Create failed: " + status.getError());
+    }
+
+    try {
+      return gson.fromJson(status.getOutput(), KubernetesManifest.class);
+    } catch (JsonSyntaxException e) {
+      throw new KubectlException("Failed to parse kubectl output: " + e.getMessage(), e);
+    }
+  }
+
   private List<String> kubectlAuthPrefix(KubernetesV2Credentials credentials) {
     List<String> command = new ArrayList<>();
     if (StringUtils.isNotEmpty(credentials.getKubectlExecutable())) {
