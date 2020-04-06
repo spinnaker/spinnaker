@@ -23,6 +23,5 @@ package com.netflix.spinnaker.keel.events
  */
 data class ArtifactVersionDeployed(
   val resourceId: String,
-  val artifactVersion: String,
-  val provider: String = "aws"
+  val artifactVersion: String
 )

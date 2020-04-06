@@ -355,8 +355,7 @@ class TitusClusterHandler(
               // and we don't care about some of them.
               publisher.publishEvent(ArtifactVersionDeployed(
                 resourceId = resource.id,
-                artifactVersion = tag,
-                provider = "titus"
+                artifactVersion = tag
               ))
             }
         }
