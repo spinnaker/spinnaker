@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.comparator
 import java.time.Duration
 
 interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
@@ -163,6 +164,17 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   )
 
   /**
+   * Marks a version of an artifact as skipped for an environment, with information on what version superseded it.
+   */
+  fun markAsSkipped(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String,
+    supersededByVersion: String
+  )
+
+  /**
    * Fetches the status of artifact versions in the environments of [deliveryConfig].
    */
   fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary>
@@ -208,6 +220,48 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    * different values.
    */
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact>
+
+  /**
+   * Returns true if the version is older (lower) than the existing version.
+   * Note: the artifact comparitors are decending by default
+   */
+  fun isOlder(artifact: DeliveryArtifact, new: String, existingVersion: String): Boolean =
+    artifact.versioningStrategy.comparator.compare(new, existingVersion) > 0
+
+  /**
+   * Returns true if the version is newer (higher) than the existing version.
+   * Note: the artifact comparitors are decending by default
+   */
+  fun isNewer(artifact: DeliveryArtifact, version: String, existingVersion: String): Boolean =
+    artifact.versioningStrategy.comparator.compare(version, existingVersion) < 0
+
+  /**
+   * Given a list of pending versions and a current version, removes all versions older than the current version
+   * from the list. If there's no current, returns all pending versions.
+   */
+  fun removeOlderIfCurrentExists(artifact: DeliveryArtifact, currentVersion: String?, pending: List<String>?): List<String> {
+    if (pending == null) {
+      return emptyList()
+    }
+
+    if (currentVersion == null) {
+      return pending
+    }
+
+    return pending.filter { isNewer(artifact, it, currentVersion) }
+  }
+
+  /**
+   * Given a list of pending versions and a current version, returns all versions older than the current
+   * version from the list. If there's no current version or no pending versions, returns an empty list.
+   */
+  fun removeNewerIfCurrentExists(artifact: DeliveryArtifact, currentVersion: String?, pending: List<String>?): List<String> {
+    if (pending == null || currentVersion == null) {
+      return emptyList()
+    }
+
+    return pending.filter { isOlder(artifact, it, currentVersion) }
+  }
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :

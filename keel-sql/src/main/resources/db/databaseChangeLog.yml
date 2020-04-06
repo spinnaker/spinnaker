@@ -122,3 +122,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200401-resource-check-veto.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200402-more-artifact-info.yml
+      relativeToChangelogFile: true

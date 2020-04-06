@@ -258,7 +258,8 @@ class ApplicationServiceTests : JUnit5Minutests {
               approved = listOf(),
               previous = listOf(),
               vetoed = listOf(),
-              deploying = null
+              deploying = null,
+              skipped = listOf()
             )
           ))
         )
@@ -274,7 +275,8 @@ class ApplicationServiceTests : JUnit5Minutests {
               approved = listOf(),
               previous = listOf("fnord-1.0.0-h0.a0a0a0a"),
               vetoed = listOf(),
-              deploying = null
+              deploying = null,
+              skipped = listOf()
             )
           ))
         )
@@ -290,7 +292,8 @@ class ApplicationServiceTests : JUnit5Minutests {
               approved = listOf("fnord-1.0.3-h3.d3d3d3d"),
               previous = listOf("fnord-1.0.0-h0.a0a0a0a", "fnord-1.0.1-h1.b1b1b1b"),
               vetoed = listOf(),
-              deploying = null
+              deploying = null,
+              skipped = listOf()
             )
           ))
         )

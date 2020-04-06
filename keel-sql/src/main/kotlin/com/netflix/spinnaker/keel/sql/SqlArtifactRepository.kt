@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.comparator
@@ -382,27 +383,49 @@ class SqlArtifactRepository(
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val environmentUid = deliveryConfig.getUidFor(environment)
     sqlRetry.withRetry(WRITE) {
-      jooq
-        .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
-        .onDuplicateKeyUpdate()
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
-        .execute()
-    }
-    sqlRetry.withRetry(WRITE) {
-      jooq
-        .update(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
-        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
-        .execute()
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        txn
+          .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
+          .onDuplicateKeyUpdate()
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
+          .execute()
+        // update old "CURRENT" to "PREVIOUS
+        txn
+          .update(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, currentTimestamp())
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
+          .execute()
+        // update any past artifacts that were "APPROVED" to be "SKIPPED"
+        // because the new version takes precedence
+        val approvedButOld = txn.select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+          .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
+          .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+          .filter { isOlder(artifact, it, version) }
+
+        txn
+          .update(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, currentTimestamp())
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(APPROVED.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.`in`(*approvedButOld.toTypedArray()))
+          .execute()
+      }
     }
   }
 
@@ -594,6 +617,32 @@ class SqlArtifactRepository(
     }
   }
 
+  override fun markAsSkipped(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String,
+    supersededByVersion: String
+  ) {
+    val environment = deliveryConfig.environmentNamed(targetEnvironment)
+    val environmentUid = deliveryConfig.getUidFor(environment)
+    sqlRetry.withRetry(WRITE) {
+      jooq
+        .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, supersededByVersion)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, currentTimestamp())
+        .onDuplicateKeyUpdate()
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, supersededByVersion)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, currentTimestamp())
+        .execute()
+    }
+  }
+
   override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> {
     return deliveryConfig.environments.map { environment ->
       val artifactVersions = deliveryConfig.artifacts.map { artifact ->
@@ -675,17 +724,22 @@ class SqlArtifactRepository(
           }, { (version, _, _) ->
             version
           })
+
+        val currentVersion = versions[CURRENT]?.firstOrNull()
         ArtifactVersions(
           name = artifact.name,
           type = artifact.type,
           statuses = releaseStatuses,
           versions = ArtifactVersionStatus(
-            current = versions[CURRENT]?.firstOrNull(),
+            current = currentVersion,
             deploying = versions[DEPLOYING]?.firstOrNull(),
-            pending = versions[PENDING] ?: emptyList(),
+            // take out stateful constraint values that will never happen
+            pending = removeOlderIfCurrentExists(artifact, currentVersion, versions[PENDING]),
             approved = versions[APPROVED] ?: emptyList(),
             previous = versions[PREVIOUS] ?: emptyList(),
-            vetoed = versions[VETOED] ?: emptyList()
+            vetoed = versions[VETOED] ?: emptyList(),
+            skipped = removeNewerIfCurrentExists(artifact, currentVersion, versions[PENDING]).plus(versions[SKIPPED]
+              ?: emptyList())
           )
         )
       }.toSet()
@@ -804,7 +858,6 @@ class SqlArtifactRepository(
         .where(DELIVERY_ARTIFACT.NAME.eq(artifactName))
         .and(DELIVERY_ARTIFACT.TYPE.eq(artifactType.name))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
-        .limit(1)
         .fetchOne(DELIVERY_ARTIFACT.UID)
         ?: error("Artifact not found: name=$artifactName, type=$artifactType, deliveryConfig=${deliveryConfig.name}")
 
@@ -813,7 +866,6 @@ class SqlArtifactRepository(
         .from(ENVIRONMENT)
         .where(ENVIRONMENT.NAME.eq(environmentName))
         .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-        .limit(1)
         .fetchOne(ENVIRONMENT.UID)
         ?: error("Environment '$environmentName not found")
 
@@ -821,34 +873,16 @@ class SqlArtifactRepository(
         .select(
           ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
           ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT,
-          ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS
+          ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY,
+          ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT
         )
         .from(ENVIRONMENT_ARTIFACT_VERSIONS)
         .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactUid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
-        .limit(1)
-        .fetchOne { (version, deployedAt, promotionStatus) ->
-          val (replacedBy, replacedAt) = when (promotionStatus) {
-            CURRENT.name, PREVIOUS.name -> {
-              jooq
-                .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT)
-                .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-                .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
-                .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactUid))
-                .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
-                .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
-                .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.greaterThan(deployedAt))
-                .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
-                .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.asc())
-                .limit(1)
-                .fetchOne { (replacedBy, replacedAt) ->
-                  Pair(replacedBy, replacedAt)
-                } ?: Pair(null, null)
-            }
-            else -> Pair(null, null)
-          }
+        .fetchOne { (version, deployedAt, promotionStatus, replacedBy, replacedAt) ->
           ArtifactSummaryInEnvironment(
             environment = environmentName,
             version = version,

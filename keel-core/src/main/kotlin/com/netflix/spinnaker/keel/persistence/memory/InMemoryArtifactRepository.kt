@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.APPROVED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
@@ -44,6 +45,7 @@ class InMemoryArtifactRepository(
   private val deployedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<Pair<String, Instant>>>()
   private val vetoedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
   private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, EnvironmentArtifactPin>()
+  private val skippedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<Skipped>>()
   private val statusByEnvironment = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, PromotionStatus>>()
   private val vetoReference = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, String>>()
   private val lastCheckTimes = mutableMapOf<DeliveryArtifact, Instant>()
@@ -248,7 +250,15 @@ class InMemoryArtifactRepository(
     }
 
     val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    // update all previous "current" versions to "previous"
     statuses.filterValues { it == CURRENT }.forEach { statuses[it.key] = PREVIOUS }
+    // update all previous "approved" versions with a lower version number to "skipped"
+    statuses
+      .filterValues { it == APPROVED }
+      .filterKeys { artifact.versioningStrategy.comparator.compare(it, version) > 0 }
+      .forEach {
+        statuses[it.key] = SKIPPED
+      }
     statuses[version] = CURRENT
   }
 
@@ -362,6 +372,14 @@ class InMemoryArtifactRepository(
     statuses[version] = DEPLOYING
   }
 
+  override fun markAsSkipped(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String, supersededByVersion: String) {
+    val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
+    val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
+    val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    statuses[version] = SKIPPED
+    skippedVersions.getOrPut(key, ::mutableListOf).add(Skipped(version, supersededByVersion, clock.instant()))
+  }
+
   override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> =
     deliveryConfig
       .environments
@@ -373,6 +391,17 @@ class InMemoryArtifactRepository(
             val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environment.name)
             val statuses = statusByEnvironment
               .getOrDefault(key, emptyMap<String, String>())
+
+            val currentVersion = statuses.filterValues { it == CURRENT }.keys.firstOrNull()
+            val pending = versions[VersionsKey(artifact.name, artifact.type)]
+              ?.filter {
+                it.status == null || it.status in ((artifact as? DebianArtifact)?.statuses
+                  ?: emptySet<ArtifactStatus>())
+              }
+              ?.map { it.version }
+              ?.filter { it !in statuses.keys }
+              ?: emptyList()
+
             ArtifactVersions(
               name = artifact.name,
               type = artifact.type,
@@ -381,19 +410,13 @@ class InMemoryArtifactRepository(
                 else -> emptySet()
               },
               versions = ArtifactVersionStatus(
-                current = statuses.filterValues { it == CURRENT }.keys.firstOrNull(),
+                current = currentVersion,
                 deploying = statuses.filterValues { it == DEPLOYING }.keys.firstOrNull(),
-                pending = versions[VersionsKey(artifact.name, artifact.type)]
-                  ?.filter {
-                    it.status == null || it.status in ((artifact as? DebianArtifact)?.statuses
-                      ?: emptySet<ArtifactStatus>())
-                  }
-                  ?.map { it.version }
-                  ?.filter { it !in statuses.keys }
-                  ?: emptyList(),
+                pending = removeOlderIfCurrentExists(artifact, currentVersion, pending),
                 approved = statuses.filterValues { it == APPROVED }.keys.toList(),
                 previous = statuses.filterValues { it == PREVIOUS }.keys.toList(),
-                vetoed = statuses.filterValues { it == VETOED }.keys.toList()
+                vetoed = statuses.filterValues { it == VETOED }.keys.toList(),
+                skipped = removeNewerIfCurrentExists(artifact, currentVersion, pending).plus(statuses.filterValues { it == SKIPPED }.keys.toList())
               )
             )
           }
@@ -466,7 +489,8 @@ class InMemoryArtifactRepository(
       ?.sortedBy { (_, deployedAt) -> deployedAt } // ascending because we want to get the replacement deployment using `firstOrNull` below
     val deployedAt = artifactDeployedVersions?.find { (ver, _) -> ver == version }?.second
     val (replacedBy, replacedAt) = artifactDeployedVersions?.firstOrNull { (ver, at) ->
-      ver != version && deployedAt != null && at.isAfter(deployedAt) }
+      ver != version && deployedAt != null && at.isAfter(deployedAt)
+    }
       ?: Pair(null, null)
 
     return ArtifactSummaryInEnvironment(
@@ -494,6 +518,12 @@ class InMemoryArtifactRepository(
       }
       .toList()
   }
+
+  private data class Skipped(
+    val version: String,
+    val replacedByVersion: String,
+    val replacedAt: Instant
+  )
 
   private data class ArtifactVersionAndStatus(
     val version: String,

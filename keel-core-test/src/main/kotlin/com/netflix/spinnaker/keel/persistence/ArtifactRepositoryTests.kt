@@ -54,6 +54,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")),
       statuses = setOf(SNAPSHOT)
     )
+
     // the artifact built off of master
     val artifact2 = DebianArtifact(
       name = "keeldemo",
@@ -405,6 +406,26 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                   get(ArtifactVersionStatus::deploying).isNull()
                   get(ArtifactVersionStatus::previous).containsExactly(version1)
                 }
+              }
+            }
+          }
+
+          context("there are two approved versions for the environment and the latter was deployed") {
+            before {
+              clock.incrementBy(Duration.ofHours(1))
+              subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
+              subject.approveVersionFor(manifest, artifact1, version3, environment1.name)
+              subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version3, environment1.name)
+            }
+
+            test("the lower version was marked as skipped") {
+              val result = versionsIn(environment1)
+              expectThat(result) {
+                get(ArtifactVersionStatus::pending).isEmpty()
+                get(ArtifactVersionStatus::current).isEqualTo(version3)
+                get(ArtifactVersionStatus::deploying).isNull()
+                get(ArtifactVersionStatus::previous).containsExactly(version1)
+                get(ArtifactVersionStatus::skipped).containsExactly(version2)
               }
             }
           }
