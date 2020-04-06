@@ -79,7 +79,7 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
       // clouddriver version definitely won't)
       List<Application> applications =
           Streams.concat(front50Applications.stream(), clouddriverApplications.stream())
-              .filter(distinctByKey(Application::getName))
+              .filter(distinctByKey(a -> a.getName().toUpperCase()))
               // Collect to a list instead of set since we're about to modify the applications
               .collect(toImmutableList());
 
