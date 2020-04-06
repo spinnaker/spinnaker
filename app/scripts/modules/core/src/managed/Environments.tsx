@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { isEqual, keyBy } from 'lodash';
+import { pick, isEqual, keyBy } from 'lodash';
+import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 
 import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets';
@@ -37,7 +38,14 @@ export function Environments({ app }: IEnvironmentsProps) {
   } = useDataSource(dataSource);
   const loadFailure = status === 'ERROR';
 
-  const [selectedArtifact, setSelectedArtifact] = useState<ISelectedArtifact>();
+  const {
+    stateService: { go },
+  } = useRouter();
+  const { params } = useCurrentStateAndParams();
+  const selectedArtifact = useMemo<ISelectedArtifact>(
+    () => (params.version ? pick(params, ['type', 'name', 'version']) : null),
+    [params.type, params.name, params.version],
+  );
   const [isFiltersOpen] = useState(false);
 
   const resourcesById = useMemo(() => keyBy(resources, 'id'), [resources]);
@@ -104,14 +112,12 @@ export function Environments({ app }: IEnvironmentsProps) {
               selectedArtifact={selectedArtifact}
               artifactSelected={clickedArtifact => {
                 if (!isEqual(clickedArtifact, selectedArtifact)) {
-                  setSelectedArtifact(clickedArtifact);
+                  go(selectedArtifact ? '.' : '.artifactVersion', clickedArtifact);
                 }
               }}
             />
           </div>
           <div className={styles.environmentsColumn}>
-            {/* This view switcheroo will be handled via the router soon,
-                but for now let's do it in component local state.  */}
             {!selectedArtifact && (
               <>
                 <ColumnHeader text="Environments" icon="environment" />
@@ -125,7 +131,7 @@ export function Environments({ app }: IEnvironmentsProps) {
                 type={selectedArtifact.type}
                 version={selectedArtifactDetails}
                 resourcesByEnvironment={resourcesByEnvironment}
-                onRequestClose={() => setSelectedArtifact(null)}
+                onRequestClose={() => go('^')}
               />
             )}
           </div>
