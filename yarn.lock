@@ -839,10 +839,10 @@
   dependencies:
     lodash "^4.17.15"
 
-"@spinnaker/kayenta@^0.0.89":
-  version "0.0.89"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.89.tgz#c0e8ff84f48376faea89c7fe1c4239e048bda9f4"
-  integrity sha512-4PmFFsYkT7yyPRGQVcA+glhgf7gqR+LUekY1lT6JA8qUEuAx4hhpypW75ySZwUR/cK0t4JtFSY/GBKaTWsuCBw==
+"@spinnaker/kayenta@^0.0.91":
+  version "0.0.91"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.91.tgz#595c79b6103273a08c9c5019e53f7f58561be1d1"
+  integrity sha512-zVuXsWufsX5aXhf4lgXdi6TrLwstCX08HXOaZzgxldJuaezy59AeDa41oJe/ee34iIdUaDnsh5x9TOMKhZI3KQ==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "^1.0.15"
@@ -861,6 +861,7 @@
     lodash-decorators "^4.4.1"
     memoize-one "4.0.2"
     moment-timezone "^0.4.0"
+    n3-charts "^2.0.28"
     ngimport "^0.6.0"
     react "~16.8.0"
     react-ace "6.4.0"
@@ -894,6 +895,8 @@
     tslint-config-prettier "^1.14.0"
     ui-router-visualizer "^4.0.0"
     ui-select "^0.19.6"
+  optionalDependencies:
+    fsevents "1.2.11"
 
 "@spinnaker/mocks@1.0.2":
   version "1.0.2"
@@ -9120,12 +9123,7 @@ lodash.zip@^4.2.0:
   resolved "https://registry.yarnpkg.com/lodash.zip/-/lodash.zip-4.2.0.tgz#ec6662e4896408ed4ab6c542a3990b72cc080020"
   integrity sha1-7GZi5IlkCO1KtsVCo5kLcswIACA=
 
-lodash@^4.12.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.1, lodash@^4.16.6, lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.0, lodash@^4.2.1:
-  version "4.17.13"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.13.tgz#0bdc3a6adc873d2f4e0c4bac285df91b64fc7b93"
-  integrity sha512-vm3/XWXfWtRua0FkUyEHBZy8kCPjErNBT9fJx8Zvs+U6zjqPbTUOpkaoum3O5uiA8sm+yNMHXfYkTUHFoMxFNA==
-
-lodash@^4.17.14, lodash@^4.17.15, lodash@~4.17.12:
+lodash@^4.12.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.1, lodash@^4.16.6, lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.0, lodash@^4.2.1, lodash@~4.17.12:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
@@ -9747,7 +9745,7 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-n3-charts@^2.0.18:
+n3-charts@^2.0.18, n3-charts@^2.0.28:
   version "2.0.28"
   resolved "https://registry.yarnpkg.com/n3-charts/-/n3-charts-2.0.28.tgz#e9abbe321e18d2619123f6fb327602a0017afd8e"
   integrity sha1-6au+Mh4Y0mGRI/b7MnYCoAF6/Y4=
