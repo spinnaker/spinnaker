@@ -77,6 +77,6 @@ public class HttpClientSdkConfiguration {
     objectMapper.setSerializationInclusion(NON_NULL);
 
     return new HttpClientSdkFactory(
-        new CompositeOkHttpClientFactory(okHttpClientFactories), environment, objectMapper, config);
+        new CompositeOkHttpClientFactory(factories), environment, objectMapper, config);
   }
 }
