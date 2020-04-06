@@ -80,6 +80,7 @@ module(CANARY_DATA_SOURCE, []).run([
       lazy: true,
       autoActivate: true,
       defaultData: [],
+      iconName: 'spMenuCanaryConfig',
     });
 
     const loadCanaryExecutions = (application: Application) => {
@@ -121,6 +122,7 @@ module(CANARY_DATA_SOURCE, []).run([
       lazy: true,
       autoActivate: true,
       defaultData: [],
+      iconName: 'spMenuCanaryReport',
     });
   },
 ]);
