@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -97,11 +98,12 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
 
   private List<Artifact> artifactsToDelete(KubernetesManifest manifest) {
     KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
-    if (strategy.getMaxVersionHistory() == null) {
+    OptionalInt optionalMaxVersionHistory = strategy.getMaxVersionHistory();
+    if (!optionalMaxVersionHistory.isPresent()) {
       return new ArrayList<>();
     }
 
-    int maxVersionHistory = strategy.getMaxVersionHistory();
+    int maxVersionHistory = optionalMaxVersionHistory.getAsInt();
     Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
     if (!optional.isPresent()) {
       return new ArrayList<>();

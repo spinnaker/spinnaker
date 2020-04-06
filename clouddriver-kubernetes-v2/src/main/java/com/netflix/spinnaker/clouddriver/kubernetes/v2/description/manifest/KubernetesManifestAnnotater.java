@@ -27,12 +27,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesManifestAnnotater {
-  private static final String SPINNAKER_ANNOTATION = "spinnaker.io";
+  static final String SPINNAKER_ANNOTATION = "spinnaker.io";
   private static final String TRAFFIC_ANNOTATION_PREFIX = "traffic." + SPINNAKER_ANNOTATION;
   private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;
   private static final String MONIKER_ANNOTATION_PREFIX = "moniker." + SPINNAKER_ANNOTATION;
@@ -48,13 +49,6 @@ public class KubernetesManifestAnnotater {
   private static final String LOCATION = ARTIFACT_ANNOTATION_PREFIX + "/location";
   private static final String VERSION = ARTIFACT_ANNOTATION_PREFIX + "/version";
   private static final String IGNORE_CACHING = CACHING_ANNOTATION_PREFIX + "/ignore";
-  private static final String VERSIONED = STRATEGY_ANNOTATION_PREFIX + "/versioned";
-  private static final String RECREATE = STRATEGY_ANNOTATION_PREFIX + "/recreate";
-  private static final String REPLACE = STRATEGY_ANNOTATION_PREFIX + "/replace";
-  private static final String MAX_VERSION_HISTORY =
-      STRATEGY_ANNOTATION_PREFIX + "/max-version-history";
-  private static final String USE_SOURCE_CAPACITY =
-      STRATEGY_ANNOTATION_PREFIX + "/use-source-capacity";
   private static final String LOAD_BALANCERS = TRAFFIC_ANNOTATION_PREFIX + "/load-balancers";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
@@ -256,16 +250,14 @@ public class KubernetesManifestAnnotater {
 
   public static void validateAnnotationsForRolloutStrategies(
       KubernetesManifest manifest, KubernetesDeployManifestDescription.Strategy strategy) {
-    Map<String, String> annotations = manifest.getAnnotations();
-    Integer maxVersionHistory =
-        getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {});
+    OptionalInt maxVersionHistory = getStrategy(manifest).getMaxVersionHistory();
     if (strategy == KubernetesDeployManifestDescription.Strategy.RED_BLACK
-        && maxVersionHistory != null
-        && maxVersionHistory < 2) {
+        && maxVersionHistory.isPresent()
+        && maxVersionHistory.getAsInt() < 2) {
       throw new RuntimeException(
           String.format(
               "The max version history specified in your manifest conflicts with the behavior of the Red/Black rollout strategy. Please update your %s annotation to a value greater than or equal to 2.",
-              MAX_VERSION_HISTORY));
+              KubernetesManifestStrategy.MAX_VERSION_HISTORY));
     }
   }
 
@@ -279,17 +271,7 @@ public class KubernetesManifestAnnotater {
   }
 
   public static KubernetesManifestStrategy getStrategy(KubernetesManifest manifest) {
-    Map<String, String> annotations = manifest.getAnnotations();
-
-    return KubernetesManifestStrategy.builder()
-        .versioned(getAnnotation(annotations, VERSIONED, new TypeReference<Boolean>() {}))
-        .recreate(getAnnotation(annotations, RECREATE, new TypeReference<Boolean>() {}))
-        .replace(getAnnotation(annotations, REPLACE, new TypeReference<Boolean>() {}))
-        .maxVersionHistory(
-            getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {}))
-        .useSourceCapacity(
-            getAnnotation(annotations, USE_SOURCE_CAPACITY, new TypeReference<Boolean>() {}))
-        .build();
+    return KubernetesManifestStrategy.fromAnnotations(manifest.getAnnotations());
   }
 
   public static KubernetesManifest getLastAppliedConfiguration(KubernetesManifest manifest) {

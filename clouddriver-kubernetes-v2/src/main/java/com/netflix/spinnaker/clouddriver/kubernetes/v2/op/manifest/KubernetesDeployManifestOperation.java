@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy.Versioned;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanScale;
@@ -159,13 +160,11 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     for (KubernetesManifest manifest : deployManifests) {
       KubernetesResourceProperties properties = findResourceProperties(manifest);
       KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
-      boolean versioned = isVersioned(properties, strategy);
-      boolean useSourceCapacity = isUseSourceCapacity(strategy);
-      boolean recreate = isRecreate(strategy);
-      boolean replace = isReplace(strategy);
 
       KubernetesArtifactConverter converter =
-          versioned ? properties.getVersionedConverter() : properties.getUnversionedConverter();
+          isVersioned(properties, strategy)
+              ? properties.getVersionedConverter()
+              : properties.getUnversionedConverter();
       KubernetesHandler deployer = properties.getHandler();
 
       Moniker moniker = cloneMoniker(description.getMoniker());
@@ -192,7 +191,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                   + " with artifact, relationships & moniker...");
       KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
 
-      if (useSourceCapacity && deployer instanceof CanScale) {
+      if (strategy.isUseSourceCapacity() && deployer instanceof CanScale) {
         Double replicas = KubernetesSourceCapacity.getSourceCapacity(manifest, credentials);
         if (replicas != null) {
           manifest.setReplicas(replicas);
@@ -225,7 +224,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
               OP_NAME,
               "Submitting manifest " + manifest.getFullResourceName() + " to kubernetes master...");
       log.debug("Manifest in {} to be deployed: {}", accountName, manifest);
-      result.merge(deployer.deploy(credentials, manifest, recreate, replace));
+      result.merge(deployer.deploy(credentials, manifest, strategy.getDeployStrategy()));
 
       result.getCreatedArtifacts().add(artifact);
     }
@@ -285,8 +284,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
   private boolean isVersioned(
       KubernetesResourceProperties properties, KubernetesManifestStrategy strategy) {
-    if (strategy.getVersioned() != null) {
-      return strategy.getVersioned();
+    if (strategy.getVersioned() != Versioned.DEFAULT) {
+      return strategy.getVersioned() == Versioned.TRUE;
     }
 
     if (description.getVersioned() != null) {
@@ -294,22 +293,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     }
 
     return properties.isVersioned();
-  }
-
-  private boolean isRecreate(KubernetesManifestStrategy strategy) {
-    return strategy.getRecreate() != null ? strategy.getRecreate() : false;
-  }
-
-  private boolean isReplace(KubernetesManifestStrategy strategy) {
-    return strategy.getReplace() != null ? strategy.getReplace() : false;
-  }
-
-  private boolean isUseSourceCapacity(KubernetesManifestStrategy strategy) {
-    if (strategy.getUseSourceCapacity() != null) {
-      return strategy.getUseSourceCapacity();
-    }
-
-    return false;
   }
 
   // todo(lwander): move to kork

@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy.DeployStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
@@ -28,9 +30,8 @@ public interface CanDeploy {
   default OperationResult deploy(
       KubernetesV2Credentials credentials,
       KubernetesManifest manifest,
-      boolean recreate,
-      boolean replace) {
-    if (recreate) {
+      KubernetesManifestStrategy.DeployStrategy deployStrategy) {
+    if (deployStrategy == DeployStrategy.RECREATE) {
       try {
         credentials.delete(
             manifest.getKind(),
@@ -42,7 +43,7 @@ public interface CanDeploy {
       }
     }
 
-    if (replace) {
+    if (deployStrategy == DeployStrategy.REPLACE) {
       credentials.replace(manifest);
     } else {
       credentials.deploy(manifest);
