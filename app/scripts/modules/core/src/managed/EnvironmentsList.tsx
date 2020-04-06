@@ -1,4 +1,5 @@
 import React from 'react';
+import { pickBy, values } from 'lodash';
 
 import { IManagedEnviromentSummary, IManagedResourceSummary, IManagedArtifactSummary } from '../domain';
 
@@ -31,7 +32,11 @@ export function EnvironmentsList({ environments, resourcesById, artifacts: allAr
         noticeType="success"
       />
       {environments.map(({ name, resources, artifacts }) => (
-        <EnvironmentRow key={name} name={name} isProd={true}>
+        <EnvironmentRow
+          key={name}
+          name={name}
+          resources={values(pickBy(resourcesById, resource => resources.indexOf(resource.id) > -1))}
+        >
           {resources
             .map(resourceId => resourcesById[resourceId])
             .filter(shouldDisplayResource)

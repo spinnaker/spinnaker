@@ -64,7 +64,11 @@ export const ArtifactDetail = ({
               parseName(replacedBy || '') || {};
 
             return (
-              <EnvironmentRow key={environmentName} name={environmentName} isProd={true}>
+              <EnvironmentRow
+                key={environmentName}
+                name={environmentName}
+                resources={resourcesByEnvironment[environmentName]}
+              >
                 {statefulConstraints &&
                   statefulConstraints
                     .filter(({ type }) => isConstraintSupported(type))
