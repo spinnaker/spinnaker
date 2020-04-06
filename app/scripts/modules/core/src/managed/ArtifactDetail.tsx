@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
 
 import { relativeTime, timestamp } from '../utils';
-import { IManagedArtifactVersion, IManagedResourceSummary } from '../domain';
+import { IManagedArtifactVersion, IManagedResourceSummary, IStatefulConstraint, IStatelessConstraint } from '../domain';
 import { Application } from '../application';
 import { useEventListener } from '../presentation';
 
@@ -13,7 +13,7 @@ import { Pill } from './Pill';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { parseName } from './Frigga';
 import { EnvironmentRow } from './EnvironmentRow';
-import { ConstraintCard } from './constraints/ConstraintCard';
+import { ConstraintCard, IConstraintCardProps } from './constraints/ConstraintCard';
 import { isConstraintSupported } from './constraints/constraintRegistry';
 
 import './ArtifactDetail.less';
@@ -22,6 +22,30 @@ function shouldDisplayResource(name: string, type: string, resource: IManagedRes
   //TODO: naively filter on presence of moniker but how should we really decide what to display?
   return !!resource.moniker && name === resource.artifact?.name && type === resource.artifact?.type;
 }
+
+const ConstraintCards = memo(
+  ({
+    constraints,
+    application,
+    environment,
+    version,
+  }: Partial<IConstraintCardProps> & { constraints: Array<IStatefulConstraint | IStatelessConstraint> }) => (
+    <>
+      {constraints
+        .filter(({ type }) => isConstraintSupported(type))
+        .map(constraint => (
+          <ConstraintCard
+            key={constraint.type}
+            className="sp-margin-l-right"
+            application={application}
+            environment={environment}
+            version={version}
+            constraint={constraint}
+          />
+        ))}
+    </>
+  ),
+);
 
 export interface IArtifactDetailProps {
   application: Application;
@@ -57,7 +81,15 @@ export const ArtifactDetail = ({
           <div className="detail-section-right">{/* artifact metadata will live here */}</div>
         </div>
         {environments.map(
-          ({ name: environmentName, state, deployedAt, replacedAt, replacedBy, statefulConstraints }) => {
+          ({
+            name: environmentName,
+            state,
+            deployedAt,
+            replacedAt,
+            replacedBy,
+            statefulConstraints,
+            statelessConstraints,
+          }) => {
             const deployedAtMillis = DateTime.fromISO(deployedAt).toMillis();
             const replacedAtMillis = DateTime.fromISO(replacedAt).toMillis();
             const { version: replacedByPackageVersion, buildNumber: replacedByBuildNumber } =
@@ -69,22 +101,9 @@ export const ArtifactDetail = ({
                 name={environmentName}
                 resources={resourcesByEnvironment[environmentName]}
               >
-                {statefulConstraints &&
-                  statefulConstraints
-                    .filter(({ type }) => isConstraintSupported(type))
-                    .map(constraint => (
-                      <ConstraintCard
-                        key={constraint.type}
-                        className="sp-margin-l-right"
-                        application={application}
-                        environment={environmentName}
-                        version={version}
-                        constraint={constraint}
-                      />
-                    ))}
                 {state === 'deploying' && (
                   <NoticeCard
-                    className="sp-margin-l-right sp-margin-l-bottom"
+                    className="sp-margin-l-right"
                     icon="cloudProgress"
                     text={undefined}
                     title="Deploying"
@@ -94,7 +113,7 @@ export const ArtifactDetail = ({
                 )}
                 {state === 'current' && deployedAt && (
                   <NoticeCard
-                    className="sp-margin-l-right sp-margin-l-bottom"
+                    className="sp-margin-l-right"
                     icon="cloudDeployed"
                     text={undefined}
                     title={
@@ -111,7 +130,7 @@ export const ArtifactDetail = ({
                 )}
                 {state === 'previous' && (
                   <NoticeCard
-                    className="sp-margin-l-right sp-margin-l-bottom"
+                    className="sp-margin-l-right"
                     icon="cloudDecommissioned"
                     text={undefined}
                     title={
@@ -134,7 +153,7 @@ export const ArtifactDetail = ({
                 )}
                 {state === 'pending' && (
                   <NoticeCard
-                    className="sp-margin-l-right sp-margin-l-bottom"
+                    className="sp-margin-l-right"
                     icon="placeholder"
                     text={undefined}
                     title="Never deployed here"
@@ -144,7 +163,7 @@ export const ArtifactDetail = ({
                 )}
                 {state === 'vetoed' && (
                   <NoticeCard
-                    className="sp-margin-l-right sp-margin-l-bottom"
+                    className="sp-margin-l-right"
                     icon="cloudError"
                     text={undefined}
                     title={
@@ -164,25 +183,43 @@ export const ArtifactDetail = ({
                     noticeType="error"
                   />
                 )}
-                {resourcesByEnvironment[environmentName]
-                  .filter(resource => shouldDisplayResource(name, type, resource))
-                  .map(resource => (
-                    <div key={resource.id} className="flex-container-h middle">
-                      {state === 'deploying' && (
-                        <div
-                          className={classNames(
-                            'resource-badge flex-container-h center middle sp-margin-s-right',
-                            state,
-                          )}
+                {statefulConstraints && (
+                  <ConstraintCards
+                    constraints={statefulConstraints}
+                    application={application}
+                    environment={environmentName}
+                    version={version}
+                  />
+                )}
+                {statelessConstraints && (
+                  <ConstraintCards
+                    constraints={statelessConstraints}
+                    application={application}
+                    environment={environmentName}
+                    version={version}
+                  />
+                )}
+                <div className="sp-margin-l-top">
+                  {resourcesByEnvironment[environmentName]
+                    .filter(resource => shouldDisplayResource(name, type, resource))
+                    .map(resource => (
+                      <div key={resource.id} className="flex-container-h middle">
+                        {state === 'deploying' && (
+                          <div
+                            className={classNames(
+                              'resource-badge flex-container-h center middle sp-margin-s-right',
+                              state,
+                            )}
+                          />
+                        )}
+                        <ManagedResourceObject
+                          key={resource.id}
+                          resource={resource}
+                          depth={state === 'deploying' ? 0 : 1}
                         />
-                      )}
-                      <ManagedResourceObject
-                        key={resource.id}
-                        resource={resource}
-                        depth={state === 'deploying' ? 0 : 1}
-                      />
-                    </div>
-                  ))}
+                      </div>
+                    ))}
+                </div>
               </EnvironmentRow>
             );
           },

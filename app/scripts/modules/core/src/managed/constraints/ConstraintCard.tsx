@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 
-import { IStatefulConstraint, StatefulConstraintStatus, IManagedApplicationEnvironmentSummary } from '../../domain';
+import {
+  IStatefulConstraint,
+  StatefulConstraintStatus,
+  IStatelessConstraint,
+  IManagedApplicationEnvironmentSummary,
+} from '../../domain';
 import { Application, ApplicationDataSource } from '../../application';
 import { IRequestStatus } from '../../presentation';
 
 import { NoticeCard } from '../NoticeCard';
 import { ManagedWriter, IUpdateConstraintStatusRequest } from '../ManagedWriter';
-import { isConstraintSupported, getStatefulConstraintConfig, getStatefulConstraintActions } from './constraintRegistry';
+import {
+  isConstraintSupported,
+  isConstraintStateful,
+  getConstraintIcon,
+  getConstraintSummary,
+  getConstraintActions,
+} from './constraintRegistry';
 
 import './ConstraintCard.less';
 
@@ -47,16 +58,26 @@ const overrideConstraintStatus = (
     return dataSource.refresh().catch(() => null);
   });
 
+const getCardAppearance = (constraint: IStatefulConstraint | IStatelessConstraint) => {
+  if (isConstraintStateful(constraint)) {
+    const { status } = constraint as IStatefulConstraint;
+    return constraintCardAppearanceByStatus[status];
+  } else {
+    const { currentlyPassing } = constraint as IStatelessConstraint;
+    return currentlyPassing ? 'success' : 'neutral';
+  }
+};
+
 export interface IConstraintCardProps {
   application: Application;
   environment: string;
   version: string;
-  constraint: IStatefulConstraint;
+  constraint: IStatefulConstraint | IStatelessConstraint;
   className?: string;
 }
 
 export const ConstraintCard = ({ application, environment, version, constraint, className }: IConstraintCardProps) => {
-  const { type, status } = constraint;
+  const { type } = constraint;
 
   const [actionStatus, setActionStatus] = useState<IRequestStatus>('NONE');
 
@@ -65,13 +86,12 @@ export const ConstraintCard = ({ application, environment, version, constraint, 
     return null;
   }
 
-  const { iconName, shortSummary } = getStatefulConstraintConfig(type);
-  const actions = getStatefulConstraintActions(constraint);
+  const actions = getConstraintActions(constraint);
 
   return (
     <NoticeCard
       className={classNames('ConstraintCard', className)}
-      icon={iconName}
+      icon={getConstraintIcon(type)}
       actions={
         actions && (
           <div
@@ -118,9 +138,9 @@ export const ConstraintCard = ({ application, environment, version, constraint, 
           </div>
         )
       }
-      title={shortSummary(constraint)}
+      title={getConstraintSummary(constraint)}
       isActive={true}
-      noticeType={constraintCardAppearanceByStatus[status]}
+      noticeType={getCardAppearance(constraint)}
     />
   );
 };

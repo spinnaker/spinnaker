@@ -30,6 +30,15 @@ export interface IStatefulConstraint {
   comment?: string;
 }
 
+export interface IDependsOnConstraint {
+  type: 'depends-on';
+  currentlyPassing: boolean;
+  attributes: { environment: string };
+}
+
+// more stateless types coming soon
+export type IStatelessConstraint = IDependsOnConstraint;
+
 export interface IManagedResourceSummary {
   id: string;
   kind: string;
@@ -72,7 +81,8 @@ export interface IManagedArtifactVersion {
     deployedAt?: string;
     replacedAt?: string;
     replacedBy?: string;
-    statefulConstraints: IStatefulConstraint[];
+    statefulConstraints?: IStatefulConstraint[];
+    statelessConstraints?: IStatelessConstraint[];
   }>;
 }
 

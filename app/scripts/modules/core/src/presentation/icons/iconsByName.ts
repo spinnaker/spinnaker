@@ -65,6 +65,9 @@ import { ReactComponent as mdFlapping } from './vectors/mdFlapping.svg';
 import { ReactComponent as mdPaused } from './vectors/mdPaused.svg';
 import { ReactComponent as mdResumed } from './vectors/mdResumed.svg';
 import { ReactComponent as mdUnknown } from './vectors/mdUnknown.svg';
+import { ReactComponent as mdConstraintGeneric } from './vectors/mdConstraintGeneric.svg';
+import { ReactComponent as mdConstraintDependsOn } from './vectors/mdConstraintDependsOn.svg';
+import { ReactComponent as mdConstraintAllowedTimes } from './vectors/mdConstraintAllowedTimes.svg';
 import { ReactComponent as md } from './vectors/md.svg';
 
 export const iconsByName = {
@@ -107,6 +110,9 @@ export const iconsByName = {
   mdPaused,
   mdResumed,
   mdUnknown,
+  mdConstraintGeneric,
+  mdConstraintDependsOn,
+  mdConstraintAllowedTimes,
   md,
   placeholder,
   securityGroup,
