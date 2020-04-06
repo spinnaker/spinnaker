@@ -260,12 +260,6 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
                         text="Discovery"
                         disabled={usingDefault}
                       />
-                      <CheckboxInput
-                        checked={selectedProviders.includes('atlasHealthCheckPoller')}
-                        onChange={() => this.toggleHealthProvider('atlasHealthCheckPoller')}
-                        text="Atlas Health Check"
-                        disabled={usingDefault}
-                      />
                     </div>
                   )}
                 />
