@@ -15,6 +15,19 @@ import de.huxhorn.sulky.ulid.ULID
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.vavr.control.Try
+import java.security.MessageDigest
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.SQLSyntaxErrorException
+import java.time.Clock
+import java.time.Duration
+import java.util.Arrays
+import java.util.concurrent.ConcurrentSkipListSet
+import java.util.concurrent.atomic.AtomicInteger
+import javax.annotation.PreDestroy
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -31,19 +44,6 @@ import org.jooq.impl.DSL.table
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.BadSqlGrammarException
-import java.security.MessageDigest
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.SQLSyntaxErrorException
-import java.time.Clock
-import java.time.Duration
-import java.util.Arrays
-import java.util.concurrent.ConcurrentSkipListSet
-import java.util.concurrent.atomic.AtomicInteger
-import javax.annotation.PreDestroy
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
-import kotlin.coroutines.CoroutineContext
 
 @ExperimentalContracts
 class SqlCache(

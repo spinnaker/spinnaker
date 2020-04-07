@@ -12,21 +12,25 @@ import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
-import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
-import com.netflix.spinnaker.cats.sql.cache.SqlUnknownAgentCleanupAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCleanupStaleOnDemandCachesAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.cats.sql.cache.SqlNames
 import com.netflix.spinnaker.cats.sql.cache.SqlTableMetricsAgent
+import com.netflix.spinnaker.cats.sql.cache.SqlUnknownAgentCleanupAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
 import com.netflix.spinnaker.clouddriver.cache.EurekaStatusNodeStatusProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
+import java.time.Clock
+import java.time.Duration
+import java.util.Optional
+import kotlin.contracts.ExperimentalContracts
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.slf4j.MDCContext
@@ -42,10 +46,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import java.time.Clock
-import java.time.Duration
-import java.util.Optional
-import kotlin.contracts.ExperimentalContracts
 
 const val coroutineThreadPrefix = "catsSql"
 

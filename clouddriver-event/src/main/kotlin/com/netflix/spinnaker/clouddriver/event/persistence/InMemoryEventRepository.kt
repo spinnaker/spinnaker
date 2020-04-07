@@ -22,14 +22,14 @@ import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.config.MemoryEventRepositoryConfigProperties
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.kork.exceptions.SystemException
-import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
-import org.springframework.scheduling.annotation.Scheduled
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
+import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.scheduling.annotation.Scheduled
 
 /**
  * An in-memory only [EventRepository]. This implementation should only be used for testing.

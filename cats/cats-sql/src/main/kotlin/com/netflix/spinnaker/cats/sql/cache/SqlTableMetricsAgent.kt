@@ -2,14 +2,14 @@ package com.netflix.spinnaker.cats.sql.cache
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlAgent
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import java.util.concurrent.TimeUnit
 
 class SqlTableMetricsAgent(
   private val jooq: DSLContext,

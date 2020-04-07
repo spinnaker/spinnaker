@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.saga
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import java.util.function.Predicate
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import org.springframework.core.annotation.Order
-import java.util.function.Predicate
 
 @JsonTypeName("shouldBranch")
 class ShouldBranch : AbstractSagaEvent()

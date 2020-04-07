@@ -4,6 +4,7 @@ import com.netflix.spinnaker.cats.sql.cache.SqlSchemaVersion
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import java.sql.DriverManager
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.sql.DriverManager
 
 // TODO: Replace validatePermissions() with a to-be-implemented fiat isAdmin() decorator
 

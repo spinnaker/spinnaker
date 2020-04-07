@@ -6,10 +6,10 @@ import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.config.SqlConstraints
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
-import org.jooq.DSLContext
 import java.time.Clock
 import kotlin.contracts.ExperimentalContracts
 import kotlin.coroutines.CoroutineContext
+import org.jooq.DSLContext
 
 class SqlNamedCacheFactory(
   private val jooq: DSLContext,

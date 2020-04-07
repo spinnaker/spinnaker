@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.clouddriver.scattergather.client
 
+import javax.servlet.http.HttpServletRequest
 import okhttp3.Call
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import javax.servlet.http.HttpServletRequest
 
 /**
  * Creates a collection of OkHttp3 [Call] objects from a map of targets and

@@ -27,9 +27,9 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaCompletionHandler
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import dev.minutest.rootContext
+import java.util.function.Predicate
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.util.function.Predicate
 
 /**
  * This example shows how to do branching logic inside of Sagas.

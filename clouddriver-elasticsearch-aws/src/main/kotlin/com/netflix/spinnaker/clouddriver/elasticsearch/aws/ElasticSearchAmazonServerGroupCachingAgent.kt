@@ -38,9 +38,9 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.model.ModelType
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.Moniker
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ServerGroupModel
 import com.netflix.spinnaker.kork.core.RetrySupport
-import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import org.slf4j.LoggerFactory
 
 class ElasticSearchAmazonServerGroupCachingAgent(
   val retrySupport: RetrySupport,

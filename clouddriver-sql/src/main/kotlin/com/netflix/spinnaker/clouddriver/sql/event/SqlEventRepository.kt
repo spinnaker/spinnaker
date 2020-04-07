@@ -30,6 +30,8 @@ import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import de.huxhorn.sulky.ulid.ULID
+import java.sql.SQLIntegrityConstraintViolationException
+import java.util.UUID
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.currentTimestamp
@@ -38,8 +40,6 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
-import java.sql.SQLIntegrityConstraintViolationException
-import java.util.UUID
 
 class SqlEventRepository(
   private val jooq: DSLContext,

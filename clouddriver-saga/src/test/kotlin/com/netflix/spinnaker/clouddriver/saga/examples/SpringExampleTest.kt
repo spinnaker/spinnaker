@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.util.function.Predicate
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -38,7 +39,6 @@ import org.springframework.context.annotation.Configuration
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.util.function.Predicate
 
 /**
  * Shows an example of how to wire up a Saga using Spring!

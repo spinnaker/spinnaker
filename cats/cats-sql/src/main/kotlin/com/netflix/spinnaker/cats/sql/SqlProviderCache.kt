@@ -10,9 +10,9 @@ import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
+import kotlin.contracts.ExperimentalContracts
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import kotlin.contracts.ExperimentalContracts
 
 @ExperimentalContracts
 class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache {

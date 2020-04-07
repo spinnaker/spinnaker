@@ -24,12 +24,12 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
-import org.jooq.DSLContext
-import org.jooq.impl.DSL.field
-import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
+import org.jooq.DSLContext
+import org.jooq.impl.DSL.field
+import org.slf4j.LoggerFactory
 
 /**
  * Cleans up completed Tasks after a configurable TTL.

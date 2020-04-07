@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.STARTED
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import de.huxhorn.sulky.ulid.ULID
+import java.time.Clock
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
@@ -33,7 +34,6 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.sql
 import org.slf4j.LoggerFactory
-import java.time.Clock
 
 class SqlTaskRepository(
   private val jooq: DSLContext,

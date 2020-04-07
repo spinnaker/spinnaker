@@ -20,19 +20,19 @@ import com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
-import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import java.sql.SQLException
+import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
-import java.sql.SQLException
-import java.util.concurrent.TimeUnit
 
 /**
  * Intermittently scans the entire database looking for records created by caching agents that

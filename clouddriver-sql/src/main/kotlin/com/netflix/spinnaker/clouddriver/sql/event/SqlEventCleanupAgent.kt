@@ -17,12 +17,15 @@ package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
-import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlEventCleanupAgentConfigProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import java.sql.Timestamp
+import java.time.Duration
+import java.time.Instant
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.currentTimestamp
 import org.jooq.impl.DSL.field
@@ -30,9 +33,6 @@ import org.jooq.impl.DSL.table
 import org.jooq.impl.DSL.timestampDiff
 import org.jooq.types.DayToSecond
 import org.slf4j.LoggerFactory
-import java.sql.Timestamp
-import java.time.Duration
-import java.time.Instant
 
 /**
  * Cleans up [SpinnakerEvent]s (by [Aggregate]) that are older than a configured number of days.

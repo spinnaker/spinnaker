@@ -22,10 +22,10 @@ import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format
 import java.sql.ResultSet
+import org.slf4j.LoggerFactory
 
 class TaskMapper(
   private val sqlTaskRepository: SqlTaskRepository,
