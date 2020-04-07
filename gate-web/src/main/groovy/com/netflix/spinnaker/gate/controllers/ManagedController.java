@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
+import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import groovy.util.logging.Slf4j;
@@ -208,5 +209,27 @@ public class ManagedController {
   @DeleteMapping(path = "/application/{application}/pause")
   void resumeApplication(@PathVariable("application") String application) {
     keelService.resumeApplication(application);
+  }
+
+  @ApiOperation(value = "Create a pin for an artifact in an environment")
+  @PostMapping(path = "/application/{application}/pin")
+  void createPin(
+      @PathVariable("application") String application, @RequestBody EnvironmentArtifactPin pin) {
+    keelService.pin(application, pin);
+  }
+
+  @ApiOperation(value = "Delete a pin for an artifact in an environment")
+  @DeleteMapping(path = "/application/{application}/pin")
+  void deletePin(
+      @PathVariable("application") String application, @RequestBody EnvironmentArtifactPin pin) {
+    keelService.deletePin(application, pin);
+  }
+
+  @ApiOperation(
+      value = "Delete a pin for an artifact in an environment by specifying the environment")
+  @DeleteMapping(path = "/application/{application}/pin/{targetEnvironment}")
+  void deletePinForEnv(
+      @PathVariable("application") String application, @PathVariable String targetEnvironment) {
+    keelService.deletePinForEnvironment(application, targetEnvironment);
   }
 }

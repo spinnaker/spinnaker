@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.services.internal;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
+import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import java.util.List;
 import java.util.Map;
@@ -110,4 +111,14 @@ public interface KeelService {
       @Path("type") String type,
       @Path("name") String name,
       @Query("serviceAccount") String serviceAccount);
+
+  @POST("/application/{application}/pin")
+  Response pin(@Path("application") String application, @Body EnvironmentArtifactPin pin);
+
+  @DELETE("/application/{application}/pin")
+  Response deletePin(@Path("application") String application, @Body EnvironmentArtifactPin pin);
+
+  @DELETE("/application/{application}/pin/{targetEnvironment}")
+  Response deletePinForEnvironment(
+      @Path("application") String application, @Path("targetEnvironment") String targetEnvironment);
 }
