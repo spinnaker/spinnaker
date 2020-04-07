@@ -4,9 +4,9 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.patterns.PolledMeter
+import com.netflix.spinnaker.keel.actuation.ResourceCheckCompleted
 import com.netflix.spinnaker.keel.actuation.ScheduledArtifactCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
-import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import java.time.Clock
@@ -115,8 +115,8 @@ class TelemetryListener(
     ).safeIncrement()
   }
 
-  @EventListener(ScheduledResourceCheckStarting::class)
-  fun onScheduledCheckStarting(event: ScheduledResourceCheckStarting) {
+  @EventListener(ResourceCheckCompleted::class)
+  fun onResourceCheckCompleted(event: ResourceCheckCompleted) {
     lastResourceCheck.set(clock.instant())
   }
 

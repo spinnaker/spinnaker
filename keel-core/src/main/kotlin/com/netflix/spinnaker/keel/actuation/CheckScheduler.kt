@@ -60,7 +60,6 @@ class CheckScheduler(
   fun checkResources() {
     if (enabled.get()) {
       log.debug("Starting scheduled resource validation…")
-      publisher.publishEvent(ScheduledResourceCheckStarting)
 
       val job = launch {
         supervisorScope {
@@ -79,7 +78,10 @@ class CheckScheduler(
                    * to prevent the cancellation of all coroutines under [job]
                    */
                   withTimeout(checkTimeout.toMillis()) {
-                    launch { resourceActuator.checkResource(it) }
+                    launch {
+                      resourceActuator.checkResource(it)
+                      publisher.publishEvent(ResourceCheckCompleted)
+                    }
                   }
                 } catch (e: TimeoutCancellationException) {
                   log.error("Timed out checking resource ${it.id}", e)
