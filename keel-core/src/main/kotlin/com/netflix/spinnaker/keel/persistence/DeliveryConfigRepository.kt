@@ -143,14 +143,20 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String)
 }
 
-sealed class NoSuchDeliveryConfigException(message: String) : UserException(message)
-class NoSuchDeliveryConfigName(name: String) : NoSuchDeliveryConfigException("No delivery config named $name exists in the repository")
-class NoDeliveryConfigForApplication(application: String) : NoSuchDeliveryConfigException("No delivery config for application $application exists in the repository")
+abstract class NoSuchDeliveryConfigException(message: String) :
+  NoSuchEntityException(message)
+
+class NoSuchDeliveryConfigName(name: String) :
+  NoSuchDeliveryConfigException("No delivery config named $name exists in the database")
+
+class NoDeliveryConfigForApplication(application: String) :
+  NoSuchDeliveryConfigException("No delivery config for application $application exists in the database")
 
 class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType, reference: String) :
-  RuntimeException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
+  NoSuchEntityException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
 
 class TooManyDeliveryConfigsException(application: String, existing: String) :
   UserException("A delivery config already exists for application $application, and we only allow one per application - please delete existing config $existing before submitting a new config")
 
-class OrphanedResourceException(id: String) : SystemException("Resource $id exists without being a part of a delivery config")
+class OrphanedResourceException(id: String) :
+  SystemException("Resource $id exists without being a part of a delivery config")

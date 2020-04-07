@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.comparator
+import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
 
 interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
@@ -265,19 +266,19 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :
-  RuntimeException("No $type artifact named $name is registered") {
+  NoSuchEntityException("No $type artifact named $name is registered") {
   constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
 }
 
 class ArtifactReferenceNotFoundException(deliveryConfig: String, reference: String, type: ArtifactType) :
-  RuntimeException("No $type artifact with reference $reference in delivery config $deliveryConfig is registered")
+  NoSuchEntityException("No $type artifact with reference $reference in delivery config $deliveryConfig is registered")
 
 class ArtifactNotFoundException(name: String, type: ArtifactType, reference: String, deliveryConfig: String?) :
-  RuntimeException("No $type artifact named $name with reference $reference in delivery config $deliveryConfig is registered") {
+  NoSuchEntityException("No $type artifact named $name with reference $reference in delivery config $deliveryConfig is registered") {
   constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type, artifact.reference, artifact.deliveryConfigName)
 }
 
 class ArtifactAlreadyRegistered(name: String, type: ArtifactType) :
-  RuntimeException("The $type artifact $name is already registered") {
+  UserException("The $type artifact $name is already registered") {
   constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.ec2.NoImageFound
 import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -154,7 +155,4 @@ class ImageResolver(
   @Suppress("UNCHECKED_CAST")
   private fun <K, V> Map<out K, V?>.filterNotNullValues(): Map<K, V> =
     filterValues { it != null } as Map<K, V>
-
-  private inline fun <reified T> DynamicConfigService.getConfig(configName: String, defaultValue: T) =
-    getConfig(T::class.java, configName, defaultValue)
 }

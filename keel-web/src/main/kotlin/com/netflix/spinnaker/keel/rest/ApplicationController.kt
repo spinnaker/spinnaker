@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -48,6 +49,9 @@ class ApplicationController(
     path = ["/{application}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)
+    and @authorizationSupport.hasCloudAccountPermission('READ', 'APPLICATION', #application)"""
+  )
   fun get(
     @PathVariable("application") application: String,
     @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean,
@@ -57,7 +61,6 @@ class ApplicationController(
       "applicationPaused" to actuationPauser.applicationIsPaused(application),
       "hasManagedResources" to applicationService.hasManagedResources(application),
       "currentEnvironmentConstraints" to applicationService.getConstraintStatesFor(application)
-
     ).also { results ->
       // for backwards-compatibility
       if (includeDetails && !entities.contains("resources")) {
@@ -79,7 +82,9 @@ class ApplicationController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  // @PreAuthorize("@authorizationSupport.userCanModifyApplication(#application)")
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
   fun updateConstraintStatus(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @PathVariable("application") application: String,
@@ -93,6 +98,7 @@ class ApplicationController(
     path = ["/{application}/environment/{environment}/constraints"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)")
   fun getConstraintState(
     @PathVariable("application") application: String,
     @PathVariable("environment") environment: String,
@@ -103,12 +109,16 @@ class ApplicationController(
   @PostMapping(
     path = ["/{application}/pause"]
   )
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)")
   fun pause(@PathVariable("application") application: String) {
     actuationPauser.pauseApplication(application)
   }
 
   @DeleteMapping(
     path = ["/{application}/pause"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   fun resume(@PathVariable("application") application: String) {
     actuationPauser.resumeApplication(application)

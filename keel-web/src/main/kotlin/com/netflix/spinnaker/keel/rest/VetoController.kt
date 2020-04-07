@@ -44,12 +44,14 @@ class VetoController(
   @GetMapping(
     produces = [APPLICATION_JSON_VALUE]
   )
+  // TODO: authorization -- what can we index on here?
   fun getActiveVetos(): List<String> = vetos.map { it.name() }
 
   @GetMapping(
     path = ["/{name}/message-format"],
     produces = [APPLICATION_JSON_VALUE]
   )
+  // TODO: authorization -- what can we index on here?
   fun getVetoMessageFormat(@PathVariable name: String): Map<String, Any> {
     val veto = vetos.find { it.name().equals(name, true) } ?: throw VetoNotFoundException(name)
     return mapOf(
@@ -63,6 +65,7 @@ class VetoController(
     path = ["/{name}/rejections"],
     produces = [APPLICATION_JSON_VALUE]
   )
+  // TODO: authorization -- what can we index on here?
   fun getVetoRejections(@PathVariable name: String): List<String> {
     val veto = vetos.find { it.name().equals(name, true) } ?: throw VetoNotFoundException(name)
     return veto.currentRejections()
@@ -72,6 +75,7 @@ class VetoController(
     path = ["/application/{application}/rejections"],
     produces = [APPLICATION_JSON_VALUE]
   )
+  // TODO: authorization -- what can we index on here?
   fun getVetoRejectionsByApp(@PathVariable application: String): List<String> =
     vetos.map { veto ->
       veto.currentRejectionsByApp(application)
@@ -81,6 +85,7 @@ class VetoController(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE]
   )
+  // TODO: authorization -- what can we index on here?
   fun passMessage(@PathVariable name: String, @RequestBody message: Map<String, Any>) {
     val veto = vetos.find { it.name().equals(name, true) } ?: throw VetoNotFoundException(name)
     veto.passMessage(message)

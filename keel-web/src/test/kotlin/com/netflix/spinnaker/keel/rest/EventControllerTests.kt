@@ -19,13 +19,17 @@ import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.time.MutableClock
+import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.clearAllMocks
 import java.net.URI
 import java.time.Duration
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,6 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
+import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -69,15 +74,25 @@ internal class EventControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var actuationPauser: ActuationPauser
 
-  object Fixture {
+  @MockkBean
+  lateinit var authorizationSupport: AuthorizationSupport
+
+  companion object Fixture {
     val resource: Resource<*> = resource()
     val eventsUri: URI = URI.create("/resources/events/${resource.id}")
+    val TEN_MINUTES: Duration = Duration.ofMinutes(10)
   }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
 
+    after {
+      clearAllMocks()
+    }
+
     context("no resource exists") {
+      before { authorizationSupport.allowAll() }
+
       test("event eventHistory endpoint responds with 404") {
         val request = get("/resources/events/${resource.id}")
           .accept(APPLICATION_JSON)
@@ -89,6 +104,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
     context("a resource exists with events") {
       before {
+        authorizationSupport.allowAll()
         with(resourceRepository) {
           store(resource)
           appendHistory(ResourceCreated(resource, clock))
@@ -112,6 +128,8 @@ internal class EventControllerTests : JUnit5Minutests {
 
       setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { accept ->
         context("getting event history as $accept") {
+          before { authorizationSupport.allowAll() }
+
           test("the list contains the most recent 10 events") {
             val request = get(eventsUri).accept(accept)
             val result = mvc
@@ -167,6 +185,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
     context("with application paused at various times") {
       before {
+        authorizationSupport.allowAll()
         with(resourceRepository) {
           dropAll()
           store(resource)
@@ -201,6 +220,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
     context("with a new resource created AFTER the application is paused") {
       before {
+        authorizationSupport.allowAll()
         with(resourceRepository) {
           dropAll()
           actuationPauser.pauseApplication(resource.application)
@@ -228,6 +248,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
     context("with application pauses BEFORE and AFTER a new resource is created") {
       before {
+        authorizationSupport.allowAll()
         with(resourceRepository) {
           dropAll()
           actuationPauser.pauseApplication(resource.application)
@@ -255,10 +276,37 @@ internal class EventControllerTests : JUnit5Minutests {
           )
       }
     }
-  }
 
-  companion object {
-    val TEN_MINUTES: Duration = Duration.ofMinutes(10)
+    context("API permission checks") {
+      context("GET /resources/events/${resource.id}") {
+        context("with no READ access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(READ, RESOURCE)
+            authorizationSupport.allowCloudAccountAccess(READ, RESOURCE)
+          }
+          test("request is forbidden") {
+            val request = get("/resources/events/${resource.id}")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+        context("with no READ access to cloud account") {
+          before {
+            authorizationSupport.denyCloudAccountAccess(READ, RESOURCE)
+            authorizationSupport.allowApplicationAccess(READ, RESOURCE)
+          }
+          test("request is forbidden") {
+            val request = get("/resources/events/${resource.id}")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
+    }
   }
 }
 

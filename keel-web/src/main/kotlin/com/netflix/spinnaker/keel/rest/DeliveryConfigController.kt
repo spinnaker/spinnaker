@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,6 +32,9 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #name)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #name)"""
+  )
   fun upsert(
     @RequestBody
     @SwaggerRequestBody(
@@ -44,12 +48,18 @@ class DeliveryConfigController(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #name)
+    and @authorizationSupport.hasCloudAccountPermission('READ', 'DELIVERY_CONFIG', #name)"""
+  )
   fun get(@PathVariable("name") name: String): DeliveryConfig =
     repository.getDeliveryConfig(name)
 
   @DeleteMapping(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #name)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #name)"""
   )
   fun delete(@PathVariable("name") name: String): DeliveryConfig {
     val deliveryConfig = repository.getDeliveryConfig(name)
@@ -64,6 +74,7 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.name)")
   fun diff(@RequestBody deliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> =
     adHocDiffer.calculate(deliveryConfig)
 
@@ -72,8 +83,9 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.name)")
   fun validate(@RequestBody deliveryConfig: SubmittedDeliveryConfig) =
-  // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
+    // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
     //  in [ExceptionHandler])
     mapOf("status" to "valid")
 

@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -61,7 +62,4 @@ class ImageExistsConstraintEvaluator(
     get() = dynamicConfigService.getConfig("images.default-account", "test")
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
-  private inline fun <reified T> DynamicConfigService.getConfig(configName: String, defaultValue: T) =
-    getConfig(T::class.java, configName, defaultValue)
 }

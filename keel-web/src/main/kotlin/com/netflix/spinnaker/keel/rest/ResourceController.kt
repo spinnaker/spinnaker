@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -51,6 +50,9 @@ class ResourceController(
     path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
+    and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
+  )
   fun get(@PathVariable("id") id: String): Resource<*> {
     log.debug("Getting: $id")
     return repository.getResource(id)
@@ -59,6 +61,9 @@ class ResourceController(
   @GetMapping(
     path = ["/{id}/status"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
+    and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
   )
   fun getStatus(@PathVariable("id") id: String): ResourceStatus =
     if (actuationPauser.isPaused(id)) { // todo eb: we could make determining status easier and more straight forward.
@@ -71,6 +76,7 @@ class ResourceController(
     path = ["/{id}/pause"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #id)")
   fun pauseResource(@PathVariable("id") id: String) {
     actuationPauser.pauseResource(id)
   }
@@ -78,6 +84,9 @@ class ResourceController(
   @DeleteMapping(
     path = ["/{id}/pause"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #id)
+    and @authorizationSupport.hasServiceAccountAccess('RESOURCE', #id)"""
   )
   fun resumeResource(@PathVariable("id") id: String) {
     actuationPauser.resumeResource(id)
@@ -88,9 +97,8 @@ class ResourceController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.userCanModifySpec(#user, #resource.spec)")
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #resource.spec.application)")
   fun diff(
-    @RequestHeader("X-SPINNAKER-USER") user: String,
     @RequestBody resource: SubmittedResource<*>
   ): DiffResult {
     log.debug("Diffing: $resource")

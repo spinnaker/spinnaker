@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -74,6 +75,9 @@ class ArtifactController(
     path = ["/pin"]
   )
   @ResponseStatus(ACCEPTED)
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #pin.deliveryConfigName)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #pin.deliveryConfigName)"""
+  )
   fun pin(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @RequestBody pin: EnvironmentArtifactPin
@@ -90,6 +94,9 @@ class ArtifactController(
     path = ["/pin"]
   )
   @ResponseStatus(ACCEPTED)
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #pin.deliveryConfigName)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #pin.deliveryConfigName)"""
+  )
   fun deletePin(@RequestBody pin: EnvironmentArtifactPin) {
     val deliveryConfig = repository.getDeliveryConfig(pin.deliveryConfigName)
     repository.deletePin(deliveryConfig, pin.targetEnvironment, pin.reference, valueOf(pin.type.toUpperCase()))
@@ -99,6 +106,9 @@ class ArtifactController(
     path = ["/pin/{deliveryConfig}/{targetEnvironment}"]
   )
   @ResponseStatus(ACCEPTED)
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #deliveryConfigName)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #deliveryConfigName)"""
+  )
   fun deletePin(
     @PathVariable("deliveryConfig") deliveryConfigName: String,
     @PathVariable("targetEnvironment") targetEnvironment: String
@@ -111,6 +121,9 @@ class ArtifactController(
     path = ["/veto"]
   )
   @ResponseStatus(ACCEPTED)
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #veto.deliveryConfigName)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #veto.deliveryConfigName)"""
+  )
   fun veto(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @RequestBody veto: EnvironmentArtifactVeto
@@ -126,6 +139,9 @@ class ArtifactController(
 
   @DeleteMapping(
     path = ["/veto/{deliveryConfigName}/{targetEnvironment}/{type}/{reference}/{version}"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #deliveryConfigName)
+    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #deliveryConfigName)"""
   )
   fun deleteVeto(
     @RequestHeader("X-SPINNAKER-USER") user: String,

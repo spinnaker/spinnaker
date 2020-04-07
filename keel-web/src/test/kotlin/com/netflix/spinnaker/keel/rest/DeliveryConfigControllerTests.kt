@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
@@ -12,12 +13,16 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
+import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -62,7 +68,47 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var repository: KeelRepository
 
+  @MockkBean
+  lateinit var authorizationSupport: AuthorizationSupport
+
+  @Autowired
+  lateinit var jsonMapper: ObjectMapper
+
+  private val deliveryConfig = SubmittedDeliveryConfig(
+    name = "keel-manifest",
+    application = "keel",
+    serviceAccount = "keel@spinnaker",
+    artifacts = setOf(DebianArtifact(
+      name = "keel",
+      vmOptions = VirtualMachineOptions(
+        baseOs = "bionic",
+        regions = setOf("us-west-2")
+      )
+    )),
+    environments = setOf(
+      SubmittedEnvironment(
+        name = "test",
+        resources = setOf(SubmittedResource(
+          kind = TEST_API_V1.qualify("whatever"),
+          spec = DummyResourceSpec(data = "resource in test")
+        ))
+      ),
+      SubmittedEnvironment(
+        name = "prod",
+        resources = setOf(SubmittedResource(
+          kind = TEST_API_V1.qualify("whatever"),
+          spec = DummyResourceSpec(data = "resource in prod")
+        )),
+        constraints = setOf(DependsOnConstraint("test"))
+      )
+    )
+  )
+
   fun tests() = rootContext {
+    before {
+      authorizationSupport.allowAll()
+    }
+
     after {
       deliveryConfigRepository.dropAll()
       resourceRepository.dropAll()
@@ -71,37 +117,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
     context("getting a delivery config manifest") {
       before {
-        repository.upsertDeliveryConfig(
-          SubmittedDeliveryConfig(
-            name = "keel-manifest",
-            application = "keel",
-            serviceAccount = "keel@spinnaker",
-            artifacts = setOf(DebianArtifact(
-              name = "keel",
-              vmOptions = VirtualMachineOptions(
-                baseOs = "bionic",
-                regions = setOf("us-west-2")
-              )
-            )),
-            environments = setOf(
-              SubmittedEnvironment(
-                name = "test",
-                resources = setOf(SubmittedResource(
-                  kind = TEST_API_V1.qualify("whatever"),
-                  spec = DummyResourceSpec(data = "resource in test")
-                ))
-              ),
-              SubmittedEnvironment(
-                name = "prod",
-                resources = setOf(SubmittedResource(
-                  kind = TEST_API_V1.qualify("whatever"),
-                  spec = DummyResourceSpec(data = "resource in prod")
-                )),
-                constraints = setOf(DependsOnConstraint("test"))
-              )
-            )
-          )
-        )
+        repository.upsertDeliveryConfig(deliveryConfig)
       }
 
       setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { contentType ->
@@ -306,6 +322,65 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
           test("the request fails") {
             andExpect(status().isBadRequest)
+          }
+        }
+      }
+    }
+
+    context("API permission checks") {
+      context("GET /delivery-configs") {
+        context("with no READ access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(READ, DELIVERY_CONFIG)
+            authorizationSupport.allowCloudAccountAccess(READ, DELIVERY_CONFIG)
+          }
+          test("request is forbidden") {
+            val request = get("/delivery-configs/${deliveryConfig.name}")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+        context("with no READ access to cloud account") {
+          before {
+            authorizationSupport.denyCloudAccountAccess(READ, DELIVERY_CONFIG)
+            authorizationSupport.allowApplicationAccess(READ, DELIVERY_CONFIG)
+          }
+          test("request is forbidden") {
+            val request = get("/delivery-configs/${deliveryConfig.name}")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
+      context("POST /delivery-configs") {
+        context("with no WRITE access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
+            authorizationSupport.allowServiceAccountAccess(DELIVERY_CONFIG)
+          }
+          test("request is forbidden") {
+            val request = post("/delivery-configs").addData(jsonMapper, deliveryConfig)
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+        context("with no access to service account") {
+          before {
+            authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
+            authorizationSupport.denyServiceAccountAccess(DELIVERY_CONFIG)
+          }
+          test("request is forbidden") {
+            val request = post("/delivery-configs").addData(jsonMapper, deliveryConfig)
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
           }
         }
       }

@@ -52,6 +52,7 @@ class DefaultConfiguration {
 
   @Bean
   @Primary
+  @Qualifier("jsonMapper")
   fun objectMapper(): ObjectMapper = configuredObjectMapper()
 
   @Bean
