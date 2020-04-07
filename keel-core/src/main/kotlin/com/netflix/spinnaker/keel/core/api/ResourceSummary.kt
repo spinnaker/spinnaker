@@ -49,5 +49,6 @@ data class ResourceSummary(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ResourceArtifactSummary(
   val name: String?,
-  val type: ArtifactType?
+  val type: ArtifactType?,
+  val reference: String?
 )

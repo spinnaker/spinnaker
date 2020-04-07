@@ -254,6 +254,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           setOf(ArtifactVersions(
             artifact.name,
             artifact.type,
+            artifact.reference,
             artifact.statuses,
             ArtifactVersionStatus(
               current = version0,
@@ -271,6 +272,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           setOf(ArtifactVersions(
             artifact.name,
             artifact.type,
+            artifact.reference,
             artifact.statuses,
             ArtifactVersionStatus(
               current = version2,
@@ -288,6 +290,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           setOf(ArtifactVersions(
             artifact.name,
             artifact.type,
+            artifact.reference,
             artifact.statuses,
             ArtifactVersionStatus(
               current = version3,

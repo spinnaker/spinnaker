@@ -405,6 +405,7 @@ class InMemoryArtifactRepository(
             ArtifactVersions(
               name = artifact.name,
               type = artifact.type,
+              reference = artifact.reference,
               statuses = when (artifact) {
                 is DebianArtifact -> artifact.statuses
                 else -> emptySet()

@@ -246,7 +246,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
       }
     )
 
-  private fun DeliveryArtifact.toResourceArtifactSummary() = ResourceArtifactSummary(name, type)
+  private fun DeliveryArtifact.toResourceArtifactSummary() = ResourceArtifactSummary(name, type, reference)
 
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10

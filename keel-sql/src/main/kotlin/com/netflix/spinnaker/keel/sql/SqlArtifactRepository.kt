@@ -729,6 +729,7 @@ class SqlArtifactRepository(
         ArtifactVersions(
           name = artifact.name,
           type = artifact.type,
+          reference = artifact.reference,
           statuses = releaseStatuses,
           versions = ArtifactVersionStatus(
             current = currentVersion,

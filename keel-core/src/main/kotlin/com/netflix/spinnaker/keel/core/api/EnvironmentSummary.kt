@@ -49,6 +49,7 @@ data class EnvironmentSummary(
 data class ArtifactVersions(
   val name: String,
   val type: ArtifactType,
+  val reference: String,
   val statuses: Set<ArtifactStatus>,
   val versions: ArtifactVersionStatus
 )

@@ -13,10 +13,11 @@ import java.time.Instant
 /**
  * Summarized data about a specific artifact, mostly for use by the UI.
  */
-@JsonPropertyOrder(value = ["name", "type", "versions"])
+@JsonPropertyOrder(value = ["name", "type", "reference", "versions"])
 data class ArtifactSummary(
   val name: String,
   val type: ArtifactType,
+  val reference: String,
   val versions: Set<ArtifactVersionSummary> = emptySet()
 )
 
