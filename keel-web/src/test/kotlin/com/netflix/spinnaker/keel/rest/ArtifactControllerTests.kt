@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
@@ -97,66 +96,6 @@ internal class ArtifactControllerTests : JUnit5Minutests {
     }
 
     context("API permission checks") {
-      context("POST /artifacts/pin") {
-        context("with no WRITE access to application") {
-          before {
-            authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess(DELIVERY_CONFIG)
-          }
-          test("request is forbidden") {
-            val request = post("/artifacts/pin").addData(jsonMapper,
-              EnvironmentArtifactPin("myconfig", "test", "ref", "deb", "0.0.1", null, null)
-            )
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-        context("with no access to service account") {
-          before {
-            authorizationSupport.denyServiceAccountAccess(DELIVERY_CONFIG)
-            authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
-          }
-          test("request is forbidden") {
-            val request = post("/artifacts/pin").addData(jsonMapper,
-              EnvironmentArtifactPin("myconfig", "test", "ref", "deb", "0.0.1", null, null)
-            )
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-      }
-      context("DELETE /artifacts/pin/myconfig/test") {
-        context("with no WRITE access to application") {
-          before {
-            authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess(DELIVERY_CONFIG)
-          }
-          test("request is forbidden") {
-            val request = delete("/artifacts/pin/myconfig/test")
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-        context("with no access to service account") {
-          before {
-            authorizationSupport.denyServiceAccountAccess(DELIVERY_CONFIG)
-            authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
-          }
-          test("request is forbidden") {
-            val request = delete("/artifacts/pin/myconfig/test")
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-      }
       context("POST /artifacts/veto") {
         context("with no WRITE access to application") {
           before {

@@ -750,7 +750,7 @@ class SqlArtifactRepository(
   override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
     with(environmentArtifactPin) {
       val environment = deliveryConfig.environmentNamed(targetEnvironment)
-      val artifact = get(deliveryConfigName, reference, ArtifactType.valueOf(type.toLowerCase()))
+      val artifact = get(deliveryConfig.name, reference, ArtifactType.valueOf(type.toLowerCase()))
 
       sqlRetry.withRetry(WRITE) {
         jooq.insertInto(ENVIRONMENT_ARTIFACT_PIN)

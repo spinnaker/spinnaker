@@ -19,12 +19,14 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.services.ApplicationService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -122,5 +125,51 @@ class ApplicationController(
   )
   fun resume(@PathVariable("application") application: String) {
     actuationPauser.resumeApplication(application)
+  }
+
+  @PostMapping(
+    path = ["/{application}/pin"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  fun pin(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @PathVariable("application") application: String,
+    @RequestBody pin: EnvironmentArtifactPin
+  ) {
+    checkNotNull(pin.version) {
+      "A version to pin is required."
+    }
+    applicationService.pin(application, pin, user)
+  }
+
+  @DeleteMapping(
+    path = ["/{application}/pin"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  fun deletePin(
+    @PathVariable("application") application: String,
+    @RequestBody pin: EnvironmentArtifactPin
+  ) {
+    applicationService.deletePin(application, pin)
+  }
+
+  @DeleteMapping(
+    path = ["/{application}/pin/{targetEnvironment}"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  fun deletePin(
+    @PathVariable("application") application: String,
+    @PathVariable("targetEnvironment") targetEnvironment: String
+  ) {
+    applicationService.deletePin(application, targetEnvironment)
   }
 }

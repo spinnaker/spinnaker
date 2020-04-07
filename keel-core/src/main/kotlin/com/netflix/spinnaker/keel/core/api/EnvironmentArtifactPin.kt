@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.core.api
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 
 data class EnvironmentArtifactPin(
-  val deliveryConfigName: String,
   val targetEnvironment: String,
   val reference: String,
   val type: String,

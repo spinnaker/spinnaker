@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
@@ -452,6 +453,67 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = delete("/application/fnord/pause")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
+
+      context("POST /application/fnord/pin") {
+        context("with no WRITE access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
+            authorizationSupport.allowServiceAccountAccess(APPLICATION)
+          }
+          test("request is forbidden") {
+            val request = post("/application/fnord/pin").addData(jsonMapper,
+              EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null, null)
+            )
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+        context("with no access to service account") {
+          before {
+            authorizationSupport.denyServiceAccountAccess(APPLICATION)
+            authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
+          }
+          test("request is forbidden") {
+            val request = post("/application/fnord/pin").addData(jsonMapper,
+              EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null, null)
+            )
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
+      context("DELETE /application/fnord/pin/test") {
+        context("with no WRITE access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
+            authorizationSupport.allowServiceAccountAccess(APPLICATION)
+          }
+          test("request is forbidden") {
+            val request = delete("/application/fnord/pin/test")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+        context("with no access to service account") {
+          before {
+            authorizationSupport.denyServiceAccountAccess(APPLICATION)
+            authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
+          }
+          test("request is forbidden") {
+            val request = delete("/application/fnord/pin/test")
               .accept(MediaType.APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", "keel@keel.io")
 

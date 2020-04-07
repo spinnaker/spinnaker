@@ -4,6 +4,7 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.StatefulConstraint
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -21,6 +22,7 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.BuildMetadata
 import com.netflix.spinnaker.keel.core.api.DependOnConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.GitMetadata
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
@@ -72,6 +74,21 @@ class ApplicationService(
         comment = status.comment ?: currentState.comment,
         judgedAt = Instant.now(),
         judgedBy = user))
+  }
+
+  fun pin(application: String, pin: EnvironmentArtifactPin, user: String) {
+    val config = repository.getDeliveryConfigForApplication(application)
+    repository.pinEnvironment(config, pin.copy(pinnedBy = user))
+  }
+
+  fun deletePin(application: String, pin: EnvironmentArtifactPin) {
+    val config = repository.getDeliveryConfigForApplication(application)
+    repository.deletePin(config, pin.targetEnvironment, pin.reference, ArtifactType.valueOf(pin.type))
+  }
+
+  fun deletePin(application: String, targetEnvironment: String) {
+    val config = repository.getDeliveryConfigForApplication(application)
+    repository.deletePin(config, targetEnvironment)
   }
 
   /**

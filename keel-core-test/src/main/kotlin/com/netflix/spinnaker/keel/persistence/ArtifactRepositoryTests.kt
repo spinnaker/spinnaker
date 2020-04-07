@@ -85,7 +85,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version6 = "master-h12.4ea8a9d"
 
     val pin1 = EnvironmentArtifactPin(
-      deliveryConfigName = manifest.name,
       targetEnvironment = environment2.name, // staging
       reference = artifact2.reference,
       type = artifact2.type.name,

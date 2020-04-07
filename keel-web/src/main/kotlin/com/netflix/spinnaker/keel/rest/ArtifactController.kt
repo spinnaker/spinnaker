@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.valueOf
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
@@ -69,52 +68,6 @@ class ArtifactController(
   @ResponseStatus(ACCEPTED)
   fun sync() {
     publisher.publishEvent(ArtifactSyncEvent(true))
-  }
-
-  @PostMapping(
-    path = ["/pin"]
-  )
-  @ResponseStatus(ACCEPTED)
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #pin.deliveryConfigName)
-    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #pin.deliveryConfigName)"""
-  )
-  fun pin(
-    @RequestHeader("X-SPINNAKER-USER") user: String,
-    @RequestBody pin: EnvironmentArtifactPin
-  ) {
-    checkNotNull(pin.version) {
-      "A version to pin is required."
-    }
-
-    val deliveryConfig = repository.getDeliveryConfig(pin.deliveryConfigName)
-    repository.pinEnvironment(deliveryConfig, pin.copy(pinnedBy = user))
-  }
-
-  @DeleteMapping(
-    path = ["/pin"]
-  )
-  @ResponseStatus(ACCEPTED)
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #pin.deliveryConfigName)
-    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #pin.deliveryConfigName)"""
-  )
-  fun deletePin(@RequestBody pin: EnvironmentArtifactPin) {
-    val deliveryConfig = repository.getDeliveryConfig(pin.deliveryConfigName)
-    repository.deletePin(deliveryConfig, pin.targetEnvironment, pin.reference, valueOf(pin.type.toUpperCase()))
-  }
-
-  @DeleteMapping(
-    path = ["/pin/{deliveryConfig}/{targetEnvironment}"]
-  )
-  @ResponseStatus(ACCEPTED)
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #deliveryConfigName)
-    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #deliveryConfigName)"""
-  )
-  fun deletePin(
-    @PathVariable("deliveryConfig") deliveryConfigName: String,
-    @PathVariable("targetEnvironment") targetEnvironment: String
-  ) {
-    val deliveryConfig = repository.getDeliveryConfig(deliveryConfigName)
-    repository.deletePin(deliveryConfig, targetEnvironment)
   }
 
   @PostMapping(
