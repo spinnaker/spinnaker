@@ -13,7 +13,9 @@ export interface ITriggerArtifactConstraintSelectorProps extends IFormInputProps
   pipeline: IPipeline;
   triggerType: string;
   value?: string[];
-  onDefineExpectedArtifact: (artifact: IExpectedArtifact) => void;
+  addExpectedArtifact: (artifact: IExpectedArtifact) => void;
+  updateExpectedArtifact: (artifact: IExpectedArtifact) => void;
+  removeExpectedArtifact: (artifact: IExpectedArtifact) => void;
 }
 
 export class TriggerArtifactConstraintSelectorInput extends React.Component<ITriggerArtifactConstraintSelectorProps> {
@@ -36,7 +38,15 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
         excludedArtifactTypePatterns: this.excludedArtifactTypes(),
         excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
       }).then(
-        result => this.props.onDefineExpectedArtifact(result),
+        artifact => {
+          this.props.addExpectedArtifact(artifact);
+          this.props.onChange(
+            createFakeReactSyntheticEvent({
+              name: this.props.name,
+              value: (this.props.value || []).concat([artifact.id]),
+            }),
+          );
+        },
         () => null,
       );
       return;
@@ -47,10 +57,15 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
     this.props.onChange(createFakeReactSyntheticEvent({ name: this.props.name, value: selected }));
   };
 
-  private removeExpectedArtifact = (index: number) => {
+  private removeExpectedArtifact = (artifact: IExpectedArtifact) => {
     const selected = (this.props.value || []).slice();
-    selected.splice(index, 1);
-    this.props.onChange(createFakeReactSyntheticEvent({ name: this.props.name, value: selected }));
+    this.props.removeExpectedArtifact(artifact);
+    this.props.onChange(
+      createFakeReactSyntheticEvent({
+        name: this.props.name,
+        value: selected.filter(id => id !== artifact.id),
+      }),
+    );
   };
 
   private editExpectedArtifact = (artifact: IExpectedArtifact) => {
@@ -60,7 +75,7 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
       excludedArtifactTypePatterns: this.excludedArtifactTypes(),
       excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
     }).then(
-      result => this.props.onDefineExpectedArtifact(result),
+      artifact => this.props.updateExpectedArtifact(artifact),
       () => null,
     );
   };
@@ -86,7 +101,7 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
       const editButtons = (
         <>
           <a className="clickable glyphicon glyphicon-edit" onClick={() => this.editExpectedArtifact(artifact)} />
-          <a className="clickable glyphicon glyphicon-trash" onClick={() => this.removeExpectedArtifact(i)} />
+          <a className="clickable glyphicon glyphicon-trash" onClick={() => this.removeExpectedArtifact(artifact)} />
         </>
       );
 
