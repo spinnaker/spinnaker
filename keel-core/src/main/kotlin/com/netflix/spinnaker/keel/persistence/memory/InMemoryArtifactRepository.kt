@@ -485,13 +485,24 @@ class InMemoryArtifactRepository(
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environmentName)
     val statuses = statusByEnvironment.getOrDefault(key, emptyMap<String, String>())
+
     val artifactDeployedVersions = deployedVersions[key]
       ?.sortedBy { (_, deployedAt) -> deployedAt } // ascending because we want to get the replacement deployment using `firstOrNull` below
     val deployedAt = artifactDeployedVersions?.find { (ver, _) -> ver == version }?.second
-    val (replacedBy, replacedAt) = artifactDeployedVersions?.firstOrNull { (ver, at) ->
+    var (replacedBy, replacedAt) = artifactDeployedVersions?.firstOrNull { (ver, at) ->
       ver != version && deployedAt != null && at.isAfter(deployedAt)
     }
       ?: Pair(null, null)
+
+    // get replaced by info if the version was skipped
+    if (replacedAt == null && replacedBy == null) {
+      skippedVersions.getOrDefault(key, emptyList<Skipped>())
+        .find { it.version == version }
+        ?.let { skipped ->
+          replacedAt = skipped.replacedAt
+          replacedBy = skipped.replacedByVersion
+        }
+    }
 
     return ArtifactSummaryInEnvironment(
       environment = environmentName,

@@ -23,7 +23,8 @@ import com.netflix.spinnaker.keel.core.api.DependOnConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.GitMetadata
-import com.netflix.spinnaker.keel.core.api.PromotionStatus
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
@@ -115,45 +116,60 @@ class ApplicationService(
     val environmentSummaries = getEnvironmentSummariesFor(application)
 
     return deliveryConfig.artifacts.map { artifact ->
-      repository.artifactVersions(artifact).map { version ->
+      val artifactVersionSummaries = repository.artifactVersions(artifact).map { version ->
         val artifactSummariesInEnvironments = mutableSetOf<ArtifactSummaryInEnvironment>()
 
         environmentSummaries.forEach { environmentSummary ->
           val environment = deliveryConfig.environments.find { it.name == environmentSummary.name }!!
           environmentSummary.getArtifactPromotionStatus(artifact, version)?.let { status ->
-            if (status == PromotionStatus.PENDING) {
-              ArtifactSummaryInEnvironment(
+            var artEnvSummary = when (status) {
+              PENDING -> ArtifactSummaryInEnvironment(
                 environment = environmentSummary.name,
                 version = version,
                 state = status.name.toLowerCase()
               )
-            } else {
-              repository.getArtifactSummaryInEnvironment(
+              SKIPPED -> {
+                // some environments contain relevant info for skipped artifacts, so
+                // try and find that summary before defaulting to less information
+                val potentialSummary = repository.getArtifactSummaryInEnvironment(
+                  deliveryConfig = deliveryConfig,
+                  environmentName = environmentSummary.name,
+                  artifactName = artifact.name,
+                  artifactType = artifact.type,
+                  version = version
+                )
+                if (potentialSummary == null || potentialSummary.state == "pending") {
+                  ArtifactSummaryInEnvironment(
+                    environment = environmentSummary.name,
+                    version = version,
+                    state = status.name.toLowerCase()
+                  )
+                } else {
+                  potentialSummary
+                }
+              }
+              else -> repository.getArtifactSummaryInEnvironment(
                 deliveryConfig = deliveryConfig,
                 environmentName = environmentSummary.name,
                 artifactName = artifact.name,
                 artifactType = artifact.type,
                 version = version
               )
-            }?.let { artifactSummaryInEnvironment ->
-              addStatefulConstraintSummaries(artifactSummaryInEnvironment, deliveryConfig, environment, version)
             }
-              ?.let { artifactSummaryInEnvironment ->
-                addStatelessConstraintSummaries(artifactSummaryInEnvironment, deliveryConfig, environment, version, artifact)
-              }?.also { artifactSummaryInEnvironment ->
-                artifactSummariesInEnvironments.add(artifactSummaryInEnvironment)
-              }
+            if (artEnvSummary != null) {
+              artEnvSummary = addStatefulConstraintSummaries(artEnvSummary, deliveryConfig, environment, version)
+              artEnvSummary = addStatelessConstraintSummaries(artEnvSummary, deliveryConfig, environment, version, artifact)
+              artifactSummariesInEnvironments.add(artEnvSummary)
+            }
           }
         }
-
         return@map versionToSummary(artifact, version, artifactSummariesInEnvironments.toSet())
-      }.let { artifactVersionSummaries ->
-        ArtifactSummary(
-          name = artifact.name,
-          type = artifact.type,
-          versions = artifactVersionSummaries.toSet()
-        )
       }
+      return@map ArtifactSummary(
+        name = artifact.name,
+        type = artifact.type,
+        versions = artifactVersionSummaries.toSet()
+      )
     }
   }
 

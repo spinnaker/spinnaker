@@ -430,6 +430,10 @@ class CombinedRepository(
   override fun deleteVeto(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.deleteVeto(deliveryConfig, artifact, version, targetEnvironment)
 
+  override fun markAsSkipped(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String, supersededByVersion: String) {
+    artifactRepository.markAsSkipped(deliveryConfig, artifact, version, targetEnvironment, supersededByVersion)
+  }
+
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,

@@ -209,6 +209,14 @@ interface KeelRepository {
 
   fun deleteVeto(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String)
 
+  fun markAsSkipped(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String,
+    supersededByVersion: String
+  )
+
   /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be
    * used by the UI, or null if the artifact version is not applicable to the environment.
