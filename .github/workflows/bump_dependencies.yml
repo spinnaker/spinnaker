@@ -1,0 +1,17 @@
+name: Bump Dependencies
+
+on:
+  repository_dispatch:
+    types: [bump-dependencies]
+
+jobs:
+  bump-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: spinnaker/bumpdeps@master
+      with:
+        ref: ${{ github.event.client_payload.ref }}
+        key: spinnakerGradleVersion
+        repositories: echo,fiat,keiko
+      env:
+        GITHUB_OAUTH: ${{ secrets.REPO_OAUTH_TOKEN }}

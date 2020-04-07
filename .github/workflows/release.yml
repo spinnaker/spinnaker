@@ -58,3 +58,11 @@ jobs:
             ${{ steps.release_info.outputs.CHANGELOG }}
            draft: false
            prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}
+      - name : Pause before dependency bump
+        run: sleep 90
+      - name: Trigger dependency bump workflow
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
+          event-type: bump-dependencies
+          client-payload: '{"ref": "${{ github.ref }}"}'
