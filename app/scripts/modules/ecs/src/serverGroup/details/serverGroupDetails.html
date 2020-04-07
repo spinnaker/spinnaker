@@ -193,27 +193,6 @@
         <dd ng-if="ctrl.serverGroup.metricAlarms.length <= 0"><i>There are no scaling policies assigned.</i></dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Metrics" expanded="false">
-      <i>Example values below</i>
-
-      <dl class="horizontal-when-filters-collapsed">
-        <dt>Average CPU Utilization last 15 minutes</dt>
-        <dd>90%</dd>
-        <!-- TODO - Make the values reflect the current state of the server group -->
-
-        <dt>Average CPU Utilization last 24 hours</dt>
-        <dd>30%</dd>
-        <!-- TODO - Make the values reflect the current state of the server group -->
-
-        <dt>Average memory Utilization last 15 minutes</dt>
-        <dd>40%</dd>
-        <!-- TODO - Make the values reflect the current state of the server group -->
-
-        <dt>Average memory Utilization last 24 hours</dt>
-        <dd>45%</dd>
-        <!-- TODO - Make the values reflect the current state of the server group -->
-      </dl>
-    </collapsible-section>
     <collapsible-section heading="Build data" ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
       <dl class="horizontal-when-filters-collapsed">
         <dt>Job</dt>
