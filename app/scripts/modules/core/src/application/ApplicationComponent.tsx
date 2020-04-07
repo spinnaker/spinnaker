@@ -34,7 +34,8 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
     }
 
     DebugWindow.application = app;
-    app.enableAutoRefresh();
+    // KLUDGE: warning, do not use, this is temporarily and will be removed very soon.
+    !app.attributes?.disableAutoRefresh && app.enableAutoRefresh();
   }
 
   private unmountApplication(app: Application) {
