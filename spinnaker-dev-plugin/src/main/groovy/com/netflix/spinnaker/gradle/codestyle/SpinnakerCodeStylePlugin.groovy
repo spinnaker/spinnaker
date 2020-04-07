@@ -45,11 +45,13 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
       project.plugins.withType(SpotlessPlugin) { SpotlessPlugin spotless ->
 
         // Instead of performing `spotlessCheck` on `check`, let's just `spotlessApply` instead, since devs will be
-        // required to make the changes anyway.
-        spotless.extension.enforceCheck = false
-        project.getTasks()
-          .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
-          .all { it.dependsOn("spotlessApply") }
+        // required to make the changes anyway. But don't do this if we're running in a CI build.
+        if (!isRunningUnderContinuousIntegration()) {
+          spotless.extension.enforceCheck = false
+          project.getTasks()
+            .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
+            .all { it.dependsOn("spotlessApply") }
+        }
 
         spotless.extension.java(new Action<JavaExtension>() {
           @Override
@@ -113,5 +115,9 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
       return false
     }
     return !project.plugins.withType(kotlin).empty
+  }
+
+  private static boolean isRunningUnderContinuousIntegration() {
+    return System.getenv().containsKey("GITHUB_WORKFLOW")
   }
 }
