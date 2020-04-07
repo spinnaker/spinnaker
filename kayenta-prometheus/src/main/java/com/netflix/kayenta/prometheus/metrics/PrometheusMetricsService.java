@@ -24,12 +24,9 @@ import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
-import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptor;
-import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
-import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -38,19 +35,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -66,9 +59,7 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Autowired private final Registry registry;
 
-  @Builder.Default
-  private Map<String, List<PrometheusMetricDescriptor>> metricDescriptorsCache =
-      Collections.emptyMap();
+  @Autowired private final PrometheusMetricDescriptorsCache metricDescriptorsCache;
 
   @Override
   public String getType() {
@@ -327,74 +318,6 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Override
   public List<Map> getMetadata(String metricsAccountName, String filter) {
-    List<PrometheusMetricDescriptor> accountSpecificMetricDescriptorsCache =
-        metricDescriptorsCache.get(metricsAccountName);
-
-    if (CollectionUtils.isEmpty(accountSpecificMetricDescriptorsCache)) {
-      return Collections.emptyList();
-    }
-
-    if (StringUtils.isEmpty(filter)) {
-      return accountSpecificMetricDescriptorsCache.stream()
-          .map(metricDescriptor -> metricDescriptor.getMap())
-          .collect(Collectors.toList());
-    } else {
-      String lowerCaseFilter = filter.toLowerCase();
-
-      return accountSpecificMetricDescriptorsCache.stream()
-          .filter(
-              metricDescriptor ->
-                  metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
-          .map(metricDescriptor -> metricDescriptor.getMap())
-          .collect(Collectors.toList());
-    }
-  }
-
-  @Scheduled(fixedDelayString = "#{@prometheusConfigurationProperties.metadataCachingIntervalMS}")
-  public void updateMetricDescriptorsCache() {
-    Set<AccountCredentials> accountCredentialsSet =
-        accountCredentialsRepository.getAllOf(AccountCredentials.Type.METRICS_STORE);
-    Map<String, List<PrometheusMetricDescriptor>> updatedMetricDescriptorsCache = new HashMap<>();
-
-    for (AccountCredentials credentials : accountCredentialsSet) {
-      if (credentials instanceof PrometheusNamedAccountCredentials) {
-        PrometheusNamedAccountCredentials prometheusCredentials =
-            (PrometheusNamedAccountCredentials) credentials;
-        PrometheusRemoteService prometheusRemoteService =
-            prometheusCredentials.getPrometheusRemoteService();
-        PrometheusMetricDescriptorsResponse prometheusMetricDescriptorsResponse =
-            prometheusRemoteService.listMetricDescriptors();
-
-        if (prometheusMetricDescriptorsResponse != null
-            && prometheusMetricDescriptorsResponse.getStatus().equals("success")) {
-          List<String> data = prometheusMetricDescriptorsResponse.getData();
-
-          if (!CollectionUtils.isEmpty(data)) {
-            List<PrometheusMetricDescriptor> accountSpecificMetricDescriptorsCache =
-                data.stream()
-                    .map(metricName -> new PrometheusMetricDescriptor(metricName))
-                    .collect(Collectors.toList());
-
-            updatedMetricDescriptorsCache.put(
-                prometheusCredentials.getName(), accountSpecificMetricDescriptorsCache);
-
-            log.debug(
-                "Updated cache with {} metric descriptors via account {}.",
-                accountSpecificMetricDescriptorsCache.size(),
-                prometheusCredentials.getName());
-          } else {
-            log.debug(
-                "While updating cache, found no metric descriptors via account {}.",
-                prometheusCredentials.getName());
-          }
-        } else {
-          log.debug(
-              "While updating cache, found no metric descriptors via account {}.",
-              prometheusCredentials.getName());
-        }
-      }
-    }
-
-    metricDescriptorsCache = updatedMetricDescriptorsCache;
+    return metricDescriptorsCache.getMetadata(metricsAccountName, filter);
   }
 }

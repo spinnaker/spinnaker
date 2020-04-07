@@ -17,6 +17,7 @@
 package com.netflix.kayenta.prometheus.config;
 
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.prometheus.metrics.PrometheusMetricDescriptorsCache;
 import com.netflix.kayenta.prometheus.metrics.PrometheusMetricsService;
 import com.netflix.kayenta.prometheus.security.PrometheusCredentials;
 import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
@@ -55,13 +56,18 @@ public class PrometheusConfiguration {
   }
 
   @Bean
+  PrometheusMetricDescriptorsCache prometheusMetricDescriptorsCache(
+      AccountCredentialsRepository accountCredentialsRepository) {
+    return new PrometheusMetricDescriptorsCache(accountCredentialsRepository);
+  }
+
+  @Bean
   MetricsService prometheusMetricsService(
       PrometheusResponseConverter prometheusConverter,
       PrometheusConfigurationProperties prometheusConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
       OkHttpClient okHttpClient,
-      AccountCredentialsRepository accountCredentialsRepository)
-      throws IOException {
+      AccountCredentialsRepository accountCredentialsRepository) {
     PrometheusMetricsService.PrometheusMetricsServiceBuilder prometheusMetricsServiceBuilder =
         PrometheusMetricsService.builder();
     prometheusMetricsServiceBuilder.scopeLabel(prometheusConfigurationProperties.getScopeLabel());

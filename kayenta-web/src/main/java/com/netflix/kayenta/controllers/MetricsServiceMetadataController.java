@@ -67,8 +67,7 @@ public class MetricsServiceMetadataController {
       log.debug(
           "Returned all {} descriptors via account {}.",
           matchingDescriptors.size(),
-          resolvedMetricsAccountName,
-          filter);
+          resolvedMetricsAccountName);
     } else {
       log.debug(
           "Matched {} descriptors via account {} using filter '{}'.",
@@ -77,6 +76,6 @@ public class MetricsServiceMetadataController {
           filter);
     }
 
-    return metricsService.getMetadata(resolvedMetricsAccountName, filter);
+    return matchingDescriptors;
   }
 }

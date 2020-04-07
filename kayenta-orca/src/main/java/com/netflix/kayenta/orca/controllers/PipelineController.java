@@ -31,7 +31,12 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.*;
+import org.springframework.boot.actuate.health.CompositeHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthAggregator;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.actuate.health.HealthIndicatorRegistry;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,7 +89,7 @@ public class PipelineController {
         postProcessor.postProcessBeforeDestruction(this, null);
         log.info("Health indicators are all reporting UP; starting orca queue processing");
       } else {
-        log.info(
+        log.warn(
             "Health indicators are still reporting DOWN; not starting orca queue processing yet: {}",
             health);
       }
