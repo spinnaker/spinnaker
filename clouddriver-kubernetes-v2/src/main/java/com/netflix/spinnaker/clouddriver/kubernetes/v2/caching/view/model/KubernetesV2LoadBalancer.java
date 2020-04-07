@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -25,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,14 +69,13 @@ public class KubernetesV2LoadBalancer extends ManifestBasedModel
 
     Set<LoadBalancerServerGroup> serverGroups =
         serverGroupData.stream()
-            // ignoring load balancers here since they are discarded by ::toLoadBalancerServerGroup
             .map(
                 d ->
                     KubernetesV2ServerGroup.fromCacheData(
                         KubernetesV2ServerGroupCacheData.builder()
                             .serverGroupData(d)
                             .instanceData(serverGroupToInstanceData.get(d.getId()))
-                            .loadBalancerData(new ArrayList<>())
+                            .loadBalancerData(ImmutableList.of(cd))
                             .build()))
             .filter(Objects::nonNull)
             .map(KubernetesV2ServerGroup::toLoadBalancerServerGroup)
