@@ -139,10 +139,17 @@ class PeeringAgentSpec extends Specification {
   def "updates the most recent timestamp even when there is nothing to copy"() {
     def peeringAgent = constructPeeringAgent()
 
-    def correctMax = Math.max(0, (srcKeys.max { it.updated_at }?.updated_at ?: 0) - clockDrift)
+    def correctMax = Math.max(0, (srcKeys.max { it.updated_at }?.updated_at ?: mostRecentTimeStamp) - clockDrift)
 
     when:
-    peeringAgent.peerExecutions(executionType)
+    if (executionType == PIPELINE) {
+      peeringAgent.completedPipelinesMostRecentUpdatedTime = mostRecentTimeStamp
+      peeringAgent.completedOrchestrationsMostRecentUpdatedTime = 0
+    } else {
+      peeringAgent.completedPipelinesMostRecentUpdatedTime = 0
+      peeringAgent.completedOrchestrationsMostRecentUpdatedTime = mostRecentTimeStamp
+    }
+    peeringAgent.peerCompletedExecutions(executionType)
 
     then:
     1 * src.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> srcKeys
@@ -176,10 +183,14 @@ class PeeringAgentSpec extends Specification {
     // Note: since the logic for executions and orchestrations should be the same, it's overkill to have the same set of tests for each
     // but it's easy so why not?
     executionType | mostRecentTimeStamp | srcKeys           | destKeys                           || toDelete | toCopy
-    PIPELINE      | 0                   | []                | []                                 || []       | []
-    PIPELINE      | 0                   | []                | [key("ID1", 100)]                  || ["ID1"]  | []
-    PIPELINE      | 0                   | [key("ID1", 100)] | [key("ID1", 100)]                  || []       | []
-    PIPELINE      | 0                   | [key("ID1", 100)] | [key("ID1", 100), key("ID2", 200)] || ["ID2"]  | []
+    PIPELINE      | 20                  | []                | []                                 || []       | []
+    PIPELINE      | 21                  | []                | [key("ID1", 100)]                  || ["ID1"]  | []
+    PIPELINE      | 22                  | [key("ID1", 100)] | [key("ID1", 100)]                  || []       | []
+    PIPELINE      | 23                  | [key("ID1", 100)] | [key("ID1", 100), key("ID2", 200)] || ["ID2"]  | []
+    ORCHESTRATION | 20                  | []                | []                                 || []       | []
+    ORCHESTRATION | 21                  | []                | [key("ID1", 100)]                  || ["ID1"]  | []
+    ORCHESTRATION | 22                  | [key("ID1", 100)] | [key("ID1", 100)]                  || []       | []
+    ORCHESTRATION | 23                  | [key("ID1", 100)] | [key("ID1", 100), key("ID2", 200)] || ["ID2"]  | []
   }
 
   @Unroll

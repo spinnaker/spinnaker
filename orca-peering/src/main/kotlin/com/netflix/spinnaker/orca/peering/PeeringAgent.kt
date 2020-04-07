@@ -203,7 +203,7 @@ class PeeringAgent(
       .map { it.id }
 
     fun getLatestCompletedUpdatedTime() =
-      (completedPipelineKeys.map { it.updated_at }.max() ?: 0)
+      (completedPipelineKeys.map { it.updated_at }.max() ?: updatedAfter)
 
     if (pipelineIdsToDelete.isEmpty() && pipelineIdsToMigrate.isEmpty()) {
       log.debug("No completed $executionType executions to copy for peering")
