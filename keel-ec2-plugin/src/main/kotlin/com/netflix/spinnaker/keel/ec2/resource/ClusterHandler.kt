@@ -34,7 +34,6 @@ import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -53,8 +52,8 @@ import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ExportError
@@ -88,8 +87,7 @@ class ClusterHandler(
 
   private val mapper = configuredObjectMapper()
 
-  override val supportedKind =
-    SupportedKind(SPINNAKER_EC2_API_V1.qualify("cluster"), ClusterSpec::class.java)
+  override val supportedKind = EC2_CLUSTER_V1
 
   override suspend fun toResolvedType(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {

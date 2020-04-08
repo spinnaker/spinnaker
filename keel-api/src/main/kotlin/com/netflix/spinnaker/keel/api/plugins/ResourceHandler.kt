@@ -144,11 +144,6 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
   open suspend fun actuationInProgress(resource: Resource<S>): Boolean = false
 }
 
-data class SupportedKind<SPEC : ResourceSpec>(
-  val kind: ResourceKind,
-  val specClass: Class<SPEC>
-)
-
 /**
  * Searches a list of [ResourceHandler]s and returns the first that supports [kind].
  *

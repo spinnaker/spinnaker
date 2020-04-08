@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.persistence.ArtifactRepositoryTests
+import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -18,7 +19,7 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
   private val deliveryConfigRepository = SqlDeliveryConfigRepository(
     jooq,
     Clock.systemUTC(),
-    DummyResourceTypeIdentifier,
+    DummyResourceSpecIdentifier,
     objectMapper,
     sqlRetry
   )

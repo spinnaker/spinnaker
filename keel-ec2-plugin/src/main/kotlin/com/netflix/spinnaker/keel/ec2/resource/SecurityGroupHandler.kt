@@ -35,7 +35,6 @@ import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -44,7 +43,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -60,8 +59,7 @@ class SecurityGroupHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(resolvers) {
 
-  override val supportedKind =
-    SupportedKind(SPINNAKER_EC2_API_V1.qualify("security-group"), SecurityGroupSpec::class.java)
+  override val supportedKind = EC2_SECURITY_GROUP_V1
 
   override suspend fun toResolvedType(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     with(resource.spec) {

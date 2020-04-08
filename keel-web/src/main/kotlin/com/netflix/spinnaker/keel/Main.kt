@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
@@ -77,6 +78,9 @@ class KeelApplication {
   lateinit var instanceIdSupplier: InstanceIdSupplier
 
   @Autowired(required = false)
+  var kinds: List<SupportedKind<*>> = emptyList()
+
+  @Autowired(required = false)
   var resourceHandlers: List<ResourceHandler<*, *>> = emptyList()
 
   @Autowired(required = false)
@@ -123,6 +127,7 @@ class KeelApplication {
         log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
       }
 
+    log.info("Supporting resource kinds: {}", kinds.joinToString { it.kind.toString() })
     log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
     log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
   }

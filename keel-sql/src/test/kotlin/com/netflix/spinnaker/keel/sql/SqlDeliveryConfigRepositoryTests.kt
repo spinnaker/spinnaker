@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryTests
-import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -20,11 +20,11 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
-  override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository =
-    SqlDeliveryConfigRepository(jooq, Clock.systemUTC(), resourceTypeIdentifier, objectMapper, sqlRetry)
+  override fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlDeliveryConfigRepository =
+    SqlDeliveryConfigRepository(jooq, Clock.systemUTC(), resourceSpecIdentifier, objectMapper, sqlRetry)
 
-  override fun createResourceRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlResourceRepository =
-    SqlResourceRepository(jooq, Clock.systemUTC(), resourceTypeIdentifier, objectMapper, sqlRetry)
+  override fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlResourceRepository =
+    SqlResourceRepository(jooq, Clock.systemUTC(), resourceSpecIdentifier, emptyList(), objectMapper, sqlRetry)
 
   override fun createArtifactRepository(): SqlArtifactRepository =
     SqlArtifactRepository(jooq, Clock.systemUTC(), objectMapper, sqlRetry)

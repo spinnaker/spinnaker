@@ -31,7 +31,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
-import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory
 class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val resourceTypeIdentifier: ResourceTypeIdentifier,
+  private val resourceSpecIdentifier: ResourceSpecIdentifier,
   private val mapper: ObjectMapper,
   private val sqlRetry: SqlRetry
 ) : DeliveryConfigRepository {
@@ -900,7 +900,7 @@ class SqlDeliveryConfigRepository(
           Resource(
             parseKind(kind),
             mapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            mapper.readValue(spec, resourceTypeIdentifier.identify(parseKind(kind)))
+            mapper.readValue(spec, resourceSpecIdentifier.identify(parseKind(kind)))
           )
         }
     }

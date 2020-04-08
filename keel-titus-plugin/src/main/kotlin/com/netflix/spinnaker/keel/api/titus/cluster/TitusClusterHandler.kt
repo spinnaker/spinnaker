@@ -34,10 +34,9 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.exceptions.RegistryNotFoundException
 import com.netflix.spinnaker.keel.api.titus.exceptions.TitusAccountConfigurationException
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -87,8 +86,7 @@ class TitusClusterHandler(
 
   private val mapper = configuredObjectMapper()
 
-  override val supportedKind =
-    SupportedKind(SPINNAKER_TITUS_API_V1.qualify("cluster"), TitusClusterSpec::class.java)
+  override val supportedKind = TITUS_CLUSTER_V1
 
   override suspend fun toResolvedType(resource: Resource<TitusClusterSpec>): Map<String, TitusServerGroup> =
     with(resource.spec) {

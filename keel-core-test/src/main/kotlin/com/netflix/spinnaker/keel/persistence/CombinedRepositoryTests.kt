@@ -3,9 +3,6 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.id
@@ -18,7 +15,7 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
-import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.test.resource
@@ -50,8 +47,8 @@ import strikt.assertions.succeeded
 abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
   JUnit5Minutests {
 
-  abstract fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): D
-  abstract fun createResourceRepository(): R
+  abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): D
+  abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): R
   abstract fun createArtifactRepository(): A
 
   open fun flush() {}
@@ -72,38 +69,16 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     environments = setOf(firstEnv)
   )
 
-  val resourceTypeIdentifier: ResourceTypeIdentifier =
-    object : ResourceTypeIdentifier {
-      override fun identify(kind: ResourceKind): Class<out ResourceSpec> {
-        return when (kind) {
-          parseKind("ec2/security-group@v1") -> DummyResourceSpec::class.java
-          parseKind("ec2/cluster@v1") -> DummyResourceSpec::class.java
-          else -> error("unsupported kind $kind")
-        }
-      }
-    }
-
   data class Fixture<D : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository>(
-    val deliveryConfigRepositoryProvider: (ResourceTypeIdentifier) -> D,
-    val resourceRepositoryProvider: () -> R,
+    val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> D,
+    val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
     val artifactRepositoryProvider: () -> A
   ) {
     private val clock: Clock = Clock.systemUTC()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
-    val resourceTypeIdentifier: ResourceTypeIdentifier =
-      object : ResourceTypeIdentifier {
-        override fun identify(kind: ResourceKind): Class<out ResourceSpec> {
-          return when (kind) {
-            parseKind("ec2/security-group@v1") -> DummyResourceSpec::class.java
-            parseKind("ec2/cluster@v1") -> DummyResourceSpec::class.java
-            else -> error("unsupported kind $kind")
-          }
-        }
-      }
-
-    internal val deliveryConfigRepository: D = deliveryConfigRepositoryProvider(resourceTypeIdentifier)
-    internal val resourceRepository: R = resourceRepositoryProvider()
+    internal val deliveryConfigRepository: D = deliveryConfigRepositoryProvider(DummyResourceSpecIdentifier)
+    internal val resourceRepository: R = resourceRepositoryProvider(DummyResourceSpecIdentifier)
     internal val artifactRepository: A = artifactRepositoryProvider()
 
     val subject = CombinedRepository(

@@ -23,6 +23,10 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
+import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
@@ -41,6 +45,18 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(CanaryConstraintConfigurationProperties::class)
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class EC2Config {
+
+  @Bean
+  fun clusterV1() = EC2_CLUSTER_V1
+
+  @Bean
+  fun securityGroupV1() = EC2_SECURITY_GROUP_V1
+
+  @Bean
+  fun classicLoadBalancerV1() = EC2_CLASSIC_LOAD_BALANCER_V1
+
+  @Bean
+  fun applicationLoadBalancerV1() = EC2_APPLICATION_LOAD_BALANCER_V1
 
   @Bean
   fun clusterHandler(

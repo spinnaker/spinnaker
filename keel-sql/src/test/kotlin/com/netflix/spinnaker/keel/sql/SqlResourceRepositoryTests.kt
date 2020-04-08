@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -18,7 +19,8 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
     return SqlResourceRepository(
       jooq,
       clock,
-      DummyResourceTypeIdentifier,
+      DummyResourceSpecIdentifier,
+      emptyList(),
       configuredObjectMapper(),
       sqlRetry
     )

@@ -2,7 +2,8 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.events.PersistentEvent.Companion.clock
-import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.sql.SqlAgentLockRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
@@ -50,10 +51,11 @@ class SqlConfiguration {
   fun resourceRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceTypeIdentifier: ResourceTypeIdentifier,
+    resourceSpecIdentifier: ResourceSpecIdentifier,
+    specMigrators: List<SpecMigrator<*, *>>,
     objectMapper: ObjectMapper
   ) =
-    SqlResourceRepository(jooq, clock, resourceTypeIdentifier, objectMapper, SqlRetry(sqlRetryProperties))
+    SqlResourceRepository(jooq, clock, resourceSpecIdentifier, specMigrators, objectMapper, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun artifactRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper) =
@@ -63,10 +65,10 @@ class SqlConfiguration {
   fun deliveryConfigRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceTypeIdentifier: ResourceTypeIdentifier,
+    resourceSpecIdentifier: ResourceSpecIdentifier,
     objectMapper: ObjectMapper
   ) =
-    SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier, objectMapper, SqlRetry(sqlRetryProperties))
+    SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, objectMapper, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun diffFingerprintRepository(

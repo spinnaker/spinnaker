@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
+import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyCheckedTests
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -38,7 +39,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
   override val factory: (clock: Clock) -> SqlResourceRepository = { clock ->
-    SqlResourceRepository(jooq, clock, DummyResourceTypeIdentifier, configuredObjectMapper(), sqlRetry)
+    SqlResourceRepository(jooq, clock, DummyResourceSpecIdentifier, emptyList(), configuredObjectMapper(), sqlRetry)
   }
 
   override fun flush() {

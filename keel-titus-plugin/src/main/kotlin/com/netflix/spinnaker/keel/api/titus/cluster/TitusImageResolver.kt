@@ -19,7 +19,7 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.docker.ContainerProvider
@@ -40,7 +40,7 @@ class TitusImageResolver(
 ) : DockerImageResolver<TitusClusterSpec>(
   repository
 ) {
-  override val supportedKind = SPINNAKER_TITUS_API_V1.qualify("cluster")
+  override val supportedKind = TITUS_CLUSTER_V1
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

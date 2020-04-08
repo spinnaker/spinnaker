@@ -3,18 +3,16 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
+import com.netflix.spinnaker.keel.api.plugins.kind
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -31,15 +29,15 @@ import strikt.assertions.succeeded
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
   JUnit5Minutests {
 
-  abstract fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): T
-  abstract fun createResourceRepository(resourceTypeIdentifier: ResourceTypeIdentifier): R
+  abstract fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): T
+  abstract fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): R
   abstract fun createArtifactRepository(): A
 
   open fun flush() {}
 
   data class Fixture<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository>(
-    val deliveryConfigRepositoryProvider: (ResourceTypeIdentifier) -> T,
-    val resourceRepositoryProvider: (ResourceTypeIdentifier) -> R,
+    val deliveryConfigRepositoryProvider: (ResourceSpecIdentifier) -> T,
+    val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
     val artifactRepositoryProvider: () -> A,
     val deliveryConfig: DeliveryConfig = DeliveryConfig(
       name = "keel",
@@ -47,19 +45,14 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       serviceAccount = "keel@spinnaker"
     )
   ) {
-    private val resourceTypeIdentifier: ResourceTypeIdentifier =
-      object : ResourceTypeIdentifier {
-        override fun identify(kind: ResourceKind): Class<out ResourceSpec> {
-          return when (kind) {
-            parseKind("ec2/security-group@v1") -> DummyResourceSpec::class.java
-            parseKind("ec2/cluster@v1") -> DummyResourceSpec::class.java
-            else -> throw UnsupportedKind(kind)
-          }
-        }
-      }
+    private val resourceSpecIdentifier: ResourceSpecIdentifier =
+      ResourceSpecIdentifier(
+        kind<DummyResourceSpec>("ec2/security-group@v1"),
+        kind<DummyResourceSpec>("ec2/cluster@v1")
+      )
 
-    internal val repository: T = deliveryConfigRepositoryProvider(resourceTypeIdentifier)
-    private val resourceRepository: R = resourceRepositoryProvider(resourceTypeIdentifier)
+    internal val repository: T = deliveryConfigRepositoryProvider(resourceSpecIdentifier)
+    private val resourceRepository: R = resourceRepositoryProvider(resourceSpecIdentifier)
     private val artifactRepository: A = artifactRepositoryProvider()
 
     fun getByName() = expectCatching {
