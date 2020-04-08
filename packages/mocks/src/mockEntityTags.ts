@@ -16,12 +16,13 @@ export const mockEntityTagsMetadata: IEntityTagsMetadata = {
 };
 
 export const mockCreationMetadata: ICreationMetadata = {
-  created: 1580755347841,
-  createdBy: 'user@test.com',
   executionType: 'orchestration',
-  lastModified: 1580755347842,
-  lastModifiedBy: 'user@test.com',
-  name: 'test:metadata',
+  stageId: '12345',
+  executionId: '123',
+  pipelineConfigId: '456',
+  application: 'testapp',
+  user: 'user@test.com',
+  description: 'Server group created',
 };
 
 export const createMockEntityTag = (category?: string, value?: any): IEntityTag => ({
@@ -33,11 +34,7 @@ export const createMockEntityTag = (category?: string, value?: any): IEntityTag 
   },
 });
 
-export const createMockCreationMetadataTag = (
-  executionType?: string,
-  value?: ICreationMetadata,
-): ICreationMetadataTag => ({
-  executionType: executionType || 'orchestration',
+export const createMockCreationMetadataTag = (value?: ICreationMetadata): ICreationMetadataTag => ({
   ...mockEntityTagsMetadata,
   value: value || mockCreationMetadata,
 });
@@ -62,5 +59,5 @@ export const mockEntityTags: IEntityTags = {
   entityRef: createMockEntityRef(),
   alerts: [createMockEntityTag()],
   notices: [],
-  creationMetadata: [createMockCreationMetadataTag()],
+  creationMetadata: createMockCreationMetadataTag(),
 };
