@@ -12,6 +12,6 @@ jobs:
       with:
         ref: ${{ github.event.client_payload.ref }}
         key: spinnakerGradleVersion
-        repositories: echo,fiat,keiko
+        repositories: clouddriver,echo,fiat,front50,gate,halyard,igor,kayenta,keel,keiko,kork,orca,rosco,swabbie
       env:
         GITHUB_OAUTH: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
