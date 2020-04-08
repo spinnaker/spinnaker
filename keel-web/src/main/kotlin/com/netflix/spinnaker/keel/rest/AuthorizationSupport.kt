@@ -23,7 +23,12 @@ import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchEntityException
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.AccessDeniedException
@@ -50,7 +55,7 @@ class AuthorizationSupport(
   }
 
   enum class TargetEntity {
-    APPLICATION, DELIVERY_CONFIG, RESOURCE;
+    APPLICATION, DELIVERY_CONFIG, RESOURCE, SERVICE_ACCOUNT;
     override fun toString() = name.toLowerCase()
   }
 
@@ -70,6 +75,12 @@ class AuthorizationSupport(
     passes { checkServiceAccountAccess(TargetEntity.valueOf(target), identifier) }
 
   /**
+   * Returns true if  the caller has access to the specified service account.
+   */
+  fun hasServiceAccountAccess(serviceAccount: String) =
+    passes { checkServiceAccountAccess(SERVICE_ACCOUNT, serviceAccount) }
+
+  /**
    * Returns true if the caller has the specified permission (action) to access the cloud account associated with the
    * specified target object.
    */
@@ -87,13 +98,14 @@ class AuthorizationSupport(
 
     withAuthentication(target, identifier) { auth ->
       val application = when (target) {
-        TargetEntity.RESOURCE -> repository.getResource(identifier).application
-        TargetEntity.APPLICATION -> identifier
-        TargetEntity.DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).application
+        RESOURCE -> repository.getResource(identifier).application
+        APPLICATION -> identifier
+        DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).application
+        else -> throw InvalidRequestException("Invalid target type ${target.name} for application permission check")
       }
       permissionEvaluator.hasPermission(auth, application, "APPLICATION", action.name)
         .also { allowed ->
-          log.debug("[ACCESS {}] User {}: permission to {} application {}.",
+          log.debug("[ACCESS {}] User {}: {} access to application {}.",
             allowed.toAuthorization(), auth.principal, action.name, application)
 
           if (!allowed) {
@@ -113,9 +125,10 @@ class AuthorizationSupport(
 
     withAuthentication(target, identifier) { auth ->
       val serviceAccount = when (target) {
-        TargetEntity.RESOURCE -> repository.getResource(identifier).serviceAccount
-        TargetEntity.APPLICATION -> repository.getDeliveryConfigForApplication(identifier).serviceAccount
-        TargetEntity.DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).serviceAccount
+        SERVICE_ACCOUNT -> identifier
+        RESOURCE -> repository.getResource(identifier).serviceAccount
+        APPLICATION -> repository.getDeliveryConfigForApplication(identifier).serviceAccount
+        DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).serviceAccount
       }
       permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored")
         .also { allowed ->
@@ -143,9 +156,10 @@ class AuthorizationSupport(
 
     withAuthentication(target, identifier) { auth ->
       val locatableResources = when (target) {
-        TargetEntity.RESOURCE -> listOf(repository.getResource(identifier))
-        TargetEntity.APPLICATION -> repository.getDeliveryConfigForApplication(identifier).resources
-        TargetEntity.DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).resources
+        RESOURCE -> listOf(repository.getResource(identifier))
+        APPLICATION -> repository.getDeliveryConfigForApplication(identifier).resources
+        DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).resources
+        else -> throw InvalidRequestException("Invalid target type ${target.name} for cloud account permission check")
       }.filter { it.spec is Locatable<*> }
 
       locatableResources.forEach {

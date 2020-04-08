@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepos
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -359,8 +360,8 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
       context("POST /delivery-configs") {
         context("with no WRITE access to application") {
           before {
-            authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess(DELIVERY_CONFIG)
+            authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = post("/delivery-configs").addData(jsonMapper, deliveryConfig)
@@ -372,8 +373,8 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.denyServiceAccountAccess(DELIVERY_CONFIG)
+            authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
+            authorizationSupport.denyServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = post("/delivery-configs").addData(jsonMapper, deliveryConfig)

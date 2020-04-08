@@ -184,7 +184,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, RESOURCE)
-            authorizationSupport.allowServiceAccountAccess(RESOURCE)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = delete("/resources/test:${resource.id}/pause")
@@ -196,7 +196,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(RESOURCE)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, RESOURCE)
           }
           test("request is forbidden") {

@@ -32,8 +32,8 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'DELIVERY_CONFIG', #name)
-    and @authorizationSupport.hasServiceAccountAccess('DELIVERY_CONFIG', #name)"""
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #deliveryConfig.application)
+    and @authorizationSupport.hasServiceAccountAccess(#deliveryConfig.serviceAccount)"""
   )
   fun upsert(
     @RequestBody
@@ -85,7 +85,7 @@ class DeliveryConfigController(
   )
   @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.name)")
   fun validate(@RequestBody deliveryConfig: SubmittedDeliveryConfig) =
-    // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
+  // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
     //  in [ExceptionHandler])
     mapOf("status" to "valid")
 

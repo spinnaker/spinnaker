@@ -24,6 +24,9 @@ fun AuthorizationSupport.allowAll() {
     hasServiceAccountAccess(any<String>(), any())
   } returns true
   every {
+    hasServiceAccountAccess(any())
+  } returns true
+  every {
     checkServiceAccountAccess(any<TargetEntity>(), any())
   } just Runs
   every {
@@ -85,24 +88,27 @@ fun AuthorizationSupport.denyCloudAccountAccess(action: Action, target: TargetEn
 /**
  * Mocks authorization to pass for [AuthorizationSupport.hasServiceAccountAccess].
  */
-fun AuthorizationSupport.allowServiceAccountAccess(target: TargetEntity) {
+fun AuthorizationSupport.allowServiceAccountAccess() {
   every {
-    hasServiceAccountAccess(target.name, any())
+    hasServiceAccountAccess(any(), any())
   } returns true
   every {
-    checkServiceAccountAccess(target, any())
+    checkServiceAccountAccess(any(), any())
   } just Runs
 }
 
 /**
  * Mocks authorization to fail for [AuthorizationSupport.hasServiceAccountAccess].
  */
-fun AuthorizationSupport.denyServiceAccountAccess(target: TargetEntity) {
+fun AuthorizationSupport.denyServiceAccountAccess() {
   every {
-    hasServiceAccountAccess(target.name, any())
+    hasServiceAccountAccess(any(), any())
   } returns false
   every {
-    checkServiceAccountAccess(target, any())
+    hasServiceAccountAccess(any())
+  } returns false
+  every {
+    checkServiceAccountAccess(any(), any())
   } throws AccessDeniedException("Nuh-uh!")
 }
 

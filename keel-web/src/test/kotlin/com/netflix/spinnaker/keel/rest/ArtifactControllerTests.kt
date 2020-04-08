@@ -100,7 +100,7 @@ internal class ArtifactControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess(DELIVERY_CONFIG)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = post("/artifacts/veto").addData(jsonMapper,
@@ -114,7 +114,7 @@ internal class ArtifactControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(DELIVERY_CONFIG)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
           }
           test("request is forbidden") {
@@ -132,7 +132,7 @@ internal class ArtifactControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess(DELIVERY_CONFIG)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = delete("/artifacts/veto/myconfig/test/deb/ref/0.0.1")
@@ -144,7 +144,7 @@ internal class ArtifactControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(DELIVERY_CONFIG)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
           }
           test("request is forbidden") {

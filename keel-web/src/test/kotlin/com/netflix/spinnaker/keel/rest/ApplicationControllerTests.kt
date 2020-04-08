@@ -390,7 +390,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
-            authorizationSupport.allowServiceAccountAccess(APPLICATION)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
@@ -404,7 +404,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(APPLICATION)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
@@ -436,7 +436,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
-            authorizationSupport.allowServiceAccountAccess(APPLICATION)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = delete("/application/fnord/pause")
@@ -448,7 +448,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(APPLICATION)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
@@ -465,7 +465,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
-            authorizationSupport.allowServiceAccountAccess(APPLICATION)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = post("/application/fnord/pin").addData(jsonMapper,
@@ -479,7 +479,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(APPLICATION)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
@@ -497,7 +497,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         context("with no WRITE access to application") {
           before {
             authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
-            authorizationSupport.allowServiceAccountAccess(APPLICATION)
+            authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
             val request = delete("/application/fnord/pin/test")
@@ -509,7 +509,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         }
         context("with no access to service account") {
           before {
-            authorizationSupport.denyServiceAccountAccess(APPLICATION)
+            authorizationSupport.denyServiceAccountAccess()
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
