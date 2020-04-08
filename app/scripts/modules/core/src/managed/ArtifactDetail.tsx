@@ -156,7 +156,46 @@ export const ArtifactDetail = ({
                     className="sp-margin-l-right"
                     icon="placeholder"
                     text={undefined}
-                    title="Never deployed here"
+                    title="Not deployed here yet"
+                    isActive={true}
+                    noticeType="neutral"
+                  />
+                )}
+                {state === 'approved' && (
+                  <NoticeCard
+                    className="sp-margin-l-right"
+                    icon="checkBadge"
+                    text={undefined}
+                    title={
+                      <span className="sp-group-margin-xs-xaxis">
+                        <span>Approved</span> <span className="text-regular">—</span>{' '}
+                        <span className="text-regular">deployment is about to begin</span>
+                      </span>
+                    }
+                    isActive={true}
+                    noticeType="info"
+                  />
+                )}
+                {state === 'skipped' && (
+                  <NoticeCard
+                    className="sp-margin-l-right"
+                    icon="placeholder"
+                    text={undefined}
+                    title={
+                      <span className="sp-group-margin-xs-xaxis">
+                        <span>Skipped</span> <span className="text-regular">—</span>{' '}
+                        {replacedBy && (
+                          <Pill
+                            text={
+                              replacedByBuildNumber
+                                ? `#${replacedByBuildNumber}`
+                                : replacedByPackageVersion || replacedBy
+                            }
+                          />
+                        )}{' '}
+                        <span className="text-regular">{!replacedBy && 'a later version '}became available</span>
+                      </span>
+                    }
                     isActive={true}
                     noticeType="neutral"
                   />

@@ -69,6 +69,7 @@ export interface IManagedEnviromentSummary {
       approved: string[];
       previous: string[];
       vetoed: string[];
+      skipped: string[];
     };
   }>;
 }
@@ -77,7 +78,7 @@ export interface IManagedArtifactVersion {
   version: string;
   environments: Array<{
     name: string;
-    state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed';
+    state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
     deployedAt?: string;
     replacedAt?: string;
     replacedBy?: string;

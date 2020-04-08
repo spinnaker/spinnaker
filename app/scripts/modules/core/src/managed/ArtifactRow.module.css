@@ -71,6 +71,10 @@
     background-color: var(--color-porcelain);
   }
 
+  &.skipped {
+    background-color: var(--color-porcelain);
+  }
+
   &.previous {
     background-color: var(--color-nobel);
   }
