@@ -1,5 +1,5 @@
 import { IPromise, IQService, module } from 'angular';
-import { flatten, forOwn, groupBy, has, head, keys, values } from 'lodash';
+import { flatten, forOwn, groupBy, has, head, keys, values, keyBy } from 'lodash';
 
 import { ArtifactReferenceService } from 'core/artifact';
 import { API } from 'core/api';
@@ -84,41 +84,41 @@ export class ClusterService {
     }
   }
 
+  private generateServerGroupLookupKey(serverGroup: IServerGroup): string {
+    const { name, account, region, category } = serverGroup;
+    return [name, account, region, category].join('-');
+  }
+
   public addServerGroupsToApplication(application: Application, serverGroups: IServerGroup[] = []): IServerGroup[] {
+    // map of incoming data
+    const remoteMap = keyBy(serverGroups, this.generateServerGroupLookupKey);
+    // map local cache
+    const localMap = keyBy(application.serverGroups.data, this.generateServerGroupLookupKey);
+
     if (application.serverGroups.data) {
       const data = application.serverGroups.data;
       // remove any that have dropped off, update any that have changed
       const toRemove: number[] = [];
       data.forEach((serverGroup: IServerGroup, idx: number) => {
-        const matches = serverGroups.filter(
-          test =>
-            test.name === serverGroup.name &&
-            test.account === serverGroup.account &&
-            test.region === serverGroup.region &&
-            test.category === serverGroup.category,
-        );
-        if (!matches.length) {
-          toRemove.push(idx);
-        } else {
-          if (serverGroup.stringVal && matches[0].stringVal && serverGroup.stringVal !== matches[0].stringVal) {
-            data[idx] = matches[0];
+        const match = remoteMap[this.generateServerGroupLookupKey(serverGroup)];
+        if (match) {
+          // Match found between local and incoming data, update but only if needed
+          if (serverGroup.stringVal && match.stringVal && serverGroup.stringVal !== match.stringVal) {
+            data[idx] = match;
           }
+        } else {
+          // Not found means server group was removed
+          toRemove.push(idx);
         }
       });
 
+      // splice is necessary to preserve referential equality
       toRemove.forEach(idx => data.splice(idx, 1));
 
       // add any new ones
       serverGroups.forEach(serverGroup => {
-        if (
-          !application.serverGroups.data.filter(
-            (test: IServerGroup) =>
-              test.name === serverGroup.name &&
-              test.account === serverGroup.account &&
-              test.region === serverGroup.region &&
-              test.category === serverGroup.category,
-          ).length
-        ) {
+        const match = localMap[this.generateServerGroupLookupKey(serverGroup)];
+        if (!match) {
           data.push(serverGroup);
         }
       });
