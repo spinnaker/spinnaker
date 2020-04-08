@@ -2,31 +2,30 @@ name: Build Cop
 
 on:
   schedule:
-  - cron: 0 11 * * MON-FRI # Rotate weekdays at 11:00 UTC
+  - cron: 0 11 1,15 * * # Extend rotation on the 1st and 15th of the month at 11:00 UTC
 
 jobs:
-  rotate:
-    # Don't run this job on forks.
-    if: github.repository == 'spinnaker/spinnaker'
+  extend:
+    # Only run this on repositories in the 'spinnaker' org, not on forks.
+    if: startsWith(github.repository, 'spinnaker/')
     runs-on: ubuntu-latest
     steps:
     - id: checkout
       uses: actions/checkout@v2
-    - id: assigned
-      uses: "lee-dohm/last-assigned@76c68f419feb4d70efaae2a83b2f04bba8977eb1"
+
+    - id: dates
+      run: |
+        echo "::set-output name=day60::$(date '+%Y-%m-%d' -d '+60 days')"
+
+    - name: extend schedule
+      uses: spinnaker/rotation-scheduler@master
       with:
-        query: 'label:build-cop-rotation'
-        token: ${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }}
-    - id: rotate
-      uses: lee-dohm/team-rotation@v1
+        args: |
+          schedule extend --stop ${{ steps.dates.outputs.day60 }} --prune --github spinnaker,build-cops,${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }} --schedule .github/build-cop/schedule.yaml .github/build-cop/schedule.yaml
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v2
       with:
-        teamName: "@spinnaker/build-cops"
-        token: ${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }}
-        last: ${{ steps.assigned.outputs.last }}
-    - id: createIssue
-      uses: JasonEtco/create-an-issue@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        filename: .github/build-cop-template.md
-        assignees: ${{ steps.rotate.outputs.next }}
+        team-reviewers: build-cops
+        commit-message: |
+          chore(build-cop): Update build cop rotation schedule
