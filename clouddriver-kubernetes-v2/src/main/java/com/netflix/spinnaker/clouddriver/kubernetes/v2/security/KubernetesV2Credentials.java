@@ -609,46 +609,30 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private <T> T runAndRecordMetrics(
       String action, List<KubernetesKind> kinds, String namespace, Supplier<T> op) {
-    T result = null;
-    Throwable failure = null;
-    KubectlException apiException = null;
+    Map<String, String> tags = new HashMap<>();
+    tags.put("action", action);
+    tags.put(
+        "kinds",
+        kinds.stream().map(KubernetesKind::toString).sorted().collect(Collectors.joining(",")));
+    tags.put("account", accountName);
+    tags.put("namespace", StringUtils.isEmpty(namespace) ? "none" : namespace);
+    tags.put("success", "true");
     long startTime = clock.monotonicTime();
     try {
-      result = op.get();
+      return op.get();
     } catch (KubectlException e) {
-      apiException = e;
+      tags.put("success", "false");
+      tags.put("reason", e.getClass().getSimpleName());
+      throw e;
     } catch (Exception e) {
-      failure = e;
+      tags.put("success", "false");
+      tags.put("reason", e.getClass().getSimpleName());
+      throw new KubectlException(
+          "Failure running " + action + " on " + kinds + ": " + e.getMessage(), e);
     } finally {
-      Map<String, String> tags = new HashMap<>();
-      tags.put("action", action);
-      if (kinds.size() == 1) {
-        tags.put("kind", kinds.get(0).toString());
-      } else {
-        tags.put(
-            "kinds", kinds.stream().map(KubernetesKind::toString).collect(Collectors.joining(",")));
-      }
-      tags.put("account", accountName);
-      tags.put("namespace", StringUtils.isEmpty(namespace) ? "none" : namespace);
-      if (failure == null) {
-        tags.put("success", "true");
-      } else {
-        tags.put("success", "false");
-        tags.put("reason", failure.getClass().getSimpleName() + ": " + failure.getMessage());
-      }
-
       registry
           .timer(registry.createId("kubernetes.api", tags))
           .record(clock.monotonicTime() - startTime, TimeUnit.NANOSECONDS);
-
-      if (failure != null) {
-        throw new KubectlJobExecutor.KubectlException(
-            "Failure running " + action + " on " + kinds + ": " + failure.getMessage(), failure);
-      } else if (apiException != null) {
-        throw apiException;
-      } else {
-        return result;
-      }
     }
   }
 
