@@ -32,6 +32,7 @@ import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import java.time.Clock
+import java.util.UUID
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
@@ -54,17 +55,18 @@ class ResourceActuator(
 
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
     withTracingContext(resource) {
+      val coid = UUID.randomUUID().toString() // coroutine id for log messages to help debug #951
       val id = resource.id
       val plugin = handlers.supporting(resource.kind)
 
       if (actuationPauser.isPaused(resource)) {
-        log.debug("Actuation for resource {} is paused, skipping checks", id)
+        log.debug("Actuation for resource {} is paused, skipping checks [$coid]", id)
         publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationPaused"))
         return@withTracingContext
       }
 
       if (plugin.actuationInProgress(resource)) {
-        log.debug("Actuation for resource {} is already running, skipping checks", id)
+        log.debug("Actuation for resource {} is already running, skipping checks [$coid]", id)
         publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, "ActuationInProgress"))
         return@withTracingContext
       }
@@ -119,21 +121,21 @@ class ResourceActuator(
                 }
               }
             } catch (e: Exception) {
-              log.warn("Failed to veto presumed bad artifact version for ${resource.id}", e)
+              log.warn("Failed to veto presumed bad artifact version for ${resource.id} [$coid]", e)
               // TODO: emit metric
             }
           }
-          log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
+          log.debug("Skipping actuation for resource {} because it was vetoed: {} [$coid]", id, response.message)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, response.vetoName))
           publishVetoedEvent(response, resource)
           return@withTracingContext
         }
 
-        log.debug("Checking resource {}", id)
+        log.debug("Checking resource {} [$coid]", id)
 
         when {
           current == null -> {
-            log.warn("Resource {} is missing", id)
+            log.warn("Resource {} is missing [$coid]", id)
             publisher.publishEvent(ResourceMissing(resource, clock))
 
             plugin.create(resource, diff)
@@ -142,8 +144,8 @@ class ResourceActuator(
               }
           }
           diff.hasChanges() -> {
-            log.warn("Resource {} is invalid", id)
-            log.info("Resource {} delta: {}", id, diff.toDebug())
+            log.warn("Resource {} is invalid [$coid]", id)
+            log.info("Resource {} delta: {} [$coid]", id, diff.toDebug())
             publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
             plugin.update(resource, diff)
@@ -152,7 +154,7 @@ class ResourceActuator(
               }
           }
           else -> {
-            log.info("Resource {} is valid", id)
+            log.info("Resource {} is valid [$coid]", id)
             // TODO: not sure this logic belongs here
             val lastEvent = resourceRepository.lastEvent(id)
             if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
@@ -163,10 +165,10 @@ class ResourceActuator(
           }
         }
       } catch (e: ResourceCurrentlyUnresolvable) {
-        log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
+        log.warn("Resource check for {} failed (hopefully temporarily) due to {} [$coid]", id, e.message)
         publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
       } catch (e: Exception) {
-        log.error("Resource check for $id failed", e)
+        log.error("Resource check for $id failed [$coid]", e)
         publisher.publishEvent(ResourceCheckError(resource, e, clock))
       }
     }
