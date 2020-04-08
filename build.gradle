@@ -34,6 +34,9 @@ allprojects {
   apply plugin: 'spinnaker.base-project'
   apply plugin: 'java-library'
   apply plugin: 'groovy'
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: 'spinnaker.project'
+  }
 
   test {
     testLogging {
