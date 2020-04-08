@@ -348,6 +348,13 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               .isTrue()
           }
 
+          test("the version is marked as currently deployed") {
+            expectThat(subject.isCurrentlyDeployedTo(manifest, artifact1, version1, environment1.name))
+              .isTrue()
+            expectThat(subject.isCurrentlyDeployedTo(manifest, artifact3, version6, environment2.name))
+              .isTrue()
+          }
+
           test("the version is current in the environment") {
             expectThat(versionsIn(environment1)) {
               get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version2, version3)
@@ -391,6 +398,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               test("the old version is still considered successfully deployed") {
                 expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
                   .isTrue()
+              }
+
+              test("the old version is not considered currently deployed") {
+                expectThat(subject.isCurrentlyDeployedTo(manifest, artifact1, version1, environment1.name))
+                  .isFalse()
               }
 
               test("the new version is also considered successfully deployed") {

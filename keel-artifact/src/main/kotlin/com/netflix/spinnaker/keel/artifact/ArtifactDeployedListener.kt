@@ -32,13 +32,21 @@ class ArtifactDeployedListener(
       )
 
       if (approvedForEnv) {
-        log.info("Marking {} as deployed in {} for config {} because it is already deployed", event.artifactVersion, env.name, deliveryConfig.name)
-        repository.markAsSuccessfullyDeployedTo(
+        val markedCurrentlyDeployed = repository.isCurrentlyDeployedTo(
           deliveryConfig = deliveryConfig,
           artifact = artifact,
           version = event.artifactVersion,
           targetEnvironment = env.name
         )
+        if (!markedCurrentlyDeployed) {
+          log.info("Marking {} as deployed in {} for config {} because it is already deployed", event.artifactVersion, env.name, deliveryConfig.name)
+          repository.markAsSuccessfullyDeployedTo(
+            deliveryConfig = deliveryConfig,
+            artifact = artifact,
+            version = event.artifactVersion,
+            targetEnvironment = env.name
+          )
+        }
       }
     }
 }

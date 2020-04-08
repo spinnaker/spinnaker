@@ -118,6 +118,16 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   ): Boolean
 
   /**
+   * @return `true` if [version] is currently deployed successfully to [targetEnvironment].
+   */
+  fun isCurrentlyDeployedTo(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ): Boolean
+
+  /**
    * Marks [version] as successfully deployed to [targetEnvironment] (i.e. future calls to
    * [wasSuccessfullyDeployedTo] will return `true` for that version.
    */

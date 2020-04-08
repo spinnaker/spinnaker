@@ -233,6 +233,19 @@ class InMemoryArtifactRepository(
     return deployedVersions[key]?.any { (v, _) -> v == version } ?: false
   }
 
+  override fun isCurrentlyDeployedTo(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ): Boolean {
+    val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
+    val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
+
+    val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    return statuses.filterKeys { it == version }.filterValues { it == CURRENT }.isNotEmpty()
+  }
+
   override fun markAsSuccessfullyDeployedTo(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,

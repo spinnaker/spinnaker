@@ -353,6 +353,26 @@ class SqlArtifactRepository(
     }
   }
 
+  override fun isCurrentlyDeployedTo(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ): Boolean {
+    val environment = deliveryConfig.environmentNamed(targetEnvironment)
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .fetchExists(
+          ENVIRONMENT_ARTIFACT_VERSIONS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
+        )
+    }
+  }
+
   override fun markAsDeployingTo(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,

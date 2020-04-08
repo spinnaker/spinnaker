@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
@@ -35,6 +36,11 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
       every { repository.getResource(r.id) } returns r
       every { repository.deliveryConfigFor(r.id) } returns config
       every { repository.environmentFor(r.id) } returns config.environments.first()
+      every { repository.isCurrentlyDeployedTo(config, any(), event.artifactVersion, any()) } returns false
+    }
+
+    after {
+      clearAllMocks()
     }
 
     context("no artifact associated with the resource") {
@@ -54,9 +60,22 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
           every { repository.isApprovedFor(any(), any(), event.artifactVersion, any()) } returns true
         }
 
-        test("version is marked as deployed") {
-          subject.onArtifactVersionDeployed(event)
-          verify(exactly = 1) { repository.markAsSuccessfullyDeployedTo(any(), any(), event.artifactVersion, any()) }
+        context("artifact has been marked currently deployed") {
+          before {
+            every { repository.isCurrentlyDeployedTo(any(), any(), event.artifactVersion, any()) } returns true
+          }
+
+          test("artifact is not marked as deployed") {
+            subject.onArtifactVersionDeployed(event)
+            verify(exactly = 0) { repository.markAsSuccessfullyDeployedTo(any(), any(), event.artifactVersion, any()) }
+          }
+        }
+
+        context("artifact has not been marked currently deployed") {
+          test("version is marked as deployed") {
+            subject.onArtifactVersionDeployed(event)
+            verify(exactly = 1) { repository.markAsSuccessfullyDeployedTo(any(), any(), event.artifactVersion, any()) }
+          }
         }
       }
 
@@ -66,7 +85,7 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
         }
         test("nothing is marked as deployed") {
           subject.onArtifactVersionDeployed(event)
-          verify(exactly = 0) { repository.markAsDeployingTo(config, any(), event.artifactVersion, any()) }
+          verify(exactly = 0) { repository.markAsSuccessfullyDeployedTo(config, any(), event.artifactVersion, any()) }
         }
       }
     }
