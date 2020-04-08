@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.persistentStorage;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.netflix.spinnaker.front50.config.S3Config;
-import com.netflix.spinnaker.front50.config.S3Properties;
+import com.netflix.spinnaker.front50.config.S3MetadataStorageProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -41,11 +41,11 @@ public class S3Validator extends Validator<S3PersistentStore> {
           AwsAccountValidator.getAwsCredentialsProvider(
               n.getAccessKeyId(), secretSessionManager.decrypt(n.getSecretAccessKey()));
       S3Config s3Config = new S3Config();
-      S3Properties s3Properties = new S3Properties();
+      S3MetadataStorageProperties s3Properties = new S3MetadataStorageProperties();
       s3Properties.setBucket(n.getBucket());
       s3Properties.setRootFolder(n.getRootFolder());
       s3Properties.setRegion(n.getRegion());
-      AmazonS3 s3Client = s3Config.awsS3Client(credentialsProvider, s3Properties);
+      AmazonS3 s3Client = s3Config.awsS3MetadataClient(credentialsProvider, s3Properties);
       new S3Config().s3StorageService(s3Client, s3Properties);
     } catch (Exception e) {
       ps.addProblem(
