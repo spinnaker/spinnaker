@@ -15,20 +15,15 @@
  */
 
 buildscript {
-  ext {
-    clouddriverVersion = "5.47.1"
-    front50Version = "2.15.0"
-    fiatVersion = "1.13.1"
-  }
   repositories {
     jcenter()
     maven { url "https://spinnaker.bintray.com/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.5.0'
+    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:$spinnakerGradleVersion"
     if (Boolean.valueOf(enablePublishing)) {
-      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.5.0"
+      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerGradleVersion"
     }
     classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
   }
