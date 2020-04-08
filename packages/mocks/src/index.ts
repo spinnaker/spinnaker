@@ -1,5 +1,6 @@
 export * from './mockCluster';
 export * from './mockDataSourceConfig';
+export * from './mockEntityTags';
 export * from './mockHealth';
 export * from './mockInstance';
 export * from './mockInstanceCounts';
