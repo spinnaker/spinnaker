@@ -32,11 +32,14 @@ const getResourceRoutingInfo = (
 ): { state: string; params: { [key: string]: string } } | null => {
   const {
     kind,
+    moniker: { stack, detail },
     locations: { account },
   } = resource;
   const kindName = getKindName(kind);
   const params = {
     acct: account,
+    stack: stack ?? '(none)',
+    detail: detail ?? '(none)',
     q: getResourceName(resource),
   };
 
