@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.KubernetesJobProvider
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.model.JobStatus
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -39,15 +43,27 @@ class JobController {
   @Autowired
   MessageSource messageSource
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
-  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
-  @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.POST)
+  @Autowired
+  FiatPermissionEvaluator fiatPermissionEvaluator
+
+  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job.")
+  @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.GET)
   JobStatus collectJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
                        @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
                        @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
                        @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     Collection<JobStatus> jobMatches = jobProviders.findResults {
-      it.collectJob(account, location, id)
+      // In Kubernetes Provider v1, collecting the job might end up deleting it if it finds out that it is finished.
+      // This logic should be removed when v1 is EOL
+      String requiredAuthorization = it instanceof KubernetesJobProvider ? "WRITE" : "READ"
+
+      if (fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", requiredAuthorization) &&
+        fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", requiredAuthorization)) {
+        return it.collectJob(account, location, id)
+      } else {
+        return null
+      }
     }
     if (!jobMatches) {
       throw new NotFoundException("Job not found (account: ${account}, location: ${location}, id: ${id})")
@@ -55,8 +71,8 @@ class JobController {
     jobMatches.first()
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
-  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE') and hasPermission(#account, 'ACCOUNT', 'EXECUTE')")
+  @ApiOperation(value = "Collect a JobStatus", notes = "Cancels the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.DELETE)
   void cancelJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
                  @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
@@ -67,7 +83,7 @@ class JobController {
     }
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
   @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
   @RequestMapping(value = "/{account}/{location}/{id}/{fileName:.+}", method = RequestMethod.GET)
   Map<String, Object> getFileContents(
