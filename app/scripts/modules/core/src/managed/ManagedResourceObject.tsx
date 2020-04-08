@@ -1,17 +1,18 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useSref } from '@uirouter/react';
 
 import { Icon, IconNames } from '../presentation';
-import { IManagedResourceSummary, IManagedEnviromentSummary } from '../domain/IManagedEntity';
+import { IManagedResourceSummary, IManagedEnviromentSummary, IManagedArtifactSummary } from '../domain/IManagedEntity';
 
 import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
-import { parseName } from './Frigga';
+import { getResourceName, getArtifactVersionDisplayName } from './displayNames';
 
 export interface IManagedResourceObjectProps {
   resource: IManagedResourceSummary;
-  artifact?: IManagedEnviromentSummary['artifacts'][0];
+  artifactVersionsByState?: IManagedEnviromentSummary['artifacts'][0]['versions'];
+  artifactDetails?: IManagedArtifactSummary;
   depth?: number;
 }
 
@@ -23,9 +24,6 @@ const kindIconMap: { [kind: string]: IconNames } = {
 };
 
 const getIconTypeFromKind = (kind: string) => kindIconMap[getKindName(kind)] ?? 'placeholder';
-
-const getResourceName = ({ moniker: { app, stack, detail } }: IManagedResourceSummary) =>
-  [app, stack, detail].filter(Boolean).join('-');
 
 const getResourceRoutingInfo = (
   resource: IManagedResourceSummary,
@@ -58,36 +56,40 @@ const getResourceRoutingInfo = (
   return null;
 };
 
-export const ManagedResourceObject = ({ resource, artifact, depth }: IManagedResourceObjectProps) => {
-  const { version: currentVersion, buildNumber: currentBuild } = parseName(artifact?.versions.current || '') || {};
-  const { version: deployingVersion, buildNumber: deployingBuild } =
-    parseName(artifact?.versions.deploying || '') || {};
-  const { kind } = resource;
-  const resourceName = getResourceName(resource);
-  const routingInfo = getResourceRoutingInfo(resource) ?? { state: '', params: {} };
-  const route = useSref(routingInfo.state, routingInfo.params);
+export const ManagedResourceObject = memo(
+  ({ resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
+    const { kind } = resource;
+    const resourceName = getResourceName(resource);
+    const routingInfo = getResourceRoutingInfo(resource) ?? { state: '', params: {} };
+    const route = useSref(routingInfo.state, routingInfo.params);
 
-  const currentPill = artifact?.versions.current ? (
-    <Pill text={currentBuild ? `#${currentBuild}` : currentVersion || artifact.versions.current || 'unknown'} />
-  ) : null;
-  const deployingPill = artifact?.versions.deploying ? (
-    <>
-      <Icon appearance="neutral" name="caretRight" size="medium" />
-      <AnimatingPill text={deployingBuild ? `#${deployingBuild}` : deployingVersion || artifact.versions.deploying} />
-    </>
-  ) : null;
+    const current =
+      artifactVersionsByState?.current &&
+      artifactDetails?.versions.find(({ version }) => version === artifactVersionsByState?.current);
+    const deploying =
+      artifactVersionsByState?.deploying &&
+      artifactDetails?.versions.find(({ version }) => version === artifactVersionsByState?.deploying);
 
-  return (
-    <ObjectRow
-      icon={getIconTypeFromKind(kind)}
-      title={route ? <a {...route}>{resourceName}</a> : resourceName}
-      depth={depth}
-      metadata={
-        <>
-          {currentPill}
-          {deployingPill}
-        </>
-      }
-    />
-  );
-};
+    const currentPill = current && <Pill text={getArtifactVersionDisplayName(current)} />;
+    const deployingPill = deploying && (
+      <>
+        <Icon appearance="neutral" name="caretRight" size="medium" />
+        <AnimatingPill text={getArtifactVersionDisplayName(deploying)} />
+      </>
+    );
+
+    return (
+      <ObjectRow
+        icon={getIconTypeFromKind(kind)}
+        title={route ? <a {...route}>{resourceName}</a> : resourceName}
+        depth={depth}
+        metadata={
+          <>
+            {currentPill}
+            {deployingPill}
+          </>
+        }
+      />
+    );
+  },
+);

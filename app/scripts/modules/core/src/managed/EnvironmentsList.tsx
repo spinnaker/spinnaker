@@ -41,10 +41,23 @@ export function EnvironmentsList({ environments, resourcesById, artifacts: allAr
             .map(resourceId => resourcesById[resourceId])
             .filter(shouldDisplayResource)
             .map(resource => {
-              const artifact =
+              const artifactVersionsByState =
                 resource.artifact &&
-                artifacts.find(({ name, type }) => name === resource.artifact.name && type === resource.artifact.type);
-              return <ManagedResourceObject key={resource.id} resource={resource} artifact={artifact} />;
+                artifacts.find(({ name, type }) => name === resource.artifact.name && type === resource.artifact.type)
+                  ?.versions;
+              const artifactDetails =
+                resource.artifact &&
+                allArtifacts.find(
+                  ({ name, type }) => name === resource.artifact.name && type === resource.artifact.type,
+                );
+              return (
+                <ManagedResourceObject
+                  key={resource.id}
+                  resource={resource}
+                  artifactVersionsByState={artifactVersionsByState}
+                  artifactDetails={artifactDetails}
+                />
+              );
             })}
         </EnvironmentRow>
       ))}

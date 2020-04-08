@@ -76,6 +76,7 @@ export interface IManagedEnviromentSummary {
 
 export interface IManagedArtifactVersion {
   version: string;
+  displayName: string;
   environments: Array<{
     name: string;
     state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
@@ -85,6 +86,12 @@ export interface IManagedArtifactVersion {
     statefulConstraints?: IStatefulConstraint[];
     statelessConstraints?: IStatelessConstraint[];
   }>;
+  build?: {
+    id: number;
+  };
+  git?: {
+    commit: string;
+  };
 }
 
 export interface IManagedArtifactSummary {

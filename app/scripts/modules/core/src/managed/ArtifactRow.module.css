@@ -18,9 +18,11 @@
   padding-top: 4px;
 }
 .version {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   flex: 0 0 48px;
   margin: 0 8px 0 4px;
-  /*margin-right: 8px;*/
 }
 .text {
   flex: 1 1 auto;

@@ -17,7 +17,7 @@ import styles from './Environments.module.css';
 
 const CONTENT_WIDTH = 1200;
 
-export interface ISelectedArtifact {
+export interface ISelectedArtifactVersion {
   name: string;
   type: string;
   version: string;
@@ -42,10 +42,6 @@ export function Environments({ app }: IEnvironmentsProps) {
     stateService: { go },
   } = useRouter();
   const { params } = useCurrentStateAndParams();
-  const selectedArtifact = useMemo<ISelectedArtifact>(
-    () => (params.version ? pick(params, ['type', 'name', 'version']) : null),
-    [params.type, params.name, params.version],
-  );
   const [isFiltersOpen] = useState(false);
 
   const resourcesById = useMemo(() => keyBy(resources, 'id'), [resources]);
@@ -58,13 +54,19 @@ export function Environments({ app }: IEnvironmentsProps) {
     [environments, resourcesById],
   );
 
+  const selectedVersion = useMemo<ISelectedArtifactVersion>(
+    () => (params.version ? pick(params, ['type', 'name', 'version']) : null),
+    [params.type, params.name, params.version],
+  );
   const selectedArtifactDetails = useMemo(
     () =>
-      selectedArtifact &&
-      artifacts
-        .find(({ name }) => name === selectedArtifact.name)
-        ?.versions.find(({ version }) => version === selectedArtifact.version),
-    [selectedArtifact, artifacts],
+      selectedVersion &&
+      artifacts.find(({ type, name }) => type === selectedVersion.type && name === selectedVersion.name),
+    [selectedVersion?.type, selectedVersion?.name, artifacts],
+  );
+  const selectedVersionDetails = useMemo(
+    () => selectedArtifactDetails?.versions.find(({ version }) => version === selectedVersion.version),
+    [selectedVersion, selectedArtifactDetails],
   );
 
   if (loadFailure) {
@@ -109,27 +111,28 @@ export function Environments({ app }: IEnvironmentsProps) {
             <ColumnHeader text="Artifacts" icon="artifact" />
             <ArtifactsList
               artifacts={artifacts}
-              selectedArtifact={selectedArtifact}
-              artifactSelected={clickedArtifact => {
-                if (!isEqual(clickedArtifact, selectedArtifact)) {
-                  go(selectedArtifact ? '.' : '.artifactVersion', clickedArtifact);
+              selectedVersion={selectedVersion}
+              versionSelected={clickedVersion => {
+                if (!isEqual(clickedVersion, selectedVersion)) {
+                  go(selectedVersion ? '.' : '.artifactVersion', clickedVersion);
                 }
               }}
             />
           </div>
           <div className={styles.environmentsColumn}>
-            {!selectedArtifact && (
+            {!selectedVersion && (
               <>
                 <ColumnHeader text="Environments" icon="environment" />
                 <EnvironmentsList {...{ environments, artifacts, resourcesById }} />
               </>
             )}
-            {selectedArtifact && (
+            {selectedVersion && (
               <ArtifactDetail
                 application={app}
-                name={selectedArtifact.name}
-                type={selectedArtifact.type}
-                version={selectedArtifactDetails}
+                name={selectedVersion.name}
+                type={selectedVersion.type}
+                version={selectedVersionDetails}
+                allVersions={selectedArtifactDetails.versions}
                 resourcesByEnvironment={resourcesByEnvironment}
                 onRequestClose={() => go('^')}
               />

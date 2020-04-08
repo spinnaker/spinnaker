@@ -22,6 +22,7 @@ import { ManagedReader } from './ManagedReader';
 import { Spinner } from 'core/widgets';
 
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
+import { getResourceName } from './displayNames';
 
 import './ManagedResourceHistoryModal.less';
 
@@ -174,7 +175,6 @@ const renderExpandedRowContent = (
 export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: IManagedResourceHistoryModalProps) => {
   const {
     id,
-    moniker: { app, stack, detail },
     locations: { account },
   } = resourceSummary;
 
@@ -188,7 +188,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
   );
   const previousHistoryEvents: IManagedResourceEvent[] = usePrevious(historyEvents);
 
-  const resourceDisplayName = [app, stack, detail].filter(Boolean).join('-');
+  const resourceDisplayName = getResourceName(resourceSummary);
   const isLoading = !historyEvents && ['NONE', 'PENDING'].includes(historyEventStatus);
   const shouldShowExistingData = !isLoading && historyEventStatus !== 'REJECTED';
 
