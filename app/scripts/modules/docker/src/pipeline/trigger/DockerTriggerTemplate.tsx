@@ -113,10 +113,10 @@ export class DockerTriggerTemplate extends React.Component<
     const { command } = this.props;
     const trigger = command.trigger as IDockerTrigger;
     const newState = {} as IDockerTriggerTemplateState;
-    newState.tags = tags;
-    if (newState.tags.length) {
-      // default to what is supplied by the trigger if possible; otherwise, use the latest
-      const defaultSelection = newState.tags.find(t => t === trigger.tag) || newState.tags[0];
+    newState.tags = tags || [];
+    // default to what is supplied by the trigger if possible
+    const defaultSelection = newState.tags.find(t => t === trigger.tag);
+    if (defaultSelection) {
       newState.selectedTag = defaultSelection;
       this.updateSelectedTag(defaultSelection);
     }
@@ -223,6 +223,7 @@ export class DockerTriggerTemplate extends React.Component<
                       </span>
                     )}
                     onChange={(o: Option<string>) => this.updateSelectedTag(o.value)}
+                    placeholder="Search tags..."
                   />
                 )}
               </div>
