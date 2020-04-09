@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: stale
-      uses: gatsbyjs/stale@master
+      # github release 0.1.0
+      uses: gatsbyjs/stale@0dde19eb39fa2003923986adc3608c3e9178ebf3
       with:
         DRY_RUN: true
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
