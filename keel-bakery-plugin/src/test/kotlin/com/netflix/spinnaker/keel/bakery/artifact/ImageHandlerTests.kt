@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
+import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
@@ -28,6 +29,7 @@ import io.mockk.coVerify as verify
 import io.mockk.mockk
 import io.mockk.slot
 import java.util.UUID.randomUUID
+import org.apache.commons.lang3.RandomStringUtils.random
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.Try
@@ -77,6 +79,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
       appVersion = "${artifact.name}-0.161.0-h63.24d0843",
       regions = artifact.vmOptions.regions
     )
+
+    val baseImageName = "xenialbase-x86_64-201904291721-ebs"
+    val baseAmi = baseImage(image.baseAmiVersion, baseImageName)
 
     val deliveryConfig = deliveryConfig(
       configName = artifact.deliveryConfigName!!,
@@ -210,11 +215,14 @@ internal class ImageHandlerTests : JUnit5Minutests {
           }
         }
 
-        context("the base image is cached") {
+        context("the base image is up-to-date") {
           before {
             every {
               baseImageCache.getBaseImage(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
-            } returns image.baseAmiVersion
+            } returns baseAmi.imageName
+            every {
+              imageService.getLatestNamedImage(baseAmi.imageName, "test")
+            } returns baseAmi
           }
 
           context("the desired version is known") {
@@ -360,6 +368,40 @@ internal class ImageHandlerTests : JUnit5Minutests {
             }
           }
         }
+
+        context("a newer base image exists") {
+          before {
+            val newerBaseAmi = "xenialbase-x86_64-202004081724-ebs"
+            val newerBaseImageVersion = "nflx-base-5.380.0-h1234.8808866"
+            every {
+              baseImageCache.getBaseImage(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
+            } returns newerBaseAmi
+            every {
+              imageService.getLatestNamedImage(newerBaseAmi, "test")
+            } returns baseImage(newerBaseImageVersion, newerBaseAmi)
+
+            repository.storeArtifact(artifact.name, artifact.type, image.appVersion, FINAL)
+
+            every {
+              imageService.getLatestImage(artifact.name, "test")
+            } returns image
+
+            runHandler(artifact)
+          }
+
+          test("a bake is launched") {
+            expectThat(bakeTask)
+              .isCaptured()
+              .captured
+              .hasSize(1)
+              .first()
+              .and {
+                get("type").isEqualTo("bake")
+                get("baseOs").isEqualTo(artifact.vmOptions.baseOs)
+                get("baseLabel").isEqualTo(artifact.vmOptions.baseLabel.toString().toLowerCase())
+              }
+          }
+        }
       }
     }
   }
@@ -370,3 +412,32 @@ internal class ImageHandlerTests : JUnit5Minutests {
   val <T : Any> Assertion.Builder<CapturingSlot<T>>.captured: Assertion.Builder<T>
     get() = get { captured }
 }
+
+private fun baseImage(baseAmiVersion: String, imageName: String): NamedImage {
+  val amis = mapOf(
+    "eu-west-1" to listOf(randomAmi()),
+    "us-east-1" to listOf(randomAmi()),
+    "us-west-1" to listOf(randomAmi()),
+    "us-west-2" to listOf(randomAmi())
+  )
+  return NamedImage(
+    imageName = imageName,
+    attributes = mapOf(
+      "virtualizationType" to "paravirtual",
+      "creationDate" to "2019-04-29T18:11:45.000Z"
+    ),
+    tagsByImageId = amis.values.associate {
+      it.first() to mapOf(
+        "base_ami_version" to baseAmiVersion,
+        "creation_time" to "2019-04-29 17:53:18 UTC",
+        "creator" to "builds",
+        "base_ami_flavor" to "xenial",
+        "build_host" to "https://opseng.builds.test.netflix.net/"
+      )
+    },
+    accounts = setOf("test"),
+    amis = amis
+  )
+}
+
+private fun randomAmi() = "ami-${random(17, "0123456789abcdef")}}"
