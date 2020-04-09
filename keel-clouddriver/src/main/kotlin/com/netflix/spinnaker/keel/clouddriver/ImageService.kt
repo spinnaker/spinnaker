@@ -179,20 +179,17 @@ class ImageService(
         amiMatches(allTags, buildHost, buildName, buildNumber)
       }
 
-  suspend fun findBaseAmi(baseImage: String): String {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, baseImage, "test")
+  suspend fun findBaseAmiVersion(baseImageName: String): String {
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, baseImageName, "test")
       .lastOrNull()
       ?.let { namedImage ->
-        val tags = namedImage
+        namedImage
           .tagsByImageId
           .values
-          .first { it?.containsKey("base_ami_version") ?: false }
-        if (tags != null) {
-          tags.getValue("base_ami_version")!!
-        } else {
-          null
-        }
-      } ?: throw BaseAmiNotFound(baseImage)
+          .filterNotNull()
+          .find { it.containsKey("base_ami_version") }
+          ?.getValue("base_ami_version")
+      } ?: throw BaseAmiNotFound(baseImageName)
   }
 
   private fun getAllTags(image: NamedImage): Map<String, String> {

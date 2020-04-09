@@ -36,9 +36,9 @@ class ImageHandler(
           ArtifactCheckSkipped(artifact.type, artifact.name, "ActuationInProgress")
         )
       } else {
-        val latestVersion = artifact.findLatestVersion()
-        val latestBaseImageVersion = artifact.getLatestBaseImageVersion()
-        val image = imageService.getLatestImage(artifact.name, "test")
+        val latestVersion = artifact.findLatestArtifactVersion()
+        val latestBaseImageVersion = artifact.findLatestBaseAmiVersion()
+        val image = artifact.findLatestAmi()
 
         if (image == null) {
           log.debug("No image found for {}", artifact.name)
@@ -65,15 +65,16 @@ class ImageHandler(
     }
   }
 
-  private suspend fun DebianArtifact.getLatestBaseImageVersion(): String {
-    val version = baseImageCache.getBaseImage(vmOptions.baseOs, vmOptions.baseLabel)
-    return imageService.findBaseAmi(version)
-  }
+  private suspend fun DeliveryArtifact.findLatestAmi() =
+    imageService.getLatestImage(name, "test")
+
+  private fun DebianArtifact.findLatestBaseAmiVersion() =
+    baseImageCache.getBaseAmiVersion(vmOptions.baseOs, vmOptions.baseLabel)
 
   /**
    * First checks our repo, and if a version isn't found checks igor.
    */
-  private suspend fun DebianArtifact.findLatestVersion(): String {
+  private suspend fun DebianArtifact.findLatestArtifactVersion(): String {
     try {
       val knownVersion = repository
         .artifactVersions(this)

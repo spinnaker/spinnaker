@@ -15,14 +15,14 @@ internal class DefaultBaseImageCacheTests : JUnit5Minutests {
   object Fixture {
     val config = """
       |bionic:
-      |  candidate: bionicbase-x86_64-201904232145-ebs
-      |  unstable: bionicbase-unstable-x86_64-201904252133-ebs
-      |  release: bionicbase-x86_64-201904041959-ebs
+      |  candidate: nflx-base-5.375.0-h1224.8808866
+      |  unstable: nflx-base-5.375.1-h1225.8808866~unstable
+      |  release: nflx-base-5.365.0-h1191.6a005e3
       |xenial:
-      |  candidate: xenialbase-x86_64-201904232145-ebs
-      |  unstable: xenialbase-unstable-x86_64-201904252133-ebs
-      |  release: xenialbase-x86_64-201904041959-ebs
-      |  previous: xenialbase-x86_64-201902202219-ebs
+      |  candidate: nflx-base-5.375.0-h1224.8808866
+      |  unstable: nflx-base-5.375.1-h1225.8808866~unstable
+      |  release: nflx-base-5.365.0-h1191.6a005e3
+      |  previous: nflx-base-5.344.0-h1137.cc92ef3
       |""".trimMargin()
     val baseImageCache = DefaultBaseImageCache(YAMLMapper().readValue(config))
   }
@@ -30,20 +30,20 @@ internal class DefaultBaseImageCacheTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
 
-    test("returns the AMI id for a valid os/label") {
-      expectThat(baseImageCache.getBaseImage("bionic", RELEASE))
-        .isEqualTo("bionicbase-x86_64-201904041959-ebs")
+    test("returns the base AMI version for a valid os/label") {
+      expectThat(baseImageCache.getBaseAmiVersion("bionic", RELEASE))
+        .isEqualTo("nflx-base-5.365.0-h1191.6a005e3")
     }
 
     test("throw an exception for an invalid label") {
       expectThrows<UnknownBaseImage> {
-        baseImageCache.getBaseImage("bionic", PREVIOUS)
+        baseImageCache.getBaseAmiVersion("bionic", PREVIOUS)
       }
     }
 
     test("throw an exception for an invalid os") {
       expectThrows<UnknownBaseImage> {
-        baseImageCache.getBaseImage("windows", RELEASE)
+        baseImageCache.getBaseAmiVersion("windows", RELEASE)
       }
     }
   }

@@ -74,16 +74,13 @@ internal class ImageHandlerTests : JUnit5Minutests {
       )
     )
 
-    val baseImageVersion = "nflx-base-5.378.0-h1230.8808866"
+    val baseAmiVersion = "nflx-base-5.378.0-h1230.8808866"
 
     val image = Image(
-      baseAmiVersion = baseImageVersion,
+      baseAmiVersion = baseAmiVersion,
       appVersion = "${artifact.name}-0.161.0-h63.24d0843",
       regions = artifact.vmOptions.regions
     )
-
-    val baseImageName = "xenialbase-x86_64-201904291721-ebs"
-    val baseAmi = baseImage(baseImageVersion, baseImageName)
 
     val deliveryConfig = deliveryConfig(
       configName = artifact.deliveryConfigName!!,
@@ -220,11 +217,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
         context("the base image is up-to-date") {
           before {
             every {
-              baseImageCache.getBaseImage(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
-            } returns baseAmi.imageName
-            every {
-              imageService.findBaseAmi(any())
-            } returns baseImageVersion
+              baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
+            } returns baseAmiVersion
           }
 
           context("the desired version is known") {
@@ -373,14 +367,10 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
         context("a newer base image exists") {
           before {
-            val newerBaseAmi = "xenialbase-x86_64-202004081724-ebs"
-            val newerBaseImageVersion = "nflx-base-5.380.0-h1234.8808866"
+            val newerBaseAmiVersion = "nflx-base-5.380.0-h1234.8808866"
             every {
-              baseImageCache.getBaseImage(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
-            } returns newerBaseAmi
-            every {
-              imageService.findBaseAmi(any())
-            } returns newerBaseImageVersion
+              baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
+            } returns newerBaseAmiVersion
 
             repository.storeArtifact(artifact.name, artifact.type, image.appVersion, FINAL)
 
