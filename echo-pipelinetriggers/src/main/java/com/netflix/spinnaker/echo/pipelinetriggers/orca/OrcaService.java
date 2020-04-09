@@ -21,6 +21,8 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.kork.common.Header;
 import java.util.Collection;
 import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
@@ -67,26 +69,13 @@ public interface OrcaService {
     }
   }
 
+  @Getter
+  @NoArgsConstructor
   @JsonIgnoreProperties(ignoreUnknown = true)
   class PipelineResponse {
     private String id;
     private String pipelineConfigId;
     private Long startTime;
-
-    public PipelineResponse() {
-      // do nothing
-    }
-
-    public String getId() {
-      return id;
-    }
-
-    public String getPipelineConfigId() {
-      return pipelineConfigId;
-    }
-
-    public Long getStartTime() {
-      return startTime;
-    }
+    private OrcaExecutionStatus status;
   }
 }
