@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
-import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 
@@ -68,19 +67,8 @@ class ImageHandler(
 
   private suspend fun DebianArtifact.getLatestBaseImageVersion(): String {
     val version = baseImageCache.getBaseImage(vmOptions.baseOs, vmOptions.baseLabel)
-    return findBaseAmi(version)
+    return imageService.findBaseAmi(version)
   }
-
-  private suspend fun findBaseAmi(baseImage: String): String =
-    imageService.getLatestNamedImage(baseImage, "test")
-      ?.let { namedImage ->
-        namedImage
-          .tagsByImageId
-          .values
-          .filterNotNull()
-          .find { it.containsKey("base_ami_version") }
-          ?.getValue("base_ami_version")
-      } ?: throw BaseAmiNotFound(baseImage)
 
   /**
    * First checks our repo, and if a version isn't found checks igor.
@@ -192,6 +180,3 @@ data class BakeCredentials(
 )
 
 data class ImageRegionMismatchDetected(val image: Image, val regions: Set<String>)
-
-class BaseAmiNotFound(baseImage: String) :
-  IntegrationException("Could not find a base AMI for base image $baseImage")

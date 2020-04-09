@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.hasAppVersion
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -178,6 +179,22 @@ class ImageService(
         amiMatches(allTags, buildHost, buildName, buildNumber)
       }
 
+  suspend fun findBaseAmi(baseImage: String): String {
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, baseImage, "test")
+      .lastOrNull()
+      ?.let { namedImage ->
+        val tags = namedImage
+          .tagsByImageId
+          .values
+          .first { it?.containsKey("base_ami_version") ?: false }
+        if (tags != null) {
+          tags.getValue("base_ami_version")!!
+        } else {
+          null
+        }
+      } ?: throw BaseAmiNotFound(baseImage)
+  }
+
   private fun getAllTags(image: NamedImage): Map<String, String> {
     val allTags = HashMap<String, String>()
     image.tagsByImageId.forEach { (_, tags) ->
@@ -219,3 +236,6 @@ class ImageService(
 }
 
 private fun AppVersion.toImageName() = "$packageName-$version-h$buildNumber.$commit"
+
+class BaseAmiNotFound(baseImage: String) :
+  IntegrationException("Could not find a base AMI for base image $baseImage")

@@ -74,14 +74,16 @@ internal class ImageHandlerTests : JUnit5Minutests {
       )
     )
 
+    val baseImageVersion = "nflx-base-5.378.0-h1230.8808866"
+
     val image = Image(
-      baseAmiVersion = "nflx-base-5.378.0-h1230.8808866",
+      baseAmiVersion = baseImageVersion,
       appVersion = "${artifact.name}-0.161.0-h63.24d0843",
       regions = artifact.vmOptions.regions
     )
 
     val baseImageName = "xenialbase-x86_64-201904291721-ebs"
-    val baseAmi = baseImage(image.baseAmiVersion, baseImageName)
+    val baseAmi = baseImage(baseImageVersion, baseImageName)
 
     val deliveryConfig = deliveryConfig(
       configName = artifact.deliveryConfigName!!,
@@ -221,8 +223,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
               baseImageCache.getBaseImage(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
             } returns baseAmi.imageName
             every {
-              imageService.getLatestNamedImage(baseAmi.imageName, "test")
-            } returns baseAmi
+              imageService.findBaseAmi(any())
+            } returns baseImageVersion
           }
 
           context("the desired version is known") {
@@ -377,8 +379,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
               baseImageCache.getBaseImage(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
             } returns newerBaseAmi
             every {
-              imageService.getLatestNamedImage(newerBaseAmi, "test")
-            } returns baseImage(newerBaseImageVersion, newerBaseAmi)
+              imageService.findBaseAmi(any())
+            } returns newerBaseImageVersion
 
             repository.storeArtifact(artifact.name, artifact.type, image.appVersion, FINAL)
 
