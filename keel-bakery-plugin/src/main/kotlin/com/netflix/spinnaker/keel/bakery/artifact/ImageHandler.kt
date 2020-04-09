@@ -154,6 +154,7 @@ class ImageHandler(
         ),
         artifacts = listOf(artifactPayload)
       )
+      publisher.publishEvent(BakeLaunched(appVersion.toString()))
       return listOf(Task(id = taskRef.id, name = description))
     } catch (e: Exception) {
       log.error("Error launching bake for: ${description.toLowerCase()}")
@@ -180,3 +181,4 @@ data class BakeCredentials(
 )
 
 data class ImageRegionMismatchDetected(val image: Image, val regions: Set<String>)
+data class BakeLaunched(val appVersion: String)
