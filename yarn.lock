@@ -898,10 +898,10 @@
   optionalDependencies:
     fsevents "1.2.11"
 
-"@spinnaker/mocks@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.2.tgz#c9f35e3ad5bf9c0b63d89281c47ee92a4a477d7f"
-  integrity sha512-oletA4vZZE6zmNkrwAvJ00mNp1BcJvcEdDem/CicvqOteIzVtPZtvVfNnGbNLQEChWd19br6TSYSx/F6PY8ucQ==
+"@spinnaker/mocks@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.3.tgz#99883ebce324074fe222b673913e9e39d41f58bd"
+  integrity sha512-YVatQfuAq7l7IwtRkW8lX59RykxCqY/gK1OfVbMy/ieB4L+eiqappUpt4P1EbhTTk64QBnMMlZuiTjPJxMMFPQ==
 
 "@spinnaker/styleguide@^1.0.17":
   version "1.0.17"
