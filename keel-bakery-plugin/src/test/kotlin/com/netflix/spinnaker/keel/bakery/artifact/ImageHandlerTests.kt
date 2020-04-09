@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
-import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
@@ -29,7 +28,6 @@ import io.mockk.coVerify as verify
 import io.mockk.mockk
 import io.mockk.slot
 import java.util.UUID.randomUUID
-import org.apache.commons.lang3.RandomStringUtils.random
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.Try
@@ -404,32 +402,3 @@ internal class ImageHandlerTests : JUnit5Minutests {
   val <T : Any> Assertion.Builder<CapturingSlot<T>>.captured: Assertion.Builder<T>
     get() = get { captured }
 }
-
-private fun baseImage(baseAmiVersion: String, imageName: String): NamedImage {
-  val amis = mapOf(
-    "eu-west-1" to listOf(randomAmi()),
-    "us-east-1" to listOf(randomAmi()),
-    "us-west-1" to listOf(randomAmi()),
-    "us-west-2" to listOf(randomAmi())
-  )
-  return NamedImage(
-    imageName = imageName,
-    attributes = mapOf(
-      "virtualizationType" to "paravirtual",
-      "creationDate" to "2019-04-29T18:11:45.000Z"
-    ),
-    tagsByImageId = amis.values.associate {
-      it.first() to mapOf(
-        "base_ami_version" to baseAmiVersion,
-        "creation_time" to "2019-04-29 17:53:18 UTC",
-        "creator" to "builds",
-        "base_ami_flavor" to "xenial",
-        "build_host" to "https://opseng.builds.test.netflix.net/"
-      )
-    },
-    accounts = setOf("test"),
-    amis = amis
-  )
-}
-
-private fun randomAmi() = "ami-${random(17, "0123456789abcdef")}}"
