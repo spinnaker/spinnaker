@@ -41,10 +41,22 @@ class ImageHandler(
         val latestBaseImageVersion = artifact.getLatestBaseImageVersion()
         val image = imageService.getLatestImage(artifact.name, "test")
 
+        if (image == null) {
+          log.debug("No image found for {}", artifact.name)
+        } else {
+          log.debug("Latest known {} version: {}", artifact.name, latestVersion)
+          log.debug("Latest baked {} version: {}", artifact.name, image.appVersion)
+          log.debug("Latest {} {} base AMI version: {}", artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel, latestBaseImageVersion)
+          log.debug("Latest baked {} base AMI version: {}", artifact.name, image.baseAmiVersion)
+        }
+
         val versionsDiffer = image?.appVersion != latestVersion || image?.baseAmiVersion != latestBaseImageVersion
         val regionsDiffer = !(image?.regions ?: emptySet()).containsAll(artifact.vmOptions.regions)
         if (image == null || versionsDiffer || regionsDiffer) {
+          log.info("Versions or regions for {} differ, launching bake", artifact.name)
           launchBake(artifact, latestVersion)
+        } else {
+          log.debug("Existing image for {} is up-to-date", artifact.name)
         }
 
         if (image != null && regionsDiffer) {
