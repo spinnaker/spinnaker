@@ -40,6 +40,7 @@ import java.io.EOFException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.WillClose;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +53,6 @@ public class KubectlJobExecutor {
   private final JobExecutor jobExecutor;
   private final String executable;
   private final String oAuthExecutable;
-
-  private static final String NO_RESOURCE_TYPE_ERROR = "doesn't have a resource type";
 
   private final Gson gson = new Gson();
 
@@ -384,8 +383,6 @@ public class KubectlJobExecutor {
     if (status.getResult() != JobResult.Result.SUCCESS) {
       if (status.getError().contains("(NotFound)")) {
         return null;
-      } else if (status.getError().contains(NO_RESOURCE_TYPE_ERROR)) {
-        throw new NoResourceTypeException(status.getError());
       }
 
       throw new KubectlException(
@@ -415,12 +412,8 @@ public class KubectlJobExecutor {
         jobExecutor.runJob(new JobRequest(command), parseManifestList());
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
-      if (status.getError().contains(NO_RESOURCE_TYPE_ERROR)) {
-        throw new NoResourceTypeException(status.getError());
-      } else {
-        throw new KubectlException(
-            "Failed to read events from " + namespace + ": " + status.getError());
-      }
+      throw new KubectlException(
+          "Failed to read events from " + namespace + ": " + status.getError());
     }
 
     if (status.getError().contains("No resources found")) {
@@ -445,12 +438,8 @@ public class KubectlJobExecutor {
         jobExecutor.runJob(new JobRequest(command), parseManifestList());
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
-      if (status.getError().contains(NO_RESOURCE_TYPE_ERROR)) {
-        throw new NoResourceTypeException(status.getError());
-      } else {
-        throw new KubectlException(
-            "Failed to read " + kinds + " from " + namespace + ": " + status.getError());
-      }
+      throw new KubectlException(
+          "Failed to read " + kinds + " from " + namespace + ": " + status.getError());
     }
 
     if (status.getError().contains("No resources found")) {
@@ -640,6 +629,13 @@ public class KubectlJobExecutor {
     JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
+      if (status.getError().contains("not available")) {
+        log.warn(
+            String.format(
+                "Error fetching metrics for account %s: %s",
+                credentials.getAccountName(), status.getError()));
+        return ImmutableList.of();
+      }
       throw new KubectlException("Could not read metrics: " + status.getError());
     }
 
@@ -721,7 +717,7 @@ public class KubectlJobExecutor {
   }
 
   private ReaderConsumer<ImmutableList<KubernetesManifest>> parseManifestList() {
-    return (BufferedReader r) -> {
+    return (@WillClose BufferedReader r) -> {
       try (JsonReader reader = new JsonReader(r)) {
         try {
           reader.beginObject();
@@ -744,18 +740,20 @@ public class KubectlJobExecutor {
         }
         reader.endObject();
         return manifestList.build();
+      } catch (IllegalStateException | JsonSyntaxException e) {
+        // An IllegalStageException is thrown when we call beginObject, nextName(), etc. and the
+        // next token is not what we are asserting it to be. A JsonSyntaxException is thrown when
+        // gson.fromJson isn't able to map the next token to a KubernetesManifest.
+        // In both of these cases, the error is due to the output from kubectl being malformed (or
+        // at least malformed relative to our expectations) so we'll wrap the exception in a
+        // KubectlException.
+        throw new KubectlException("Failed to parse kubectl output: " + e.getMessage(), e);
       }
     };
   }
 
-  public static class NoResourceTypeException extends RuntimeException {
-    protected NoResourceTypeException(String message) {
-      super(message);
-    }
-  }
-
   public static class KubectlException extends RuntimeException {
-    protected KubectlException(String message) {
+    KubectlException(String message) {
       super(message);
     }
 

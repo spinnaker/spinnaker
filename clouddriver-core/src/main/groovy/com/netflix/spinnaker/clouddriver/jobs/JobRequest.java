@@ -58,4 +58,9 @@ public class JobRequest {
     commandLine.addArguments(arguments, false);
     return commandLine;
   }
+
+  @Override
+  public String toString() {
+    return String.join(" ", tokenizedCommand);
+  }
 }

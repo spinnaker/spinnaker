@@ -31,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,25 +76,7 @@ public class KubernetesMetricCachingAgent extends KubernetesV2CachingAgent
     List<KubernetesPodMetric> podMetrics =
         getNamespaces()
             .parallelStream()
-            .map(
-                n -> {
-                  try {
-                    return credentials.topPod(n, null);
-                  } catch (KubectlJobExecutor.KubectlException e) {
-                    if (e.getMessage().contains("not available")) {
-                      log.warn(
-                          "{}: Metrics for namespace '"
-                              + n
-                              + "' in account '"
-                              + accountName
-                              + "' have not been recorded yet.",
-                          getAgentType());
-                      return Collections.<KubernetesPodMetric>emptyList();
-                    } else {
-                      throw e;
-                    }
-                  }
-                })
+            .map(n -> credentials.topPod(n, null))
             .flatMap(Collection::stream)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());

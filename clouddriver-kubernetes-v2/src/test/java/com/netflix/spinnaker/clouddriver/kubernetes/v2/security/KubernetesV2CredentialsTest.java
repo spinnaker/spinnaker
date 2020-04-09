@@ -297,7 +297,7 @@ final class KubernetesV2CredentialsTest {
                 credentials.list(
                     ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET),
                     NAMESPACE))
-        .isInstanceOf(KubectlException.class);
+        .isInstanceOf(CustomException.class);
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
     assertThat(timers).hasSize(1);
 
@@ -334,7 +334,7 @@ final class KubernetesV2CredentialsTest {
                 credentials.list(
                     ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET),
                     NAMESPACE))
-        .isInstanceOf(KubectlException.class);
+        .isInstanceOf(CustomException.class);
 
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
     assertThat(timers).hasSize(1);
@@ -360,9 +360,7 @@ final class KubernetesV2CredentialsTest {
                 credentials.list(
                     ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET),
                     NAMESPACE))
-        .isInstanceOf(KubectlException.class)
-        .hasMessageContaining("Failure running list")
-        .hasCause(cause);
+        .isEqualTo(cause);
   }
 
   // This is an error type that will only ever be thrown by stubs in this test; that way we can

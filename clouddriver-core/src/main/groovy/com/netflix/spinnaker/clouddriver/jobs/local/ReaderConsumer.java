@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.jobs.local;
 import java.io.BufferedReader;
 import java.io.IOException;
 import javax.annotation.Nonnull;
+import javax.annotation.WillClose;
 
 /**
  * Transforms a stream into an object of arbitrary type using a supplied BufferReader for the
@@ -26,7 +27,8 @@ import javax.annotation.Nonnull;
  *
  * <p>Implementations are responsible for closing the supplied BufferReader.
  */
+@FunctionalInterface
 public interface ReaderConsumer<T> {
   @Nonnull
-  T consume(BufferedReader r) throws IOException;
+  T consume(@WillClose BufferedReader r) throws IOException;
 }

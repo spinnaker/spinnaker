@@ -620,15 +620,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     long startTime = clock.monotonicTime();
     try {
       return op.get();
-    } catch (KubectlException e) {
+    } catch (RuntimeException e) {
       tags.put("success", "false");
       tags.put("reason", e.getClass().getSimpleName());
       throw e;
-    } catch (Exception e) {
-      tags.put("success", "false");
-      tags.put("reason", e.getClass().getSimpleName());
-      throw new KubectlException(
-          "Failure running " + action + " on " + kinds + ": " + e.getMessage(), e);
     } finally {
       registry
           .timer(registry.createId("kubernetes.api", tags))

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.jobs.local;
 
+import com.netflix.spinnaker.clouddriver.jobs.JobExecutionException;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
@@ -43,15 +44,15 @@ public class JobExecutorLocal implements JobExecutor {
 
   private <T> JobResult<T> executeWrapper(
       final JobRequest jobRequest, RequestExecutor<T> requestExecutor) {
-    log.debug(
-        String.format("Starting job: '%s'...", String.join(" ", jobRequest.getTokenizedCommand())));
+    log.debug(String.format("Starting job: '%s'...", jobRequest.toString()));
     final String jobId = UUID.randomUUID().toString();
 
     JobResult<T> jobResult;
     try {
       jobResult = requestExecutor.execute(jobRequest);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to execute job", e);
+      throw new JobExecutionException(
+          String.format("Error executing job: %s", jobRequest.toString()), e);
     }
 
     if (jobResult.isKilled()) {
@@ -92,7 +93,8 @@ public class JobExecutorLocal implements JobExecutor {
       result =
           consumer.consume(new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut))));
     } catch (IOException e) {
-      return JobResult.<T>builder().result(JobResult.Result.FAILURE).error(e.toString()).build();
+      throw new JobExecutionException(
+          String.format("Error parsing output of job: %s", jobRequest.toString()), e);
     }
 
     try {
@@ -100,7 +102,8 @@ public class JobExecutorLocal implements JobExecutor {
     } catch (InterruptedException e) {
       executor.getWatchdog().destroyProcess();
       Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
+      throw new JobExecutionException(
+          String.format("Interrupted while executing job: %s", jobRequest.toString()), e);
     }
 
     return JobResult.<T>builder()
@@ -117,8 +120,7 @@ public class JobExecutorLocal implements JobExecutor {
     executor.setStreamHandler(streamHandler);
     executor.setWatchdog(new ExecuteWatchdog(timeoutMinutes * 60 * 1000));
     // Setting this to null causes the executor to skip verifying exit codes; we'll handle checking
-    // the exit status
-    // instead of having the executor throw an exception for non-zero exit codes.
+    // the exit status instead of having the executor throw an exception for non-zero exit codes.
     executor.setExitValues(null);
 
     return executor;

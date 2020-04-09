@@ -23,6 +23,15 @@ import com.netflix.spinnaker.clouddriver.jobs.local.ReaderConsumer;
  * <p>The caller can optionally supply a ReaderConsumer, in which case the output from the job will
  * be transformed by the ReaderConsumer before being returned in JobResult.
  *
+ * <p>There are two general types of errors that can occur when executing a job:
+ *
+ * <ul>
+ *   <li>If the JobExecutor fails to start or monitor a job, or if it is unable to read the job's
+ *       output, a {@link JobExecutionException} is thrown.
+ *   <li>If the JobExecutor successfully starts and monitors the job, but the job itself fails, no
+ *       exception is thrown but the returned {@link JobResult} will indicate that the job failed.
+ * </ul>
+ *
  * @see JobRequest
  * @see JobResult
  */
@@ -32,6 +41,7 @@ public interface JobExecutor {
    *
    * @param jobRequest The job request
    * @return The result of the job
+   * @throws JobExecutionException if there is an error starting or monitoring the job
    */
   JobResult<String> runJob(JobRequest jobRequest);
 
@@ -42,6 +52,7 @@ public interface JobExecutor {
    * @param jobRequest The job request
    * @param readerConsumer A function that transforms the job's standard output
    * @return The result of the job
+   * @throws JobExecutionException if there is an error starting or monitoring the job
    */
   <T> JobResult<T> runJob(JobRequest jobRequest, ReaderConsumer<T> readerConsumer);
 }
