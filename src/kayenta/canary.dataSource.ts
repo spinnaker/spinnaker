@@ -1,7 +1,7 @@
 import { module, IQService } from 'angular';
 import { CanarySettings } from 'kayenta/canary.settings';
 
-import { ApplicationDataSourceRegistry, Application } from '@spinnaker/core';
+import { ApplicationDataSourceRegistry, Application, SETTINGS } from '@spinnaker/core';
 
 import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
 import { ICanaryConfigSummary, IJudge } from './domain/index';
@@ -15,6 +15,11 @@ module(CANARY_DATA_SOURCE, []).run([
   '$q',
   ($q: IQService) => {
     'ngInject';
+
+    if (!SETTINGS.feature.canary) {
+      return;
+    }
+
     // TODO: IDataSourceConfig expects an IPromise (not a Promise) from the loaders in this function, which is why we're using $q.resolve(...).
     const loadCanaryConfigs = (application: Application) => {
       const request = CanarySettings.showAllConfigs
