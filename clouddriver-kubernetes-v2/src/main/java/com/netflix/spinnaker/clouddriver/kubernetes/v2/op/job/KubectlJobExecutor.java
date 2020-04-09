@@ -449,13 +449,16 @@ public class KubectlJobExecutor {
     return status.getOutput();
   }
 
-  public Void deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
+  public KubernetesManifest deploy(
+      KubernetesV2Credentials credentials, KubernetesManifest manifest) {
     List<String> command = kubectlAuthPrefix(credentials);
 
     String manifestAsJson = gson.toJson(manifest);
 
     // Read from stdin
     command.add("apply");
+    command.add("-o");
+    command.add("json");
     command.add("-f");
     command.add("-");
 
@@ -467,16 +470,23 @@ public class KubectlJobExecutor {
       throw new KubectlException("Deploy failed: " + status.getError());
     }
 
-    return null;
+    try {
+      return gson.fromJson(status.getOutput(), KubernetesManifest.class);
+    } catch (JsonSyntaxException e) {
+      throw new KubectlException("Failed to parse kubectl output: " + e.getMessage(), e);
+    }
   }
 
-  public Void replace(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
+  public KubernetesManifest replace(
+      KubernetesV2Credentials credentials, KubernetesManifest manifest) {
     List<String> command = kubectlAuthPrefix(credentials);
 
     String manifestAsJson = gson.toJson(manifest);
 
     // Read from stdin
     command.add("replace");
+    command.add("-o");
+    command.add("json");
     command.add("-f");
     command.add("-");
 
@@ -488,7 +498,11 @@ public class KubectlJobExecutor {
       throw new KubectlException("Replace failed: " + status.getError());
     }
 
-    return null;
+    try {
+      return gson.fromJson(status.getOutput(), KubernetesManifest.class);
+    } catch (JsonSyntaxException e) {
+      throw new KubectlException("Failed to parse kubectl output: " + e.getMessage(), e);
+    }
   }
 
   public KubernetesManifest create(
@@ -577,9 +591,6 @@ public class KubectlJobExecutor {
   private List<String> kubectlNamespacedAuthPrefix(
       KubernetesV2Credentials credentials, String namespace) {
     List<String> command = kubectlAuthPrefix(credentials);
-    if (StringUtils.isEmpty(namespace)) {
-      namespace = credentials.getDefaultNamespace();
-    }
 
     if (StringUtils.isNotEmpty(namespace)) {
       command.add("--namespace=" + namespace);

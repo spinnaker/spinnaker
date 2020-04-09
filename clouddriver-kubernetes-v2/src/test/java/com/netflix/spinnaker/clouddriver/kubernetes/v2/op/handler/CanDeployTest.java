@@ -31,7 +31,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelect
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.runner.RunWith;
 
+@RunWith(JUnitPlatform.class)
 final class CanDeployTest {
   private final CanDeploy handler = new CanDeploy() {};
 
@@ -39,6 +42,7 @@ final class CanDeployTest {
   void applyMutations() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.deploy(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.APPLY);
     verify(credentials).deploy(manifest);
     verifyNoMoreInteractions(credentials);
@@ -48,6 +52,7 @@ final class CanDeployTest {
   void applyReturnValue() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.deploy(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.APPLY);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
@@ -56,6 +61,7 @@ final class CanDeployTest {
   void replaceMutations() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.replace(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
     verify(credentials).replace(manifest);
     verifyNoMoreInteractions(credentials);
@@ -65,6 +71,7 @@ final class CanDeployTest {
   void replaceReturnValue() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.replace(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
@@ -73,6 +80,7 @@ final class CanDeployTest {
   void recreateMutations() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.deploy(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.RECREATE);
     verify(credentials).deploy(manifest);
     verify(credentials)
@@ -89,6 +97,7 @@ final class CanDeployTest {
   void recreateReturnValue() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.deploy(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.RECREATE);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }

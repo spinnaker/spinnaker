@@ -1,0 +1,5 @@
+apiVersion: extensions/v1beta1
+kind: replicaSet
+metadata:
+  name: my-name
+  namespace: my-namespace

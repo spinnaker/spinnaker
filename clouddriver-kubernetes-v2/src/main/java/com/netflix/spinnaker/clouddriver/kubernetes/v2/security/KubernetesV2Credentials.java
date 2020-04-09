@@ -56,11 +56,6 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -80,9 +75,6 @@ import org.springframework.stereotype.Component;
 public class KubernetesV2Credentials implements KubernetesCredentials {
   private static final int CRD_EXPIRY_SECONDS = 30;
   private static final int NAMESPACE_EXPIRY_SECONDS = 30;
-  private static final Path SERVICE_ACCOUNT_NAMESPACE_PATH =
-      Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
-  private static final String DEFAULT_NAMESPACE = "default";
 
   private final Registry registry;
   private final Clock clock;
@@ -128,7 +120,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   @Include @Getter private final boolean debug;
 
-  private String cachedDefaultNamespace;
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
   private final KubernetesKindRegistry kindRegistry;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
@@ -287,14 +278,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return Optional.ofNullable(crdSupplier.get().get(kubernetesKind));
   }
 
-  public String getDefaultNamespace() {
-    if (StringUtils.isEmpty(cachedDefaultNamespace)) {
-      cachedDefaultNamespace = lookupDefaultNamespace();
-    }
-
-    return cachedDefaultNamespace;
-  }
-
   @Nonnull
   public ImmutableList<KubernetesKind> getGlobalKinds() {
     return kindRegistry.getGlobalKinds().stream()
@@ -305,41 +288,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Nonnull
   public KubernetesKindProperties getKindProperties(@Nonnull KubernetesKind kind) {
     return kindRegistry.getKindPropertiesOrDefault(kind);
-  }
-
-  private Optional<String> serviceAccountNamespace() {
-    try {
-      return Files.lines(SERVICE_ACCOUNT_NAMESPACE_PATH, StandardCharsets.UTF_8).findFirst();
-    } catch (IOException e) {
-      log.debug("Failure looking up desired namespace", e);
-      return Optional.empty();
-    }
-  }
-
-  private Optional<String> kubectlNamespace() {
-    try {
-      return Optional.of(jobExecutor.defaultNamespace(this));
-    } catch (KubectlException e) {
-      log.debug("Failure looking up desired namespace", e);
-      return Optional.empty();
-    }
-  }
-
-  private String lookupDefaultNamespace() {
-    try {
-      if (serviceAccount) {
-        return serviceAccountNamespace().orElse(DEFAULT_NAMESPACE);
-      } else {
-        return kubectlNamespace().orElse(DEFAULT_NAMESPACE);
-      }
-    } catch (Exception e) {
-      log.debug(
-          "Error encountered looking up default namespace in account '{}', defaulting to {}",
-          accountName,
-          DEFAULT_NAMESPACE,
-          e);
-      return DEFAULT_NAMESPACE;
-    }
   }
 
   @Nonnull
@@ -512,16 +460,16 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         "top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace, pod));
   }
 
-  public void deploy(KubernetesManifest manifest) {
-    runAndRecordMetrics(
+  public KubernetesManifest deploy(KubernetesManifest manifest) {
+    return runAndRecordMetrics(
         "deploy",
         manifest.getKind(),
         manifest.getNamespace(),
         () -> jobExecutor.deploy(this, manifest));
   }
 
-  public void replace(KubernetesManifest manifest) {
-    runAndRecordMetrics(
+  public KubernetesManifest replace(KubernetesManifest manifest) {
+    return runAndRecordMetrics(
         "replace",
         manifest.getKind(),
         manifest.getNamespace(),

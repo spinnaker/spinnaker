@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
  * intended for use in tests.
  */
 @NonnullByDefault
-final class ManifestFetcher {
+public final class ManifestFetcher {
   static KubernetesManifest getManifest(String basePath, String overlayPath) {
     KubernetesManifest base = getManifest(basePath);
     KubernetesManifest overlay = getManifest(overlayPath);
@@ -38,12 +38,16 @@ final class ManifestFetcher {
   }
 
   static KubernetesManifest getManifest(String basePath) {
-    return Yaml.loadAs(getResource(basePath), KubernetesManifest.class);
+    return getManifest(ManifestFetcher.class, basePath);
   }
 
-  private static String getResource(String name) {
+  public static KubernetesManifest getManifest(Class<?> referenceClass, String basePath) {
+    return Yaml.loadAs(getResource(referenceClass, basePath), KubernetesManifest.class);
+  }
+
+  private static String getResource(Class<?> referenceClass, String name) {
     try {
-      return Resources.toString(ManifestFetcher.class.getResource(name), StandardCharsets.UTF_8);
+      return Resources.toString(referenceClass.getResource(name), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

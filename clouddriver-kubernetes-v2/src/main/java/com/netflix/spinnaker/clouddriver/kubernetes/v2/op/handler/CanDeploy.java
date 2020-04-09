@@ -37,6 +37,7 @@ public interface CanDeploy {
       return new OperationResult().addManifest(result);
     }
 
+    KubernetesManifest deployedManifest;
     switch (deployStrategy) {
       case RECREATE:
         try {
@@ -48,14 +49,17 @@ public interface CanDeploy {
               new V1DeleteOptions());
         } catch (KubectlJobExecutor.KubectlException ignored) {
         }
-        credentials.deploy(manifest);
+        deployedManifest = credentials.deploy(manifest);
         break;
       case REPLACE:
-        credentials.replace(manifest);
+        deployedManifest = credentials.replace(manifest);
         break;
       case APPLY:
-        credentials.deploy(manifest);
+        deployedManifest = credentials.deploy(manifest);
+        break;
+      default:
+        throw new AssertionError(String.format("Unknown deploy strategy: %s", deployStrategy));
     }
-    return new OperationResult().addManifest(manifest);
+    return new OperationResult().addManifest(deployedManifest);
   }
 }
