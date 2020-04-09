@@ -1,6 +1,6 @@
 FROM ubuntu:bionic
-LABEL maintainer="delivery-engineering@netflix.com"
-COPY --from=halyard.compile /compiled_sources/halyard-web/build/install/halyard /opt/halyard
+MAINTAINER sig-platform@spinnaker.io
+COPY halyard-web/build/install/halyard /opt/halyard
 
 ENV KUBECTL_RELEASE=1.15.10
 ENV AWS_BINARY_RELEASE_DATE=2020-02-22
@@ -27,4 +27,5 @@ RUN curl -f -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-we
 
 RUN adduser --disabled-login --system --group --uid 1000 spinnaker
 USER spinnaker
-CMD "/opt/halyard/bin/halyard"
+
+CMD ["/opt/halyard/bin/halyard"]

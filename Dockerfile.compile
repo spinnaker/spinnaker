@@ -1,5 +1,5 @@
-FROM gcr.io/spinnaker-marketplace/gradle_cache
-ENV GRADLE_USER_HOME /gradle_cache/.gradle
-COPY . compiled_sources
-WORKDIR compiled_sources
-RUN ./gradlew installDist -x test -Prelease.useLastTag=true
+FROM openjdk:8
+MAINTAINER sig-platform@spinnaker.io
+ENV GRADLE_USER_HOME /workspace/.gradle
+ENV GRADLE_OPTS -Xmx2048m
+CMD ./gradlew --no-daemon halyard-web:installDist -x test
