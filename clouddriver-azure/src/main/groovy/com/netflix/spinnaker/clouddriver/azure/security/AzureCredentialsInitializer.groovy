@@ -50,7 +50,8 @@ class AzureCredentialsInitializer {
           managedAccount.defaultResourceGroup,
           managedAccount.defaultKeyVault,
           managedAccount.useSshPublicKey,
-          clouddriverUserAgentApplicationName
+          clouddriverUserAgentApplicationName,
+          managedAccount.permissions.build()
         )
 
         azureAccounts << (accountCredentialsRepository.save(managedAccount.name, azureAccount) as AzureNamedAccountCredentials)

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.config
 
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.ToString
 
 class AzureConfigurationProperties {
@@ -37,6 +38,7 @@ class AzureConfigurationProperties {
     String defaultResourceGroup
     String defaultKeyVault
     Boolean useSshPublicKey
+    Permissions.Builder permissions = new Permissions.Builder()
   }
 
   List<ManagedAccount> accounts = []
