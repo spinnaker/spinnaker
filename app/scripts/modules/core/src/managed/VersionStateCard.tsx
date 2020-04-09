@@ -16,12 +16,12 @@ interface CardTitleMetadata {
 
 const cardAppearanceByState = {
   pending: {
-    icon: 'placeholder',
+    icon: 'artifactPending',
     appearance: 'neutral',
     title: (_: CardTitleMetadata) => 'Not deployed here yet',
   },
   skipped: {
-    icon: 'placeholder',
+    icon: 'artifactSkipped',
     appearance: 'neutral',
     title: ({ replacedByVersionName }: CardTitleMetadata) => (
       <span className="sp-group-margin-xs-xaxis">
@@ -36,15 +36,21 @@ const cardAppearanceByState = {
     appearance: 'neutral',
     title: ({ replacedAtMillis, replacedByVersionName }: CardTitleMetadata) => (
       <span className="sp-group-margin-xs-xaxis">
-        Decommissioned {relativeTime(replacedAtMillis)}{' '}
-        <span className="text-italic text-regular sp-margin-xs-left">({timestamp(replacedAtMillis)})</span>{' '}
-        <span className="text-regular">—</span> <span className="text-regular">replaced by </span>
-        <Pill text={replacedByVersionName} />
+        <span>Decommissioned {replacedAtMillis && relativeTime(replacedAtMillis)}</span>
+        {replacedAtMillis && (
+          <span className="text-italic text-regular sp-margin-xs-left">({timestamp(replacedAtMillis)})</span>
+        )}{' '}
+        {replacedByVersionName && (
+          <>
+            <span className="text-regular">—</span> <span className="text-regular">replaced by </span>
+            <Pill text={replacedByVersionName} />
+          </>
+        )}
       </span>
     ),
   },
   approved: {
-    icon: 'checkBadge',
+    icon: 'artifactApproved',
     appearance: 'info',
     title: (_: CardTitleMetadata) => (
       <span className="sp-group-margin-xs-xaxis">
@@ -63,8 +69,15 @@ const cardAppearanceByState = {
     appearance: 'success',
     title: ({ deployedAtMillis }: CardTitleMetadata) => (
       <span>
-        Deployed {relativeTime(deployedAtMillis)}{' '}
-        <span className="text-italic text-regular sp-margin-xs-left">({timestamp(deployedAtMillis)})</span>
+        Deployed here{' '}
+        {deployedAtMillis ? (
+          <>
+            since {relativeTime(deployedAtMillis)}{' '}
+            <span className="text-italic text-regular sp-margin-xs-left">({timestamp(deployedAtMillis)})</span>
+          </>
+        ) : (
+          'now'
+        )}
       </span>
     ),
   },

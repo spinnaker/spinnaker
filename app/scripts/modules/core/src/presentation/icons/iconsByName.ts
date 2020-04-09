@@ -2,6 +2,9 @@ import { ReactComponent as accordionCollapse } from './vectors/accordionCollapse
 import { ReactComponent as accordionExpand } from './vectors/accordionExpand.svg';
 import { ReactComponent as accordionExpandAll } from './vectors/accordionExpandAll.svg';
 import { ReactComponent as artifact } from './vectors/artifact.svg';
+import { ReactComponent as artifactApproved } from './vectors/artifactApproved.svg';
+import { ReactComponent as artifactPending } from './vectors/artifactPending.svg';
+import { ReactComponent as artifactSkipped } from './vectors/artifactSkipped.svg';
 import { ReactComponent as build } from './vectors/build.svg';
 import { ReactComponent as caretRight } from './vectors/caretRight.svg';
 import { ReactComponent as checkBadge } from './vectors/checkBadge.svg';
@@ -75,6 +78,9 @@ export const iconsByName = {
   accordionExpand,
   accordionExpandAll,
   artifact,
+  artifactApproved,
+  artifactPending,
+  artifactSkipped,
   build,
   canaryFail,
   canaryRunning,
