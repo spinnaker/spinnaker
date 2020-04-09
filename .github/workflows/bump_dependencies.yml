@@ -8,22 +8,10 @@ jobs:
   bump-dependencies:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 8
-      - uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: Bump dependencies
-        env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          SPINNAKER_GITHUB_TOKEN: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
-          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        run: |
-          ./gradlew -PenablePublishing=true --info -Prelease.disableGitChecks=true -Prelease.useLastTag=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -Pgithub.token="${SPINNAKER_GITHUB_TOKEN}" bumpDependencies
+    - uses: spinnaker/bumpdeps@master
+      with:
+        ref: ${{ github.event.client_payload.ref }}
+        key: fiatVersion
+        repositories: clouddriver,echo,front50,gate,halyard,igor,keel,orca
+      env:
+        GITHUB_OAUTH: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
