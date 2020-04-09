@@ -154,7 +154,7 @@ class ImageHandler(
         ),
         artifacts = listOf(artifactPayload)
       )
-      publisher.publishEvent(BakeLaunched(appVersion.toString()))
+      publisher.publishEvent(BakeLaunched(desiredVersion))
       return listOf(Task(id = taskRef.id, name = description))
     } catch (e: Exception) {
       log.error("Error launching bake for: ${description.toLowerCase()}")
