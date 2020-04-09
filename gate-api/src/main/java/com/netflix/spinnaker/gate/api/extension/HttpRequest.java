@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
 
-dependencies {
-  implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
-  api "com.netflix.spinnaker.kork:kork-plugins-api"
-  api "com.netflix.spinnaker.kork:kork-annotations"
+package com.netflix.spinnaker.gate.api.extension;
 
-  compileOnly("org.projectlombok:lombok")
-  annotationProcessor("org.projectlombok:lombok")
+import com.netflix.spinnaker.kork.annotations.Alpha;
+import java.util.Map;
+import lombok.Data;
+
+/** An {@link HttpRequest} represents a request that will be handled by an {@link ApiExtension}. */
+@Alpha
+@Data(staticConstructor = "of")
+public class HttpRequest {
+  private final String method;
+  private final String requestURI;
+  private final Map<String, String> headers;
+  private final Map<String, String> parameters;
+
+  private String body;
 }

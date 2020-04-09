@@ -1,11 +1,12 @@
-apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
 
 dependencies {
+  implementation project(":gate-api")
   implementation project(":gate-core")
 
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.netflix.spectator:spectator-api"
-
 }
