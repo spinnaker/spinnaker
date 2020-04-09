@@ -6,6 +6,19 @@ dependencies {
   implementation 'com.google.guava:guava:23.5-jre'
   api 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
   implementation 'io.grpc:grpc-all:1.8.0'
+
+  // If we're targeting Java 8, protoc will generate old @Generated annotations.
+  // But developers likely won't have the cross-compiler plugin turned on, so
+  // those old annotations won't be available to javac (only the new Java 9
+  // versions will be). So we'll add those to the classpath.
+  //
+  // This can be deleted when we're properly targeting Java 11 (at which point
+  // protoc will generate code for the newer annotations.
+  if (JavaVersion.current().isJava9Compatible()
+      && targetCompatibility == JavaVersion.VERSION_1_8
+      && !Boolean.valueOf(project.findProperty('enableCrossCompilerPlugin'))) {
+    compile 'javax.annotation:javax.annotation-api:1.3.2'
+  }
 }
 
 protobuf {
