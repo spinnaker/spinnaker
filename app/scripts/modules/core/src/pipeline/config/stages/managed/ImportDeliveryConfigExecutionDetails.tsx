@@ -33,9 +33,9 @@ const CustomErrorMessage = ({ summary, debugDetails }: { summary: string; debugD
   return (
     <div>
       <div className="alert alert-danger">
-        <b>There was an error parsing your delivery config file.</b>
+        <b>There was an error importing your delivery config file.</b>
         <br />
-        <Markdown message={summary} style={{ wordBreak: 'break-all' }} />
+        <Markdown message={summary} style={{ wordBreak: 'break-word' }} />
         <br />
         {debugDetails && (
           <CollapsibleSection heading={({ chevron }) => <span>{chevron} Debug Details</span>}>
