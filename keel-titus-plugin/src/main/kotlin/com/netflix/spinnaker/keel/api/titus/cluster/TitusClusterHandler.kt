@@ -49,6 +49,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
@@ -106,7 +107,7 @@ class TitusClusterHandler(
       .map { it.name }
       .any { region ->
         orcaService
-          .getCorrelatedExecutions("${resource.id}:$region")
+          .getCorrelatedExecutions("${resource.id}:$region", resource.serviceAccount)
           .isNotEmpty()
       }
 
@@ -122,7 +123,7 @@ class TitusClusterHandler(
           val desired = diff.desired
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.upsertServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
+            else -> diff.upsertServerGroupJob(resource.serviceAccount) + resource.spec.deployWith.toOrcaJobProperties()
           }
 
           var tags: Set<String> = emptySet()
@@ -212,7 +213,8 @@ class TitusClusterHandler(
     val images = runBlocking {
       cloudDriverService.findDockerImages(
         account = getRegistryForTitusAccount(account),
-        repository = container.repository()
+        repository = container.repository(),
+        user = DEFAULT_SERVICE_ACCOUNT
       )
     }
 
@@ -268,7 +270,7 @@ class TitusClusterHandler(
     )
   }
 
-  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(): Map<String, Any?> =
+  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(user: String): Map<String, Any?> =
     with(desired) {
       mapOf(
         "application" to moniker.app,
@@ -366,7 +368,8 @@ class TitusClusterHandler(
   private suspend fun getTagsForDigest(container: DigestProvider, titusAccount: String): Set<String> =
     cloudDriverService.findDockerImages(
       account = getRegistryForTitusAccount(titusAccount),
-      repository = container.repository()
+      repository = container.repository(),
+      user = DEFAULT_SERVICE_ACCOUNT
     )
       .filter { it.digest == container.digest && it.tag != "latest" }
       .map { it.tag }
@@ -431,11 +434,11 @@ class TitusClusterHandler(
     )
 
   private suspend fun getAwsAccountNameForTitusAccount(titusAccount: String): String =
-    cloudDriverService.getAccountInformation(titusAccount)["awsAccount"]?.toString()
+    cloudDriverService.getAccountInformation(titusAccount, DEFAULT_SERVICE_ACCOUNT)["awsAccount"]?.toString()
       ?: throw TitusAccountConfigurationException(titusAccount, "awsAccount")
 
   private suspend fun getRegistryForTitusAccount(titusAccount: String): String =
-    cloudDriverService.getAccountInformation(titusAccount)["registry"]?.toString()
+    cloudDriverService.getAccountInformation(titusAccount, DEFAULT_SERVICE_ACCOUNT)["registry"]?.toString()
       ?: throw RegistryNotFoundException(titusAccount)
 
   fun TitusServerGroup.securityGroupIds(): Collection<String> =

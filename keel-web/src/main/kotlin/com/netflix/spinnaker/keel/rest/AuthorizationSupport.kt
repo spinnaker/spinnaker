@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURC
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.AccessDeniedException
@@ -103,15 +104,16 @@ class AuthorizationSupport(
         DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).application
         else -> throw InvalidRequestException("Invalid target type ${target.name} for application permission check")
       }
-      permissionEvaluator.hasPermission(auth, application, "APPLICATION", action.name)
-        .also { allowed ->
-          log.debug("[ACCESS {}] User {}: {} access to application {}.",
-            allowed.toAuthorization(), auth.principal, action.name, application)
+      AuthenticatedRequest.allowAnonymous {
+        permissionEvaluator.hasPermission(auth, application, "APPLICATION", action.name)
+      }.also { allowed ->
+        log.debug("[ACCESS {}] User {}: {} access to application {}.",
+          allowed.toAuthorization(), auth.principal, action.name, application)
 
-          if (!allowed) {
-            throw AccessDeniedException("User ${auth.principal} does not have access to application $application")
-          }
+        if (!allowed) {
+          throw AccessDeniedException("User ${auth.principal} does not have access to application $application")
         }
+      }
     }
   }
 
@@ -130,15 +132,16 @@ class AuthorizationSupport(
         APPLICATION -> repository.getDeliveryConfigForApplication(identifier).serviceAccount
         DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).serviceAccount
       }
-      permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored")
-        .also { allowed ->
-          log.debug("[ACCESS {}] User {}: access to service account {}.",
-            allowed.toAuthorization(), auth.principal, serviceAccount)
+      AuthenticatedRequest.allowAnonymous {
+        permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored")
+      }.also { allowed ->
+        log.debug("[ACCESS {}] User {}: access to service account {}.",
+          allowed.toAuthorization(), auth.principal, serviceAccount)
 
-          if (!allowed) {
-            throw AccessDeniedException("User ${auth.principal} does not have access to service account $serviceAccount")
-          }
+        if (!allowed) {
+          throw AccessDeniedException("User ${auth.principal} does not have access to service account $serviceAccount")
         }
+      }
     }
   }
 
@@ -164,15 +167,16 @@ class AuthorizationSupport(
 
       locatableResources.forEach {
         val account = (it.spec as Locatable<*>).locations.account
-        permissionEvaluator.hasPermission(auth, account, "ACCOUNT", action.name)
-          .also { allowed ->
-            log.debug("[ACCESS {}] User {}: {} access to cloud account {}.",
-              allowed.toAuthorization(), auth.principal, action.name, account)
+        AuthenticatedRequest.allowAnonymous {
+          permissionEvaluator.hasPermission(auth, account, "ACCOUNT", action.name)
+        }.also { allowed ->
+          log.debug("[ACCESS {}] User {}: {} access to cloud account {}.",
+            allowed.toAuthorization(), auth.principal, action.name, account)
 
-            if (!allowed) {
-              throw AccessDeniedException("User ${auth.principal} does not have access to cloud account $account")
-            }
+          if (!allowed) {
+            throw AccessDeniedException("User ${auth.principal} does not have access to cloud account $account")
           }
+        }
       }
     }
   }

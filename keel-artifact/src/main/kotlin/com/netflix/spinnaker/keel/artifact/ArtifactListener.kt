@@ -9,11 +9,12 @@ import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import kotlinx.coroutines.launch
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ArtifactListener(
-  private val artifactRepository: ArtifactRepository,
+  private val repository: KeelRepository,
   private val artifactService: ArtifactService,
   private val clouddriverService: CloudDriverService,
   private val publisher: ApplicationEventPublisher
@@ -39,7 +40,7 @@ class ArtifactListener(
       .artifacts
       .filter { it.type.toLowerCase() in artifactTypeNames }
       .forEach { artifact ->
-        if (artifactRepository.isRegistered(artifact.name, artifact.type())) {
+        if (repository.isRegistered(artifact.name, artifact.type())) {
           val version: String
           var status: ArtifactStatus? = null
           when (artifact.type()) {
@@ -52,7 +53,7 @@ class ArtifactListener(
             }
           }
           log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
-          artifactRepository.store(artifact.name, artifact.type(), version, status)
+          repository.storeArtifact(artifact.name, artifact.type(), version, status)
             .also { wasAdded ->
               if (wasAdded) {
                 publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type()))
@@ -69,7 +70,7 @@ class ArtifactListener(
   fun onArtifactRegisteredEvent(event: ArtifactRegisteredEvent) {
     val artifact = event.artifact
 
-    if (artifactRepository.versions(artifact).isEmpty()) {
+    if (repository.artifactVersions(artifact).isEmpty()) {
       when (artifact) {
         is DebianArtifact -> storeLatestDebVersion(artifact)
         is DockerArtifact -> storeLatestDockerVersion(artifact)
@@ -92,7 +93,7 @@ class ArtifactListener(
   @Scheduled(fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
   fun syncArtifactVersions() =
     runBlocking {
-      artifactRepository.getAll().forEach { artifact ->
+      repository.getAllArtifacts().forEach { artifact ->
         launch {
           val lastRecordedVersion = getLatestStoredVersion(artifact)
           val latestVersion = when (artifact) {
@@ -115,7 +116,7 @@ class ArtifactListener(
                 // todo eb: is there a better way to think of docker status?
                 docker -> null
               }
-              artifactRepository.store(artifact.name, artifact.type, latestVersion, status)
+              repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
             }
           }
         }
@@ -123,16 +124,21 @@ class ArtifactListener(
     }
 
   private fun getLatestStoredVersion(artifact: DeliveryArtifact): String? =
-    artifactRepository.versions(artifact).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
+    repository.artifactVersions(artifact).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
 
   private suspend fun getLatestDeb(artifact: DebianArtifact): String? =
     artifactService.getVersions(artifact.name).firstOrNull()
 
-  private suspend fun getLatestDockerTag(artifact: DockerArtifact): String? = clouddriverService
-    .findDockerTagsForImage("*", artifact.name)
-    .distinct()
-    .sortedWith(artifact.versioningStrategy.comparator)
-    .firstOrNull()
+  private suspend fun getLatestDockerTag(artifact: DockerArtifact): String? {
+    val serviceAccount = artifact.deliveryConfigName?.let { repository.getDeliveryConfig(it) }
+      ?.serviceAccount
+      ?: DEFAULT_SERVICE_ACCOUNT
+    return clouddriverService
+      .findDockerTagsForImage("*", artifact.name, serviceAccount)
+      .distinct()
+      .sortedWith(artifact.versioningStrategy.comparator)
+      .firstOrNull()
+  }
 
   /**
    * Grab the latest version which matches the statuses we care about, so the artifact is relevant.
@@ -144,7 +150,7 @@ class ArtifactListener(
           val version = "${artifact.name}-$firstVersion"
           val status = debStatus(artifactService.getArtifact(artifact.name, firstVersion))
           log.debug("Storing latest version {} ({}) for registered artifact {}", version, status, artifact)
-          artifactRepository.store(artifact.name, artifact.type, version, status)
+          repository.storeArtifact(artifact.name, artifact.type, version, status)
         }
     }
 
@@ -156,7 +162,7 @@ class ArtifactListener(
       getLatestDockerTag(artifact)
         ?.let { firstVersion ->
           log.debug("Storing latest version {} for registered artifact {}", firstVersion, artifact)
-          artifactRepository.store(artifact.name, artifact.type, firstVersion, null)
+          repository.storeArtifact(artifact.name, artifact.type, firstVersion, null)
         }
     }
 

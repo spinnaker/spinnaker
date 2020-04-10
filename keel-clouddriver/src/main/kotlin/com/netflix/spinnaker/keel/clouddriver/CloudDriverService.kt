@@ -27,12 +27,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
-import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
 import retrofit2.http.Query
-import retrofit2.http.QueryMap
 
 interface CloudDriverService {
 
@@ -59,22 +57,11 @@ interface CloudDriverService {
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Map<String, Set<Network>>
 
-  @GET("/networks/{cloudProvider}")
-  suspend fun listNetworksByCloudProvider(
-    @Path("cloudProvider") cloudProvider: String,
-    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): Set<Network>
-
   @GET("/subnets/{cloudProvider}")
   suspend fun listSubnets(
     @Path("cloudProvider") cloudProvider: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Set<Subnet>
-
-  @GET("/credentials")
-  suspend fun listCredentials(
-    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): Set<Credential>
 
   @GET("/credentials/{account}")
   suspend fun getCredential(
@@ -152,18 +139,6 @@ interface CloudDriverService {
     @Query("repository") repository: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<String>
-
-  @GET("/tags/{entityId}")
-  suspend fun getTagsForEntity(
-    @Path("entityId") entityId: String,
-    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): EntityTags
-
-  @GET("/tags")
-  suspend fun getTagsForParams(
-    @QueryMap allParameters: Map<String, String>,
-    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): EntityTags
 
   @GET("/credentials/{account}")
   suspend fun getAccountInformation(

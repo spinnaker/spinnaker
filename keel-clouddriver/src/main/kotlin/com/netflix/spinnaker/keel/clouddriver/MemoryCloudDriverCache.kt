@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.MINUTES
 import kotlinx.coroutines.CoroutineScope
@@ -62,8 +63,7 @@ class MemoryCloudDriverCache(
 
   override fun credentialBy(name: String): Credential =
     credentials.getOrNotFound(name, "Credentials with name $name not found") {
-      cloudDriver
-        .getCredential(name)
+      cloudDriver.getCredential(name, DEFAULT_SERVICE_ACCOUNT)
     }
 
   override fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary =
@@ -75,7 +75,7 @@ class MemoryCloudDriverCache(
 
       // TODO-AJ should be able to swap this out for a call to `/search`
       cloudDriver
-        .getSecurityGroupSummaries(account, credential.type, region)
+        .getSecurityGroupSummaries(account, credential.type, region, DEFAULT_SERVICE_ACCOUNT)
         .firstOrNull { it.id == id }
     }
 
@@ -88,14 +88,14 @@ class MemoryCloudDriverCache(
 
       // TODO-AJ should be able to swap this out for a call to `/search`
       cloudDriver
-        .getSecurityGroupSummaries(account, credential.type, region)
+        .getSecurityGroupSummaries(account, credential.type, region, DEFAULT_SERVICE_ACCOUNT)
         .firstOrNull { it.name == name }
     }
 
   override fun networkBy(id: String): Network =
     networks.getOrNotFound(id, "VPC network with id $id not found") {
       cloudDriver
-        .listNetworks()["aws"]
+        .listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
         ?.firstOrNull { it.id == id }
     }
 
@@ -104,7 +104,7 @@ class MemoryCloudDriverCache(
   override fun networkBy(name: String?, account: String, region: String): Network =
     networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
       cloudDriver
-        .listNetworks()["aws"]
+        .listNetworks(DEFAULT_SERVICE_ACCOUNT)["aws"]
         ?.firstOrNull { it.name == name && it.account == account && it.region == region }
     }
 
@@ -112,7 +112,7 @@ class MemoryCloudDriverCache(
     availabilityZones.get("$account:$vpcId:$purpose:$region") {
       runBlocking {
         cloudDriver
-          .listSubnets("aws")
+          .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
           .filter { it.account == account && it.vpcId == vpcId && it.purpose == purpose && it.region == region }
           .map { it.availabilityZone }
           .toSet()
@@ -122,14 +122,14 @@ class MemoryCloudDriverCache(
   override fun subnetBy(subnetId: String): Subnet =
     subnetsById.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
       cloudDriver
-        .listSubnets("aws")
+        .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
         .find { it.id == subnetId }
     }
 
   override fun subnetBy(account: String, region: String, purpose: String): Subnet =
     subnetsByPurpose.getOrNotFound("$account:$region:$purpose", "Subnet with purpose \"$purpose\" not found in $account:$region") {
       cloudDriver
-        .listSubnets("aws")
+        .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)
         .find { it.account == account && it.region == region && it.purpose == purpose }
     }
 

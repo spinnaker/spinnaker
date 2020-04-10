@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import java.time.Instant
 import java.util.HashMap
@@ -31,8 +32,10 @@ interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json", "X-SPINNAKER-USER-ORIGIN: keel")
-  suspend fun orchestrate(@Header("X-SPINNAKER-USER") user: String, @Body request: OrchestrationRequest):
-    TaskRefResponse
+  suspend fun orchestrate(
+    @Header("X-SPINNAKER-USER") user: String,
+    @Body request: OrchestrationRequest
+  ): TaskRefResponse
 
   @POST("/orchestrate/{pipelineConfigId}")
   @Headers("Content-Type: application/context+json", "X-SPINNAKER-USER-ORIGIN: keel")
@@ -43,16 +46,28 @@ interface OrcaService {
   ): TaskRefResponse
 
   @GET("/pipelines/{id}")
-  suspend fun getPipelineExecution(@Path("id") id: String): ExecutionDetailResponse
+  suspend fun getPipelineExecution(
+    @Path("id") id: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): ExecutionDetailResponse
 
   @GET("/tasks/{id}")
-  suspend fun getOrchestrationExecution(@Path("id") id: String): ExecutionDetailResponse
+  suspend fun getOrchestrationExecution(
+    @Path("id") id: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): ExecutionDetailResponse
 
   @PUT("/tasks/{id}/cancel")
-  suspend fun cancelOrchestration(@Path("id") id: String)
+  suspend fun cancelOrchestration(
+    @Path("id") id: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  )
 
   @GET("/executions/correlated/{correlationId}")
-  suspend fun getCorrelatedExecutions(@Path("correlationId") correlationId: String): List<String>
+  suspend fun getCorrelatedExecutions(
+    @Path("correlationId") correlationId: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<String>
 }
 
 data class TaskRefResponse(

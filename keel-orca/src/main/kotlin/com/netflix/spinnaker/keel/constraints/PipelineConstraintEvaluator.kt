@@ -53,7 +53,7 @@ class PipelineConstraintEvaluator(
     state: ConstraintState
   ): Boolean {
     var attributes = state.attributes as PipelineConstraintStateAttributes?
-    val status = pipelineStatus(attributes)
+    val status = pipelineStatus(deliveryConfig.serviceAccount, attributes)
 
     if (attributes != null && status != null && attributes.lastExecutionStatus != status.toString()) {
       attributes = attributes.copy(lastExecutionStatus = status.toString())
@@ -174,14 +174,14 @@ class PipelineConstraintEvaluator(
       .taskId
   }
 
-  private fun pipelineStatus(attributes: PipelineConstraintStateAttributes?): OrcaExecutionStatus? {
+  private fun pipelineStatus(serviceAccount: String, attributes: PipelineConstraintStateAttributes?): OrcaExecutionStatus? {
     if (attributes?.executionId == null) {
       return null
     }
 
     return runBlocking {
       orcaService
-        .getPipelineExecution(attributes.executionId!!)
+        .getPipelineExecution(attributes.executionId!!, serviceAccount)
         .status
     }
   }

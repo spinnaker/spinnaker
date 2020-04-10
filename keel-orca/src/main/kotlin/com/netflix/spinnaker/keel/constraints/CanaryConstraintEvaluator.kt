@@ -80,7 +80,7 @@ class CanaryConstraintEvaluator(
     val judge = "canary:${deliveryConfig.application}:${targetEnvironment.name}:${constraint.canaryConfigId}"
     var attributes = state.attributes as CanaryConstraintAttributes? ?: CanaryConstraintAttributes()
     val status = runBlocking {
-      canaryStatus(attributes)
+      canaryStatus(deliveryConfig.serviceAccount, attributes)
     }
 
     if (status.numFailed() > constraint.allowedFailures) {
@@ -89,7 +89,7 @@ class CanaryConstraintEvaluator(
         runBlocking {
           stillRunning.forEach {
             log.warn("Cancelling still running canary $judge:${it.region} as at least one region has failed.")
-            orcaService.cancelOrchestration(it.executionId)
+            orcaService.cancelOrchestration(it.executionId, deliveryConfig.serviceAccount)
           }
         }
       }
@@ -178,7 +178,7 @@ class CanaryConstraintEvaluator(
   }
 
   @Suppress("UNCHECKED_CAST")
-  private suspend fun canaryStatus(attributes: CanaryConstraintAttributes?): Set<CanaryStatus> =
+  private suspend fun canaryStatus(serviceAccount: String, attributes: CanaryConstraintAttributes?): Set<CanaryStatus> =
     coroutineScope {
       if (attributes == null || attributes.executions.isNullOrEmpty()) {
         return@coroutineScope emptySet<CanaryStatus>()
@@ -188,7 +188,7 @@ class CanaryConstraintEvaluator(
         .associate {
           it.region to async {
             orcaService
-              .getOrchestrationExecution(it.executionId)
+              .getOrchestrationExecution(it.executionId, serviceAccount)
           }
         }
         .mapValues { it.value.await() }

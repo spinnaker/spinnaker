@@ -1,9 +1,12 @@
 package com.netflix.spinnaker.keel.integration
 
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
+import com.netflix.spinnaker.keel.integration.AuthPropagationTests.MockFiat
 import com.netflix.spinnaker.kork.common.Header.USER
+import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.runBlocking
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.Assertion
 import strikt.api.expect
@@ -24,13 +28,19 @@ import strikt.assertions.isNotNull
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class],
+  classes = [KeelApplication::class, MockFiat::class],
   webEnvironment = MOCK
 )
 internal class AuthPropagationTests : JUnit5Minutests {
 
   @Autowired
   lateinit var cloudDriverService: CloudDriverService
+
+  @Configuration
+  class MockFiat {
+    @MockkBean(relaxed = true)
+    lateinit var fiatPermissionEvaluator: FiatPermissionEvaluator
+  }
 
   data class Fixture(
     private val cloudDriverService: CloudDriverService

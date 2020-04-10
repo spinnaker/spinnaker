@@ -120,14 +120,14 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("first pass persists state and launches canaries") {
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
           .isFalse()
 
         coVerify(exactly = 2) {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         }
 
         val state = deliveryConfigRepository.getConstraintState(
@@ -157,19 +157,19 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
         }
 
         coEvery {
-          orcaService.getOrchestrationExecution(any())
+          orcaService.getOrchestrationExecution(any(), any())
         } returns executionDetailResponse()
 
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns listOf(randomUID().toString())
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
           .isFalse()
 
         coVerify(exactly = 2) {
-          orcaService.getOrchestrationExecution(any())
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getOrchestrationExecution(any(), any())
+          orcaService.getCorrelatedExecutions(any(), any())
         }
 
         val state = deliveryConfigRepository.getConstraintState(
@@ -199,11 +199,11 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("promotion is allowed when all canaries pass") {
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         coEvery {
-          orcaService.getOrchestrationExecution(any())
+          orcaService.getOrchestrationExecution(any(), any())
         } returns ExecutionDetailResponse(
           id = randomUID().toString(),
           name = "fnord",
@@ -224,11 +224,11 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
           .isTrue()
 
         coVerify(exactly = 2) {
-          orcaService.getOrchestrationExecution(any())
+          orcaService.getOrchestrationExecution(any(), any())
         }
 
         coVerify(exactly = 0) {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         }
 
         val state = deliveryConfigRepository.getConstraintState(
@@ -252,14 +252,14 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
         deliveryConfigRepository.store(deliveryConfig)
 
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
           .isFalse()
 
         coVerify(exactly = 2) {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         }
 
         val state = deliveryConfigRepository.getConstraintState(
@@ -282,30 +282,30 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("one region failed, another is still running and is cancelled") {
         coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-1")
+          orcaService.getCorrelatedExecutions("$judge:us-west-1", any())
         } returns listOf(west1Id)
 
         coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-2")
+          orcaService.getCorrelatedExecutions("$judge:us-west-2", any())
         } returns emptyList()
 
         coEvery {
-          orcaService.getOrchestrationExecution(west1Id)
+          orcaService.getOrchestrationExecution(west1Id, any())
         } returns executionDetailResponse(west1Id)
 
         coEvery {
-          orcaService.getOrchestrationExecution(west2Id)
+          orcaService.getOrchestrationExecution(west2Id, any())
         } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
 
         coEvery {
-          orcaService.cancelOrchestration(any())
+          orcaService.cancelOrchestration(any(), any())
         } just Runs
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
           .isFalse()
 
         coVerify(exactly = 1) {
-          orcaService.cancelOrchestration(west1Id)
+          orcaService.cancelOrchestration(west1Id, any())
         }
       }
     }
@@ -327,14 +327,14 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
         deliveryConfigRepository.store(deliveryConfig)
 
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
           .isFalse()
 
         coVerify(exactly = 2) {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         }
 
         val state = deliveryConfigRepository.getConstraintState(
@@ -357,26 +357,26 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("one region failed, another is still running and it continues") {
         coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-1")
+          orcaService.getCorrelatedExecutions("$judge:us-west-1", any())
         } returns listOf(west1Id)
 
         coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-2")
+          orcaService.getCorrelatedExecutions("$judge:us-west-2", any())
         } returns emptyList()
 
         coEvery {
-          orcaService.getOrchestrationExecution(west1Id)
+          orcaService.getOrchestrationExecution(west1Id, any())
         } returns executionDetailResponse(west1Id)
 
         coEvery {
-          orcaService.getOrchestrationExecution(west2Id)
+          orcaService.getOrchestrationExecution(west2Id, any())
         } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
           .isFalse()
 
         coVerify(exactly = 0) {
-          orcaService.cancelOrchestration(west1Id)
+          orcaService.cancelOrchestration(west1Id, any())
         }
 
         val state = deliveryConfigRepository.getConstraintState(
@@ -391,15 +391,15 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("one region has failed, the other has passed") {
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         coEvery {
-          orcaService.getOrchestrationExecution(west1Id)
+          orcaService.getOrchestrationExecution(west1Id, any())
         } returns executionDetailResponse(west1Id, OrcaExecutionStatus.SUCCEEDED)
 
         coEvery {
-          orcaService.getOrchestrationExecution(west2Id)
+          orcaService.getOrchestrationExecution(west2Id, any())
         } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
 
         expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
@@ -428,7 +428,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("retryable failures increments start attempts and remains pending") {
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         repeat(3) {
@@ -457,7 +457,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
       test("constraint fails when task launches fail and retries are exhausted") {
         coEvery {
-          orcaService.getCorrelatedExecutions(any())
+          orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
         repeat(4) {

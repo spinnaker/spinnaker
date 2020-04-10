@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -97,7 +98,7 @@ class OrcaTaskLauncher(
 
   override suspend fun correlatedTasksRunning(correlationId: String): Boolean =
     orcaService
-      .getCorrelatedExecutions(correlationId)
+      .getCorrelatedExecutions(correlationId, DEFAULT_SERVICE_ACCOUNT)
       .isNotEmpty()
 
   private val Resource<*>.notifications: Set<NotificationConfig>

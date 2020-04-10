@@ -163,7 +163,7 @@ interface KeelRepository {
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
-  fun getAllArtifacts(type: ArtifactType?): List<DeliveryArtifact>
+  fun getAllArtifacts(type: ArtifactType? = null): List<DeliveryArtifact>
 
   fun storeArtifact(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): Boolean
 

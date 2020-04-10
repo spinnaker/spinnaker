@@ -119,7 +119,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
 
       test("the next pass updates the execution status") {
         coEvery {
-          orcaService.getPipelineExecution(any())
+          orcaService.getPipelineExecution(any(), any())
         } returns getExecutionDetailResponse(executionId, OrcaExecutionStatus.RUNNING)
 
         expectThat(subject.canPromote(artifact, version, manifest, environment))
@@ -140,7 +140,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
 
       test("promotion is allowed when the pipeline succeeds") {
         coEvery {
-          orcaService.getPipelineExecution(any())
+          orcaService.getPipelineExecution(any(), any())
         } returns getExecutionDetailResponse(executionId, OrcaExecutionStatus.SUCCEEDED)
 
         expectThat(subject.canPromote(artifact, version, manifest, environment))
@@ -168,7 +168,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
         deliveryConfigRepository.storeConstraintState(state.copy(attributes = runningAttributes))
 
         coEvery {
-          orcaService.getPipelineExecution(any())
+          orcaService.getPipelineExecution(any(), any())
         } returns getExecutionDetailResponse(executionId, OrcaExecutionStatus.TERMINAL)
 
         expectThat(subject.canPromote(artifact, version, manifest, environment))
