@@ -17,14 +17,18 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.HashMap;
 import java.util.Map;
 
-public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactConverter {
+final class KubernetesUnversionedArtifactConverter extends KubernetesArtifactConverter {
+  static final KubernetesUnversionedArtifactConverter INSTANCE =
+      new KubernetesUnversionedArtifactConverter();
+
+  private KubernetesUnversionedArtifactConverter() {}
+
   @Override
   public Artifact toArtifact(
       ArtifactProvider provider, KubernetesManifest manifest, String account) {
@@ -39,15 +43,6 @@ public class KubernetesUnversionedArtifactConverter extends KubernetesArtifactCo
         .location(location)
         .reference(name)
         .metadata(metadata)
-        .build();
-  }
-
-  @Override
-  public KubernetesCoordinates toCoordinates(Artifact artifact) {
-    return KubernetesCoordinates.builder()
-        .kind(getKind(artifact))
-        .namespace(getNamespace(artifact))
-        .name(artifact.getName())
         .build();
   }
 

@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -31,8 +30,13 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+final class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
+  static final KubernetesVersionedArtifactConverter INSTANCE =
+      new KubernetesVersionedArtifactConverter();
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  private KubernetesVersionedArtifactConverter() {}
 
   @Override
   public Artifact toArtifact(
@@ -50,15 +54,6 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
         .version(version)
         .reference(getDeployedName(name, version))
         .metadata(metadata)
-        .build();
-  }
-
-  @Override
-  public KubernetesCoordinates toCoordinates(Artifact artifact) {
-    return KubernetesCoordinates.builder()
-        .kind(getKind(artifact))
-        .name(getDeployedName(artifact))
-        .namespace(getNamespace(artifact))
         .build();
   }
 

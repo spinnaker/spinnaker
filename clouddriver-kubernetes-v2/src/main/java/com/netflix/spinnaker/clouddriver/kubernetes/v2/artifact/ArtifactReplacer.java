@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
@@ -83,7 +84,7 @@ public class ArtifactReplacer {
               }
 
               boolean accountMatches;
-              String artifactAccount = KubernetesArtifactConverter.getAccount(a);
+              String artifactAccount = getAccount(a);
               // If the artifact fails to provide an account, we'll assume this was unintentional
               // and match anyways
               accountMatches =
@@ -92,6 +93,15 @@ public class ArtifactReplacer {
               return accountMatches && locationMatches;
             })
         .collect(toImmutableList());
+  }
+
+  private static String getAccount(Artifact artifact) {
+    String account = "";
+    Map<String, Object> metadata = artifact.getMetadata();
+    if (metadata != null) {
+      account = (String) metadata.getOrDefault("account", "");
+    }
+    return account;
   }
 
   @Nonnull

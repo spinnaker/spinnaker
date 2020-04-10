@@ -21,8 +21,6 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.Kuberne
 
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CustomKubernetesHandlerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
@@ -35,10 +33,6 @@ import org.apache.commons.lang.StringUtils;
 public class KubernetesResourceProperties {
   private final KubernetesHandler handler;
   private final boolean versioned;
-  private final KubernetesVersionedArtifactConverter versionedConverter =
-      new KubernetesVersionedArtifactConverter();
-  private final KubernetesUnversionedArtifactConverter unversionedConverter =
-      new KubernetesUnversionedArtifactConverter();
 
   public KubernetesResourceProperties(KubernetesHandler handler, boolean versioned) {
     this.handler = handler;

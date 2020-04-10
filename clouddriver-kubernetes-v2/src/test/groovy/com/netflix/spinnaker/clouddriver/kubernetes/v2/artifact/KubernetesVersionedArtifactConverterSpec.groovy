@@ -39,7 +39,6 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
       .build()
 
     def converter = new KubernetesVersionedArtifactConverter()
-    converter.getKind(artifact) == kind
     converter.getDeployedName(artifact) == "$name-$version"
 
     where:

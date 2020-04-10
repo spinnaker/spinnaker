@@ -18,17 +18,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
+@Value
 public class KubernetesCoordinates {
-  KubernetesKind kind;
-  String namespace;
-  String name;
+  private final KubernetesKind kind;
+  private final String namespace;
+  private final String name;
 }

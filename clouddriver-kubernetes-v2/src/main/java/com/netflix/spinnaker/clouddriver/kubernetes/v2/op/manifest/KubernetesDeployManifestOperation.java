@@ -159,9 +159,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
 
       KubernetesArtifactConverter converter =
-          isVersioned(properties, strategy)
-              ? properties.getVersionedConverter()
-              : properties.getUnversionedConverter();
+          KubernetesArtifactConverter.getInstance(isVersioned(properties, strategy));
       KubernetesHandler deployer = properties.getHandler();
 
       Moniker moniker = cloneMoniker(description.getMoniker());

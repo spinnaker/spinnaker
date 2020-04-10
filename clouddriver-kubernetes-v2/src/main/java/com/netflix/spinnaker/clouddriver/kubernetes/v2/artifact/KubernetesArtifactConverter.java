@@ -18,49 +18,26 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.Map;
 
 public abstract class KubernetesArtifactConverter {
+  // Prevent subclassing from outside the package
+  KubernetesArtifactConverter() {}
+
+  public static KubernetesArtifactConverter getInstance(boolean versioned) {
+    return versioned
+        ? KubernetesVersionedArtifactConverter.INSTANCE
+        : KubernetesUnversionedArtifactConverter.INSTANCE;
+  }
+
   public abstract Artifact toArtifact(
       ArtifactProvider artifactProvider, KubernetesManifest manifest, String account);
 
-  public abstract KubernetesCoordinates toCoordinates(Artifact artifact);
-
   public abstract String getDeployedName(Artifact artifact);
 
-  protected String getType(KubernetesManifest manifest) {
+  protected final String getType(KubernetesManifest manifest) {
     return String.join("/", KubernetesCloudProvider.ID, manifest.getKind().toString());
-  }
-
-  protected KubernetesKind getKind(Artifact artifact) {
-    String[] split = artifact.getType().split("/", -1);
-    if (split.length != 2) {
-      throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
-    }
-
-    if (!split[0].equals(KubernetesCloudProvider.ID)) {
-      throw new IllegalArgumentException("Not a kubernetes artifact: " + artifact);
-    }
-
-    return KubernetesKind.fromString(split[1]);
-  }
-
-  protected String getNamespace(Artifact artifact) {
-    return artifact.getLocation();
-  }
-
-  public static String getAccount(Artifact artifact) {
-    String account = "";
-    Map<String, Object> metadata = artifact.getMetadata();
-    if (metadata != null) {
-      account = (String) metadata.getOrDefault("account", "");
-    }
-
-    return account;
   }
 }
