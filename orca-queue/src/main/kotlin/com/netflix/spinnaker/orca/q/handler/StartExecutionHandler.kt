@@ -31,14 +31,14 @@ import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
+import java.time.Clock
+import java.time.Instant
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
-import java.time.Instant
 
 @Component
 class StartExecutionHandler(

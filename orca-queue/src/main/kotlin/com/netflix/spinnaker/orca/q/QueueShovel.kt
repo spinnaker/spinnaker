@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.q
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.Queue
+import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
-import javax.annotation.PostConstruct
 
 /**
  * The QueueShovel can be used to migrate from one queue implementation to another without an

@@ -24,12 +24,12 @@ import com.netflix.spinnaker.orca.kayenta.pipeline.KayentaCanaryStage
 import com.netflix.spinnaker.orca.kayenta.pipeline.RunCanaryPipelineStage
 import com.netflix.spinnaker.spek.values
 import com.netflix.spinnaker.spek.where
+import java.time.Duration
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import java.time.Duration
-import java.util.UUID
 
 object AggregateCanaryResultsTaskSpec : Spek({
 

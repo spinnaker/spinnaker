@@ -26,10 +26,10 @@ import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
+import java.time.Clock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class RestartStageHandler(

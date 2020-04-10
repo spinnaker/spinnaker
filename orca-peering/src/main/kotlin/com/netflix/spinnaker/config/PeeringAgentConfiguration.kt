@@ -20,18 +20,18 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.peering.ExecutionCopier
-import com.netflix.spinnaker.orca.peering.PeeringAgent
 import com.netflix.spinnaker.orca.peering.MySqlRawAccess
+import com.netflix.spinnaker.orca.peering.PeeringAgent
 import com.netflix.spinnaker.orca.peering.PeeringMetrics
 import com.netflix.spinnaker.orca.peering.SqlRawAccess
+import java.util.concurrent.Executors
+import javax.naming.ConfigurationException
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.util.concurrent.Executors
-import javax.naming.ConfigurationException
 
 @Configuration
 /**

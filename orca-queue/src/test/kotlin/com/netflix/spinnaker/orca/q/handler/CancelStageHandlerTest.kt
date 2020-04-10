@@ -17,19 +17,19 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.google.common.util.concurrent.MoreExecutors
+import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.DefaultStageResolver
-import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CancelStage

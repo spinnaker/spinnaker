@@ -30,6 +30,10 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
 import com.netflix.spinnaker.time.fixedClock
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.ChronoUnit.HOURS
+import java.util.UUID.randomUUID
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -41,10 +45,6 @@ import retrofit.Endpoints.newFixedEndpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.OkClient
-import java.time.Duration
-import java.time.Instant
-import java.time.temporal.ChronoUnit.HOURS
-import java.util.UUID.randomUUID
 
 object KayentaServiceTest : Spek({
 

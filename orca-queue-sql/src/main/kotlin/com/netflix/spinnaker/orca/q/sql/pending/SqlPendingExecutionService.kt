@@ -15,16 +15,16 @@ import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import de.huxhorn.sulky.ulid.ULID
+import java.lang.Exception
+import java.time.Clock
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import org.jooq.DSLContext
 import org.jooq.SortField
 import org.jooq.SortOrder
 import org.jooq.impl.DSL
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.Exception
-import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 class SqlPendingExecutionService(
   private val shard: String?,

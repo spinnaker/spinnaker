@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.peering
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
-import org.jooq.impl.DSL
-import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.Callable
@@ -28,6 +26,8 @@ import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.min
+import org.jooq.impl.DSL
+import org.slf4j.LoggerFactory
 
 open class ExecutionCopier(
   /**

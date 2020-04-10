@@ -20,14 +20,19 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
-import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.ExecutionLevel
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.ChronoUnit.MINUTES
+import java.util.Optional
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -39,11 +44,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import rx.Scheduler
 import rx.schedulers.Schedulers
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-import java.time.temporal.ChronoUnit.MINUTES
-import java.util.Optional
 
 /**
  * Monitors a queue and generates Atlas metrics.

@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import java.sql.ResultSet
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
-import java.sql.ResultSet
 
 /**
  * Converts a SQL [ResultSet] into an Execution.

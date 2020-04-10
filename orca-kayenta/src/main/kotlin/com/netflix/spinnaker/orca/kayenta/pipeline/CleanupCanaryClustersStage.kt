@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.kayenta.ServerGroupSpec
 import com.netflix.spinnaker.orca.kayenta.cluster
 import com.netflix.spinnaker.orca.kayenta.deployments
 import com.netflix.spinnaker.orca.kayenta.regions
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import org.springframework.stereotype.Component
 

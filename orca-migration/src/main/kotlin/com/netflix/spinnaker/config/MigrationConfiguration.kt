@@ -20,12 +20,12 @@ import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.DualExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.migration.OrchestrationMigrationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.migration.PipelineMigrationAgent
+import java.util.Optional
 import org.springframework.beans.factory.BeanInitializationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.util.Optional
 
 @Configuration
 class MigrationConfiguration {

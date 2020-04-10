@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTE
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent.AGENT_MDC_KEY
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import java.util.concurrent.atomic.AtomicBoolean
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -29,7 +30,6 @@ import org.springframework.beans.factory.BeanInitializationException
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Marker interface if someone wants to override the default promoter.

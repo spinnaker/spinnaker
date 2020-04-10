@@ -16,21 +16,21 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageInput
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageOutput
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.RestartStage
@@ -56,11 +56,6 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
-import org.jetbrains.spek.subject.SubjectSpek
 import java.time.temporal.ChronoUnit.HOURS
 import java.time.temporal.ChronoUnit.MINUTES
 import kotlin.collections.contains
@@ -73,6 +68,11 @@ import kotlin.collections.map
 import kotlin.collections.mapOf
 import kotlin.collections.set
 import kotlin.collections.setOf
+import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
+import org.jetbrains.spek.subject.SubjectSpek
 
 object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 

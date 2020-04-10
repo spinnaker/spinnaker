@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -24,14 +25,13 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.REDIRECT
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.DefaultStageResolver
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
-import com.netflix.spinnaker.orca.events.TaskComplete
-import com.netflix.spinnaker.orca.api.test.pipeline
-import com.netflix.spinnaker.orca.api.test.stage
-import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.orca.events.TaskComplete
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor

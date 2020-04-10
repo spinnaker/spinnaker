@@ -15,16 +15,16 @@
  */
 package com.netflix.spinnaker.orca.q.admin
 
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.TaskResolver
-import com.netflix.spinnaker.orca.ext.beforeStages
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.CompleteExecution
@@ -51,6 +51,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import java.time.Instant
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -59,7 +60,6 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.subject.SubjectSpek
 import rx.Observable
-import java.time.Instant
 
 object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
 

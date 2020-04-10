@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.events.ExecutionComplete
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.RescheduleExecution

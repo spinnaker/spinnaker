@@ -19,19 +19,19 @@ package com.netflix.spinnaker.orca.keel.task
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.SourceCodeTrigger
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.igor.ScmService
+import java.net.URL
+import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import java.net.URL
-import java.util.concurrent.TimeUnit
 
 /**
  * Task that retrieves a Managed Delivery config manifest from source control via igor, then publishes it to keel,

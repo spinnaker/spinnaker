@@ -27,10 +27,10 @@ import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.q.Queue
+import java.time.Clock
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class AbortStageHandler(

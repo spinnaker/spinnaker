@@ -27,6 +27,12 @@ import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -35,21 +41,15 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.ext.withTask
-import com.netflix.spinnaker.orca.api.test.pipeline
-import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.listeners.DelegatingApplicationEventMulticaster
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -68,6 +68,11 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant.now
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit.HOURS
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -87,11 +92,6 @@ import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.context.junit4.SpringRunner
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant.now
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit.HOURS
 
 @SpringBootTest(
   classes = [TestConfig::class],

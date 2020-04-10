@@ -19,14 +19,14 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 @ConditionalOnProperty("monitor.active-executions.redis", havingValue = "false")

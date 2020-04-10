@@ -36,16 +36,16 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import java.time.Instant.now
+import java.util.Random
+import java.util.UUID
+import kotlin.math.absoluteValue
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
-import java.time.Instant.now
-import java.util.Random
-import java.util.UUID
-import kotlin.math.absoluteValue
 
 object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHandler>({
 

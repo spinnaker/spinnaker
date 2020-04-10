@@ -17,13 +17,13 @@ package com.netflix.spinnaker.orca.sql
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.q.Activator
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Continually performs writes to the SQL backend in order to detect master

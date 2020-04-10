@@ -39,9 +39,9 @@ import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.TaskLevel
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
+import java.time.Duration
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.Duration
 
 internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   companion object {

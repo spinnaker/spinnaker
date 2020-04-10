@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.events.TaskStarted
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
@@ -26,10 +26,10 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.q.Queue
+import java.time.Clock
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class StartTaskHandler(

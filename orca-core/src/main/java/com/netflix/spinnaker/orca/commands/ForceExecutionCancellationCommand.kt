@@ -20,8 +20,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import org.slf4j.LoggerFactory
 import java.time.Clock
+import org.slf4j.LoggerFactory
 
 /**
  * When an [PipelineExecution] is zombied and cannot be rehydrated back onto the queue, this

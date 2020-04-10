@@ -28,9 +28,9 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateConfigurationSchemaValidator
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
+import java.util.stream.Collectors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.util.stream.Collectors
 
 @Component
 class V1SchemaHandlerGroup

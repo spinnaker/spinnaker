@@ -17,6 +17,12 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
@@ -25,26 +31,20 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageInput
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageOutput
 import com.netflix.spinnaker.orca.api.simplestage.SimpleStageStatus
-import com.netflix.spinnaker.orca.events.StageComplete
-import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
-import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
+import com.netflix.spinnaker.orca.events.StageComplete
+import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -83,6 +83,7 @@ import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import java.time.Duration.ZERO
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.jetbrains.spek.api.dsl.context
@@ -93,7 +94,6 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
-import java.time.Duration.ZERO
 
 object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 

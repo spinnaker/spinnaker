@@ -24,10 +24,10 @@ import com.netflix.spinnaker.orca.q.pending.InMemoryPendingExecutionService
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.netflix.spinnaker.q.metrics.EventPublisher
+import java.time.Clock
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
-import java.time.Clock
 
 /**
  * Configuration for Orca integration tests, configuring the application to

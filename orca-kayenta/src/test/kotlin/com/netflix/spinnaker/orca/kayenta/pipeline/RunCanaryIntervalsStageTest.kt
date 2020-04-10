@@ -16,24 +16,24 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
-import com.netflix.spinnaker.orca.ext.mapTo
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.kayenta.CanaryScope
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.values
 import com.netflix.spinnaker.spek.where
 import com.netflix.spinnaker.time.fixedClock
+import java.time.Duration
+import java.time.temporal.ChronoUnit.HOURS
+import java.time.temporal.ChronoUnit.MINUTES
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
-import java.time.Duration
-import java.time.temporal.ChronoUnit.HOURS
-import java.time.temporal.ChronoUnit.MINUTES
 
 object RunCanaryIntervalsStageTest : Spek({
 

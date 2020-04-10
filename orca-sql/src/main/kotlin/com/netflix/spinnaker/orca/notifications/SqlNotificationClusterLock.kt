@@ -20,12 +20,12 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.vavr.control.Try
+import java.time.Clock
+import java.time.Duration
 import org.jooq.DSLContext
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import java.time.Duration
 
 class SqlNotificationClusterLock(
   private val jooq: DSLContext,

@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import org.springframework.core.Ordered
 import java.util.function.Supplier
+import org.springframework.core.Ordered
 
 /**
  * The BufferStateSupplier is responsible for actuating the overall state of the QoS system.

@@ -36,12 +36,12 @@ import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.Queue
+import java.time.Duration
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 @Component
 class CompleteExecutionHandler(

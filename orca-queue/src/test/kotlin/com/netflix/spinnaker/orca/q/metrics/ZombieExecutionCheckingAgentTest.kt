@@ -21,9 +21,9 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.q.Activator
@@ -37,6 +37,10 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import java.time.Duration
+import java.time.Instant.now
+import java.time.temporal.ChronoUnit.HOURS
+import java.util.Optional
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
@@ -45,10 +49,6 @@ import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import rx.Observable.just
 import rx.schedulers.Schedulers
-import java.time.Duration
-import java.time.Instant.now
-import java.time.temporal.ChronoUnit.HOURS
-import java.util.Optional
 
 object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAgent>({
 

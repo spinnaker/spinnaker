@@ -48,6 +48,9 @@ import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.q.sql.SqlQueue
 import de.huxhorn.sulky.ulid.ULID
+import java.time.Clock
+import java.time.Duration
+import java.util.Optional
 import org.jooq.DSLContext
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,9 +58,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit4.SpringRunner
-import java.time.Clock
-import java.time.Duration
-import java.util.Optional
 
 @Configuration
 class SqlTestConfig {

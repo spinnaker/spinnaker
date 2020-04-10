@@ -18,6 +18,11 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.orca.DefaultStageResolver
+import com.netflix.spinnaker.orca.TaskExecutionInterceptor
+import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.pipeline.Task
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
@@ -26,30 +31,25 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.DefaultStageResolver
-import com.netflix.spinnaker.orca.TaskExecutionInterceptor
-import com.netflix.spinnaker.orca.TaskResolver
-import com.netflix.spinnaker.orca.api.pipeline.Task
-import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
-import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.api.test.pipeline
-import com.netflix.spinnaker.orca.api.test.stage
-import com.netflix.spinnaker.orca.api.test.task
-import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
-import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution.PausedDetails
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
+import com.netflix.spinnaker.orca.api.test.pipeline
+import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.orca.api.test.task
+import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl.STAGE_TIMEOUT_OVERRIDE_KEY
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CompleteTask
-import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.DummyCloudProviderAwareTask
+import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.DummyTimeoutOverrideTask
 import com.netflix.spinnaker.orca.q.InvalidTask
 import com.netflix.spinnaker.orca.q.InvalidTaskType
@@ -72,14 +72,6 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
-import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
-import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
-import org.jetbrains.spek.subject.SubjectSpek
-import org.threeten.extra.Minutes
 import java.time.Duration
 import kotlin.collections.first
 import kotlin.collections.forEach
@@ -89,6 +81,14 @@ import kotlin.collections.mapOf
 import kotlin.collections.set
 import kotlin.collections.setOf
 import kotlin.reflect.jvm.jvmName
+import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
+import org.jetbrains.spek.subject.SubjectSpek
+import org.threeten.extra.Minutes
 
 object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 

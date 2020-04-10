@@ -19,23 +19,23 @@ package com.netflix.spinnaker.orca.kayenta.pipeline
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kayenta.CanaryScope
 import com.netflix.spinnaker.orca.kayenta.CanaryScopes
 import com.netflix.spinnaker.orca.kayenta.KayentaCanaryContext
 import com.netflix.spinnaker.orca.kayenta.RunCanaryContext
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.HashMap
+import org.springframework.stereotype.Component
 
 @Component
 class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder {

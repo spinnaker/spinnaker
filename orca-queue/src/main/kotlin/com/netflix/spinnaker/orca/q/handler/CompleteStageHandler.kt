@@ -47,9 +47,6 @@ import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.appendAfterStages
 import com.netflix.spinnaker.orca.q.buildAfterStages
 import com.netflix.spinnaker.q.Queue
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.ApplicationEventPublisher
-import org.springframework.stereotype.Component
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import kotlin.collections.List
@@ -67,6 +64,9 @@ import kotlin.collections.plus
 import kotlin.collections.set
 import kotlin.collections.setOf
 import kotlin.collections.toList
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.stereotype.Component
 
 @Component
 class CompleteStageHandler(

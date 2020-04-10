@@ -20,10 +20,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.ResumeStage
 import com.netflix.spinnaker.orca.q.ResumeTask

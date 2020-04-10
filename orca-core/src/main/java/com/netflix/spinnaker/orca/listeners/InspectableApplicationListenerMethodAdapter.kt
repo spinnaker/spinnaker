@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.listeners
 
-import org.springframework.context.event.ApplicationListenerMethodAdapter
 import java.lang.reflect.Method
+import org.springframework.context.event.ApplicationListenerMethodAdapter
 
 class InspectableApplicationListenerMethodAdapter(
   beanName: String,

@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.orca.sql
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
 import org.jooq.ExecuteContext
 import org.jooq.impl.DefaultExecuteListener
 import org.slf4j.LoggerFactory
-import java.util.regex.Pattern
-import java.util.regex.PatternSyntaxException
 
 /**
  * Simple query logger, for when you don't/can't run general query logging in prod (looking at you, Aurora).

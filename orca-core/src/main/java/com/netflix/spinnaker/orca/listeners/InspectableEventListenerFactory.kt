@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.orca.listeners
 
+import java.lang.reflect.Method
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.DefaultEventListenerFactory
-import java.lang.reflect.Method
 
 class InspectableEventListenerFactory : DefaultEventListenerFactory() {
 

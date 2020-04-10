@@ -17,17 +17,17 @@
 package com.netflix.spinnaker.orca.q
 
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.q.Message
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
-import java.util.UUID
 
 internal object MessageCompatibilityTest : Spek({
 

@@ -31,6 +31,8 @@ import com.netflix.spinnaker.q.redis.RedisClusterDeadMessageHandler
 import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
 import com.netflix.spinnaker.q.redis.RedisQueue
+import java.time.Clock
+import java.util.Optional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -41,8 +43,6 @@ import org.springframework.context.annotation.Primary
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.util.Pool
-import java.time.Clock
-import java.util.Optional
 
 @Configuration
 @EnableConfigurationProperties(ObjectMapperSubtypeProperties::class)

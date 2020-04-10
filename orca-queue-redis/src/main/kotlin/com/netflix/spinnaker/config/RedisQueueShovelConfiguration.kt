@@ -27,6 +27,10 @@ import com.netflix.spinnaker.q.migration.SerializationMigrator
 import com.netflix.spinnaker.q.redis.AbstractRedisQueue
 import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisQueue
+import java.net.URI
+import java.time.Clock
+import java.time.Duration
+import java.util.Optional
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.BeanInitializationException
 import org.springframework.beans.factory.annotation.Qualifier
@@ -41,10 +45,6 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.Protocol
 import redis.clients.jedis.util.Pool
-import java.net.URI
-import java.time.Clock
-import java.time.Duration
-import java.util.Optional
 
 @Configuration
 @ConditionalOnProperty(value = ["queue.redis.enabled"], matchIfMissing = true)

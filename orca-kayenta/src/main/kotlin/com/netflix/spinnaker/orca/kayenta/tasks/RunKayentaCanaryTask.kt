@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.kayenta.tasks
 
 import com.netflix.spinnaker.kork.exceptions.UserException
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.Task
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.kayenta.CanaryExecutionRequest
 import com.netflix.spinnaker.orca.kayenta.KayentaService

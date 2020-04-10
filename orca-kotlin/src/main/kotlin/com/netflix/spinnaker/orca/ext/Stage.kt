@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.ext
 
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
@@ -26,8 +28,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_AFTER
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 
 /**
  * @return the stage's first before stage or `null` if there are none.

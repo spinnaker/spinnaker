@@ -16,21 +16,21 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.TaskResolver
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.q.Queue
+import java.util.concurrent.Executor
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import java.util.concurrent.Executor
 
 @Component
 class CancelStageHandler(

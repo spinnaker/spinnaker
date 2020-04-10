@@ -39,11 +39,11 @@ import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.orca.q.get
 import com.netflix.spinnaker.orca.q.metrics.MetricsTagHelper
 import com.netflix.spinnaker.q.Queue
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
-import java.util.concurrent.TimeUnit
 
 @Component
 class CompleteTaskHandler(

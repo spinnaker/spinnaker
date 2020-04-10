@@ -16,23 +16,23 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.ext.allAfterStagesComplete
 import com.netflix.spinnaker.orca.ext.allBeforeStagesSuccessful
 import com.netflix.spinnaker.orca.ext.anyBeforeStagesFailed
 import com.netflix.spinnaker.orca.ext.hasTasks
-import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.ContinueParentStage
 import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.q.Queue
+import java.time.Duration
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 @Component
 class ContinueParentStageHandler(

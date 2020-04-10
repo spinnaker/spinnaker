@@ -19,10 +19,10 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
-import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.max
+import org.slf4j.LoggerFactory
 
 /**
  * The orca agent that performs peering of executions across different orca DBs

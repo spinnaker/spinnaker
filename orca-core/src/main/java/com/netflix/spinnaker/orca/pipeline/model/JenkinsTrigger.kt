@@ -119,5 +119,6 @@ constructor(
       url: String,
       result: String,
       artifacts: List<JenkinsArtifact> = emptyList(),
-      scm: List<SourceControl> = emptyList()) : this(name, number, url, result, artifacts, scm, false, null)
+      scm: List<SourceControl> = emptyList()
+    ) : this(name, number, url, result, artifacts, scm, false, null)
 }

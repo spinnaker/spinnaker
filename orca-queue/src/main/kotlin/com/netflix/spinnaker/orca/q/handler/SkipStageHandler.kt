@@ -28,10 +28,10 @@ import com.netflix.spinnaker.orca.ext.recursiveSyntheticStages
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.SkipStage
 import com.netflix.spinnaker.q.Queue
+import java.time.Clock
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class SkipStageHandler(

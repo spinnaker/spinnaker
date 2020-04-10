@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.nhaarman.mockito_kotlin.any

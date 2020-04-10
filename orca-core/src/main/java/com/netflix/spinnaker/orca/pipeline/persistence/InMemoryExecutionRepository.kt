@@ -23,10 +23,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import rx.Observable
 import java.lang.System.currentTimeMillis
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import rx.Observable
 
 class InMemoryExecutionRepository : ExecutionRepository {
 

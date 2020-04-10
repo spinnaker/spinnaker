@@ -6,13 +6,13 @@ import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Message
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
+import java.util.UUID
 import org.assertj.core.api.Assertions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.subject.SubjectSpek
-import java.util.UUID
 
 object PendingExecutionServiceTest : SubjectSpek<PendingExecutionService>({
 

@@ -20,6 +20,10 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import java.time.Clock
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.atomic.AtomicInteger
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
@@ -27,10 +31,6 @@ import org.jooq.impl.DSL.table
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
-import java.time.Clock
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 @ConditionalOnExpression("\${pollers.old-pipeline-cleanup.enabled:false} && \${execution-repository.sql.enabled:false}")
