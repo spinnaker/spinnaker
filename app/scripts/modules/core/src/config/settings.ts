@@ -51,7 +51,6 @@ export interface IFeatures {
   travis?: boolean;
   wercker?: boolean;
   savePipelinesStageEnabled?: boolean;
-  kustomizeEnabled?: boolean;
   functions?: boolean;
 }
 
