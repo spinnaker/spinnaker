@@ -21,6 +21,7 @@ import com.netflix.spinnaker.tomcat.TomcatContainerCustomizerUtil
 import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import groovy.util.logging.Slf4j
 import org.apache.catalina.connector.Connector
+import org.apache.coyote.http11.Http11NioProtocol
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.embedded.tomcat.SslConnectorCustomizer
@@ -79,6 +80,8 @@ class TomcatConfiguration {
         def httpConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
         httpConnector.scheme = "http"
         httpConnector.port = tomcatConfigurationProperties.legacyServerPort
+
+        applyCompressionSettings(httpConnector, tomcat)
         tomcat.addAdditionalTomcatConnectors(httpConnector)
       }
 
@@ -88,6 +91,8 @@ class TomcatConfiguration {
         apiConnector.scheme = "https"
         apiConnector.port = tomcatConfigurationProperties.apiPort
 
+        applyCompressionSettings(apiConnector, tomcat)
+
         def ssl = tomcatContainerCustomizerUtil.copySslConfigurationWithClientAuth(tomcat)
         def sslCustomizer = new SslConnectorCustomizer(ssl, tomcat.getSslStoreProvider())
         sslCustomizer.customize(apiConnector)
@@ -96,5 +101,22 @@ class TomcatConfiguration {
         tomcat.addAdditionalTomcatConnectors(apiConnector)
       }
     } as WebServerFactoryCustomizer
+  }
+
+  /**
+   * Apply compression setting to the protocol of the given connector
+   * Spring will configure the main connector with compression settings from `server:` settings in YAML,
+   * but for secondary connectors we have to do that ourselves. Use the config from the default connector
+   */
+  private static applyCompressionSettings(Connector connector, TomcatServletWebServerFactory tomcat) {
+    Http11NioProtocol protocol = (Http11NioProtocol)connector.getProtocolHandler()
+
+    if (tomcat.getCompression().getEnabled()) {
+      protocol.setCompression("on")
+      protocol.setCompressibleMimeType(tomcat.getCompression().getMimeTypes().join(","))
+      protocol.setCompressionMinSize((int)tomcat.getCompression().minResponseSize.toBytes())
+    } else {
+      protocol.setCompression("off")
+    }
   }
 }
