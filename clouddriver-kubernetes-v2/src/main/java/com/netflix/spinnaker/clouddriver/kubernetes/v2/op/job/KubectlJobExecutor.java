@@ -50,6 +50,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class KubectlJobExecutor {
+  private static final String NOT_FOUND_STRING = "(NotFound)";
   private final JobExecutor jobExecutor;
   private final String executable;
   private final String oAuthExecutable;
@@ -381,7 +382,7 @@ public class KubectlJobExecutor {
     JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
-      if (status.getError().contains("(NotFound)")) {
+      if (status.getError().contains(NOT_FOUND_STRING)) {
         return null;
       }
 
@@ -495,6 +496,9 @@ public class KubectlJobExecutor {
             new JobRequest(command, new ByteArrayInputStream(manifestAsJson.getBytes())));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
+      if (status.getError().contains(NOT_FOUND_STRING)) {
+        throw new KubectlNotFoundException("Replace failed: " + status.getError());
+      }
       throw new KubectlException("Replace failed: " + status.getError());
     }
 
@@ -764,12 +768,18 @@ public class KubectlJobExecutor {
   }
 
   public static class KubectlException extends RuntimeException {
-    KubectlException(String message) {
+    public KubectlException(String message) {
       super(message);
     }
 
     public KubectlException(String message, Throwable cause) {
       super(message, cause);
+    }
+  }
+
+  public static class KubectlNotFoundException extends KubectlException {
+    public KubectlNotFoundException(String message) {
+      super(message);
     }
   }
 }

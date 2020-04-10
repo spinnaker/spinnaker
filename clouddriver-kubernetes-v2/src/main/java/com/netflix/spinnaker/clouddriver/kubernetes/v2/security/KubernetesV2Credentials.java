@@ -52,6 +52,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
@@ -468,12 +469,20 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         () -> jobExecutor.deploy(this, manifest));
   }
 
-  public KubernetesManifest replace(KubernetesManifest manifest) {
+  private KubernetesManifest replace(KubernetesManifest manifest) {
     return runAndRecordMetrics(
         "replace",
         manifest.getKind(),
         manifest.getNamespace(),
         () -> jobExecutor.replace(this, manifest));
+  }
+
+  public KubernetesManifest createOrReplace(KubernetesManifest manifest) {
+    try {
+      return replace(manifest);
+    } catch (KubectlNotFoundException e) {
+      return create(manifest);
+    }
   }
 
   public KubernetesManifest create(KubernetesManifest manifest) {

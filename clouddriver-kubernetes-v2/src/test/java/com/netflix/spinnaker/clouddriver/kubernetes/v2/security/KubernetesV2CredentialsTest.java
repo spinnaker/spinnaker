@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonSyntaxException;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.ManualClock;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spectator.api.Timer;
@@ -41,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestN
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
@@ -361,6 +363,32 @@ final class KubernetesV2CredentialsTest {
                     ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET),
                     NAMESPACE))
         .isEqualTo(cause);
+  }
+
+  @Test
+  void replaceWhenResourceExists() {
+    KubernetesManifest manifest = getManifest();
+    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    KubernetesV2Credentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    when(jobExecutor.create(credentials, manifest))
+        .thenThrow(new KubectlException("Create failed: Error from server (AlreadyExists)"));
+    when(jobExecutor.replace(credentials, manifest)).thenReturn(manifest);
+
+    KubernetesManifest result = credentials.createOrReplace(getManifest());
+    assertThat(result).isEqualTo(manifest);
+  }
+
+  @Test
+  void replaceWhenResourceDoesNotExist() {
+    KubernetesManifest manifest = getManifest();
+    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    KubernetesV2Credentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    when(jobExecutor.replace(credentials, manifest))
+        .thenThrow(new KubectlNotFoundException("Not found"));
+    when(jobExecutor.create(credentials, manifest)).thenReturn(manifest);
+
+    KubernetesManifest result = credentials.createOrReplace(getManifest());
+    assertThat(result).isEqualTo(manifest);
   }
 
   // This is an error type that will only ever be thrown by stubs in this test; that way we can

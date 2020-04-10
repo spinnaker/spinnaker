@@ -61,9 +61,9 @@ final class CanDeployTest {
   void replaceMutations() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.replace(manifest)).thenReturn(manifest);
+    when(credentials.createOrReplace(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
-    verify(credentials).replace(manifest);
+    verify(credentials).createOrReplace(manifest);
     verifyNoMoreInteractions(credentials);
   }
 
@@ -71,7 +71,7 @@ final class CanDeployTest {
   void replaceReturnValue() {
     KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
-    when(credentials.replace(manifest)).thenReturn(manifest);
+    when(credentials.createOrReplace(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }

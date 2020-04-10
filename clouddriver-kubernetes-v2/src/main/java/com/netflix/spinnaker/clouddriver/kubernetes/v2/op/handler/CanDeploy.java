@@ -52,7 +52,7 @@ public interface CanDeploy {
         deployedManifest = credentials.deploy(manifest);
         break;
       case REPLACE:
-        deployedManifest = credentials.replace(manifest);
+        deployedManifest = credentials.createOrReplace(manifest);
         break;
       case APPLY:
         deployedManifest = credentials.deploy(manifest);
