@@ -23,6 +23,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -35,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
 import io.kubernetes.client.openapi.models.V1Service;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,10 +103,14 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     }
   }
 
-  private Map<String, String> getSelector(KubernetesManifest manifest) {
+  @Nonnull
+  private ImmutableMap<String, String> getSelector(KubernetesManifest manifest) {
     if (manifest.getApiVersion().equals(V1)) {
       V1Service v1Service = KubernetesCacheDataConverter.getResource(manifest, V1Service.class);
-      return v1Service.getSpec().getSelector();
+      if (v1Service.getSpec() == null || v1Service.getSpec().getSelector() == null) {
+        return ImmutableMap.of();
+      }
+      return ImmutableMap.copyOf(v1Service.getSpec().getSelector());
     } else {
       throw new IllegalArgumentException(
           "No services with version " + manifest.getApiVersion() + " supported");
@@ -118,8 +124,8 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
 
   private Set<KubernetesManifest> intersectLabels(
       KubernetesManifest service, Map<String, Set<KubernetesManifest>> mapLabelToManifest) {
-    Map<String, String> selector = getSelector(service);
-    if (selector == null || selector.isEmpty()) {
+    ImmutableMap<String, String> selector = getSelector(service);
+    if (selector.isEmpty()) {
       return new HashSet<>();
     }
 
@@ -174,7 +180,15 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   @Override
   public void attach(KubernetesManifest loadBalancer, KubernetesManifest target) {
     Map<String, String> labels = target.getSpecTemplateLabels().orElse(target.getLabels());
-    Map<String, String> selector = getSelector(loadBalancer);
+    ImmutableMap<String, String> selector = getSelector(loadBalancer);
+    if (selector.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Service must have a non-empty selector in order to be attached to a workload");
+    }
+    if (!Collections.disjoint(labels.keySet(), selector.keySet())) {
+      throw new IllegalArgumentException(
+          "Service selector must have no label keys in common with target workload");
+    }
     labels.putAll(selector);
   }
 
