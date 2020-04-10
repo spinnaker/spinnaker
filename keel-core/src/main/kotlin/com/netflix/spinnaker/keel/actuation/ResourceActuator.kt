@@ -34,6 +34,7 @@ import com.netflix.spinnaker.keel.veto.VetoResponse
 import java.time.Clock
 import java.util.UUID
 import kotlinx.coroutines.async
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -57,6 +58,7 @@ class ResourceActuator(
     withTracingContext(resource) {
       val coid = UUID.randomUUID().toString() // coroutine id for log messages to help debug #951
       val id = resource.id
+      log.debug("checkResource $id [$coid]")
       val plugin = handlers.supporting(resource.kind)
 
       if (actuationPauser.isPaused(resource)) {
@@ -72,7 +74,7 @@ class ResourceActuator(
       }
 
       try {
-        val (desired, current) = plugin.resolve(resource)
+        val (desired, current) = plugin.resolve(resource, coid)
         val diff = DefaultResourceDiff(desired, current)
         if (diff.hasChanges()) {
           diffFingerprintRepository.store(id, diff)
@@ -174,25 +176,37 @@ class ResourceActuator(
     }
   }
 
-  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<out ResourceSpec>): Pair<T, T?> =
+  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<out ResourceSpec>, coid: String): Pair<T, T?> =
     supervisorScope {
       val desired = async {
         try {
-          desired(resource)
+          log.debug("before desired: ${resource.id}: [$coid]")
+          val result = desired(resource)
+          log.debug("after desired: ${resource.id}: [$coid]")
+          result
         } catch (e: ResourceCurrentlyUnresolvable) {
           throw e
         } catch (e: Throwable) {
           throw CannotResolveDesiredState(resource.id, e)
         }
       }
-      val current = async {
+
+      // Trying single thread context to see if it works around https://github.com/spinnaker/keel/issues/951
+      val current = async(newSingleThreadContext("actuation.resolve.current")) {
         try {
-          current(resource)
+          log.debug("before current: ${resource.id}: [$coid]")
+          val result = current(resource)
+          log.debug("after current: ${resource.id}: [$coid]")
+          result
         } catch (e: Throwable) {
           throw CannotResolveCurrentState(resource.id, e)
         }
       }
-      desired.await() to current.await()
+
+      // make await() calls on separate lines so that a stack trace will indicate which one timed out
+      val d = desired.await()
+      val c = current.await()
+      d to c
     }
 
   /**
