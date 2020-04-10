@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.gate.filters.ContentCachingFilter
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
 
@@ -37,7 +38,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -92,13 +92,9 @@ public class GateWebConfig implements WebMvcConfigurer {
   }
 
   @Bean
-  Filter eTagFilter() {
-    // Note that this filter also sets the content-length for us, which we want so as not to produce a chunked response.
-    ShallowEtagHeaderFilter filter = new ShallowEtagHeaderFilter()
-
-    // Writing a weak ETag so that we still get a gzip'ed response
-    filter.setWriteWeakETag(true)
-    return filter
+  Filter contentCachingFilter() {
+    // This filter simply buffers the response so that Content-Length header can be set
+    return new ContentCachingFilter()
   }
 
   @Bean
