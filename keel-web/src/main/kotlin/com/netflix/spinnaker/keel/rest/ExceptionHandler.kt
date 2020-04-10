@@ -23,10 +23,12 @@ import java.time.format.DateTimeParseException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CONFLICT
+import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -75,6 +77,20 @@ class ExceptionHandler(
   fun onInvalidDeliveryConfig(e: ValidationException): ApiError {
     log.error(e.message)
     return ApiError(e)
+  }
+
+  @ExceptionHandler(AccessDeniedException::class)
+  @ResponseStatus(FORBIDDEN)
+  fun onAccessDenied(e: AccessDeniedException): ApiError {
+    log.error(e.message)
+    return ApiError(
+      if (e.message == null || e.message == "Access is denied") {
+        "Access denied. Please make sure you have access to the service account specified in your delivery config. " +
+          "If you do have access, check that the service account has access to this application along with all the cloud accounts included in the delivery config."
+      } else {
+        e.message!!
+      }
+    )
   }
 
   private fun JsonMappingException.toDetails(): ParsingErrorDetails {
@@ -157,9 +173,13 @@ data class ApiError(
 ) {
   constructor(ex: Throwable, details: ApiErrorDetails? = null) :
     this(ex.cause?.message ?: ex.message, details)
+  constructor(message: String) :
+    this(message, null)
 }
 
-enum class ParsingError {
+interface ApiErrorType
+
+enum class ParsingError : ApiErrorType {
   MISSING_PROPERTY,
   INVALID_TYPE,
   INVALID_FORMAT,
@@ -170,7 +190,9 @@ enum class ParsingError {
   fun toLowerCase() = name.toLowerCase()
 }
 
-interface ApiErrorDetails
+interface ApiErrorDetails {
+  val type: ApiErrorType
+}
 
 data class ParsingErrorDetails(
   val error: ParsingError,
@@ -178,6 +200,7 @@ data class ParsingErrorDetails(
   val location: Map<String, Int>,
   val path: List<Map<String, Any?>>
 ) : ApiErrorDetails {
+  override val type: ApiErrorType = error
   val pathExpression: String
   init {
     // Makes a JSONPath expression for the problem path
