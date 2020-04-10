@@ -27,19 +27,22 @@ class InMemoryDiffFingerprintRepository(
 ) : DiffFingerprintRepository {
   private val hashes: MutableMap<String, Record> = mutableMapOf()
 
-  override fun store(resourceId: String, diff: ResourceDiff<*>) {
-    val existing = hashes[resourceId]
+  override fun store(entityId: String, diff: ResourceDiff<*>) {
+    val existing = hashes[entityId]
     val hash = diff.generateHash()
 
     if (existing != null && hash == existing.hash) {
-      hashes[resourceId] = existing.copy(count = existing.count + 1)
+      hashes[entityId] = existing.copy(count = existing.count + 1)
     } else {
-      hashes[resourceId] = Record(hash, clock.instant())
+      hashes[entityId] = Record(hash, clock.instant())
     }
   }
 
-  override fun diffCount(resourceId: String): Int =
-    hashes[resourceId]?.count ?: 0
+  override fun diffCount(entityId: String): Int =
+    hashes[entityId]?.count ?: 0
+
+  override fun seen(entityId: String, diff: ResourceDiff<*>): Boolean =
+    hashes[entityId]?.hash == diff.generateHash()
 
   private data class Record(
     val hash: String,

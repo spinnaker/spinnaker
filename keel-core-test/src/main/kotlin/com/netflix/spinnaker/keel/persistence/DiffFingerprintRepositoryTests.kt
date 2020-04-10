@@ -26,6 +26,8 @@ import dev.minutest.rootContext
 import java.time.Clock
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 
 abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -60,6 +62,19 @@ abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : J
         subject.store(r.id, diff)
         subject.store(r.id, diff)
         expectThat(subject.diffCount(r.id)).isEqualTo(5)
+      }
+
+      test("has now seen this diff") {
+        val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
+        val diff2 = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "byeBYEbyeee"))
+        expectThat(subject.seen(r.id, diff)).isFalse()
+        expectThat(subject.seen(r.id, diff2)).isFalse()
+        subject.store(r.id, diff)
+        expectThat(subject.seen(r.id, diff)).isTrue()
+        expectThat(subject.seen(r.id, diff2)).isFalse()
+        subject.store(r.id, diff2)
+        expectThat(subject.seen(r.id, diff)).isFalse()
+        expectThat(subject.seen(r.id, diff2)).isTrue()
       }
 
       test("resets count when different hash") {

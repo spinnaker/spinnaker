@@ -11,8 +11,10 @@ import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
@@ -24,6 +26,7 @@ class ImageHandler(
   private val baseImageCache: BaseImageCache,
   private val igorService: ArtifactService,
   private val imageService: ImageService,
+  private val diffFingerprintRepository: DiffFingerprintRepository,
   private val publisher: ApplicationEventPublisher,
   private val taskLauncher: TaskLauncher,
   private val defaultCredentials: BakeCredentials
@@ -36,30 +39,33 @@ class ImageHandler(
           ArtifactCheckSkipped(artifact.type, artifact.name, "ActuationInProgress")
         )
       } else {
-        val latestVersion = artifact.findLatestArtifactVersion()
-        val latestBaseImageVersion = artifact.findLatestBaseAmiVersion()
-        val image = artifact.findLatestAmi()
+        val latestArtifactVersion = artifact.findLatestArtifactVersion()
+        val latestBaseAmiVersion = artifact.findLatestBaseAmiVersion()
 
-        if (image == null) {
-          log.debug("No image found for {}", artifact.name)
-        } else {
-          log.debug("Latest known {} version: {}", artifact.name, latestVersion)
-          log.debug("Latest baked {} version: {}", artifact.name, image.appVersion)
-          log.debug("Latest {} {} base AMI version: {}", artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel, latestBaseImageVersion)
-          log.debug("Latest baked {} base AMI version: {}", artifact.name, image.baseAmiVersion)
-        }
+        val desired = Image(latestBaseAmiVersion, latestArtifactVersion, artifact.vmOptions.regions)
+        val current = artifact.findLatestAmi()
+        val diff = DefaultResourceDiff(desired, current)
 
-        val versionsDiffer = image?.appVersion != latestVersion || image?.baseAmiVersion != latestBaseImageVersion
-        val regionsDiffer = !(image?.regions ?: emptySet()).containsAll(artifact.vmOptions.regions)
-        if (image == null || versionsDiffer || regionsDiffer) {
-          log.info("Versions or regions for {} differ, launching bake", artifact.name)
-          launchBake(artifact, latestVersion)
+        if (diff.hasChanges()) {
+          if (current == null) {
+            log.info("No AMI found for {}", artifact.name)
+          } else {
+            log.info("Image for {} delta: {}", artifact.name, diff.toDebug())
+          }
+
+          if (diffFingerprintRepository.seen("ami:${artifact.name}", diff)) {
+            log.warn("Artifact version {} and base AMI version {} were baked previously", latestArtifactVersion, latestBaseAmiVersion)
+            publisher.publishEvent(RecurrentBakeDetected(latestArtifactVersion, latestBaseAmiVersion))
+          } else {
+            launchBake(artifact, latestArtifactVersion)
+            diffFingerprintRepository.store("ami:${artifact.name}", diff)
+          }
         } else {
           log.debug("Existing image for {} is up-to-date", artifact.name)
         }
 
-        if (image != null && regionsDiffer) {
-          publisher.publishEvent(ImageRegionMismatchDetected(image, artifact.vmOptions.regions))
+        if (current != null && diff.affectedRootPropertyNames == setOf("regions")) {
+          publisher.publishEvent(ImageRegionMismatchDetected(current, artifact.vmOptions.regions))
         }
       }
     }
@@ -182,4 +188,5 @@ data class BakeCredentials(
 )
 
 data class ImageRegionMismatchDetected(val image: Image, val regions: Set<String>)
+data class RecurrentBakeDetected(val appVersion: String, val baseAmiVersion: String)
 data class BakeLaunched(val appVersion: String)

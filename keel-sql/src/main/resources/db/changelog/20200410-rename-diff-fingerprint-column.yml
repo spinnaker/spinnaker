@@ -1,0 +1,16 @@
+databaseChangeLog:
+- changeSet:
+    id: rename-diff-fingerprint-column
+    author: fletch
+    changes:
+    - renameColumn:
+        tableName: diff_fingerprint
+        oldColumnName: resource_id
+        newColumnName: entity_id
+        columnDataType: varchar(255)
+    rollback:
+    - renameColumn:
+        tableName: diff_fingerprint
+        oldColumnName: entity_id
+        newColumnName: resource_id
+        columnDataType: varchar(255)

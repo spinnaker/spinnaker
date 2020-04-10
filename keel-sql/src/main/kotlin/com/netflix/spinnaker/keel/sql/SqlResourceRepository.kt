@@ -308,7 +308,7 @@ open class SqlResourceRepository(
     }
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(DIFF_FINGERPRINT)
-        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(id))
+        .where(DIFF_FINGERPRINT.ENTITY_ID.eq(id))
         .execute()
     }
   }

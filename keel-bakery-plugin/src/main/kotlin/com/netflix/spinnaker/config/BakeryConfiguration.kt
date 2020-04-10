@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.bakery.artifact.BakeCredentials
 import com.netflix.spinnaker.keel.bakery.artifact.ImageHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -29,6 +30,7 @@ class BakeryConfiguration {
     clouddriverService: CloudDriverService,
     igorService: ArtifactService,
     imageService: ImageService,
+    diffFingerprintRepository: DiffFingerprintRepository,
     publisher: ApplicationEventPublisher,
     taskLauncher: TaskLauncher,
     @Value("\${bakery.defaults.serviceAccount:keel@spinnaker.io}") defaultServiceAccount: String,
@@ -38,6 +40,7 @@ class BakeryConfiguration {
     baseImageCache,
     igorService,
     imageService,
+    diffFingerprintRepository,
     publisher,
     taskLauncher,
     BakeCredentials(defaultServiceAccount, defaultApplication)

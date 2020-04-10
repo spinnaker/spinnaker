@@ -22,12 +22,14 @@ import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
 
 /**
- * Stores a hash of the diff
+ * Stores a hash of the diff.
  */
 interface DiffFingerprintRepository {
-  fun store(resourceId: String, diff: ResourceDiff<*>)
+  fun store(entityId: String, diff: ResourceDiff<*>)
 
-  fun diffCount(resourceId: String): Int
+  fun diffCount(entityId: String): Int
+
+  fun seen(entityId: String, diff: ResourceDiff<*>): Boolean
 
   fun ResourceDiff<*>.generateHash(): String {
     val bytes = MessageDigest
