@@ -45,7 +45,7 @@ interface KatoRestService {
                            @Path("cloudProvider") String cloudProvider,
                            @Body Collection<? extends Map<String, Map>> operations)
 
-  @POST("/applications/{app}/jobs/{account}/{region}/{id}")
+  @GET("/applications/{app}/jobs/{account}/{region}/{id}")
   Response collectJob(@Path("app") String app,
                       @Path("account") String account,
                       @Path("region") String region,
