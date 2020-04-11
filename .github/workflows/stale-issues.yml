@@ -14,12 +14,11 @@ jobs:
       # github release 0.1.0
       uses: gatsbyjs/stale@0dde19eb39fa2003923986adc3608c3e9178ebf3
       with:
-        DRY_RUN: true
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DAYS_BEFORE_STALE: 45
         DAYS_BEFORE_CLOSE: 45
         STALE_ISSUE_LABEL: 'to-be-closed'
-        OPERATIONS_PER_RUN: 30
+        OPERATIONS_PER_RUN: 50
         EXEMPT_ISSUE_LABELS: |
           beginner-friendly
           no-lifecycle
