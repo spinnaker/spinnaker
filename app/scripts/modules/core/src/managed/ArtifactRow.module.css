@@ -58,7 +58,7 @@
   margin-right: 2px;
 
   &.current {
-    background-color: #00b237;
+    background-color: var(--color-status-success);
   }
 
   &.approved {
@@ -66,19 +66,19 @@
   }
 
   &.deploying {
-    background-color: var(--color-status-info);
+    background-color: var(--color-status-progress);
   }
 
   &.pending {
-    background-color: var(--color-porcelain);
+    background-color: var(--color-status-inactive);
   }
 
   &.skipped {
-    background-color: var(--color-porcelain);
+    background-color: var(--color-status-inactive);
   }
 
   &.previous {
-    background-color: var(--color-nobel);
+    background-color: var(--color-status-neutral);
   }
 
   &.vetoed {
