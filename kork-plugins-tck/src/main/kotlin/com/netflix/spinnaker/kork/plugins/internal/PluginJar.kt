@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.plugins.internal
 
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
 import java.nio.file.Path
@@ -26,61 +25,56 @@ import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 import org.pf4j.ManifestPluginDescriptorFinder
 
-class PluginJar(
-  val path: Path,
-  val pluginId: String,
-  val pluginClass: String,
+/**
+ * Write a plugin JAR to the specified path.  Writes the following manifest attributes:
+ *
+ * - Plugin-Id
+ * - Plugin-Version
+ * - Plugin-Class
+ *
+ * Additional manifest attributes can be provided via [Builder.manifestAttribute]
+ */
+class PluginJar private constructor(builder: Builder) {
+  val path: Path
+  val pluginId: String
+  val pluginClass: String
   val pluginVersion: String
-) {
 
-  val file: File = path.toFile()
-
-  class Builder(private val path: Path, private val pluginId: String) {
-
-    private lateinit var pluginClass: String
-    private lateinit var pluginVersion: String
+  class Builder(val path: Path, val pluginId: String) {
+    lateinit var pluginClass: String
+    lateinit var pluginVersion: String
     private val manifestAttributes: MutableMap<String, String> = mutableMapOf()
     private val extensions: MutableList<String> = mutableListOf()
     private var classDataProvider: ClassDataProvider = DefaultClassDataProvider()
 
-    fun pluginClass(pluginClass: String): Builder {
-      this.pluginClass = pluginClass
-      return this
-    }
+    fun pluginClass(pluginClass: String) =
+      apply { this.pluginClass = pluginClass }
 
-    fun pluginVersion(pluginVersion: String): Builder {
-      this.pluginVersion = pluginVersion
-      return this
-    }
+    fun pluginVersion(pluginVersion: String) =
+      apply { this.pluginVersion = pluginVersion }
+
+    fun extension(extensionClassName: String) =
+      apply { this.extensions.add(extensionClassName) }
+
+    fun extensions(extensionClassNames: MutableList<String>) =
+      apply { this.extensions.addAll(extensionClassNames) }
+
+    fun classDataProvider(classDataProvider: ClassDataProvider) =
+      apply { this.classDataProvider = classDataProvider }
 
     /**
      * Add extra attributes to the `manifest` file.
      * As possible attribute name please see [ManifestPluginDescriptorFinder].
      */
-    fun manifestAttributes(manifestAttributes: Map<String, String>): Builder {
-      this.manifestAttributes.plus(manifestAttributes)
-      return this
-    }
+    fun manifestAttributes(manifestAttributes: Map<String, String>) =
+      apply { this.manifestAttributes.putAll(manifestAttributes) }
 
     /**
      * Add extra attribute to the `manifest` file.
      * As possible attribute name please see [ManifestPluginDescriptorFinder].
      */
-    fun manifestAttribute(name: String, value: String): Builder {
-      manifestAttributes[name] = value
-
-      return this
-    }
-
-    fun extension(extensionClassName: String): Builder {
-      extensions.add(extensionClassName)
-      return this
-    }
-
-    fun classDataProvider(classDataProvider: ClassDataProvider): Builder {
-      this.classDataProvider = classDataProvider
-      return this
-    }
+    fun manifestAttribute(name: String, value: String) =
+      apply { this.manifestAttributes[name] = value }
 
     fun build(): PluginJar {
       val manifest = createManifest()
@@ -104,7 +98,7 @@ class PluginJar(
         jarOutputStream.close()
       }
 
-      return PluginJar(path, pluginId, pluginClass, pluginVersion)
+      return PluginJar(this)
     }
 
     private fun createManifest(): Manifest {
@@ -140,5 +134,12 @@ class PluginJar(
       }
       return manifest
     }
+  }
+
+  init {
+    path = builder.path
+    pluginId = builder.pluginId
+    pluginClass = builder.pluginClass
+    pluginVersion = builder.pluginVersion
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.plugins.internal
 
-import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Path
 import java.util.Properties
@@ -23,58 +22,52 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.pf4j.PropertiesPluginDescriptorFinder
 
-class PluginZip(
-  val path: Path,
-  val pluginId: String,
-  val pluginClass: String?,
-  val pluginVersion: String?
-) {
-
-  val file: File = path.toFile()
+/**
+ * Write a plugin ZIP to the specified path.  Add JARs via [Builder.addFile]. Supports the following
+ * plugin properties:
+ *
+ * - plugin.id
+ * - plugin.version
+ * - plugin.class
+ *
+ * Additional properties can be added via [Builder.properties] and [Builder.property].
+ */
+class PluginZip private constructor(builder: Builder) {
+  val path: Path
+  val pluginId: String
+  val pluginClass: String
+  val pluginVersion: String
 
   fun unzippedPath(): Path {
     val fileName = path.fileName.toString()
-
     return path.parent.resolve(fileName.substring(0, fileName.length - 4)) // without ".zip" suffix
   }
 
-  class Builder(
-    private val path: Path,
-    private val pluginId: String
-  ) {
-
-    private lateinit var pluginClass: String
-    private lateinit var pluginVersion: String
+  class Builder(val path: Path, val pluginId: String) {
+    lateinit var pluginClass: String
+    lateinit var pluginVersion: String
     private val properties: MutableMap<String, String> = mutableMapOf()
     private val files: MutableMap<Path, ByteArray> = mutableMapOf()
 
-    fun pluginClass(pluginClass: String): Builder {
-      this.pluginClass = pluginClass
-      return this
-    }
+    fun pluginClass(pluginClass: String) =
+      apply { this.pluginClass = pluginClass }
 
-    fun pluginVersion(pluginVersion: String): Builder {
-      this.pluginVersion = pluginVersion
-      return this
-    }
+    fun pluginVersion(pluginVersion: String) =
+      apply { this.pluginVersion = pluginVersion }
 
     /**
      * Add extra properties to the `properties` file.
      * As possible attribute name please see [PropertiesPluginDescriptorFinder].
      */
-    fun properties(properties: Map<String, String>): Builder {
-      this.properties.putAll(properties)
-      return this
-    }
+    fun properties(properties: Map<String, String>) =
+      apply { this.properties.putAll(properties) }
 
     /**
      * Add extra property to the `properties` file.
      * As possible property name please see [PropertiesPluginDescriptorFinder].
      */
-    fun property(name: String, value: String): Builder {
-      properties[name] = value
-      return this
-    }
+    fun property(name: String, value: String) =
+      apply { properties[name] = value }
 
     /**
      * Adds a file to the archive.
@@ -82,10 +75,8 @@ class PluginZip(
      * @param path the relative path of the file
      * @param content the content of the file
      */
-    fun addFile(path: Path, content: ByteArray): Builder {
-      files[path] = content.clone()
-      return this
-    }
+    fun addFile(path: Path, content: ByteArray) =
+      apply { files[path] = content.clone() }
 
     /**
      * Adds a file to the archive.
@@ -93,14 +84,12 @@ class PluginZip(
      * @param path the relative path of the file
      * @param content the content of the file
      */
-    fun addFile(path: Path, content: String): Builder {
-      files[path] = content.toByteArray()
-      return this
-    }
+    fun addFile(path: Path, content: String) =
+      apply { files[path] = content.toByteArray() }
 
     fun build(): PluginZip {
       createPropertiesFile()
-      return PluginZip(path, pluginId, pluginClass, pluginVersion)
+      return PluginZip(this)
     }
 
     private fun createPropertiesFile() {
@@ -133,5 +122,12 @@ class PluginZip(
 
       return properties
     }
+  }
+
+  init {
+    path = builder.path
+    pluginId = builder.pluginId
+    pluginClass = builder.pluginClass
+    pluginVersion = builder.pluginVersion
   }
 }

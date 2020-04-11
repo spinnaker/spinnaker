@@ -21,8 +21,8 @@ import com.netflix.spinnaker.kork.dynamicconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.eureka.EurekaComponents;
 import com.netflix.spinnaker.kork.eureka.EurekaStatusListener;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
-import com.netflix.spinnaker.kork.version.ManifestVersionResolver;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
+import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
 import io.github.resilience4j.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration;
 import io.github.resilience4j.ratelimiter.autoconfigure.RateLimitersHealthIndicatorAutoConfiguration;
@@ -30,7 +30,6 @@ import io.github.resilience4j.retry.RetryRegistry;
 import java.util.List;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +47,6 @@ import org.springframework.context.annotation.Import;
       CircuitBreakersHealthIndicatorAutoConfiguration.class,
       RateLimitersHealthIndicatorAutoConfiguration.class
     })
-@EnableConfigurationProperties(ManifestVersionResolver.Properties.class)
 public class PlatformComponents {
   @Bean
   public EurekaStatusListener eurekaStatusListener() {
@@ -63,9 +61,9 @@ public class PlatformComponents {
   }
 
   @Bean
-  @ConditionalOnMissingBean(ManifestVersionResolver.class)
-  VersionResolver manifestVersionResolver(ManifestVersionResolver.Properties properties) {
-    return new ManifestVersionResolver(properties.useOssVersionManifestAttribute);
+  @ConditionalOnMissingBean(SpringPackageVersionResolver.class)
+  VersionResolver springPackageVersionResolver(ApplicationContext applicationContext) {
+    return new SpringPackageVersionResolver(applicationContext);
   }
 
   @Bean

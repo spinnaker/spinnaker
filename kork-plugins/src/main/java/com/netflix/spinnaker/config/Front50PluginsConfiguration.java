@@ -122,7 +122,7 @@ public class Front50PluginsConfiguration {
    * We are a bit inconsistent with how we configure service URLs, so we proceed in this order:
    *
    * <p>1) {@code spinnaker.extensibility.repositories.front50.url} 2) {@code front50.base-url} 3)
-   * spinnaker.extensibility.repositories.front50.url} * {@code services.front50.base-url}
+   * {@code services.front50.base-url}
    *
    * @param environment The Spring environment
    * @param front50RepositoryProps Front50 update repository configuration

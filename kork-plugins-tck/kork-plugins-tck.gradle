@@ -1,0 +1,29 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  implementation project(":kork-plugins")
+  implementation "org.pf4j:pf4j"
+
+  //Test framework dependencies
+  api("io.strikt:strikt-core")
+  api("dev.minutest:minutest")
+  api("io.mockk:mockk")
+  api("org.springframework.boot:spring-boot-starter-test")
+  api("org.springframework.security:spring-security-test")
+  api("org.springframework.security:spring-security-config")
+  api("com.ninja-squad:springmockk")
+
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines("junit-jupiter", "junit-vintage")
+  }
+}

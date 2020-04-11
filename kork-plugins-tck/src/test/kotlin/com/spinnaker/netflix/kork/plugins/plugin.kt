@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.version
 
+package com.spinnaker.netflix.kork.plugins
 
-import spock.lang.Specification
-import spock.lang.Subject
+import org.pf4j.Extension
+import org.pf4j.ExtensionPoint
+import org.pf4j.Plugin
+import org.pf4j.PluginWrapper
 
-class ManifestVersionResolverSpec extends Specification {
+class TestPlugin(pluginWrapper: PluginWrapper?) : Plugin(pluginWrapper)
 
-  @Subject ManifestVersionResolver subject = new ManifestVersionResolver("org.springframework.boot")
+@Extension
+class SomeFeatureExtension : SomeFeature
 
-  def "extracts the first detected version"() {
-    expect:
-    subject.resolve("spring-boot").matches("^[0-9]\\.[0-9]+\\.[0-9]+\\.RELEASE")
-  }
-}
+interface SomeFeature : ExtensionPoint

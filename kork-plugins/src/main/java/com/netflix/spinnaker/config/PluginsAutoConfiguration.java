@@ -41,9 +41,10 @@ import com.netflix.spinnaker.kork.plugins.update.downloader.SupportingFileDownlo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoReleaseProvider;
 import com.netflix.spinnaker.kork.plugins.update.release.SpringPluginInfoReleaseProvider;
 import com.netflix.spinnaker.kork.plugins.update.repository.ConfigurableUpdateRepository;
-import com.netflix.spinnaker.kork.version.ManifestVersionResolver;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
+import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,8 +57,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.context.properties.bind.Bindable;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -80,13 +79,8 @@ public class PluginsAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(VersionResolver.class)
-  public static VersionResolver versionResolver(Environment environment) {
-    boolean useOssVersionManifestAttribute =
-        Binder.get(environment)
-            .bind("service-version.use-oss-version-manifest-attribute", Bindable.of(Boolean.class))
-            .orElse(false);
-
-    return new ManifestVersionResolver(useOssVersionManifestAttribute);
+  public static VersionResolver versionResolver(ApplicationContext applicationContext) {
+    return new SpringPackageVersionResolver(applicationContext);
   }
 
   @Bean
@@ -140,13 +134,22 @@ public class PluginsAutoConfiguration {
         sdkFactories,
         Objects.requireNonNull(
             applicationContext.getEnvironment().getProperty("spring.application.name")),
-        Paths.get(
-            applicationContext
-                .getEnvironment()
-                .getProperty(
-                    PluginsConfigurationProperties.ROOT_PATH_CONFIG,
-                    PluginsConfigurationProperties.DEFAULT_ROOT_PATH)),
+        determineRootPluginPath(applicationContext),
         pluginBundleExtractor);
+  }
+
+  /**
+   * If the plugins-root-path property is set, returns the absolute path to the property. Otherwise,
+   * returns the default root path 'plugins'.
+   */
+  private static Path determineRootPluginPath(ApplicationContext applicationContext) {
+    String rootPathConfig =
+        applicationContext
+            .getEnvironment()
+            .getProperty(PluginsConfigurationProperties.ROOT_PATH_CONFIG);
+    return rootPathConfig == null
+        ? Paths.get(PluginsConfigurationProperties.DEFAULT_ROOT_PATH)
+        : Paths.get(rootPathConfig).toAbsolutePath();
   }
 
   @Bean

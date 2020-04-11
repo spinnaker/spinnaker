@@ -30,6 +30,7 @@ dependencies {
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
+  testImplementation project(":kork-plugins-tck")
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"

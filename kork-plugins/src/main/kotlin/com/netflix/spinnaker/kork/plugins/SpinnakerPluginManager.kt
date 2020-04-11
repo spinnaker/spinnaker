@@ -143,4 +143,8 @@ open class SpinnakerPluginManager(
         it.descriptor.pluginId
       }
   }
+
+  init {
+    systemVersion = getSystemVersion()
+  }
 }

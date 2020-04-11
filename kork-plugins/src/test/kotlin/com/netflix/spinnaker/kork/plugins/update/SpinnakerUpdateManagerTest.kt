@@ -25,7 +25,6 @@ import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilder
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.MockKSettings.relaxed
 import io.mockk.mockk
 import java.io.File
 import java.nio.file.Files

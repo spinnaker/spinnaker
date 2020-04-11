@@ -35,7 +35,7 @@ class SpinnakerPluginManagerTest : JUnit5Minutests {
   fun tests() = rootContext<SpinnakerPluginManager> {
     fixture {
       SpinnakerPluginManager(
-        mockk(),
+        mockk(relaxed = true),
         mockk(),
         FakePluginStatusProvider(),
         mockk(),

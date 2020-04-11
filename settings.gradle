@@ -31,6 +31,7 @@ include(
   "kork-jedis-test",
   "kork-plugins",
   "kork-plugins-api",
+  "kork-plugins-tck",
   "kork-plugins-spring-api",
   "kork-proto",
   "kork-pubsub",
