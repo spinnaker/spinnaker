@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.job.Kubernete
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy.DeployStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
@@ -61,10 +63,14 @@ public class KubernetesRunJobOperation
     if (!this.description.getNamespace().isEmpty()) {
       jobSpec.setNamespace(this.description.getNamespace());
     }
-    // append a random string to the job name to avoid collision
-    String currentName = jobSpec.getName();
-    String postfix = Long.toHexString(Double.doubleToLongBits(Math.random()));
-    jobSpec.setName(currentName + "-" + postfix);
+
+    // We require that the recreate strategy be used; this is because jobs are immutable and trying
+    // to re-run a job with apply will either:
+    // (1) succeed and leave the job unchanged (but will not trigger a re-run)
+    // (2) fail if we try to change anything
+    // As the purpose of a run job stage is to ensure that each execution causes a job to run, we'll
+    // force a new job to be created each time.
+    KubernetesManifestAnnotater.setDeploymentStrategy(jobSpec, DeployStrategy.RECREATE);
 
     KubernetesDeployManifestDescription deployManifestDescription =
         new KubernetesDeployManifestDescription();

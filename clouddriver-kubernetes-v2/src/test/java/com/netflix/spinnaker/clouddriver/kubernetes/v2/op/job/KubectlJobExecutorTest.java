@@ -41,7 +41,7 @@ import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 
 @RunWith(JUnitPlatform.class)
-final class KubernetesJobExecutorTest {
+final class KubectlJobExecutorTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final String NAMESPACE = "test-namespace";

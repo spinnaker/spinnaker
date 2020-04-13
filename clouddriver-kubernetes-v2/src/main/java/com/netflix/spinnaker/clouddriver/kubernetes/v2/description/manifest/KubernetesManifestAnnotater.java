@@ -274,6 +274,11 @@ public class KubernetesManifestAnnotater {
     return KubernetesManifestStrategy.fromAnnotations(manifest.getAnnotations());
   }
 
+  public static void setDeploymentStrategy(
+      KubernetesManifest manifest, KubernetesManifestStrategy.DeployStrategy strategy) {
+    strategy.setAnnotations(manifest.getAnnotations());
+  }
+
   public static KubernetesManifest getLastAppliedConfiguration(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
 

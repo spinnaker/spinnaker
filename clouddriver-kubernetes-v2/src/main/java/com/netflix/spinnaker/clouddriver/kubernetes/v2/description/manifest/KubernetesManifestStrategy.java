@@ -20,7 +20,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import javax.annotation.Nullable;
@@ -130,6 +132,16 @@ public final class KubernetesManifestStrategy {
         return ImmutableMap.of();
       }
       return ImmutableMap.of(annotation, Boolean.TRUE.toString());
+    }
+
+    void setAnnotations(Map<String, String> annotations) {
+      // First clear out any existing deploy strategy annotations, then apply the one appropriate to
+      // the current strategy
+      Arrays.stream(DeployStrategy.values())
+          .map(s -> s.annotation)
+          .filter(Objects::nonNull)
+          .forEach(annotations::remove);
+      annotations.putAll(toAnnotations());
     }
   }
 }

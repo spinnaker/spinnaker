@@ -22,9 +22,12 @@ import static org.assertj.core.api.Assertions.entry;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy.DeployStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy.Versioned;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 
@@ -286,6 +289,35 @@ final class KubernetesManifestStrategyTest {
         KubernetesManifestStrategy.builder().useSourceCapacity(true).build().toAnnotations();
     assertThat(annotations)
         .containsOnly(entry("strategy.spinnaker.io/use-source-capacity", "true"));
+  }
+
+  @ParameterizedTest
+  @EnumSource(DeployStrategy.class)
+  void deploymentStrategySetsAnnotations(DeployStrategy deployStrategy) {
+    Map<String, String> annotations = new HashMap<>();
+    deployStrategy.setAnnotations(annotations);
+    assertThat(annotations).isEqualTo(deployStrategy.toAnnotations());
+  }
+
+  @ParameterizedTest
+  @EnumSource(DeployStrategy.class)
+  void deploymentStrategyOverwritesAnnotations(DeployStrategy deployStrategy) {
+    Map<String, String> annotations = new HashMap<>(DeployStrategy.RECREATE.toAnnotations());
+    deployStrategy.setAnnotations(annotations);
+    assertThat(annotations).isEqualTo(deployStrategy.toAnnotations());
+  }
+
+  @ParameterizedTest
+  @EnumSource(DeployStrategy.class)
+  void deploymentStrategyIgnoresIrrelevantAnnotations(DeployStrategy deployStrategy) {
+    ImmutableMap<String, String> irrelevantAnnotations =
+        ImmutableMap.of(
+            "strategy.spinnaker.io/versioned", "false",
+            "artifact.spinnaker.io/version", "v001",
+            "my-custom-annotation", "my-custom-value");
+    Map<String, String> annotations = new HashMap<>(irrelevantAnnotations);
+    deployStrategy.setAnnotations(annotations);
+    assertThat(annotations).containsAllEntriesOf(irrelevantAnnotations);
   }
 
   @Test
