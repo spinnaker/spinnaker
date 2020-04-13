@@ -42,6 +42,7 @@ import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -86,9 +87,12 @@ import org.springframework.scheduling.annotation.EnableAsync
   GremlinConfiguration,
   InterlinkConfiguration
 ])
-@ComponentScan([
-  "com.netflix.spinnaker.config", "com.netflix.spinnaker.plugin"
-])
+@SpringBootApplication(
+    scanBasePackages = [
+        "com.netflix.spinnaker.config",
+        "com.netflix.spinnaker.plugin"
+    ]
+)
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
     'netflix.environment'              : 'test',

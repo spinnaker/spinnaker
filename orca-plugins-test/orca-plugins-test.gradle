@@ -1,0 +1,48 @@
+/*
+ * Copyright 2020 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  implementation(project(":orca-api"))
+
+  testImplementation(project(":orca-web"))
+  testImplementation(project(":orca-queue"))
+  testImplementation(project(":orca-clouddriver"))
+
+  testImplementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
+  testImplementation("com.netflix.spinnaker.kork:kork-plugins-tck")
+
+  testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
+  testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+test {
+  // Without filtering down to a specific test, the test task fails.
+  // It fails because the Orca Main class package does not have an Implementation-Version set.
+  //TODO(jonsie): Determine why and how we can remove this.
+  filter {
+    includeTestsMatching "com.netflix.spinnaker.orca.plugins.test.OrcaPluginsTest"
+  }
+
+  useJUnitPlatform {
+    includeEngines("junit-jupiter", "junit-vintage")
+  }
+}

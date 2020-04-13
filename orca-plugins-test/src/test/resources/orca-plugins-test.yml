@@ -1,0 +1,34 @@
+front50:
+  enabled: false
+
+igor:
+  enabled: false
+
+bakery:
+  enabled: false
+
+echo:
+  enabled: false
+
+monitor:
+  activeExecutions:
+    redis: false
+
+executionRepository:
+  redis:
+    enabled: false
+
+spring:
+  application:
+    name: orca
+
+spinnaker:
+  extensibility:
+    plugins-root-path: build/plugins
+    plugins:
+      com.netflix.orca.enabled.plugin:
+        enabled: true
+      com.netflix.orca.disabled.plugin:
+        enabled: false
+      com.netflix.orca.version.not.supported.plugin:
+        enabled: true
