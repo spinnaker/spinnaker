@@ -63,18 +63,6 @@ allprojects {
     dependencies {
       implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
 
-      // This can be removed once there is a version of error-prone > 2.3.2. In 2.3.0, the
-      // @DoNotMock annotation was accidentally removed. It was put back, but hasn't made it into a
-      // release yet.
-      //
-      // In the meantime, kork depends on Guava 28.0, which depends on error-prone. There's no
-      // version listed, so Gradle resolves it to the newest version (2.3.2) which breaks the build
-      // because of that missing annotation. This block forces the build back to 2.2.0, the latest
-      // version that contains @DoNotMock.
-      implementation('com.google.errorprone:error_prone_annotations:2.2.0') {
-        force = true
-      }
-
       annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
