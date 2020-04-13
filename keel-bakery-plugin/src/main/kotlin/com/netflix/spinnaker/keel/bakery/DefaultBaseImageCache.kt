@@ -19,6 +19,9 @@ class DefaultBaseImageCache(
 ) : BaseImageCache {
   override fun getBaseAmiVersion(os: String, label: BaseLabel) =
     baseImages[os]?.get(label.name.toLowerCase()) ?: throw UnknownBaseImage(os, label)
+
+  override val allVersions: Map<String, Map<String, String>>
+    get() = baseImages
 }
 
 @ConfigurationProperties(prefix = "keel.plugins.bakery")
