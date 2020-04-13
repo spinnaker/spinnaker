@@ -363,16 +363,10 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 runHandler(artifact)
               }
 
-              test("a bake is launched") {
-                expectThat(bakeTask)
-                  .isCaptured()
-                  .captured
-                  .hasSize(1)
-                  .first()
-                  .and {
-                    get("type").isEqualTo("bake")
-                    get("regions").isEqualTo(artifact.vmOptions.regions)
-                  }
+              test("no bake is launched") {
+                verify(exactly = 0) {
+                  taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any(), any<List<Map<String, Any?>>>())
+                }
               }
 
               test("an event is triggered because we want to track region mismatches") {

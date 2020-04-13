@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.bakery.artifact
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
+import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
@@ -46,7 +47,9 @@ class ImageHandler(
         val current = artifact.findLatestAmi()
         val diff = DefaultResourceDiff(desired, current)
 
-        if (diff.hasChanges()) {
+        if (current != null && diff.isRegionsOnly()) {
+          publisher.publishEvent(ImageRegionMismatchDetected(current, artifact.vmOptions.regions))
+        } else if (diff.hasChanges()) {
           if (current == null) {
             log.info("No AMI found for {}", artifact.name)
           } else {
@@ -62,10 +65,6 @@ class ImageHandler(
           }
         } else {
           log.debug("Existing image for {} is up-to-date", artifact.name)
-        }
-
-        if (current != null && diff.affectedRootPropertyNames == setOf("regions")) {
-          publisher.publishEvent(ImageRegionMismatchDetected(current, artifact.vmOptions.regions))
         }
       }
     }
@@ -175,6 +174,12 @@ class ImageHandler(
         BakeCredentials(serviceAccount, application)
       }
     } ?: defaultCredentials
+
+  /**
+   * @return `true` if the only changes in the diff are to the regions of an image.
+   */
+  private fun ResourceDiff<Image>.isRegionsOnly(): Boolean =
+    current != null && affectedRootPropertyNames.all { it == "regions" }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
