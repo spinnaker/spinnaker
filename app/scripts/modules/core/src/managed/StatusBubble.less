@@ -1,0 +1,39 @@
+.StatusBubble {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  border-radius: 50%;
+
+  .status-bubble-icon-container {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  &.status-bubble-inactive {
+    background-color: var(--color-status-inactive);
+  }
+
+  &.status-bubble-neutral {
+    background-color: var(--color-status-neutral);
+  }
+
+  &.status-bubble-info {
+    background-color: var(--color-status-info);
+  }
+
+  &.status-bubble-progress {
+    background-color: var(--color-status-progress);
+  }
+
+  &.status-bubble-success {
+    background-color: var(--color-status-success);
+  }
+
+  &.status-bubble-warning {
+    background-color: var(--color-status-warning);
+  }
+
+  &.status-bubble-error {
+    background-color: var(--color-status-error);
+  }
+}
