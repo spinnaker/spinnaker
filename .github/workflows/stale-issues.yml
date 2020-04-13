@@ -20,7 +20,7 @@ jobs:
         STALE_ISSUE_LABEL: 'to-be-closed'
         OPERATIONS_PER_RUN: 50
         EXEMPT_ISSUE_LABELS: |
-          beginner-friendly
+          beginner friendly
           no-lifecycle
         STALE_ISSUE_MESSAGE: >
           This issue hasn't been updated in 45 days so we are tagging it as 'to-be-closed'.
