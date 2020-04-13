@@ -1,13 +1,6 @@
 import { IController, IScope } from 'angular';
 
-import {
-  ApplicationReader,
-  ExpectedArtifactService,
-  IExpectedArtifact,
-  IPipeline,
-  IStage,
-  PipelineConfigService,
-} from 'core';
+import { ApplicationReader, ExpectedArtifactService, IExpectedArtifact, IPipeline, PipelineConfigService } from 'core';
 
 export interface IFindArtifactFromExecutionStage {
   application: string;
@@ -84,12 +77,4 @@ export class FindArtifactFromExecutionCtrl implements IController {
   public onApplicationSelect() {
     this.loadPipelines();
   }
-
-  public addExpectedArtifact = () => {
-    ExpectedArtifactService.addNewArtifactTo(this.stage);
-  };
-
-  public removeExpectedArtifact = (stage: IStage, expectedArtifact: IExpectedArtifact) => {
-    stage.expectedArtifacts = stage.expectedArtifacts.filter((a: IExpectedArtifact) => a.id !== expectedArtifact.id);
-  };
 }

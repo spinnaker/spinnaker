@@ -29,6 +29,7 @@ module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [])
           { type: 'requiredField', fieldName: 'pipeline', fieldLabel: 'Pipeline' },
           { type: 'requiredField', fieldName: 'application', fieldLabel: 'Application' },
         ],
+        producesArtifacts: true,
       });
     }
   })
