@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.KubernetesJobProvider
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.model.JobStatus
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -56,7 +55,7 @@ class JobController {
     Collection<JobStatus> jobMatches = jobProviders.findResults {
       // In Kubernetes Provider v1, collecting the job might end up deleting it if it finds out that it is finished.
       // This logic should be removed when v1 is EOL
-      String requiredAuthorization = it instanceof KubernetesJobProvider ? "WRITE" : "READ"
+      String requiredAuthorization = (it.getClass().getSimpleName() == "KubernetesJobProvider") ? "WRITE" : "READ"
 
       if (fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", requiredAuthorization) &&
         fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", requiredAuthorization)) {
