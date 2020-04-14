@@ -10,6 +10,10 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
+  // This is because some classes in this module use the Groovy @Immutable annotation,
+  // which appears to require consumers to have core groovy on the classpath
+  api "org.codehaus.groovy:groovy"
+
   implementation "net.logstash.logback:logstash-logback-encoder"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"

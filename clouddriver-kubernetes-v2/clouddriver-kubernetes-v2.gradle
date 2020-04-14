@@ -13,18 +13,17 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  implementation "org.codehaus.groovy:groovy-all"
-
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-config"
   implementation "com.netflix.spinnaker.moniker:moniker"
   implementation "io.kubernetes:client-java:7.0.0"
-  implementation "org.springframework.boot:spring-boot-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'com.jayway.jsonpath:json-path:2.3.0'
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.netflix.spinnaker.kork:kork-annotations"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "org.springframework.security:spring-security-config"
+  implementation "com.netflix.spectator:spectator-api"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.assertj:assertj-core"

@@ -43,6 +43,7 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.1.1"
   implementation("org.jooq:jooq")
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.google.guava:guava"
 
   testImplementation project(":cats:cats-test")
 
