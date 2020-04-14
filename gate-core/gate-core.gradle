@@ -36,4 +36,5 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.hystrix:hystrix-core"
+  implementation "org.apache.commons:commons-lang3"
 }
