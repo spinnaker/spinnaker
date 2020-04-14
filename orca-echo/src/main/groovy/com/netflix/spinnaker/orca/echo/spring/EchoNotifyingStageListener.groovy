@@ -118,6 +118,7 @@ class EchoNotifyingStageListener implements StageListener {
           endTime    : stage.endTime,
           execution  : stage.execution,
           executionId: stage.execution.id,
+          stageId    : stage.id,
           isSynthetic: stage.syntheticStageOwner != null,
           name: stage.name
         ]
