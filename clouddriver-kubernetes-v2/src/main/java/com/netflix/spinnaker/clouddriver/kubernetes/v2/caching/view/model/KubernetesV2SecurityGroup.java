@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -37,7 +38,6 @@ import io.kubernetes.client.openapi.models.V1NetworkPolicyEgressRule;
 import io.kubernetes.client.openapi.models.V1NetworkPolicyIngressRule;
 import io.kubernetes.client.openapi.models.V1NetworkPolicyPort;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -122,7 +122,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
 
   private static Set<Rule> inboundRules(V1NetworkPolicy policy) {
     if (policy.getSpec().getIngress() == null) {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
     return policy.getSpec().getIngress().stream()
         .map(V1NetworkPolicyIngressRule::getPorts)
@@ -134,7 +134,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
 
   private static Set<Rule> outboundRules(V1NetworkPolicy policy) {
     if (policy.getSpec().getEgress() == null) {
-      return Collections.emptySet();
+      return ImmutableSet.of();
     }
     return policy.getSpec().getEgress().stream()
         .map(V1NetworkPolicyEgressRule::getPorts)
@@ -151,7 +151,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
         .setPortRanges(
             port == null
                 ? null
-                : new TreeSet<>(Collections.singletonList(new StringPortRange(port.toString()))));
+                : new TreeSet<>(ImmutableList.of(new StringPortRange(port.toString()))));
   }
 
   @Data

@@ -25,6 +25,7 @@ import static lombok.EqualsAndHashCode.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -68,7 +69,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -322,11 +322,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private ImmutableList<String> namespaceSupplier() {
     try {
       return jobExecutor
-          .list(
-              this,
-              Collections.singletonList(KubernetesKind.NAMESPACE),
-              "",
-              new KubernetesSelectorList())
+          .list(this, ImmutableList.of(KubernetesKind.NAMESPACE), "", new KubernetesSelectorList())
           .stream()
           .map(KubernetesManifest::getName)
           .collect(toImmutableList());
@@ -369,8 +365,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   @Override
-  public List<LinkedDockerRegistryConfiguration> getDockerRegistries() {
-    return Collections.emptyList();
+  public ImmutableList<LinkedDockerRegistryConfiguration> getDockerRegistries() {
+    return ImmutableList.of();
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
@@ -386,7 +382,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         namespace,
         () ->
             jobExecutor.list(
-                this, Collections.singletonList(kind), namespace, new KubernetesSelectorList()));
+                this, ImmutableList.of(kind), namespace, new KubernetesSelectorList()));
   }
 
   @Nonnull
@@ -396,7 +392,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         "list",
         kind,
         namespace,
-        () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, selectors));
+        () -> jobExecutor.list(this, ImmutableList.of(kind), namespace, selectors));
   }
 
   @Nonnull
@@ -561,7 +557,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private <T> T runAndRecordMetrics(
       String action, KubernetesKind kind, String namespace, Supplier<T> op) {
-    return runAndRecordMetrics(action, Collections.singletonList(kind), namespace, op);
+    return runAndRecordMetrics(action, ImmutableList.of(kind), namespace, op);
   }
 
   private <T> T runAndRecordMetrics(
@@ -572,7 +568,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         "kinds",
         kinds.stream().map(KubernetesKind::toString).sorted().collect(Collectors.joining(",")));
     tags.put("account", accountName);
-    tags.put("namespace", StringUtils.isEmpty(namespace) ? "none" : namespace);
+    tags.put("namespace", Strings.isNullOrEmpty(namespace) ? "none" : namespace);
     tags.put("success", "true");
     long startTime = clock.monotonicTime();
     try {

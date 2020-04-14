@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
@@ -32,7 +33,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHand
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.ModelHandler;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +119,7 @@ public class KubernetesCacheUtils {
 
   public Collection<CacheData> loadRelationshipsFromCache(
       CacheData source, String relationshipType) {
-    return loadRelationshipsFromCache(Collections.singleton(source), relationshipType);
+    return loadRelationshipsFromCache(ImmutableSet.of(source), relationshipType);
   }
 
   public Collection<CacheData> loadRelationshipsFromCache(

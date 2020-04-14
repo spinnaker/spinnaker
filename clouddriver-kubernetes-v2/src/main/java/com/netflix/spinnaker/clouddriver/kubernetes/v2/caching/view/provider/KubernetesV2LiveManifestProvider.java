@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -23,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,9 +81,9 @@ public class KubernetesV2LiveManifestProvider implements ManifestProvider<Kubern
     List<KubernetesManifest> events =
         includeEvents
             ? credentials.eventsFor(kind, namespace, parsedName.getRight())
-            : Collections.emptyList();
+            : ImmutableList.of();
 
-    List<KubernetesPodMetric.ContainerMetric> metrics = Collections.emptyList();
+    List<KubernetesPodMetric.ContainerMetric> metrics = ImmutableList.of();
     if (kind.equals(KubernetesKind.POD) && credentials.isMetricsEnabled()) {
       metrics =
           credentials.topPod(namespace, parsedName.getRight()).stream()
@@ -96,8 +96,8 @@ public class KubernetesV2LiveManifestProvider implements ManifestProvider<Kubern
   }
 
   @Override
-  public List<KubernetesV2Manifest> getClusterAndSortAscending(
+  public ImmutableList<KubernetesV2Manifest> getClusterAndSortAscending(
       String account, String location, String kind, String app, String cluster, Sort sort) {
-    return Collections.emptyList();
+    return ImmutableList.of();
   }
 }

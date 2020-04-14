@@ -29,7 +29,6 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -130,7 +129,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
   @JsonIgnore
   public String getNamespace() {
     String namespace = (String) getMetadata().get("namespace");
-    return StringUtils.isEmpty(namespace) ? "" : namespace;
+    return Strings.isNullOrEmpty(namespace) ? "" : namespace;
   }
 
   @JsonIgnore

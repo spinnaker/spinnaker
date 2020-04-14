@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -41,7 +43,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
@@ -78,7 +79,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     List<KubernetesManifest> deployManifests = new ArrayList<>();
     if (inputManifests == null || inputManifests.isEmpty()) {
       log.warn("Relying on deprecated single manifest input: " + description.getManifest());
-      inputManifests = Collections.singletonList(description.getManifest());
+      inputManifests = ImmutableList.of(description.getManifest());
     }
 
     inputManifests = inputManifests.stream().filter(Objects::nonNull).collect(Collectors.toList());
@@ -101,7 +102,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     for (KubernetesManifest manifest : inputManifests) {
       if (credentials.getKindProperties(manifest.getKind()).isNamespaced()
-          && !StringUtils.isEmpty(description.getNamespaceOverride())) {
+          && !Strings.isNullOrEmpty(description.getNamespaceOverride())) {
         manifest.setNamespace(description.getNamespaceOverride());
       }
 
@@ -163,14 +164,14 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       KubernetesHandler deployer = properties.getHandler();
 
       Moniker moniker = cloneMoniker(description.getMoniker());
-      if (StringUtils.isEmpty(moniker.getCluster())) {
+      if (Strings.isNullOrEmpty(moniker.getCluster())) {
         moniker.setCluster(manifest.getFullResourceName());
       }
 
       Artifact artifact = converter.toArtifact(provider, manifest, description.getAccount());
 
       String version = artifact.getVersion();
-      if (StringUtils.isNotEmpty(version) && version.startsWith("v")) {
+      if (Strings.nullToEmpty(version).startsWith("v")) {
         try {
           moniker.setSequence(Integer.valueOf(version.substring(1)));
         } catch (NumberFormatException e) {

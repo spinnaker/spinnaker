@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanDelete;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import java.util.Collections;
 import java.util.List;
 
 public class KubernetesDeleteManifestOperation implements AtomicOperation<OperationResult> {
@@ -52,7 +52,7 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
     if (description.isDynamic()) {
       coordinates = description.getAllCoordinates();
     } else {
-      coordinates = Collections.singletonList(description.getPointCoordinates());
+      coordinates = ImmutableList.of(description.getPointCoordinates());
     }
 
     OperationResult result = new OperationResult();

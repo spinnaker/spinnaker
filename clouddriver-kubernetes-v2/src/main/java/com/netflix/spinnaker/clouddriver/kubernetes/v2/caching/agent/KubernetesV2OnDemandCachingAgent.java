@@ -22,6 +22,8 @@ import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -44,7 +46,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
@@ -227,8 +228,8 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     CacheResult cacheResult = new DefaultCacheResult(new HashMap<>());
 
     log.info("{}: Evicting on demand '{}'", getAgentType(), key);
-    providerCache.evictDeletedItems(ON_DEMAND_TYPE, Collections.singletonList(key));
-    evictions.put(kind.toString(), Collections.singletonList(key));
+    providerCache.evictDeletedItems(ON_DEMAND_TYPE, ImmutableList.of(key));
+    evictions.put(kind.toString(), ImmutableList.of(key));
 
     return new OnDemandAgent.OnDemandResult(getOnDemandAgentType(), cacheResult, evictions);
   }
@@ -268,7 +269,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     String name;
     KubernetesKind kind;
 
-    if (StringUtils.isEmpty(account) || !getAccountName().equals(account)) {
+    if (Strings.isNullOrEmpty(account) || !getAccountName().equals(account)) {
       return null;
     }
 
@@ -285,7 +286,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       }
 
       name = parsedName.getRight();
-      if (StringUtils.isEmpty(name)) {
+      if (Strings.isNullOrEmpty(name)) {
         return null;
       }
     } catch (Exception e) {
@@ -294,7 +295,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return null;
     }
 
-    if (StringUtils.isNotEmpty(namespace) && !credentials.getKindProperties(kind).isNamespaced()) {
+    if (!Strings.isNullOrEmpty(namespace) && !credentials.getKindProperties(kind).isNamespaced()) {
       log.warn(
           "{}: Kind {} is not namespace but namespace {} was provided, ignoring",
           getAgentType(),
@@ -338,7 +339,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   @Override
   public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     if (!handleReadRequests()) {
-      return Collections.emptyList();
+      return ImmutableList.of();
     }
 
     List<KubernetesKind> primaryKinds = primaryKinds();
@@ -393,7 +394,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   }
 
   private boolean handleNamespace(String namespace) {
-    if (StringUtils.isEmpty(namespace)) {
+    if (Strings.isNullOrEmpty(namespace)) {
       return handleClusterScopedResources();
     }
     return getNamespaces().contains(namespace);

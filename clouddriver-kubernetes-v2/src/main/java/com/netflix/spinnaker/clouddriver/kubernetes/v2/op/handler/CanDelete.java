@@ -17,13 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -47,8 +47,7 @@ public interface CanDelete {
             .map(n -> KubernetesManifest.getFullResourceName(kind(), n))
             .collect(Collectors.toSet());
 
-    result.setManifestNamesByNamespace(
-        new HashMap<>(Collections.singletonMap(namespace, fullNames)));
+    result.setManifestNamesByNamespace(new HashMap<>(ImmutableMap.of(namespace, fullNames)));
     return result;
   }
 }

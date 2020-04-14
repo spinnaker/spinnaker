@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.converter.manifest;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.DEPLOY_MANIFEST;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesV2ArtifactProvider;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -96,7 +96,7 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
             .flatMap(
                 singleManifest -> {
                   if (singleManifest == null
-                      || StringUtils.isEmpty(singleManifest.getKindName())
+                      || Strings.isNullOrEmpty(singleManifest.getKindName())
                       || !singleManifest.getKindName().equalsIgnoreCase(KIND_VALUE_LIST)) {
                     return Stream.of(singleManifest);
                   }

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -29,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.Errors;
 
 @Slf4j
@@ -74,7 +74,7 @@ public class KubernetesValidationUtil {
   }
 
   private boolean validateNotEmpty(String attribute, String value) {
-    if (StringUtils.isEmpty(value)) {
+    if (Strings.isNullOrEmpty(value)) {
       reject("empty", attribute);
       return false;
     }
@@ -99,7 +99,7 @@ public class KubernetesValidationUtil {
       return false;
     }
 
-    if (StringUtils.isEmpty(namespace)) {
+    if (Strings.isNullOrEmpty(namespace)) {
       return true;
     }
 

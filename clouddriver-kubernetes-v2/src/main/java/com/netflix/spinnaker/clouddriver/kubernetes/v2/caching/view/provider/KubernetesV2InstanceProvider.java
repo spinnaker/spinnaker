@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.ContainerLog;
@@ -31,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,7 +108,7 @@ public class KubernetesV2InstanceProvider
 
     // Short-circuit if pod cannot be found
     if (pod == null) {
-      return Collections.singletonList(
+      return ImmutableList.of(
           new ContainerLog("Error", "Failed to retrieve pod data; pod may have been deleted."));
     }
 
@@ -119,7 +119,7 @@ public class KubernetesV2InstanceProvider
   private List<ContainerLog> getPodLogs(
       @Nonnull KubernetesV2Credentials credentials, @Nonnull V1Pod pod) {
     List<V1Container> initContainers =
-        Optional.ofNullable(pod.getSpec().getInitContainers()).orElse(Collections.emptyList());
+        Optional.ofNullable(pod.getSpec().getInitContainers()).orElse(ImmutableList.of());
     List<V1Container> containers = pod.getSpec().getContainers();
 
     return Stream.concat(initContainers.stream(), containers.stream())

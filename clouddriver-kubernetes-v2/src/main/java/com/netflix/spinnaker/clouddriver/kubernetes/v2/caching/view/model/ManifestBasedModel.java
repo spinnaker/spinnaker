@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -28,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 
 @Slf4j
 public abstract class ManifestBasedModel {
@@ -87,7 +87,7 @@ public abstract class ManifestBasedModel {
         (Map<String, String>) getManifest().getOrDefault("metadata", new HashMap<>());
     String timestamp = metadata.get("creationTimestamp");
     try {
-      if (StringUtils.isNotEmpty(timestamp)) {
+      if (!Strings.isNullOrEmpty(timestamp)) {
         return (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(timestamp)).getTime();
       }
     } catch (ParseException e) {

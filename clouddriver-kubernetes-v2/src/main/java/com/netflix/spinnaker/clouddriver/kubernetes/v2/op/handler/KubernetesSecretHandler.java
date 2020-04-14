@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.MOUNTABLE_DATA_PRIORITY;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,7 @@ public class KubernetesSecretHandler extends KubernetesHandler {
 
   @Override
   public List<String> sensitiveKeys() {
-    return Collections.singletonList("data");
+    return ImmutableList.of("data");
   }
 
   @Override

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesReplicaSetHandler
@@ -29,7 +30,7 @@ class GlobalResourcePropertyRegistrySpec extends Specification {
     def replicaSetHandler = new KubernetesReplicaSetHandler()
 
     when:
-    GlobalResourcePropertyRegistry registry = new GlobalResourcePropertyRegistry(Collections.emptyList(), defaultHandler)
+    GlobalResourcePropertyRegistry registry = new GlobalResourcePropertyRegistry(ImmutableList.of(), defaultHandler)
 
     then:
     registry instanceof GlobalResourcePropertyRegistry

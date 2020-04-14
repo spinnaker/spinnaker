@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Collections;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 public class KubernetesSelector {
@@ -43,10 +43,10 @@ public class KubernetesSelector {
 
   @JsonCreator
   public KubernetesSelector(
-      @JsonProperty("kind") @NotNull Kind kind,
+      @JsonProperty("kind") @Nonnull Kind kind,
       @JsonProperty("key") String key,
       @JsonProperty("values") List<String> values) {
-    if (StringUtils.isEmpty(key) && kind != Kind.ANY) {
+    if (Strings.isNullOrEmpty(key) && kind != Kind.ANY) {
       throw new IllegalArgumentException("Only an 'any' selector can have no key specified");
     }
 
@@ -82,11 +82,11 @@ public class KubernetesSelector {
   }
 
   public static KubernetesSelector equals(String key, String value) {
-    return new KubernetesSelector(Kind.EQUALS, key, Collections.singletonList(value));
+    return new KubernetesSelector(Kind.EQUALS, key, ImmutableList.of(value));
   }
 
   public static KubernetesSelector notEquals(String key, String value) {
-    return new KubernetesSelector(Kind.NOT_EQUALS, key, Collections.singletonList(value));
+    return new KubernetesSelector(Kind.NOT_EQUALS, key, ImmutableList.of(value));
   }
 
   public static KubernetesSelector contains(String key, List<String> values) {

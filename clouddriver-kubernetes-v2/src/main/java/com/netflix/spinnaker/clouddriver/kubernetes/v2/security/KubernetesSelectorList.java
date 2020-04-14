@@ -17,9 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelector.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,9 +69,7 @@ public class KubernetesSelectorList {
             .map(
                 kv ->
                     new KubernetesSelector(
-                        KubernetesSelector.Kind.EQUALS,
-                        kv.getKey(),
-                        Collections.singletonList(kv.getValue())))
+                        Kind.EQUALS, kv.getKey(), ImmutableList.of(kv.getValue())))
             .collect(Collectors.toList()));
   }
 

@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
-import static java.util.Collections.singletonList;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -254,7 +252,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     Map<String, Object> buildInfo = getBuildInfo();
     Set<String> images = (HashSet<String>) buildInfo.get("images");
     return () ->
-        singletonList(
+        ImmutableList.of(
             new ImageSummary() {
 
               @Override

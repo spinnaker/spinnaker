@@ -20,15 +20,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 
 public class CustomKubernetesCachingAgentFactory {
   public static KubernetesV2OnDemandCachingAgent create(
@@ -65,14 +63,13 @@ public class CustomKubernetesCachingAgentFactory {
     }
 
     @Override
-    protected List<KubernetesKind> primaryKinds() {
-      return Collections.singletonList(this.kind);
+    protected ImmutableList<KubernetesKind> primaryKinds() {
+      return ImmutableList.of(this.kind);
     }
 
     @Override
-    public final Collection<AgentDataType> getProvidedDataTypes() {
-      return Collections.unmodifiableSet(
-          new HashSet<>(Collections.singletonList(AUTHORITATIVE.forType(this.kind.toString()))));
+    public final ImmutableSet<AgentDataType> getProvidedDataTypes() {
+      return ImmutableSet.of(AUTHORITATIVE.forType(this.kind.toString()));
     }
 
     @Override

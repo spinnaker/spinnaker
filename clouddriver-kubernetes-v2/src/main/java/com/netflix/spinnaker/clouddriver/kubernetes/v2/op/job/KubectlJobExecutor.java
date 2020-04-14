@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.gson.Gson;
@@ -65,41 +66,6 @@ public class KubectlJobExecutor {
     this.jobExecutor = jobExecutor;
     this.executable = executable;
     this.oAuthExecutable = oAuthExecutable;
-  }
-
-  private String configCurrentContext(KubernetesV2Credentials credentials) {
-    List<String> command = kubectlAuthPrefix(credentials);
-    command.add("config");
-    command.add("current-context");
-
-    JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
-
-    if (status.getResult() != JobResult.Result.SUCCESS) {
-      throw new KubectlException("Failed get current configuration context");
-    }
-
-    return status.getOutput();
-  }
-
-  public String defaultNamespace(KubernetesV2Credentials credentials) {
-    String configCurrentContext = configCurrentContext(credentials);
-    if (StringUtils.isEmpty(configCurrentContext)) {
-      return "";
-    }
-
-    List<String> command = kubectlAuthPrefix(credentials);
-    command.add("config");
-    command.add("view");
-    command.add("-o");
-    String jsonPath = "{.contexts[?(@.name==\"" + configCurrentContext + "\")].context.namespace}";
-    command.add("\"jsonpath=" + jsonPath + "\"");
-
-    JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
-
-    if (status.getResult() != JobResult.Result.SUCCESS) {
-      throw new KubectlException("Failed get current configuration context");
-    }
-    return status.getOutput();
   }
 
   public String logs(
@@ -167,7 +133,7 @@ public class KubectlJobExecutor {
       command.add("--grace-period=" + deleteOptions.getGracePeriodSeconds());
     }
 
-    if (StringUtils.isNotEmpty(deleteOptions.getPropagationPolicy())) {
+    if (!Strings.isNullOrEmpty(deleteOptions.getPropagationPolicy())) {
       throw new IllegalArgumentException(
           "Propagation policy is not yet supported as a delete option");
     }
@@ -176,7 +142,7 @@ public class KubectlJobExecutor {
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
       String id;
-      if (StringUtils.isNotEmpty(name)) {
+      if (!Strings.isNullOrEmpty(name)) {
         id = kind + "/" + name;
       } else {
         id = labelSelectors.toString();
@@ -185,7 +151,7 @@ public class KubectlJobExecutor {
           "Failed to delete " + id + " from " + namespace + ": " + status.getError());
     }
 
-    if (StringUtils.isEmpty(status.getOutput())
+    if (Strings.isNullOrEmpty(status.getOutput())
         || status.getOutput().equals("No output from command.")
         || status.getOutput().startsWith("No resources found")) {
       return new ArrayList<>();
@@ -242,7 +208,7 @@ public class KubectlJobExecutor {
     }
 
     String stdout = status.getOutput();
-    if (StringUtils.isEmpty(stdout)) {
+    if (Strings.isNullOrEmpty(stdout)) {
       return new ArrayList<>();
     }
 
@@ -375,8 +341,7 @@ public class KubectlJobExecutor {
 
   public KubernetesManifest get(
       KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
-    List<String> command =
-        kubectlNamespacedGet(credentials, Collections.singletonList(kind), namespace);
+    List<String> command = kubectlNamespacedGet(credentials, ImmutableList.of(kind), namespace);
     command.add(name);
 
     JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
@@ -401,8 +366,7 @@ public class KubectlJobExecutor {
   public ImmutableList<KubernetesManifest> eventsFor(
       KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
     List<String> command =
-        kubectlNamespacedGet(
-            credentials, Collections.singletonList(KubernetesKind.EVENT), namespace);
+        kubectlNamespacedGet(credentials, ImmutableList.of(KubernetesKind.EVENT), namespace);
     command.add("--field-selector");
     command.add(
         String.format(
@@ -539,7 +503,7 @@ public class KubectlJobExecutor {
 
   private List<String> kubectlAuthPrefix(KubernetesV2Credentials credentials) {
     List<String> command = new ArrayList<>();
-    if (StringUtils.isNotEmpty(credentials.getKubectlExecutable())) {
+    if (!Strings.isNullOrEmpty(credentials.getKubectlExecutable())) {
       command.add(credentials.getKubectlExecutable());
     } else {
       command.add(executable);
@@ -561,12 +525,12 @@ public class KubectlJobExecutor {
       }
 
       String kubeconfigFile = credentials.getKubeconfigFile();
-      if (StringUtils.isNotEmpty(kubeconfigFile)) {
+      if (!Strings.isNullOrEmpty(kubeconfigFile)) {
         command.add("--kubeconfig=" + kubeconfigFile);
       }
 
       String context = credentials.getContext();
-      if (StringUtils.isNotEmpty(context)) {
+      if (!Strings.isNullOrEmpty(context)) {
         command.add("--context=" + context);
       }
     }
@@ -579,7 +543,7 @@ public class KubectlJobExecutor {
       KubernetesKind kind,
       String name,
       KubernetesSelectorList labelSelectors) {
-    if (StringUtils.isNotEmpty(name)) {
+    if (!Strings.isNullOrEmpty(name)) {
       command.add(kind + "/" + name);
     } else {
       command.add(kind.toString());
@@ -596,7 +560,7 @@ public class KubectlJobExecutor {
       KubernetesV2Credentials credentials, String namespace) {
     List<String> command = kubectlAuthPrefix(credentials);
 
-    if (StringUtils.isNotEmpty(namespace)) {
+    if (!Strings.isNullOrEmpty(namespace)) {
       command.add("--namespace=" + namespace);
     }
 
@@ -705,7 +669,7 @@ public class KubectlJobExecutor {
     }
 
     String mergeStrategy = options.getMergeStrategy().toString();
-    if (StringUtils.isNotEmpty(mergeStrategy)) {
+    if (!Strings.isNullOrEmpty(mergeStrategy)) {
       command.add("--type");
       command.add(mergeStrategy);
     }
@@ -717,7 +681,7 @@ public class KubectlJobExecutor {
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
       String errMsg = status.getError();
-      if (StringUtils.isEmpty(errMsg)) {
+      if (Strings.isNullOrEmpty(errMsg)) {
         errMsg = status.getOutput();
       }
       if (errMsg.contains("not patched")) {

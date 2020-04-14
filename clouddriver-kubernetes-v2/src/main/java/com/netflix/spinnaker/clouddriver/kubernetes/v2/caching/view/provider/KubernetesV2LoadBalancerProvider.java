@@ -22,9 +22,11 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.description.Spinnaker
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUPS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.ApplicationCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -32,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -96,7 +97,7 @@ public class KubernetesV2LoadBalancerProvider
 
     CacheData loadBalancerData = optionalLoadBalancerData.get();
 
-    return new ArrayList<>(fromLoadBalancerCacheData(Collections.singletonList(loadBalancerData)));
+    return new ArrayList<>(fromLoadBalancerCacheData(ImmutableList.of(loadBalancerData)));
   }
 
   @Override
@@ -107,7 +108,7 @@ public class KubernetesV2LoadBalancerProvider
                 kind ->
                     cacheUtils.getTransitiveRelationship(
                         APPLICATIONS.toString(),
-                        Collections.singletonList(Keys.ApplicationCacheKey.createKey(application)),
+                        ImmutableList.of(ApplicationCacheKey.createKey(application)),
                         kind.toString()))
             .flatMap(Collection::stream)
             .collect(Collectors.toList());

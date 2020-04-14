@@ -32,7 +32,6 @@ import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1JobCondition;
 import io.kubernetes.client.openapi.models.V1JobSpec;
 import io.kubernetes.client.openapi.models.V1JobStatus;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
@@ -104,7 +103,7 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
 
     if (succeeded < completions) {
       List<V1JobCondition> conditions = status.getConditions();
-      conditions = conditions != null ? conditions : Collections.emptyList();
+      conditions = conditions != null ? conditions : ImmutableList.of();
       Optional<V1JobCondition> condition = conditions.stream().filter(this::jobFailed).findAny();
       if (condition.isPresent()) {
         return Status.defaultStatus().failed(condition.get().getMessage());

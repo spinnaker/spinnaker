@@ -18,11 +18,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesManifestLabeler {
@@ -82,7 +82,7 @@ public class KubernetesManifestLabeler {
 
     String appManagedByValue = "spinnaker";
 
-    if (StringUtils.isNotEmpty(managedBySuffix)) {
+    if (!Strings.isNullOrEmpty(managedBySuffix)) {
       appManagedByValue = appManagedByValue + "-" + managedBySuffix;
     }
 

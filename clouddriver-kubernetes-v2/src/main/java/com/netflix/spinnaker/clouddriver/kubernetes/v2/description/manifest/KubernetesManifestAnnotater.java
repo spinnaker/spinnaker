@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -29,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesManifestAnnotater {
@@ -98,7 +98,7 @@ public class KubernetesManifestAnnotater {
   // This is to read values that were annotated with the ObjectMapper with quotes, before we started
   // ignoring the quotes
   private static boolean looksLikeSerializedString(String value) {
-    if (StringUtils.isEmpty(value) || value.length() == 1) {
+    if (Strings.isNullOrEmpty(value) || value.length() == 1) {
       return false;
     }
 
@@ -179,7 +179,7 @@ public class KubernetesManifestAnnotater {
   public static Optional<Artifact> getArtifact(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
     String type = getAnnotation(annotations, TYPE, new TypeReference<String>() {});
-    if (StringUtils.isEmpty(type)) {
+    if (Strings.isNullOrEmpty(type)) {
       return Optional.empty();
     }
 

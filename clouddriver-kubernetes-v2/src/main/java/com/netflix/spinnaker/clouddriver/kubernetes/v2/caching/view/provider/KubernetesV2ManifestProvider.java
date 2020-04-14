@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -31,13 +33,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -76,7 +76,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
 
     KubernetesKind kind = parsedName.getLeft();
-    if (!credentials.getKindProperties(kind).isNamespaced() && StringUtils.isNotEmpty(location)) {
+    if (!credentials.getKindProperties(kind).isNamespaced() && !Strings.isNullOrEmpty(location)) {
       log.warn(
           "Kind {} is not namespaced, but namespace {} was provided (ignoring)", kind, location);
       location = "";
@@ -135,13 +135,11 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         includeEvents
             ? cacheUtils
                 .getTransitiveRelationship(
-                    kind.toString(),
-                    Collections.singletonList(key),
-                    KubernetesKind.EVENT.toString())
+                    kind.toString(), ImmutableList.of(key), KubernetesKind.EVENT.toString())
                 .stream()
                 .map(KubernetesCacheDataConverter::getManifest)
                 .collect(Collectors.toList())
-            : Collections.emptyList();
+            : ImmutableList.of();
 
     String metricKey =
         Keys.MetricCacheKey.createKey(
@@ -150,7 +148,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         cacheUtils
             .getSingleEntry(Keys.Kind.KUBERNETES_METRIC.toString(), metricKey)
             .map(KubernetesCacheDataConverter::getMetrics)
-            .orElse(Collections.emptyList());
+            .orElse(ImmutableList.of());
 
     return KubernetesV2ManifestBuilder.buildManifest(credentials, manifest, events, metrics);
   }

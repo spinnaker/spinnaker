@@ -24,6 +24,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.description.Spinnaker
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -38,7 +39,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,9 +76,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
     return groupByAccountName(
         translateClusters(
             cacheUtils.getTransitiveRelationship(
-                APPLICATIONS.toString(),
-                Collections.singletonList(applicationKey),
-                CLUSTERS.toString())));
+                APPLICATIONS.toString(), ImmutableList.of(applicationKey), CLUSTERS.toString())));
   }
 
   @Override
@@ -109,7 +107,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
             CLUSTERS.toString(), Keys.ClusterCacheKey.createKey(account, application, name))
         .map(
             entry -> {
-              Collection<CacheData> clusterData = Collections.singletonList(entry);
+              Collection<CacheData> clusterData = ImmutableList.of(entry);
               Set<KubernetesV2Cluster> result =
                   includeDetails
                       ? translateClustersWithRelationships(clusterData)
@@ -154,7 +152,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
                       .map(
                           k ->
                               cacheUtils.loadRelationshipsFromCache(
-                                  Collections.singletonList(cd), k.toString()))
+                                  ImmutableList.of(cd), k.toString()))
                       .flatMap(Collection::stream)
                       .collect(Collectors.toList());
 
@@ -163,7 +161,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
                       .map(
                           k ->
                               cacheUtils.loadRelationshipsFromCache(
-                                  Collections.singletonList(cd), k.toString()))
+                                  ImmutableList.of(cd), k.toString()))
                       .flatMap(Collection::stream)
                       .collect(Collectors.toList());
 

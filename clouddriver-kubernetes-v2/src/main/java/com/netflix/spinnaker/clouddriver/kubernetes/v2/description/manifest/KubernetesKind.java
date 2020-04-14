@@ -19,18 +19,21 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterators;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ParametersAreNonnullByDefault
+@NonnullByDefault
 public class KubernetesKind {
+  private static final Splitter QUALIFIED_KIND_SPLITTER = Splitter.on('.').limit(2);
+
   private static final Map<KubernetesKind, KubernetesKind> aliasMap = new ConcurrentHashMap<>();
 
   public static final KubernetesKind API_SERVICE =
@@ -102,9 +105,9 @@ public class KubernetesKind {
   // kind is not in spinnaker's registry
   public static final KubernetesKind NONE = createWithAlias("none", null, KubernetesApiGroup.NONE);
 
-  @Nonnull private final String name;
-  @EqualsAndHashCode.Include @Nonnull private final String lcName;
-  @Nonnull private final KubernetesApiGroup apiGroup;
+  private final String name;
+  @EqualsAndHashCode.Include private final String lcName;
+  private final KubernetesApiGroup apiGroup;
   @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
 
   private KubernetesKind(String name, @Nullable KubernetesApiGroup apiGroup) {
@@ -128,7 +131,6 @@ public class KubernetesKind {
     return kind;
   }
 
-  @Nonnull
   public static KubernetesKind from(@Nullable String name, @Nullable KubernetesApiGroup apiGroup) {
     if (name == null || name.isEmpty()) {
       return KubernetesKind.NONE;
@@ -137,27 +139,18 @@ public class KubernetesKind {
     return aliasMap.getOrDefault(result, result);
   }
 
-  @Nonnull
   public static KubernetesKind fromCustomResourceDefinition(V1beta1CustomResourceDefinition crd) {
     return from(
         crd.getSpec().getNames().getKind(),
         KubernetesApiGroup.fromString(crd.getSpec().getGroup()));
   }
 
-  @Nonnull
   @JsonCreator
   public static KubernetesKind fromString(String qualifiedKind) {
-    KubernetesApiGroup apiGroup;
-    String kindName;
-    String[] parts = StringUtils.split(qualifiedKind, ".", 2);
-    if (parts.length == 2) {
-      kindName = parts[0];
-      apiGroup = KubernetesApiGroup.fromString(parts[1]);
-    } else {
-      kindName = qualifiedKind;
-      apiGroup = null;
-    }
-    return from(kindName, apiGroup);
+    Iterator<String> parts = QUALIFIED_KIND_SPLITTER.split(qualifiedKind).iterator();
+    String kindName = parts.next();
+    String apiGroup = Iterators.getNext(parts, null);
+    return from(kindName, KubernetesApiGroup.fromString(apiGroup));
   }
 
   @Override

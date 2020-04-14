@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -26,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CustomKubernet
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 
 @Getter
 @Slf4j
@@ -43,7 +43,7 @@ public class KubernetesResourceProperties {
       CustomKubernetesResource customResource) {
     String deployPriority = customResource.getDeployPriority();
     int deployPriorityValue;
-    if (StringUtils.isEmpty(deployPriority)) {
+    if (Strings.isNullOrEmpty(deployPriority)) {
       deployPriorityValue = WORKLOAD_CONTROLLER_PRIORITY.getValue();
     } else {
       try {

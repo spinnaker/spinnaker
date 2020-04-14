@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.EVENT;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -31,13 +33,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
 import io.kubernetes.client.openapi.models.V1Event;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Component;
 
@@ -89,8 +89,7 @@ public class KubernetesEventHandler extends KubernetesHandler {
                             KubernetesCacheDataConverter.getResource(m, V1Event.class))))
             .filter(p -> p.getRight() != null)
             .collect(
-                Collectors.toMap(
-                    ImmutablePair::getLeft, p -> Collections.singletonList(p.getRight()))));
+                Collectors.toMap(ImmutablePair::getLeft, p -> ImmutableList.of(p.getRight()))));
   }
 
   private KubernetesManifest involvedManifest(V1Event event) {
@@ -101,9 +100,9 @@ public class KubernetesEventHandler extends KubernetesHandler {
     V1ObjectReference ref = event.getInvolvedObject();
 
     if (ref == null
-        || StringUtils.isEmpty(ref.getApiVersion())
-        || StringUtils.isEmpty(ref.getKind())
-        || StringUtils.isEmpty(ref.getName())) {
+        || Strings.isNullOrEmpty(ref.getApiVersion())
+        || Strings.isNullOrEmpty(ref.getKind())
+        || Strings.isNullOrEmpty(ref.getName())) {
       return null;
     }
 

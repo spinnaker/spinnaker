@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.description.Spinnaker
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUP_MANAGERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroupManager;
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.dat
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManagerProvider;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +60,7 @@ public class KubernetesV2ServerGroupManagerProvider
 
     Collection<CacheData> serverGroupManagerData =
         cacheUtils.getAllRelationshipsOfSpinnakerKind(
-            Collections.singletonList(applicationDatum), SERVER_GROUP_MANAGERS);
+            ImmutableList.of(applicationDatum), SERVER_GROUP_MANAGERS);
     Collection<CacheData> serverGroupData =
         cacheUtils.getAllRelationshipsOfSpinnakerKind(serverGroupManagerData, SERVER_GROUPS);
 

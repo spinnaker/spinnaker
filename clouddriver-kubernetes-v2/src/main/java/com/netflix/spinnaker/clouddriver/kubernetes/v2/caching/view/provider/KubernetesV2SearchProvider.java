@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
@@ -33,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.search.SearchResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
   @Override
   public SearchResultSet search(
       String query, List<String> types, Integer pageNumber, Integer pageSize) {
-    return search(query, types, pageNumber, pageSize, Collections.emptyMap());
+    return search(query, types, pageNumber, pageSize, ImmutableMap.of());
   }
 
   @Override
@@ -221,7 +222,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
     typesToSearch.retainAll(allCaches);
 
     if (typesToSearch.isEmpty()) {
-      return Collections.emptyList();
+      return ImmutableList.of();
     }
 
     // Search caches directly

@@ -21,6 +21,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.jayway.jsonpath.DocumentContext;
@@ -37,7 +38,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 
 @Builder(access = AccessLevel.PRIVATE)
 @ParametersAreNonnullByDefault
@@ -104,7 +104,7 @@ public class Replacer {
   }
 
   private boolean replaceIfPossible(DocumentContext obj, @Nullable Artifact artifact) {
-    if (artifact == null || StringUtils.isEmpty(artifact.getType())) {
+    if (artifact == null || Strings.isNullOrEmpty(artifact.getType())) {
       throw new IllegalArgumentException("Artifact and artifact type must be set.");
     }
 

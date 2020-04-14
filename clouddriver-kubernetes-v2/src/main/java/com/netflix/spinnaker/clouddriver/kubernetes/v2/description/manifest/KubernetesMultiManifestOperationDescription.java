@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 @EqualsAndHashCode(callSuper = true)
@@ -41,7 +41,7 @@ public class KubernetesMultiManifestOperationDescription
 
   @JsonIgnore
   public boolean isDynamic() {
-    return StringUtils.isEmpty(manifestName);
+    return Strings.isNullOrEmpty(manifestName);
   }
 
   public List<KubernetesCoordinates> getAllCoordinates() {

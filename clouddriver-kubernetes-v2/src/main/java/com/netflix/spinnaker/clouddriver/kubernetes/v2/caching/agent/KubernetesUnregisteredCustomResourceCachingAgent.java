@@ -17,18 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -44,11 +43,10 @@ public class KubernetesUnregisteredCustomResourceCachingAgent
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
   }
 
-  public Collection<AgentDataType> getProvidedDataTypes() {
-    return Collections.unmodifiableSet(
-        primaryKinds().stream()
-            .map(k -> AUTHORITATIVE.forType(k.toString()))
-            .collect(Collectors.toSet()));
+  public ImmutableSet<AgentDataType> getProvidedDataTypes() {
+    return primaryKinds().stream()
+        .map(k -> AUTHORITATIVE.forType(k.toString()))
+        .collect(toImmutableSet());
   }
 
   @Override
