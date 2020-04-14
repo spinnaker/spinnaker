@@ -19,19 +19,20 @@ import de.huxhorn.sulky.ulid.ULID
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
+private val objectMapperInstance: ObjectMapper by lazy { ObjectMapper().configureMe() }
+private val yamlMapperInstance: YAMLMapper by lazy { YAMLMapper().configureMe() }
+
 /**
  * Factory method for [ObjectMapper]s configured how we like 'em.
  */
 fun configuredObjectMapper(): ObjectMapper =
-  ObjectMapper().configureMe()
+  objectMapperInstance
 
 /**
  * Factory method for [YAMLMapper]s configured how we like 'em.
  */
 fun configuredYamlMapper(): YAMLMapper =
-  YAMLMapper()
-    .configureMe()
-    .disable(USE_NATIVE_TYPE_ID)
+  yamlMapperInstance.disable(USE_NATIVE_TYPE_ID)
 
 private fun <T : ObjectMapper> T.configureMe(): T =
   apply {
