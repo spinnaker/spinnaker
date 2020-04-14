@@ -62,6 +62,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     applyAttributeIfSet(attributes, "Plugin-Id", bundleExt.pluginId)
     applyAttributeIfSet(attributes, "Plugin-Version", bundleExt.version)
     applyAttributeIfSet(attributes, "Plugin-Dependencies", pluginExt.dependencies)
+    applyAttributeIfSet(attributes, "Plugin-Requires", pluginExt.requires)
     applyAttributeIfSet(attributes, "Plugin-Description", bundleExt.description)
     applyAttributeIfSet(attributes, "Plugin-Provider", bundleExt.provider)
     applyAttributeIfSet(attributes, "Plugin-License", bundleExt.license)
