@@ -24,4 +24,5 @@ dependencies {
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.retrofit:converter-jackson'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
+  implementation "org.apache.commons:commons-lang3"
 }
