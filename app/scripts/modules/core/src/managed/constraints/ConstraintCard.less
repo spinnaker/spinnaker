@@ -1,51 +1,49 @@
-.ConstraintCard {
-  // TODO (erik): this is a bunch of custom styles for a button.
-  // really it should be a real button component we put somewhere central.
-  // for now it's entirely experimental and might totally go away
-  // or be replaced.
+// TODO (erik): this is a bunch of custom styles for a button.
+// really it should be a real button component we put somewhere central.
+// for now it's entirely experimental and might totally go away
+// or be replaced.
 
-  .constraint-override-action {
-    color: rgb(90, 95, 180);
-    background-color: transparent;
-    font-size: 16px;
-    border: 1px solid rgb(90, 95, 180);
-    border-radius: 2px;
-    padding: 4px 20px;
-    min-width: 120px;
-    transition: all 90ms ease-in;
-  }
+.constraint-override-action {
+  color: rgb(90, 95, 180);
+  background-color: transparent;
+  font-size: 16px;
+  border: 1px solid rgb(90, 95, 180);
+  border-radius: 2px;
+  padding: 4px 20px;
+  min-width: 120px;
+  transition: all 90ms ease-in;
+}
 
-  .constraint-override-action:not([disabled]) {
-    cursor: pointer;
-  }
+.constraint-override-action:not([disabled]) {
+  cursor: pointer;
+}
 
-  .constraint-override-action[disabled] {
-    cursor: not-allowed;
-    opacity: 0.66;
-  }
+.constraint-override-action[disabled] {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
 
-  .constraint-override-action:not([disabled]):hover {
-    transform: scale(1.03);
-    background-color: rgba(90, 95, 180, 0.15);
-  }
+.constraint-override-action:not([disabled]):hover {
+  transform: scale(1.03);
+  background-color: rgba(90, 95, 180, 0.15);
+}
 
-  .constraint-override-action:not([disabled]):focus,
-  .constraint-override-action:not([disabled]):active {
-    outline: none;
-    transform: scale(1.04);
-  }
+.constraint-override-action:not([disabled]):focus,
+.constraint-override-action:not([disabled]):active {
+  outline: none;
+  transform: scale(1.04);
+}
 
-  .constraint-override-action:not([disabled]):focus {
-    box-shadow: 2px 2px 0px rgba(90, 95, 180, 0.66);
-  }
+.constraint-override-action:not([disabled]):focus {
+  box-shadow: 2px 2px 0px rgba(90, 95, 180, 0.66);
+}
 
-  .constraint-override-action:not([disabled]):active {
-    box-shadow: none !important;
-    background-color: rgba(90, 95, 180, 0.66);
-    color: var(--color-white);
-  }
+.constraint-override-action:not([disabled]):active {
+  box-shadow: none !important;
+  background-color: rgba(90, 95, 180, 0.66);
+  color: var(--color-white);
+}
 
-  .action-error-message {
-    color: #be0000;
-  }
+.action-error-message {
+  color: #be0000;
 }

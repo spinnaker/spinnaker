@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import classNames from 'classnames';
 
 import {
@@ -10,7 +10,7 @@ import {
 import { Application, ApplicationDataSource } from '../../application';
 import { IRequestStatus } from '../../presentation';
 
-import { NoticeCard } from '../NoticeCard';
+import { StatusCard } from '../StatusCard';
 import { ManagedWriter, IUpdateConstraintStatusRequest } from '../ManagedWriter';
 import {
   isConstraintSupported,
@@ -25,7 +25,7 @@ import './ConstraintCard.less';
 const { NOT_EVALUATED, PENDING, PASS, FAIL, OVERRIDE_PASS, OVERRIDE_FAIL } = StatefulConstraintStatus;
 
 const constraintCardAppearanceByStatus = {
-  [NOT_EVALUATED]: 'neutral',
+  [NOT_EVALUATED]: 'inactive',
   [PENDING]: 'info',
   [PASS]: 'success',
   [FAIL]: 'error',
@@ -64,7 +64,7 @@ const getCardAppearance = (constraint: IStatefulConstraint | IStatelessConstrain
     return constraintCardAppearanceByStatus[status];
   } else {
     const { currentlyPassing } = constraint as IStatelessConstraint;
-    return currentlyPassing ? 'success' : 'neutral';
+    return currentlyPassing ? 'success' : 'inactive';
   }
 };
 
@@ -73,10 +73,9 @@ export interface IConstraintCardProps {
   environment: string;
   version: string;
   constraint: IStatefulConstraint | IStatelessConstraint;
-  className?: string;
 }
 
-export const ConstraintCard = ({ application, environment, version, constraint, className }: IConstraintCardProps) => {
+export const ConstraintCard = memo(({ application, environment, version, constraint }: IConstraintCardProps) => {
   const { type } = constraint;
 
   const [actionStatus, setActionStatus] = useState<IRequestStatus>('NONE');
@@ -89,9 +88,10 @@ export const ConstraintCard = ({ application, environment, version, constraint, 
   const actions = getConstraintActions(constraint);
 
   return (
-    <NoticeCard
-      className={classNames('ConstraintCard', className)}
-      icon={getConstraintIcon(type)}
+    <StatusCard
+      appearance={getCardAppearance(constraint)}
+      iconName={getConstraintIcon(type)}
+      title={getConstraintSummary(constraint)}
       actions={
         actions && (
           <div
@@ -138,9 +138,6 @@ export const ConstraintCard = ({ application, environment, version, constraint, 
           </div>
         )
       }
-      title={getConstraintSummary(constraint)}
-      isActive={true}
-      noticeType={getCardAppearance(constraint)}
     />
   );
-};
+});

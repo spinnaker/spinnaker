@@ -5,7 +5,7 @@ import { relativeTime, timestamp } from '../utils';
 import { IManagedArtifactVersion } from '../domain';
 
 import { getArtifactVersionDisplayName } from './displayNames';
-import { NoticeCard } from './NoticeCard';
+import { StatusCard } from './StatusCard';
 import { Pill } from './Pill';
 
 interface CardTitleMetadata {
@@ -17,12 +17,12 @@ interface CardTitleMetadata {
 const cardAppearanceByState = {
   pending: {
     icon: 'artifactPending',
-    appearance: 'neutral',
+    appearance: 'inactive',
     title: (_: CardTitleMetadata) => 'Not deployed here yet',
   },
   skipped: {
     icon: 'artifactSkipped',
-    appearance: 'neutral',
+    appearance: 'inactive',
     title: ({ replacedByVersionName }: CardTitleMetadata) => (
       <span className="sp-group-margin-xs-xaxis">
         <span>Skipped</span> <span className="text-regular">—</span>{' '}
@@ -61,7 +61,7 @@ const cardAppearanceByState = {
   },
   deploying: {
     icon: 'cloudProgress',
-    appearance: 'info',
+    appearance: 'progress',
     title: (_: CardTitleMetadata) => 'Deploying',
   },
   current: {
@@ -116,13 +116,10 @@ export const VersionStateCard = memo(
     ]);
     const replacedByVersionName = replacedByVersion ? getArtifactVersionDisplayName(replacedByVersion) : replacedBy;
     return (
-      <NoticeCard
-        className="sp-margin-l-right"
-        icon={cardAppearanceByState[state].icon}
-        text={undefined}
+      <StatusCard
+        appearance={cardAppearanceByState[state].appearance}
+        iconName={cardAppearanceByState[state].icon}
         title={cardAppearanceByState[state].title({ deployedAtMillis, replacedAtMillis, replacedByVersionName })}
-        isActive={true}
-        noticeType={cardAppearanceByState[state].appearance}
       />
     );
   },

@@ -3,7 +3,6 @@ import { pickBy, values } from 'lodash';
 
 import { IManagedEnviromentSummary, IManagedResourceSummary, IManagedArtifactSummary } from '../domain';
 
-import { NoticeCard } from './NoticeCard';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { EnvironmentRow } from './EnvironmentRow';
 
@@ -21,16 +20,6 @@ interface IEnvironmentsListProps {
 export function EnvironmentsList({ environments, resourcesById, artifacts: allArtifacts }: IEnvironmentsListProps) {
   return (
     <div>
-      <NoticeCard
-        className="sp-margin-l-bottom"
-        icon="checkBadge"
-        text={undefined}
-        title={`${allArtifacts.length} ${
-          allArtifacts.length === 1 ? 'artifact is' : 'artifacts are'
-        } deployed in 2 environments with no issues detected.`}
-        isActive={true}
-        noticeType="success"
-      />
       {environments.map(({ name, resources, artifacts }) => (
         <EnvironmentRow
           key={name}
