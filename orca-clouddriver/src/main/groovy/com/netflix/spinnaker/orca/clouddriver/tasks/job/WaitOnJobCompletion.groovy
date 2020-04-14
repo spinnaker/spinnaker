@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.pipeline.model.OverridableStageTimeout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -35,8 +36,8 @@ import java.util.concurrent.TimeUnit
 
 @Component
 public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
-  long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
-  long timeout = TimeUnit.HOURS.toMillis(2)
+  final long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
+  final long timeout = TimeUnit.MINUTES.toMillis(120)
 
   @Autowired
   KatoRestService katoRestService
@@ -51,6 +52,15 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
   JobUtils jobUtils
 
   static final String REFRESH_TYPE = "Job"
+
+  @Override
+  long getDynamicTimeout(@Nonnull StageExecution stage) {
+    OverridableStageTimeout timeout = stage.mapTo(OverridableStageTimeout.class)
+    if (timeout.timeoutMinutes.isPresent()) {
+      return TimeUnit.MINUTES.toMillis(timeout.timeoutMinutes.getAsLong())
+    }
+    return getTimeout()
+  }
 
   @Override @Nullable
   TaskResult onTimeout(@Nonnull StageExecution stage) {
