@@ -40,7 +40,6 @@ else
   echo "Pushing halyard.tar.gz to $TARGET_URL"
   gsutil cp $SOURCE_URL halyard.tar.gz
   gsutil cp halyard.tar.gz $TARGET_URL
-  gsutil acl ch -u AllUsers:R $TARGET_URL
 
   rm halyard.tar.gz
 fi
