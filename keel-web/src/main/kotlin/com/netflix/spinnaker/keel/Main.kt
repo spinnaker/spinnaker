@@ -15,21 +15,7 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spinnaker.keel.actuation.ArtifactHandler
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
-import com.netflix.spinnaker.keel.api.plugins.SupportedKind
-import com.netflix.spinnaker.keel.bakery.BaseImageCache
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
-import com.netflix.spinnaker.keel.info.InstanceIdSupplier
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.kork.PlatformComponents
-import javax.annotation.PostConstruct
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Import
@@ -58,80 +44,7 @@ private val DEFAULT_PROPS = mapOf(
 @Import(PlatformComponents::class)
 @EnableAsync
 @EnableScheduling
-class KeelApplication {
-
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
-  @Autowired
-  lateinit var artifactRepository: ArtifactRepository
-
-  @Autowired
-  lateinit var resourceRepository: ResourceRepository
-
-  @Autowired
-  lateinit var deliveryConfigRepository: DeliveryConfigRepository
-
-  @Autowired(required = false)
-  var baseImageCache: BaseImageCache? = null
-
-  @Autowired
-  lateinit var instanceIdSupplier: InstanceIdSupplier
-
-  @Autowired(required = false)
-  var kinds: List<SupportedKind<*>> = emptyList()
-
-  @Autowired(required = false)
-  var resourceHandlers: List<ResourceHandler<*, *>> = emptyList()
-
-  @Autowired(required = false)
-  var constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList()
-
-  @Autowired(required = false)
-  var artifactHandlers: List<ArtifactHandler> = emptyList()
-
-  @Autowired
-  lateinit var objectMappers: List<ObjectMapper>
-
-  @PostConstruct
-  fun registerResourceSpecSubtypes() {
-    resourceHandlers
-      .map { it.supportedKind }
-      .forEach { (kind, specClass) ->
-        log.info("Registering ResourceSpec sub-type {}: {}", kind, specClass.simpleName)
-        val namedType = NamedType(specClass, kind.toString())
-        objectMappers.forEach { it.registerSubtypes(namedType) }
-      }
-  }
-
-  @PostConstruct
-  fun registerConstraintSubtypes() {
-    constraintEvaluators
-      .map { it.supportedType }
-      .forEach { constraintType ->
-        log.info("Registering Constraint sub-type {}: {}", constraintType.name, constraintType.type.simpleName)
-        val namedType = NamedType(constraintType.type, constraintType.name)
-        objectMappers.forEach { it.registerSubtypes(namedType) }
-      }
-  }
-
-  @PostConstruct
-  fun initialStatus() {
-    sequenceOf(
-      ArtifactRepository::class to artifactRepository.javaClass,
-      ResourceRepository::class to resourceRepository.javaClass,
-      DeliveryConfigRepository::class to deliveryConfigRepository.javaClass,
-      BaseImageCache::class to baseImageCache?.javaClass,
-      InstanceIdSupplier::class to instanceIdSupplier.javaClass
-    )
-      .forEach { (type, implementation) ->
-        log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
-      }
-
-    log.info("Supporting resource kinds: {}", kinds.joinToString { it.kind.toString() })
-    log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
-    log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
-  }
-}
+class KeelApplication
 
 fun main(vararg args: String) {
   SpringApplicationBuilder()
