@@ -185,7 +185,7 @@ export class SecurityGroupReader {
 
   private addServerGroupSecurityGroups(application: Application): ISecurityGroupProcessorResult {
     let notFoundCaught = false;
-    const securityGroups: ISecurityGroup[] = [];
+    const sgSet: Set<ISecurityGroup> = new Set();
     application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
       if (serverGroup.securityGroups) {
         serverGroup.securityGroups.forEach((securityGroupId: string) => {
@@ -200,7 +200,7 @@ export class SecurityGroupReader {
               const { account, isDisabled, name, cloudProvider, region } = serverGroup;
               securityGroup.usages.serverGroups.push({ account, isDisabled, name, cloudProvider, region });
             }
-            securityGroups.push(securityGroup);
+            sgSet.add(securityGroup);
           } catch (e) {
             this.$log.warn('could not attach firewall to server group:', serverGroup.name, securityGroupId);
             notFoundCaught = true;
@@ -208,6 +208,7 @@ export class SecurityGroupReader {
         });
       }
     });
+    const securityGroups: ISecurityGroup[] = Array.from(sgSet);
     securityGroups.forEach(SecurityGroupReader.sortUsages);
 
     return { notFoundCaught, securityGroups };
