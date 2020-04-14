@@ -75,3 +75,15 @@ configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
   exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
+
+test {
+  //The Implementation-Version is set in the MANIFEST.MF for the JAR produced via testing so that
+  //assertions can be made against the version (see gate-plugins-test, for example).
+  jar {
+    manifest {
+      attributes(
+        'Implementation-Version': '1.0.0'
+      )
+    }
+  }
+}
