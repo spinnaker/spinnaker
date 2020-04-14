@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   api("com.squareup.retrofit:retrofit")
   api("com.squareup.retrofit:converter-jackson")
+  api("org.codehaus.groovy:groovy")
 
   implementation(project(":orca-core"))
   implementation("com.squareup.okhttp:okhttp")

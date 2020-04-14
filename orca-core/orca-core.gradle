@@ -55,6 +55,7 @@ dependencies {
   implementation("javax.servlet:javax.servlet-api:4.0.1")
   implementation("com.jayway.jsonpath:json-path:2.2.0")
   implementation("org.yaml:snakeyaml")
+  implementation("org.codehaus.groovy:groovy")
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
