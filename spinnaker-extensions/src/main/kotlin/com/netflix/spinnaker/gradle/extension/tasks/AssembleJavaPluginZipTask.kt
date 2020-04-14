@@ -44,7 +44,7 @@ open class AssembleJavaPluginZipTask : Zip() {
     this.with(
       // TODO(rz): Make sure kork / service deps are not included (compileOnly)
       project.copySpec().from(sourceSets.getByName("main").compileClasspath)
-        .into("libs/"),
+        .into("lib/"),
       project.copySpec()
         .from(sourceSets.getByName("main").runtimeClasspath)
         .from(sourceSets.getByName("main").resources)

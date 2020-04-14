@@ -83,7 +83,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     val pluginRelInfo = mapOf(
       "pluginPath" to manifestLocation,
       "classesDirs" to classesDirs,
-      "libsDirs" to listOf("${project.buildDir}/libs")
+      "libsDirs" to listOf("${project.buildDir}/lib")
     )
 
     File(project.buildDir, "${pluginExtensionName ?: project.name}.plugin-ref").writeText(
