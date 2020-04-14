@@ -30,8 +30,5 @@ export const ObjectRow = ({ icon, title, metadata, depth = 1 }: IObjectRowProps)
 const getStylesFromDepth = (depth: number): React.CSSProperties => {
   return {
     marginLeft: 16 * depth,
-    position: 'sticky',
-    top: 104 + 40 * depth,
-    zIndex: 500 - depth,
   };
 };

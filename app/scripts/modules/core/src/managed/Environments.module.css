@@ -27,16 +27,27 @@
 }
 
 .mainContent {
-  display: flex;
-  margin-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(300px, 3fr) 8fr;
+  grid-template-rows: auto;
+  width: 100%;
+  overflow: hidden;
 }
 
 .artifactsColumn {
-  flex: 0 1 280px;
-  overflow: hidden;
-  margin-right: 16px;
+  padding-right: 16px;
+  overflow: scroll;
 }
 
 .environmentsColumn {
-  flex: 1 1 400px;
+  display: grid;
+  grid-column-template: 1fr;
+  grid-row-template: auto;
+  overflow: scroll;
+}
+
+.environmentsPane {
+  grid-column: 1;
+  grid-row: 1;
+  overflow: scroll;
 }

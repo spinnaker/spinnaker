@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { pick, isEqual, keyBy } from 'lodash';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
+import { useTransition, animated } from 'react-spring';
 
 import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets';
@@ -15,7 +16,43 @@ import { ArtifactDetail } from './ArtifactDetail';
 
 import styles from './Environments.module.css';
 
-const CONTENT_WIDTH = 1200;
+const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
+
+const paneSpring = { mass: 1, tension: 400, friction: 40 };
+
+const overviewPaneInStyles = {
+  opacity: 1,
+  transform: 'translate(0, 0)',
+};
+
+const overviewPaneOutStyles = {
+  opacity: 0.8,
+  transform: 'translate(0, 20px)',
+};
+
+const overviewPaneTransitionConfig = {
+  from: overviewPaneOutStyles,
+  enter: overviewPaneInStyles,
+  leave: overviewPaneOutStyles,
+  config: paneSpring,
+};
+
+const detailPaneInStyles = {
+  opacity: 1,
+  transform: 'translate(0, 0)',
+};
+
+const detailPaneOutStyles = {
+  opacity: 0,
+  transform: 'translate(0, 300px)',
+};
+
+const detailPaneTransitionConfig = {
+  from: detailPaneOutStyles,
+  enter: detailPaneInStyles,
+  leave: detailPaneOutStyles,
+  config: paneSpring,
+};
 
 export interface ISelectedArtifactVersion {
   name: string;
@@ -26,8 +63,6 @@ export interface ISelectedArtifactVersion {
 interface IEnvironmentsProps {
   app: Application;
 }
-
-const defaultGettingStartedUrl = 'https://www.spinnaker.io/guides/user/managed-delivery/getting-started/';
 
 export function Environments({ app }: IEnvironmentsProps) {
   const dataSource: ApplicationDataSource<IManagedApplicationEnvironmentSummary> = app.getDataSource('environments');
@@ -42,7 +77,6 @@ export function Environments({ app }: IEnvironmentsProps) {
     stateService: { go },
   } = useRouter();
   const { params } = useCurrentStateAndParams();
-  const [isFiltersOpen] = useState(false);
 
   const resourcesById = useMemo(() => keyBy(resources, 'id'), [resources]);
   const resourcesByEnvironment = useMemo(
@@ -67,6 +101,13 @@ export function Environments({ app }: IEnvironmentsProps) {
   const selectedVersionDetails = useMemo(
     () => selectedArtifactDetails?.versions.find(({ version }) => version === selectedVersion.version),
     [selectedVersion, selectedArtifactDetails],
+  );
+
+  const overviewPaneTransition = useTransition(!selectedVersion, null, overviewPaneTransitionConfig);
+  const detailPaneTransition = useTransition(
+    { selectedVersion, selectedVersionDetails, selectedArtifactDetails },
+    ({ selectedVersion }) => (selectedVersion ? 'show' : 'hide'),
+    detailPaneTransitionConfig,
   );
 
   if (loadFailure) {
@@ -99,46 +140,46 @@ export function Environments({ app }: IEnvironmentsProps) {
     );
   }
 
-  const totalContentWidth = isFiltersOpen ? CONTENT_WIDTH + 248 + 'px' : CONTENT_WIDTH + 'px';
-
   return (
-    <div style={{ width: '100%' }}>
-      <span>For there shall be no greater pursuit than that towards desired state.</span>
-      <div style={{ maxWidth: totalContentWidth, display: 'flex' }}>
-        {/* No filters for now but this is where they will go */}
-        <div className={styles.mainContent} style={{ flex: `0 1 ${totalContentWidth}` }}>
-          <div className={styles.artifactsColumn}>
-            <ColumnHeader text="Artifacts" icon="artifact" />
-            <ArtifactsList
-              artifacts={artifacts}
-              selectedVersion={selectedVersion}
-              versionSelected={clickedVersion => {
-                if (!isEqual(clickedVersion, selectedVersion)) {
-                  go(selectedVersion ? '.' : '.artifactVersion', clickedVersion);
-                }
-              }}
-            />
-          </div>
-          <div className={styles.environmentsColumn}>
-            {!selectedVersion && (
-              <>
+    <div className={styles.mainContent}>
+      <div className={styles.artifactsColumn}>
+        <ColumnHeader text="Artifacts" icon="artifact" />
+        <ArtifactsList
+          artifacts={artifacts}
+          selectedVersion={selectedVersion}
+          versionSelected={clickedVersion => {
+            if (!isEqual(clickedVersion, selectedVersion)) {
+              go(selectedVersion ? '.' : '.artifactVersion', clickedVersion);
+            }
+          }}
+        />
+      </div>
+      <div className={styles.environmentsColumn}>
+        {overviewPaneTransition.map(
+          ({ item: show, key, props }) =>
+            show && (
+              <animated.div key={key} className={styles.environmentsPane} style={props}>
                 <ColumnHeader text="Environments" icon="environment" />
                 <EnvironmentsList {...{ environments, artifacts, resourcesById }} />
-              </>
-            )}
-            {selectedVersion && (
-              <ArtifactDetail
-                application={app}
-                name={selectedVersion.name}
-                type={selectedVersion.type}
-                version={selectedVersionDetails}
-                allVersions={selectedArtifactDetails.versions}
-                resourcesByEnvironment={resourcesByEnvironment}
-                onRequestClose={() => go('^')}
-              />
-            )}
-          </div>
-        </div>
+              </animated.div>
+            ),
+        )}
+        {detailPaneTransition.map(
+          ({ item, key, props }) =>
+            item.selectedVersion && (
+              <animated.div key={key} className={styles.environmentsPane} style={props}>
+                <ArtifactDetail
+                  application={app}
+                  name={item.selectedVersion.name}
+                  type={item.selectedVersion.type}
+                  version={item.selectedVersionDetails}
+                  allVersions={item.selectedArtifactDetails.versions}
+                  resourcesByEnvironment={resourcesByEnvironment}
+                  onRequestClose={() => go('^')}
+                />
+              </animated.div>
+            ),
+        )}
       </div>
     </div>
   );
