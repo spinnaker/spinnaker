@@ -38,6 +38,7 @@ export class ArtifactAccountSelector extends React.Component<IArtifactAccountSel
         optionRenderer={this.renderOption}
         valueRenderer={this.renderOption}
         clearable={false}
+        valueKey="name"
       />
     );
   }
