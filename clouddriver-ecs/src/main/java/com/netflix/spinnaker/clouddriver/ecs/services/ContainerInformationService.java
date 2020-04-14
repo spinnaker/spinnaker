@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.clouddriver.ecs.services;
 
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.NetworkBinding;
+import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskHealthCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
@@ -44,6 +47,7 @@ public class ContainerInformationService {
   private final TaskCacheClient taskCacheClient;
   private final ServiceCacheClient serviceCacheClient;
   private final TaskHealthCacheClient taskHealthCacheClient;
+  private final TaskDefinitionCacheClient taskDefinitionCacheClient;
   private final EcsInstanceCacheClient ecsInstanceCacheClient;
   private final ContainerInstanceCacheClient containerInstanceCacheClient;
 
@@ -53,20 +57,21 @@ public class ContainerInformationService {
       TaskCacheClient taskCacheClient,
       ServiceCacheClient serviceCacheClient,
       TaskHealthCacheClient taskHealthCacheClient,
+      TaskDefinitionCacheClient taskDefinitionCacheClient,
       EcsInstanceCacheClient ecsInstanceCacheClient,
       ContainerInstanceCacheClient containerInstanceCacheClient) {
     this.ecsCredentialsConfig = ecsCredentialsConfig;
     this.taskCacheClient = taskCacheClient;
     this.serviceCacheClient = serviceCacheClient;
     this.taskHealthCacheClient = taskHealthCacheClient;
+    this.taskDefinitionCacheClient = taskDefinitionCacheClient;
     this.ecsInstanceCacheClient = ecsInstanceCacheClient;
     this.containerInstanceCacheClient = containerInstanceCacheClient;
   }
 
   public List<Map<String, Object>> getHealthStatus(
       String taskId, String serviceName, String accountName, String region) {
-    String serviceCacheKey = Keys.getServiceKey(accountName, region, serviceName);
-    Service service = serviceCacheClient.get(serviceCacheKey);
+    Service service = getService(serviceName, accountName, region);
 
     String healthKey = Keys.getTaskHealthKey(accountName, region, taskId);
     TaskHealth taskHealth = taskHealthCacheClient.get(healthKey);
@@ -95,18 +100,51 @@ public class ContainerInformationService {
 
     // Task-based health
     if (task != null) {
+      boolean hasHealthCheck = false;
+      if (service != null) {
+        hasHealthCheck = taskHasHealthCheck(service, accountName, region);
+      }
+
       Map<String, Object> taskPlatformHealth = new HashMap<>();
       taskPlatformHealth.put("instanceId", taskId);
       taskPlatformHealth.put("type", "ecs");
       taskPlatformHealth.put("healthClass", "platform");
-      taskPlatformHealth.put("state", toPlatformHealthState(task.getLastStatus()));
+      taskPlatformHealth.put(
+          "state",
+          toPlatformHealthState(task.getLastStatus(), task.getHealthStatus(), hasHealthCheck));
       healthMetrics.add(taskPlatformHealth);
     }
 
     return healthMetrics;
   }
 
-  private String toPlatformHealthState(String ecsTaskStatus) {
+  public boolean taskHasHealthCheck(Service service, String accountName, String region) {
+    if (service != null) {
+      String taskDefinitionCacheKey =
+          Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
+      TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
+
+      if (taskDefinition != null) {
+        for (ContainerDefinition containerDefinition : taskDefinition.getContainerDefinitions()) {
+          if (containerDefinition.getHealthCheck() != null
+              && containerDefinition.getHealthCheck().getCommand() != null) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private String toPlatformHealthState(
+      String ecsTaskStatus, String ecsTaskHealthStatus, boolean hasHealthCheck) {
+    if (hasHealthCheck && "UNKNOWN".equals(ecsTaskHealthStatus)) {
+      return "Starting";
+    } else if ("UNHEALTHY".equals(ecsTaskHealthStatus)) {
+      return "Down";
+    }
+
     switch (ecsTaskStatus) {
       case "PROVISIONING":
       case "PENDING":
@@ -129,12 +167,16 @@ public class ContainerInformationService {
   }
 
   public String getClusterName(String serviceName, String accountName, String region) {
-    String serviceCachekey = Keys.getServiceKey(accountName, region, serviceName);
-    Service service = serviceCacheClient.get(serviceCachekey);
+    Service service = getService(serviceName, accountName, region);
     if (service != null) {
       return service.getClusterName();
     }
     return null;
+  }
+
+  public Service getService(String serviceName, String accountName, String region) {
+    String serviceCacheKey = Keys.getServiceKey(accountName, region, serviceName);
+    return serviceCacheClient.get(serviceCacheKey);
   }
 
   public String getTaskPrivateAddress(String accountName, String region, Task task) { //

@@ -207,6 +207,10 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         containerInformationService.getHealthStatus(taskId, serviceName, account, region);
     String availabilityZone = containerInformationService.getTaskZone(account, region, task);
 
+    Service service = containerInformationService.getService(serviceName, account, region);
+    boolean hasHealthCheck =
+        containerInformationService.taskHasHealthCheck(service, account, region);
+
     NetworkInterface networkInterface =
         !task.getContainers().isEmpty()
                 && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
@@ -218,10 +222,12 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
         launchTime,
         task.getLastStatus(),
         task.getDesiredStatus(),
+        task.getHealthStatus(),
         availabilityZone,
         healthStatus,
         address,
-        networkInterface);
+        networkInterface,
+        hasHealthCheck);
   }
 
   private TaskDefinition buildTaskDefinition(

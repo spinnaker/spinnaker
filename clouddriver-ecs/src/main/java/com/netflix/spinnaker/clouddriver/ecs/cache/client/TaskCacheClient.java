@@ -51,6 +51,7 @@ public class TaskCacheClient extends AbstractCacheClient<Task> {
     task.setGroup((String) attributes.get("group"));
     task.setLastStatus((String) attributes.get("lastStatus"));
     task.setDesiredStatus((String) attributes.get("desiredStatus"));
+    task.setHealthStatus((String) attributes.get("healthStatus"));
     if (attributes.containsKey("startedAt")) {
       task.setStartedAt((Long) attributes.get("startedAt"));
     }

@@ -19,14 +19,18 @@ package com.netflix.spinnaker.clouddriver.ecs.services
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.Placement
 import com.amazonaws.services.ecs.model.Container
+import com.amazonaws.services.ecs.model.ContainerDefinition
+import com.amazonaws.services.ecs.model.HealthCheck
 import com.amazonaws.services.ecs.model.LoadBalancer
 import com.amazonaws.services.ecs.model.NetworkBinding
+import com.amazonaws.services.ecs.model.TaskDefinition
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.*
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth
 import com.netflix.spinnaker.clouddriver.ecs.security.ECSCredentialsConfig
+import org.assertj.core.util.Lists
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -35,6 +39,7 @@ class ContainerInformationServiceSpec extends Specification {
   def taskCacheClient = Mock(TaskCacheClient)
   def serviceCacheClient = Mock(ServiceCacheClient)
   def taskHealthCacheClient = Mock(TaskHealthCacheClient)
+  def taskDefinitionCacheClient = Mock(TaskDefinitionCacheClient)
   def ecsInstanceCacheClient = Mock(EcsInstanceCacheClient)
   def containerInstanceCacheClient = Mock(ContainerInstanceCacheClient)
 
@@ -43,6 +48,7 @@ class ContainerInformationServiceSpec extends Specification {
     taskCacheClient,
     serviceCacheClient,
     taskHealthCacheClient,
+    taskDefinitionCacheClient,
     ecsInstanceCacheClient,
     containerInstanceCacheClient)
 
@@ -67,6 +73,7 @@ class ContainerInformationServiceSpec extends Specification {
     serviceCacheClient.get(_) >> cachedService
     taskHealthCacheClient.get(_) >> cachedTaskHealth
     taskCacheClient.get(_) >> new Task(lastStatus: 'RUNNING')
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition()
 
     def expectedHealthStatus = [
       [
@@ -104,6 +111,7 @@ class ContainerInformationServiceSpec extends Specification {
 
     serviceCacheClient.get(_) >> null
     taskHealthCacheClient.get(_) >> cachedTaskHealth
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition()
 
     def expectedHealthStatus = [
       [
@@ -149,11 +157,18 @@ class ContainerInformationServiceSpec extends Specification {
     retrievedHealthStatus == expectedHealthStatus
   }
 
-  def 'should return correct health status based on last task status'() {
+  def 'should return correct health status based on last task status with no health checks defined'() {
     setup:
     def taskId = 'task-id'
     def serviceName = 'test-service-name'
-    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus)
+    def cachedService = new Service(
+      serviceName: serviceName,
+      loadBalancers: [new LoadBalancer()]
+    )
+
+    serviceCacheClient.get(_) >> cachedService
+    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition()
     def expectedHealthStatus = [
       [
         instanceId: taskId,
@@ -173,15 +188,63 @@ class ContainerInformationServiceSpec extends Specification {
     retrievedHealthStatus == expectedHealthStatus
 
     where:
-    lastStatus       | resultStatus
-    'PROVISIONING'   | 'Starting'
-    'PENDING'        | 'Starting'
-    'ACTIVATING'     | 'Starting'
-    'RUNNING'        | 'Unknown'
-    'DEACTIVATING'   | 'Down'
-    'STOPPING'       | 'Down'
-    'DEPROVISIONING' | 'Down'
-    'STOPPED'        | 'Down'
+    healthStatus  | resultStatus  | lastStatus
+    'UNKNOWN'     | 'Starting'    | 'PROVISIONING'
+    'UNKNOWN'     | 'Starting'    | 'PENDING'
+    'UNKNOWN'     | 'Starting'    | 'ACTIVATING'
+    'UNKNOWN'     | 'Unknown'     | 'RUNNING'
+    'UNHEALTHY'   | 'Down'        | 'PROVISIONING'
+    'UNHEALTHY'   | 'Down'        | 'PENDING'
+    'UNHEALTHY'   | 'Down'        | 'ACTIVATING'
+    'UNHEALTHY'   | 'Down'        | 'RUNNING'
+  }
+
+  def 'should return correct health status based on health status with health check defined'() {
+    setup:
+    def taskId = 'task-id'
+    def serviceName = 'test-service-name'
+    def cachedService = new Service(
+      serviceName: serviceName,
+      loadBalancers: [new LoadBalancer()]
+    )
+
+    serviceCacheClient.get(_) >> cachedService
+    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition
+      (healthCheck: new HealthCheck(
+        command: Lists.newArrayList("myCommand")))))
+    def expectedHealthStatus = [
+      [
+        instanceId: taskId,
+        state     : 'Unknown',
+        type      : 'loadBalancer'
+      ],
+      [
+        instanceId: taskId,
+        state     : resultStatus,
+        type      : 'ecs',
+        healthClass: 'platform'
+      ]
+    ]
+    def retrievedHealthStatus = service.getHealthStatus(taskId, serviceName, 'test-account', 'us-west-1')
+
+    expect:
+    retrievedHealthStatus == expectedHealthStatus
+
+    where:
+    healthStatus  | resultStatus  | lastStatus
+    'UNKNOWN'     | 'Starting'    | 'PROVISIONING'
+    'UNKNOWN'     | 'Starting'    | 'PENDING'
+    'UNKNOWN'     | 'Starting'    | 'ACTIVATING'
+    'UNKNOWN'     | 'Starting'    | 'RUNNING'
+    'UNHEALTHY'   | 'Down'        | 'PROVISIONING'
+    'UNHEALTHY'   | 'Down'        | 'PENDING'
+    'UNHEALTHY'   | 'Down'        | 'ACTIVATING'
+    'UNHEALTHY'   | 'Down'        | 'RUNNING'
+    'HEALTHY'     | 'Starting'    | 'PROVISIONING'
+    'HEALTHY'     | 'Starting'    | 'PENDING'
+    'HEALTHY'     | 'Starting'    | 'ACTIVATING'
+    'HEALTHY'     | 'Unknown'     | 'RUNNING'
   }
 
   def 'should return a proper private address for a task'() {

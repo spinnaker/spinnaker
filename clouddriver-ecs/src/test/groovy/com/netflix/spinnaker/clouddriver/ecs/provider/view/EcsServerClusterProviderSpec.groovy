@@ -370,7 +370,7 @@ class EcsServerClusterProviderSpec extends Specification {
       disabled: false,
       createdTime: startTime,
       instances: [
-        new EcsTask(taskId, startTime, 'RUNNING', 'RUNNING', "us-west-1a", [healthStatus], "${ip}:1337", null)
+        new EcsTask(taskId, startTime, 'RUNNING', 'RUNNING', 'HEALTHY', "us-west-1a", [healthStatus], "${ip}:1337", null, true)
       ],
       vpcId: 'vpc-1234',
       securityGroups: ['sg-1234'],

@@ -42,15 +42,17 @@ public class EcsTask implements Instance, Serializable {
       Long launchTime,
       String lastStatus,
       String desiredStatus,
+      String healthStatus,
       String availabilityZone,
       List<Map<String, Object>> health,
       String privateAddress,
-      NetworkInterface networkInterface) {
+      NetworkInterface networkInterface,
+      boolean hasHealthCheck) {
     this.name = name;
     providerType = cloudProvider = EcsCloudProvider.ID;
     this.launchTime = launchTime;
     this.health = health;
-    healthState = calculateHealthState(lastStatus, desiredStatus);
+    healthState = calculateHealthState(lastStatus, desiredStatus, healthStatus, hasHealthCheck);
     zone = availabilityZone;
     this.privateAddress = privateAddress;
     this.networkInterface = networkInterface;
@@ -69,19 +71,23 @@ public class EcsTask implements Instance, Serializable {
    * @param desiredStatus Desired status of the Task
    * @return Spinnaker understandable Health State
    */
-  private HealthState calculateHealthState(String lastStatus, String desiredStatus) {
-    HealthState currentState = null;
+  private HealthState calculateHealthState(
+      String lastStatus, String desiredStatus, String healthStatus, boolean hasHealthCheck) {
 
-    if ("RUNNING".equals(desiredStatus) && "PENDING".equals(lastStatus)) {
-      currentState = HealthState.Starting;
-    } else if ("RUNNING".equals(lastStatus)) {
-      currentState = HealthState.Up;
-    } else if ("STOPPED".equals(desiredStatus)) {
-      currentState = HealthState.Down;
-    } else {
-      currentState = HealthState.Unknown;
+    if (hasHealthCheck && "UNKNOWN".equals(healthStatus)) {
+      return HealthState.Starting;
+    } else if ("UNHEALTHY".equals(healthStatus)) {
+      return HealthState.Down;
     }
 
-    return currentState;
+    if ("RUNNING".equals(desiredStatus) && "PENDING".equals(lastStatus)) {
+      return HealthState.Starting;
+    } else if ("RUNNING".equals(lastStatus)) {
+      return HealthState.Up;
+    } else if ("STOPPED".equals(desiredStatus)) {
+      return HealthState.Down;
+    } else {
+      return HealthState.Unknown;
+    }
   }
 }

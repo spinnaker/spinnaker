@@ -51,6 +51,7 @@ public class TaskCacheClientTest extends CommonCacheClient {
     task.setGroup("group:testservice-stack-details-v1");
     task.setContainers(Collections.emptyList());
     task.setLastStatus("RUNNING");
+    task.setHealthStatus("HEALTHY");
     task.setDesiredStatus("RUNNING");
     task.setStartedAt(new Date());
     Map<String, Object> attributes = TaskCachingAgent.convertTaskToAttributes(task);
@@ -87,6 +88,13 @@ public class TaskCacheClientTest extends CommonCacheClient {
             + " but got "
             + ecsTask.getLastStatus(),
         task.getLastStatus().equals(ecsTask.getLastStatus()));
+
+    assertTrue(
+        "Expected the health status to be "
+            + task.getHealthStatus()
+            + " but got "
+            + ecsTask.getHealthStatus(),
+        task.getHealthStatus().equals(ecsTask.getHealthStatus()));
 
     assertTrue(
         "Expected the desired status to be "

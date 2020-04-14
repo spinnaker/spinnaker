@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
+import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsTask;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
@@ -80,16 +81,22 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
             ? task.getContainers().get(0).getNetworkInterfaces().get(0)
             : null;
 
+    Service service = containerInformationService.getService(serviceName, account, region);
+    boolean hasHealthCheck =
+        containerInformationService.taskHasHealthCheck(service, account, region);
+
     ecsInstance =
         new EcsTask(
             id,
             launchTime,
             task.getLastStatus(),
             task.getDesiredStatus(),
+            task.getHealthStatus(),
             zone,
             healthStatus,
             address,
-            networkInterface);
+            networkInterface,
+            hasHealthCheck);
 
     return ecsInstance;
   }
