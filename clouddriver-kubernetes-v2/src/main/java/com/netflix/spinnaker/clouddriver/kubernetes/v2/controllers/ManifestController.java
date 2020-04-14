@@ -40,12 +40,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/manifests")
 public class ManifestController {
-  final List<ManifestProvider> manifestProviders;
+  final List<ManifestProvider<?>> manifestProviders;
 
   final RequestQueue requestQueue;
 
   @Autowired
-  public ManifestController(List<ManifestProvider> manifestProviders, RequestQueue requestQueue) {
+  public ManifestController(
+      List<ManifestProvider<?>> manifestProviders, RequestQueue requestQueue) {
     this.manifestProviders = manifestProviders;
     this.requestQueue = requestQueue;
   }
@@ -123,17 +124,16 @@ public class ManifestController {
         String.format(
             "(account: %s, location: %s, kind: %s, app %s, cluster: %s, criteria: %s)",
             account, location, kind, app, cluster, criteria);
-    List<List<Manifest>> manifestSet =
+    List<List<? extends Manifest>> manifestSet =
         manifestProviders.stream()
             .map(
                 p -> {
                   try {
-                    return (List<Manifest>)
-                        requestQueue.execute(
-                            account,
-                            () ->
-                                p.getClusterAndSortAscending(
-                                    account, location, kind, app, cluster, criteria.getSort()));
+                    return requestQueue.execute(
+                        account,
+                        () ->
+                            p.getClusterAndSortAscending(
+                                account, location, kind, app, cluster, criteria.getSort()));
                   } catch (Throwable t) {
                     log.warn("Failed to read {}", request, t);
                     return null;
@@ -148,7 +148,7 @@ public class ManifestController {
       throw new IllegalStateException("Multiple sets of manifests matching " + request + " found");
     }
 
-    List<Manifest> manifests = manifestSet.get(0);
+    List<? extends Manifest> manifests = manifestSet.get(0);
     try {
       switch (criteria) {
         case oldest:

@@ -38,7 +38,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
       .version(version)
       .build()
 
-    def converter = new KubernetesVersionedArtifactConverter()
+    def converter = KubernetesVersionedArtifactConverter.INSTANCE
     converter.getDeployedName(artifact) == "$name-$version"
 
     where:
@@ -58,7 +58,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
 
     artifactProvider.getArtifacts(type, name, location) >> artifacts
 
-    def converter = new KubernetesVersionedArtifactConverter()
+    def converter = KubernetesVersionedArtifactConverter.INSTANCE
 
     then:
     converter.getVersion(artifactProvider, type, name, location, null) == expected
@@ -98,7 +98,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
 
     artifactProvider.getArtifacts(type, name, location) >> artifacts
 
-    def converter = new KubernetesVersionedArtifactConverter()
+    def converter = KubernetesVersionedArtifactConverter.INSTANCE
 
     then:
     converter.getVersion(artifactProvider, type, name, location, manifest1) == version1

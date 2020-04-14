@@ -318,10 +318,6 @@ public class KubernetesCacheDataConverter {
       return;
     }
 
-    if (manifest.getKind() == null) {
-      log.warn("{}: manifest kind may not be null, {}", contextMessage.get(), manifest);
-    }
-
     if (Strings.isNullOrEmpty(manifest.getName())) {
       log.warn("{}: manifest name may not be null, {}", contextMessage.get(), manifest);
     }

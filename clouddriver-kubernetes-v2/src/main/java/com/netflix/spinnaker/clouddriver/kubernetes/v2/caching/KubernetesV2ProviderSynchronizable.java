@@ -130,7 +130,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
               return credentials;
             })
         .filter(Objects::nonNull)
-        .forEach(a -> saveToCredentialsRepository(a));
+        .forEach(this::saveToCredentialsRepository);
 
     ProviderUtils.unscheduleAndDeregisterAgents(deletedAccounts, catsModule);
     ProviderUtils.unscheduleAndDeregisterAgents(changedAccounts, catsModule);

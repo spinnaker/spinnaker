@@ -34,9 +34,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHand
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,7 +115,6 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
             c ->
                 cacheUtils.loadRelationshipsFromCache(c, kind).stream()
                     .map(cd -> fromCacheData(cd, credentials, false))
-                    .filter(Objects::nonNull)
                     .filter(m -> m.getLocation().equals(location))
                     .sorted(
                         (m1, m2) ->
@@ -124,6 +123,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .orElse(new ArrayList<>());
   }
 
+  @Nonnull
   private KubernetesV2Manifest fromCacheData(
       CacheData data, KubernetesV2Credentials credentials, boolean includeEvents) {
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);

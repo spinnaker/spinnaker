@@ -107,6 +107,6 @@ public class KubernetesKindProperties {
 
   public enum ResourceScope {
     CLUSTER,
-    NAMESPACE;
+    NAMESPACE
   }
 }

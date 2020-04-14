@@ -82,9 +82,7 @@ public class Replacer {
 
   @Nonnull
   ImmutableCollection<Artifact> getArtifacts(DocumentContext document) {
-    return mapper
-        .<List<String>>convertValue(findAll(document), new TypeReference<List<String>>() {})
-        .stream()
+    return mapper.convertValue(findAll(document), new TypeReference<List<String>>() {}).stream()
         .map(this::artifactFromReference)
         .collect(toImmutableList());
   }

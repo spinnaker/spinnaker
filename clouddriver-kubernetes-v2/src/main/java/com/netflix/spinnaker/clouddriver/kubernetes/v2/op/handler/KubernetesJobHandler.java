@@ -105,11 +105,9 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
       List<V1JobCondition> conditions = status.getConditions();
       conditions = conditions != null ? conditions : ImmutableList.of();
       Optional<V1JobCondition> condition = conditions.stream().filter(this::jobFailed).findAny();
-      if (condition.isPresent()) {
-        return Status.defaultStatus().failed(condition.get().getMessage());
-      } else {
-        return Status.defaultStatus().unstable("Waiting for jobs to finish");
-      }
+      return condition
+          .map(v1JobCondition -> Status.defaultStatus().failed(v1JobCondition.getMessage()))
+          .orElseGet(() -> Status.defaultStatus().unstable("Waiting for jobs to finish"));
     }
 
     return Status.defaultStatus();

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoo
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanDelete;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -64,7 +63,7 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
               credentials.getResourcePropertyRegistry().get(c.getKind());
           KubernetesHandler deployer = properties.getHandler();
 
-          if (!(deployer instanceof CanDelete)) {
+          if (deployer == null) {
             throw new IllegalArgumentException("Resource with " + c + " does not support delete");
           }
 

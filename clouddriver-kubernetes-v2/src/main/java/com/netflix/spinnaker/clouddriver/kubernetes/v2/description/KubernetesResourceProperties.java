@@ -47,7 +47,7 @@ public class KubernetesResourceProperties {
       deployPriorityValue = WORKLOAD_CONTROLLER_PRIORITY.getValue();
     } else {
       try {
-        deployPriorityValue = Integer.valueOf(deployPriority);
+        deployPriorityValue = Integer.parseInt(deployPriority);
       } catch (NumberFormatException e) {
         deployPriorityValue =
             KubernetesHandler.DeployPriority.fromString(deployPriority).getValue();

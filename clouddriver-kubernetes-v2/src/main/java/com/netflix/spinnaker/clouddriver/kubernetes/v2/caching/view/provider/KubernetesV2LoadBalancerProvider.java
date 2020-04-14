@@ -147,7 +147,7 @@ public class KubernetesV2LoadBalancerProvider
   }
 
   @Data
-  private class Item implements LoadBalancerProvider.Item {
+  private static class Item implements LoadBalancerProvider.Item {
     String name;
     List<ByAccount> byAccounts = new ArrayList<>();
   }

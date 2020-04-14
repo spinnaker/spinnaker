@@ -108,7 +108,7 @@ public interface Manifest {
 
   @Data
   @Builder
-  public static class Warning {
+  class Warning {
     private String type;
     private String message;
   }

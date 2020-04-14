@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class KubernetesPatchManifestOperation implements AtomicOperation<OperationResult> {
@@ -45,7 +44,7 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   private final KubernetesV2Credentials credentials;
   private static final String OP_NAME = "PATCH_KUBERNETES_MANIFEST";
 
-  @Autowired private ObjectMapper objectMapper;
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   public KubernetesPatchManifestOperation(KubernetesPatchManifestDescription description) {
     this.description = description;

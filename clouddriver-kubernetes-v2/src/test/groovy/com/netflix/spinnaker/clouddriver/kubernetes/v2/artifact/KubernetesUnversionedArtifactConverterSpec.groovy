@@ -34,7 +34,7 @@ class KubernetesUnversionedArtifactConverterSpec extends Specification {
       .name(name)
       .build()
 
-    def converter = new KubernetesUnversionedArtifactConverter()
+    def converter = KubernetesUnversionedArtifactConverter.INSTANCE
     converter.getDeployedName(artifact) == "$name"
 
     where:
