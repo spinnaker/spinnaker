@@ -8,13 +8,9 @@ dependencies {
   api project(":kork-core")
 
   api "org.springframework.security:spring-security-core"
-  api "org.codehaus.groovy:groovy-all"
-  api "com.hubspot.jinjava:jinjava"
-  api "com.fasterxml.jackson.core:jackson-core"
-  api "com.fasterxml.jackson.core:jackson-databind"
   api "com.fasterxml.jackson.core:jackson-annotations"
-  api "org.slf4j:jcl-over-slf4j"
-  api "ch.qos.logback:logback-classic"
+
+  implementation "com.google.guava:guava"
 
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"
