@@ -17,14 +17,14 @@ package application
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/cmd/orca-tasks"
-	"github.com/spinnaker/spin/util"
 	"strings"
+
+	"github.com/spf13/cobra"
+	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
+	"github.com/spinnaker/spin/util"
 )
 
-type SaveOptions struct {
+type saveOptions struct {
 	*applicationOptions
 	applicationFile string
 	applicationName string
@@ -33,36 +33,32 @@ type SaveOptions struct {
 }
 
 var (
-	saveApplicationShort   = "Save the provided application"
-	saveApplicationLong    = "Save the specified application"
+	saveApplicationShort = "Save the provided application"
+	saveApplicationLong  = "Save the specified application"
 )
 
-func NewSaveCmd(appOptions applicationOptions) *cobra.Command {
-	options := SaveOptions{
-		applicationOptions: &appOptions,
+func NewSaveCmd(appOptions *applicationOptions) *cobra.Command {
+	options := &saveOptions{
+		applicationOptions: appOptions,
 	}
 	cmd := &cobra.Command{
-		Use:     "save",
-		Short:   saveApplicationShort,
-		Long:    saveApplicationLong,
+		Use:   "save",
+		Short: saveApplicationShort,
+		Long:  saveApplicationLong,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return saveApplication(cmd, options)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&options.applicationFile, "file", "", "", "path to the application file")
-	cmd.PersistentFlags().StringVarP(&options.applicationName, "application-name", "", "", "name of the application")
+	cmd.PersistentFlags().StringVarP(&options.applicationFile, "file", "f", "", "path to the application file")
+	cmd.PersistentFlags().StringVarP(&options.applicationName, "application-name", "a", "", "name of the application")
 	cmd.PersistentFlags().StringVarP(&options.ownerEmail, "owner-email", "", "", "email of the application owner")
 	options.cloudProviders = cmd.PersistentFlags().StringArrayP("cloud-providers", "", []string{}, "cloud providers configured for this application")
 
 	return cmd
 }
 
-func saveApplication(cmd *cobra.Command, options SaveOptions) error {
+func saveApplication(cmd *cobra.Command, options *saveOptions) error {
 	// TODO(jacobkiefer): Should we check for an existing application of the same name?
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
 
 	initialApp, err := util.ParseJsonFromFileOrStdin(options.applicationFile, true)
 	if err != nil {
@@ -73,15 +69,15 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 	if initialApp != nil && len(initialApp) > 0 {
 		app = initialApp
 		if len(*options.cloudProviders) != 0 {
-			util.UI.Warn("Overriding application cloud providers with explicit flag values.\n")
+			options.Ui.Warn("Overriding application cloud providers with explicit flag values.\n")
 			app["cloudProviders"] = strings.Join(*options.cloudProviders, ",")
 		}
 		if options.applicationName != "" {
-			util.UI.Warn("Overriding application name with explicit flag values.\n")
+			options.Ui.Warn("Overriding application name with explicit flag values.\n")
 			app["name"] = options.applicationName
 		}
 		if options.ownerEmail != "" {
-			util.UI.Warn("Overriding application owner email with explicit flag values.\n")
+			options.Ui.Warn("Overriding application owner email with explicit flag values.\n")
 			app["email"] = options.ownerEmail
 		}
 		// TODO(jacobkiefer): Add validation for valid cloudProviders and well-formed emails.
@@ -106,16 +102,16 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 		"description": fmt.Sprintf("Create Application: %s", app["name"]),
 	}
 
-	ref, _, err := gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, createAppTask)
+	ref, _, err := options.GateClient.TaskControllerApi.TaskUsingPOST1(options.GateClient.Context, createAppTask)
 	if err != nil {
 		return err
 	}
 
-	err = orca_tasks.WaitForSuccessfulTask(gateClient, ref, 5)
+	err = orca_tasks.WaitForSuccessfulTask(options.GateClient, ref, 5)
 	if err != nil {
 		return err
 	}
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application save succeeded")))
+	options.Ui.Success("Application save succeeded")
 	return nil
 }

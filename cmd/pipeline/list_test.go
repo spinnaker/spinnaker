@@ -16,12 +16,13 @@ package pipeline
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -29,32 +30,27 @@ func TestPipelineList_basic(t *testing.T) {
 	ts := testGatePipelineListSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
-
 }
 
 func TestPipelineList_flags(t *testing.T) {
 	ts := testGatePipelineListSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline", "list", "--gate-endpoint", ts.URL} // Missing application.
-	currentCmd := NewListCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "list", "--gate-endpoint", ts.URL} // Missing application.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -66,13 +62,11 @@ func TestPipelineList_malformed(t *testing.T) {
 	ts := testGatePipelineListMalformed()
 	defer ts.Close()
 
-	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -81,16 +75,14 @@ func TestPipelineList_malformed(t *testing.T) {
 }
 
 func TestPipelineList_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {

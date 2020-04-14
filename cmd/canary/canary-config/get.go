@@ -17,15 +17,15 @@ package canary_config
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
-type GetOptions struct {
+type getOptions struct {
 	*canaryConfigOptions
-	id  string
+	id string
 }
 
 const (
@@ -33,9 +33,9 @@ const (
 	getCanaryConfigLong  = "Get the specified canary config"
 )
 
-func NewGetCmd(canaryConfigOptions canaryConfigOptions) *cobra.Command {
-	options := GetOptions{
-		canaryConfigOptions: &canaryConfigOptions,
+func NewGetCmd(canaryConfigOptions *canaryConfigOptions) *cobra.Command {
+	options := &getOptions{
+		canaryConfigOptions: canaryConfigOptions,
 	}
 	cmd := &cobra.Command{
 		Use:   "get",
@@ -51,12 +51,8 @@ func NewGetCmd(canaryConfigOptions canaryConfigOptions) *cobra.Command {
 	return cmd
 }
 
-func getCanaryConfig(cmd *cobra.Command, options GetOptions, args []string) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func getCanaryConfig(cmd *cobra.Command, options *getOptions, args []string) error {
+	var err error
 	id := options.id
 	if id == "" {
 		id, err = util.ReadArgsOrStdin(args)
@@ -68,8 +64,8 @@ func getCanaryConfig(cmd *cobra.Command, options GetOptions, args []string) erro
 		}
 	}
 
-	successPayload, resp, err := gateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
-		gateClient.Context, id, map[string]interface{}{})
+	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
+		options.GateClient.Context, id, map[string]interface{}{})
 
 	if err != nil {
 		return err
@@ -81,6 +77,6 @@ func getCanaryConfig(cmd *cobra.Command, options GetOptions, args []string) erro
 			resp.StatusCode)
 	}
 
-	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)
+	options.Ui.JsonOutput(successPayload)
 	return nil
 }

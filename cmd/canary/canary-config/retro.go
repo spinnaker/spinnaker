@@ -17,15 +17,15 @@ package canary_config
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
-type RetroOptions struct {
+type retroOptions struct {
 	*canaryConfigOptions
 	output              string
 	canaryConfigFile    string
@@ -53,9 +53,9 @@ var (
 	retrySleepCycle = 6 * time.Second
 )
 
-func NewRetroCmd(canaryConfigOptions canaryConfigOptions) *cobra.Command {
-	options := RetroOptions{
-		canaryConfigOptions: &canaryConfigOptions,
+func NewRetroCmd(canaryConfigOptions *canaryConfigOptions) *cobra.Command {
+	options := &retroOptions{
+		canaryConfigOptions: canaryConfigOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "retro",
@@ -88,12 +88,7 @@ func NewRetroCmd(canaryConfigOptions canaryConfigOptions) *cobra.Command {
 	return cmd
 }
 
-func retroCanaryConfig(cmd *cobra.Command, options RetroOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 	canaryConfigJson, err := util.ParseJsonFromFileOrStdin(options.canaryConfigFile, false)
 	if err != nil {
 		return err
@@ -155,8 +150,8 @@ func retroCanaryConfig(cmd *cobra.Command, options RetroOptions) error {
 		initiateOptionalParams["storageAccountName"] = options.storageAccount
 	}
 
-	util.UI.Info("Initiating canary execution for supplied canary config")
-	canaryExecutionResp, initiateResp, initiateErr := gateClient.V2CanaryControllerApi.InitiateCanaryWithConfigUsingPOST(gateClient.Context, adhocRequest, initiateOptionalParams)
+	options.Ui.Info("Initiating canary execution for supplied canary config")
+	canaryExecutionResp, initiateResp, initiateErr := options.GateClient.V2CanaryControllerApi.InitiateCanaryWithConfigUsingPOST(options.GateClient.Context, adhocRequest, initiateOptionalParams)
 
 	if initiateErr != nil {
 		return initiateErr
@@ -169,14 +164,14 @@ func retroCanaryConfig(cmd *cobra.Command, options RetroOptions) error {
 	}
 
 	canaryExecutionId := canaryExecutionResp.(map[string]interface{})["canaryExecutionId"].(string)
-	util.UI.Info(fmt.Sprintf("Spawned canary execution with id %s, polling for completion...", canaryExecutionId))
+	options.Ui.Info(fmt.Sprintf("Spawned canary execution with id %s, polling for completion...", canaryExecutionId))
 
 	queryOptionalParams := map[string]interface{}{}
 	if options.storageAccount != "" {
 		queryOptionalParams["storageAccountName"] = options.storageAccount
 	}
 
-	canaryResult, canaryResultResp, canaryResultErr := gateClient.V2CanaryControllerApi.GetCanaryResultUsingGET1(gateClient.Context, canaryExecutionId, queryOptionalParams)
+	canaryResult, canaryResultResp, canaryResultErr := options.GateClient.V2CanaryControllerApi.GetCanaryResultUsingGET1(options.GateClient.Context, canaryExecutionId, queryOptionalParams)
 
 	if canaryResultErr != nil {
 		return canaryResultErr
@@ -192,7 +187,7 @@ func retroCanaryConfig(cmd *cobra.Command, options RetroOptions) error {
 
 	retries := 0
 	for retries < 10 && complete == false && canaryResultErr == nil {
-		canaryResult, canaryResultResp, canaryResultErr = gateClient.V2CanaryControllerApi.GetCanaryResultUsingGET1(gateClient.Context, canaryExecutionId, queryOptionalParams)
+		canaryResult, canaryResultResp, canaryResultErr = options.GateClient.V2CanaryControllerApi.GetCanaryResultUsingGET1(options.GateClient.Context, canaryExecutionId, queryOptionalParams)
 		complete = canaryResult.(map[string]interface{})["complete"].(bool)
 		time.Sleep(retrySleepCycle)
 		retries += 1
@@ -207,14 +202,14 @@ func retroCanaryConfig(cmd *cobra.Command, options RetroOptions) error {
 
 	judgement := canaryResult.(map[string]interface{})["result"].(map[string]interface{})["judgeResult"].(map[string]interface{})["score"].(map[string]interface{})["classification"].(string)
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("Retrospective canary execution finished, judgement = %s", strings.ToUpper(judgement))))
+	options.Ui.Info(fmt.Sprintf("Retrospective canary execution finished, judgement = %s", strings.ToUpper(judgement)))
 	if options.fullResult {
-		util.UI.JsonOutput(canaryResult, util.UI.OutputFormat)
+		options.Ui.JsonOutput(canaryResult)
 	}
 	return nil
 }
 
-func validateOptions(options RetroOptions) error {
+func validateOptions(options *retroOptions) error {
 	if options.controlGroup == "" || options.controlLocation == "" {
 		return errors.New("Required control group flags not supplied")
 	}

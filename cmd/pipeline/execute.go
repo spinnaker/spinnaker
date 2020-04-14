@@ -20,12 +20,11 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
 	"github.com/spinnaker/spin/util"
 )
 
-type ExecuteOptions struct {
-	*pipelineOptions
+type executeOptions struct {
+	*PipelineOptions
 	output        string
 	application   string
 	name          string
@@ -38,9 +37,9 @@ var (
 	executePipelineLong  = "Execute the provided pipeline"
 )
 
-func NewExecuteCmd(pipelineOptions pipelineOptions) *cobra.Command {
-	options := ExecuteOptions{
-		pipelineOptions: &pipelineOptions,
+func NewExecuteCmd(pipelineOptions *PipelineOptions) *cobra.Command {
+	options := &executeOptions{
+		PipelineOptions: pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "execute",
@@ -60,18 +59,12 @@ func NewExecuteCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	return cmd
 }
 
-func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 	if options.application == "" || options.name == "" {
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
 
-	parameters := map[string]interface{}{}
-	parameters, err = util.ParseJsonFromFile(options.parameterFile, true)
+	parameters, err := util.ParseJsonFromFile(options.parameterFile, true)
 	if err != nil {
 		return fmt.Errorf("Could not parse supplied pipeline parameters: %v.\n", err)
 	}
@@ -94,7 +87,7 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		}
 	}
 
-	resp, err := gateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(gateClient.Context,
+	resp, err := options.GateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(options.GateClient.Context,
 		options.application,
 		options.name,
 		map[string]interface{}{"trigger": trigger})
@@ -107,7 +100,7 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		return fmt.Errorf("Encountered an error executing pipeline, status code: %d\n", resp.StatusCode)
 	}
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline execution started")))
+	options.Ui.Success("Pipeline execution started")
 
 	return nil
 }

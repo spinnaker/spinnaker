@@ -19,13 +19,12 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
 
 	"github.com/spinnaker/spin/util"
 )
 
-type SaveOptions struct {
-	*pipelineOptions
+type saveOptions struct {
+	*PipelineOptions
 	output       string
 	pipelineFile string
 }
@@ -35,9 +34,9 @@ var (
 	savePipelineLong  = "Save the provided pipeline"
 )
 
-func NewSaveCmd(pipelineOptions pipelineOptions) *cobra.Command {
-	options := SaveOptions{
-		pipelineOptions: &pipelineOptions,
+func NewSaveCmd(pipelineOptions *PipelineOptions) *cobra.Command {
+	options := &saveOptions{
+		PipelineOptions: pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "save",
@@ -54,33 +53,28 @@ func NewSaveCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	return cmd
 }
 
-func savePipeline(cmd *cobra.Command, options SaveOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	pipelineJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile, false)
 	if err != nil {
 		return err
 	}
 	valid := true
 	if _, exists := pipelineJson["name"]; !exists {
-		util.UI.Error("Required pipeline key 'name' missing...\n")
+		options.Ui.Error("Required pipeline key 'name' missing...\n")
 		valid = false
 	}
 
 	if _, exists := pipelineJson["application"]; !exists {
-		util.UI.Error("Required pipeline key 'application' missing...\n")
+		options.Ui.Error("Required pipeline key 'application' missing...\n")
 		valid = false
 	}
 
 	if template, exists := pipelineJson["template"]; exists && len(template.(map[string]interface{})) > 0 {
 		if _, exists := pipelineJson["schema"]; !exists {
-			util.UI.Error("Required pipeline key 'schema' missing for templated pipeline...\n")
+			options.Ui.Error("Required pipeline key 'schema' missing for templated pipeline...\n")
 			valid = false
 		}
-	    pipelineJson["type"] = "templatedPipeline"
+		pipelineJson["type"] = "templatedPipeline"
 	}
 
 	if !valid {
@@ -89,7 +83,7 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 	application := pipelineJson["application"].(string)
 	pipelineName := pipelineJson["name"].(string)
 
-	foundPipeline, queryResp, _ := gateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(gateClient.Context, application, pipelineName)
+	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context, application, pipelineName)
 
 	if queryResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error querying pipeline, status code: %d\n", queryResp.StatusCode)
@@ -104,7 +98,7 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 		pipelineJson["id"] = foundPipelineId
 	}
 
-	saveResp, saveErr := gateClient.PipelineControllerApi.SavePipelineUsingPOST(gateClient.Context, pipelineJson)
+	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, pipelineJson)
 
 	if saveErr != nil {
 		return saveErr
@@ -113,6 +107,6 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
 	}
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline save succeeded")))
+	options.Ui.Success("Pipeline save succeeded")
 	return nil
 }

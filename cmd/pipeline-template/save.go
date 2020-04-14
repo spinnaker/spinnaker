@@ -16,27 +16,27 @@ package pipeline_template
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
-type SaveOptions struct {
+type saveOptions struct {
 	*pipelineTemplateOptions
 	output       string
 	templateFile string
-	tag string
+	tag          string
 }
 
 var (
-	saveTemplateShort   = "Save the provided pipeline template"
-	saveTemplateLong    = "Save the provided pipeline template"
+	saveTemplateShort = "Save the provided pipeline template"
+	saveTemplateLong  = "Save the provided pipeline template"
 )
 
-func NewSaveCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
-	options := SaveOptions{
-		pipelineTemplateOptions: &pipelineTemplateOptions,
+func NewSaveCmd(pipelineTemplateOptions *pipelineTemplateOptions) *cobra.Command {
+	options := &saveOptions{
+		pipelineTemplateOptions: pipelineTemplateOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "save",
@@ -56,12 +56,7 @@ func NewSaveCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command 
 	return cmd
 }
 
-func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 	templateJson, err := util.ParseJsonFromFileOrStdin(options.templateFile, false)
 	if err != nil {
 		return err
@@ -69,11 +64,11 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 
 	valid := true
 	if _, exists := templateJson["id"]; !exists {
-		util.UI.Error("Required pipeline template key 'id' missing...\n")
+		options.Ui.Error("Required pipeline template key 'id' missing...\n")
 		valid = false
 	}
 	if _, exists := templateJson["schema"]; !exists {
-		util.UI.Error("Required pipeline template key 'schema' missing...\n")
+		options.Ui.Error("Required pipeline template key 'schema' missing...\n")
 		valid = false
 	}
 	if !valid {
@@ -87,24 +82,24 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 		queryParams["tag"] = options.tag
 	}
 
-	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context, templateId, queryParams)
+	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context, templateId, queryParams)
 
 	var saveResp *http.Response
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
-		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(gateClient.Context, templateId, templateJson, queryParams)
+		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, queryParams)
 	} else if resp.StatusCode == http.StatusNotFound {
-		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(gateClient.Context, templateJson, queryParams)
+		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, queryParams)
 	} else {
 		if queryErr != nil {
-      return queryErr
+			return queryErr
 		}
 		return fmt.Errorf("Encountered an unexpected status code %d querying pipeline template with id %s\n",
 			resp.StatusCode, templateId)
 	}
 
 	if saveErr != nil {
-    return saveErr
+		return saveErr
 	}
 
 	if saveResp.StatusCode != http.StatusAccepted {
@@ -113,6 +108,6 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 			saveResp.StatusCode)
 	}
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline template save succeeded")))
+	options.Ui.Success("Pipeline template save succeeded")
 	return nil
 }

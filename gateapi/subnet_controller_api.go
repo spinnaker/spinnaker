@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,20 +27,19 @@ var (
 
 type SubnetControllerApiService service
 
-
 /* SubnetControllerApiService Retrieve a list of subnets for a given cloud provider
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param cloudProvider cloudProvider
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return []interface{}*/
-func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Context, cloudProvider string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param cloudProvider cloudProvider
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+@return []interface{}*/
+func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Context, cloudProvider string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -55,7 +55,7 @@ func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Con
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -66,7 +66,7 @@ func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Con
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -95,7 +95,5 @@ func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Con
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

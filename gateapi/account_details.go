@@ -10,7 +10,6 @@
 package swagger
 
 type AccountDetails struct {
-
 	Permissions map[string][]string `json:"permissions,omitempty"`
 
 	PrimaryAccount bool `json:"primaryAccount,omitempty"`

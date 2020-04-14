@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,20 +27,19 @@ var (
 
 type LoadBalancerControllerApiService service
 
-
 /* LoadBalancerControllerApiService Retrieve a list of load balancers for a given cloud provider
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
-     @param "provider" (string) provider
- @return []interface{}*/
-func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+    @param "provider" (string) provider
+@return []interface{}*/
+func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -60,7 +60,7 @@ func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, l
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -71,7 +71,7 @@ func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, l
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -100,23 +100,22 @@ func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, l
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* LoadBalancerControllerApiService Retrieve a list of load balancers for a given application
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param application application
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return []interface{}*/
-func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param application application
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+@return []interface{}*/
+func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -132,7 +131,7 @@ func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(c
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -143,7 +142,7 @@ func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(c
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -172,26 +171,25 @@ func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(c
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* LoadBalancerControllerApiService Retrieve a load balancer&#39;s details as a single element list for a given account, region, cloud provider and load balancer name
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param account account
- @param name name
- @param region region
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
-     @param "provider" (string) provider
- @return []interface{}*/
-func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx context.Context, account string, name string, region string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param account account
+@param name name
+@param region region
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+    @param "provider" (string) provider
+@return []interface{}*/
+func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx context.Context, account string, name string, region string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -215,7 +213,7 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx co
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -226,7 +224,7 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx co
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -255,24 +253,23 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx co
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* LoadBalancerControllerApiService Retrieve a load balancer for a given cloud provider
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param name name
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
-     @param "provider" (string) provider
- @return map[string]interface{}*/
-func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.Context, name string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param name name
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+    @param "provider" (string) provider
+@return map[string]interface{}*/
+func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.Context, name string, localVarOptionals map[string]interface{}) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     map[string]interface{}
 	)
 
 	// create path and map variables
@@ -294,7 +291,7 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.C
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -305,7 +302,7 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -334,7 +331,5 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.C
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

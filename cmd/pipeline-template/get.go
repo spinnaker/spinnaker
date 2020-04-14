@@ -17,15 +17,15 @@ package pipeline_template
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
-type GetOptions struct {
+type getOptions struct {
 	*pipelineTemplateOptions
-	id string
+	id  string
 	tag string
 }
 
@@ -34,9 +34,9 @@ var (
 	getPipelineTemplateLong  = "Get the specified pipeline template"
 )
 
-func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
-	options := GetOptions{
-		pipelineTemplateOptions: &pipelineTemplateOptions,
+func NewGetCmd(pipelineTemplateOptions *pipelineTemplateOptions) *cobra.Command {
+	options := &getOptions{
+		pipelineTemplateOptions: pipelineTemplateOptions,
 	}
 	cmd := &cobra.Command{
 		Use:   "get",
@@ -54,12 +54,8 @@ func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
 	return cmd
 }
 
-func getPipelineTemplate(cmd *cobra.Command, options GetOptions, args []string) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func getPipelineTemplate(cmd *cobra.Command, options *getOptions, args []string) error {
+	var err error
 	id := options.id
 	if id == "" {
 		id, err = util.ReadArgsOrStdin(args)
@@ -76,7 +72,7 @@ func getPipelineTemplate(cmd *cobra.Command, options GetOptions, args []string) 
 		queryParams["tag"] = options.tag
 	}
 
-	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context,
+	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context,
 		id, queryParams)
 
 	if err != nil {
@@ -89,6 +85,6 @@ func getPipelineTemplate(cmd *cobra.Command, options GetOptions, args []string) 
 			resp.StatusCode)
 	}
 
-	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)
+	options.Ui.JsonOutput(successPayload)
 	return nil
 }

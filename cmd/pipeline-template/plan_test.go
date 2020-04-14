@@ -16,17 +16,19 @@ package pipeline_template
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/util"
 )
 
 func TestPipelineTemplatePlan_basic(t *testing.T) {
-	ts := gateServerPlanSuccess()
+	ts := testGatePlanSuccess()
 	defer ts.Close()
 
 	tempFile := tempPipelineTemplateFile(testPlanConfig)
@@ -34,14 +36,11 @@ func TestPipelineTemplatePlan_basic(t *testing.T) {
 		t.Fatal("Could not create temp pipeline template file.")
 	}
 	defer os.Remove(tempFile.Name())
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
 	args := []string{"pipeline-template", "plan", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-
-	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
-
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -50,7 +49,7 @@ func TestPipelineTemplatePlan_basic(t *testing.T) {
 }
 
 func TestPipelineTemplatePlan_stdin(t *testing.T) {
-	ts := gateServerPlanSuccess()
+	ts := testGatePlanSuccess()
 	defer ts.Close()
 
 	tempFile := tempPipelineTemplateFile(testPlanConfig)
@@ -65,13 +64,10 @@ func TestPipelineTemplatePlan_stdin(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 	os.Stdin = tempFile
 
-	args := []string{"pipeline-template", "plan", "--gate-endpoint", ts.URL}
-	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "plan", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -80,7 +76,7 @@ func TestPipelineTemplatePlan_stdin(t *testing.T) {
 }
 
 func TestPipelineTemplatePlan_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
 	tempFile := tempPipelineTemplateFile(testPlanConfig)
@@ -89,13 +85,10 @@ func TestPipelineTemplatePlan_fail(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"pipeline-template", "plan", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "plan", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -104,16 +97,13 @@ func TestPipelineTemplatePlan_fail(t *testing.T) {
 }
 
 func TestPipelineTemplatePlan_flags(t *testing.T) {
-	ts := gateServerPlanSuccess()
+	ts := testGatePlanSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "plan", "--gate-endpoint", ts.URL} // Missing pipeline config file and stdin.
-	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "plan", "--gate-endpoint", ts.URL} // Missing pipeline config file and stdin.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -121,10 +111,10 @@ func TestPipelineTemplatePlan_flags(t *testing.T) {
 	}
 }
 
-// gateServerUpdateSuccess spins up a local http server that we will configure the GateClient
+// testGatePlanSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with 404 NotFound to indicate a pipeline template doesn't exist,
 // and Accepts POST calls.
-func gateServerPlanSuccess() *httptest.Server {
+func testGatePlanSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/plan", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
@@ -223,11 +213,11 @@ const testPlanConfig = `
             "enabled": true,
             "pubsubSystem": "google",
             "subscription": "super-derp",
-            "subscription": "super-derp",
             "subscriptionName": "super-derp",
             "source": "jack",
             "attributeConstraints": {},
-            "payloadConstraints": {}
+            "payloadConstraints": {},
+						"invalid-key": "whatever"
         }
     ],
     "parameters": [],

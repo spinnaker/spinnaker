@@ -17,15 +17,17 @@ package pipeline_template
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+	//"github.com/spinnaker/spin/cmd/output"
 	"github.com/spinnaker/spin/util"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
-type UseOptions struct {
+type useOptions struct {
 	*pipelineTemplateOptions
 	id              string
 	tag             string
@@ -43,9 +45,9 @@ const (
 	usePipelineTemplateLong  = "Creates a pipeline configuration using a managed pipeline template"
 )
 
-func NewUseCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
-	options := UseOptions{
-		pipelineTemplateOptions: &pipelineTemplateOptions,
+func NewUseCmd(pipelineTemplateOptions *pipelineTemplateOptions) *cobra.Command {
+	options := &useOptions{
+		pipelineTemplateOptions: pipelineTemplateOptions,
 	}
 	cmd := &cobra.Command{
 		Use:   "use",
@@ -69,7 +71,7 @@ func NewUseCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
 	return cmd
 }
 
-func usePipelineTemplate(cmd *cobra.Command, options UseOptions, args []string) error {
+func usePipelineTemplate(cmd *cobra.Command, options *useOptions, args []string) error {
 	id, errID := getTemplateID(options, args)
 	if errID != nil {
 		return errID
@@ -90,13 +92,13 @@ func usePipelineTemplate(cmd *cobra.Command, options UseOptions, args []string) 
 	if err != nil {
 		return err
 	}
-	util.InitUI(false, false, "")
-	util.UI.JsonOutput(pipeline, util.UI.OutputFormat)
+
+	options.Ui.JsonOutput(pipeline)
 
 	return nil
 }
 
-func getTemplateID(options UseOptions, args []string) (string, error) {
+func getTemplateID(options *useOptions, args []string) (string, error) {
 	// Check options if they passed in like --id
 	optionsID := strings.TrimSpace(options.id)
 	if optionsID != "" {
@@ -115,7 +117,7 @@ func getTemplateID(options UseOptions, args []string) (string, error) {
 	return argsID, nil
 }
 
-func buildUsingTemplate(id string, options UseOptions) (map[string]interface{}, error) {
+func buildUsingTemplate(id string, options *useOptions) (map[string]interface{}, error) {
 	pipeline := make(map[string]interface{})
 
 	// get variables from cmd and files
@@ -149,7 +151,7 @@ func buildUsingTemplate(id string, options UseOptions) (map[string]interface{}, 
 	return pipeline, nil
 }
 
-func getVariables(options UseOptions) (map[string]string, error) {
+func getVariables(options *useOptions) (map[string]string, error) {
 	// Create map for variables
 	var variables map[string]string
 
@@ -219,11 +221,14 @@ func parseKeyValsFromFile(filePaths []string, tolerateEmptyInput bool) (map[stri
 			return nil, err
 		}
 
-		// yaml decoder works with json or yaml files
-		err = yaml.NewDecoder(fromFile).Decode(&variables)
+		byteValue, err := ioutil.ReadAll(fromFile)
 		if err != nil {
-			newErr := errors.New("Error decoding file.  Is it a key/value (string) pair?")
-			return nil, fmt.Errorf("%v %v", newErr, err)
+			return nil, fmt.Errorf("Failed to read file: %v", err)
+		}
+
+		err = yaml.UnmarshalStrict(byteValue, &variables)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to unmarshal: %v", err)
 		}
 	}
 

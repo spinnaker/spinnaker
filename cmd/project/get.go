@@ -16,14 +16,14 @@ package project
 
 import (
 	"fmt"
-	"github.com/spinnaker/spin/util"
 	"net/http"
 
+	"github.com/spinnaker/spin/util"
+
 	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
 )
 
-type GetOptions struct {
+type getOptions struct {
 	*projectOptions
 	expand bool
 }
@@ -34,10 +34,10 @@ var (
 	getProjectExample = "usage: spin project get-pipelines [options] project-name"
 )
 
-func NewGetCmd(prjOptions projectOptions) *cobra.Command {
-	options := GetOptions{
-		projectOptions: &prjOptions,
-		expand: false,
+func NewGetCmd(prjOptions *projectOptions) *cobra.Command {
+	options := &getOptions{
+		projectOptions: prjOptions,
+		expand:         false,
 	}
 
 	cmd := &cobra.Command{
@@ -45,7 +45,7 @@ func NewGetCmd(prjOptions projectOptions) *cobra.Command {
 		Short:   getProjectShort,
 		Long:    getProjectLong,
 		Example: getProjectExample,
-		RunE:    func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			return getProject(cmd, options, args)
 		},
 	}
@@ -53,21 +53,16 @@ func NewGetCmd(prjOptions projectOptions) *cobra.Command {
 	return cmd
 }
 
-func getProject(cmd *cobra.Command, options GetOptions, args []string) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func getProject(cmd *cobra.Command, options *getOptions, args []string) error {
 	projectName, err := util.ReadArgsOrStdin(args)
 	if err != nil {
 		return err
 	}
 
-	project, resp, err := gateClient.ProjectControllerApi.AllPipelinesForProjectUsingGET(gateClient.Context, projectName, map[string]interface{}{"expand": options.expand})
+	project, resp, err := options.GateClient.ProjectControllerApi.AllPipelinesForProjectUsingGET(options.GateClient.Context, projectName, map[string]interface{}{"expand": options.expand})
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Project '%s' not found\n",projectName)
+			return fmt.Errorf("Project '%s' not found\n", projectName)
 		} else if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("Encountered an error getting project, status code: %d\n", resp.StatusCode)
 		}
@@ -76,7 +71,7 @@ func getProject(cmd *cobra.Command, options GetOptions, args []string) error {
 	if err != nil {
 		return err
 	}
-	util.UI.JsonOutput(project, util.UI.OutputFormat)
+	options.Ui.JsonOutput(project)
 
 	return nil
 }

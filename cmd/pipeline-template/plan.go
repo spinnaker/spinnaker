@@ -17,13 +17,13 @@ package pipeline_template
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
-type PlanOptions struct {
+type planOptions struct {
 	*pipelineTemplateOptions
 	configPath string
 }
@@ -33,9 +33,9 @@ const (
 	planPipelineTemplateLong  = "Plan the provided pipeline template config"
 )
 
-func NewPlanCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
-	options := PlanOptions{
-		pipelineTemplateOptions: &pipelineTemplateOptions,
+func NewPlanCmd(pipelineTemplateOptions *pipelineTemplateOptions) *cobra.Command {
+	options := &planOptions{
+		pipelineTemplateOptions: pipelineTemplateOptions,
 	}
 	cmd := &cobra.Command{
 		Use:   "plan",
@@ -51,12 +51,7 @@ func NewPlanCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command 
 	return cmd
 }
 
-func planPipelineTemplate(cmd *cobra.Command, options PlanOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func planPipelineTemplate(cmd *cobra.Command, options *planOptions) error {
 	configJson, err := util.ParseJsonFromFileOrStdin(options.configPath, false)
 	if err != nil {
 		return err
@@ -66,7 +61,7 @@ func planPipelineTemplate(cmd *cobra.Command, options PlanOptions) error {
 		return errors.New("Required pipeline key 'schema' missing for templated pipeline config...\n")
 	}
 
-	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.PlanUsingPOST(gateClient.Context, configJson)
+	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.PlanUsingPOST(options.GateClient.Context, configJson)
 
 	if err != nil {
 		return err
@@ -77,6 +72,6 @@ func planPipelineTemplate(cmd *cobra.Command, options PlanOptions) error {
 			resp.StatusCode)
 	}
 
-	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)
+	options.Ui.JsonOutput(successPayload)
 	return nil
 }

@@ -16,13 +16,13 @@ package canary_config
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
-type SaveOptions struct {
+type saveOptions struct {
 	*canaryConfigOptions
 	output       string
 	templateFile string
@@ -33,9 +33,9 @@ const (
 	saveTemplateLong  = "Save the provided canary config"
 )
 
-func NewSaveCmd(canaryConfigOptions canaryConfigOptions) *cobra.Command {
-	options := SaveOptions{
-		canaryConfigOptions: &canaryConfigOptions,
+func NewSaveCmd(canaryConfigOptions *canaryConfigOptions) *cobra.Command {
+	options := &saveOptions{
+		canaryConfigOptions: canaryConfigOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "save",
@@ -53,35 +53,30 @@ func NewSaveCmd(canaryConfigOptions canaryConfigOptions) *cobra.Command {
 	return cmd
 }
 
-func saveCanaryConfig(cmd *cobra.Command, options SaveOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func saveCanaryConfig(cmd *cobra.Command, options *saveOptions) error {
 	templateJson, err := util.ParseJsonFromFileOrStdin(options.templateFile, false)
 	if err != nil {
 		return err
 	}
 
 	if _, exists := templateJson["id"]; !exists {
-		util.UI.Error("Required canary config key 'id' missing...\n")
+		options.Ui.Error("Required canary config key 'id' missing...\n")
 		return fmt.Errorf("Submitted canary config is invalid: %s\n", templateJson)
 	}
 
 	templateId := templateJson["id"].(string)
 
-	_, resp, queryErr := gateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
-		gateClient.Context, templateId, map[string]interface{}{})
+	_, resp, queryErr := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
+		options.GateClient.Context, templateId, map[string]interface{}{})
 
 	var saveResp *http.Response
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
-		_, saveResp, saveErr = gateClient.V2CanaryConfigControllerApi.UpdateCanaryConfigUsingPUT(
-			gateClient.Context, templateJson, templateId, map[string]interface{}{})
+		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.UpdateCanaryConfigUsingPUT(
+			options.GateClient.Context, templateJson, templateId, map[string]interface{}{})
 	} else if resp.StatusCode == http.StatusNotFound {
-		_, saveResp, saveErr = gateClient.V2CanaryConfigControllerApi.CreateCanaryConfigUsingPOST(
-			gateClient.Context, templateJson, map[string]interface{}{})
+		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.CreateCanaryConfigUsingPOST(
+			options.GateClient.Context, templateJson, map[string]interface{}{})
 	} else {
 		if queryErr != nil {
 			return queryErr
@@ -101,6 +96,6 @@ func saveCanaryConfig(cmd *cobra.Command, options SaveOptions) error {
 			templateJson, saveResp.StatusCode)
 	}
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Canary config save succeeded")))
+	options.Ui.Success("Canary config save succeeded")
 	return nil
 }

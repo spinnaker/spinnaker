@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,20 +27,19 @@ var (
 
 type BuildControllerApiService service
 
-
 /* BuildControllerApiService Get build masters
- Deprecated, use the v3 endpoint instead
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "type_" (string) type
- @return []interface{}*/
-func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+Deprecated, use the v3 endpoint instead
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "type_" (string) type
+@return []interface{}*/
+func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -57,7 +57,7 @@ func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context,
 		localVarQueryParams.Add("type", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -68,7 +68,7 @@ func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -94,23 +94,22 @@ func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get build for build master
- Deprecated, use the v3 endpoint instead
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param number number
- @return map[string]interface{}*/
-func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildMaster string, number string) (map[string]interface{},  *http.Response, error) {
+Deprecated, use the v3 endpoint instead
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param number number
+@return map[string]interface{}*/
+func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildMaster string, number string) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     map[string]interface{}
 	)
 
 	// create path and map variables
@@ -122,9 +121,8 @@ func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildM
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -135,7 +133,7 @@ func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildM
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -161,22 +159,21 @@ func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildM
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get builds for build master
- Deprecated, use the v3 endpoint instead
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @return []interface{}*/
-func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, buildMaster string) ([]interface{},  *http.Response, error) {
+Deprecated, use the v3 endpoint instead
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@return []interface{}*/
+func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, buildMaster string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -187,9 +184,8 @@ func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, build
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -200,7 +196,7 @@ func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, build
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -226,22 +222,21 @@ func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, build
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get job config
- Deprecated, use the v3 endpoint instead
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @return map[string]interface{}*/
-func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, buildMaster string) (map[string]interface{},  *http.Response, error) {
+Deprecated, use the v3 endpoint instead
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@return map[string]interface{}*/
+func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, buildMaster string) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     map[string]interface{}
 	)
 
 	// create path and map variables
@@ -252,9 +247,8 @@ func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, bu
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -265,7 +259,7 @@ func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, bu
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -291,22 +285,21 @@ func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, bu
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get jobs for build master
- Deprecated, use the v3 endpoint instead
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @return []interface{}*/
-func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Context, buildMaster string) ([]interface{},  *http.Response, error) {
+Deprecated, use the v3 endpoint instead
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@return []interface{}*/
+func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Context, buildMaster string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -317,9 +310,8 @@ func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Co
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -330,7 +322,7 @@ func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Co
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -356,22 +348,21 @@ func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Co
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get build masters
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "type_" (string) type
- @return []interface{}*/
-func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "type_" (string) type
+@return []interface{}*/
+func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -389,7 +380,7 @@ func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Contex
 		localVarQueryParams.Add("type", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -400,7 +391,7 @@ func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -426,23 +417,22 @@ func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get build for build master
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param job job
- @param number number
- @return map[string]interface{}*/
-func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buildMaster string, job string, number string) (map[string]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param job job
+@param number number
+@return map[string]interface{}*/
+func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buildMaster string, job string, number string) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     map[string]interface{}
 	)
 
 	// create path and map variables
@@ -454,10 +444,9 @@ func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buil
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	localVarQueryParams.Add("job", parameterToString(job, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -468,7 +457,7 @@ func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buil
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -494,22 +483,21 @@ func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buil
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get builds for build master
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param job job
- @return []interface{}*/
-func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, buildMaster string, job string) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param job job
+@return []interface{}*/
+func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, buildMaster string, job string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -520,10 +508,9 @@ func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, bui
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	localVarQueryParams.Add("job", parameterToString(job, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -534,7 +521,7 @@ func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, bui
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -560,22 +547,21 @@ func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, bui
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get job config
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param job job
- @return map[string]interface{}*/
-func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, buildMaster string, job string) (map[string]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param job job
+@return map[string]interface{}*/
+func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, buildMaster string, job string) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     map[string]interface{}
 	)
 
 	// create path and map variables
@@ -586,10 +572,9 @@ func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	localVarQueryParams.Add("job", parameterToString(job, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -600,7 +585,7 @@ func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -626,21 +611,20 @@ func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BuildControllerApiService Get jobs for build master
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @return []interface{}*/
-func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.Context, buildMaster string) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@return []interface{}*/
+func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.Context, buildMaster string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -651,9 +635,8 @@ func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -664,7 +647,7 @@ func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -690,7 +673,5 @@ func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

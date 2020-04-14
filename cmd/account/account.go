@@ -15,12 +15,12 @@
 package account
 
 import (
-	"io"
-
 	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/cmd"
 )
 
 type accountOptions struct {
+	*cmd.RootOptions
 }
 
 var (
@@ -29,8 +29,10 @@ var (
 	accountExample = ""
 )
 
-func NewAccountCmd(out io.Writer) *cobra.Command {
-	options := accountOptions{}
+func NewAccountCmd(rootOptions *cmd.RootOptions) *cobra.Command {
+	options := &accountOptions{
+		RootOptions: rootOptions,
+	}
 	cmd := &cobra.Command{
 		Use:     "account",
 		Aliases: []string{"account", "acc"},

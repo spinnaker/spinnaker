@@ -10,7 +10,6 @@
 package swagger
 
 type User struct {
-
 	AccountNonExpired bool `json:"accountNonExpired,omitempty"`
 
 	Roles []string `json:"roles,omitempty"`

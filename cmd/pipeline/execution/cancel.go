@@ -17,10 +17,10 @@ package execution
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 	"net/http"
+
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
 
 var (
@@ -28,29 +28,33 @@ var (
 	cancelExecutionLong  = "Cancel the executions for the provided execution id"
 )
 
-func NewCancelCmd() *cobra.Command {
+type cancelOptions struct {
+	*executionOptions
+}
+
+func NewCancelCmd(executionOptions *executionOptions) *cobra.Command {
+	options := &cancelOptions{
+		executionOptions: executionOptions,
+	}
 	cmd := &cobra.Command{
 		Use:   "cancel",
 		Short: cancelExecutionShort,
 		Long:  cancelExecutionLong,
-		RunE:  cancelExecution,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cancelExecution(cmd, options, args)
+		},
 	}
 
 	return cmd
 }
 
-func cancelExecution(cmd *cobra.Command, args []string) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func cancelExecution(cmd *cobra.Command, options *cancelOptions, args []string) error {
 	executionId, err := util.ReadArgsOrStdin(args)
 	if executionId == "" {
 		return errors.New("no execution id supplied, exiting")
 	}
 
-	resp, err := gateClient.PipelineControllerApi.CancelPipelineUsingPUT1(gateClient.Context,
+	resp, err := options.GateClient.PipelineControllerApi.CancelPipelineUsingPUT1(options.GateClient.Context,
 		executionId,
 		map[string]interface{}{})
 
@@ -64,6 +68,6 @@ func cancelExecution(cmd *cobra.Command, args []string) error {
 			resp.StatusCode)
 	}
 
-	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Execution %s successfully canceled", executionId)))
+	options.Ui.Success(fmt.Sprintf("Execution %s successfully canceled", executionId))
 	return nil
 }

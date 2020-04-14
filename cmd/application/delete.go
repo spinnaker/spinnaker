@@ -16,15 +16,15 @@ package application
 
 import (
 	"fmt"
-	"github.com/spinnaker/spin/cmd/orca-tasks"
 	"net/http"
 
+	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
+
 	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
 	"github.com/spinnaker/spin/util"
 )
 
-type DeleteOptions struct {
+type deleteOptions struct {
 	*applicationOptions
 }
 
@@ -34,24 +34,24 @@ var (
 	deleteApplicationExample = "usage: spin application delete [options] applicationName"
 )
 
-func NewDeleteCmd(appOptions applicationOptions) *cobra.Command {
+func NewDeleteCmd(appOptions *applicationOptions) *cobra.Command {
+	options := &deleteOptions{
+		appOptions,
+	}
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Aliases: []string{"del"},
 		Short:   deleteApplicationShort,
 		Long:    deleteApplicationLong,
 		Example: deleteApplicationExample,
-		RunE:    deleteApplication,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return deleteApplication(cmd, options, args)
+		},
 	}
 	return cmd
 }
 
-func deleteApplication(cmd *cobra.Command, args []string) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string) error {
 	applicationName, err := util.ReadArgsOrStdin(args)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	_, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{"expand": false})
+	_, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, map[string]interface{}{"expand": false})
 
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Attempting to delete application '%s' which does not exist, exiting...", applicationName)
@@ -80,7 +80,7 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		"description": fmt.Sprintf("Delete Application: %s", applicationName),
 	}
 
-	taskRef, resp, err := gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, deleteAppTask)
+	taskRef, resp, err := options.GateClient.TaskControllerApi.TaskUsingPOST1(options.GateClient.Context, deleteAppTask)
 	if err != nil {
 		return err
 	}
@@ -88,11 +88,11 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Encountered an error deleting application, status code: %d\n", resp.StatusCode)
 	}
 
-	err = orca_tasks.WaitForSuccessfulTask(gateClient, taskRef, 5)
+	err = orca_tasks.WaitForSuccessfulTask(options.GateClient, taskRef, 5)
 	if err != nil {
 		return err
 	}
 
-	util.UI.Output(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application deleted")))
+	options.Ui.Success("Application deleted")
 	return nil
 }

@@ -10,7 +10,6 @@
 package swagger
 
 type Account struct {
-
 	Skin string `json:"skin,omitempty"`
 
 	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`

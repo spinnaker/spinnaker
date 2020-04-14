@@ -15,23 +15,23 @@
 package pipeline
 
 import (
-	"os"
+	"io/ioutil"
 	"testing"
+
+	"github.com/spinnaker/spin/cmd"
 )
 
 // TODO(jacobkiefer): This test overlaps heavily with pipeline_save_test.go,
 // consider factoring common testing code out.
 func TestPipelineDelete_basic(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline", "delete", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "delete", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -40,16 +40,14 @@ func TestPipelineDelete_basic(t *testing.T) {
 }
 
 func TestPipelineDelete_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	args := []string{"pipeline", "delete", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "delete", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -58,16 +56,14 @@ func TestPipelineDelete_fail(t *testing.T) {
 }
 
 func TestPipelineDelete_flags(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline", "delete", "--gate-endpoint", ts.URL} // Missing pipeline app and name.
-	currentCmd := NewDeleteCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "delete", "--gate-endpoint", ts.URL} // Missing pipeline app and name.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -76,16 +72,14 @@ func TestPipelineDelete_flags(t *testing.T) {
 }
 
 func TestPipelineDelete_missingname(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline", "delete", "--application", "app", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "delete", "--application", "app", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -94,16 +88,14 @@ func TestPipelineDelete_missingname(t *testing.T) {
 }
 
 func TestPipelineDelete_missingapp(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline", "delete", "--name", "one", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineCmd := NewPipelineCmd(os.Stdout)
-	pipelineCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, _ := NewPipelineCmd(rootOpts)
 	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "delete", "--name", "one", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {

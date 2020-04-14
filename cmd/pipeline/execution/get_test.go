@@ -16,41 +16,27 @@ package execution
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/util"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
-)
 
-func getRootCmdForTest() *cobra.Command {
-	rootCmd := &cobra.Command{}
-	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.spin/config)")
-	rootCmd.PersistentFlags().String("gate-endpoint", "", "Gate (API server) endpoint. Default http://localhost:8084")
-	rootCmd.PersistentFlags().Bool("insecure", false, "Ignore Certificate Errors")
-	rootCmd.PersistentFlags().Bool("quiet", false, "Squelch non-essential output")
-	rootCmd.PersistentFlags().Bool("no-color", false, "Disable color")
-	rootCmd.PersistentFlags().String("output", "", "Configure output formatting")
-	rootCmd.PersistentFlags().String("default-headers", "", "Configure additional headers for gate client requests")
-	util.InitUI(false, false, "")
-	return rootCmd
-}
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/cmd/pipeline"
+	"github.com/spinnaker/spin/util"
+)
 
 func TestExecutionGet_basic(t *testing.T) {
 	ts := testGateExecutionGetSuccess()
 	defer ts.Close()
-	currentCmd := NewGetCmd()
-	rootCmd := getRootCmdForTest()
 
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
-	rootCmd.AddCommand(executionCmd)
-
-	// Exclude 'pipeline' since we are testing only the 'execution' subcommand.
-	args := []string{"ex", "get", "someId", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline", "ex", "get", "someId", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -61,16 +47,13 @@ func TestExecutionGet_basic(t *testing.T) {
 func TestExecutionGet_noinput(t *testing.T) {
 	ts := testGateExecutionGetSuccess()
 	defer ts.Close()
-	currentCmd := NewGetCmd()
-	rootCmd := getRootCmdForTest()
 
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
-	rootCmd.AddCommand(executionCmd)
-
-	// Exclude 'pipeline' since we are testing only the 'execution' subcommand.
-	args := []string{"ex", "get", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline", "ex", "get", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -79,18 +62,15 @@ func TestExecutionGet_noinput(t *testing.T) {
 }
 
 func TestExecutionGet_failure(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
-	currentCmd := NewGetCmd()
-	rootCmd := getRootCmdForTest()
 
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
-	rootCmd.AddCommand(executionCmd)
-
-	// Exclude 'pipeline' since we are testing only the 'execution' subcommand.
-	args := []string{"ex", "get", "someId", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline", "ex", "get", "someId", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -108,9 +88,9 @@ func testGateExecutionGetSuccess() *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-// GateServerFail spins up a local http server that we will configure the GateClient
+// testGateFail spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 500 InternalServerError.
-func GateServerFail() *httptest.Server {
+func testGateFail() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/executions/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO(jacobkiefer): Mock more robust errors once implemented upstream.

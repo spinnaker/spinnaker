@@ -17,26 +17,24 @@ package pipeline_template
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
 	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
 func TestPipelineTemplateDelete_basic(t *testing.T) {
-	ts := gateServerDeleteSuccess()
+	ts := testGateDeleteSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "delete", "myTemplate", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "delete", "myTemplate", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -45,16 +43,13 @@ func TestPipelineTemplateDelete_basic(t *testing.T) {
 }
 
 func TestPipelineTemplateDelete_tag(t *testing.T) {
-	ts := gateServerDeleteSuccess()
+	ts := testGateDeleteSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "delete", "myTemplate", "--tag", "stable", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "delete", "myTemplate", "--tag", "stable", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -63,16 +58,13 @@ func TestPipelineTemplateDelete_tag(t *testing.T) {
 }
 
 func TestPipelineTemplateDelete_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "delete", "myTemplate", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "delete", "myTemplate", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -81,16 +73,13 @@ func TestPipelineTemplateDelete_fail(t *testing.T) {
 }
 
 func TestPipelineTemplateDelete_flags(t *testing.T) {
-	ts := gateServerDeleteSuccess()
+	ts := testGateDeleteSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "delete", "--id", "myTemplate", "--gate-endpoint", ts.URL} // Extra --id flag.
-	currentCmd := NewDeleteCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "delete", "--id", "myTemplate", "--gate-endpoint", ts.URL} // Extra --id flag.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -99,16 +88,13 @@ func TestPipelineTemplateDelete_flags(t *testing.T) {
 }
 
 func TestPipelineTemplateDelete_missingid(t *testing.T) {
-	ts := gateServerDeleteSuccess()
+	ts := testGateDeleteSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "delete", "--gate-endpoint", ts.URL} // Missing pipeline id.
-	currentCmd := NewDeleteCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "delete", "--gate-endpoint", ts.URL} // Missing pipeline id.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -116,10 +102,10 @@ func TestPipelineTemplateDelete_missingid(t *testing.T) {
 	}
 }
 
-// gateServerDeleteSuccess spins up a local http server that we will configure the GateClient
+// testGateDeleteSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with OK to indicate a pipeline template exists,
 // and Accepts POST calls.
-func gateServerDeleteSuccess() *httptest.Server {
+func testGateDeleteSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/myTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {

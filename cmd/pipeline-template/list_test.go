@@ -16,12 +16,13 @@ package pipeline_template
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -29,13 +30,10 @@ func TestPipelineTemplateList_basic(t *testing.T) {
 	ts := testGatePipelineTemplateListSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -47,13 +45,10 @@ func TestPipelineTemplateList_scope(t *testing.T) {
 	ts := testGateScopedPipelineTemplateListSuccess()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "list", "--scopes", "specific", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "list", "--scopes", "specific", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -65,13 +60,10 @@ func TestPipelineTemplateList_malformed(t *testing.T) {
 	ts := testGatePipelineTemplateListMalformed()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -80,16 +72,13 @@ func TestPipelineTemplateList_malformed(t *testing.T) {
 }
 
 func TestPipelineTemplateList_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
 
+	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {

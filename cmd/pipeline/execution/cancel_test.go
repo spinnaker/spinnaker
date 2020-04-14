@@ -17,26 +17,26 @@ package execution
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
+
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/cmd/pipeline"
 )
 
 func TestExecutionCancel_basic(t *testing.T) {
 	ts := testGateExecutionCancelSuccess()
 	defer ts.Close()
-	currentCmd := NewCancelCmd()
-	rootCmd := getRootCmdForTest()
 
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
-	rootCmd.AddCommand(executionCmd)
-
-	// Exclude 'pipeline' since we are testing only the 'execution' subcommand.
-	args := []string{"ex", "cancel", "someId", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline", "ex", "cancel", "someId", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -47,16 +47,14 @@ func TestExecutionCancel_basic(t *testing.T) {
 func TestExecutionCancel_noinput(t *testing.T) {
 	ts := testGateExecutionCancelSuccess()
 	defer ts.Close()
-	currentCmd := NewCancelCmd()
-	rootCmd := getRootCmdForTest()
 
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
-
-	rootCmd.AddCommand(executionCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
 	// Exclude 'pipeline' since we are testing only the 'execution' subcommand.
-	args := []string{"ex", "cancel", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline", "ex", "cancel", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -65,18 +63,15 @@ func TestExecutionCancel_noinput(t *testing.T) {
 }
 
 func TestExecutionCancel_failure(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
-	currentCmd := NewCancelCmd()
-	rootCmd := getRootCmdForTest()
 
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
-	rootCmd.AddCommand(executionCmd)
-
-	// Exclude 'pipeline' since we are testing only the 'execution' subcommand.
-	args := []string{"ex", "cancel", "someId", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline", "ex", "cancel", "someId", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {

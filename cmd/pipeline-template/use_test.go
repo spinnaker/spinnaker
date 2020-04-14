@@ -17,9 +17,13 @@ package pipeline_template
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/util"
 )
 
 var testAppName = "test-application"
@@ -28,16 +32,19 @@ var testDescription = "test-description"
 var testVariables = "one=1,two=2,three=3,four=4"
 
 func TestPipelineTemplateUse_basic(t *testing.T) {
-	args := []string{"pipeline-template", "use", "test-template-id", "--application", testAppName,
+	ts := testGateVersionSuccess()
+	defer ts.Close()
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{
+		"pipeline-template", "use", "test-template-id", "--application", testAppName,
 		"--name", testPipelineName,
 		"--description", testDescription,
-		fmt.Sprintf("--set=%s", testVariables)}
-
-	currentCmd := NewUseCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+		fmt.Sprintf("--set=%s", testVariables),
+		"--gate-endpoint", ts.URL,
+	}
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -47,16 +54,19 @@ func TestPipelineTemplateUse_basic(t *testing.T) {
 }
 
 func TestPipelineTemplateUse_basicShort(t *testing.T) {
-	args := []string{"pipeline-template", "use", "test-template-id", "-a", testAppName,
+	ts := testGateVersionSuccess()
+	defer ts.Close()
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{
+		"pipeline-template", "use", "test-template-id", "-a", testAppName,
 		"-n", testPipelineName,
 		"-d", testDescription,
-		fmt.Sprintf("--set=%s", testVariables)}
-
-	currentCmd := NewUseCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+		fmt.Sprintf("--set=%s", testVariables),
+		"--gate-endpoint", ts.URL,
+	}
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -66,13 +76,17 @@ func TestPipelineTemplateUse_basicShort(t *testing.T) {
 }
 
 func TestPipelineTemplateUse_missingFlags(t *testing.T) {
-	args := []string{"pipeline-template", "use"} // Missing id, application, name
-	currentCmd := NewUseCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+	ts := testGateVersionSuccess()
+	defer ts.Close()
 
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	// Missing id, application, name
+	args := []string{
+		"pipeline-template", "use",
+		"--gate-endpoint", ts.URL,
+	}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -81,6 +95,9 @@ func TestPipelineTemplateUse_missingFlags(t *testing.T) {
 }
 
 func TestPipelineTemplateUse_templateVariables(t *testing.T) {
+	ts := testGateVersionSuccess()
+	defer ts.Close()
+
 	tempDir, tempFiles := createTestValuesFiles()
 	defer os.RemoveAll(tempDir) // Remove all files in the test directory for use_test.go
 
@@ -88,24 +105,31 @@ func TestPipelineTemplateUse_templateVariables(t *testing.T) {
 		t.Fatal("Could not create temp pipeline template file.")
 	}
 
-	args := []string{"pipeline-template", "use", "test-template-id", "-a", testAppName,
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{
+		"pipeline-template", "use", "test-template-id", "-a", testAppName,
 		"-n", testPipelineName,
 		"-d", testDescription,
 		"--set", testVariables,
 		"--values", strings.Join(tempFiles, ","),
-		fmt.Sprintf("--set=%s", testVariables)}
-
-	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
-	rootCmd := getRootCmdForTest()
-	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
-	pipelineTemplateCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(pipelineTemplateCmd)
+		fmt.Sprintf("--set=%s", testVariables),
+		"--gate-endpoint", ts.URL,
+	}
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
+}
+
+// testGateVersionSuccess spins up a local http server that we will configure the GateClient
+// to direct requests to. Responds healthy to the version endpoint only.
+func testGateVersionSuccess() *httptest.Server {
+	mux := util.TestGateMuxWithVersionHandler()
+	return httptest.NewServer(mux)
 }
 
 func createTestValuesFiles() (string, []string) {

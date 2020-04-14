@@ -15,12 +15,16 @@
 package canary_config
 
 import (
-	"github.com/spinnaker/spin/util"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spin/util"
 )
 
 func TestCanaryConfigRetro_file(t *testing.T) {
@@ -32,8 +36,14 @@ func TestCanaryConfigRetro_file(t *testing.T) {
 		t.Fatal("Could not create temp canary config file.")
 	}
 	defer os.Remove(tempFile.Name())
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "retro",
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
+
+	args := []string{
+		"canary", "canary-config", "retro",
 		"--file", tempFile.Name(),
 		"--control-group", "control-v000",
 		"--control-location", "us-central1",
@@ -41,14 +51,8 @@ func TestCanaryConfigRetro_file(t *testing.T) {
 		"--experiment-location", "us-central1",
 		"--start", "2019-09-17T17:16:02.600Z",
 		"--end", "2019-09-17T18:16:02.600Z",
-		"--gate-endpoint", ts.URL}
-
-	currentCmd := NewRetroCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
-
+		"--gate-endpoint", ts.URL,
+	}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -72,21 +76,21 @@ func TestCanaryConfigRetro_stdin(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 	os.Stdin = tempFile
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "retro",
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
+
+	args := []string{
+		"canary", "canary-config", "retro",
 		"--control-group", "control-v000",
 		"--control-location", "us-central1",
 		"--experiment-group", "experiment-v000",
 		"--experiment-location", "us-central1",
 		"--start", "2019-09-17T17:16:02.600Z",
 		"--end", "2019-09-17T18:16:02.600Z",
-		"--gate-endpoint", ts.URL}
-	currentCmd := NewRetroCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
-
+		"--gate-endpoint", ts.URL,
+	}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -95,7 +99,7 @@ func TestCanaryConfigRetro_stdin(t *testing.T) {
 }
 
 func TestCanaryConfigRetro_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
 	tempFile := tempCanaryConfigFile(testCanaryConfigJsonStr)
@@ -104,8 +108,13 @@ func TestCanaryConfigRetro_fail(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "retro",
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
+
+	args := []string{
+		"canary", "canary-config", "retro",
 		"--file", tempFile.Name(),
 		"--control-group", "control-v000",
 		"--control-location", "us-central1",
@@ -113,13 +122,8 @@ func TestCanaryConfigRetro_fail(t *testing.T) {
 		"--experiment-location", "us-central1",
 		"--start", "2019-09-17T17:16:02.600Z",
 		"--end", "2019-09-17T18:16:02.600Z",
-		"--gate-endpoint", ts.URL}
-	currentCmd := NewRetroCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
-
+		"--gate-endpoint", ts.URL,
+	}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -139,8 +143,13 @@ func TestCanaryConfigRetro_timeout(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "retro",
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
+
+	args := []string{
+		"canary", "canary-config", "retro",
 		"--file", tempFile.Name(),
 		"--control-group", "control-v000",
 		"--control-location", "us-central1",
@@ -148,13 +157,8 @@ func TestCanaryConfigRetro_timeout(t *testing.T) {
 		"--experiment-location", "us-central1",
 		"--start", "2019-09-17T17:16:02.600Z",
 		"--end", "2019-09-17T18:16:02.600Z",
-		"--gate-endpoint", ts.URL}
-	currentCmd := NewRetroCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
-
+		"--gate-endpoint", ts.URL,
+	}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {

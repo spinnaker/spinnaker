@@ -16,23 +16,22 @@ package account
 
 import (
 	"fmt"
-	"github.com/spinnaker/spin/util"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
+
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/util"
 )
 
 func TestAccountList_basic(t *testing.T) {
 	ts := testGateAccountListSuccess()
 	defer ts.Close()
 
-	currentCmd := NewListCmd(accountOptions{})
-	rootCmd := getRootCmdForTest()
-	accCmd := NewAccountCmd(os.Stdout)
-	accCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(accCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewAccountCmd(options))
 
 	args := []string{"account", "list", "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
@@ -46,11 +45,8 @@ func TestAccountList_malformed(t *testing.T) {
 	ts := testGateAccountListMalformed()
 	defer ts.Close()
 
-	currentCmd := NewListCmd(accountOptions{})
-	rootCmd := getRootCmdForTest()
-	accCmd := NewAccountCmd(os.Stdout)
-	accCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(accCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewAccountCmd(options))
 
 	args := []string{"account", "list", "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
@@ -61,14 +57,11 @@ func TestAccountList_malformed(t *testing.T) {
 }
 
 func TestAccountList_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	currentCmd := NewListCmd(accountOptions{})
-	rootCmd := getRootCmdForTest()
-	accCmd := NewAccountCmd(os.Stdout)
-	accCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(accCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewAccountCmd(options))
 
 	args := []string{"account", "list", "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)

@@ -16,12 +16,14 @@ package execution
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/cmd/pipeline"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -29,13 +31,12 @@ func TestExecutionList_basic(t *testing.T) {
 	ts := testGateExecutionListSuccess()
 	defer ts.Close()
 
-	args := []string{"execution", "list", "--pipeline-id", "myid", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(executionOptions{})
-	rootCmd := getRootCmdForTest()
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(executionCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "execution", "list", "--pipeline-id", "myid", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -48,13 +49,12 @@ func TestExecutionList_flags(t *testing.T) {
 	ts := testGateExecutionListSuccess()
 	defer ts.Close()
 
-	args := []string{"execution", "list", "--gate-endpoint", ts.URL} // Missing pipeline id.
-	currentCmd := NewListCmd(executionOptions{})
-	rootCmd := getRootCmdForTest()
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(executionCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "execution", "list", "--gate-endpoint", ts.URL} // Missing pipeline id.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -63,16 +63,15 @@ func TestExecutionList_flags(t *testing.T) {
 }
 
 func TestExecutionList_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	args := []string{"execution", "list", "--pipeline-id", "myid", "--gate-endpoint", ts.URL}
-	currentCmd := NewListCmd(executionOptions{})
-	rootCmd := getRootCmdForTest()
-	executionCmd := NewExecutionCmd(os.Stdout)
-	executionCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(executionCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	pipelineCmd, pipelineOpts := pipeline.NewPipelineCmd(rootOpts)
+	pipelineCmd.AddCommand(NewExecutionCmd(pipelineOpts))
+	rootCmd.AddCommand(pipelineCmd)
 
+	args := []string{"pipeline", "execution", "list", "--pipeline-id", "myid", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {

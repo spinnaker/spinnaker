@@ -19,11 +19,9 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 )
 
-type ListOptions struct {
+type listOptions struct {
 	*applicationOptions
 }
 
@@ -33,24 +31,25 @@ var (
 	listApplicationExample = "usage: spin application list [options]"
 )
 
-func NewListCmd(appOptions applicationOptions) *cobra.Command {
+func NewListCmd(appOptions *applicationOptions) *cobra.Command {
+	options := &listOptions{
+		applicationOptions: appOptions,
+	}
 	cmd := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   listApplicationShort,
 		Long:    listApplicationLong,
 		Example: listApplicationExample,
-		RunE:    listApplication,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listApplication(cmd, options, args)
+		},
 	}
 	return cmd
 }
 
-func listApplication(cmd *cobra.Command, args []string) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-	appList, resp, err := gateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(gateClient.Context, map[string]interface{}{})
+func listApplication(cmd *cobra.Command, options *listOptions, args []string) error {
+	appList, resp, err := options.GateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(options.GateClient.Context, map[string]interface{}{})
 	if err != nil {
 		return err
 	}
@@ -59,6 +58,6 @@ func listApplication(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Encountered an error saving application, status code: %d\n", resp.StatusCode)
 	}
 
-	util.UI.JsonOutput(appList, util.UI.OutputFormat)
+	options.Ui.JsonOutput(appList)
 	return nil
 }

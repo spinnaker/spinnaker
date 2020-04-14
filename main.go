@@ -19,13 +19,16 @@ import (
 	"os"
 
 	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spin/cmd/assembler"
 )
 
 func main() {
-	if err := cmd.Execute(os.Stdout); err != nil {
-		if util.UI != nil {
-			util.UI.Error(err.Error())
+	command, options := cmd.NewCmdRoot(os.Stdout, os.Stderr)
+	assembler.AddSubCommands(command, options)
+
+	if err := command.Execute(); err != nil {
+		if options.Ui != nil {
+			options.Ui.Error(err.Error())
 		} else {
 			fmt.Fprintf(os.Stderr, "\n%v\n", err)
 		}

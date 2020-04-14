@@ -16,10 +16,12 @@ package execution
 
 import (
 	"github.com/spf13/cobra"
-	"io"
+	"github.com/spinnaker/spin/cmd/pipeline"
 )
 
-type executionOptions struct{}
+type executionOptions struct {
+	*pipeline.PipelineOptions
+}
 
 var (
 	executionShort   = ""
@@ -27,8 +29,10 @@ var (
 	executionExample = ""
 )
 
-func NewExecutionCmd(out io.Writer) *cobra.Command {
-	options := executionOptions{}
+func NewExecutionCmd(pipelineOptions *pipeline.PipelineOptions) *cobra.Command {
+	options := &executionOptions{
+		PipelineOptions: pipelineOptions,
+	}
 	cmd := &cobra.Command{
 		Use:     "execution",
 		Aliases: []string{"executions", "ex"},
@@ -38,8 +42,8 @@ func NewExecutionCmd(out io.Writer) *cobra.Command {
 	}
 
 	// create subcommands
-	cmd.AddCommand(NewCancelCmd())
-	cmd.AddCommand(NewGetCmd())
+	cmd.AddCommand(NewCancelCmd(options))
+	cmd.AddCommand(NewGetCmd(options))
 	cmd.AddCommand(NewListCmd(options))
 	return cmd
 }

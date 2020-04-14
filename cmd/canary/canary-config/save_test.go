@@ -15,17 +15,24 @@
 package canary_config
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/spinnaker/spin/util"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spin/util"
 )
 
-func TestCanaryConfigSave_create(t *testing.T) {
-	ts := gateServerCreateSuccess()
+func TestCanaryConfigSave_createjson(t *testing.T) {
+	saveBuffer := new(bytes.Buffer)
+	ts := testGateCanaryConfigSaveSuccess(saveBuffer)
 	defer ts.Close()
 
 	tempFile := tempCanaryConfigFile(testCanaryConfigJsonStr)
@@ -33,24 +40,55 @@ func TestCanaryConfigSave_create(t *testing.T) {
 		t.Fatal("Could not create temp canary config file.")
 	}
 	defer os.Remove(tempFile.Name())
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 
-	currentCmd := NewSaveCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
+
+	expected := strings.TrimSpace(testCanaryConfigJsonStr)
+	recieved := saveBuffer.Bytes()
+	util.TestPrettyJsonDiff(t, "save request body", expected, recieved)
+}
+
+func TestCanaryConfigSave_createyaml(t *testing.T) {
+	saveBuffer := new(bytes.Buffer)
+	ts := testGateCanaryConfigSaveSuccess(saveBuffer)
+	defer ts.Close()
+
+	tempFile := tempCanaryConfigFile(testCanaryConfigYamlStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp canary config file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
+
+	args := []string{"canary", "canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+
+	expected := strings.TrimSpace(testCanaryConfigJsonStr)
+	recieved := saveBuffer.Bytes()
+	util.TestPrettyJsonDiff(t, "save request body", expected, recieved)
 }
 
 func TestCanaryConfigSave_update(t *testing.T) {
-	ts := gateServerUpdateSuccess()
+	saveBuffer := new(bytes.Buffer)
+	ts := testGateCanaryConfigUpdateSuccess(saveBuffer)
 	defer ts.Close()
 
 	tempFile := tempCanaryConfigFile(testCanaryConfigJsonStr)
@@ -58,24 +96,27 @@ func TestCanaryConfigSave_update(t *testing.T) {
 		t.Fatal("Could not create temp canary config file.")
 	}
 	defer os.Remove(tempFile.Name())
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 
-	currentCmd := NewSaveCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
+
+	expected := strings.TrimSpace(testCanaryConfigJsonStr)
+	recieved := saveBuffer.Bytes()
+	util.TestPrettyJsonDiff(t, "save request body", expected, recieved)
 }
 
 func TestCanaryConfigSave_stdin(t *testing.T) {
-	ts := gateServerUpdateSuccess()
+	saveBuffer := new(bytes.Buffer)
+	ts := testGateCanaryConfigUpdateSuccess(saveBuffer)
 	defer ts.Close()
 
 	tempFile := tempCanaryConfigFile(testCanaryConfigJsonStr)
@@ -90,23 +131,25 @@ func TestCanaryConfigSave_stdin(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 	os.Stdin = tempFile
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "save", "--gate-endpoint", ts.URL}
-	currentCmd := NewSaveCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "save", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
+
+	expected := strings.TrimSpace(testCanaryConfigJsonStr)
+	recieved := saveBuffer.Bytes()
+	util.TestPrettyJsonDiff(t, "save request body", expected, recieved)
 }
 
 func TestCanaryConfigSave_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
 	tempFile := tempCanaryConfigFile(testCanaryConfigJsonStr)
@@ -115,14 +158,12 @@ func TestCanaryConfigSave_fail(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	currentCmd := NewSaveCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -131,27 +172,33 @@ func TestCanaryConfigSave_fail(t *testing.T) {
 }
 
 func TestCanaryConfigSave_flags(t *testing.T) {
-	ts := gateServerUpdateSuccess()
+	saveBuffer := new(bytes.Buffer)
+	ts := testGateCanaryConfigUpdateSuccess(saveBuffer)
 	defer ts.Close()
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	// Missing canary config spec file and stdin.
-	args := []string{"canary-config", "save", "--gate-endpoint", ts.URL}
-	currentCmd := NewSaveCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	// Missing canary config spec file and stdin.
+	args := []string{"canary", "canary-config", "save", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
+
+	expected := ""
+	recieved := strings.TrimSpace(saveBuffer.String())
+	if expected != recieved {
+		t.Fatalf("Unexpected save request body:\n%s", recieved)
+	}
 }
 
 func TestCanaryConfigSave_missingid(t *testing.T) {
-	ts := gateServerUpdateSuccess()
+	saveBuffer := new(bytes.Buffer)
+	ts := testGateCanaryConfigUpdateSuccess(saveBuffer)
 	defer ts.Close()
 
 	tempFile := tempCanaryConfigFile(missingIdJsonStr)
@@ -160,18 +207,22 @@ func TestCanaryConfigSave_missingid(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	// Exclude 'canary' since we are testing only the 'canary-config' subcommand.
-	args := []string{"canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	currentCmd := NewSaveCmd(canaryConfigOptions{})
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
 		t.Fatalf("Command failed with: %s", err)
+	}
+
+	expected := ""
+	recieved := strings.TrimSpace(saveBuffer.String())
+	if expected != recieved {
+		t.Fatalf("Unexpected save request body:\n%s", recieved)
 	}
 }
 
@@ -185,14 +236,23 @@ func tempCanaryConfigFile(canaryConfigContent string) *os.File {
 	return tempFile
 }
 
-// gateServerUpdateSuccess spins up a local http server that we will configure the GateClient
+// testGateCanaryConfigUpdateSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with OK to indicate a canary config exists,
 // and Accepts POST calls.
-func gateServerUpdateSuccess() *httptest.Server {
+// Writes request body to buffer for testing.
+func testGateCanaryConfigUpdateSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	// Return that there are no existing CCs on GET and a successful id on PUT.
 	mux.Handle("/v2/canaryConfig/exampleCanaryConfigId", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if (r.Method == http.MethodPut) {
+		if r.Method == http.MethodPut {
+			defer r.Body.Close()
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, "Failed to ready body", http.StatusInternalServerError)
+				return
+			}
+			buffer.Write([]byte(body))
+
 			w.Write([]byte(responseJson))
 		} else {
 			w.WriteHeader(http.StatusOK)
@@ -201,12 +261,21 @@ func gateServerUpdateSuccess() *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-// gateServerCreateSuccess spins up a local http server that we will configure the GateClient
+// testGateCanaryConfigSaveSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with 404 NotFound to indicate a canary config doesn't exist,
 // and Accepts POST calls.
-func gateServerCreateSuccess() *httptest.Server {
+// Writes request body to buffer for testing.
+func testGateCanaryConfigSaveSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/canaryConfig", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Failed to ready body", http.StatusInternalServerError)
+			return
+		}
+		buffer.Write([]byte(body))
+
 		w.Write([]byte(responseJson))
 	}))
 	// Return that we found no CC to signal a create.
@@ -276,53 +345,91 @@ const missingIdJsonStr = `
 
 const testCanaryConfigJsonStr = `
 {
-   "applications": [
-      "canaryconfigs"
-   ],
-   "classifier": {
-      "groupWeights": {
-         "Errors": 100
-      },
-      "scoreThresholds": {
-         "marginal": 75,
-         "pass": 95
-      }
+ "applications": [
+  "canaryconfigs"
+ ],
+ "classifier": {
+  "groupWeights": {
+   "Errors": 100
+  },
+  "scoreThresholds": {
+   "marginal": 75,
+   "pass": 95
+  }
+ },
+ "configVersion": "1",
+ "description": "Base canary config",
+ "id": "exampleCanaryConfigId",
+ "judge": {
+  "judgeConfigurations": {},
+  "name": "NetflixACAJudge-v1.0"
+ },
+ "metrics": [
+  {
+   "analysisConfigurations": {
+    "canary": {
+     "direction": "increase",
+     "nanStrategy": "replace"
+    }
    },
-   "configVersion": "1",
-   "description": "Base canary config",
-   "id": "exampleCanaryConfigId",
-   "judge": {
-      "judgeConfigurations": { },
-      "name": "NetflixACAJudge-v1.0"
-   },
-   "metrics": [
-      {
-         "analysisConfigurations": {
-            "canary": {
-               "direction": "increase",
-               "nanStrategy": "replace"
-            }
-         },
-         "groups": [
-            "Errors"
-         ],
-         "name": "RequestFailureRate",
-         "query": {
-            "crossSeriesReducer": "REDUCE_SUM",
-            "customFilterTemplate": "ServiceGroupFilter",
-            "groupByFields": [ ],
-            "metricType": "custom.googleapis.com/server/failure_rate",
-            "perSeriesAligner": "ALIGN_MEAN",
-            "resourceType": "aws_ec2_instance",
-            "serviceType": "stackdriver",
-            "type": "stackdriver"
-         },
-         "scopeName": "default"
-      }
+   "groups": [
+    "Errors"
    ],
-   "name": "exampleCanary",
-   "templates": {
-      "ServiceGroupFilter": "metric.label.group_name = \"${scope}\""
-   }
+   "name": "RequestFailureRate",
+   "query": {
+    "crossSeriesReducer": "REDUCE_SUM",
+    "customFilterTemplate": "ServiceGroupFilter",
+    "groupByFields": [],
+    "metricType": "custom.googleapis.com/server/failure_rate",
+    "perSeriesAligner": "ALIGN_MEAN",
+    "resourceType": "aws_ec2_instance",
+    "serviceType": "stackdriver",
+    "type": "stackdriver"
+   },
+   "scopeName": "default"
+  }
+ ],
+ "name": "exampleCanary",
+ "templates": {
+  "ServiceGroupFilter": "metric.label.group_name = \"${scope}\""
+ }
 }
+`
+
+const testCanaryConfigYamlStr = `
+applications:
+- canaryconfigs
+classifier:
+  groupWeights:
+    Errors: 100
+  scoreThresholds:
+    marginal: 75
+    pass: 95
+configVersion: '1'
+description: Base canary config
+id: exampleCanaryConfigId
+judge:
+  judgeConfigurations: {}
+  name: NetflixACAJudge-v1.0
+metrics:
+- analysisConfigurations:
+    canary:
+      direction: increase
+      nanStrategy: replace
+  groups:
+  - Errors
+  name: RequestFailureRate
+  query:
+    crossSeriesReducer: REDUCE_SUM
+    customFilterTemplate: ServiceGroupFilter
+    groupByFields: []
+    metricType: custom.googleapis.com/server/failure_rate
+    perSeriesAligner: ALIGN_MEAN
+    resourceType: aws_ec2_instance
+    serviceType: stackdriver
+    type: stackdriver
+  scopeName: default
+name: exampleCanary
+templates:
+  ServiceGroupFilter: metric.label.group_name = "${scope}"
 `

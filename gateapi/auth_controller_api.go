@@ -10,12 +10,13 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -25,17 +26,16 @@ var (
 
 type AuthControllerApiService service
 
-
 /* AuthControllerApiService Get service accounts
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []interface{}*/
-func (a *AuthControllerApiService) GetServiceAccountsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
+func (a *AuthControllerApiService) GetServiceAccountsUsingGET(ctx context.Context) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -45,9 +45,8 @@ func (a *AuthControllerApiService) GetServiceAccountsUsingGET(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -58,7 +57,7 @@ func (a *AuthControllerApiService) GetServiceAccountsUsingGET(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -84,20 +83,19 @@ func (a *AuthControllerApiService) GetServiceAccountsUsingGET(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* AuthControllerApiService Get logged out message
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return string*/
-func (a *AuthControllerApiService) LoggedOutUsingGET(ctx context.Context) (string,  *http.Response, error) {
+func (a *AuthControllerApiService) LoggedOutUsingGET(ctx context.Context) (string, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  string
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     string
 	)
 
 	// create path and map variables
@@ -107,9 +105,8 @@ func (a *AuthControllerApiService) LoggedOutUsingGET(ctx context.Context) (strin
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -120,7 +117,7 @@ func (a *AuthControllerApiService) LoggedOutUsingGET(ctx context.Context) (strin
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -146,20 +143,19 @@ func (a *AuthControllerApiService) LoggedOutUsingGET(ctx context.Context) (strin
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* AuthControllerApiService Redirect to Deck
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param to to
- @return */
-func (a *AuthControllerApiService) RedirectUsingGET(ctx context.Context, to string) ( *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param to to
+@return */
+func (a *AuthControllerApiService) RedirectUsingGET(ctx context.Context, to string) (*http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
 	)
 
 	// create path and map variables
@@ -169,10 +165,9 @@ func (a *AuthControllerApiService) RedirectUsingGET(ctx context.Context, to stri
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	localVarQueryParams.Add("to", parameterToString(to, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -183,7 +178,7 @@ func (a *AuthControllerApiService) RedirectUsingGET(ctx context.Context, to stri
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -211,12 +206,12 @@ func (a *AuthControllerApiService) RedirectUsingGET(ctx context.Context, to stri
 /* AuthControllerApiService Sync user roles
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return */
-func (a *AuthControllerApiService) SyncUsingPOST(ctx context.Context) ( *http.Response, error) {
+func (a *AuthControllerApiService) SyncUsingPOST(ctx context.Context) (*http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
 	)
 
 	// create path and map variables
@@ -226,9 +221,8 @@ func (a *AuthControllerApiService) SyncUsingPOST(ctx context.Context) ( *http.Re
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{"application/json"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -239,7 +233,7 @@ func (a *AuthControllerApiService) SyncUsingPOST(ctx context.Context) ( *http.Re
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -267,13 +261,13 @@ func (a *AuthControllerApiService) SyncUsingPOST(ctx context.Context) ( *http.Re
 /* AuthControllerApiService Get user
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return User*/
-func (a *AuthControllerApiService) UserUsingGET(ctx context.Context) (User,  *http.Response, error) {
+func (a *AuthControllerApiService) UserUsingGET(ctx context.Context) (User, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  User
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     User
 	)
 
 	// create path and map variables
@@ -283,9 +277,8 @@ func (a *AuthControllerApiService) UserUsingGET(ctx context.Context) (User,  *ht
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -296,7 +289,7 @@ func (a *AuthControllerApiService) UserUsingGET(ctx context.Context) (User,  *ht
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -322,7 +315,5 @@ func (a *AuthControllerApiService) UserUsingGET(ctx context.Context) (User,  *ht
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

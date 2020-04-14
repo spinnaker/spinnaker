@@ -15,24 +15,26 @@
 package canary_config
 
 import (
-	"github.com/spinnaker/spin/util"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
+
+	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spin/util"
 )
 
 func TestCanaryConfigDelete_basic(t *testing.T) {
-	ts := gateServerDeleteSuccess()
+	ts := testGateDeleteSuccess()
 	defer ts.Close()
 
-	args := []string{"canary-config", "delete", "configId", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd()
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "delete", "configId", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -41,16 +43,15 @@ func TestCanaryConfigDelete_basic(t *testing.T) {
 }
 
 func TestCanaryConfigDelete_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	args := []string{"canary-config", "delete", "configId", "--gate-endpoint", ts.URL}
-	currentCmd := NewDeleteCmd()
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "delete", "configId", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -59,16 +60,15 @@ func TestCanaryConfigDelete_fail(t *testing.T) {
 }
 
 func TestCanaryConfigDelete_missingid(t *testing.T) {
-	ts := gateServerDeleteSuccess()
+	ts := testGateDeleteSuccess()
 	defer ts.Close()
 
-	args := []string{"canary-config", "delete", "--gate-endpoint", ts.URL} // Missing cc id.
-	currentCmd := NewDeleteCmd()
-	rootCmd := getRootCmdForTest()
-	canaryConfigCmd := NewCanaryConfigCmd(os.Stdout)
-	canaryConfigCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(canaryConfigCmd)
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
+	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
+	rootCmd.AddCommand(canaryCmd)
 
+	args := []string{"canary", "canary-config", "delete", "--gate-endpoint", ts.URL} // Missing cc id.
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err == nil {
@@ -76,9 +76,9 @@ func TestCanaryConfigDelete_missingid(t *testing.T) {
 	}
 }
 
-// gateServerDeleteSuccess spins up a local http server that we will configure the GateClient
+// testGateDeleteSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to.
-func gateServerDeleteSuccess() *httptest.Server {
+func testGateDeleteSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/canaryConfig/configId", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

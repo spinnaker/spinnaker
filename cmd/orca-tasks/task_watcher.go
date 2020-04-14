@@ -16,9 +16,10 @@ package orca_tasks
 
 import (
 	"fmt"
-	"github.com/spinnaker/spin/cmd/gateclient"
 	"strings"
 	"time"
+
+	"github.com/spinnaker/spin/cmd/gateclient"
 )
 
 // WaitForSuccessfulTask observes an Orca task to see if it completed successfully.

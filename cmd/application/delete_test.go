@@ -17,11 +17,12 @@ package application
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -29,11 +30,8 @@ func TestApplicationDelete_basic(t *testing.T) {
 	ts := testGateApplicationDeleteSuccess()
 	defer ts.Close()
 
-	currentCmd := NewDeleteCmd(applicationOptions{})
-	rootCmd := getRootCmdForTest()
-	appCmd := NewApplicationCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewApplicationCmd(options))
 
 	args := []string{"application", "delete", NAME, "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
@@ -47,11 +45,8 @@ func TestApplicationDelete_fail(t *testing.T) {
 	ts := GateAppDeleteFail()
 	defer ts.Close()
 
-	currentCmd := NewDeleteCmd(applicationOptions{})
-	rootCmd := getRootCmdForTest()
-	appCmd := NewApplicationCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewApplicationCmd(options))
 
 	args := []string{"application", "delete", NAME, "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
@@ -65,11 +60,8 @@ func TestApplicationDelete_flags(t *testing.T) {
 	ts := testGateApplicationDeleteSuccess()
 	defer ts.Close()
 
-	currentCmd := NewDeleteCmd(applicationOptions{})
-	rootCmd := getRootCmdForTest()
-	appCmd := NewApplicationCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewApplicationCmd(options))
 
 	args := []string{"application", "delete", NAME, "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)

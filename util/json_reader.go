@@ -15,9 +15,12 @@
 package util
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
+
+	"sigs.k8s.io/yaml"
 )
 
 func ParseJsonFromFileOrStdin(filePath string, tolerateEmptyStdin bool) (map[string]interface{}, error) {
@@ -48,9 +51,14 @@ func ParseJsonFromFileOrStdin(filePath string, tolerateEmptyStdin bool) (map[str
 		return nil, err
 	}
 
-	err = json.NewDecoder(fromFile).Decode(&jsonContent)
+	byteValue, err := ioutil.ReadAll(fromFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to read file: %v", err)
+	}
+
+	err = yaml.UnmarshalStrict(byteValue, &jsonContent)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal: %v", err)
 	}
 	return jsonContent, nil
 }
@@ -86,9 +94,14 @@ func ParseJsonFromFile(filePath string, tolerateEmptyInput bool) (map[string]int
 		return nil, err
 	}
 
-	err = json.NewDecoder(fromFile).Decode(&jsonContent)
+	byteValue, err := ioutil.ReadAll(fromFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to read file: %v", err)
+	}
+
+	err = yaml.UnmarshalStrict(byteValue, &jsonContent)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal: %v", err)
 	}
 	return jsonContent, nil
 }

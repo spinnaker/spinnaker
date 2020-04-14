@@ -20,24 +20,22 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/util"
 )
 
-type ListOptions struct {
-	*pipelineOptions
+type listOptions struct {
+	*PipelineOptions
 	output      string
 	application string
 }
 
 var (
-	listPipelineShort   = "List the pipelines for the provided application"
-	listPipelineLong    = "List the pipelines for the provided application"
+	listPipelineShort = "List the pipelines for the provided application"
+	listPipelineLong  = "List the pipelines for the provided application"
 )
 
-func NewListCmd(pipelineOptions pipelineOptions) *cobra.Command {
-	options := ListOptions{
-		pipelineOptions: &pipelineOptions,
+func NewListCmd(pipelineOptions *PipelineOptions) *cobra.Command {
+	options := &listOptions{
+		PipelineOptions: pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "list",
@@ -54,17 +52,12 @@ func NewListCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	return cmd
 }
 
-func listPipeline(cmd *cobra.Command, options ListOptions) error {
-	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
-	if err != nil {
-		return err
-	}
-
+func listPipeline(cmd *cobra.Command, options *listOptions) error {
 	if options.application == "" {
 		return errors.New("required parameter 'application' not set")
 	}
 
-	successPayload, resp, err := gateClient.ApplicationControllerApi.GetPipelineConfigsForApplicationUsingGET(gateClient.Context, options.application)
+	successPayload, resp, err := options.GateClient.ApplicationControllerApi.GetPipelineConfigsForApplicationUsingGET(options.GateClient.Context, options.application)
 
 	if err != nil {
 		return err
@@ -76,6 +69,6 @@ func listPipeline(cmd *cobra.Command, options ListOptions) error {
 			resp.StatusCode)
 	}
 
-	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)
+	options.Ui.JsonOutput(successPayload)
 	return nil
 }

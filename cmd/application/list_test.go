@@ -16,12 +16,13 @@ package application
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -29,11 +30,8 @@ func TestApplicationList_basic(t *testing.T) {
 	ts := testGateApplicationList(false)
 	defer ts.Close()
 
-	currentCmd := NewListCmd(applicationOptions{})
-	rootCmd := getRootCmdForTest()
-	appCmd := NewApplicationCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewApplicationCmd(options))
 
 	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
@@ -47,11 +45,8 @@ func TestApplicationList_malformed(t *testing.T) {
 	ts := testGateApplicationList(true)
 	defer ts.Close()
 
-	currentCmd := NewListCmd(applicationOptions{})
-	rootCmd := getRootCmdForTest()
-	appCmd := NewApplicationCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewApplicationCmd(options))
 
 	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
@@ -62,14 +57,11 @@ func TestApplicationList_malformed(t *testing.T) {
 }
 
 func TestApplicationList_fail(t *testing.T) {
-	ts := GateServerFail()
+	ts := testGateFail()
 	defer ts.Close()
 
-	currentCmd := NewListCmd(applicationOptions{})
-	rootCmd := getRootCmdForTest()
-	appCmd := NewApplicationCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewApplicationCmd(options))
 
 	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
 	rootCmd.SetArgs(args)
