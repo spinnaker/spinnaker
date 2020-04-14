@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.plugins
 import com.github.zafarkhaja.semver.Version
 import org.pf4j.VersionManager
 import org.pf4j.util.StringUtils
+import org.slf4j.LoggerFactory
 
 /**
  * Since plugins may require multiple services, this class is necessary to ensure we are making the
@@ -28,7 +29,15 @@ class SpinnakerServiceVersionManager(
   private val serviceName: String
 ) : VersionManager {
 
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   override fun checkVersionConstraint(version: String, requires: String): Boolean {
+
+    if (requires.isEmpty()) {
+      log.warn("Loading plugin with empty Plugin-Requires attribute!")
+      return true
+    }
+
     val requirements =
       VersionRequirementsParser
         .parseAll(requires)

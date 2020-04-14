@@ -55,6 +55,11 @@ class SpinnakerServiceVersionManagerTest : JUnit5Minutests {
       val comparisonResult = subject.compareVersions(x, y)
       expectThat(comparisonResult).isEqualTo(1)
     }
+
+    test("Empty requires is allowed") {
+      val satisfiedConstraint = subject.checkVersionConstraint("0.0.9", "")
+      expectThat(satisfiedConstraint).isTrue()
+    }
   }
 
   private class Fixture {
