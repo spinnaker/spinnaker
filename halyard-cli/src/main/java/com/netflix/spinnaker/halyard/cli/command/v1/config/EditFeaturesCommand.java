@@ -78,12 +78,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
       arity = 1)
   private Boolean infrastructureStages = null;
 
-  @Parameter(
-      names = "--appengine-container-image-url-deployments",
-      description = "Enable appengine deployments using a container image URL from gcr.io.",
-      arity = 1)
-  private Boolean appengineContainerImageUrlDeployments = null;
-
   @Parameter(names = "--travis", description = "Enable the Travis CI stage.", arity = 1)
   private Boolean travis = null;
 
@@ -123,10 +117,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     features.setMineCanary(mineCanary != null ? mineCanary : features.getMineCanary());
     features.setInfrastructureStages(
         infrastructureStages != null ? infrastructureStages : features.getInfrastructureStages());
-    features.setAppengineContainerImageUrlDeployments(
-        appengineContainerImageUrlDeployments != null
-            ? appengineContainerImageUrlDeployments
-            : features.getAppengineContainerImageUrlDeployments());
     features.setTravis(travis != null ? travis : features.getTravis());
     features.setWercker(wercker != null ? wercker : features.getWercker());
     features.setManagedPipelineTemplatesV2UI(

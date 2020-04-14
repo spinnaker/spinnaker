@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@JsonIgnoreProperties({"jobs"})
+@JsonIgnoreProperties({"jobs", "appengineContainerImageUrlDeployments"})
 public class Features extends Node {
   @Override
   public String getNodeName() {
@@ -61,15 +61,6 @@ public class Features extends Node {
       tooLowMessage =
           "Canary is not configurable prior to this release. Will be stable at a later release.")
   private Boolean mineCanary;
-
-  @ValidForSpinnakerVersion(
-      lowerBound = "1.7.0",
-      upperBound = "1.11.0",
-      tooLowMessage =
-          "Appengine container URL deployments were not supported prior to this version.",
-      tooHighMessage =
-          "Appengine container URL deployments are stable; the feature flag will be removed in a future version of Halyard.")
-  private Boolean appengineContainerImageUrlDeployments;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.7.0",

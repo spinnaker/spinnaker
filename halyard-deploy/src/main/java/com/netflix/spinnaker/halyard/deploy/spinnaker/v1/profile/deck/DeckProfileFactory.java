@@ -128,12 +128,6 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
         "features.mineCanary",
         Boolean.toString(features.getMineCanary() != null ? features.getMineCanary() : false));
     bindings.put(
-        "features.appengineContainerImageUrlDeployments",
-        Boolean.toString(
-            features.getAppengineContainerImageUrlDeployments() != null
-                ? features.getAppengineContainerImageUrlDeployments()
-                : false));
-    bindings.put(
         "features.travis",
         Boolean.toString(features.getTravis() != null ? features.getTravis() : false));
     bindings.put(
