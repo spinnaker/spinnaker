@@ -49,8 +49,6 @@ class TitusInstance implements Instance {
   final String cloudProvider = TitusCloudProvider.ID
   String privateIpAddress
   String agentId
-  String ipv6Address
-  String ipv4Address
 
   TitusInstance() {}
 
@@ -89,9 +87,6 @@ class TitusInstance implements Instance {
     privateIpAddress = task.containerIp ?: task.data?.ipAddresses?.nfvpc
 
     agentId = task.agentId
-
-    ipv6Address = task.ipv6Address
-    ipv4Address = task.ipv4Address
   }
 
   @Override
@@ -109,10 +104,6 @@ class TitusInstance implements Instance {
 
   String getHostIp() {
     placement.getHost()
-  }
-
-  String getIpV6() {
-    return ipV6
   }
 
   @Override
