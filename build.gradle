@@ -24,6 +24,7 @@ allprojects {
   group = "com.netflix.spinnaker.rosco"
 
   if (name != "rosco-bom") {
+    apply plugin: 'java-library'
     apply plugin: "groovy"
 
     dependencies {

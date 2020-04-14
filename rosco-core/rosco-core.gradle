@@ -2,8 +2,10 @@ dependencies {
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
 
+  api "com.netflix.spinnaker.kork:kork-artifacts"
+  api "org.codehaus.groovy:groovy"
+
   implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
