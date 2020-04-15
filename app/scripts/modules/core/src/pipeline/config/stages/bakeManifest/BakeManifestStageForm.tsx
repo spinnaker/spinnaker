@@ -1,4 +1,5 @@
 import React from 'react';
+import { isNil } from 'lodash';
 
 import { ExpectedArtifactService } from 'core/artifact';
 import { IExpectedArtifact, IPipeline } from 'core/domain';
@@ -35,10 +36,10 @@ export function BakeManifestStageForm({
 
   // Clear renderer-specific fields when selected renderer changes
   React.useEffect(() => {
-    if (stage.templateRenderer == ManifestRenderers.KUSTOMIZE) {
+    if (stage.templateRenderer == ManifestRenderers.KUSTOMIZE && !isNil(stage.inputArtifacts)) {
       formik.setFieldValue('inputArtifacts', null);
     }
-    if (HELM_RENDERERS.includes(stage.templateRenderer)) {
+    if (HELM_RENDERERS.includes(stage.templateRenderer) && !isNil(stage.inputArtifact)) {
       formik.setFieldValue('inputArtifact', null);
     }
   }, [stage.templateRenderer]);
