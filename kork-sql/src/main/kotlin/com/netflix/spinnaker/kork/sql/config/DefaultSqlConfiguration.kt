@@ -24,8 +24,6 @@ import com.netflix.spinnaker.kork.sql.migration.SpringLiquibaseProxy
 import com.netflix.spinnaker.kork.sql.routing.NamedDataSourceRouter
 import com.netflix.spinnaker.kork.sql.routing.StaticDataSourceLookup
 import com.netflix.spinnaker.kork.sql.telemetry.JooqSlowQueryLogger
-import java.lang.reflect.Field
-import java.security.Security
 import java.sql.Connection
 import javax.sql.DataSource
 import liquibase.integration.spring.SpringLiquibase
@@ -50,7 +48,6 @@ import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
-import sun.net.InetAddressCachePolicy
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -63,9 +60,6 @@ class DefaultSqlConfiguration {
 
   init {
     System.setProperty("org.jooq.no-logo", "true")
-
-    forceInetAddressCachePolicy()
-    Security.setProperty("networkaddress.cache.ttl", "0")
   }
 
   @Bean
@@ -210,26 +204,6 @@ class DefaultSqlConfiguration {
   ) =
     SqlHealthIndicator(sqlHealthProvider, sqlProperties.getDefaultConnectionPoolProperties().dialect)
 }
-
-/**
- * When deployed with replicas, we want failover to be as fast as possible, so there's no DNS caching.
- */
-private fun forceInetAddressCachePolicy() {
-  if (InetAddressCachePolicy.get() != InetAddressCachePolicy.NEVER) {
-    val field: Field
-    try {
-      field = InetAddressCachePolicy::class.java.getDeclaredField("cachePolicy")
-      field.isAccessible = true
-    } catch (e: NoSuchFieldException) {
-      throw InetAddressOverrideFailure(e)
-    } catch (e: SecurityException) {
-      throw InetAddressOverrideFailure(e)
-    }
-    field.set(InetAddressCachePolicy::class.java.getDeclaredField("cachePolicy"), InetAddressCachePolicy.NEVER)
-  }
-}
-
-class InetAddressOverrideFailure(cause: Throwable) : IllegalStateException(cause)
 
 @Suppress("ThrowsCount")
 private fun validateDefaultTargetDataSources(targets: Collection<TargetDataSource>) {
