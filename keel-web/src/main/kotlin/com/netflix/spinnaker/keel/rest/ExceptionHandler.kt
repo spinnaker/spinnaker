@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
@@ -19,8 +20,10 @@ import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import java.lang.IllegalArgumentException
+import java.time.Instant
 import java.time.format.DateTimeParseException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.FORBIDDEN
@@ -44,10 +47,10 @@ class ExceptionHandler(
   fun onParseFailure(e: Exception): ApiError {
     log.error(e.message)
     return when (e.cause) {
-      null -> ApiError(e)
+      null -> ApiError(BAD_REQUEST, e)
       is JsonMappingException ->
-        ApiError(e, (e.cause as JsonMappingException).toDetails())
-      else -> ApiError(e)
+        ApiError(BAD_REQUEST, e, (e.cause as JsonMappingException).toDetails())
+      else -> ApiError(BAD_REQUEST, e)
     }
   }
 
@@ -55,35 +58,35 @@ class ExceptionHandler(
   @ResponseStatus(UNPROCESSABLE_ENTITY)
   fun onInvalidModel(e: Exception): ApiError {
     log.error(e.message)
-    return ApiError(e)
+    return ApiError(UNPROCESSABLE_ENTITY, e)
   }
 
   @ExceptionHandler(NoSuchArtifactException::class, ResourceNotFound::class, NoSuchResourceException::class, InvalidConstraintException::class, NoSuchDeliveryConfigException::class)
   @ResponseStatus(NOT_FOUND)
   fun onNotFound(e: Exception): ApiError {
     log.error(e.message)
-    return ApiError(e)
+    return ApiError(NOT_FOUND, e)
   }
 
   @ExceptionHandler(ArtifactAlreadyRegistered::class)
   @ResponseStatus(CONFLICT)
   fun onAlreadyRegistered(e: ArtifactAlreadyRegistered): ApiError {
     log.error(e.message)
-    return ApiError(e)
+    return ApiError(CONFLICT, e)
   }
 
   @ExceptionHandler(ValidationException::class)
   @ResponseStatus(BAD_REQUEST)
   fun onInvalidDeliveryConfig(e: ValidationException): ApiError {
     log.error(e.message)
-    return ApiError(e)
+    return ApiError(BAD_REQUEST, e)
   }
 
   @ExceptionHandler(AccessDeniedException::class)
   @ResponseStatus(FORBIDDEN)
   fun onAccessDenied(e: AccessDeniedException): ApiError {
     log.error(e.message)
-    return ApiError(
+    return ApiError(FORBIDDEN,
       if (e.message == null || e.message == "Access is denied") {
         "Access denied. Please make sure you have access to the service account specified in your delivery config. " +
           "If you do have access, check that the service account has access to this application along with all the cloud accounts included in the delivery config."
@@ -168,13 +171,20 @@ class ExceptionHandler(
  * Error details returned as JSON/YAML.
  */
 data class ApiError(
+  @JsonIgnore
+  val _status: HttpStatus,
   val message: String?,
-  val details: ApiErrorDetails?
+  val details: ApiErrorDetails?,
+  val timestamp: Instant = Instant.now()
 ) {
-  constructor(ex: Throwable, details: ApiErrorDetails? = null) :
-    this(ex.cause?.message ?: ex.message, details)
-  constructor(message: String) :
-    this(message, null)
+  constructor(_status: HttpStatus, ex: Throwable, details: ApiErrorDetails? = null) :
+    this(_status, ex.cause?.message ?: ex.message, details)
+
+  constructor(_status: HttpStatus, message: String) :
+    this(_status, message, null)
+
+  val status: Int = _status.value()
+  val error: String = _status.reasonPhrase
 }
 
 interface ApiErrorType
