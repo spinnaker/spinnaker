@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { Application } from 'core/application';
-import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
+import { IAccountDetails } from 'core/account';
+import { CloudProviderRegistry, ProviderSelectionService, ICloudProviderConfig } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
 import { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
@@ -27,39 +28,54 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
     super(props);
   }
 
+  private createLoadBalancerProviderFilterFn = (
+    _app: Application,
+    _acc: IAccountDetails,
+    provider: ICloudProviderConfig,
+  ): boolean => {
+    const lbConfig = provider.loadBalancer;
+    return (
+      lbConfig &&
+      (lbConfig.CreateLoadBalancerModal ||
+        (lbConfig.createLoadBalancerTemplateUrl && lbConfig.createLoadBalancerController))
+    );
+  };
+
   private createLoadBalancer = (): void => {
     const { skinSelectionService } = ReactInjector;
     const { app } = this.props;
-    ProviderSelectionService.selectProvider(app, 'loadBalancer').then(selectedProvider => {
-      skinSelectionService.selectSkin(selectedProvider).then(selectedSkin => {
-        const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
+    ProviderSelectionService.selectProvider(app, 'loadBalancer', this.createLoadBalancerProviderFilterFn).then(
+      selectedProvider => {
+        skinSelectionService.selectSkin(selectedProvider).then(selectedSkin => {
+          const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
 
-        if (provider.CreateLoadBalancerModal) {
-          provider.CreateLoadBalancerModal.show({
-            app: app,
-            application: app,
-            forPipelineConfig: false,
-            loadBalancer: null,
-            isNew: true,
-          });
-        } else {
-          // angular
-          ModalInjector.modalService
-            .open({
-              templateUrl: provider.createLoadBalancerTemplateUrl,
-              controller: `${provider.createLoadBalancerController} as ctrl`,
-              size: 'lg',
-              resolve: {
-                application: () => this.props.app,
-                loadBalancer: (): ILoadBalancer => null,
-                isNew: () => true,
-                forPipelineConfig: () => false,
-              },
-            })
-            .result.catch(() => {});
-        }
-      });
-    });
+          if (provider.CreateLoadBalancerModal) {
+            provider.CreateLoadBalancerModal.show({
+              app: app,
+              application: app,
+              forPipelineConfig: false,
+              loadBalancer: null,
+              isNew: true,
+            });
+          } else {
+            // angular
+            ModalInjector.modalService
+              .open({
+                templateUrl: provider.createLoadBalancerTemplateUrl,
+                controller: `${provider.createLoadBalancerController} as ctrl`,
+                size: 'lg',
+                resolve: {
+                  application: () => this.props.app,
+                  loadBalancer: (): ILoadBalancer => null,
+                  isNew: () => true,
+                  forPipelineConfig: () => false,
+                },
+              })
+              .result.catch(() => {});
+          }
+        });
+      },
+    );
   };
 
   public render() {
