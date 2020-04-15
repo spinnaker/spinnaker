@@ -153,7 +153,6 @@ class ImageHandler(
               "package" to artifactRef.substringAfterLast("/"),
               "regions" to artifact.vmOptions.regions,
               "storeType" to artifact.vmOptions.storeType.name.toLowerCase(),
-              "user" to "keel",
               "vmType" to "hvm"
             )
           )
