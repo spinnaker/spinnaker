@@ -4,8 +4,10 @@ on:
   schedule:
   - cron: 0 11 1,15 * * # Extend rotation on the 1st and 15th of the month at 11:00 UTC
   push:
+    branches:
+      - master
     paths:
-    - '.github/workflows/build-cop-rotation.yml'
+      - '.github/workflows/build-cop-rotation.yml'
 
 jobs:
   extend:
