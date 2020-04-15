@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.keel.task
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.igor.ScmService
 import java.net.URL
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -35,7 +37,7 @@ import retrofit.RetrofitError
 
 /**
  * Task that retrieves a Managed Delivery config manifest from source control via igor, then publishes it to keel,
- * to support GitOps flows.
+ * to support git-based workflows.
  */
 @Component
 class ImportDeliveryConfigTask
@@ -69,6 +71,11 @@ constructor(
     }
   }
 
+  /**
+   * Process the trigger and context data to make sure we can find the delivery config file.
+   *
+   * @throws InvalidRequestException if there's not enough information to locate the file.
+   */
   private fun processDeliveryConfigLocation(trigger: Trigger, context: ImportDeliveryConfigContext): String {
     if (trigger is SourceCodeTrigger) {
       // if the pipeline has a source code trigger (git, etc.), infer what context we can from the trigger
@@ -94,7 +101,7 @@ constructor(
         context.ref = "refs/heads/master"
       }
       if (context.repoType == null || context.projectKey == null || context.repositorySlug == null) {
-        throw IllegalArgumentException("repoType, projectKey and repositorySlug are required fields in the stage if there's no git trigger.")
+        throw InvalidRequestException("repoType, projectKey and repositorySlug are required fields in the stage if there's no git trigger.")
       }
     }
 
@@ -103,37 +110,49 @@ constructor(
       ?: ""}/${context.manifest}@${context.ref}"
   }
 
-  private fun handleRetryableFailures(e: RetrofitError, context: ImportDeliveryConfigContext): TaskResult {
+  /**
+   * Handle (potentially) retryable failures by looking at the retrofit error type or HTTP status code. A few 40x errors
+   * are handled as special cases to provide more friendly error messages to the UI.
+   */
+  private fun handleRetryableFailures(error: RetrofitError, context: ImportDeliveryConfigContext): TaskResult {
     return when {
-      e.kind == RetrofitError.Kind.NETWORK -> {
+      error.kind == RetrofitError.Kind.NETWORK -> {
         // retry if unable to connect
         buildRetry(context,
-          "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${e.friendlyMessage}")
+          "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${error.friendlyMessage}")
       }
-      e.response?.status in 400..499 -> {
-        val response = e.response!!
-        // just give up on 4xx errors, which are unlikely to resolve with retries
+      error.response?.status in 400..499 -> {
+        val response = error.response!!
+        // just give up on 4xx errors, which are unlikely to resolve with retries, but give users a hint about 401
+        // errors from igor/scm, and attempt to parse keel errors (which are typically more informative)
         buildError(
-          // ...but give users a hint about 401 errors from igor/scm
-          if (response.status == 401 && e.fromIgor) {
+          if (error.fromIgor && response.status == 401) {
             UNAUTHORIZED_SCM_ACCESS_MESSAGE
-          } else if (response.status == 400 && e.fromKeel && response.body.length() > 0) {
-            objectMapper.readValue<Map<String, Any?>>(response.body.`in`())
+          } else if (error.fromKeel && response.body.length() > 0) {
+            // keel's errors should use the standard Spring format, so we try to parse them
+            try {
+              objectMapper.readValue<SpringHttpError>(response.body.`in`())
+            } catch (_: Exception) {
+              "Non-retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}"
+            }
           } else {
-            "Non-retryable HTTP response ${e.response?.status} received from downstream service: ${e.friendlyMessage}"
+            "Non-retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}"
           }
         )
       }
       else -> {
         // retry on other status codes
         buildRetry(context,
-          "Retryable HTTP response ${e.response?.status} received from downstream service: ${e.friendlyMessage}")
+          "Retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}")
       }
     }
   }
 
+  /**
+   * Builds a [TaskResult] that indicates the task is still running, so that we will try again in the next execution loop.
+   */
   private fun buildRetry(context: ImportDeliveryConfigContext, errorMessage: String): TaskResult {
-    log.error("Handling retry failure ${context.attempt} of ${context.maxRetries}: $errorMessage")
+    log.error("Handling retryable failure ${context.attempt} of ${context.maxRetries}: $errorMessage")
     context.errorFromLastAttempt = errorMessage
     context.incrementAttempt()
 
@@ -149,11 +168,15 @@ constructor(
     }
   }
 
+  /**
+   * Builds a [TaskResult] that indicates the task has failed. If the error has the shape of a [SpringHttpError],
+   * uses that format so the UI has better error information to display.
+   */
   private fun buildError(error: Any): TaskResult {
-    val normalizedError = if (error is Map<*, *>) {
-      error["error"] ?: error
+    val normalizedError = if (error is SpringHttpError) {
+      error
     } else {
-      error.toString()
+      mapOf("message" to error.toString())
     }
     log.error(normalizedError.toString())
     return TaskResult.builder(ExecutionStatus.TERMINAL).context(mapOf("error" to normalizedError)).build()
@@ -197,10 +220,18 @@ constructor(
   fun ImportDeliveryConfigContext.incrementAttempt() = this.also { attempt += 1 }
   fun ImportDeliveryConfigContext.toMap() = objectMapper.convertValue<Map<String, Any?>>(this)
 
+  data class SpringHttpError(
+    val error: String,
+    val status: Int,
+    val message: String? = error,
+    val timestamp: Instant = Instant.now(),
+    val details: Map<String, Any?>? = null // this is keel-specific
+  )
+
   companion object {
     const val MAX_RETRIES = 5
     const val UNAUTHORIZED_SCM_ACCESS_MESSAGE =
       "HTTP 401 response received while trying to read your delivery config file. " +
-      "Spinnaker may be missing permissions in your source code repository to read the file."
+        "Spinnaker may be missing permissions in your source code repository to read the file."
   }
 }
