@@ -6,6 +6,9 @@ import {
   AccountTag,
   ExecutionDetailsSection,
   IExecutionDetailsSectionProps,
+  LabeledValue,
+  LabeledValueList,
+  Markdown,
   RenderOutputFile,
   StageFailureMessage,
 } from '@spinnaker/core';
@@ -60,47 +63,30 @@ export class RunJobExecutionDetails extends React.Component<
       <ExecutionDetailsSection name={name} current={current}>
         <div className="row">
           <div className="col-md-9">
-            <dl className="dl-narrow dl-horizontal">
-              <dt>Account</dt>
-              <dd>
-                <AccountTag account={context.credentials} />
-              </dd>
+            <LabeledValueList className="dl-narrow dl-horizontal">
+              <LabeledValue label="Account" value={<AccountTag account={context.credentials} />} />
               {cluster && (
                 <>
-                  <dt>Image</dt>
-                  <dd>{cluster.imageId}</dd>
-                  {cluster.entryPoint && (
-                    <>
-                      <dt>Entrypoint</dt>
-                      <dd>{cluster.entryPoint}</dd>
-                    </>
-                  )}
+                  <LabeledValue label="Image" value={cluster.imageid} />
+                  {cluster.entryPoint && <LabeledValue label="Entrypoint" value={cluster.entryPoint} />}
                 </>
               )}
               {jobId && (
-                <>
-                  <dt>Titus Job Id</dt>
-                  <dd>
-                    <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}`}>
-                      {jobId}
-                    </a>
-                  </dd>
-                </>
+                <LabeledValue
+                  label="Titus Job Id"
+                  value={<Markdown message={`[${jobId}](${titusUiEndpoint}jobs/${jobId})`} />}
+                />
               )}
               {taskId && (
-                <>
-                  <dt>Titus Task Id</dt>
-                  <dd>
-                    <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}`}>
-                      {taskId}
-                    </a>
-                  </dd>
-                </>
+                <LabeledValue
+                  label="Titus Task Id"
+                  value={<Markdown message={`[${taskId}](${titusUiEndpoint}jobs/${jobId}/tasks/${taskId})`} />}
+                />
               )}
               {resources && Object.keys(resources) && (
-                <>
-                  <dt>Resources</dt>
-                  <dd>
+                <LabeledValue
+                  label="Resources"
+                  value={
                     <ul className="nostyle">
                       {Object.keys(resources).map(key => (
                         <li key={key}>
@@ -108,24 +94,21 @@ export class RunJobExecutionDetails extends React.Component<
                         </li>
                       ))}
                     </ul>
-                  </dd>
-                </>
+                  }
+                />
               )}
-            </dl>
+            </LabeledValueList>
           </div>
         </div>
         {env && Object.keys(env) && (
           <div className="row">
             <div className="col-md-12">
               <h5 style={{ marginBottom: 0, paddingBottom: '5px' }}>Environment Variables</h5>
-              <dl>
+              <LabeledValueList>
                 {Object.keys(env).map(key => (
-                  <>
-                    <dt>{key}</dt>
-                    <dd>{env[key]}</dd>
-                  </>
+                  <LabeledValue key={key} label={key} value={env[key]} />
                 ))}
-              </dl>
+              </LabeledValueList>
             </div>
           </div>
         )}
