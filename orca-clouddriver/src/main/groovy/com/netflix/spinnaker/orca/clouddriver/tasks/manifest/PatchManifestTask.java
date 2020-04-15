@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
@@ -27,8 +29,8 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PatchManifestContext.MergeStrategy;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
@@ -39,6 +41,7 @@ import org.springframework.stereotype.Component;
 @NonnullByDefault
 public final class PatchManifestTask extends AbstractCloudProviderAwareTask implements Task {
   public static final String TASK_NAME = "patchManifest";
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
 
   private final KatoService katoService;
 
@@ -59,7 +62,10 @@ public final class PatchManifestTask extends AbstractCloudProviderAwareTask impl
   private ImmutableMap<String, Map> getOperation(StageExecution stage) {
     PatchManifestContext context = stage.mapTo(PatchManifestContext.class);
     MergeStrategy mergeStrategy = context.getOptions().getMergeStrategy();
-    List<Map<Object, Object>> patchBody = context.getManifests();
+    ImmutableList<Map<String, Object>> patchBody =
+        objectMapper.convertValue(
+            stage.getContext().get("manifests"),
+            new TypeReference<ImmutableList<Map<String, Object>>>() {});
 
     if (patchBody.isEmpty()) {
       throw new IllegalArgumentException(
