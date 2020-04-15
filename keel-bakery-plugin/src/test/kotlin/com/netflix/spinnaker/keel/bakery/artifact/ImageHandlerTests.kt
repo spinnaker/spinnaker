@@ -400,6 +400,12 @@ internal class ImageHandlerTests : JUnit5Minutests {
                   taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any(), any<List<Map<String, Any?>>>())
                 }
               }
+
+              test("no region mismatch event is triggered") {
+                verify(exactly = 0) {
+                  publisher.publishEvent(any<ImageRegionMismatchDetected>())
+                }
+              }
             }
           }
         }

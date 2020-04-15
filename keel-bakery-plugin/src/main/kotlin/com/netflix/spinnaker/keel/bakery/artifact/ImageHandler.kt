@@ -48,7 +48,12 @@ class ImageHandler(
         val diff = DefaultResourceDiff(desired, current)
 
         if (current != null && diff.isRegionsOnly()) {
-          publisher.publishEvent(ImageRegionMismatchDetected(current, artifact.vmOptions.regions))
+          if (current.regions.containsAll(desired.regions)) {
+            log.debug("Image for ${current.appVersion} contains more regions than we need, which is fine")
+          } else {
+            log.warn("Detected a diff in the regions for ${current.appVersion}: ${diff.toDebug()}")
+            publisher.publishEvent(ImageRegionMismatchDetected(current, artifact.vmOptions.regions))
+          }
         } else if (diff.hasChanges()) {
           if (current == null) {
             log.info("No AMI found for {}", artifact.name)
