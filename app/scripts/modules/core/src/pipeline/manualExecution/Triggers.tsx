@@ -34,7 +34,7 @@ export class Triggers extends React.Component<ITriggersProps> {
   };
 
   private updateTriggerDescription = (trigger: ITrigger) => {
-    if (trigger && !trigger.description) {
+    if (trigger && !trigger.description && Registry.pipeline.hasManualExecutionComponentForTriggerType(trigger.type)) {
       Observable.fromPromise(
         (Registry.pipeline.getManualExecutionComponentForTriggerType(trigger.type) as any).formatLabel(trigger),
       )
