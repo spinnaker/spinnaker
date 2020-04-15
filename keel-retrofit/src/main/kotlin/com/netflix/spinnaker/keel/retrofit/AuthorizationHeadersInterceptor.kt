@@ -18,13 +18,16 @@ class AuthorizationHeadersInterceptor(private val fiatPermissionEvaluator: FiatP
   override fun intercept(chain: Chain): Response {
     var request = chain.request()
     request.header(Header.USER.header)?.also { user ->
-      AuthenticatedRequest.allowAnonymous {
-        val accounts = fiatPermissionEvaluator.getPermission(user).accounts.joinToString(",") { it.name }
-        log.trace("Adding X-SPINNAKER-ACCOUNTS: $accounts to ${request.method} ${request.url}")
-        request = request
-          .newBuilder()
-          .addHeader(Header.ACCOUNTS.header, accounts)
-          .build()
+      AuthenticatedRequest.setUserOrigin("keel")
+      AuthenticatedRequest.propagate {
+        AuthenticatedRequest.allowAnonymous {
+          val accounts = fiatPermissionEvaluator.getPermission(user).accounts.joinToString(",") { it.name }
+          log.trace("Adding X-SPINNAKER-ACCOUNTS: $accounts to ${request.method} ${request.url}")
+          request = request
+            .newBuilder()
+            .addHeader(Header.ACCOUNTS.header, accounts)
+            .build()
+        }
       }
     }
     return chain.proceed(request)
