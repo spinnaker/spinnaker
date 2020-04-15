@@ -30,7 +30,6 @@ export class PipelineRegistry {
   private transformers: ITransformer[] = [];
   private notificationTypes: INotificationTypeConfig[] = [];
   private artifactKinds: IArtifactKindConfig[] = artifactKindConfigs;
-  private customArtifactKind: IArtifactKindConfig;
 
   constructor() {
     this.getStageConfig = memoize(this.getStageConfig.bind(this), (stage: IStage) =>
@@ -169,11 +168,6 @@ export class PipelineRegistry {
     defaults(originalArtifactKind, artifactKindConfig);
   }
 
-  public registerCustomArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
-    this.customArtifactKind = artifactKindConfig;
-    this.registerArtifactKind(artifactKindConfig);
-  }
-
   public getExecutionTransformers(): ITransformer[] {
     return this.transformers;
   }
@@ -199,7 +193,7 @@ export class PipelineRegistry {
   }
 
   public getCustomArtifactKind(): IArtifactKindConfig {
-    return cloneDeep(this.customArtifactKind);
+    return cloneDeep(this.artifactKinds.find(k => k.key === 'custom'));
   }
 
   private getCloudProvidersForStage(

@@ -16,7 +16,7 @@ function controllerFn(artifact: IArtifact) {
 export const CUSTOM_ARTIFACT = 'spinnaker.core.pipeline.trigger.custom.artifact';
 module(CUSTOM_ARTIFACT, [])
   .config(() => {
-    Registry.pipeline.registerCustomArtifactKind({
+    Registry.pipeline.mergeArtifactKind({
       label: 'Custom',
       description: 'A custom-defined artifact. (Deprecated)',
       key: 'custom',
