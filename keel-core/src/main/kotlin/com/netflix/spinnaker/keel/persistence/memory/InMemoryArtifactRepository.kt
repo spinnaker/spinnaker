@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
+import com.netflix.spinnaker.keel.core.api.Pinned
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.APPROVED
@@ -21,7 +22,6 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
-import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import java.time.Clock
@@ -44,7 +44,7 @@ class InMemoryArtifactRepository(
   private val approvedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
   private val deployedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<Pair<String, Instant>>>()
   private val vetoedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
-  private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, EnvironmentArtifactPin>()
+  private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, PinSummary>()
   private val skippedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<Skipped>>()
   private val statusByEnvironment = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, PromotionStatus>>()
   private val vetoReference = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, String>>()
@@ -124,16 +124,14 @@ class InMemoryArtifactRepository(
           it.type == type &&
           it.deliveryConfigName == deliveryConfigName &&
           it.reference == reference
-      } ?: throw ArtifactNotFoundException(name, type, reference, deliveryConfigName)
+      } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
 
-  override fun get(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact =
+  override fun get(deliveryConfigName: String, reference: String): DeliveryArtifact =
     artifacts
       .values
       .firstOrNull {
-        it.deliveryConfigName == deliveryConfigName &&
-          it.reference == reference &&
-          it.type == type
-      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference)
+        it.deliveryConfigName == deliveryConfigName && it.reference == reference
+      } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
     store(artifact.name, artifact.type, version, status)
@@ -393,8 +391,10 @@ class InMemoryArtifactRepository(
     skippedVersions.getOrPut(key, ::mutableListOf).add(Skipped(version, supersededByVersion, clock.instant()))
   }
 
-  override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> =
-    deliveryConfig
+  override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> {
+    val pinnedEnvs = getPinnedEnvironments(deliveryConfig)
+
+    return deliveryConfig
       .environments
       .map { environment ->
         val artifactVersions = deliveryConfig
@@ -431,34 +431,49 @@ class InMemoryArtifactRepository(
                 previous = statuses.filterValues { it == PREVIOUS }.keys.toList(),
                 vetoed = statuses.filterValues { it == VETOED }.keys.toList(),
                 skipped = removeNewerIfCurrentExists(artifact, currentVersion, pending).plus(statuses.filterValues { it == SKIPPED }.keys.toList())
-              )
+              ),
+              pinnedVersion = pinnedEnvs.find { it.targetEnvironment == environment.name }?.version
             )
           }
           .toSet()
         EnvironmentSummary(environment, artifactVersions)
       }
+  }
+
+  private fun EnvironmentArtifactPin.toSummary() =
+    PinSummary(
+      reference = reference,
+      targetEnvironment = targetEnvironment,
+      version = version,
+      pinnedAt = clock.instant(),
+      pinnedBy = pinnedBy,
+      comment = comment
+    )
 
   override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
     val artifact = get(
       deliveryConfig.name,
-      environmentArtifactPin.reference,
-      ArtifactType.valueOf(environmentArtifactPin.type.toLowerCase()))
+      environmentArtifactPin.reference)
 
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
 
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environmentArtifactPin.targetEnvironment)
-    pinnedVersions[key] = environmentArtifactPin
+    pinnedVersions[key] = environmentArtifactPin.toSummary()
   }
 
-  override fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> =
+  override fun getPinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> =
     pinnedVersions
       .filterKeys { it.deliveryConfig == deliveryConfig }
       .map {
         PinnedEnvironment(
           deliveryConfigName = deliveryConfig.name,
           targetEnvironment = it.value.targetEnvironment,
-          artifact = get(deliveryConfig.name, it.value.reference, ArtifactType.valueOf(it.value.type.toLowerCase())),
-          version = it.value.version!!)
+          artifact = get(deliveryConfig.name, it.value.reference),
+          version = it.value.version!!,
+          pinnedBy = it.value.pinnedBy,
+          pinnedAt = it.value.pinnedAt,
+          comment = it.value.comment
+        )
       }
 
   override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String) {
@@ -473,14 +488,12 @@ class InMemoryArtifactRepository(
   override fun deletePin(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: String,
-    reference: String,
-    type: ArtifactType
+    reference: String
   ) {
     pinnedVersions.filter { (k, v) ->
       k.deliveryConfig == deliveryConfig &&
         k.environment == targetEnvironment &&
-        v.reference == reference &&
-        v.type == type.name
+        v.reference == reference
     }
       .forEach { pinnedVersions.remove(it.key) }
   }
@@ -488,13 +501,12 @@ class InMemoryArtifactRepository(
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    artifactName: String,
-    artifactType: ArtifactType,
+    artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment? {
     val artifact = deliveryConfig.artifacts.find { it ->
-      it.deliveryConfigName == deliveryConfig.name && it.name == artifactName && it.type == artifactType
-    } ?: throw ArtifactNotFoundException(artifactName, artifactType, "", deliveryConfig.name)
+      it.deliveryConfigName == deliveryConfig.name && it.reference == artifactReference
+    } ?: throw ArtifactNotFoundException(artifactReference, deliveryConfig.name)
 
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environmentName)
@@ -517,6 +529,9 @@ class InMemoryArtifactRepository(
           replacedBy = skipped.replacedByVersion
         }
     }
+    val pinned: Pinned? = pinnedVersions[key]?.let { it ->
+      Pinned(at = it.pinnedAt, by = it.pinnedBy, comment = it.comment)
+    }
 
     return ArtifactSummaryInEnvironment(
       environment = environmentName,
@@ -526,7 +541,9 @@ class InMemoryArtifactRepository(
         ?: PromotionStatus.PENDING.name.toLowerCase(),
       deployedAt = deployedAt,
       replacedAt = replacedAt,
-      replacedBy = replacedBy
+      replacedBy = replacedBy,
+      isPinned = pinned != null,
+      pinned = pinned
     )
   }
 
@@ -553,5 +570,14 @@ class InMemoryArtifactRepository(
   private data class ArtifactVersionAndStatus(
     val version: String,
     val status: ArtifactStatus?
+  )
+
+  private data class PinSummary(
+    val targetEnvironment: String,
+    val reference: String,
+    val version: String?,
+    val pinnedBy: String?,
+    val pinnedAt: Instant,
+    val comment: String?
   )
 }

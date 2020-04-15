@@ -159,7 +159,7 @@ interface KeelRepository {
 
   fun getArtifact(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact
 
-  fun getArtifact(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact
+  fun getArtifact(deliveryConfigName: String, reference: String): DeliveryArtifact
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
@@ -197,7 +197,7 @@ interface KeelRepository {
 
   fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String)
 
-  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String, type: ArtifactType)
+  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String)
 
   fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes>
 
@@ -226,8 +226,7 @@ interface KeelRepository {
   fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    artifactName: String,
-    artifactType: ArtifactType,
+    artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment?
 

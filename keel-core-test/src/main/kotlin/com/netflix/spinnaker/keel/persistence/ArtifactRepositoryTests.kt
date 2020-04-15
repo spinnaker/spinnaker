@@ -14,6 +14,8 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
+import com.netflix.spinnaker.keel.core.api.Pinned
+import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -32,6 +34,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.succeeded
@@ -87,7 +90,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val pin1 = EnvironmentArtifactPin(
       targetEnvironment = environment2.name, // staging
       reference = artifact2.reference,
-      type = artifact2.type.name,
       version = version4, // the older release build
       pinnedBy = "keel@spinnaker",
       comment = "fnord")
@@ -492,17 +494,63 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             .isNotEqualTo(pin1.version)
         }
 
-        test("latestVersionApprovedIn prefers a pinned version over the latest approved version") {
-          subject.pinEnvironment(manifest, pin1)
-          expectThat(subject.latestVersionApprovedIn(manifest, artifact2, environment2.name))
-            .isEqualTo(version4)
-            .isEqualTo(pin1.version)
+        test("get env artifact version shows that artifact is not pinned") {
+          val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
+            deliveryConfig = manifest,
+            environmentName = pin1.targetEnvironment,
+            artifactReference = artifact2.reference,
+            version = version4
+          )
+          expectThat(envArtifactSummary)
+            .isNotNull()
+            .get { isPinned }
+            .isFalse()
         }
 
-        test("pinned version cannot be vetoed") {
-          subject.pinEnvironment(manifest, pin1)
-          expectThat(subject.markAsVetoedIn(manifest, artifact2, pin1.version!!, pin1.targetEnvironment))
-            .isFalse()
+        context("once pinned") {
+          before {
+            subject.pinEnvironment(manifest, pin1)
+          }
+
+          test("latestVersionApprovedIn prefers a pinned version over the latest approved version") {
+            expectThat(subject.latestVersionApprovedIn(manifest, artifact2, environment2.name))
+              .isEqualTo(version4)
+              .isEqualTo(pin1.version)
+          }
+
+          test("pinned version cannot be vetoed") {
+            expectThat(subject.markAsVetoedIn(manifest, artifact2, pin1.version, pin1.targetEnvironment))
+              .isFalse()
+          }
+
+          test("getting pinned environments shows the pin") {
+            val pins = subject.getPinnedEnvironments(manifest)
+            expectThat(pins)
+              .hasSize(1)
+              .isEqualTo(listOf(PinnedEnvironment(
+                deliveryConfigName = manifest.name,
+                targetEnvironment = pin1.targetEnvironment,
+                artifact = artifact2,
+                version = version4,
+                pinnedBy = pin1.pinnedBy,
+                pinnedAt = clock.instant(),
+                comment = pin1.comment
+              )))
+          }
+
+          test("get env artifact version shows that artifact is pinned") {
+            val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
+              deliveryConfig = manifest,
+              environmentName = pin1.targetEnvironment,
+              artifactReference = artifact2.reference,
+              version = version4
+            )
+            expect {
+              that(envArtifactSummary).isNotNull()
+              that(envArtifactSummary?.isPinned).isTrue()
+              that(envArtifactSummary?.pinned).isEqualTo(Pinned(by = pin1.pinnedBy, at = clock.instant(), comment = pin1.comment))
+            }
+          }
         }
       }
     }

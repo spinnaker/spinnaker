@@ -140,9 +140,6 @@ class ApplicationController(
     @PathVariable("application") application: String,
     @RequestBody pin: EnvironmentArtifactPin
   ) {
-    checkNotNull(pin.version) {
-      "A version to pin is required."
-    }
     applicationService.pin(application, pin, user)
   }
 

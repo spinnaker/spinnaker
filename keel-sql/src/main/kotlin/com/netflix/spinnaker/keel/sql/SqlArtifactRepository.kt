@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
+import com.netflix.spinnaker.keel.core.api.Pinned
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.PromotionStatus
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.APPROVED
@@ -26,7 +27,6 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
-import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_LAST_CHECKED
@@ -145,24 +145,23 @@ class SqlArtifactRepository(
     }
       ?.let { (details, reference) ->
         mapToArtifact(name, type, details, reference, deliveryConfigName)
-      } ?: throw ArtifactNotFoundException(name, type, reference, deliveryConfigName)
+      } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
   }
 
-  override fun get(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact {
+  override fun get(deliveryConfigName: String, reference: String): DeliveryArtifact {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
+        .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.TYPE)
         .from(DELIVERY_ARTIFACT)
         .where(
           DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName),
-          DELIVERY_ARTIFACT.REFERENCE.eq(reference),
-          DELIVERY_ARTIFACT.TYPE.eq(type.name)
+          DELIVERY_ARTIFACT.REFERENCE.eq(reference)
         )
         .fetchOne()
     }
-      ?.let { (name, details, reference) ->
-        mapToArtifact(name, type, details, reference, deliveryConfigName)
-      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference)
+      ?.let { (name, details, reference, type) ->
+        mapToArtifact(name, ArtifactType.valueOf(type), details, reference, deliveryConfigName)
+      } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
   }
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
@@ -664,6 +663,7 @@ class SqlArtifactRepository(
   }
 
   override fun getEnvironmentSummaries(deliveryConfig: DeliveryConfig): List<EnvironmentSummary> {
+    val pinnedEnvs = getPinnedEnvironments(deliveryConfig)
     return deliveryConfig.environments.map { environment ->
       val artifactVersions = deliveryConfig.artifacts.map { artifact ->
         val versionsInEnvironment = jooq
@@ -761,7 +761,8 @@ class SqlArtifactRepository(
             vetoed = versions[VETOED] ?: emptyList(),
             skipped = removeNewerIfCurrentExists(artifact, currentVersion, versions[PENDING]).plus(versions[SKIPPED]
               ?: emptyList())
-          )
+          ),
+          pinnedVersion = pinnedEnvs.find { it.targetEnvironment == environment.name }?.version
         )
       }.toSet()
       EnvironmentSummary(environment, artifactVersions)
@@ -771,7 +772,7 @@ class SqlArtifactRepository(
   override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
     with(environmentArtifactPin) {
       val environment = deliveryConfig.environmentNamed(targetEnvironment)
-      val artifact = get(deliveryConfig.name, reference, ArtifactType.valueOf(type.toLowerCase()))
+      val artifact = get(deliveryConfig.name, reference)
 
       sqlRetry.withRetry(WRITE) {
         jooq.insertInto(ENVIRONMENT_ARTIFACT_PIN)
@@ -791,11 +792,14 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> {
+  override fun getPinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> {
     return sqlRetry.withRetry(READ) {
       jooq.select(
         ENVIRONMENT.NAME,
         ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION,
+        ENVIRONMENT_ARTIFACT_PIN.PINNED_AT,
+        ENVIRONMENT_ARTIFACT_PIN.PINNED_BY,
+        ENVIRONMENT_ARTIFACT_PIN.COMMENT,
         DELIVERY_ARTIFACT.NAME,
         DELIVERY_ARTIFACT.TYPE,
         DELIVERY_ARTIFACT.DETAILS,
@@ -809,7 +813,7 @@ class SqlArtifactRepository(
         .innerJoin(DELIVERY_CONFIG)
         .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
         .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
-        .fetch { (environmentName, version, artifactName, type, details, reference) ->
+        .fetch { (environmentName, version, pinnedAt, pinnedBy, comment, artifactName, type, details, reference) ->
           PinnedEnvironment(
             deliveryConfigName = deliveryConfig.name,
             targetEnvironment = environmentName,
@@ -819,7 +823,11 @@ class SqlArtifactRepository(
               details,
               reference,
               deliveryConfig.name),
-            version = version)
+            version = version,
+            pinnedAt = Instant.ofEpochMilli(pinnedAt),
+            pinnedBy = pinnedBy,
+            comment = comment
+          )
         }
     }
   }
@@ -842,8 +850,7 @@ class SqlArtifactRepository(
   override fun deletePin(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: String,
-    reference: String,
-    type: ArtifactType
+    reference: String
   ) {
     sqlRetry.withRetry(WRITE) {
       jooq.select(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID)
@@ -855,7 +862,6 @@ class SqlArtifactRepository(
         .where(
           DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name),
           DELIVERY_ARTIFACT.REFERENCE.eq(reference),
-          DELIVERY_ARTIFACT.TYPE.eq(type.name),
           ENVIRONMENT.NAME.eq(targetEnvironment),
           ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
         .fetch { (envUid, artUid) ->
@@ -867,28 +873,13 @@ class SqlArtifactRepository(
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    artifactName: String,
-    artifactType: ArtifactType,
+    artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment? {
     return sqlRetry.withRetry(READ) {
 
-      val artifactUid = jooq
-        .select(DELIVERY_ARTIFACT.UID)
-        .from(DELIVERY_ARTIFACT)
-        .where(DELIVERY_ARTIFACT.NAME.eq(artifactName))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(artifactType.name))
-        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
-        .fetchOne(DELIVERY_ARTIFACT.UID)
-        ?: error("Artifact not found: name=$artifactName, type=$artifactType, deliveryConfig=${deliveryConfig.name}")
-
-      val environmentUid = jooq
-        .select(ENVIRONMENT.UID)
-        .from(ENVIRONMENT)
-        .where(ENVIRONMENT.NAME.eq(environmentName))
-        .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
-        .fetchOne(ENVIRONMENT.UID)
-        ?: error("Environment '$environmentName not found")
+      val artifact = deliveryConfig.artifacts.firstOrNull { it.reference == artifactReference }
+        ?: error("Artifact not found: name=$artifactReference, deliveryConfig=${deliveryConfig.name}")
 
       jooq
         .select(
@@ -899,18 +890,30 @@ class SqlArtifactRepository(
           ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT
         )
         .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactUid))
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
         .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
         .fetchOne { (version, deployedAt, promotionStatus, replacedBy, replacedAt) ->
+          val pinned: Pinned? = jooq
+            .select(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, ENVIRONMENT_ARTIFACT_PIN.COMMENT)
+            .from(ENVIRONMENT_ARTIFACT_PIN)
+            .where(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environmentName)))
+            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artifact.uid))
+            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION.eq(version))
+            .fetchOne { (pinnedBy, pinnedAt, comment) ->
+              Pinned(at = Instant.ofEpochMilli(pinnedAt), by = pinnedBy, comment = comment)
+            }
+
           ArtifactSummaryInEnvironment(
             environment = environmentName,
             version = version,
             state = promotionStatus.toLowerCase(),
             deployedAt = deployedAt?.toInstant(ZoneOffset.UTC),
             replacedAt = replacedAt?.toInstant(ZoneOffset.UTC),
-            replacedBy = replacedBy
+            replacedBy = replacedBy,
+            isPinned = pinned != null,
+            pinned = pinned
           )
         }
     }
@@ -987,6 +990,12 @@ class SqlArtifactRepository(
       .where(ENVIRONMENT.NAME.eq(environment.name))
       .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
 
+  private fun DeliveryConfig.getUidFor(environmentName: String): Select<Record1<String>> =
+    select(ENVIRONMENT.UID)
+      .from(ENVIRONMENT)
+      .where(ENVIRONMENT.NAME.eq(environmentName))
+      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+
   private fun DeliveryConfig.getUidStringFor(environment: Environment): String =
     jooq.select(ENVIRONMENT.UID)
       .from(ENVIRONMENT)
@@ -1003,17 +1012,19 @@ class SqlArtifactRepository(
         .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
 
   private val DeliveryArtifact.uidString: String
-    get() = jooq.select(DELIVERY_ARTIFACT.UID)
-      .from(DELIVERY_ARTIFACT)
-      .where(DELIVERY_ARTIFACT.NAME.eq(name)
-        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
-        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
-        .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
-      .fetchOne(DELIVERY_ARTIFACT.UID) ?: error("artifact not found for " +
-      "name=$name, " +
-      "type=$type, " +
-      "deliveryConfig=$deliveryConfigName, " +
-      "reference=$reference")
+    get() = sqlRetry.withRetry(READ) {
+      jooq.select(DELIVERY_ARTIFACT.UID)
+        .from(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.NAME.eq(name)
+          .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+          .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+          .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
+        .fetchOne(DELIVERY_ARTIFACT.UID) ?: error("artifact not found for " +
+        "name=$name, " +
+        "type=$type, " +
+        "deliveryConfig=$deliveryConfigName, " +
+        "reference=$reference")
+    }
 
   private val DeliveryConfig.uid: Select<Record1<String>>
     get() = select(DELIVERY_CONFIG.UID)

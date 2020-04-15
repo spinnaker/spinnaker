@@ -358,8 +358,8 @@ class CombinedRepository(
   override fun getArtifact(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact =
     artifactRepository.get(name, type, reference, deliveryConfigName)
 
-  override fun getArtifact(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact =
-    artifactRepository.get(deliveryConfigName, reference, type)
+  override fun getArtifact(deliveryConfigName: String, reference: String): DeliveryArtifact =
+    artifactRepository.get(deliveryConfigName, reference)
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
     artifactRepository.isRegistered(name, type)
@@ -410,13 +410,13 @@ class CombinedRepository(
     artifactRepository.pinEnvironment(deliveryConfig, environmentArtifactPin)
 
   override fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> =
-    artifactRepository.pinnedEnvironments(deliveryConfig)
+    artifactRepository.getPinnedEnvironments(deliveryConfig)
 
   override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String) =
     artifactRepository.deletePin(deliveryConfig, targetEnvironment)
 
-  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String, type: ArtifactType) =
-    artifactRepository.deletePin(deliveryConfig, targetEnvironment, reference, type)
+  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String) =
+    artifactRepository.deletePin(deliveryConfig, targetEnvironment, reference)
 
   override fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes> =
     artifactRepository.vetoedEnvironmentVersions(deliveryConfig)
@@ -440,11 +440,10 @@ class CombinedRepository(
   override fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    artifactName: String,
-    artifactType: ArtifactType,
+    artifactReference: String,
     version: String
   ) = artifactRepository.getArtifactSummaryInEnvironment(
-    deliveryConfig, environmentName, artifactName, artifactType, version
+    deliveryConfig, environmentName, artifactReference, version
   )
 
   // END ArtifactRepository methods

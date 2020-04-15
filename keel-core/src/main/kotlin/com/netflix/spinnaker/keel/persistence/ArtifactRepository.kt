@@ -24,7 +24,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
 
   fun get(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact
 
-  fun get(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact
+  fun get(deliveryConfigName: String, reference: String): DeliveryArtifact
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
@@ -199,7 +199,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    * @return list of [PinnedEnvironment]'s if any of the environments in
    * [deliveryConfig] have been pinned to a specific artifact version.
    */
-  fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment>
+  fun getPinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment>
 
   /**
    * Removes all artifact pins from [targetEnvironment].
@@ -207,9 +207,9 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String)
 
   /**
-   * Removes a specific pin from [targetEnvironment], by [reference] and [type].
+   * Removes a specific pin from [targetEnvironment], by [reference].
    */
-  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String, type: ArtifactType)
+  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String)
 
   /**
    * Given information about a delivery config, environment, artifact and version, returns a summary that can be
@@ -218,8 +218,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   fun getArtifactSummaryInEnvironment(
     deliveryConfig: DeliveryConfig,
     environmentName: String,
-    artifactName: String,
-    artifactType: ArtifactType,
+    artifactReference: String,
     version: String
   ): ArtifactSummaryInEnvironment?
 
@@ -280,12 +279,9 @@ class NoSuchArtifactException(name: String, type: ArtifactType) :
   constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
 }
 
-class ArtifactReferenceNotFoundException(deliveryConfig: String, reference: String) :
-  NoSuchEntityException("No artifact with reference $reference in delivery config $deliveryConfig is registered")
-
-class ArtifactNotFoundException(name: String, type: ArtifactType, reference: String, deliveryConfig: String?) :
-  NoSuchEntityException("No $type artifact named $name with reference $reference in delivery config $deliveryConfig is registered") {
-  constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type, artifact.reference, artifact.deliveryConfigName)
+class ArtifactNotFoundException(reference: String, deliveryConfig: String?) :
+  NoSuchEntityException("No artifact with reference $reference in delivery config $deliveryConfig is registered") {
+  constructor(artifact: DeliveryArtifact) : this(artifact.reference, artifact.deliveryConfigName)
 }
 
 class ArtifactAlreadyRegistered(name: String, type: ArtifactType) :

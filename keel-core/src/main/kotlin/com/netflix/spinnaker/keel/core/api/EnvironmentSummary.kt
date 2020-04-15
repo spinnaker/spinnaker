@@ -51,7 +51,8 @@ data class ArtifactVersions(
   val type: ArtifactType,
   val reference: String,
   val statuses: Set<ArtifactStatus>,
-  val versions: ArtifactVersionStatus
+  val versions: ArtifactVersionStatus,
+  val pinnedVersion: String?
 )
 
 data class ArtifactVersionStatus(

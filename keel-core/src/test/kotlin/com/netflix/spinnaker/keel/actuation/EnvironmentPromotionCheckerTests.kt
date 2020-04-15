@@ -35,6 +35,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
     )
   ) {
     val repository: KeelRepository = mockk(relaxUnitFun = true)
+
     // TODO: add stateful constraint specific tests
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>(relaxUnitFun = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
@@ -315,7 +316,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
 
           every {
             repository.pinnedEnvironments(any())
-          } returns listOf(PinnedEnvironment(deliveryConfig.name, environment.name, artifact, "1.1"))
+          } returns listOf(PinnedEnvironment(deliveryConfig.name, environment.name, artifact, "1.1", null, null, null))
 
           every {
             repository.pendingConstraintVersionsFor(any(), any())

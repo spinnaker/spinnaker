@@ -4,7 +4,6 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.StatefulConstraint
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -33,7 +32,7 @@ import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
-import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
+import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import java.time.Instant
@@ -85,7 +84,7 @@ class ApplicationService(
 
   fun deletePin(application: String, pin: EnvironmentArtifactPin) {
     val config = repository.getDeliveryConfigForApplication(application)
-    repository.deletePin(config, pin.targetEnvironment, pin.reference, ArtifactType.valueOf(pin.type))
+    repository.deletePin(config, pin.targetEnvironment, pin.reference)
   }
 
   fun deletePin(application: String, targetEnvironment: String) {
@@ -96,7 +95,7 @@ class ApplicationService(
   fun markAsVetoedIn(application: String, veto: EnvironmentArtifactVeto, force: Boolean) {
     val config = repository.getDeliveryConfigForApplication(application)
     val artifact = config.matchingArtifactByReference(veto.reference)
-      ?: throw ArtifactReferenceNotFoundException(config.name, veto.reference)
+      ?: throw ArtifactNotFoundException(veto.reference, config.name)
 
     repository.markAsVetoedIn(
       deliveryConfig = config,
@@ -110,7 +109,7 @@ class ApplicationService(
   fun deleteVeto(application: String, targetEnvironment: String, reference: String, version: String) {
     val config = repository.getDeliveryConfigForApplication(application)
     val artifact = config.matchingArtifactByReference(reference)
-      ?: throw ArtifactReferenceNotFoundException(config.name, reference)
+      ?: throw ArtifactNotFoundException(reference, config.name)
     repository.deleteVeto(
       deliveryConfig = config,
       artifact = artifact,
@@ -178,8 +177,7 @@ class ApplicationService(
                 val potentialSummary = repository.getArtifactSummaryInEnvironment(
                   deliveryConfig = deliveryConfig,
                   environmentName = environmentSummary.name,
-                  artifactName = artifact.name,
-                  artifactType = artifact.type,
+                  artifactReference = artifact.reference,
                   version = version
                 )
                 if (potentialSummary == null || potentialSummary.state == "pending") {
@@ -195,8 +193,7 @@ class ApplicationService(
               else -> repository.getArtifactSummaryInEnvironment(
                 deliveryConfig = deliveryConfig,
                 environmentName = environmentSummary.name,
-                artifactName = artifact.name,
-                artifactType = artifact.type,
+                artifactReference = artifact.reference,
                 version = version
               )
             }
