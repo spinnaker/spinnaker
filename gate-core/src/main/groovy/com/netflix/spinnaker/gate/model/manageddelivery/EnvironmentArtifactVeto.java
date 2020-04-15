@@ -16,14 +16,8 @@
 
 package com.netflix.spinnaker.gate.model.manageddelivery;
 
-import lombok.Data;
-import org.jetbrains.annotations.Nullable;
-
-@Data
-public class EnvironmentArtifactPin {
+public class EnvironmentArtifactVeto {
   String targetEnvironment;
   String reference;
   String version;
-  @Nullable String pinnedBy;
-  @Nullable String comment;
 }

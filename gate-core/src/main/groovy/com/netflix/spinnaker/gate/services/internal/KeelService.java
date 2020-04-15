@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
+import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import java.util.List;
 import java.util.Map;
@@ -121,4 +122,14 @@ public interface KeelService {
   @DELETE("/application/{application}/pin/{targetEnvironment}")
   Response deletePinForEnvironment(
       @Path("application") String application, @Path("targetEnvironment") String targetEnvironment);
+
+  @POST("/application/{application}/veto")
+  Response veto(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
+
+  @DELETE("/application/{application}/veto/{targetEnvironment}/{reference}/{version}")
+  Response deleteVeto(
+      @Path("application") String application,
+      @Path("targetEnvironment") String targetEnvironment,
+      @Path("reference") String reference,
+      @Path("version") String version);
 }

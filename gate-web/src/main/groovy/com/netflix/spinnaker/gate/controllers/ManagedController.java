@@ -7,6 +7,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintState;
 import com.netflix.spinnaker.gate.model.manageddelivery.ConstraintStatus;
 import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
+import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import groovy.util.logging.Slf4j;
@@ -231,5 +232,22 @@ public class ManagedController {
   void deletePinForEnv(
       @PathVariable("application") String application, @PathVariable String targetEnvironment) {
     keelService.deletePinForEnvironment(application, targetEnvironment);
+  }
+
+  @ApiOperation(value = "Veto an artifact version in an environment")
+  @PostMapping(path = "/application/{application}/veto")
+  void veto(
+      @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
+    keelService.veto(application, veto);
+  }
+
+  @ApiOperation(value = "Veto an artifact version in an environment")
+  @DeleteMapping(path = "/application/{application}/veto/{targetEnvironment}/{reference}/{version}")
+  void deleteVeto(
+      @PathVariable("application") String application,
+      @PathVariable("targetEnvironment") String targetEnvironment,
+      @PathVariable("reference") String reference,
+      @PathVariable("version") String version) {
+    keelService.deleteVeto(application, targetEnvironment, reference, version);
   }
 }
