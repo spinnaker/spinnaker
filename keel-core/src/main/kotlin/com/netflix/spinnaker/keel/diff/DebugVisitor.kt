@@ -18,7 +18,13 @@ internal class DebugVisitor(
   private val builder = StringBuilder()
 
   override fun print(node: DiffNode, level: Int) {
-    print("${node.path} ===> ${indent(level, translateState(node.state, base, working))}")
+    if (!node.isRootNode) {
+      if (node.hasChildren()) {
+        print(indent(level - 2, "${node.path} : ${node.state.name.toLowerCase()}"))
+      } else {
+        print(indent(level - 2, "${node.path} : ${translateState(node.state, node.canonicalGet(base), node.canonicalGet(working))}"))
+      }
+    }
   }
 
   override fun print(text: String) {
@@ -27,12 +33,12 @@ internal class DebugVisitor(
 
   private fun translateState(state: DiffNode.State, base: Any?, modified: Any?): String =
     when (state) {
-      IGNORED -> "has been ignored"
-      CHANGED -> "has changed from [ ${toSingleLineString(base)} ] to [ ${toSingleLineString(modified)} ]"
-      ADDED -> "has been added => [ ${toSingleLineString(modified)} ]"
-      REMOVED -> "with value [ ${toSingleLineString(base)} ] has been removed"
-      UNTOUCHED -> "has not changed"
-      CIRCULAR -> "has already been processed at another position. (Circular reference!)"
+      IGNORED -> "ignored"
+      CHANGED -> "changed from [ ${toSingleLineString(base)} ] to [ ${toSingleLineString(modified)} ]"
+      ADDED -> "added [ ${toSingleLineString(modified)} ]"
+      REMOVED -> "removed [ ${toSingleLineString(base)} ]"
+      UNTOUCHED -> "unchanged"
+      CIRCULAR -> "circular reference"
       else -> '('.toString() + state.name + ')'.toString()
     }
 

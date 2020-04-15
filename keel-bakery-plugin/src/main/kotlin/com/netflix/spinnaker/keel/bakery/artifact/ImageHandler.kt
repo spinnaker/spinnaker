@@ -60,7 +60,7 @@ class ImageHandler(
             log.warn("Artifact version {} and base AMI version {} were baked previously", latestArtifactVersion, latestBaseAmiVersion)
             publisher.publishEvent(RecurrentBakeDetected(latestArtifactVersion, latestBaseAmiVersion))
           } else {
-            launchBake(artifact, latestArtifactVersion)
+            launchBake(artifact, latestArtifactVersion, diff)
             diffFingerprintRepository.store("ami:${artifact.name}", diff)
           }
         } else {
@@ -112,7 +112,8 @@ class ImageHandler(
 
   private suspend fun launchBake(
     artifact: DebianArtifact,
-    desiredVersion: String
+    desiredVersion: String,
+    diff: DefaultResourceDiff<Image>
   ): List<Task> {
     val appVersion = AppVersion.parseName(desiredVersion)
     val packageName = appVersion.packageName
@@ -130,7 +131,8 @@ class ImageHandler(
     )
 
     log.info("baking new image for {}", artifact.name)
-    val description = "Bake $desiredVersion"
+    val subject = "Bake $desiredVersion"
+    val description = diff.toDebug()
 
     val (serviceAccount, application) = artifact.taskAuthenticationDetails
 
@@ -139,7 +141,7 @@ class ImageHandler(
         user = serviceAccount,
         application = application,
         notifications = emptySet(),
-        subject = description,
+        subject = subject,
         description = description,
         correlationId = artifact.correlationId,
         stages = listOf(
