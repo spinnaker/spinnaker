@@ -240,28 +240,21 @@ function configure(env, webpackOpts) {
   return config;
 }
 
-// invalidate webpack cache when webpack config is changed or cache-loader is updated,
+// invalidate cache-loader cache when these change
 function getCacheInvalidateString() {
   return JSON.stringify({
-    CACHE_LOADER: require('cache-loader/package.json').version,
+    YARN_LOCK: md5(fs.readFileSync('yarn.lock')),
     WEBPACK_CONFIG: md5(fs.readFileSync(__filename)),
   });
 }
 
-// When running locally, use one less than the physical number of cpus
-// When running on travis, use max of 2 threads
-// https://docs.travis-ci.com/user/reference/overview/#Virtualization-environments
 function getThreadLoaderThreads() {
-  const bareMetalThreads = Math.max(require('physical-cpu-count') - 1, 1);
-  const travisThreads = Math.min(require('physical-cpu-count'), 2);
-  const autoThreads = !!process.env.TRAVIS ? travisThreads : bareMetalThreads;
-  const threads = process.env.THREADS || autoThreads;
+  const cpus = require('os').cpus().length;
+  const physicalCpus = require('physical-cpu-count');
+  const threads = process.env.THREADS || (physicalCpus > 3 ? 2 : 1);
 
-  console.log(
-    `INFO: cpus: ${
-      require('os').cpus().length
-    } physical: ${require('physical-cpu-count')} thread-loader threads: ${threads}`,
-  );
+  // eslint-disable-next-line no-console
+  console.log(`INFO: cpus: ${cpus} physical: ${physicalCpus} thread-loader threads: ${threads}`);
 
   return threads;
 }
