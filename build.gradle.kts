@@ -101,7 +101,7 @@ subprojects {
     exclude("javax.servlet", "servlet-api")
 
     resolutionStrategy {
-      var okHttpVersion = "4.4.1"
+      var okHttpVersion = "4.5.0"
       force(
         "com.squareup.okhttp3:okhttp:$okHttpVersion",
         "com.squareup.okhttp3:okhttp-urlconnection:$okHttpVersion",
