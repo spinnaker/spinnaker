@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.core.api.BuildMetadata
 import com.netflix.spinnaker.keel.core.api.DependOnConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.GitMetadata
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import java.time.Instant
@@ -89,6 +91,31 @@ class ApplicationService(
   fun deletePin(application: String, targetEnvironment: String) {
     val config = repository.getDeliveryConfigForApplication(application)
     repository.deletePin(config, targetEnvironment)
+  }
+
+  fun markAsVetoedIn(application: String, veto: EnvironmentArtifactVeto, force: Boolean) {
+    val config = repository.getDeliveryConfigForApplication(application)
+    val artifact = config.matchingArtifactByReference(veto.reference)
+      ?: throw ArtifactReferenceNotFoundException(config.name, veto.reference)
+
+    repository.markAsVetoedIn(
+      deliveryConfig = config,
+      artifact = artifact,
+      version = veto.version,
+      targetEnvironment = veto.targetEnvironment,
+      force = force
+    )
+  }
+
+  fun deleteVeto(application: String, targetEnvironment: String, reference: String, version: String) {
+    val config = repository.getDeliveryConfigForApplication(application)
+    val artifact = config.matchingArtifactByReference(reference)
+      ?: throw ArtifactReferenceNotFoundException(config.name, reference)
+    repository.deleteVeto(
+      deliveryConfig = config,
+      artifact = artifact,
+      version = version,
+      targetEnvironment = targetEnvironment)
   }
 
   /**

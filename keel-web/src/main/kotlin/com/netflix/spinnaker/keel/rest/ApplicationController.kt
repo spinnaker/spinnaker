@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.services.ApplicationService
@@ -171,5 +172,37 @@ class ApplicationController(
     @PathVariable("targetEnvironment") targetEnvironment: String
   ) {
     applicationService.deletePin(application, targetEnvironment)
+  }
+
+  @PostMapping(
+    path = ["/{application}/veto"]
+  )
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  fun veto(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @PathVariable("application") application: String,
+    @RequestBody veto: EnvironmentArtifactVeto
+  ) {
+
+    applicationService.markAsVetoedIn(application, veto, true)
+  }
+
+  @DeleteMapping(
+    path = ["/{application}/veto/{targetEnvironment}/{reference}/{version}"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  fun deleteVeto(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @PathVariable("application") application: String,
+    @PathVariable("targetEnvironment") targetEnvironment: String,
+    @PathVariable("reference") reference: String,
+    @PathVariable("version") version: String
+  ) {
+    applicationService.deleteVeto(application, targetEnvironment, reference, version)
   }
 }

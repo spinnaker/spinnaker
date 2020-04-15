@@ -133,7 +133,7 @@ class InMemoryArtifactRepository(
         it.deliveryConfigName == deliveryConfigName &&
           it.reference == reference &&
           it.type == type
-      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference, type)
+      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference)
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
     store(artifact.name, artifact.type, version, status)

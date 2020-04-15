@@ -5,10 +5,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
-import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
@@ -20,12 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
-import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -93,69 +87,6 @@ internal class ArtifactControllerTests : JUnit5Minutests {
         .andExpect(content().string(
           """--- []""".trimMargin()
         ))
-    }
-
-    context("API permission checks") {
-      context("POST /artifacts/veto") {
-        context("with no WRITE access to application") {
-          before {
-            authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess()
-          }
-          test("request is forbidden") {
-            val request = post("/artifacts/veto").addData(jsonMapper,
-              EnvironmentArtifactVeto("myconfig", "test", "ref", "deb", "0.0.1")
-            )
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-        context("with no access to service account") {
-          before {
-            authorizationSupport.denyServiceAccountAccess()
-            authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
-          }
-          test("request is forbidden") {
-            val request = post("/artifacts/veto").addData(jsonMapper,
-              EnvironmentArtifactVeto("myconfig", "test", "ref", "deb", "0.0.1")
-            )
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-      }
-      context("DELETE /artifacts/veto/myconfig/test/deb/ref/0.0.1") {
-        context("with no WRITE access to application") {
-          before {
-            authorizationSupport.denyApplicationAccess(WRITE, DELIVERY_CONFIG)
-            authorizationSupport.allowServiceAccountAccess()
-          }
-          test("request is forbidden") {
-            val request = delete("/artifacts/veto/myconfig/test/deb/ref/0.0.1")
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-        context("with no access to service account") {
-          before {
-            authorizationSupport.denyServiceAccountAccess()
-            authorizationSupport.allowApplicationAccess(WRITE, DELIVERY_CONFIG)
-          }
-          test("request is forbidden") {
-            val request = delete("/artifacts/veto/myconfig/test/deb/ref/0.0.1")
-              .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
-
-            mvc.perform(request).andExpect(status().isForbidden)
-          }
-        }
-      }
     }
   }
 }

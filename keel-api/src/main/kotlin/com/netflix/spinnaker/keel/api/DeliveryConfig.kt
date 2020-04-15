@@ -14,8 +14,8 @@ data class DeliveryConfig(
   val resources: Set<Resource<*>>
     get() = environments.flatMapTo(mutableSetOf()) { it.resources }
 
-  fun matchingArtifactByReference(reference: String, type: ArtifactType): DeliveryArtifact? =
-    artifacts.find { it.reference == reference && it.type == type }
+  fun matchingArtifactByReference(reference: String): DeliveryArtifact? =
+    artifacts.find { it.reference == reference }
 
   fun matchingArtifactByName(name: String, type: ArtifactType): DeliveryArtifact? =
     artifacts.find { it.name == name && it.type == type }

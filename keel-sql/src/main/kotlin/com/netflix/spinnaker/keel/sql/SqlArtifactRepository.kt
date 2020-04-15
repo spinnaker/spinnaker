@@ -162,7 +162,7 @@ class SqlArtifactRepository(
     }
       ?.let { (name, details, reference) ->
         mapToArtifact(name, type, details, reference, deliveryConfigName)
-      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference, type)
+      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference)
   }
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =

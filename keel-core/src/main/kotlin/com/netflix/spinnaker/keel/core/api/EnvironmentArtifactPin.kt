@@ -19,10 +19,8 @@ data class PinnedEnvironment(
 )
 
 data class EnvironmentArtifactVeto(
-  val deliveryConfigName: String,
   val targetEnvironment: String,
   val reference: String,
-  val type: String,
   val version: String
 )
 

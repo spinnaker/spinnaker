@@ -22,9 +22,9 @@ data class Resource<T : ResourceSpec>(
       // prefer reference-based artifact info
       spec.completeArtifactReferenceOrNull()
         ?.let { ref ->
-          deliveryConfig.matchingArtifactByReference(ref.artifactReference, ref.artifactType)
+          deliveryConfig.matchingArtifactByReference(ref.artifactReference)
         }
-        // if not found, then try old-style image provider info
+      // if not found, then try old-style image provider info
         ?: spec.completeArtifactOrNull()
           ?.let { art ->
             deliveryConfig.matchingArtifactByName(art.artifactName, art.artifactType)
