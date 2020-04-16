@@ -47,6 +47,6 @@ public interface Response {
    * IOException)
    */
   default boolean isError() {
-    return getException().isPresent();
+    return getException().isPresent() || getStatusCode() >= 400;
   }
 }
