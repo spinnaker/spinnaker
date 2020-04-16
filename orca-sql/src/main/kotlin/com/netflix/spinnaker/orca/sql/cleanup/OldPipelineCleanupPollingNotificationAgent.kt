@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.sql.cleanup
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.OldPipelineCleanupAgentConfigurationProperties
+import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -28,36 +30,34 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnExpression("\${pollers.old-pipeline-cleanup.enabled:false} && \${execution-repository.sql.enabled:false}")
+@EnableConfigurationProperties(OldPipelineCleanupAgentConfigurationProperties::class, OrcaSqlProperties::class)
 class OldPipelineCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
   private val clock: Clock,
   registry: Registry,
   private val executionRepository: ExecutionRepository,
-  @Value("\${pollers.old-pipeline-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
-  @Value("\${pollers.old-pipeline-cleanup.threshold-days:30}") private val thresholdDays: Long,
-  @Value("\${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}") private val minimumPipelineExecutions: Int,
-  @Value("\${pollers.old-pipeline-cleanup.chunk-size:1}") private val chunkSize: Int,
-  @Value("\${sql.partition-name:#{null}}") private val partitionName: String?
+  private val configurationProperties: OldPipelineCleanupAgentConfigurationProperties,
+  private val orcaSqlProperties: OrcaSqlProperties
 ) : AbstractCleanupPollingAgent(
   clusterLock,
-  pollingIntervalMs,
+  configurationProperties.intervalMs,
   registry) {
 
   override fun performCleanup() {
-    val thresholdMillis = Instant.ofEpochMilli(clock.millis()).minus(thresholdDays, ChronoUnit.DAYS).toEpochMilli()
+    val thresholdMillis = Instant.ofEpochMilli(clock.millis()).minus(configurationProperties.thresholdDays, ChronoUnit.DAYS).toEpochMilli()
 
     val candidateApplications = jooq
       .select(field("application"))
       .from(table("pipelines"))
       .groupBy(field("application"))
-      .having(count(field("id")).gt(minimumPipelineExecutions))
+      .having(count(field("id")).gt(configurationProperties.minimumPipelineExecutions))
       .fetch(field("application"), String::class.java)
 
     for (chunk in candidateApplications.chunked(5)) {
@@ -71,15 +71,15 @@ class OldPipelineCleanupPollingNotificationAgent(
         .and(
           field("status").`in`(*completedStatuses.toTypedArray()))
 
-        if (partitionName != null) {
+        if (orcaSqlProperties.partitionName != null) {
           queryBuilder = queryBuilder
             .and(
-              field("`partition`").eq(partitionName))
+              field("`partition`").eq(orcaSqlProperties.partitionName))
         }
 
       val pipelineConfigsWithOldExecutions = queryBuilder
         .groupBy(field("application"), field("config_id"))
-        .having(count(field("id")).gt(minimumPipelineExecutions))
+        .having(count(field("id")).gt(configurationProperties.minimumPipelineExecutions))
         .fetch()
 
       pipelineConfigsWithOldExecutions.forEach {
@@ -131,18 +131,18 @@ class OldPipelineCleanupPollingNotificationAgent(
         .and(field("config_id").eq(pipelineConfigId))
       )
 
-    if (partitionName != null) {
+    if (orcaSqlProperties.partitionName != null) {
       queryBuilder = queryBuilder
         .and(
-          field("`partition`").eq(partitionName))
+          field("`partition`").eq(orcaSqlProperties.partitionName))
     }
 
     val executionsToRemove = queryBuilder
       .orderBy(field("build_time").desc())
-      .limit(minimumPipelineExecutions, Int.MAX_VALUE)
+      .limit(configurationProperties.minimumPipelineExecutions, Int.MAX_VALUE)
       .fetch(field("id"), String::class.java)
 
-    executionsToRemove.chunked(chunkSize).forEach { ids ->
+    executionsToRemove.chunked(configurationProperties.chunkSize).forEach { ids ->
       deletedExecutionCount.addAndGet(ids.size)
       executionRepository.delete(ExecutionType.PIPELINE, ids)
 

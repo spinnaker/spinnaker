@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
+import com.netflix.spinnaker.config.OldPipelineCleanupAgentConfigurationProperties
+import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 
@@ -58,11 +60,13 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     Clock.systemDefaultZone(),
     new NoopRegistry(),
     executionRepository,
-    0,
-    10, // threshold days
-    5,  // minimum pipeline executions
-    1,
-    null
+    new OldPipelineCleanupAgentConfigurationProperties(
+        0L,
+        10L, // threshold days
+        5,  // minimum pipeline executions
+        1
+    ),
+    new OrcaSqlProperties()
   )
 
   def setupSpec() {

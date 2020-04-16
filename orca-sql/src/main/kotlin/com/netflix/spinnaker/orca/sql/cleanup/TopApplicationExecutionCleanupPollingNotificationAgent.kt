@@ -17,30 +17,31 @@
 package com.netflix.spinnaker.orca.sql.cleanup
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.OrcaSqlProperties
+import com.netflix.spinnaker.config.TopApplicationExecutionCleanupAgentConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import java.util.concurrent.atomic.AtomicInteger
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnExpression("\${pollers.top-application-execution-cleanup.enabled:false} && \${execution-repository.sql.enabled:false}")
+@EnableConfigurationProperties(TopApplicationExecutionCleanupAgentConfigurationProperties::class, OrcaSqlProperties::class)
 class TopApplicationExecutionCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
   registry: Registry,
   private val executionRepository: ExecutionRepository,
-  @Value("\${pollers.top-application-execution-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
-  @Value("\${pollers.top-application-execution-cleanup.threshold:2000}") private val threshold: Int,
-  @Value("\${pollers.top-application-execution-cleanup.chunk-size:1}") private val chunkSize: Int,
-  @Value("\${sql.partition-name:#{null}}") private val partitionName: String?
+  private val configurationProperties: TopApplicationExecutionCleanupAgentConfigurationProperties,
+  private val orcaSqlProperties: OrcaSqlProperties
 ) : AbstractCleanupPollingAgent(
   clusterLock,
-  pollingIntervalMs,
+  configurationProperties.intervalMs,
   registry) {
 
   override fun performCleanup() {
@@ -49,15 +50,15 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
       .from(DSL.table("orchestrations"))
       .where(DSL.noCondition())
 
-    if (partitionName != null) {
+    if (orcaSqlProperties.partitionName != null) {
       queryBuilder = queryBuilder
         .and(
-          DSL.field("`partition`").eq(partitionName))
+          DSL.field("`partition`").eq(orcaSqlProperties.partitionName))
     }
 
     val applicationsWithOldOrchestrations = queryBuilder
       .groupBy(DSL.field("application"))
-      .having(DSL.count(DSL.field("id")).gt(threshold))
+      .having(DSL.count(DSL.field("id")).gt(configurationProperties.threshold))
       .fetch(DSL.field("application"), String::class.java)
 
     applicationsWithOldOrchestrations
@@ -95,12 +96,12 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
           .and(DSL.field("status").`in`(*completedStatuses.toTypedArray()))
       )
       .orderBy(DSL.field("build_time").desc())
-      .limit(threshold, Int.MAX_VALUE)
+      .limit(configurationProperties.threshold, Int.MAX_VALUE)
       .fetch(DSL.field("id"), String::class.java)
 
     log.debug("Found {} old orchestrations for {}", executionsToRemove.size, application)
 
-    executionsToRemove.chunked(chunkSize).forEach { ids ->
+    executionsToRemove.chunked(configurationProperties.chunkSize).forEach { ids ->
       deletedExecutionCount.addAndGet(ids.size)
 
       executionRepository.delete(ExecutionType.ORCHESTRATION, ids)
