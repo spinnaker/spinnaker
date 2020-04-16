@@ -7,7 +7,12 @@ dependencies {
   implementation(project(":orca-front50"))
   implementation(project(":orca-clouddriver"))
 
-  implementation("com.hubspot.jinjava:jinjava")
+  implementation("com.hubspot.jinjava:jinjava:2.2.3") {
+    // This is pinned to 2.2.3 because newer versions caused issues with MPTv1.
+    // It's upgraded everywhere else (via kork) because this old version causes
+    // issues with Java 11. marchello2000 @ Netflix is investigating this.
+    force = true
+  }
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.jayway.jsonpath:json-path:2.2.0")
