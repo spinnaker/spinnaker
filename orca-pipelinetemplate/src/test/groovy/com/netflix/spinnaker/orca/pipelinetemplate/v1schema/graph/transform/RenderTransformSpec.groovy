@@ -345,6 +345,43 @@ class RenderTransformSpec extends Specification {
     configuration.stages[1].loopedStages*.config.waitTime == [2, 5]
   }
 
+  def 'should correctly coerce default values'() {
+    // NOTE: this is really a jinjava test - nothing here tests what we do, but we had issues with this before so adding
+    // the test to catch jinjava breakages: https://github.com/HubSpot/jinjava/issues/429
+    given:
+    PipelineTemplate template = new PipelineTemplate()
+    TemplateConfiguration configuration = new TemplateConfiguration(
+        schema: '1',
+        pipeline: new PipelineDefinition(
+            application: 'orca',
+            name: 'Wait'
+        ),
+        stages: [
+            new StageDefinition(
+                id: 'test-id',
+                name: 'Run "{{ someVar|default(\'awesome\') }}" Pipeline',
+                type: 'pipeline',
+                config: [
+                'application': '{{application}}',
+                'pipeline': '{% if (someVar|default(null) != null) %}{% pipelineId name=someVar %}{% else %}{% endif %}',
+                'pipelineParameters': [],
+                ],
+                  when: [
+                    '{{ someVar|default(null) != null }}'
+                ]
+            )
+        ],
+        configuration: new PipelineConfiguration()
+    )
+
+    when:
+    new RenderTransform(configuration, renderer, registry, [:]).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    configuration.stages.size() == 1
+  }
+
   StageDefinition findStage(PipelineTemplate template, String id) {
     return template.stages.find { it.id == id }
   }
