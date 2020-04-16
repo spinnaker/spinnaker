@@ -16,7 +16,7 @@
     "yarn": ">=1.21.1"
   },
   "scripts": {
-    "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
+    "clean": "npx rimraf .awcache .cache-loader build node_modules/.cache transpiled",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production",
     "lint": "eslint --ext js,jsx,ts,tsx app",
     "start": "sh ./start.sh",
