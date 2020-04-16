@@ -3,8 +3,6 @@
 // Use environment variables when developing locally via 'yarn start', i.e.:
 // API_HOST=https://gate.spinnaker.mycompany.com yarn start
 var apiHost = process.env.API_HOST || 'http://localhost:8084';
-var artifactsEnabled = process.env.ARTIFACTS_ENABLED === 'true';
-var artifactsRewriteEnabled = process.env.ARTIFACTS_REWRITE_ENABLED === 'true';
 var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
 var authEndpoint = process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
 var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
@@ -72,8 +70,6 @@ window.spinnakerSettings = {
     maxResults: 5000,
   },
   feature: {
-    artifacts: artifactsEnabled,
-    artifactsRewrite: artifactsRewriteEnabled,
     canary: canaryEnabled,
     chaosMonkey: chaosEnabled,
     displayTimestampsInUserLocalTime: displayTimestampsInUserLocalTime,

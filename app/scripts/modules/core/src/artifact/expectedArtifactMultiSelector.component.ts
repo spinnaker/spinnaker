@@ -1,7 +1,6 @@
 import { IComponentOptions, IController, module } from 'angular';
 import { IExpectedArtifact } from 'core/domain';
 import { ArtifactIconService } from './ArtifactIconService';
-import { ArtifactsMode, ArtifactsModeService } from './ArtifactsModeService';
 
 import './artifactSelector.less';
 
@@ -12,7 +11,6 @@ class ExpectedArtifactMultiSelectorCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
   public showIcons: boolean;
-  public artifactsEnabled = ArtifactsModeService.artifactsMode !== ArtifactsMode.DISABLED;
 
   public iconPath(expected: IExpectedArtifact): string {
     const artifact = expected && (expected.matchArtifact || expected.defaultArtifact);
@@ -35,7 +33,7 @@ const expectedArtifactMultiSelectorComponent: IComponentOptions = {
   controller: ExpectedArtifactMultiSelectorCtrl,
   controllerAs: 'ctrl',
   template: `
-      <ng-form name="artifacts" ng-if="ctrl.artifactsEnabled">
+      <ng-form name="artifacts">
         <stage-config-field label="{{ctrl.artifactLabel}}" help-key="{{ctrl.helpFieldKey}}">
           <ui-select multiple
                      ng-model="ctrl.command[ctrl.idsField]"

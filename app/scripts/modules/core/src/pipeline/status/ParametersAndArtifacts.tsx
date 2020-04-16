@@ -2,7 +2,6 @@ import React from 'react';
 import { keyBy, truncate } from 'lodash';
 import memoizeOne from 'memoize-one';
 
-import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { IExecution, IPipeline } from 'core/domain';
 
 import { ExecutionParameters, IDisplayableParameter } from './ExecutionParameters';
@@ -131,14 +130,11 @@ export class ParametersAndArtifacts extends React.Component<
           displayableParameters={displayableParameters}
           pinnedDisplayableParameters={pinnedDisplayableParameters}
         />
-
-        {ArtifactsModeService.artifactsMode !== ArtifactsMode.DISABLED && (
-          <ResolvedArtifactList
-            artifacts={artifacts}
-            resolvedExpectedArtifacts={resolvedExpectedArtifacts}
-            showingExpandedArtifacts={showingParams}
-          />
-        )}
+        <ResolvedArtifactList
+          artifacts={artifacts}
+          resolvedExpectedArtifacts={resolvedExpectedArtifacts}
+          showingExpandedArtifacts={showingParams}
+        />
       </>
     );
   }

@@ -24,8 +24,6 @@ export interface INotificationSettings {
 
 export interface IFeatures {
   [key: string]: any;
-  artifacts?: boolean;
-  artifactsRewrite?: boolean;
   canary?: boolean;
   chaosMonkey?: boolean;
   displayTimestampsInUserLocalTime?: boolean;
@@ -37,6 +35,8 @@ export interface IFeatures {
   iapRefresherEnabled?: boolean;
   // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
   infrastructureStages?: boolean;
+  // todo(mneterval): remove prior to release 1.21
+  legacyArtifactsEnabled?: boolean;
   managedDelivery?: boolean;
   managedServiceAccounts?: boolean;
   managedResources?: boolean;

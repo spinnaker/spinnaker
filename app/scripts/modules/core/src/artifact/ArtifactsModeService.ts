@@ -21,7 +21,6 @@ import { SETTINGS } from 'core/config';
  */
 
 export enum ArtifactsMode {
-  DISABLED,
   LEGACY,
   STANDARD,
 }
@@ -30,12 +29,9 @@ export class ArtifactsModeService {
   public static readonly artifactsMode = ArtifactsModeService.getArtifactsMode();
 
   private static getArtifactsMode(): ArtifactsMode {
-    if (SETTINGS.feature.artifactsRewrite === true) {
-      return ArtifactsMode.STANDARD;
-    }
-    if (SETTINGS.feature.artifacts === true) {
+    if (SETTINGS.feature.legacyArtifactsEnabled === true) {
       return ArtifactsMode.LEGACY;
     }
-    return ArtifactsMode.DISABLED;
+    return ArtifactsMode.STANDARD;
   }
 }

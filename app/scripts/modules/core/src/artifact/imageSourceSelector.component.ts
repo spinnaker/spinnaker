@@ -7,7 +7,6 @@ const imageSourceSelectorComponent: IComponentOptions = {
     helpFieldKey: '@',
     idField: '@',
     imageSourceText: '<',
-    artifactsEnabled: '<',
   },
   controllerAs: 'ctrl',
   template: `
@@ -19,7 +18,7 @@ const imageSourceSelectorComponent: IComponentOptions = {
         <span ng-bind-html="ctrl.imageSourceText"></span>
       </div>
     </div>
-    <div class="form-group" ng-if="!ctrl.imageSourceText && ctrl.artifactsEnabled">
+    <div class="form-group" ng-if="!ctrl.imageSourceText">
       <div class="col-md-3 sm-label-right">
         Image Source
         <help-field key="{{ ctrl.helpFieldKey }}"></help-field>
