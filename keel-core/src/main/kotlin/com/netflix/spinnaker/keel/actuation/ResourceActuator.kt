@@ -19,6 +19,8 @@ import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.ResourceTaskFailed
+import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.pause.ActuationPauser
@@ -101,9 +103,7 @@ class ResourceActuator(
                 }
                 is VersionedArtifactProvider -> desired
                 else -> null
-              }?.let {
-                it.completeVersionedArtifactOrNull()
-              }
+              }?.completeVersionedArtifactOrNull()
 
               if (versionedArtifact != null) {
                 with(versionedArtifact) {
@@ -157,12 +157,15 @@ class ResourceActuator(
           }
           else -> {
             log.info("Resource {} is valid [$coid]", id)
-            // TODO: not sure this logic belongs here
             val lastEvent = resourceRepository.lastEvent(id)
-            if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
-              publisher.publishEvent(ResourceDeltaResolved(resource, clock))
-            } else {
-              publisher.publishEvent(ResourceValid(resource, clock))
+            when (lastEvent) {
+              is ResourceActuationLaunched -> log.debug("waiting for actuating task to be completed") // do nothing and wait
+              is ResourceDeltaDetected, is ResourceTaskSucceeded, is ResourceTaskFailed -> {
+                // if a delta was detected and a task wasn't launched, the delta is resolved
+                // if a task was launched and it completed, either successfully or not, the delta is resolved
+                publisher.publishEvent(ResourceDeltaResolved(resource, clock))
+              }
+              else -> publisher.publishEvent(ResourceValid(resource, clock))
             }
           }
         }

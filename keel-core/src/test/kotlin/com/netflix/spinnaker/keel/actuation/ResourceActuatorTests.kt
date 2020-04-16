@@ -22,6 +22,8 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.ResourceTaskFailed
+import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -193,6 +195,42 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
               test("a telemetry event is published") {
                 verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+              }
+            }
+
+            context("when there is an actuation launched event in history, check other events before publishing ResourceDeltaResolved") {
+              before {
+                resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin1.name, emptyList()))
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+              test("ResourceDeltaResolved was not published since the task is still running") {
+                verify(exactly = 0) { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+              }
+
+              context("the task was finished successfully") {
+                before {
+                  resourceRepository.appendHistory(ResourceTaskSucceeded(resource, emptyList()))
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+                }
+                test("a resource delta resolved event is published") {
+                  verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+                }
+              }
+
+              context("the task was finished with an error") {
+                before {
+                  resourceRepository.appendHistory(ResourceTaskFailed(resource, "error", emptyList()))
+                  runBlocking {
+                    subject.checkResource(resource)
+                  }
+                }
+                test("a resource delta resolved event is published") {
+                  verify { publisher.publishEvent(ofType<ResourceDeltaResolved>()) }
+                }
               }
             }
 
