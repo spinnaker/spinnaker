@@ -41,10 +41,14 @@ open class AssembleJavaPluginZipTask : Zip() {
 
     val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
 
+    val configs = listOf("implementation", "runtimeOnly").map { project.configurations.getByName(it).copy() }
+    configs.forEach { it.isCanBeResolved  = true }
+    val copySpecs = configs.map {
+      project.copySpec().from(it)
+        .into("lib/")
+    }
     this.with(
-      // TODO(rz): Make sure kork / service deps are not included (compileOnly)
-      project.copySpec().from(sourceSets.getByName("main").compileClasspath)
-        .into("lib/"),
+      *(copySpecs.toTypedArray()),
       project.copySpec()
         .from(sourceSets.getByName("main").runtimeClasspath)
         .from(sourceSets.getByName("main").resources)

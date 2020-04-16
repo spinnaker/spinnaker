@@ -80,10 +80,13 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     val classesDirs: List<String>  = sourceSets.getByName("main").runtimeClasspath.files.map { it ->
       it.absolutePath
     }
+    val libDirs: List<String>  = sourceSets.getByName("main").runtimeClasspath.files
+      .filter { it.absolutePath.endsWith(".jar") }
+      .map { it.parent }
     val pluginRelInfo = mapOf(
       "pluginPath" to manifestLocation,
       "classesDirs" to classesDirs,
-      "libsDirs" to listOf("${project.buildDir}/lib")
+      "libsDirs" to listOf("${project.buildDir}/lib", *(libDirs.toTypedArray()))
     )
 
     File(project.buildDir, "${pluginExtensionName ?: project.name}.plugin-ref").writeText(
