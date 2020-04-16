@@ -77,7 +77,8 @@ dependencies {
     api("com.google.apis:google-api-services-storage:v1-rev141-1.25.0")
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:28.2-jre")
-    api("com.hubspot.jinjava:jinjava:2.2.3") // DO NOT CHANGE: MPTv1 strongly depends on this version of Jinjava
+    // JinJava 2.5.3 has a bad bug: https://github.com/HubSpot/jinjava/issues/429
+    api("com.hubspot.jinjava:jinjava:2.5.2")
     api("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
     api("com.jcraft.jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
