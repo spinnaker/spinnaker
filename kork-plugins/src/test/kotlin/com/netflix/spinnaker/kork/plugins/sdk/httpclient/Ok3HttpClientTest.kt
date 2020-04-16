@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.sdk.httpclient
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.httpclient.Request
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -28,8 +29,10 @@ import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.containsKey
 import strikt.assertions.isEqualTo
+import strikt.assertions.message
 
 class Ok3HttpClientTest : JUnit5Minutests {
 
@@ -51,12 +54,21 @@ class Ok3HttpClientTest : JUnit5Minutests {
 
       every { okHttpClient.newCall(any()) } returns call
       every { call.execute() } returns response
-
-      val request = Request("hello", "/")
+      val map: HashMap<String, String> = hashMapOf("param1" to "value1")
+      val request = Request("hello", "/").setQueryParams(map)
       expectThat(subject.get(request)).and {
         get { String(body.readBytes()) }.isEqualTo("hi")
         get { statusCode }.isEqualTo(200)
         get { headers }.containsKey("content-type")
+      }
+    }
+
+    test("Invalid URL") {
+      val request = Request("hello", "/")
+      expectThrows<IntegrationException> {
+        invalidSubject.get(request)
+      }.and {
+        message.isEqualTo("Unable to parse url 'smtp://example.net'")
       }
     }
   }
@@ -66,5 +78,6 @@ class Ok3HttpClientTest : JUnit5Minutests {
     val objectMapper: ObjectMapper = mockk(relaxed = true)
 
     val subject = Ok3HttpClient("foo", "http://example.net", okHttpClient, objectMapper)
+    val invalidSubject = Ok3HttpClient("foo", "smtp://example.net", okHttpClient, objectMapper)
   }
 }
