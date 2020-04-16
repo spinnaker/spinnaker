@@ -34,7 +34,7 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     }
 
   /**
-   * If this the property "ossVersion" exists the MANIFEST.MF "Implementation-OSS-Version" attribute
+   * If the property "ossVersion" exists the MANIFEST.MF "Implementation-Version" attribute
    * will be set to the corresponding property. This can be used to support use cases where services
    * are being extended and rebuilt.  Unless you're re-building services, this is likely unnecessary
    * and the default value of the attribute "Implementation-Version" will suffice for determining
@@ -44,7 +44,7 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
       String ossVersionProperty = "ossVersion"
       if (project.hasProperty(ossVersionProperty)) {
         jar.manifest {
-          (it as Manifest).attributes(["Implementation-OSS-Version": project.property(ossVersionProperty)])
+          (it as Manifest).attributes(["Implementation-Version": project.property(ossVersionProperty)])
         }
       }
     }
