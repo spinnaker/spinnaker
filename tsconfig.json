@@ -51,7 +51,7 @@
       "huaweicloud": ["huaweicloud/src"]
     },
     "pretty": true,
-    "removeComments": true,
+    "removeComments": false,
     "rootDir": ".",
     "skipLibCheck": true,
     "sourceMap": true,
