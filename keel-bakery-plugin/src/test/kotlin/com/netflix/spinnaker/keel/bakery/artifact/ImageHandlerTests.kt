@@ -93,7 +93,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val bakeTaskUser = slot<String>()
     val bakeTaskApplication = slot<String>()
     val bakeTaskArtifact = slot<List<Map<String, Any?>>>()
-    val bakeDescription = slot<String>()
+    val bakeTaskParameters = slot<Map<String, Any>>()
 
     fun runHandler(artifact: DeliveryArtifact) {
       if (artifact is DebianArtifact) {
@@ -103,10 +103,11 @@ internal class ImageHandlerTests : JUnit5Minutests {
             capture(bakeTaskApplication),
             any(),
             any(),
-            capture(bakeDescription),
+            any(),
             artifact.correlationId,
             capture(bakeTask),
-            capture(bakeTaskArtifact)
+            capture(bakeTaskArtifact),
+            capture(bakeTaskParameters)
           )
         } answers {
           Task(randomUUID().toString(), "baking new image for ${artifact.name}")
@@ -239,7 +240,17 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
               test("no bake is launched") {
                 verify(exactly = 0) {
-                  taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any(), any<List<Map<String, Any?>>>())
+                  taskLauncher.submitJob(
+                    user = any(),
+                    application = any(),
+                    notifications = any(),
+                    subject = any(),
+                    description = any(),
+                    correlationId = any(),
+                    stages = any(),
+                    artifacts = any(),
+                    parameters = any()
+                  )
                 }
               }
             }
@@ -262,7 +273,17 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
                 test("no bake is launched") {
                   verify(exactly = 0) {
-                    taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any(), any<List<Map<String, Any?>>>())
+                    taskLauncher.submitJob(
+                      user = any(),
+                      application = any(),
+                      notifications = any(),
+                      subject = any(),
+                      description = any(),
+                      correlationId = any(),
+                      stages = any(),
+                      artifacts = any(),
+                      parameters = any()
+                    )
                   }
                 }
 
@@ -317,9 +338,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 }
 
                 test("the bake task has a description of the diff") {
-                  expectThat(bakeDescription)
+                  expectThat(bakeTaskParameters)
                     .isCaptured()
-                    .captured
+                    .captured["delta"]
                     .isEqualTo("/appVersion : changed from [ keel-0.160.0-h62.24d0843 ] to [ ${image.appVersion} ]\n")
                 }
 
@@ -373,7 +394,17 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
               test("no bake is launched") {
                 verify(exactly = 0) {
-                  taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any(), any<List<Map<String, Any?>>>())
+                  taskLauncher.submitJob(
+                    user = any(),
+                    application = any(),
+                    notifications = any(),
+                    subject = any(),
+                    description = any(),
+                    correlationId = any(),
+                    stages = any(),
+                    artifacts = any(),
+                    parameters = any()
+                  )
                 }
               }
 
@@ -397,7 +428,17 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
               test("no bake is launched") {
                 verify(exactly = 0) {
-                  taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any(), any<List<Map<String, Any?>>>())
+                  taskLauncher.submitJob(
+                    user = any(),
+                    application = any(),
+                    notifications = any(),
+                    subject = any(),
+                    description = any(),
+                    correlationId = any(),
+                    stages = any(),
+                    artifacts = any(),
+                    parameters = any()
+                  )
                 }
               }
 

@@ -136,8 +136,7 @@ class ImageHandler(
     )
 
     log.info("baking new image for {}", artifact.name)
-    val subject = "Bake $desiredVersion"
-    val description = diff.toDebug()
+    val description = "Bake $desiredVersion"
 
     val (serviceAccount, application) = artifact.taskAuthenticationDetails
 
@@ -146,7 +145,7 @@ class ImageHandler(
         user = serviceAccount,
         application = application,
         notifications = emptySet(),
-        subject = subject,
+        subject = "bakery:image:$artifact.name",
         description = description,
         correlationId = artifact.correlationId,
         stages = listOf(
@@ -164,12 +163,13 @@ class ImageHandler(
             )
           )
         ),
-        artifacts = listOf(artifactPayload)
+        artifacts = listOf(artifactPayload),
+        parameters = mapOf("delta" to diff.toDebug())
       )
       publisher.publishEvent(BakeLaunched(desiredVersion))
       return listOf(Task(id = taskRef.id, name = description))
     } catch (e: Exception) {
-      log.error("Error launching bake for: ${description.toLowerCase()}")
+      log.error("Error launching bake for: $description")
       return emptyList()
     }
   }

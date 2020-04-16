@@ -32,7 +32,8 @@ interface TaskLauncher {
     description: String,
     correlationId: String,
     stages: List<Map<String, Any?>>,
-    artifacts: List<Map<String, Any?>> = emptyList()
+    artifacts: List<Map<String, Any?>> = emptyList(),
+    parameters: Map<String, Any> = emptyMap()
   ): Task =
     submitJob(
       user = user,
@@ -43,7 +44,8 @@ interface TaskLauncher {
       correlationId = correlationId,
       stages = stages,
       type = SubjectType.CONSTRAINT,
-      artifacts = artifacts
+      artifacts = artifacts,
+      parameters = parameters
     )
 
   suspend fun submitJob(
@@ -55,7 +57,8 @@ interface TaskLauncher {
     correlationId: String,
     stages: List<Map<String, Any?>>,
     type: SubjectType,
-    artifacts: List<Map<String, Any?>> = emptyList()
+    artifacts: List<Map<String, Any?>> = emptyList(),
+    parameters: Map<String, Any> = emptyMap()
   ): Task
 
   suspend fun correlatedTasksRunning(correlationId: String): Boolean

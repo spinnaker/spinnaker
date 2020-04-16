@@ -30,5 +30,6 @@ data class OrchestrationTrigger(
   val notifications: List<OrcaNotification>,
   val type: String = "keel",
   val user: String = "keel",
-  val artifacts: List<Map<String, Any?>> = emptyList()
+  val artifacts: List<Map<String, Any?>> = emptyList(),
+  val parameters: Map<String, Any> = emptyMap()
 )

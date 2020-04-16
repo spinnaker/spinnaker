@@ -72,7 +72,8 @@ class OrcaTaskLauncher(
     correlationId: String,
     stages: List<Map<String, Any?>>,
     type: SubjectType,
-    artifacts: List<Map<String, Any?>>
+    artifacts: List<Map<String, Any?>>,
+    parameters: Map<String, Any>
   ) =
     orcaService
       .orchestrate(
@@ -85,7 +86,8 @@ class OrcaTaskLauncher(
           trigger = OrchestrationTrigger(
             correlationId = correlationId,
             notifications = notifications.map { it.toOrcaNotification() },
-            artifacts = artifacts
+            artifacts = artifacts,
+            parameters = parameters
           )
         )
       )
