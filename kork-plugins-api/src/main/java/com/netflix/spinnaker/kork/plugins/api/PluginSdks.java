@@ -18,6 +18,8 @@ package com.netflix.spinnaker.kork.plugins.api;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClient;
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry;
+import com.netflix.spinnaker.kork.plugins.api.serde.SerdeService;
+import com.netflix.spinnaker.kork.plugins.api.servicesdk.ServiceSdk;
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader;
 import javax.annotation.Nonnull;
 
@@ -49,4 +51,20 @@ public interface PluginSdks {
   @Beta
   @Nonnull
   YamlResourceLoader yamlResourceLoader();
+
+  /** Get the {@link SerdeService} for serialization / deserialization utilities. */
+  @Beta
+  @Nonnull
+  SerdeService serde();
+
+  /**
+   * Entry point for service-specific SDKs.
+   *
+   * <p>A service may register its own specialized SDK to help plugin developers write extensions.
+   *
+   * @param <T> The service SDK type. There will only be one of these per-service.
+   */
+  @Beta
+  @Nonnull
+  <T extends ServiceSdk> T serviceSdk(@Nonnull Class<T> type);
 }

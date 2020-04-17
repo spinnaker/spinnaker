@@ -15,9 +15,12 @@
  */
 package com.netflix.spinnaker.kork.plugins.sdk
 
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry
+import com.netflix.spinnaker.kork.plugins.api.serde.SerdeService
+import com.netflix.spinnaker.kork.plugins.api.servicesdk.ServiceSdk
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 
 /**
@@ -32,6 +35,21 @@ class PluginSdksImpl(
 
   override fun yamlResourceLoader(): YamlResourceLoader =
     service(YamlResourceLoader::class.java)
+
+  override fun serde(): SerdeService =
+    service(SerdeService::class.java)
+
+  override fun <T : ServiceSdk> serviceSdk(type: Class<T>): T =
+    sdkServices
+      .filterIsInstance<ServiceSdk>()
+      .firstOrNull()
+      ?.let {
+        if (!type.isAssignableFrom(it.javaClass)) {
+          throw IntegrationException("Requested unknown serivce SDK type, but '${it.javaClass.simpleName}' is available")
+        }
+        it as T
+      }
+      ?: throw SystemException("No service SDK is configured for this service")
 
   private fun <T> service(serviceClass: Class<T>): T =
     sdkServices.filterIsInstance(serviceClass).firstOrNull()
