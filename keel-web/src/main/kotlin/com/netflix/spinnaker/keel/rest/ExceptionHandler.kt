@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
+import com.netflix.spinnaker.fiat.model.resources.ResourceType.SERVICE_ACCOUNT
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
@@ -19,7 +21,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
-import java.lang.IllegalArgumentException
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import java.time.Instant
 import java.time.format.DateTimeParseException
 import org.slf4j.LoggerFactory
@@ -86,14 +88,28 @@ class ExceptionHandler(
   @ResponseStatus(FORBIDDEN)
   fun onAccessDenied(e: AccessDeniedException): ApiError {
     log.error(e.message)
-    return ApiError(FORBIDDEN,
+    val authFailure = FiatPermissionEvaluator.getAuthorizationFailure().get()
+    val message = if (authFailure != null) {
+      val user = "User ${AuthenticatedRequest.getSpinnakerUser().orElse("")}"
+      val permission = "${authFailure.authorization.let { if (it == null) "access" else "${it.name.toLowerCase()} permission" }}"
+      val resourceType = authFailure.resourceType.name.toLowerCase().replace('_', ' ')
+      "Access denied. $user does not have $permission to the ${authFailure.resourceName} $resourceType specified in the request. " +
+        if (authFailure.resourceType == SERVICE_ACCOUNT) {
+          "Please make sure you have access to the service account specified in your delivery config."
+        } else {
+          "Please check that the service account specified in your delivery config has access to this application along " +
+            "with all the cloud accounts included in the delivery config."
+        }
+    } else {
       if (e.message == null || e.message == "Access is denied") {
         "Access denied. Please make sure you have access to the service account specified in your delivery config. " +
-          "If you do have access, check that the service account has access to this application along with all the cloud accounts included in the delivery config."
+          "If you do have access, check that the service account has access to this application along with all the " +
+          "cloud accounts included in the delivery config."
       } else {
         e.message!!
       }
-    )
+    }
+    return ApiError(FORBIDDEN, message)
   }
 
   private fun JsonMappingException.toDetails(): ParsingErrorDetails {
@@ -212,6 +228,7 @@ data class ParsingErrorDetails(
 ) : ApiErrorDetails {
   override val type: ApiErrorType = error
   val pathExpression: String
+
   init {
     // Makes a JSONPath expression for the problem path
     pathExpression = "".let { str ->
