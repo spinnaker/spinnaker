@@ -144,7 +144,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
     context("submitting a delivery config manifest") {
       val yamlPayload =
         """---
-        |name: keel-manifest
         |application: keel
         |serviceAccount: keel@spinnaker
         |artifacts:
@@ -179,7 +178,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
       val jsonPayload =
         """{
-        |  "name": "keel-manifest",
         |  "application": "keel",
         |  "serviceAccount": "keel@spinnaker",
         |  "artifacts": [
@@ -260,7 +258,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             andExpect(status().isOk)
           }
 
-          test("the manifest is persisted") {
+          test("the manifest is persisted with a default name") {
             expectCatching { deliveryConfigRepository.get("keel-manifest") }
               .succeeded()
           }

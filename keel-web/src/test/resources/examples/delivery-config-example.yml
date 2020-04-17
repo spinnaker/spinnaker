@@ -1,5 +1,4 @@
 ---
-name: fnord-manifest
 application: fnord
 serviceAccount: delivery-engineering@netflix.com
 artifacts:

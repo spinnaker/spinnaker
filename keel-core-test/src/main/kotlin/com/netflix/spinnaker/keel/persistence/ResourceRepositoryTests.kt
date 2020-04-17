@@ -34,7 +34,6 @@ import dev.minutest.RootContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
@@ -66,7 +65,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
   open fun flush() {}
 
   data class Fixture<T : ResourceRepository>(
-    val deliveryConfig: DeliveryConfig = DeliveryConfig("manifest", "toast", "keel@spinnaker"),
+    val deliveryConfig: DeliveryConfig = DeliveryConfig(
+      name = "manifest",
+      application = "toast",
+      serviceAccount = "keel@spinnaker"
+    ),
     val subject: T,
     val callback: (ResourceHeader) -> Unit = mockk(relaxed = true) // has to be relaxed due to https://github.com/mockk/mockk/issues/272
   )
@@ -76,10 +79,14 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       Fixture(subject = factory(clock))
     }
 
-    after { confirmVerified(callback) }
+//    after { confirmVerified(callback) }
     after { flush() }
 
     context("no resources exist") {
+      before {
+        flush()
+      }
+
       test("allResources is a no-op") {
         subject.allResources(callback)
 

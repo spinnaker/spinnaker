@@ -70,7 +70,8 @@ class SqlDeliveryConfigRepository(
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
         .fetchOne { (uid, name, application, serviceAccount) ->
-          DeliveryConfig(name, application, serviceAccount).attachDependents(uid)
+          DeliveryConfig(name = name, application = application, serviceAccount = serviceAccount)
+            .attachDependents(uid)
         }
     } ?: throw NoDeliveryConfigForApplication(application)
 
@@ -342,7 +343,7 @@ class SqlDeliveryConfigRepository(
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.NAME.eq(name))
         .fetchOne { (uid, name, application, serviceAccount) ->
-          uid to DeliveryConfig(name, application, serviceAccount)
+          uid to DeliveryConfig(name = name, application = application, serviceAccount = serviceAccount)
         }
     }
       ?.let { (uid, deliveryConfig) ->
@@ -438,7 +439,8 @@ class SqlDeliveryConfigRepository(
           .environments
           .firstOrNull {
             it.name == state.environmentName
-          } ?: error("Environment ${state.environmentName} does not exist in ${state.deliveryConfigName}")
+          }
+          ?: error("Environment ${state.environmentName} does not exist in ${state.deliveryConfigName}")
 
         sqlRetry.withRetry(WRITE) {
           jooq.transaction { config ->

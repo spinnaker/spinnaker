@@ -4,8 +4,8 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 
 data class DeliveryConfig(
-  val name: String,
   val application: String,
+  val name: String,
   val serviceAccount: String,
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<Environment> = emptySet(),

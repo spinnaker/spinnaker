@@ -309,6 +309,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             )
           )
         )
+
         test("an error is thrown and config is deleted") {
           expectCatching {
             subject.upsertDeliveryConfig(submittedConfig)

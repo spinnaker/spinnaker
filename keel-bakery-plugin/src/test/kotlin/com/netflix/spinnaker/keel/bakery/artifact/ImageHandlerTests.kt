@@ -239,19 +239,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
               }
 
               test("no bake is launched") {
-                verify(exactly = 0) {
-                  taskLauncher.submitJob(
-                    user = any(),
-                    application = any(),
-                    notifications = any(),
-                    subject = any(),
-                    description = any(),
-                    correlationId = any(),
-                    stages = any(),
-                    artifacts = any(),
-                    parameters = any()
-                  )
-                }
+                expectThat(bakeTask).isNotCaptured()
               }
             }
 
@@ -272,19 +260,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 }
 
                 test("no bake is launched") {
-                  verify(exactly = 0) {
-                    taskLauncher.submitJob(
-                      user = any(),
-                      application = any(),
-                      notifications = any(),
-                      subject = any(),
-                      description = any(),
-                      correlationId = any(),
-                      stages = any(),
-                      artifacts = any(),
-                      parameters = any()
-                    )
-                  }
+                  expectThat(bakeTask).isNotCaptured()
                 }
 
                 test("an event is triggered") {
@@ -393,19 +369,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
               }
 
               test("no bake is launched") {
-                verify(exactly = 0) {
-                  taskLauncher.submitJob(
-                    user = any(),
-                    application = any(),
-                    notifications = any(),
-                    subject = any(),
-                    description = any(),
-                    correlationId = any(),
-                    stages = any(),
-                    artifacts = any(),
-                    parameters = any()
-                  )
-                }
+                expectThat(bakeTask).isNotCaptured()
               }
 
               test("an event is triggered because we want to track region mismatches") {
@@ -427,19 +391,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
               }
 
               test("no bake is launched") {
-                verify(exactly = 0) {
-                  taskLauncher.submitJob(
-                    user = any(),
-                    application = any(),
-                    notifications = any(),
-                    subject = any(),
-                    description = any(),
-                    correlationId = any(),
-                    stages = any(),
-                    artifacts = any(),
-                    parameters = any()
-                  )
-                }
+                expectThat(bakeTask).isNotCaptured()
               }
 
               test("no region mismatch event is triggered") {
@@ -488,6 +440,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
   fun <T : Any> Assertion.Builder<CapturingSlot<T>>.isCaptured(): Assertion.Builder<CapturingSlot<T>> =
     assertThat("captured a value", CapturingSlot<T>::isCaptured)
+
+  fun <T : Any> Assertion.Builder<CapturingSlot<T>>.isNotCaptured(): Assertion.Builder<CapturingSlot<T>> =
+    assertThat("did not capture a value") { !it.isCaptured }
 
   val <T : Any> Assertion.Builder<CapturingSlot<T>>.captured: Assertion.Builder<T>
     get() = get { captured }
