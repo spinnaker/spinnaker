@@ -34,6 +34,7 @@ import dev.minutest.RootContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
+import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
@@ -79,14 +80,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       Fixture(subject = factory(clock))
     }
 
-//    after { confirmVerified(callback) }
+    after { confirmVerified(callback) }
     after { flush() }
 
     context("no resources exist") {
-      before {
-        flush()
-      }
-
       test("allResources is a no-op") {
         subject.allResources(callback)
 

@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.time.Clock.systemUTC
@@ -87,10 +88,18 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
 
     val ancientResource = resource(v1.kind, SpecV1("whatever"))
     val oldResource = resource(v2.kind, SpecV2("whatever", 2))
+
+    fun flush() {
+      cleanupDb(jooq)
+    }
   }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
+
+    after {
+      flush()
+    }
 
     context("a spec with the old kind exists in the database") {
       before {
