@@ -18,10 +18,11 @@
 package com.netflix.spinnaker.exceptions
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.kork.exceptions.SystemException
 
 class ArtifactParsingException(
   val name: String,
   val type: ArtifactType,
   val json: String,
   val e: Exception?
-) : RuntimeException("Unable to construct a delivery artifact from entry with name $name, type ${type.name}, and json $json", e)
+) : SystemException("Unable to construct a delivery artifact from entry with name $name, type ${type.name}, and json $json", e)

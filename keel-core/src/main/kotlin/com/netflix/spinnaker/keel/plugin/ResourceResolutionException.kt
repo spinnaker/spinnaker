@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.keel.plugin
 
+import com.netflix.spinnaker.kork.exceptions.SystemException
+
 abstract class ResourceResolutionException(
   type: String,
   resourceId: String,
   cause: Throwable
-) : RuntimeException("Unable to resolve $type state of $resourceId due to: ${cause.message}", cause)
+) : SystemException("Unable to resolve $type state of $resourceId due to: ${cause.message}", cause)
 
 class CannotResolveCurrentState(
   resourceId: String,

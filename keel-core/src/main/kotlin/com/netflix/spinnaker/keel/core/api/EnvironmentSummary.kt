@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
+import com.netflix.spinnaker.kork.exceptions.SystemException
 
 /**
  * Summarized data about a specific environment, mostly for use by the UI.
@@ -40,7 +41,7 @@ data class EnvironmentSummary(
           in it.versions.pending -> PENDING
           in it.versions.vetoed -> VETOED
           in it.versions.skipped -> SKIPPED
-          else -> throw IllegalStateException("Unknown promotion status for artifact ${it.type}:${it.name}@$version in environment ${this.name}"
+          else -> throw SystemException("Unknown promotion status for artifact ${it.type}:${it.name}@$version in environment ${this.name}"
           )
         }
       }

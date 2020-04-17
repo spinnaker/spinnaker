@@ -5,8 +5,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.UID
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
-import com.netflix.spinnaker.kork.exceptions.UserException
 
 interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfig> {
 
@@ -156,7 +156,7 @@ class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType
   NoSuchEntityException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
 
 class TooManyDeliveryConfigsException(application: String, existing: String) :
-  UserException("A delivery config already exists for application $application, and we only allow one per application - please delete existing config $existing before submitting a new config")
+  ConfigurationException("A delivery config already exists for application $application, and we only allow one per application - please delete existing config $existing before submitting a new config")
 
 class OrphanedResourceException(id: String) :
   SystemException("Resource $id exists without being a part of a delivery config")

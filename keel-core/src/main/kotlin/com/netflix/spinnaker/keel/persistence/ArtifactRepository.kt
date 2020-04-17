@@ -280,11 +280,7 @@ class NoSuchArtifactException(name: String, type: ArtifactType) :
 }
 
 class ArtifactNotFoundException(reference: String, deliveryConfig: String?) :
-  NoSuchEntityException("No artifact with reference $reference in delivery config $deliveryConfig is registered") {
-  constructor(artifact: DeliveryArtifact) : this(artifact.reference, artifact.deliveryConfigName)
-}
+  NoSuchEntityException("No artifact with reference $reference in delivery config $deliveryConfig is registered")
 
 class ArtifactAlreadyRegistered(name: String, type: ArtifactType) :
-  UserException("The $type artifact $name is already registered") {
-  constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
-}
+  UserException("The $type artifact $name is already registered")

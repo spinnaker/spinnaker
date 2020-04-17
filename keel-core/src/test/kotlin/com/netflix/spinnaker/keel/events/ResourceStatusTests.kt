@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceFormatException
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVABLE
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
@@ -205,7 +206,7 @@ internal class ResourceStatusTests : JUnit5Minutests {
       }
 
       test("returns diff status") {
-        expectThat(resourceRepository.getStatus(resource.id)).isEqualTo(DIFF)
+        expectThat(resourceRepository.getStatus(resource.id)).isEqualTo(CURRENTLY_UNRESOLVABLE)
       }
     }
   }

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 
 /**
  * Provides the basic functionality for deciding what digest is desired.
@@ -96,7 +97,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
         // container is old tag strategy, not artifact reference
         DockerArtifact(name = container.repository(), deliveryConfigName = deliveryConfig.name, tagVersionStrategy = container.tagVersionStrategy, captureGroupRegex = container.captureGroupRegex)
       }
-      else -> throw IllegalArgumentException("Unsupported container provider ${container.javaClass}")
+      else -> throw ConfigurationException("Unsupported container provider ${container.javaClass}")
     }
 
   fun findTagGivenDeliveryConfig(deliveryConfig: DeliveryConfig, environment: Environment, artifact: DeliveryArtifact) =

@@ -17,7 +17,9 @@
  */
 package com.netflix.spinnaker.keel.api.titus.exceptions
 
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
+
 class TitusAccountConfigurationException(
   val titusAccount: String,
   val missingProperty: String
-) : RuntimeException("Titus account $titusAccount misconfigured: missing value for $missingProperty")
+) : IntegrationException("Titus account $titusAccount misconfigured: missing value for $missingProperty")

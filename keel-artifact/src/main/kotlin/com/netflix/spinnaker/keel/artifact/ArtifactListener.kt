@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -172,7 +173,7 @@ class ArtifactListener(
    */
   private fun debStatus(artifact: Artifact): ArtifactStatus {
     val status = artifact.metadata["releaseStatus"]?.toString()
-      ?: throw IllegalStateException("Artifact event received without 'releaseStatus' field")
+      ?: throw IntegrationException("Artifact event received without 'releaseStatus' field")
     return ArtifactStatus.valueOf(status)
   }
 

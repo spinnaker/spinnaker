@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -164,7 +165,11 @@ fun Collection<ResourceHandler<*, *>>.supporting(
   unqualifiedKind: String
 ): List<ResourceHandler<*, *>> =
   filter { it.supportedKind.kind.group == group && it.supportedKind.kind.kind == unqualifiedKind }
-    ?: throw UnsupportedKind("$group/$unqualifiedKind")
+    .also {
+      if (it.isEmpty()) {
+        throw UnsupportedKind("$group/$unqualifiedKind")
+      }
+    }
 
 /**
  * Searches a list of [ResourceHandler] and returns the ones that support the specified [specClass].
@@ -175,6 +180,6 @@ fun <T : ResourceSpec> Collection<ResourceHandler<*, *>>.supporting(
   find { it.supportedKind.specClass == specClass }
 
 class UnsupportedKind(kind: String) :
-  IllegalStateException("No resource handler supporting \"$kind\" is available") {
+  SystemException("No resource handler supporting \"$kind\" is available") {
   constructor(kind: ResourceKind) : this(kind.toString())
 }

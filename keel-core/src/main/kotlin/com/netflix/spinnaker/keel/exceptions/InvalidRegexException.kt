@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.kork.exceptions.UserException
 
 /**
  * The regex provided produced too many capture groups.
@@ -25,7 +26,7 @@ import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 class InvalidRegexException(
   val regex: String,
   val tag: String
-) : ResourceCurrentlyUnresolvable("The provided regex ($regex) produced did not produce one capture group on tag $tag")
+) : UserException("The provided regex ($regex) produced did not produce one capture group on tag $tag")
 
 class NoDockerImageSatisfiesConstraints(
   val artifactName: String,

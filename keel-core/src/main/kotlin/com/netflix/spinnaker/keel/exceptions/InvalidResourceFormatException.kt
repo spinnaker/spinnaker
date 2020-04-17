@@ -17,10 +17,12 @@
  */
 package com.netflix.spinnaker.keel.exceptions
 
+import com.netflix.spinnaker.kork.exceptions.SystemException
+
 /**
  * An exception to indicate that a resource does not meet keel assumptions.
  */
 class InvalidResourceFormatException(
   val plugin: String,
   val reason: String
-) : RuntimeException("Plugin $plugin has a malformed resource definition: $reason")
+) : SystemException("Plugin $plugin has a malformed resource definition: $reason")

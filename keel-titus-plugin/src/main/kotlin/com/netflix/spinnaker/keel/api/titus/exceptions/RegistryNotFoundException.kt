@@ -17,9 +17,11 @@
  */
 package com.netflix.spinnaker.keel.api.titus.exceptions
 
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
+
 /**
  * A titus registry was not provided by clouddriver for the specified titus account
  */
 class RegistryNotFoundException(
   val titusAccount: String
-) : RuntimeException("Unable to find a registry configured for Titus account $titusAccount")
+) : IntegrationException("Unable to find a registry configured for Titus account $titusAccount")

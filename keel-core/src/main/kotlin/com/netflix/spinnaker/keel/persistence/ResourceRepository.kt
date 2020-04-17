@@ -44,6 +44,7 @@ import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVABLE
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
@@ -172,6 +173,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
       history.isPaused() -> PAUSED
       history.isVetoed() -> VETOED
       history.isResumed() -> RESUMED
+      history.isCurrentlyUnresolvable() -> CURRENTLY_UNRESOLVABLE
       else -> UNKNOWN
     }
   }
@@ -195,7 +197,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   }
 
   private fun List<ResourceEvent>.isDiff(): Boolean {
-    return first() is ResourceDeltaDetected || first() is ResourceMissing || first() is ResourceCheckUnresolvable
+    return first() is ResourceDeltaDetected || first() is ResourceMissing
   }
 
   private fun List<ResourceEvent>.isPaused(): Boolean {
@@ -208,6 +210,10 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
 
   private fun List<ResourceEvent>.isResumed(): Boolean {
     return first() is ResourceActuationResumed
+  }
+
+  private fun List<ResourceEvent>.isCurrentlyUnresolvable(): Boolean {
+    return first() is ResourceCheckUnresolvable
   }
 
   /**
@@ -267,5 +273,5 @@ class NoSuchApplication(application: String) :
   NoSuchEntityException("No resource with application name $application exists in the database")
 
 enum class ResourceStatus {
-  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, PAUSED, VETOED, RESUMED, UNKNOWN
+  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, CURRENTLY_UNRESOLVABLE, PAUSED, VETOED, RESUMED, UNKNOWN
 }

@@ -20,11 +20,12 @@ package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.kork.exceptions.UserException
 
 sealed class InvalidResourceException(
   message: String?,
   cause: Throwable
-) : RuntimeException(message, cause)
+) : UserException(message, cause)
 
 class FailedNormalizationException(
   errorMessage: String,

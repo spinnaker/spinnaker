@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.core.api.Capacity
+import com.netflix.spinnaker.kork.exceptions.SystemException
 
 // todo eb: this should be more general so that it works for all server groups, not just ec2
 data class ActiveServerGroup(
@@ -55,7 +56,7 @@ private fun List<Map<String, Any?>>.getTag(key: String) =
     ?.toString()
 
 class RequiredTagMissing(tagName: String, imageId: String) :
-  RuntimeException("Required tag \"$tagName\" was not found on AMI $imageId")
+  SystemException("Required tag \"$tagName\" was not found on AMI $imageId")
 
 data class LaunchConfig(
   val ramdiskId: String?,

@@ -38,6 +38,8 @@ import com.netflix.spinnaker.keel.test.artifactVersionedResource
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.exceptions.UserException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -318,13 +320,53 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coVerify(exactly = 0) { plugin1.update(any(), any()) }
             }
 
-            test("a telemetry event is published with the wrapped exception") {
+            test("an event is published with the wrapped exception") {
               val event = slot<ResourceCheckResult>()
               verify { publisher.publishEvent(capture(event)) }
               expectThat(event.captured)
                 .isA<ResourceCheckError>()
                 .get { exceptionType }
                 .isEqualTo(CannotResolveCurrentState::class.java)
+            }
+
+            context("the exception is a resolution exception caused by user error") {
+              before {
+                coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                coEvery { plugin1.current(resource) } throws UserException("bad, bad user!")
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the user exception is wrapped in the event") {
+                val event = slot<ResourceCheckResult>()
+                verify { publisher.publishEvent(capture(event)) }
+                expectThat(event.captured)
+                    .isA<ResourceCheckError>()
+                    .get { exceptionType }
+                    .isEqualTo(UserException::class.java)
+              }
+            }
+
+            context("the exception is a resolution exception caused by system error") {
+              before {
+                coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                coEvery { plugin1.current(resource) } throws SystemException("oopsies!")
+
+                runBlocking {
+                  subject.checkResource(resource)
+                }
+              }
+
+              test("the system exception is wrapped in the event") {
+                val event = slot<ResourceCheckResult>()
+                verify { publisher.publishEvent(capture(event)) }
+                expectThat(event.captured)
+                    .isA<ResourceCheckError>()
+                    .get { exceptionType }
+                    .isEqualTo(SystemException::class.java)
+              }
             }
           }
 

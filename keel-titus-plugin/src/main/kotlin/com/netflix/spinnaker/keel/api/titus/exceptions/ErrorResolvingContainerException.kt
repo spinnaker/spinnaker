@@ -18,7 +18,8 @@
 package com.netflix.spinnaker.keel.api.titus.exceptions
 
 import com.netflix.spinnaker.keel.docker.ContainerProvider
+import com.netflix.spinnaker.kork.exceptions.SystemException
 
 class ErrorResolvingContainerException(
   val container: ContainerProvider
-) : RuntimeException("There was an error resolving the correct docker container (current container: $container)")
+) : SystemException("There was an error resolving the correct docker container (current container: $container)")

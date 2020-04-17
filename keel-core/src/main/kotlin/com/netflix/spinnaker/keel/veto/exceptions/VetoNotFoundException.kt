@@ -17,6 +17,8 @@
  */
 package com.netflix.spinnaker.keel.veto.exceptions
 
+import com.netflix.spinnaker.kork.exceptions.UserException
+
 class VetoNotFoundException(
   val vetoName: String
-) : RuntimeException("Veto $vetoName not found.")
+) : UserException("Veto $vetoName not found.")

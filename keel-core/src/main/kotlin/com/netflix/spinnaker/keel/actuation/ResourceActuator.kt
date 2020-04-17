@@ -30,9 +30,13 @@ import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
+import com.netflix.spinnaker.keel.plugin.ResourceResolutionException
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Clock
 import java.util.UUID
 import kotlinx.coroutines.async
@@ -174,10 +178,20 @@ class ResourceActuator(
         publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
       } catch (e: Exception) {
         log.error("Resource check for $id failed [$coid]", e)
-        publisher.publishEvent(ResourceCheckError(resource, e, clock))
+        publisher.publishEvent(ResourceCheckError(resource, e.toSpinnakerException(), clock))
       }
     }
   }
+
+  private fun Exception.toSpinnakerException(): SpinnakerException =
+    when (this) {
+      is ResourceResolutionException -> when (cause) {
+        is UserException, is SystemException -> cause
+        else -> this
+      }
+      is UserException, is SystemException -> this
+      else -> SystemException(this)
+    } as SpinnakerException
 
   private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<out ResourceSpec>, coid: String): Pair<T, T?> =
     supervisorScope {

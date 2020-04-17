@@ -18,10 +18,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.veto.Veto
-import com.netflix.spinnaker.keel.veto.exceptions.MalformedMessageException
 import com.netflix.spinnaker.keel.veto.exceptions.VetoNotFoundException
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -94,13 +92,6 @@ class VetoController(
   @ExceptionHandler(VetoNotFoundException::class)
   @ResponseStatus(NOT_FOUND)
   fun onNotFound(e: VetoNotFoundException): Map<String, Any?> {
-    log.error(e.message)
-    return mapOf("message" to e.message)
-  }
-
-  @ExceptionHandler(MalformedMessageException::class)
-  @ResponseStatus(BAD_REQUEST)
-  fun onMalformedMessage(e: MalformedMessageException): Map<String, Any?> {
     log.error(e.message)
     return mapOf("message" to e.message)
   }

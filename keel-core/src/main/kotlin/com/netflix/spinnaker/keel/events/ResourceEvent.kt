@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.keel.events
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonProperty.Access
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -31,8 +33,13 @@ import com.netflix.spinnaker.keel.events.ResourceState.Diff
 import com.netflix.spinnaker.keel.events.ResourceState.Error
 import com.netflix.spinnaker.keel.events.ResourceState.Missing
 import com.netflix.spinnaker.keel.events.ResourceState.Ok
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Clock
 import java.time.Instant
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @JsonTypeInfo(
   use = Id.NAME,
@@ -55,7 +62,9 @@ import java.time.Instant
   Type(value = ResourceTaskFailed::class, name = "ResourceTaskFailed"),
   Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded")
 )
-abstract class ResourceEvent : PersistentEvent() {
+abstract class ResourceEvent(
+  open val message: String? = null
+) : PersistentEvent() {
   override val scope = Scope.RESOURCE
   abstract val kind: ResourceKind
   abstract val id: String
@@ -118,7 +127,9 @@ data class ResourceDeleted(
   )
 }
 
-sealed class ResourceCheckResult : ResourceEvent() {
+sealed class ResourceCheckResult(
+  override val message: String? = null
+) : ResourceEvent(message = message) {
   abstract val state: ResourceState
 
   @JsonIgnore
@@ -225,7 +236,7 @@ data class ResourceActuationVetoed(
   override val application: String,
   val reason: String?,
   override val timestamp: Instant
-) : ResourceEvent() {
+) : ResourceEvent(message = reason) {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
@@ -349,8 +360,8 @@ data class ResourceCheckUnresolvable(
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
-  val message: String?
-) : ResourceCheckResult() {
+  override val message: String?
+) : ResourceCheckResult(message = message) {
   @JsonIgnore
   override val state = Diff
 
@@ -367,18 +378,40 @@ data class ResourceCheckUnresolvable(
     )
 }
 
+enum class ResourceCheckErrorOrigin {
+  @JsonProperty("user") USER,
+  @JsonProperty("system") SYSTEM,
+  @JsonProperty("unknown") UNKNOWN;
+
+  companion object {
+    val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+    fun fromException(exceptionType: Class<out SpinnakerException>) =
+      when {
+        UserException::class.java.isAssignableFrom(exceptionType) -> USER
+        SystemException::class.java.isAssignableFrom(exceptionType) -> SYSTEM
+        else -> UNKNOWN.also {
+          log.error("All keel exceptions should inherit from UserException or SystemException (got ${exceptionType.name}). " +
+            "This is a bug.")
+        }
+      }
+  }
+}
+
 data class ResourceCheckError(
   override val kind: ResourceKind,
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
-  val exceptionType: Class<out Throwable>,
+  val exceptionType: Class<out SpinnakerException>,
   val exceptionMessage: String?
-) : ResourceCheckResult() {
+) : ResourceCheckResult(message = exceptionMessage) {
   @JsonIgnore
   override val state = Error
 
-  constructor(resource: Resource<*>, exception: Throwable, clock: Clock = Companion.clock) : this(
+  @JsonProperty(access = Access.READ_ONLY)
+  val origin: ResourceCheckErrorOrigin = ResourceCheckErrorOrigin.fromException(exceptionType)
+
+  constructor(resource: Resource<*>, exception: SpinnakerException, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
     resource.application,
