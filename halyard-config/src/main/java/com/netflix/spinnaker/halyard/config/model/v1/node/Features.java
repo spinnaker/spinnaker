@@ -46,14 +46,17 @@ public class Features extends Node {
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.5.0",
+      upperBound = "1.20.0",
       tooLowMessage =
-          "Artifacts are not configurable prior to this release. Will be stable at a later release.")
+          "Artifacts are not configurable prior to this release. Will be stable at a later release.",
+      tooHighMessage = "Artifacts are now enabled by default.")
   private Boolean artifacts;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.15.0",
-      tooLowMessage =
-          "Artifacts rewrite is a rewrite of the artifacts ui. Artifacts are not configurable prior to this release. Will be stable at a later release.")
+      upperBound = "1.20.0",
+      tooLowMessage = "The artifacts rewrite UI is not configurable prior to this release.",
+      tooHighMessage = "The artifacts rewrite UI is now enabled by default.")
   private Boolean artifactsRewrite;
 
   @ValidForSpinnakerVersion(
