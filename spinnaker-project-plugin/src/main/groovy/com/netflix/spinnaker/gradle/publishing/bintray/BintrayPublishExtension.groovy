@@ -8,7 +8,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 
 class BintrayPublishExtension {
-  private final Project project
+  protected final Project project
 
   final Property<Boolean> enabled
 
