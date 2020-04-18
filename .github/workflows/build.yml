@@ -6,6 +6,9 @@ on:
     - master
     - version-*
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+
 jobs:
   branch-build:
     # Only run this on repositories in the 'spinnaker' org, not on forks.
@@ -13,9 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      # Install Java 8 for cross-compilation support. Setting it up before
+      # Java 11 means it comes later in $PATH (because of how setup-java works)
       - uses: actions/setup-java@v1
         with:
           java-version: 8
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
       - uses: actions/cache@v1
         with:
           path: ~/.gradle
@@ -23,8 +31,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        run: ./gradlew -PenablePublishing=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" build snapshot --stacktrace
+        run: ./gradlew -PenableCrossCompilerPlugin=true build --stacktrace

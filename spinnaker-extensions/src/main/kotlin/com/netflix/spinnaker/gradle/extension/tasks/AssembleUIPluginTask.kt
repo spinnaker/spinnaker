@@ -16,10 +16,12 @@
 package com.netflix.spinnaker.gradle.extension.tasks
 
 import com.netflix.spinnaker.gradle.extension.Plugins
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Zip
 
 open class AssembleUIPluginTask : Zip() {
 
+  @Internal
   override fun getGroup(): String? = Plugins.GROUP
 
   init {

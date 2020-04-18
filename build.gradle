@@ -1,52 +1,32 @@
 plugins {
-  id "nebula.netflixoss" version "8.0.0"
-  id "com.diffplug.gradle.spotless" version "3.27.2"
+  id "com.diffplug.gradle.spotless" version "3.27.2" apply false
+  id "com.gradle.plugin-publish" version "0.11.0" apply false
 }
 
-allprojects {
+subprojects {
   repositories {
-    jcenter()
-    maven { url "https://plugins.gradle.org/m2/" }
+    gradlePluginPortal()
   }
 
-  apply plugin: 'nebula.netflixoss'
   apply plugin: 'com.diffplug.gradle.spotless'
-  apply plugin: 'idea'
   apply plugin: 'groovy'
+  apply plugin: 'idea'
   apply plugin: 'java-gradle-plugin'
+  apply plugin: 'com.gradle.plugin-publish'
+  apply plugin: 'maven-publish'
 
   spotless {
     java {
       eclipse().configFile(rootProject.file('codestyle.xml'))
     }
   }
-}
 
-
-idea {
-  project {
-    jdkName = '1.8'
-    languageLevel = '1.8'
-    vcs = 'Git'
-  }
-}
-
-
-subprojects {
-  group = 'com.netflix.spinnaker.gradle'
+  group = 'io.spinnaker.gradle'
   sourceCompatibility = 1.8
   targetCompatibility = 1.8
 
   dependencies {
-    compile gradleApi()
-    compile localGroovy()
-  }
-
-  bintray {
-    pkg {
-      userOrg = 'spinnaker'
-      repo = 'gradle'
-      labels = ['Spinnaker', 'Netflix']
-    }
+    implementation gradleApi()
+    implementation localGroovy()
   }
 }

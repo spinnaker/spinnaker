@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Zip
 import java.io.File
 import java.lang.IllegalStateException
@@ -29,6 +30,7 @@ import java.lang.IllegalStateException
  */
 open class AssembleJavaPluginZipTask : Zip() {
 
+  @Internal
   override fun getGroup(): String? = Plugins.GROUP
 
   init {

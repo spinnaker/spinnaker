@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gradle.extension.tasks
 import com.netflix.spinnaker.gradle.extension.Plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.TaskAction
  */
 open class RegistrationTask : DefaultTask() {
 
+  @Internal
   override fun getGroup(): String? = Plugins.GROUP
 
   @TaskAction

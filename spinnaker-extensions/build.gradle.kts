@@ -35,19 +35,42 @@ dependencies {
 
 gradlePlugin {
   // Define the plugin
-  val serviceExtension by plugins.creating {
-    id = "io.spinnaker.plugin.service-extension"
-    implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin"
-  }
+  plugins {
+    create("serviceExtension") {
+      id = "io.spinnaker.plugin.service-extension"
+      implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin"
+    }
 
-  val uiExtension by plugins.creating {
-    id = "io.spinnaker.plugin.ui-extension"
-    implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin"
-  }
+    create("uiExtension") {
+      id = "io.spinnaker.plugin.ui-extension"
+      implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin"
+    }
 
-  val bundler by plugins.creating {
-    id = "io.spinnaker.plugin.bundler"
-    implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
+    create("bundler") {
+      id = "io.spinnaker.plugin.bundler"
+      implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
+    }
+  }
+}
+
+pluginBundle {
+  website = "https://spinnaker.io"
+  vcsUrl = "https://github.com/spinnaker/spinnaker-gradle-project"
+  description = "Spinnaker extension development plugins"
+  tags = listOf("spinnaker")
+
+  (plugins) {
+    "serviceExtension" {
+      displayName = "Spinnaker service extension development plugin"
+    }
+
+    "uiExtension" {
+      displayName = "Spinnaker UI extension development plugin"
+    }
+
+    "bundler" {
+      displayName = "Spinnaker extension bundler plugin"
+    }
   }
 }
 

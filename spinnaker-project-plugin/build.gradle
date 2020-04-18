@@ -1,0 +1,38 @@
+dependencies {
+  implementation 'com.github.jk1:gradle-license-report:1.8'
+  implementation 'org.owasp:dependency-check-gradle:5.1.0'
+  implementation "com.diffplug.spotless:spotless-plugin-gradle:3.27.2"
+  implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
+  implementation 'com.netflix.nebula:gradle-java-cross-compile-plugin:4.1.0'
+  implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.2.0'
+}
+
+gradlePlugin {
+  plugins {
+    spinnakerProject {
+      id = 'io.spinnaker.project'
+      implementationClass = 'com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin'
+    }
+    spinnakerPackage {
+      id = 'io.spinnaker.package'
+      implementationClass = 'com.netflix.spinnaker.gradle.application.SpinnakerPackagePlugin'
+    }
+  }
+}
+
+pluginBundle {
+  website = 'https://spinnaker.io'
+  vcsUrl = 'https://github.com/spinnaker/spinnaker-gradle-project'
+  description = 'Plugins for Spinnaker services'
+  tags = ['spinnaker']
+
+  plugins {
+    spinnakerProject {
+      displayName = 'Build configuration for Spinnaker projects'
+    }
+    spinnakerPackage {
+      displayName = 'OS Packaging for Spinnaker applications'
+    }
+  }
+}
+

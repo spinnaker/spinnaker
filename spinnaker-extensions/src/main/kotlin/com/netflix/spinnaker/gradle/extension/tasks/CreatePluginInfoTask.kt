@@ -32,6 +32,7 @@ import java.time.Instant
  */
 open class CreatePluginInfoTask : DefaultTask() {
 
+  @Internal
   override fun getGroup(): String? = Plugins.GROUP
 
   @Internal
