@@ -19,10 +19,6 @@ import org.gradle.jvm.tasks.Jar
 class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-      if (project.version == Project.DEFAULT_VERSION) {
-        project.version = Flags.DEFAULT_VERSION_WHEN_UNSPECIFIED
-      }
-
       project.plugins.withType(JavaBasePlugin) {
         project.plugins.apply(MavenPublishPlugin)
         project.repositories.jcenter()

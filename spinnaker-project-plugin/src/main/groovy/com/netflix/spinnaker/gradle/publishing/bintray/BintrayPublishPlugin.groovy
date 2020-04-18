@@ -41,7 +41,6 @@ class BintrayPublishPlugin implements Plugin<Project> {
           it.onlyIf { extension.enabled().get() }
           it.onlyIf { extension.jarEnabled().get() }
           it.onlyIf { project.version.toString() != Project.DEFAULT_VERSION }
-          it.onlyIf { project.version.toString() != Flags.DEFAULT_VERSION_WHEN_UNSPECIFIED }
         }
       }
     }
@@ -55,7 +54,6 @@ class BintrayPublishPlugin implements Plugin<Project> {
           it.onlyIf { extension.enabled().get() }
           it.onlyIf { extension.debEnabled().get() }
           it.onlyIf { project.version.toString() != Project.DEFAULT_VERSION }
-          it.onlyIf { project.version.toString() != Flags.DEFAULT_VERSION_WHEN_UNSPECIFIED }
       }
 
       project.tasks.named('publish') {

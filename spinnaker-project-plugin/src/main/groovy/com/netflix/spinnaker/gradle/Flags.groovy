@@ -4,8 +4,6 @@ import org.gradle.api.Project
 
 class Flags {
 
-  public static String DEFAULT_VERSION_WHEN_UNSPECIFIED = '867.5309-SNAPSHOT'
-
   /**
    * Whether cross-compilation should be enabled.
    *
@@ -18,5 +16,4 @@ class Flags {
   static boolean shouldEnableCrossCompilation(Project project) {
     return Boolean.valueOf(project.findProperty("enableCrossCompilerPlugin")?.toString())
   }
-
 }
