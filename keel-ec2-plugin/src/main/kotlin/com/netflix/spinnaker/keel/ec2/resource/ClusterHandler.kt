@@ -922,7 +922,7 @@ class ClusterHandler(
     )
 
     val thisSpec = ServerGroupSpec(
-      launchConfiguration = launchConfiguration.exportSpec(account, location.region, application, launchConfiguration.instanceType),
+      launchConfiguration = launchConfiguration.exportSpec(account, location.region, application),
       capacity = capacity,
       dependencies = dependencies,
       health = health.toSpecWithoutDefaults(),
@@ -943,15 +943,13 @@ class ClusterHandler(
   private fun LaunchConfiguration.exportSpec(
     account: String,
     region: String,
-    application: String,
-    instanceType: String
+    application: String
   ): LaunchConfigurationSpec? {
     val defaults = LaunchConfigurationSpec(
       ebsOptimized = false,
       iamRole = LaunchConfiguration.defaultIamRoleFor(application),
       instanceMonitoring = false,
-      keyPair = defaultKeypair(account, region),
-      instanceType = instanceType
+      keyPair = defaultKeypair(account, region)
     )
     val thisSpec: LaunchConfigurationSpec = mapper.convertValue(this)
     return buildSpecFromDiff(defaults, thisSpec)

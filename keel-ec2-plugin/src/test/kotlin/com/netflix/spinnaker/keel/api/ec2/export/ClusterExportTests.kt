@@ -280,7 +280,7 @@ internal class ClusterExportTests : JUnit5Minutests {
             get { ebsOptimized }.isNull()
             get { instanceMonitoring }.isNull()
             get { ramdiskId }.isNull()
-            get { instanceType }.isNull()
+            get { instanceType }.isNotNull()
             get { iamRole }.isNotNull()
             get { keyPair }.isNotNull()
           }
