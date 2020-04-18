@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+if (spinnakerGradleVersion.endsWith('-SNAPSHOT')) {
+  pluginManagement {
+    repositories {
+      mavenLocal()
+      gradlePluginPortal()
+    }
+  }
+}
+
 rootProject.name="fiat"
 
 include 'fiat-api',
@@ -36,7 +45,6 @@ def setBuildFile(project) {
 rootProject.children.each {
   setBuildFile(it)
 }
-
 
 // Set as an ext variable so that build scripts can access it
 gradle.ext.includedProviderProjects = includeProviders.split(',').collect{ ':fiat-' + it.toLowerCase() }
