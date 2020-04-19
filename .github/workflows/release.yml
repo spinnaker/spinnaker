@@ -59,10 +59,10 @@ jobs:
            draft: false
            prerelease: ${{ steps.release_info.outputs.IS_CANDIDATE }}
       - name: Pause before dependency bump
+        if: steps.release_info.outputs.IS_CANDIDATE == 'false'
         run: sleep 90
       - name: Trigger dependency bump workflow
-        # TODO(cfieber): reenable this once projects are updated to new coordinates
-        if: ${{ false }}
+        if: steps.release_info.outputs.IS_CANDIDATE == 'false'
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
