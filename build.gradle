@@ -16,6 +16,7 @@
 
 plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id "nebula.kotlin" version "$kotlinVersion" apply false
 }
 
 subprojects {

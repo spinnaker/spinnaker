@@ -19,20 +19,20 @@ package com.netflix.spinnaker.echo;
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap;
 import java.util.Map;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /** Application entry point. */
-@Configuration
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, GsonAutoConfiguration.class})
 @EnableScheduling
 @ComponentScan({"com.netflix.spinnaker.echo.config", "com.netflix.spinnaker.config"})
+@SpringBootApplication(
+    scanBasePackages = {"com.netflix.spinnaker.echo.config", "com.netflix.spinnaker.config"},
+    exclude = {DataSourceAutoConfiguration.class, GsonAutoConfiguration.class})
 public class Application extends SpringBootServletInitializer {
   private static final Map<String, Object> DEFAULT_PROPS =
       new DefaultPropertiesBuilder().property("spring.application.name", "echo").build();

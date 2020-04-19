@@ -1,0 +1,21 @@
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+
+dependencies {
+  implementation(project(":echo-api"))
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
+
+  testImplementation(project(":echo-web"))
+  testImplementation(project(":echo-core"))
+
+  testImplementation("com.netflix.spinnaker.kork:kork-plugins")
+  testImplementation("com.netflix.spinnaker.kork:kork-plugins-tck")
+
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines("junit-jupiter", "junit-vintage")
+  }
+}

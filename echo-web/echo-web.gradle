@@ -67,3 +67,15 @@ run {
   systemProperty('spring.config.additional-location', project.springConfigLocation)
   systemProperty('spring.profiles.active', project.springProfiles)
 }
+
+test {
+  //The Implementation-Version is set in the MANIFEST.MF for the JAR produced via testing so that
+  //assertions can be made against the version (see echo-plugins-test, for example).
+  jar {
+    manifest {
+      attributes(
+        'Implementation-Version': '1.0.0'
+      )
+    }
+  }
+}
