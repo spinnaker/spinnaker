@@ -2,6 +2,9 @@ name: PR Build
 
 on: [ pull_request ]
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,13 +18,11 @@ jobs:
     - uses: actions/setup-java@v1
       with:
         java-version: 11
-    - uses: actions/cache@v1.1.2
+    - uses: actions/cache@v1
       with:
         path: ~/.gradle
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
     - name: Build
-      env:
-        GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-      run: ./gradlew -PenableCrossCompilerPlugin=true build javadoc
+      run: ./gradlew -PenableCrossCompilerPlugin=true build
