@@ -33,8 +33,10 @@ cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProvi
 cloudProviderProjects.put('titus', cloudProviderProjects['aws'] + ':clouddriver-titus' + ':clouddriver-docker')
 cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
 
+String icp = settings.ext.has('includeCloudProviders') ? settings.ext.get('includeCloudProviders') : 'all'
+
 // Set as an ext variable so that build scripts can access it
-gradle.ext.includedCloudProviderProjects = includeCloudProviders.split(',')
+gradle.ext.includedCloudProviderProjects = icp.split(',')
   .collectMany { cloudProviderProjects[it.toLowerCase()] }
   .toSet()
   .toList()
