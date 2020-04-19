@@ -21,17 +21,6 @@ javaPlatform {
   allowDependencies()
 }
 
-
-if (Boolean.valueOf(enablePublishing)) {
-  publishing {
-    publications {
-      nebula(MavenPublication) {
-        from components.javaPlatform
-      }
-    }
-  }
-}
-
 dependencies {
   api(platform("com.netflix.spinnaker.kork:kork-bom:${korkVersion}"))
 

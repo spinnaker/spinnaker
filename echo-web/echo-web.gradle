@@ -19,7 +19,7 @@ ext {
   springProfiles = System.getProperty('spring.profiles.active', "test,local")
 }
 
-apply plugin: 'spinnaker.application'
+apply plugin: 'io.spinnaker.package'
 
 mainClassName = 'com.netflix.spinnaker.echo.Application'
 

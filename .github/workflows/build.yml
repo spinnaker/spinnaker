@@ -6,6 +6,9 @@ on:
     - master
     - version-*
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+
 jobs:
   branch-build:
     # Only run this on repositories in the 'spinnaker' org, not on forks.
@@ -28,8 +31,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        run: ./gradlew -PenableCrossCompilerPlugin=true -PenablePublishing=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" build snapshot --stacktrace
+        run: ./gradlew -PenableCrossCompilerPlugin=true build --stacktrace
