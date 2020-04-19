@@ -45,41 +45,50 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
   registry) {
 
   override fun performCleanup() {
-    var queryBuilder = jooq
-      .select(DSL.field("application"), DSL.count(DSL.field("id")).`as`("count"))
+    // We don't have an index on partition/application so a query on a given partition is very expensive.
+    // Instead perform a query without partition constraint to get potential candidates.
+    // Then use the results of this candidate query to perform partial queries with partition set
+    val candidateApplications = jooq
+      .select(DSL.field("application"))
       .from(DSL.table("orchestrations"))
-      .where(DSL.noCondition())
-
-    if (orcaSqlProperties.partitionName != null) {
-      queryBuilder = queryBuilder
-        .and(
-          DSL.field("`partition`").eq(orcaSqlProperties.partitionName))
-    }
-
-    val applicationsWithOldOrchestrations = queryBuilder
       .groupBy(DSL.field("application"))
       .having(DSL.count(DSL.field("id")).gt(configurationProperties.threshold))
       .fetch(DSL.field("application"), String::class.java)
 
-    applicationsWithOldOrchestrations
-      .filter { !it.isNullOrEmpty() }
-      .forEach { application ->
-        try {
-          val startTime = System.currentTimeMillis()
+    for (chunk in candidateApplications.chunked(5)) {
+      val applicationsWithLotsOfOrchestrations = jooq
+        .select(DSL.field("application"))
+        .from(DSL.table("orchestrations"))
+        .where(if (orcaSqlProperties.partitionName == null) {
+          DSL.noCondition()
+        } else {
+          DSL.field("`partition`").eq(orcaSqlProperties.partitionName)
+        })
+        .and(DSL.field("application").`in`(*chunk.toTypedArray()))
+        .groupBy(DSL.field("application"))
+        .having(DSL.count(DSL.field("id")).gt(configurationProperties.threshold))
+        .fetch(DSL.field("application"), String::class.java)
 
-          log.debug("Cleaning up old orchestrations for $application")
-          val deletedOrchestrationCount = performCleanup(application)
-          log.debug(
-            "Cleaned up {} old orchestrations for {} in {}ms",
-            deletedOrchestrationCount,
-            application,
-            System.currentTimeMillis() - startTime
-          )
-        } catch (e: Exception) {
-          log.error("Failed to cleanup old orchestrations for $application", e)
-          errorsCounter.increment()
+      applicationsWithLotsOfOrchestrations
+        .filter { !it.isNullOrEmpty() }
+        .forEach { application ->
+          try {
+            val startTime = System.currentTimeMillis()
+
+            log.debug("Cleaning up old orchestrations for $application")
+            val deletedOrchestrationCount = performCleanup(application)
+            log.debug(
+              "Cleaned up {} old orchestrations for {} in {}ms",
+              deletedOrchestrationCount,
+              application,
+              System.currentTimeMillis() - startTime
+            )
+          } catch (e: Exception) {
+            log.error("Failed to cleanup old orchestrations for $application", e)
+            errorsCounter.increment()
+          }
         }
-      }
+    }
   }
 
   /**
