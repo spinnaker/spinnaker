@@ -1,14 +1,4 @@
-apply plugin: 'com.google.protobuf'
-
-buildscript {
-  repositories {
-    jcenter()
-  }
-
-  dependencies {
-    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.5'
-  }
-}
+apply plugin: "com.google.protobuf"
 
 ext {
   protobufVersion = '3.2.+'
