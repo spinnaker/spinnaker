@@ -1,5 +1,5 @@
 apply plugin: 'com.google.protobuf'
-apply plugin: 'spinnaker.application'
+apply plugin: 'io.spinnaker.package'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")

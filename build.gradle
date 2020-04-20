@@ -14,29 +14,16 @@
  * limitations under the License.
  */
 
-buildscript {
-  repositories {
-    jcenter()
-    maven { url "https://spinnaker.bintray.com/gradle" }
-    maven { url "https://plugins.gradle.org/m2/" }
-  }
-  dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:$spinnakerGradleVersion"
-    if (Boolean.valueOf(enablePublishing)) {
-      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerGradleVersion"
-    }
-    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
-  }
+plugins {
+  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'com.google.protobuf' version "0.8.12" apply false
 }
 
-allprojects {
+subprojects {
   group = "com.netflix.spinnaker.halyard"
-  apply plugin: 'spinnaker.base-project'
+  apply plugin: 'io.spinnaker.project'
   apply plugin: 'java-library'
   apply plugin: 'groovy'
-  if (Boolean.valueOf(enablePublishing)) {
-    apply plugin: 'spinnaker.project'
-  }
 
   test {
     testLogging {
@@ -45,6 +32,13 @@ allprojects {
     }
     minHeapSize = "512m"
     maxHeapSize = "512m"
+  }
+
+  if ([korkVersion, fiatVersion, clouddriverVersion, front50Version].any { it.endsWith("-SNAPSHOT") }) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
+    }
   }
 
   dependencies {
@@ -74,15 +68,6 @@ def createScript(project, mainClass, name) {
     into("bin") {
       from(project.tasks[name])
       fileMode = 0755
-    }
-  }
-}
-
-subprojects { project ->
-  if ([korkVersion, fiatVersion, clouddriverVersion, front50Version].any { it.endsWith("-SNAPSHOT") }) {
-    logger.info("Enabling mavenLocal")
-    repositories {
-      mavenLocal()
     }
   }
 }
