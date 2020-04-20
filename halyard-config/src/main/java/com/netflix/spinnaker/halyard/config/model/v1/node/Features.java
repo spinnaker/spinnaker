@@ -67,18 +67,24 @@ public class Features extends Node {
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.7.0",
+      upperBound = "1.20.0",
       tooLowMessage =
-          "Infrastructure Stages is not configurable prior to this release. Will be stable at a later release.")
+          "Infrastructure Stages is not configurable prior to this release. Will be stable at a later release.",
+      tooHighMessage = "Travis stage is now enabled by default.")
   private Boolean infrastructureStages;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.9.0",
-      tooLowMessage = "Travis stage is not available prior to this release.")
+      upperBound = "1.20.0",
+      tooLowMessage = "Travis stage is not available prior to this release.",
+      tooHighMessage = "Travis stage is now enabled by default.")
   private Boolean travis;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.9.0",
-      tooLowMessage = "Wercker stage is not available prior to this release.")
+      upperBound = "1.20.0",
+      tooLowMessage = "Wercker stage is not available prior to this release.",
+      tooHighMessage = "Wercker stage is now enabled by default.")
   private Boolean wercker;
 
   @ValidForSpinnakerVersion(
@@ -88,7 +94,9 @@ public class Features extends Node {
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.13.0",
-      tooLowMessage = "Gremlin is not available prior to this release.")
+      upperBound = "1.20.0",
+      tooLowMessage = "Gremlin stage is not available prior to this release.",
+      tooHighMessage = "Gremlin stage is now enabled by default.")
   private Boolean gremlin;
 
   public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
