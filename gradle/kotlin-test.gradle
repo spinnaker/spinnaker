@@ -20,7 +20,7 @@
 apply plugin: "kotlin"
 
 dependencies {
-  testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41"
+  testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.platform:junit-platform-runner"

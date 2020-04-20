@@ -51,6 +51,7 @@ detekt {
   parallel = true
   config = files("$rootDir/.detekt.yml")
   buildUponDefaultConfig = true
+  ignoreFailures = true
   reports {
     xml {
       enabled = false

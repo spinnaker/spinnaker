@@ -1,6 +1,6 @@
 plugins {
   id "java-library"
-  id "com.google.protobuf" version "0.8.10"
+  id "com.google.protobuf" version "0.8.12"
 }
 
 dependencies {

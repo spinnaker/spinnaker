@@ -1,7 +1,10 @@
+complexity:
+  TooManyFunctions:
+    active: false
+
 style:
   ThrowsCount:
     active: false
   MaxLineLength:
     active: false
-  TooManyFunctions:
-    active: false
+

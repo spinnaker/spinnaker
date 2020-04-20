@@ -1,16 +1,7 @@
 apply plugin: "java-platform"
-apply plugin: "maven-publish"
 
 javaPlatform {
   allowDependencies()
-}
-
-publishing {
-  publications {
-    nebula(MavenPublication) {
-      from components.javaPlatform
-    }
-  }
 }
 
 dependencies {

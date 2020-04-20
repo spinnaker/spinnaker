@@ -14,48 +14,27 @@
  * limitations under the License.
  */
 
-buildscript {
-  repositories {
-    mavenCentral()
-    jcenter()
-    maven { url "https://dl.bintray.com/spinnaker/gradle/" }
-    maven { url "https://plugins.gradle.org/m2/" }
-    if (spinnakerGradleVersion.endsWith("-SNAPSHOT")) {
-      mavenLocal()
-    }
-  }
-  dependencies {
-    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:$spinnakerGradleVersion")
-    if (Boolean.valueOf(enablePublishing)) {
-      classpath("com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerGradleVersion")
-    }
-    classpath("com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion")
-    classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion")
-    classpath("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.2.2")
-  }
+plugins {
+  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'nebula.kotlin' version "$kotlinVersion" apply false
+  id "io.gitlab.arturbosch.detekt" version "1.7.4" apply false
+  id 'org.jetbrains.kotlin.plugin.allopen' version "$kotlinVersion" apply false
 }
 
-allprojects {
-  apply plugin: "java-base"
-  apply plugin: "spinnaker.base-project"
-  if (Boolean.valueOf(enablePublishing)) {
-    apply plugin: "spinnaker.project"
-  }
+subprojects { 
+  apply plugin: "io.spinnaker.project"
 
   group = "com.netflix.spinnaker.kork"
 
   repositories {
     jcenter()
   }
-}
 
-subprojects {
-  afterEvaluate {
-    if (name != "kork-bom" && name != "spinnaker-dependencies") {
-      dependencies {
-        annotationProcessor(platform(project(":spinnaker-dependencies")))
-        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      }
+  if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
+    apply plugin: 'java-library'
+    dependencies {
+      annotationProcessor(platform(project(":spinnaker-dependencies")))
+      annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     }
   }
 }
