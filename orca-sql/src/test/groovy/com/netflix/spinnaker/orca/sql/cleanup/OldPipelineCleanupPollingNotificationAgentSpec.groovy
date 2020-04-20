@@ -36,6 +36,8 @@ import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepositor
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 import static java.time.temporal.ChronoUnit.DAYS
@@ -64,7 +66,9 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
         0L,
         10L, // threshold days
         5,  // minimum pipeline executions
-        1
+        1,
+        ["exceptionalApp"],
+        50
     ),
     new OrcaSqlProperties()
   )
@@ -74,23 +78,28 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null)
   }
 
+  def cleanup() {
+    cleanupDb(currentDatabase.context)
+  }
+
   def "should preserve the most recent 5 executions when cleaning up old pipeline executions"() {
     given:
+    def app = "app"
     (1..10).each {
-      executionRepository.store(buildExecution(10 + it))
+      executionRepository.store(buildExecution(app, 10 + it))
     }
-    executionRepository.store(buildExecution(1))
-    executionRepository.store(buildExecution(2))
+    executionRepository.store(buildExecution(app, 1))
+    executionRepository.store(buildExecution(app, 2))
 
     when:
-    def allExecutions = executionRepository.retrievePipelinesForApplication("app").toList().toBlocking().first().unique()
+    def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
 
     then:
     allExecutions.size() == 10
 
     when:
     cleanupAgent.tick()
-    allExecutions = executionRepository.retrievePipelinesForApplication("app").toList().toBlocking().first().unique()
+    allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
 
     then:
     // preserve any execution more recent than `thresholdDays` _AND_
@@ -98,8 +107,33 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     allExecutions*.name.sort() == ["#01", "#02", "#11", "#12", "#13", "#14", "#15"]
   }
 
-  PipelineExecutionImpl buildExecution(int daysOffset) {
-    PipelineExecutionImpl e = new PipelineExecutionImpl(PIPELINE, "app")
+  def "should handle exceptional applications"() {
+    given:
+    def app = "exceptionalApp"
+    (1..10).each {
+      executionRepository.store(buildExecution(app, 50 + it))
+    }
+    executionRepository.store(buildExecution(app, 9))
+    executionRepository.store(buildExecution(app, 49))
+
+    when:
+    def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
+
+    then:
+    allExecutions.size() == 10
+
+    when:
+    cleanupAgent.tick()
+    allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
+
+    then:
+    // preserve any execution more recent than `thresholdDays` _AND_
+    // the most recent `minimumPipelineExecutions` older than `thresholdDays`
+    allExecutions*.name.sort() == ["#09", "#49", "#51", "#52", "#53", "#54", "#55"]
+  }
+
+  PipelineExecutionImpl buildExecution(String application, int daysOffset) {
+    PipelineExecutionImpl e = new PipelineExecutionImpl(PIPELINE, application)
     e.status = ExecutionStatus.SUCCEEDED
     e.pipelineConfigId = "pipeline-001"
     e.buildTime = Instant.now().minus(daysOffset, DAYS).toEpochMilli()

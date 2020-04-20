@@ -51,25 +51,35 @@ class OldPipelineCleanupPollingNotificationAgent(
   registry) {
 
   override fun performCleanup() {
-    val thresholdMillis = Instant.ofEpochMilli(clock.millis()).minus(configurationProperties.thresholdDays, ChronoUnit.DAYS).toEpochMilli()
+    val exceptionalApps = configurationProperties.exceptionalApplications.toHashSet()
 
-    val candidateApplications = jooq
+    val candidateApplicationsGroups = jooq
       .select(field("application"))
       .from(table("pipelines"))
       .groupBy(field("application"))
       .having(count(field("id")).gt(configurationProperties.minimumPipelineExecutions))
       .fetch(field("application"), String::class.java)
+      .groupBy { app ->
+        if (exceptionalApps.contains(app)) {
+          configurationProperties.exceptionalApplicationsThresholdDays
+        } else {
+          configurationProperties.thresholdDays
+        }
+      }
 
-    for (chunk in candidateApplications.chunked(5)) {
-      var queryBuilder = jooq
-        .select(field("application"), field("config_id"), count(field("id")).`as`("count"))
-        .from(table("pipelines"))
-        .where(
-          field("application").`in`(*chunk.toTypedArray()))
-        .and(
-          field("build_time").le(thresholdMillis))
-        .and(
-          field("status").`in`(*completedStatuses.toTypedArray()))
+    candidateApplicationsGroups.forEach { (thresholdToUse, candidateApplications) ->
+      val thresholdMillis = Instant.ofEpochMilli(clock.millis()).minus(thresholdToUse, ChronoUnit.DAYS).toEpochMilli()
+
+      for (chunk in candidateApplications.chunked(5)) {
+        var queryBuilder = jooq
+          .select(field("application"), field("config_id"), count(field("id")).`as`("count"))
+          .from(table("pipelines"))
+          .where(
+            field("application").`in`(*chunk.toTypedArray()))
+          .and(
+            field("build_time").le(thresholdMillis))
+          .and(
+            field("status").`in`(*completedStatuses.toTypedArray()))
 
         if (orcaSqlProperties.partitionName != null) {
           queryBuilder = queryBuilder
@@ -77,30 +87,31 @@ class OldPipelineCleanupPollingNotificationAgent(
               field("`partition`").eq(orcaSqlProperties.partitionName))
         }
 
-      val pipelineConfigsWithOldExecutions = queryBuilder
-        .groupBy(field("application"), field("config_id"))
-        .having(count(field("id")).gt(configurationProperties.minimumPipelineExecutions))
-        .fetch()
+        val pipelineConfigsWithOldExecutions = queryBuilder
+          .groupBy(field("application"), field("config_id"))
+          .having(count(field("id")).gt(configurationProperties.minimumPipelineExecutions))
+          .fetch()
 
-      pipelineConfigsWithOldExecutions.forEach {
-        val application = it.getValue(field("application")) as String? ?: return@forEach
-        val pipelineConfigId = it.getValue(field("config_id")) as String? ?: return@forEach
+        pipelineConfigsWithOldExecutions.forEach doCleanup@{
+          val application = it.getValue(field("application")) as String? ?: return@doCleanup
+          val pipelineConfigId = it.getValue(field("config_id")) as String? ?: return@doCleanup
 
-        try {
-          val startTime = System.currentTimeMillis()
+          try {
+            val startTime = System.currentTimeMillis()
 
-          log.debug("Cleaning up old pipelines for $application (pipelineConfigId: $pipelineConfigId)")
-          val deletedPipelineCount = performCleanup(application, pipelineConfigId, thresholdMillis)
-          log.debug(
-            "Cleaned up {} old pipelines for {} in {}ms (pipelineConfigId: {})",
-            deletedPipelineCount,
-            application,
-            System.currentTimeMillis() - startTime,
-            pipelineConfigId
-          )
-        } catch (e: Exception) {
-          log.error("Failed to cleanup old pipelines for $application (pipelineConfigId: $pipelineConfigId)", e)
-          errorsCounter.increment()
+            log.debug("Cleaning up old pipelines for $application (pipelineConfigId: $pipelineConfigId)")
+            val deletedPipelineCount = performCleanup(application, pipelineConfigId, thresholdMillis)
+            log.debug(
+              "Cleaned up {} old pipelines for {} in {}ms (pipelineConfigId: {})",
+              deletedPipelineCount,
+              application,
+              System.currentTimeMillis() - startTime,
+              pipelineConfigId
+            )
+          } catch (e: Exception) {
+            log.error("Failed to cleanup old pipelines for $application (pipelineConfigId: $pipelineConfigId)", e)
+            errorsCounter.increment()
+          }
         }
       }
     }

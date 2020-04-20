@@ -30,7 +30,7 @@ class OldPipelineCleanupAgentConfigurationProperties() {
   var thresholdDays: Long = 30
 
   /**
-   * Always keep this number of pipelines regardless of age
+   * Always keep this number of pipelines older than threshold
    */
   var minimumPipelineExecutions: Int = 5
 
@@ -39,10 +39,29 @@ class OldPipelineCleanupAgentConfigurationProperties() {
    */
   var chunkSize: Int = 1
 
-  constructor(intervalMs: Long, thresholdDays: Long, minimumPipelineExecutions: Int, chunkSize: Int) : this() {
+  /**
+   * Application names to that have special threshold during cleanup (e.g. for compliance reasons)
+   */
+  var exceptionalApplications: List<String> = emptyList()
+
+  /**
+   * Maximum age of pipelines to keep for exceptional applications
+   */
+  var exceptionalApplicationsThresholdDays: Long = 365
+
+  constructor(
+    intervalMs: Long,
+    thresholdDays: Long,
+    minimumPipelineExecutions: Int,
+    chunkSize: Int,
+    exceptionalApplications: List<String>,
+    exceptionalApplicationsThresholdDays: Long
+  ) : this() {
     this.intervalMs = intervalMs
     this.thresholdDays = thresholdDays
     this.minimumPipelineExecutions = minimumPipelineExecutions
     this.chunkSize = chunkSize
+    this.exceptionalApplications = exceptionalApplications
+    this.exceptionalApplicationsThresholdDays = exceptionalApplicationsThresholdDays
   }
 }
