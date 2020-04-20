@@ -65,6 +65,23 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IViewConfi
       </>
     ),
   },
+  CURRENTLY_UNRESOLVABLE: {
+    // Needs its own icon
+    iconClass: 'icon-md-error',
+    colorClass: 'warning',
+    popoverContents: (resourceSummary: IManagedResourceSummary) => (
+      <>
+        <p>
+          <b>Waiting for a temporary issue to pass.</b>
+        </p>
+        <p>
+          Something required for management is not ready yet or temporarily experiencing issues. Automatic action can't
+          be taken right now, but will likely resume soon. Check the History for details.{' '}
+          <LearnMoreLink resourceSummary={resourceSummary} />
+        </p>
+      </>
+    ),
+  },
   ERROR: {
     iconClass: 'icon-md-error',
     colorClass: 'error',

@@ -83,10 +83,10 @@ const viewConfigurationByEventType = {
     level: 'error',
   },
   ResourceCheckUnresolvable: {
-    displayName: 'Error',
+    displayName: 'Temporary issue',
     // Needs it's own icon, but could likely be same as ResourceCheckError
     iconClass: 'icon-md-error',
-    level: 'error',
+    level: 'warning',
   },
   ResourceActuationPaused: {
     displayName: 'Management paused',
@@ -194,7 +194,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
 
   return (
     <>
-      <ModalHeader>Resource History</ModalHeader>
+      <ModalHeader>Resource history</ModalHeader>
       <ModalBody>
         <div
           className={classNames('ManagedResourceHistoryModal', {
