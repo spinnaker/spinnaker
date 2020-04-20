@@ -28,8 +28,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class ExecutionArchivalListener(
-        private val accountCredentialsRepository: AccountCredentialsRepository,
-        private val storageServiceRepository: StorageServiceRepository) {
+  private val accountCredentialsRepository: AccountCredentialsRepository,
+  private val storageServiceRepository: StorageServiceRepository
+) {
 
     init {
         log.info("Loaded ExecutionArchivalListener")

@@ -2,6 +2,9 @@ name: PR Build
 
 on: [ pull_request ]
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +25,4 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
     - name: Build
-      env:
-        GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        ENABLE_INTEGRATION_TESTS: true
-      run: ./gradlew -PenableCrossCompilerPlugin=true build javadoc
+      run: ./gradlew -PenableCrossCompilerPlugin=true build
