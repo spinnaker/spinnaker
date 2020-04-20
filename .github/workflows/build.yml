@@ -26,5 +26,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        env:
         run: ./gradlew build --stacktrace
