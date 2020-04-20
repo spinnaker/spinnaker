@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.echo.api.events;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,5 +37,6 @@ public class Metadata {
   private String application;
   private String _content_id;
   private Map<String, String> attributes;
-  private Map<String, List<String>> requestHeaders = new HashMap<>();
+  private TreeMap<String, List<String>> requestHeaders =
+      new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 }

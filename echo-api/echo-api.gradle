@@ -5,9 +5,19 @@
  * avoid dependency conflicts we should bring the bare minimum of transitive
  * dependencies along for the ride -- ideally nothing besides kork-plugins-api.
  */
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+
 dependencies {
   api "com.netflix.spinnaker.kork:kork-plugins-api"
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
+
+  testImplementation("io.strikt:strikt-core")
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.mockk:mockk")
+}
+
+test {
+  useJUnitPlatform()
 }
