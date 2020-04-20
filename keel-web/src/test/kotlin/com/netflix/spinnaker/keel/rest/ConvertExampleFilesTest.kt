@@ -88,19 +88,6 @@ class ConvertExampleFilesTest : JUnit5Minutests {
       }
     }
 
-    context("image") {
-      val file = this.javaClass.getResource("/examples/image-example.yml").readText()
-
-      test("yml can be parsed") {
-        expectCatching {
-          mapper.readValue<SubmittedResource<*>>(file)
-        }
-          .succeeded()
-          .get { spec }
-          .isA<ImageSpec>()
-      }
-    }
-
     context("clb") {
       val file = this.javaClass.getResource("/examples/clb-example.yml").readText()
 
