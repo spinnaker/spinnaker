@@ -35,15 +35,6 @@ dependencies {
 }
 
 test {
-  //These tests fail when pulling in the dependencies in the Gradle plugin "spinnaker.project".
-  //We're in the process of removing those dependencies here:
-  //https://github.com/spinnaker/spinnaker-gradle-project/pull/121
-  //TODO(jonsie): Remove this once we have pulled in the above change.
-  exclude '**/*'
-
-  // Without filtering down to a specific test, the test task fails.
-  // It fails because the Orca Main class package does not have an Implementation-Version set.
-  //TODO(jonsie): Determine why and how we can remove this.
   filter {
     includeTestsMatching "com.netflix.spinnaker.orca.plugins.test.OrcaPluginsTest"
   }

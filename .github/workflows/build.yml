@@ -6,6 +6,9 @@ on:
     - master
     - version-*
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
+
 jobs:
   branch-build:
     # Only run this on repositories in the 'spinnaker' org, not on forks.
@@ -16,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - uses: actions/cache@v1.1.2
+      - uses: actions/cache@v1
         with:
           path: ~/.gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
@@ -24,7 +27,4 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Build
         env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
-          GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-        run: ./gradlew -PenablePublishing=true -PbintrayUser="${BINTRAY_USER}" -PbintrayKey="${BINTRAY_API_KEY}" -x test build snapshot --stacktrace
+        run: ./gradlew build --stacktrace

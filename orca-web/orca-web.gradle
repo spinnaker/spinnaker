@@ -15,7 +15,7 @@
  */
 
 apply from: "$rootDir/gradle/groovy.gradle"
-apply plugin: 'spinnaker.application'
+apply plugin: 'io.spinnaker.package'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
