@@ -12,4 +12,5 @@ export * from './mockSecurityGroup';
 export * from './mockServerGroup';
 export * from './mockStage';
 export * from './mockSubnet';
+export * from './mockTask';
 export * from './mockTrigger';

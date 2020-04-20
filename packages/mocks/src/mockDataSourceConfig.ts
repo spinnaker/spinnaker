@@ -1,10 +1,11 @@
 import { $q } from 'ngimport';
 import { ILoadBalancer, IPipeline, ISecurityGroup, IServerGroup } from '@spinnaker/core';
-import { Application, IDataSourceConfig } from '@spinnaker/core';
+import { Application, IDataSourceConfig, ITask } from '@spinnaker/core';
 import { mockLoadBalancer } from './mockLoadBalancer';
 import { mockPipeline } from './mockPipeline';
 import { mockSecurityGroup } from './mockSecurityGroup';
 import { mockServerGroup } from './mockServerGroup';
+import { createMockTask } from './mockTask';
 
 export const mockLoadBalancerDataSourceConfig: IDataSourceConfig<ILoadBalancer> = {
   key: 'loadBalancers',
@@ -69,4 +70,25 @@ export const mockServerGroupDataSourceConfig: IDataSourceConfig<IServerGroup> = 
   regionField: 'region',
   description: 'Collections of server groups or jobs',
   defaultData: mockServerGroup,
+};
+
+export const mockTaskDataSourceConfig: IDataSourceConfig<ITask> = {
+  key: 'tasks',
+  sref: '.tasks',
+  badge: 'runningTasks',
+  category: 'tasks',
+  loader: (application: Application) => $q(() => application),
+  onLoad: (application: Application) => $q(() => application),
+  afterLoad: (application: Application) => application,
+  lazy: true,
+  primary: true,
+  icon: 'fa fa-sm fa-fw fa-check-square',
+  defaultData: createMockTask('SUCCEEDED'),
+};
+
+export const mockAppConfigDataSourceConfig: IDataSourceConfig<any> = {
+  key: 'config',
+  label: 'Config',
+  sref: '.config',
+  defaultData: [],
 };
