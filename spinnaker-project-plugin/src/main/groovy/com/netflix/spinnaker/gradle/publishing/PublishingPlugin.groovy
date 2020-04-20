@@ -42,5 +42,19 @@ class PublishingPlugin implements Plugin<Project> {
         it.enabled = false
       }
     }
+
+    // Provide a shim to the previous entrypoint for publishing so that buildscripts can work against 7.x and 8.+
+    // versions of the gradle project.
+    //
+    // We can remove this once we aren't maintaining release branches on the 7.x gradle plugin
+    project.plugins.withType(org.gradle.api.publish.plugins.PublishingPlugin) {
+      if (Boolean.valueOf(project.findProperty("enablePublishing") as String)) {
+        for (shimTaskName in ["candidate", "final"]) {
+          project.tasks.register(shimTaskName) {
+            it.dependsOn(org.gradle.api.publish.plugins.PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME)
+          }
+        }
+      }
+    }
   }
 }
