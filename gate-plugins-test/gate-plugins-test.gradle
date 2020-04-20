@@ -1,0 +1,21 @@
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+
+dependencies {
+  implementation(project(":gate-api"))
+
+  testImplementation(project(":gate-web"))
+  testImplementation(project(":gate-core"))
+
+  testImplementation("com.netflix.spinnaker.kork:kork-plugins")
+  testImplementation("com.netflix.spinnaker.kork:kork-plugins-tck")
+
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines("junit-jupiter", "junit-vintage")
+  }
+}
