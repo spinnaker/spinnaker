@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 # Only look to the latest release to determine the previous tag -- this allows us to skip unsupported tag formats (like `version-1.0.0`)
-export PREVIOUS_TAG=`curl --silent "https://api.github.com/repos/spinnaker/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+export PREVIOUS_TAG=`curl --silent "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
 echo "PREVIOUS_TAG=$PREVIOUS_TAG"
 export NEW_TAG=${GITHUB_REF/refs\/tags\//}
 echo "NEW_TAG=$NEW_TAG"
@@ -29,3 +29,7 @@ SEMVER_REGEX="\
 
 # Used in downstream steps to determine if the release should be marked as a "prerelease" and if the build should build candidate release artifacts
 export IS_CANDIDATE=`[[ $NEW_TAG =~ $SEMVER_REGEX && ! -z ${BASH_REMATCH[4]} ]] && echo "true" || echo "false"`
+
+# This is the version string we will pass to the build, trim off leading 'v' if present
+export RELEASE_VERSION=`[[ $NEW_TAG =~ $SEMVER_REGEX ]] && echo "${NEW_TAG:1}" || echo "${NEW_TAG}"`
+echo "RELEASE_VERSION=$RELEASE_VERSION"

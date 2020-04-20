@@ -3,22 +3,20 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
   repositories {
-    jcenter()
     gradlePluginPortal()
-    maven(url = "https://spinnaker.bintray.com/gradle")
   }
   dependencies {
-    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:${property("spinnakerGradleVersion")}")
-    if (property("enablePublishing") == "true") {
-      classpath("com.netflix.spinnaker.gradle:spinnaker-gradle-project:${property("spinnakerGradleVersion")}")
-    }
+    //This could become id("io.spinnaker.project") in the plugins block but I'm not smart enough to
+    // get string interpolation working for the version in there and we need the version
+    // externalized for autobumping so...
+    classpath("io.spinnaker.gradle:spinnaker-project-plugin:${property("spinnakerGradleVersion")}")
   }
 }
 
 plugins {
   id("nebula.kotlin") version "1.3.72" apply false
   id("org.jetbrains.kotlin.plugin.allopen") version "1.3.72" apply false
-  id("com.github.ben-manes.versions") version "0.28.0"
+  id("com.github.ben-manes.versions") version "0.28.0" apply false
   jacoco
 }
 
@@ -26,11 +24,9 @@ jacoco {
   toolVersion = "0.8.5"
 }
 
-allprojects {
-  apply(plugin = "spinnaker.base-project")
-  if (property("enablePublishing") == "true") {
-    apply(plugin = "spinnaker.project")
-  }
+subprojects {
+  apply(plugin = "io.spinnaker.project")
+  apply(plugin = "com.github.ben-manes.versions")
 
   repositories {
     jcenter() {
@@ -46,9 +42,7 @@ allprojects {
   }
 
   group = "com.netflix.spinnaker.keel"
-}
 
-subprojects {
   if (name != "keel-bom") {
     apply(plugin = "nebula.kotlin")
     apply(plugin = "jacoco")
@@ -111,6 +105,7 @@ subprojects {
     }
   }
 }
+
 
 // Based on https://gist.github.com/tsjensen/d8b9ab9e6314ae2f63f4955c44399dad#gistcomment-3220383
 fun codeCoverageProjects() = subprojects + project
