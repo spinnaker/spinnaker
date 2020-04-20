@@ -21,7 +21,7 @@ export const mockOrchestratedItem: IOrchestratedItem = {
   runningTimeInMs: 40000,
 };
 
-type ITaskStatus = 'TERMINAL' | 'NOT_STARTED' | 'CANCELED' | 'RUNNING';
+type ITaskStatus = 'TERMINAL' | 'NOT_STARTED' | 'CANCELED' | 'RUNNING' | 'SUCCEEDED';
 export const createMockOrchestratedItem = (status: ITaskStatus): IOrchestratedItem => {
   if (status === 'TERMINAL') {
     return {
