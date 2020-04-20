@@ -95,6 +95,9 @@ export class PipelineRegistry {
   }
 
   public registerStage(stageConfig: IStageTypeConfig): void {
+    if ((SETTINGS.hiddenStages || []).includes(stageConfig.key)) {
+      return;
+    }
     this.stageTypes.push(stageConfig);
     this.normalizeStageTypes();
   }

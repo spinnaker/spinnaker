@@ -2,7 +2,6 @@
 
 import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
 import { Registry } from 'core/registry';
-import { SETTINGS } from 'core/config/settings';
 
 import * as angular from 'angular';
 
@@ -12,20 +11,17 @@ export const name = CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBAL
 angular
   .module(CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE, [])
   .config(function() {
-    // Register this stage only if infrastructure stages are enabled in settings.js
-    if (SETTINGS.feature.infrastructureStages) {
-      Registry.pipeline.registerStage({
-        key: 'upsertLoadBalancers',
-        label: 'Create Load Balancers',
-        description:
-          'Creates one or more load balancers.' +
-          ' If a load balancer exists with the same name, then that will be updated.',
-        templateUrl: require('./createLoadBalancerStage.html'),
-        executionDetailsUrl: require('./createLoadBalancerExecutionDetails.html'),
-        supportsCustomTimeout: true,
-        validators: [],
-      });
-    }
+    Registry.pipeline.registerStage({
+      key: 'upsertLoadBalancers',
+      label: 'Create Load Balancers',
+      description:
+        'Creates one or more load balancers.' +
+        ' If a load balancer exists with the same name, then that will be updated.',
+      templateUrl: require('./createLoadBalancerStage.html'),
+      executionDetailsUrl: require('./createLoadBalancerExecutionDetails.html'),
+      supportsCustomTimeout: true,
+      validators: [],
+    });
   })
   .controller('createLoadBalancerStageCtrl', [
     '$scope',

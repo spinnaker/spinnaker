@@ -21,9 +21,7 @@ var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : fals
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var gceScaleDownControlsEnabled = process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ? true : false;
 var gceStatefulMigsEnabled = process.env.GCE_STATEFUL_MIGS_ENABLED === 'true' ? true : false;
-var gremlinEnabled = process.env.GREMLIN_ENABLED === 'false' ? false : true;
 var iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
-var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
 var managedDeliveryEnabled = process.env.MANAGED_DELIVERY_ENABLED === 'true';
 var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
 var managedResourcesEnabled = process.env.MANAGED_RESOURCES_ENABLED === 'true';
@@ -78,10 +76,7 @@ window.spinnakerSettings = {
     fiatEnabled: fiatEnabled,
     gceScaleDownControlsEnabled: gceScaleDownControlsEnabled,
     gceStatefulMigsEnabled: gceStatefulMigsEnabled,
-    gremlinEnabled: gremlinEnabled,
     iapRefresherEnabled: iapRefresherEnabled,
-    // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
-    infrastructureStages: infrastructureEnabled,
     managedDelivery: managedDeliveryEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
     managedResources: managedResourcesEnabled,
@@ -93,12 +88,11 @@ window.spinnakerSettings = {
     roscoMode: false,
     slack: false,
     snapshots: false,
-    travis: false,
-    wercker: false,
     functions: functionsEnabled,
   },
   gateUrl: apiHost,
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],
+  hiddenStages: [],
   managedDelivery: {
     defaultManifest: 'spinnaker.yml',
     manifestBasePath: '.spinnaker',

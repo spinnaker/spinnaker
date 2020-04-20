@@ -2,7 +2,6 @@ import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { Registry } from 'core/registry';
-import { SETTINGS } from 'core/config/settings';
 import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
 import { TravisExecutionLabel } from './TravisExecutionLabel';
@@ -155,30 +154,28 @@ export const TRAVIS_STAGE = 'spinnaker.core.pipeline.stage.travisStage';
 
 module(TRAVIS_STAGE, [])
   .config(() => {
-    if (SETTINGS.feature.travis) {
-      Registry.pipeline.registerStage({
-        label: 'Travis',
-        description: 'Runs a Travis job',
-        key: 'travis',
-        restartable: true,
-        controller: 'TravisStageCtrl',
-        controllerAs: '$ctrl',
-        producesArtifacts: true,
-        templateUrl: require('./travisStage.html'),
-        executionDetailsUrl: require('./travisExecutionDetails.html'),
-        executionLabelComponent: TravisExecutionLabel,
-        providesVersionForBake: true,
-        extraLabelLines: (stage: IStage) => {
-          if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
-            return 0;
-          }
-          const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
-          return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
-        },
-        supportsCustomTimeout: true,
-        validators: [{ type: 'requiredField', fieldName: 'job' }],
-        strategy: true,
-      });
-    }
+    Registry.pipeline.registerStage({
+      label: 'Travis',
+      description: 'Runs a Travis job',
+      key: 'travis',
+      restartable: true,
+      controller: 'TravisStageCtrl',
+      controllerAs: '$ctrl',
+      producesArtifacts: true,
+      templateUrl: require('./travisStage.html'),
+      executionDetailsUrl: require('./travisExecutionDetails.html'),
+      executionLabelComponent: TravisExecutionLabel,
+      providesVersionForBake: true,
+      extraLabelLines: (stage: IStage) => {
+        if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
+          return 0;
+        }
+        const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
+        return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
+      },
+      supportsCustomTimeout: true,
+      validators: [{ type: 'requiredField', fieldName: 'job' }],
+      strategy: true,
+    });
   })
   .controller('TravisStageCtrl', TravisStage);

@@ -2,6 +2,7 @@ import { mock } from 'angular';
 import { map } from 'lodash';
 import React from 'react';
 
+import { SETTINGS } from 'core/config';
 import { IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { IRegion } from 'core/account/AccountService';
 import { Registry } from 'core/registry';
@@ -43,6 +44,8 @@ const gcpProviderAccount = {
 
 describe('PipelineRegistry: API', function() {
   beforeEach(() => Registry.reinitialize());
+  beforeEach(() => (SETTINGS.hiddenStages = ['hiddenA', 'hiddenB']));
+  afterEach(() => SETTINGS.resetToOriginal());
 
   describe('registration', function() {
     it(
@@ -64,6 +67,13 @@ describe('PipelineRegistry: API', function() {
         expect(Registry.pipeline.getStageTypes().length).toBe(2);
       }),
     );
+
+    it('does not register hidden stages', () => {
+      expect(Registry.pipeline.getStageTypes().length).toBe(0);
+      Registry.pipeline.registerStage({ key: 'hiddenA' } as IStageTypeConfig);
+      Registry.pipeline.registerStage({ key: 'hiddenB' } as IStageTypeConfig);
+      expect(Registry.pipeline.getStageTypes().length).toBe(0);
+    });
 
     it(
       'provides only non-synthetic stages, non-provider-specific stages',
