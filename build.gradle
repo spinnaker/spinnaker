@@ -1,26 +1,9 @@
-buildscript {
-  repositories {
-    jcenter()
-    maven { url "https://spinnaker.bintray.com/gradle" }
-    maven { url "https://plugins.gradle.org/m2/" }
-    if (spinnakerGradleVersion.endsWith("-SNAPSHOT")) {
-      mavenLocal()
-    }
-  }
-  dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:$spinnakerGradleVersion"
-    if (Boolean.valueOf(enablePublishing)) {
-      classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerGradleVersion"
-    }
-  }
+plugins {
+  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
 }
 
-allprojects {
-  apply plugin: 'spinnaker.base-project'
-  if (Boolean.valueOf(enablePublishing)) {
-    apply plugin: 'spinnaker.project'
-  }
-
+subprojects {
+  apply plugin: 'io.spinnaker.project'
   group = "com.netflix.spinnaker.rosco"
 
   if (name != "rosco-bom") {
@@ -43,9 +26,7 @@ allprojects {
       }
     }
   }
-}
 
-subprojects {
   if (korkVersion.endsWith("-SNAPSHOT")) {
     logger.info("Enabling mavenLocal")
     repositories {

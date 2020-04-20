@@ -1,4 +1,4 @@
-apply plugin: 'spinnaker.application'
+apply plugin: 'io.spinnaker.package'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
@@ -29,33 +29,31 @@ dependencies {
   testImplementation "org.objenesis:objenesis"
 }
 
-if (project.plugins.hasPlugin('spinnaker.package')) {
-  ospackage {
-    from('../halconfig/packer') {
-      into '/opt/rosco/config/packer'
-    }
-
-    configurationFile('/opt/rosco/config/rosco.yml')
-    configurationFile('/opt/rosco/config/packer/alicloud.json')
-    configurationFile('/opt/rosco/config/packer/aws-chroot.json')
-    configurationFile('/opt/rosco/config/packer/aws-ebs.json')
-    configurationFile('/opt/rosco/config/packer/azure-linux.json')
-    configurationFile('/opt/rosco/config/packer/gce.json')
-    configurationFile('/opt/rosco/config/packer/huaweicloud.json')
-    configurationFile('/opt/rosco/config/packer/oci.json')
-    configurationFile('/opt/rosco/config/packer/tencentcloud.json')
-    configurationFile('/opt/rosco/config/packer/install_packages.sh')
-
-    from('../docker') {
-      into "/opt/${project.applicationName}/docker"
-    }
+ospackage {
+  from('../halconfig/packer') {
+    into '/opt/rosco/config/packer'
   }
 
-  buildDeb {
-    requires('unzip')
-  }
+  configurationFile('/opt/rosco/config/rosco.yml')
+  configurationFile('/opt/rosco/config/packer/alicloud.json')
+  configurationFile('/opt/rosco/config/packer/aws-chroot.json')
+  configurationFile('/opt/rosco/config/packer/aws-ebs.json')
+  configurationFile('/opt/rosco/config/packer/azure-linux.json')
+  configurationFile('/opt/rosco/config/packer/gce.json')
+  configurationFile('/opt/rosco/config/packer/huaweicloud.json')
+  configurationFile('/opt/rosco/config/packer/oci.json')
+  configurationFile('/opt/rosco/config/packer/tencentcloud.json')
+  configurationFile('/opt/rosco/config/packer/install_packages.sh')
 
-  buildRpm {
-    requires('unzip')
+  from('../docker') {
+    into "/opt/${project.applicationName}/docker"
   }
+}
+
+buildDeb {
+  requires('unzip')
+}
+
+buildRpm {
+  requires('unzip')
 }
