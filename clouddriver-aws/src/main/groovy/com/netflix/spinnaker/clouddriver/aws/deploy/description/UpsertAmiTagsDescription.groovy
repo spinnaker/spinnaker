@@ -30,7 +30,7 @@ class UpsertAmiTagsDescription extends AbstractAmazonCredentialsDescription {
   }
 
   @Override
-  boolean requiresAuthentication(SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+  boolean requiresAuthorization(SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
     return !opsSecurityConfigProps.allowUnauthenticatedImageTaggingInAccounts.contains(account)
   }
 }

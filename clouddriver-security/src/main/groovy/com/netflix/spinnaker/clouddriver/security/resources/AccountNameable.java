@@ -30,7 +30,7 @@ public interface AccountNameable {
     return true;
   }
 
-  default boolean requiresAuthentication(
+  default boolean requiresAuthorization(
       SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
     return true;
   }

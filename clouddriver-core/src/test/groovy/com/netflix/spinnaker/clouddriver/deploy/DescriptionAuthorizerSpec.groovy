@@ -114,7 +114,7 @@ class DescriptionAuthorizerSpec extends Specification {
     }
 
     @Override
-    boolean requiresAuthentication(SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+    boolean requiresAuthorization(SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
       return !opsSecurityConfigProps.allowUnauthenticatedImageTaggingInAccounts.contains(account)
     }
   }

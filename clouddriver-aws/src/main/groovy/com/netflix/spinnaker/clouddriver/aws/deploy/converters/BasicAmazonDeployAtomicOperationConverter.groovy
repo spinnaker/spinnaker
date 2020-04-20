@@ -17,16 +17,22 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @AmazonOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("basicAmazonDeployDescription")
 class BasicAmazonDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+
+  @Autowired
+  RegionScopedProviderFactory regionScopedProviderFactory
+
   AtomicOperation convertOperation(Map input) {
     new DeployAtomicOperation(convertDescription(input))
   }
@@ -34,6 +40,23 @@ class BasicAmazonDeployAtomicOperationConverter extends AbstractAtomicOperations
   BasicAmazonDeployDescription convertDescription(Map input) {
     def converted = objectMapper.convertValue(input, BasicAmazonDeployDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
-    converted
+
+    if (converted.securityGroups != null && !converted.securityGroups.isEmpty()) {
+      for (Map.Entry<String, List<String>> entry : converted.availabilityZones) {
+        String region = entry.key
+
+        RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider =
+          regionScopedProviderFactory.forRegion(converted.credentials, region)
+
+        converted.securityGroupNames.addAll(
+          regionScopedProvider
+            .getSecurityGroupService()
+            .getSecurityGroupNamesFromIds(converted.securityGroups)
+            .keySet()
+        )
+      }
+    }
+
+    return converted
   }
 }

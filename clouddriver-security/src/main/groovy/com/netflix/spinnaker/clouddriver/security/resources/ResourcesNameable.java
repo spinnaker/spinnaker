@@ -36,4 +36,14 @@ public interface ResourcesNameable {
         .map(name -> Names.parseName(name).getApp())
         .collect(Collectors.toList());
   }
+
+  /**
+   * Determine if the resource should be authz evaluated by the {@link
+   * com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator}.
+   *
+   * @return boolean
+   */
+  default boolean requiresAuthorization() {
+    return true;
+  }
 }
