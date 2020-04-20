@@ -7,6 +7,7 @@ import org.gradle.api.plugins.JavaPlatformPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.publish.tasks.GenerateModuleMetadata
 
 class PublishingPlugin implements Plugin<Project> {
 
@@ -34,6 +35,11 @@ class PublishingPlugin implements Plugin<Project> {
         publishingExtension.publications.create(PUBLICATION_NAME, MavenPublication) { pub ->
           pub.from(project.components.getByName("javaPlatform"))
         }
+      }
+      // Presence of a module metadata file causes some weird failures in kork spinnaker-dependencies and we don't
+      //  really need them, so just disabling for now for javaPlatform modules
+      project.tasks.named("generateMetadataFileFor${PUBLICATION_NAME.capitalize()}Publication", GenerateModuleMetadata) {
+        it.enabled = false
       }
     }
   }
