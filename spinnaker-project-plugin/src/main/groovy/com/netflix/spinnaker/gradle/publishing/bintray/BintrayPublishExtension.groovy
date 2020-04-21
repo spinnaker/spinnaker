@@ -24,7 +24,6 @@ class BintrayPublishExtension {
   final Property<String> debDistribution
   final Property<String> debComponent
   final Property<String> debArchitectures
-  final Property<String> debBuildNumber
   final Property<Integer> publishWaitForSecs
 
   BintrayPublishExtension(Project project) {
@@ -41,8 +40,7 @@ class BintrayPublishExtension {
     debDistribution = props.property(String).convention("trusty,xenial,bionic")
     debComponent = props.property(String).convention("spinnaker")
     debArchitectures = props.property(String).convention( "i386,amd64")
-    debBuildNumber = props.property(String)
-    publishWaitForSecs = props.property(Integer)
+    publishWaitForSecs = props.property(Integer).convention(0)
   }
 
   //------------------------------------------------------------------------
@@ -96,6 +94,10 @@ class BintrayPublishExtension {
     return debArchitectures
   }
 
+  Provider<Integer> publishWaitForSecs() {
+    return withSysProp(publishWaitForSecs, Integer, "bintrayPublishWaitForSecs")
+  }
+
   String bintrayUser() {
     return projectProperty(String, "bintrayUser")
   }
@@ -116,7 +118,27 @@ class BintrayPublishExtension {
     return bintrayOrg().flatMap { String org ->
       bintrayJarRepo().flatMap { String repo ->
         bintrayJarPackage().map { String pkg ->
-          "https://api.bintray.com/maven/$org/$repo/$pkg/;publish=1".toString()
+          "https://api.bintray.com/maven/$org/$repo/$pkg/".toString()
+        }
+      }
+    }
+  }
+
+  Provider<String> jarPublishVersionUri() {
+    return bintrayOrg().flatMap { String org ->
+      bintrayJarRepo().flatMap { String repo ->
+        bintrayJarPackage().map { String pkg ->
+          "https://api.bintray.com/content/$org/$repo/$pkg/${project.version}/publish".toString()
+        }
+      }
+    }
+  }
+
+  Provider<String> jarCreateVersionUri() {
+    return bintrayOrg().flatMap { String org ->
+      bintrayJarRepo().flatMap { String repo ->
+        bintrayJarPackage().map { String pkg ->
+          "https://api.bintray.com/packages/$org/$repo/$pkg/versions".toString()
         }
       }
     }
