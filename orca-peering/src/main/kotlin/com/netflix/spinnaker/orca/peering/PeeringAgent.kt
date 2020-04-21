@@ -157,18 +157,33 @@ class PeeringAgent(
    */
   private fun peerDeletedExecutions() {
     val deletedExecutionIds = srcDB.getDeletedExecutions(deletedExecutionCursor)
-    log.debug("Found ${deletedExecutionIds.size} deleted candidates after cursor: $deletedExecutionCursor")
+    val orchestrationIdsToDelete = deletedExecutionIds.filter { it.execution_type == ExecutionType.ORCHESTRATION.toString() }.map { it.execution_id }
+    val pipelineIdsToDelete = deletedExecutionIds.filter { it.execution_type == ExecutionType.PIPELINE.toString() }.map { it.execution_id }
+
+    log.debug("Found ${deletedExecutionIds.size} (orchestrations: ${orchestrationIdsToDelete.size} pipelines: ${pipelineIdsToDelete.size} deleted candidates after cursor: $deletedExecutionCursor")
+    var hadFailures = false
+    var orchestrationsDeleted = 0
+    var pipelinesDeleted = 0
 
     try {
-      val orchestrationIdsToDelete = deletedExecutionIds.filter { it.execution_type == ExecutionType.ORCHESTRATION.toString() }.map { it.execution_id }
-      val pipelineIdsToDelete = deletedExecutionIds.filter { it.execution_type == ExecutionType.PIPELINE.toString() }.map { it.execution_id }
-
-      val orchestrationsDeleted = destDB.deleteExecutions(ExecutionType.ORCHESTRATION, orchestrationIdsToDelete)
+      orchestrationsDeleted = destDB.deleteExecutions(ExecutionType.ORCHESTRATION, orchestrationIdsToDelete)
       peeringMetrics.incrementNumDeleted(ExecutionType.ORCHESTRATION, orchestrationsDeleted)
+    } catch (e: Exception) {
+      log.error("Failed to delete some orchestrations", e)
+      peeringMetrics.incrementNumErrors(ExecutionType.ORCHESTRATION)
+      hadFailures = true
+    }
 
-      val pipelinesDeleted = destDB.deleteExecutions(ExecutionType.PIPELINE, pipelineIdsToDelete)
+    try {
+      pipelinesDeleted = destDB.deleteExecutions(ExecutionType.PIPELINE, pipelineIdsToDelete)
       peeringMetrics.incrementNumDeleted(ExecutionType.PIPELINE, pipelinesDeleted)
+    } catch (e: Exception) {
+      log.error("Failed to delete some pipelines", e)
+      peeringMetrics.incrementNumErrors(ExecutionType.PIPELINE)
+      hadFailures = true
+    }
 
+    if (!hadFailures) {
       deletedExecutionCursor = (deletedExecutionIds.maxBy { it.id })
         ?.id
         ?: deletedExecutionCursor
@@ -176,8 +191,8 @@ class PeeringAgent(
       // It is likely that some executions were deleted during "general" peering (e.g. in doMigrate), but most will be
       // deleted here so it's OK for the actual delete counts to not match the "requested" count
       log.debug("Deleted orchestrations: $orchestrationsDeleted (of ${orchestrationIdsToDelete.size} requested), pipelines: $pipelinesDeleted (of ${pipelineIdsToDelete.size} requested), new cursor: $deletedExecutionCursor")
-    } catch (e: Exception) {
-      log.error("Failed to delete some executions, not updating the cursor location to retry next time", e)
+    } else {
+      log.error("Failed to delete some executions, not updating the cursor location to retry next time")
     }
   }
 

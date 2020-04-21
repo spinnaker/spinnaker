@@ -268,9 +268,11 @@ class PeeringAgentSpec extends Specification {
 
     1 * dest.deleteExecutions(ORCHESTRATION, orchestrationsToDelete) >> numDeletedOrch
     1 * metrics.incrementNumDeleted(ORCHESTRATION, numDeletedOrch)
+    0 * metrics.incrementNumErrors(PIPELINE)
 
     1 * dest.deleteExecutions(PIPELINE, pipelinesToDelete) >> {throw new Exception("SQL failed")}
     0 * metrics.incrementNumDeleted(PIPELINE, _)
+    1 * metrics.incrementNumErrors(PIPELINE)
 
     peeringAgent.deletedExecutionCursor == origCursor
 

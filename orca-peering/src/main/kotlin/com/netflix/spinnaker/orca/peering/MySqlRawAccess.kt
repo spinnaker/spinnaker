@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.peering
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import kotlin.math.min
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.impl.DSL
@@ -125,6 +126,9 @@ open class MySqlRawAccess(
       return countDeleted
     }
 
+    // We have a bunch of indexes and deletes, esp on the *stages tables, are pretty nasty, so chunk the deletes smaller
+    // Ideally, we put this on a separate thread that chugs along in the background - for another day
+    val deleteChunkSize = min(chunkSize, 5)
     withPool(poolName) {
       for (chunk in pipelineIdsToDelete.chunked(chunkSize)) {
         jooq
