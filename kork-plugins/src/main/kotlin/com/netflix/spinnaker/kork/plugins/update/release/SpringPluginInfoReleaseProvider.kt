@@ -37,12 +37,8 @@ class SpringPluginInfoReleaseProvider(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease?> {
-    return pluginInfo.map { pluginInfoRelease(it) }.toSet()
-  }
-
-  override fun getRelease(pluginInfo: PluginInfo): PluginInfoRelease? {
-      return pluginInfoRelease(pluginInfo)
+  override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
+    return pluginInfo.mapNotNull { pluginInfoRelease(it) }.toSet()
   }
 
   private fun pluginInfoRelease(pluginInfo: PluginInfo): PluginInfoRelease? {

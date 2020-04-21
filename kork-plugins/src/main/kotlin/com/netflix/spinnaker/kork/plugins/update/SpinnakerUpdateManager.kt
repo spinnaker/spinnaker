@@ -48,11 +48,10 @@ class SpinnakerUpdateManager(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  internal fun downloadPluginReleases(pluginInfoReleases: Set<PluginInfoRelease?>): Set<Path> {
+  internal fun downloadPluginReleases(pluginInfoReleases: Set<PluginInfoRelease>): Set<Path> {
     val downloadedPlugins: MutableSet<Path> = mutableSetOf()
 
     pluginInfoReleases
-      .filterNotNull()
       .forEach release@{ release ->
 
         val loadedPlugin = pluginManager.getPlugin(release.pluginId)

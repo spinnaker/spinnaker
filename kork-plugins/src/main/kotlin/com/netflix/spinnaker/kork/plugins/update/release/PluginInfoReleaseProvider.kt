@@ -29,12 +29,7 @@ interface PluginInfoReleaseProvider {
   /**
    * Get plugin releases from a list of plugin info objects
    */
-  fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease?>
-
-  /**
-   * Get a plugin release from a singular plugin info object
-   */
-  fun getRelease(pluginInfo: PluginInfo): PluginInfoRelease?
+  fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease>
 }
 
 class PluginReleaseNotFoundException(pluginId: String, pluginVersion: String?) :
