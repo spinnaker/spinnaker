@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -48,11 +49,12 @@ class BasicAmazonDeployAtomicOperationConverter extends AbstractAtomicOperations
         RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider =
           regionScopedProviderFactory.forRegion(converted.credentials, region)
 
+        SecurityGroupService securityGroupService = regionScopedProvider.getSecurityGroupService()
+
         converted.securityGroupNames.addAll(
-          regionScopedProvider
-            .getSecurityGroupService()
-            .getSecurityGroupNamesFromIds(converted.securityGroups)
-            .keySet()
+          securityGroupService.resolveSecurityGroupNamesByStrategy(converted.securityGroups) { List<String> ids ->
+            securityGroupService.getSecurityGroupNamesFromIds(ids)
+          }
         )
       }
     }

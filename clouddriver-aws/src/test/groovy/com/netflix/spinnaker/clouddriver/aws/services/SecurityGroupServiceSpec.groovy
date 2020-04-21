@@ -132,6 +132,32 @@ class SecurityGroupServiceSpec extends Specification {
     result == "sg-123"
   }
 
+  void "Resolve security group names from list of security group IDs and names"() {
+    when:
+    def result = securityGroupService.resolveSecurityGroupNamesByStrategy(["sg-123", "name"]) { List<String> ids ->
+      securityGroupService.getSecurityGroupNamesFromIds(ids)
+    }
+
+    then:
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
+      new SecurityGroup(groupId: "sg-123", groupName: "test", vpcId: "vpc1234")
+    ])
+    result == ["name", "test"]
+  }
+
+  void "Resolve security group IDs from list of security group names and IDs"() {
+    when:
+    def result = securityGroupService.resolveSecurityGroupIdsByStrategy(["test", "sg-456"]) { List<String> names ->
+      securityGroupService.getSecurityGroupIds(names, "vpc1234")
+    }
+
+    then:
+    1 * securityGroupService.amazonEC2.describeSecurityGroups(_) >> new DescribeSecurityGroupsResult(securityGroups: [
+      new SecurityGroup(groupId: "sg-123", groupName: "test", vpcId: "vpc1234")
+    ])
+    result == ["sg-456", "sg-123"]
+  }
+
   private Matcher<DescribeSecurityGroupsRequest> matchRequest(String... groupNames) {
     hasProperty("filters", contains(new Filter("group-name", groupNames.toList())))
   }

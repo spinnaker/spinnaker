@@ -24,7 +24,10 @@ import com.amazonaws.services.ec2.model.Filter
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 
+import java.util.regex.Pattern
+
 class SecurityGroupService {
+  private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
   private final AmazonEC2 amazonEC2
   private final SubnetAnalyzer subnetAnalyzer
@@ -127,4 +130,35 @@ class SecurityGroupService {
     } ?: [:]
   }
 
+  List<String> resolveSecurityGroupNamesByStrategy(List<String> securityGroupNamesAndIds,
+                                                   Closure<Map<String, String>> idResolver) {
+    if (securityGroupNamesAndIds) {
+      Collection<String> ids = securityGroupNamesAndIds.toSet()
+      Collection<String> names = ids.findAll { !SG_PATTERN.matcher(it).matches() } as Set<String>
+      ids.removeAll(names)
+      if (ids) {
+        Map<String, String> resolvedNames = idResolver.call(ids.toList())
+        names.addAll(resolvedNames.keySet())
+      }
+      return names.toList()
+    } else {
+      return []
+    }
+  }
+
+  List<String> resolveSecurityGroupIdsByStrategy(List<String> securityGroupNamesAndIds,
+                                                 Closure<Map<String, String>> nameResolver) {
+    if (securityGroupNamesAndIds) {
+      Collection<String> names = securityGroupNamesAndIds.toSet()
+      Collection<String> ids = names.findAll { SG_PATTERN.matcher(it).matches() } as Set<String>
+      names.removeAll(ids)
+      if (names) {
+        def resolvedIds = nameResolver.call(names.toList())
+        ids.addAll(resolvedIds.values())
+      }
+      return ids.toList()
+    } else {
+      return []
+    }
+  }
 }

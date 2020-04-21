@@ -36,11 +36,9 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 
 import java.nio.charset.Charset
-import java.util.regex.Pattern
 
 @Slf4j
 class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
-  private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
   final AmazonAutoScaling autoScaling
   final AsgService asgService
@@ -186,29 +184,14 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     name.toString()
   }
 
-  private List<String> resolveSecurityGroupIdsByStrategy(List<String> securityGroupNamesAndIds, Closure<Map<String, String>> nameResolver) {
-    if (securityGroupNamesAndIds) {
-      Collection<String> names = securityGroupNamesAndIds.toSet()
-      Collection<String> ids = names.findAll { SG_PATTERN.matcher(it).matches() } as Set<String>
-      names.removeAll(ids)
-      if (names) {
-        def resolvedIds = nameResolver.call(names.toList())
-        ids.addAll(resolvedIds.values())
-      }
-      return ids.toList()
-    } else {
-      return []
-    }
-  }
-
   private List<String> resolveSecurityGroupIds(List<String> securityGroupNamesAndIds, String subnetType) {
-    return resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
+    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
       securityGroupService.getSecurityGroupIdsWithSubnetPurpose(names, subnetType)
     }
   }
 
   private List<String> resolveSecurityGroupIdsInVpc(List<String> securityGroupNamesAndIds, String vpcId) {
-    return resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
+    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
       securityGroupService.getSecurityGroupIds(names, vpcId)
     }
   }
