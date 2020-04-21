@@ -18,7 +18,7 @@ RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
   echo '/opt/halyard/bin/hal "$@"' | tee /usr/local/bin/hal > /dev/null
 RUN chmod +x /usr/local/bin/hal
 
-RUN curl -f -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
+RUN curl -f -LO --retry 3 --retry-delay 3 https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
