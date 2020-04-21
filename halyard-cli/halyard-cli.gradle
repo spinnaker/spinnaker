@@ -33,7 +33,6 @@ dependencies {
   testImplementation 'org.springframework:spring-test'
 }
 
-apply plugin: 'java'
 apply plugin: 'application'
 
 mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'

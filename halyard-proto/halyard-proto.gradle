@@ -1,4 +1,3 @@
-apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
 
 dependencies {
@@ -17,7 +16,7 @@ dependencies {
   if (JavaVersion.current().isJava9Compatible()
       && targetCompatibility == JavaVersion.VERSION_1_8
       && !Boolean.valueOf(project.findProperty('enableCrossCompilerPlugin'))) {
-    compile 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
   }
 }
 
