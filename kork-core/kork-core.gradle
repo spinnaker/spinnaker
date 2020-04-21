@@ -24,6 +24,7 @@ dependencies {
   implementation "commons-configuration:commons-configuration"
   implementation "com.netflix.spectator:spectator-ext-gc"
   implementation "com.netflix.spectator:spectator-ext-jvm"
+  implementation "com.netflix.spectator:spectator-reg-micrometer"
 
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation("org.mockito:mockito-core")

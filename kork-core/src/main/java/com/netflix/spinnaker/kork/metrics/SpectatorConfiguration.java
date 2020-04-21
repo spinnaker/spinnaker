@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.kork.metrics;
 
-import com.netflix.spectator.api.Clock;
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Spectator;
 import com.netflix.spectator.gc.GcLogger;
 import com.netflix.spectator.jvm.Jmx;
+import com.netflix.spectator.micrometer.MicrometerRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.util.List;
 import javax.annotation.PreDestroy;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -39,16 +36,8 @@ public class SpectatorConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(Registry.class)
-  Registry registry() {
-    return new DefaultRegistry(Clock.SYSTEM);
-  }
-
-  @Bean
-  public SpectatorMeterRegistry spectatorMeterRegistry(
-      Registry spectatorRegistry, List<MeterRegistryCustomizer<MeterRegistry>> customizers) {
-    SpectatorMeterRegistry registry = new SpectatorMeterRegistry(spectatorRegistry);
-    customizers.forEach(c -> c.customize(registry));
-    return registry;
+  Registry registry(MeterRegistry meterRegistry) {
+    return new MicrometerRegistry(meterRegistry);
   }
 
   @Bean

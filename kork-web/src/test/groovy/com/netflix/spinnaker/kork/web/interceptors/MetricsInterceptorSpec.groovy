@@ -54,6 +54,7 @@ class MetricsInterceptorSpec extends Specification {
       1 * getAttribute(MetricsInterceptor.TIMER_ATTRIBUTE) >> { return startTime }
       1 * getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) >> templateVariables
       1 * getContentLengthLong() >> { 10L }
+      getParameter('user') >> 'Anastasiia'
       0 * _
     }
     def response = Mock(HttpServletResponse) {
@@ -65,7 +66,7 @@ class MetricsInterceptorSpec extends Specification {
     def registry = new StubRegistry()
     def handler = new HandlerMethod(new Example(), Example.getMethod("get"))
     def interceptor = Spy(MetricsInterceptor, constructorArgs: [
-      registry, metric, variablesToTag, null
+      registry, metric, variablesToTag, requestParamsToAdd, null
     ]) {
       1 * getNanoTime() >> { return endTime }
     }
@@ -79,10 +80,10 @@ class MetricsInterceptorSpec extends Specification {
     registry.timer.count() == 1
 
     where:
-    exception                  | variablesToTag | expectedTags
-    null                       | []             | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example"]
-    new NullPointerException() | []             | [success: "false", statusCode: "500", status: "5xx", "method": "get", controller: "Example", cause: "NullPointerException"]
-    null                       | ["account"]    | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", "account": "test"]
+    exception                  | variablesToTag | requestParamsToAdd | expectedTags
+    null                       | []             | []                 | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", cause: "None"]
+    new NullPointerException() | []             | []                 | [success: "false", statusCode: "500", status: "5xx", "method": "get", controller: "Example", cause: "NullPointerException"]
+    null                       | ["account"]    | ['user']           | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", cause: 'None', "account": "test", user: 'Anastasiia']
 
     templateVariables = ["account": "test", "empty": "empty"]
     startTime = 0L

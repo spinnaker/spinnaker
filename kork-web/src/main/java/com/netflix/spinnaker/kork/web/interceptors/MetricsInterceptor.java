@@ -50,24 +50,40 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
   private final String metricName;
   private final String contentLengthMetricName;
   private final Set<String> pathVariablesToTag = new HashSet<String>();
+  private final Set<String> queryParamsToTag = new HashSet<String>();
   private final Set<String> controllersToExclude = new HashSet<String>();
+
+  /** @deprecated Instead use the other constructor. */
+  @Deprecated
+  public MetricsInterceptor(
+      Registry registry,
+      String metricName,
+      Collection<String> pathVariablesToTag,
+      Collection<String> controllersToExclude) {
+    this(registry, metricName, pathVariablesToTag, null, controllersToExclude);
+  }
 
   /**
    * @param registry Underlying metrics registry
    * @param metricName Metric name
    * @param pathVariablesToTag Variables from the request uri that should be added as metric tags
+   * @param queryParamsToTag Request parameters that should be added as metric tags
    * @param controllersToExclude Controller names that should be excluded from metrics
    */
   public MetricsInterceptor(
       Registry registry,
       String metricName,
       Collection<String> pathVariablesToTag,
+      Collection<String> queryParamsToTag,
       Collection<String> controllersToExclude) {
     this.registry = registry;
     this.metricName = metricName;
     this.contentLengthMetricName = format("%s.contentLength", metricName);
     if (pathVariablesToTag != null) {
       this.pathVariablesToTag.addAll(pathVariablesToTag);
+    }
+    if (queryParamsToTag != null) {
+      this.queryParamsToTag.addAll(queryParamsToTag);
     }
     if (controllersToExclude != null) {
       this.controllersToExclude.addAll(controllersToExclude);
@@ -111,13 +127,24 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
       for (String pathVariable : pathVariablesToTag) {
         if (variables.containsKey(pathVariable)) {
           id = id.withTag(pathVariable, variables.get(pathVariable).toString());
+        } else {
+          id = id.withTag(pathVariable, "None");
+        }
+      }
+
+      for (String queryParamName : queryParamsToTag) {
+        String parameter = request.getParameter(queryParamName);
+        if (parameter != null) {
+          id = id.withTag(queryParamName, parameter);
+        } else {
+          id = id.withTag(queryParamName, "None");
         }
       }
 
       if (ex != null) {
         id = id.withTag("success", "false").withTag("cause", ex.getClass().getSimpleName());
       } else {
-        id = id.withTag("success", "true");
+        id = id.withTag("success", "true").withTag("cause", "None");
       }
 
       PercentileTimer.get(registry, id)
