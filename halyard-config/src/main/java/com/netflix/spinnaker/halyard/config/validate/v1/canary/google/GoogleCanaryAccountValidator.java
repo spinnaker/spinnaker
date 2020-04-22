@@ -45,10 +45,10 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator<GoogleC
 
   private int connectTimeoutSec = 45;
   private int readTimeoutSec = 45;
-  private long maxWaitInterval = 60000;
-  private long retryIntervalBase = 2;
-  private long jitterMultiplier = 1000;
-  private long maxRetries = 10;
+  private int maxWaitInterval = 60000;
+  private int retryIntervalBase = 2;
+  private int jitterMultiplier = 1000;
+  private int maxRetries = 10;
 
   GoogleCanaryAccountValidator(SecretSessionManager secretSessionManager) {
     this.secretSessionManager = secretSessionManager;

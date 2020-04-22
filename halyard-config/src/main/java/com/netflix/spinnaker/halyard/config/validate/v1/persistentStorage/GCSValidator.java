@@ -39,10 +39,10 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
 
   private int connectTimeoutSec = 45;
   private int readTimeoutSec = 45;
-  private long maxWaitInterval = 60000;
-  private long retryIntervalbase = 2;
-  private long jitterMultiplier = 1000;
-  private long maxRetries = 10;
+  private int maxWaitInterval = 60000;
+  private int retryIntervalbase = 2;
+  private int jitterMultiplier = 1000;
+  private int maxRetries = 10;
 
   @Override
   public void validate(ConfigProblemSetBuilder ps, GcsPersistentStore n) {
