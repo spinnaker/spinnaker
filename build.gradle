@@ -90,6 +90,7 @@ buildDeb.dependsOn 'copyFavicon'
 buildRpm.dependsOn 'webpack'
 functionalTestsChrome.dependsOn 'yarn'
 functionalTestsFirefox.dependsOn 'yarn'
+build.dependsOn 'buildDeb'
 
 String toVers(String v) {
   int idx = v.indexOf('-')
