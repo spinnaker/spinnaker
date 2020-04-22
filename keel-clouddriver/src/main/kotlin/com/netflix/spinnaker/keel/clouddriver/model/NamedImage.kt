@@ -36,7 +36,9 @@ val NamedImage.creationDate: Instant
 val NamedImage.hasAppVersion: Boolean
   get() = tagsByImageId
     .values
-    .all { it != null && it.containsKey("appversion") }
+    .let { vals ->
+      vals.isNotEmpty() && vals.all { it != null && it.containsKey("appversion") }
+      }
 
 val NamedImage.appVersion: String
   get() = tagsByImageId
