@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -80,6 +81,15 @@ class ApplicationController(
       }
     }
   }
+
+  @GetMapping(
+    path = ["/{application}/config"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)""")
+  fun getConfigByApplication(
+    @PathVariable("application") application: String
+  ): DeliveryConfig = applicationService.getDeliveryConfig(application)
 
   @PostMapping(
     path = ["/{application}/environment/{environment}/constraint"],

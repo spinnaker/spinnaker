@@ -53,6 +53,8 @@ class ApplicationService(
 
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 
+  fun getDeliveryConfig(application: String) = repository.getDeliveryConfigForApplication(application)
+
   fun getConstraintStatesFor(application: String) = repository.constraintStateFor(application)
 
   fun getConstraintStatesFor(application: String, environment: String, limit: Int): List<ConstraintState> {

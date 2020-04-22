@@ -583,6 +583,20 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
         }
       }
+      context("GET /application/fnord/config") {
+        context("with no READ access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(READ, APPLICATION)
+          }
+          test("request is forbidden") {
+            val request = get("/application/fnord/config")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
     }
   }
 }
