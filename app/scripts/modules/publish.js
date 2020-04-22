@@ -23,6 +23,7 @@ const p = str => process.stdout.write(str);
 const files = fs.readdirSync(process.cwd());
 const pkgs = files.filter(file => fs.statSync(file).isDirectory() && fs.existsSync(path.join(file, 'package.json')));
 
+// Ensure 'gh' is installed
 try {
   execSync('sh -c "which gh"');
 } catch (error) {
@@ -31,12 +32,28 @@ try {
   process.exit(1);
 }
 
+// Ensure user is using git:// protocol (not https) for upstream
+const isHttpsUpstream = execSync('git remote -v')
+  .toString()
+  .split(/[\r\n]/)
+  .find(x => x.includes('https://github.com/spinnaker/deck.git (push)'));
+
+if (isHttpsUpstream) {
+  const upstream = /^([\w]+)/.exec(isHttpsUpstream)[1];
+  console.error(`The ${upstream} remote for spinnaker is using https protocol but should be using git`);
+  console.error(`Run the following command to correct this:`);
+  console.error();
+  console.error(`git remote set-url ${upstream} git@github.com:spinnaker/deck.git`);
+  process.exit(2);
+}
+
+// Ensure the working directory is clean and tracks master
 try {
   if (yargs.argv['assert-master']) {
     execSync('sh -c "./assert_clean_master.sh"');
   }
 } catch (error) {
-  process.exit(1);
+  process.exit(3);
 }
 
 ///////////////////////////////
