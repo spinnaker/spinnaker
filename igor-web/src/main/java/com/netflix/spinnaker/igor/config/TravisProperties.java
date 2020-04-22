@@ -59,6 +59,13 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
     @Deprecated private int numberOfRepositories;
     /** Defines how many jobs Igor should retrieve per polling cycle. Defaults to 100. */
     private int numberOfJobs = 100;
+    /**
+     * Defines how many builds Igor should return when querying for builds for a specific repo. This
+     * affects for instance how many builds that will be displayed in the drop down when starting a
+     * manual execution of a pipeline. If set too high, the Travis API might return an error for
+     * jobs that writes a lot of logs, which is why the default setting is a bit conservative.
+     */
+    private int buildResultLimit = 10;
 
     private Integer itemUpperThreshold;
     private Permissions.Builder permissions = new Permissions.Builder();
