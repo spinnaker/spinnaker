@@ -272,6 +272,20 @@ class ApiDocTests : JUnit5Minutests {
           )
       }
 
+      test("schema for DeliveryArtifact has a discriminator") {
+        at("/components/schemas/DeliveryArtifact")
+          .isObject()
+          .path("discriminator")
+          .and {
+            path("propertyName").textValue().isEqualTo("type")
+          }
+          .path("mapping")
+          .and {
+            path("deb").textValue().isEqualTo(constructRef("DebianArtifact"))
+            path("docker").textValue().isEqualTo(constructRef("DockerArtifact"))
+          }
+      }
+
       SKIP - test("does not include interim sealed classes in oneOf") {
         at("/components/schemas/ResourceCheckResult/oneOf")
           .isArray()
