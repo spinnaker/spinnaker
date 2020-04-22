@@ -1,6 +1,6 @@
 Spinnaker Cloud Provider Service
 ------------------------------------
-[![Build Status](https://api.travis-ci.org/spinnaker/clouddriver.svg?branch=master)](https://travis-ci.org/spinnaker/clouddriver)
+[![Build Status](https://github.com/spinnaker/clouddriver/workflows/Branch%20Build/badge.svg)](https://github.com/spinnaker/clouddriver/actions)
 
 This service is the main integration point for Spinnaker cloud providers like AWS, GCE, CloudFoundry, Azure etc.
 
