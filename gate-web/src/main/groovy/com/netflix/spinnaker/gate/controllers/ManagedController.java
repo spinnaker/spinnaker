@@ -180,6 +180,14 @@ public class ManagedController {
     return keelService.getConstraintState(application, environment, Integer.valueOf(limit));
   }
 
+  @ApiOperation(
+      value = "Get the delivery config associated with an application",
+      response = DeliveryConfig.class)
+  @GetMapping(path = "/application/{application}/config")
+  DeliveryConfig getConfigBy(@PathVariable("application") String application) {
+    return keelService.getConfigBy(application);
+  }
+
   @ApiOperation(value = "Update the status of an environment constraint")
   @PostMapping(path = "/application/{application}/environment/{environment}/constraint")
   void updateConstraintStatus(

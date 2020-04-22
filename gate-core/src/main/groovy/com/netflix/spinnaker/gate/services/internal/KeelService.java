@@ -75,6 +75,9 @@ public interface KeelService {
   @Headers("Accept: application/json")
   Map validateManifest(@Body DeliveryConfig manifest);
 
+  @GET("/application/{application}/config")
+  DeliveryConfig getConfigBy(@Path("application") String application);
+
   @GET("/application/{application}/environment/{environment}/constraints")
   List<ConstraintState> getConstraintState(
       @Path("application") String application,
