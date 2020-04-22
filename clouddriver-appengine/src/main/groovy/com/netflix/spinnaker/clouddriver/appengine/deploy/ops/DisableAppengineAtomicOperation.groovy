@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineCluste
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.math.RoundingMode
@@ -70,11 +69,12 @@ class DisableAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
     def loadBalancerName = serverGroup?.loadBalancers?.first()
 
     safeRetry.doRetry(
-      { buildNewLoadBalancerAndCallApi(credentials.project, loadBalancerName, serverGroupName, priorOutputs) },
+      {
+        buildNewLoadBalancerAndCallApi(credentials.project, loadBalancerName, serverGroupName, priorOutputs)
+      },
       "version",
       task,
       [409],
-      [],
       [action: "Disable", phase: BASE_PHASE],
       registry
     )

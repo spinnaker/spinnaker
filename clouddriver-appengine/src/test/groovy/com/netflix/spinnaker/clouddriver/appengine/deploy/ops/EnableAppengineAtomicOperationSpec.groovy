@@ -48,7 +48,7 @@ class EnableAppengineAtomicOperationSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    safeRetry = new AppengineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    safeRetry = AppengineSafeRetry.withoutDelay()
   }
 
   void "enable operation should set a server group's allocation to 1"() {

@@ -21,58 +21,32 @@ import com.google.api.client.googleapis.testing.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpResponseException
 import com.google.api.client.testing.json.MockJsonFactory
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GoogleCommonSafeRetrySpec extends Specification {
 
   @Shared
   Registry registry = new DefaultRegistry()
 
-  @Unroll
-  def "should retry on certain error codes"() {
-    setup:
-    HttpResponseException.Builder b = new HttpResponseException.Builder((int) code, null, new HttpHeaders())
-    GoogleJsonResponseException e = new GoogleJsonResponseException(b, null)
-
-    expect:
-    retryable == GoogleCommonSafeRetry.isRetryable(e, [400])
-
-    // Ensure non-GCP exceptions also cause retries.
-    GoogleCommonSafeRetry.isRetryable(new SocketException(), [])
-
-    where:
-    code || retryable
-    399  || false
-    400  || true
-    401  || false
-    500  || true
-    503  || true
-  }
-
-  GoogleCommonSafeRetry makeRetrier() {
-    return new GoogleCommonSafeRetry() {
-        Exception providerOperationException(String message) {
-          throw new IllegalStateException(message);
-        }
-    }
+  GoogleCommonSafeRetry makeRetrier(int maxRetries) {
+    return GoogleCommonSafeRetry.builder().maxWaitInterval(0).maxRetries(maxRetries).build()
   }
 
   def "no_retry"() {
     given:
       Closure  mockClosure = Mock(Closure)
-      GoogleCommonSafeRetry retrier = makeRetrier()
       int maxRetries = 10
+      GoogleCommonSafeRetry retrier = makeRetrier(maxRetries)
 
     when:
       Object result = retrier.doRetry(
             mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
-            new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
     then:
       1 * mockClosure() >> "Hello World"
@@ -82,14 +56,13 @@ class GoogleCommonSafeRetrySpec extends Specification {
   def "retry_until_success"() {
     given:
       Closure  mockClosure = Mock(Closure)
-      GoogleCommonSafeRetry retrier = makeRetrier()
       int maxRetries = 10
+      GoogleCommonSafeRetry retrier = makeRetrier(maxRetries)
 
     when:
       Object result = retrier.doRetry(
             mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
-            new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
     then:
       2 * mockClosure() >> {
@@ -106,14 +79,12 @@ class GoogleCommonSafeRetrySpec extends Specification {
   def "retry_until_exhausted"() {
     given:
       Closure  mockClosure = Mock(Closure)
-      GoogleCommonSafeRetry retrier = makeRetrier()
-      int maxAttempts = 4
+      GoogleCommonSafeRetry retrier = makeRetrier(4)
 
     when:
       Object result = retrier.doRetry(
             mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
-            new Long(-1), new Long(-1), new Long(-1), new Long(maxAttempts),
             ImmutableMap.of("action", "test"), registry)
     then:
       2 * mockClosure() >> {
@@ -123,14 +94,14 @@ class GoogleCommonSafeRetrySpec extends Specification {
       2 * mockClosure() >> {
        throw new SocketTimeoutException()
       }
-      thrown(IllegalStateException)
+      thrown(GoogleApiException)
   }
 
   def "retry_until_404_ok"() {
     given:
       Closure  mockClosure = Mock(Closure)
-      GoogleCommonSafeRetry retrier = makeRetrier()
       int maxRetries = 10
+      GoogleCommonSafeRetry retrier = makeRetrier(maxRetries)
       HttpResponseException.Builder b = new HttpResponseException.Builder(404, null, new HttpHeaders())
       GoogleJsonResponseException e = new GoogleJsonResponseException(b, null)
 
@@ -138,7 +109,6 @@ class GoogleCommonSafeRetrySpec extends Specification {
       Object result = retrier.doRetry(
             mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
-            new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
     then:
       2 * mockClosure() >> {
@@ -154,16 +124,15 @@ class GoogleCommonSafeRetrySpec extends Specification {
   def "retry_until_404_not_ok"() {
     given:
       Closure  mockClosure = Mock(Closure)
-      GoogleCommonSafeRetry retrier = makeRetrier()
       int maxRetries = 10
+      GoogleCommonSafeRetry retrier = makeRetrier(maxRetries)
       HttpResponseException.Builder b = new HttpResponseException.Builder(404, null, new HttpHeaders())
       GoogleJsonResponseException e = new GoogleJsonResponseException(b, null)
 
     when:
       Object result = retrier.doRetry(
             mockClosure, "resource",
-            Arrays.asList(500), null,
-            new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
+            Arrays.asList(500), ImmutableList.of(),
             ImmutableMap.of("action", "test"), registry)
     then:
       2 * mockClosure() >> {
@@ -173,7 +142,6 @@ class GoogleCommonSafeRetrySpec extends Specification {
       1 * mockClosure() >> {
        throw e
       }
-      final GoogleJsonResponseException ex = thrown()
-      ex.statusCode == 404
+      thrown(GoogleApiException)
   }
 }

@@ -67,11 +67,12 @@ class DestroyAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
     }
 
     safeRetry.doRetry(
-      { appengine.apps().services().versions().delete(project, loadBalancerName, serverGroupName).execute() },
+      {
+        appengine.apps().services().versions().delete(project, loadBalancerName, serverGroupName).execute()
+      },
       "version",
       task,
       [409],
-      [],
       [action: "Destroy", phase: BASE_PHASE],
       registry
     )

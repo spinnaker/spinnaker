@@ -62,7 +62,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         "healthyThreshold"  : 1,
         "unhealthyThreshold": 1
     ]
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    safeRetry = SafeRetry.withoutDelay()
   }
 
   void "should create an HTTP Load Balancer with host rule, path matcher, path rules, etc with no existing infrastructure"() {

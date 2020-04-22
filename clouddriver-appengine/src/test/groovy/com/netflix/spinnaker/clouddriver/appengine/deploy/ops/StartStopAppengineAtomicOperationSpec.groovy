@@ -74,7 +74,7 @@ class StartStopAppengineAtomicOperationSpec extends Specification {
         new StopAppengineAtomicOperation(description)
       operation.appengineClusterProvider = clusterProviderMock
       operation.registry = new DefaultRegistry()
-      operation.safeRetry = new AppengineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+      operation.safeRetry = AppengineSafeRetry.withoutDelay()
 
     when:
       operation.operate([])

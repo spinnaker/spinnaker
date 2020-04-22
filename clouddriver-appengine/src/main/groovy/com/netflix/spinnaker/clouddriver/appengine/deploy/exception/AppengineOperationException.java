@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.appengine.deploy.exception;
 
-package com.netflix.spinnaker.clouddriver.appengine.deploy.exception
+public class AppengineOperationException extends RuntimeException {
+  public AppengineOperationException(String message) {
+    super(message);
+  }
 
-import groovy.transform.InheritConstructors
-
-@InheritConstructors
-class AppengineOperationException extends RuntimeException { }
+  public AppengineOperationException(String message, Throwable cause) {
+    super(message, cause);
+  }
+}

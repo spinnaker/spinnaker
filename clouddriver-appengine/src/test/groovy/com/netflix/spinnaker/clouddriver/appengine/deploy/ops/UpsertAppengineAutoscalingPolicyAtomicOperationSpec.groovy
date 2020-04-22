@@ -81,7 +81,7 @@ class UpsertAppengineAutoscalingPolicyAtomicOperationSpec extends Specification 
     @Subject def operation = new UpsertAppengineAutoscalingPolicyAtomicOperation(description)
     operation.appengineClusterProvider = clusterProviderMock
     operation.registry = new DefaultRegistry()
-    operation.safeRetry = new AppengineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    operation.safeRetry = AppengineSafeRetry.withoutDelay()
 
     when:
     operation.operate([])

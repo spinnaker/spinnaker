@@ -65,7 +65,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       "healthyThreshold"  : 1,
       "unhealthyThreshold": 1
     ]
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    safeRetry = SafeRetry.withoutDelay()
   }
 
   void "should create Internal load balancer if no infrastructure present."() {

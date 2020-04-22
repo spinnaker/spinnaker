@@ -54,7 +54,7 @@ class UpsertAppengineLoadBalancerAtomicOperationSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    safeRetry = new AppengineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    safeRetry = AppengineSafeRetry.withoutDelay()
   }
 
   @Unroll

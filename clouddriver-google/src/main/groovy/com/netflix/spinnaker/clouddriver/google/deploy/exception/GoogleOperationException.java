@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.google.deploy.exception;
 
-package com.netflix.spinnaker.clouddriver.google.deploy.exception
+public class GoogleOperationException extends RuntimeException {
+  public GoogleOperationException(String message) {
+    super(message);
+  }
 
-import groovy.transform.InheritConstructors
-
-@InheritConstructors
-class GoogleOperationException extends RuntimeException {}
+  public GoogleOperationException(String message, Throwable t) {
+    super(message, t);
+  }
+}

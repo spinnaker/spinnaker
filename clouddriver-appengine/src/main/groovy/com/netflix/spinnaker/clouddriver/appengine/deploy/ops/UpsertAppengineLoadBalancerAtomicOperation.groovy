@@ -20,13 +20,11 @@ import com.google.api.services.appengine.v1.model.Operation
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.TrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
-import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineUtils
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -86,7 +84,6 @@ class UpsertAppengineLoadBalancerAtomicOperation extends AppengineAtomicOperatio
         "service",
         task,
         [409],
-        [],
         [action: "Upsert", phase: BASE_PHASE],
         registry
       )

@@ -60,7 +60,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    safeRetry = SafeRetry.withoutDelay()
   }
 
   void "should delete an Internal Load Balancer with http health check"() {

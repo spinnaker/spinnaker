@@ -79,7 +79,6 @@ class UpsertAppengineAutoscalingPolicyAtomicOperation extends AppengineAtomicOpe
       "version",
       task,
       [409],
-      [],
       [action: "upsertAutoscalingPolicy", phase: BASE_PHASE],
       registry)
 

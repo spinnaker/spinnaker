@@ -212,8 +212,7 @@ public class InstanceTemplatesTest {
     GoogleOperationPoller poller = new GoogleOperationPoller();
     poller.setGoogleConfigurationProperties(new GoogleConfigurationProperties());
     poller.setRegistry(registry);
-    SafeRetry safeRetry = new SafeRetry();
-    safeRetry.setMaxRetries(10L);
+    SafeRetry safeRetry = SafeRetry.withoutDelay();
     poller.setSafeRetry(safeRetry);
     return new InstanceTemplates(credentials, poller, registry);
   }
