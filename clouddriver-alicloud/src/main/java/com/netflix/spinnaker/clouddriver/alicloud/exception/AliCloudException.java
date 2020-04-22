@@ -7,4 +7,8 @@ public class AliCloudException extends IntegrationException {
   public AliCloudException(String message) {
     super(message);
   }
+
+  public AliCloudException(Exception e) {
+    super(e);
+  }
 }

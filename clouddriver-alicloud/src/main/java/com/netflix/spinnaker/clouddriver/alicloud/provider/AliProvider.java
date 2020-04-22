@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,23 +15,15 @@
  */
 package com.netflix.spinnaker.clouddriver.alicloud.provider;
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
+import static com.netflix.spinnaker.clouddriver.alicloud.cache.Keys.Namespace.SECURITY_GROUPS;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.clouddriver.alicloud.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @ConditionalOnProperty("alicloud.enabled")
@@ -64,6 +56,7 @@ public class AliProvider extends AgentSchedulerAware implements SearchableProvid
           add(SERVER_GROUPS.ns);
           add(TARGET_GROUPS.ns);
           add(INSTANCES.ns);
+          add(SECURITY_GROUPS.ns);
         }
       };
 
@@ -75,6 +68,7 @@ public class AliProvider extends AgentSchedulerAware implements SearchableProvid
               "/applications/${application.toLowerCase()}/clusters/$account/$cluster/$provider/serverGroups/$serverGroup?region=$region");
           put(LOAD_BALANCERS.ns, "/$provider/loadBalancers/$loadBalancer");
           put(CLUSTERS.ns, "/applications/${application.toLowerCase()}/clusters/$account/$cluster");
+          put(SECURITY_GROUPS.ns, "/securityGroups/$account/$provider/$name?region=$region");
         }
       };
 

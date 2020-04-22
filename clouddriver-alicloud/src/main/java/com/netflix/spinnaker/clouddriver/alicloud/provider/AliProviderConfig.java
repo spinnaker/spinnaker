@@ -113,6 +113,13 @@ public class AliProviderConfig {
                     objectMapper,
                     clientFactory.createClient(
                         region, credentials.getAccessKeyId(), credentials.getAccessSecretKey())));
+            newAgents.add(
+                new AliCloudSecurityGroupCachingAgent(
+                    credentials,
+                    region,
+                    objectMapper,
+                    clientFactory.createClient(
+                        region, credentials.getAccessKeyId(), credentials.getAccessSecretKey())));
           }
         }
       }
