@@ -38,18 +38,19 @@ import com.google.api.services.storage.model.StorageObject;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleApiException;
+import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleCommonSafeRetry;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.retry.GcsSafeRetry;
-import groovy.lang.Closure;
+import com.netflix.spinnaker.front50.retry.GcsProviderOperationException;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -58,9 +59,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +73,7 @@ public class GcsStorageService implements StorageService {
   private static final String DEFAULT_DATA_FILENAME = "specification.json";
   private static final String LAST_MODIFIED_FILENAME = "last-modified";
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private final GcsSafeRetry gcsSafeRetry = new GcsSafeRetry();
+  private final GoogleCommonSafeRetry safeRetry;
 
   private final Registry registry;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -80,10 +83,6 @@ public class GcsStorageService implements StorageService {
   private final Storage storage;
   private final Storage.Objects obj_api;
   private final String dataFilename;
-  private final Long maxWaitInterval;
-  private final Long retryIntervalBase;
-  private final Long jitterMultiplier;
-  private final Long maxRetries;
   private final Id deleteTimer;
   private final Id purgeTimer; // for deleting timestamp generations
   private final Id loadTimer;
@@ -150,11 +149,8 @@ public class GcsStorageService implements StorageService {
     this.registry = registry;
     this.obj_api = storage.objects();
     this.dataFilename = DEFAULT_DATA_FILENAME;
-    this.maxWaitInterval = -1L;
-    this.retryIntervalBase = -1L;
-    this.jitterMultiplier = -1L;
-    this.maxRetries = new Long(maxRetries);
     this.taskScheduler = taskScheduler;
+    this.safeRetry = GoogleCommonSafeRetry.builder().maxRetries(maxRetries).build();
 
     Id id = registry.createId("google.storage.invocation");
     deleteTimer = id.withTag("method", "delete");
@@ -175,10 +171,10 @@ public class GcsStorageService implements StorageService {
       String applicationVersion,
       Integer connectTimeoutSec,
       Integer readTimeoutSec,
-      Long maxWaitInterval,
-      Long retryIntervalBase,
-      Long jitterMultiplier,
-      Long maxRetries,
+      int maxWaitInterval,
+      int retryIntervalBase,
+      int jitterMultiplier,
+      int maxRetries,
       TaskScheduler taskScheduler,
       Registry registry) {
     this(
@@ -209,10 +205,10 @@ public class GcsStorageService implements StorageService {
       String dataFilename,
       Integer connectTimeoutSec,
       Integer readTimeoutSec,
-      Long maxWaitInterval,
-      Long retryIntervalBase,
-      Long jitterMultiplier,
-      Long maxRetries,
+      int maxWaitInterval,
+      int retryIntervalBase,
+      int jitterMultiplier,
+      int maxRetries,
       TaskScheduler taskScheduler,
       Registry registry) {
     Storage storage;
@@ -247,12 +243,15 @@ public class GcsStorageService implements StorageService {
     this.storage = storage;
     this.obj_api = this.storage.objects();
     this.dataFilename = dataFilename;
-    this.maxWaitInterval = maxWaitInterval;
-    this.retryIntervalBase = retryIntervalBase;
-    this.jitterMultiplier = jitterMultiplier;
-    this.maxRetries = maxRetries;
     this.taskScheduler = taskScheduler;
     this.registry = registry;
+    this.safeRetry =
+        GoogleCommonSafeRetry.builder()
+            .maxWaitInterval(maxWaitInterval)
+            .retryIntervalBase(retryIntervalBase)
+            .jitterMultiplier(jitterMultiplier)
+            .maxRetries(maxRetries)
+            .build();
 
     Id id = registry.createId("google.storage.invocation");
     deleteTimer = id.withTag("method", "delete");
@@ -342,48 +341,38 @@ public class GcsStorageService implements StorageService {
       throws NotFoundException {
     String path = keyToPath(objectKey, objectType.group);
     try {
-      StorageObject[] storageObjectHolder = new StorageObject[1];
-      Closure timeExecuteClosure =
-          new Closure<String>(this, this) {
-            public Object doCall() throws Exception {
-              storageObjectHolder[0] = timeExecute(loadTimer, obj_api.get(bucketName, path));
-              return Closure.DONE;
-            }
-          };
-      doRetry(timeExecuteClosure, "get", objectType.group + " " + objectKey);
-
-      T item = deserialize(storageObjectHolder[0], (Class<T>) objectType.clazz, true);
-      item.setLastModified(storageObjectHolder[0].getUpdated().getValue());
+      StorageObject storageObject =
+          doRetry(
+              () -> timeExecute(loadTimer, obj_api.get(bucketName, path)),
+              "get",
+              objectType.group + " " + objectKey);
+      T item = deserialize(storageObject, (Class<T>) objectType.clazz, true);
+      item.setLastModified(storageObject.getUpdated().getValue());
       log.debug("Loaded bucket={} path={}", value("bucket", bucketName), value("path", path));
       return item;
-    } catch (IOException e) {
-      if (e instanceof HttpResponseException) {
-        HttpResponseException hre = (HttpResponseException) e;
-        log.error(
-            "Failed to load {} {}: {} {}",
-            value("group", objectType.group),
-            value("key", objectKey),
-            value("responseStatus", hre.getStatusCode()),
-            value("errorMsg", hre.getStatusMessage()));
-        if (hre.getStatusCode() == 404) {
-          throw new NotFoundException(String.format("No file at path=%s", path));
-        }
-      }
-      throw new IllegalStateException(e);
+    } catch (GoogleApiException.NotFoundException e) {
+      throw new NotFoundException(
+          String.format("Failed to get %s %s: Object not found", objectType.group, objectKey), e);
+    } catch (GoogleApiException e) {
+      throw new GcsProviderOperationException(
+          String.format("Failed to get %s %s.", objectType.group, objectKey), e);
     }
   }
 
   @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
     String path = keyToPath(objectKey, objectType.group);
-    Closure timeExecuteClosure =
-        new Closure(this, this) {
-          public Object doCall() throws Exception {
-            timeExecute(deleteTimer, obj_api.delete(bucketName, path));
-            return Closure.DONE;
-          }
-        };
-    doRetry(timeExecuteClosure, "delete", objectType.group, Arrays.asList(500), Arrays.asList(404));
+    try {
+      doRetry(
+          () -> timeExecute(deleteTimer, obj_api.delete(bucketName, path)),
+          "delete",
+          objectType.group,
+          ImmutableList.of(500),
+          ImmutableList.of(404));
+    } catch (GoogleApiException e) {
+      throw new GcsProviderOperationException(
+          String.format("Failed to delete %s %s.", objectType.group, objectKey), e);
+    }
     log.info("Deleted {} '{}'", value("group", objectType.group), value("key", objectKey));
     writeLastModified(objectType.group);
   }
@@ -400,15 +389,15 @@ public class GcsStorageService implements StorageService {
     }
     StorageObject object = new StorageObject().setBucket(bucketName).setName(path);
     ByteArrayContent content = new ByteArrayContent("application/json", bytes);
-
-    Closure timeExecuteClosure =
-        new Closure(this, this) {
-          public Object doCall() throws Exception {
-            timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
-            return Closure.DONE;
-          }
-        };
-    doRetry(timeExecuteClosure, "store", objectType.group);
+    try {
+      doRetry(
+          () -> timeExecute(insertTimer, obj_api.insert(bucketName, object, content)),
+          "store",
+          objectType.group);
+    } catch (GoogleApiException e) {
+      throw new GcsProviderOperationException(
+          String.format("Failed to store %s %s.", objectType.group, objectKey), e);
+    }
     writeLastModified(objectType.group);
     log.info("Wrote {} '{}'", value("group", objectType.group), value("key", objectKey));
   }
@@ -424,18 +413,10 @@ public class GcsStorageService implements StorageService {
     try {
       Storage.Objects.List listObjects = obj_api.list(bucketName);
       listObjects.setPrefix(rootFolder);
-      Objects[] objectsHolder = new Objects[1];
+      Objects objects;
       do {
-        Closure timeExecuteClosure =
-            new Closure<String>(this, this) {
-              public Object doCall() throws Exception {
-                objectsHolder[0] = timeExecute(listTimer, listObjects);
-                return Closure.DONE;
-              }
-            };
-        doRetry(timeExecuteClosure, "list", objectType.group);
-
-        List<StorageObject> items = objectsHolder[0].getItems();
+        objects = doRetry(() -> timeExecute(listTimer, listObjects), "list", objectType.group);
+        List<StorageObject> items = objects.getItems();
         if (items != null) {
           for (StorageObject item : items) {
             String name = item.getName();
@@ -446,8 +427,11 @@ public class GcsStorageService implements StorageService {
             }
           }
         }
-        listObjects.setPageToken(objectsHolder[0].getNextPageToken());
-      } while (objectsHolder[0].getNextPageToken() != null);
+        listObjects.setPageToken(objects.getNextPageToken());
+      } while (objects.getNextPageToken() != null);
+    } catch (GoogleApiException e) {
+      throw new GcsProviderOperationException(
+          String.format("Failed to list %s.", objectType.group), e);
     } catch (IOException e) {
       log.error("Could not fetch items from Google Cloud Storage: {}", e.getMessage());
       return new HashMap<String, Long>();
@@ -466,18 +450,11 @@ public class GcsStorageService implements StorageService {
       // so to get maxResults, we need to download everything then
       // take the last maxResults, not .setMaxResults(new Long(maxResults)) here.
       Storage.Objects.List listObjects = obj_api.list(bucketName).setPrefix(path).setVersions(true);
-      Objects[] objectsHolder = new Objects[1];
+      Objects objects;
       do {
-        Closure timeExecuteClosure =
-            new Closure<String>(this, this) {
-              public Object doCall() throws Exception {
-                objectsHolder[0] = timeExecute(listTimer, listObjects);
-                return Closure.DONE;
-              }
-            };
-        doRetry(timeExecuteClosure, "list versions", objectType.group);
-
-        List<StorageObject> items = objectsHolder[0].getItems();
+        objects =
+            doRetry(() -> timeExecute(listTimer, listObjects), "list versions", objectType.group);
+        List<StorageObject> items = objects.getItems();
         if (items != null) {
           for (StorageObject item : items) {
             T have = deserialize(item, (Class<T>) objectType.clazz, false);
@@ -487,8 +464,11 @@ public class GcsStorageService implements StorageService {
             }
           }
         }
-        listObjects.setPageToken(objectsHolder[0].getNextPageToken());
-      } while (objectsHolder[0].getNextPageToken() != null);
+        listObjects.setPageToken(objects.getNextPageToken());
+      } while (objects.getNextPageToken() != null);
+    } catch (GoogleApiException e) {
+      throw new GcsProviderOperationException(
+          String.format("Failed to list versions of %s %s.", objectType.group, objectKey), e);
     } catch (IOException e) {
       log.error("Could not fetch versions from Google Cloud Storage: {}", e.getMessage());
       return new ArrayList<>();
@@ -507,8 +487,7 @@ public class GcsStorageService implements StorageService {
   }
 
   private <T extends Timestamped> T deserialize(
-      StorageObject object, Class<T> clas, boolean current_version)
-      throws java.io.UnsupportedEncodingException {
+      StorageObject object, Class<T> clas, boolean current_version) {
     try {
       ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
       Storage.Objects.Get getter = obj_api.get(object.getBucket(), object.getName());
@@ -516,42 +495,40 @@ public class GcsStorageService implements StorageService {
         getter.setGeneration(object.getGeneration());
       }
 
-      Closure timeExecuteClosure =
-          new Closure<String>(this, this) {
-            public Object doCall() throws Exception {
-              Clock clock = registry.clock();
-              long startTime = clock.monotonicTime();
-              int statusCode = -1;
+      Callable<Void> closure =
+          () -> {
+            Clock clock = registry.clock();
+            long startTime = clock.monotonicTime();
+            int statusCode = -1;
 
-              try {
-                getter.executeMediaAndDownloadTo(output);
-                statusCode = getter.getLastStatusCode();
-                if (statusCode < 0) {
-                  // getLastStatusCode is returning -1
-                  statusCode = 200;
-                }
-              } catch (HttpResponseException e) {
-                statusCode = e.getStatusCode();
-                throw e;
-              } catch (Exception e) {
-                log.error("mediaDownload exception from {}", object.getName(), e);
-                throw e;
-              } finally {
-                long nanos = clock.monotonicTime() - startTime;
-                String status = Integer.toString(statusCode).charAt(0) + "xx";
-                Id id =
-                    mediaDownloadTimer.withTags(
-                        "status", status, "statusCode", Integer.toString(statusCode));
-                registry.timer(id).record(nanos, TimeUnit.NANOSECONDS);
+            try {
+              getter.executeMediaAndDownloadTo(output);
+              statusCode = getter.getLastStatusCode();
+              if (statusCode < 0) {
+                // getLastStatusCode is returning -1
+                statusCode = 200;
               }
-              return Closure.DONE;
+            } catch (HttpResponseException e) {
+              statusCode = e.getStatusCode();
+              throw e;
+            } catch (Exception e) {
+              log.error("mediaDownload exception from {}", object.getName(), e);
+              throw e;
+            } finally {
+              long nanos = clock.monotonicTime() - startTime;
+              String status = Integer.toString(statusCode).charAt(0) + "xx";
+              Id id =
+                  mediaDownloadTimer.withTags(
+                      "status", status, "statusCode", Integer.toString(statusCode));
+              registry.timer(id).record(nanos, TimeUnit.NANOSECONDS);
             }
+            return null;
           };
-      doRetry(timeExecuteClosure, "deserialize", object.getName());
+      doRetry(closure, "deserialize", object.getName());
 
       String json = output.toString("UTF8");
       return objectMapper.readValue(json, clas);
-    } catch (Exception ex) {
+    } catch (RuntimeException | IOException ex) {
       if (current_version) {
         log.error("Error reading {}: ", value("object", object.getName()), ex);
       } else {
@@ -733,33 +710,20 @@ public class GcsStorageService implements StorageService {
   private long getLastModifiedOfTypeName(String daoTypeName) {
     String path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
     try {
-      long[] updatedTimestampHolder = new long[1];
-      Closure timeExecuteClosure =
-          new Closure<String>(this, this) {
-            public Object doCall() throws Exception {
-              updatedTimestampHolder[0] =
-                  obj_api.get(bucketName, path).execute().getUpdated().getValue();
-              return Closure.DONE;
-            }
-          };
-      doRetry(timeExecuteClosure, "get last modified", daoTypeName);
-
-      return updatedTimestampHolder[0];
-    } catch (Exception e) {
-      if (e instanceof HttpResponseException) {
-        HttpResponseException hre = (HttpResponseException) e;
-        long now = System.currentTimeMillis();
-        if (hre.getStatusCode() == 404) {
-          log.info("No timestamp file at {}. Creating a new one.", value("path", path));
-          writeLastModified(daoTypeName);
-          return now;
-        }
-        log.error("Error writing timestamp file:", e);
-        return now;
-      } else {
-        log.error("Error accessing timestamp file:", e);
-        return System.currentTimeMillis();
-      }
+      return doRetry(
+          () -> obj_api.get(bucketName, path).execute().getUpdated().getValue(),
+          "get last modified",
+          daoTypeName);
+    } catch (GoogleApiException.NotFoundException e) {
+      log.info("No timestamp file at {}. Creating a new one.", value("path", path));
+      writeLastModified(daoTypeName);
+      return System.currentTimeMillis();
+    } catch (GoogleApiException e) {
+      log.error("Error writing timestamp file:", e);
+      return System.currentTimeMillis();
+    } catch (RuntimeException e) {
+      log.error("Error accessing timestamp file:", e);
+      return System.currentTimeMillis();
     }
   }
 
@@ -771,21 +735,26 @@ public class GcsStorageService implements StorageService {
     return daoRoot(daoTypeName) + '/' + key + '/' + dataFilename;
   }
 
-  public void doRetry(Closure operation, String action, String resource) {
-    doRetry(operation, action, resource, Arrays.asList(500), null);
+  @Nullable
+  private <V> V doRetry(Callable<V> operation, String action, String resource)
+      throws GoogleApiException {
+    return doRetry(operation, action, resource, ImmutableList.of(500), ImmutableList.of());
   }
 
-  public void doRetry(
-      Closure operation, String action, String resource, List errorCodes, List successCodes) {
-    gcsSafeRetry.doRetry(
+  @Nullable
+  private <V> V doRetry(
+      Callable<V> operation,
+      String action,
+      String resource,
+      List<Integer> errorCodes,
+      List<Integer> successCodes)
+      throws GoogleApiException {
+    String description = String.format("%s on %s", action, resource);
+    return safeRetry.doRetry(
         operation,
-        resource,
+        description,
         errorCodes,
         successCodes,
-        maxWaitInterval,
-        retryIntervalBase,
-        jitterMultiplier,
-        maxRetries,
         ImmutableMap.of("action", action),
         registry);
   }

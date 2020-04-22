@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.front50.retry;
 
 public class GcsProviderOperationException extends RuntimeException {
-  public GcsProviderOperationException(String message) {
-    super(message);
+  public GcsProviderOperationException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

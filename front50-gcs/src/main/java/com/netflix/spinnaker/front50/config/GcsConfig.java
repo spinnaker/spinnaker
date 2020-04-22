@@ -42,16 +42,16 @@ import rx.schedulers.Schedulers;
 @EnableConfigurationProperties(GcsProperties.class)
 public class GcsConfig extends CommonStorageServiceDAOConfig {
   @Value("${spinnaker.gcs.safe-retry.max-wait-interval-ms:60000}")
-  Long maxWaitInterval;
+  int maxWaitInterval;
 
   @Value("${spinnaker.gcs.safe-retry.retry-interval-base-sec:2}")
-  Long retryIntervalBase;
+  int retryIntervalBase;
 
   @Value("${spinnaker.gcs.safe-retry.jitter-multiplier:1000}")
-  Long jitterMultiplier;
+  int jitterMultiplier;
 
   @Value("${spinnaker.gcs.safe-retry.max-retries:10}")
-  Long maxRetries;
+  int maxRetries;
 
   @Value("${spinnaker.gcs.connect-timeout-sec:45}")
   Integer connectTimeoutSec;
