@@ -107,7 +107,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
 
   @Override
   Collection<String> getNames() {
-    return loadBalancers + targetGroups + securityGroupNames
+    return (loadBalancers ?: []) + (targetGroups ?: []) + (securityGroupNames ?: [])
   }
 
   @Override
