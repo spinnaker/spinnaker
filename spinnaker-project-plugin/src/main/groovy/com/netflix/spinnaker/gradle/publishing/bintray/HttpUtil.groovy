@@ -67,5 +67,17 @@ class HttpUtil {
       this.statusLine = statusLine
       this.responseBody = responseBody
     }
+
+    void throwIfFailed(String message) {
+      if (responseCode >= 400) {
+        throw new BintrayRequestFailedException("Bintray API Request '$message' failed with HTTP response $responseCode $statusLine")
+      }
+    }
+  }
+
+  static class BintrayRequestFailedException extends RuntimeException {
+    BintrayRequestFailedException(String message) {
+      super(message)
+    }
   }
 }

@@ -29,6 +29,7 @@ class BintrayPublishVersionTask extends DefaultTask {
     project.logger.info("Waiting for HTTP response")
     def response = http.response
     project.logger.info("Version publish finished with status $response.responseCode: $response.statusLine")
-    project.logger.debug("Version publish response:\n$response.responseBody")
+    project.logger.info("Version publish response:\n$response.responseBody")
+    response.throwIfFailed("publish version")
   }
 }

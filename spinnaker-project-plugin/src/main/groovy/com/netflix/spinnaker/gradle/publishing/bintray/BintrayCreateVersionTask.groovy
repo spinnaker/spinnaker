@@ -30,6 +30,7 @@ class BintrayCreateVersionTask extends DefaultTask {
     project.logger.info("Waiting for HTTP response")
     def response = http.response
     project.logger.info("Create Version request finished with status $response.responseCode: $response.statusLine")
-    project.logger.debug("Create Version response:\n$response.responseBody")
+    project.logger.info("Create Version response:\n$response.responseBody")
+    response.throwIfFailed("create version $project.version")
   }
 }

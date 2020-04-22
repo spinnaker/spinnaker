@@ -28,6 +28,7 @@ class BintrayDebUploadTask extends DefaultTask {
     project.logger.info("Waiting for HTTP response")
     def response = http.response
     project.logger.info("Upload finished with status $response.responseCode: $response.statusLine")
-    project.logger.debug("Upload response:\n$response.responseBody")
+    project.logger.info("Upload response:\n$response.responseBody")
+    response.throwIfFailed("upload deb $file.name")
   }
 }

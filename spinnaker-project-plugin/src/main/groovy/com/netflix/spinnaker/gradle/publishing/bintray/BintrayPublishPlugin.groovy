@@ -2,13 +2,12 @@ package com.netflix.spinnaker.gradle.publishing.bintray
 
 import com.netflix.gradle.plugins.deb.Deb
 import com.netflix.gradle.plugins.packaging.SystemPackagingPlugin
-import com.netflix.spinnaker.gradle.Flags
-import com.netflix.spinnaker.gradle.publishing.PublishingPlugin
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskProvider
@@ -18,6 +17,7 @@ class BintrayPublishPlugin implements Plugin<Project> {
 
   @Override
   void apply(Project project) {
+    project.plugins.apply(BasePlugin)
     def extension = project.extensions.create("bintraySpinnaker", BintrayPublishExtension, project)
     if (!extension.hasCreds()) {
       project.logger.info("Not configuring bintray publishing, ensure bintrayUser and bintrayKey project properties are set")
@@ -65,7 +65,7 @@ class BintrayPublishPlugin implements Plugin<Project> {
         def createVersionTask = project.rootProject.tasks.named("createBintrayVersion")
 
         project.tasks.matching { Task t ->
-          t.name == "publish${PublishingPlugin.PUBLICATION_NAME.capitalize()}PublicationTo${MAVEN_REPO_NAME.capitalize()}Repository"
+          t.name ==~ /^publish.*PublicationTo${MAVEN_REPO_NAME.capitalize()}Repository$/
         }.configureEach {
           it.onlyIf { extension.enabled().get() }
           it.onlyIf { extension.jarEnabled().get() }
@@ -88,8 +88,8 @@ class BintrayPublishPlugin implements Plugin<Project> {
           it.onlyIf { project.version.toString() != Project.DEFAULT_VERSION }
       }
 
-      project.tasks.named('publish') {
-        dependsOn(publishDeb)
+      project.tasks.matching { it.name == "publish" }.configureEach {
+        it.dependsOn(publishDeb)
       }
     }
   }
