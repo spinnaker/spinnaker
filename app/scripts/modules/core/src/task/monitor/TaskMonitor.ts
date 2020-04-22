@@ -131,6 +131,7 @@ export class TaskMonitor {
     if (this.onTaskRetry) {
       this.onTaskRetry();
     }
+    this.statusUpdatedStream.next();
   };
 
   public submit = (submitMethod?: () => IPromise<ITask>) => {
