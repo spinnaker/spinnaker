@@ -12,7 +12,9 @@ import org.redline_rpm.header.Flags
 group = "com.netflix.spinnaker.deck"
 apply plugin: "nebula.ospackage"
 
-
+// BintrayPublishPlugin looks for a task named "publish" to attach its tasks to,
+// so we need to make sure one exists. Normally this would be created by the
+// publishing plugin, but we aren't applying that here.
 project.tasks.register("publish")
 
 node {
