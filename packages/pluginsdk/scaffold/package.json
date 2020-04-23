@@ -1,0 +1,20 @@
+{
+  "name": "spinnaker-deck-plugin-scaffold",
+  "version": "1.0.0",
+  "private": true,
+  "module": "build/dist/index.js",
+  "scripts": {
+    "clean": "npx rm -rf build",
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "postinstall": "check-peer-dependencies"
+  },
+  "files": [
+    "build/dist"
+  ],
+  "dependencies": {
+    "@spinnaker/pluginsdk": "latest"
+  },
+  "devDependencies": {
+  }
+}

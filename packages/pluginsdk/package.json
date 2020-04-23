@@ -12,8 +12,12 @@
     "postinstall": "./scripts/syncPeerDependencies.js",
     "prepublishOnly": "npm run build"
   },
+  "bin": {
+    "scaffold": "scripts/scaffold.js"
+  },
   "dependencies": {
-    "check-peer-dependencies": "^2.0.1"
+    "check-peer-dependencies": "^2.0.1",
+    "readline-sync": "^1.4.10"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "11.0.2",
@@ -77,6 +81,7 @@
   ],
   "files": [
     "dist",
+    "scaffold",
     "scripts",
     "pluginconfig"
   ]

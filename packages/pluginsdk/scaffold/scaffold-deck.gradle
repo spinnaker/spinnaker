@@ -1,0 +1,1 @@
+apply plugin: "io.spinnaker.plugin.ui-extension"
