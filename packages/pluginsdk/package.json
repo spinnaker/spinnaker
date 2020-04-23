@@ -13,11 +13,14 @@
     "prepublishOnly": "npm run build"
   },
   "bin": {
-    "scaffold": "scripts/scaffold.js"
+    "scaffold": "scripts/scaffold.js",
+    "check-plugin": "scripts/check-plugin.js"
   },
   "dependencies": {
     "check-peer-dependencies": "^2.0.1",
-    "readline-sync": "^1.4.10"
+    "readline-sync": "^1.4.10",
+    "strip-json-comments": "^3.1.0",
+    "yargs": "^15.3.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "11.0.2",

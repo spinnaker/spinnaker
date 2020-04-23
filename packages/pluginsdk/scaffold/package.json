@@ -4,10 +4,10 @@
   "private": true,
   "module": "build/dist/index.js",
   "scripts": {
-    "clean": "npx rm -rf build",
+    "clean": "npx shx rm -rf build",
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "postinstall": "check-peer-dependencies"
+    "postinstall": "check-plugin && check-peer-dependencies"
   },
   "files": [
     "build/dist"
