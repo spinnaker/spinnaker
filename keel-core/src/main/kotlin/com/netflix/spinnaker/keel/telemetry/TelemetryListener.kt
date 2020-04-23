@@ -139,6 +139,7 @@ class TelemetryListener(
           .between(it.get(), clock.instant())
           .toMillis()
           .toDouble()
+          .div(1000) // convert to seconds
       }
   }
 
