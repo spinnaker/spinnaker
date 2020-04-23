@@ -33,6 +33,7 @@ import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
@@ -49,7 +50,11 @@ public class GoogleProfileReader implements ProfileReader {
 
   @Autowired ObjectMapper relaxedObjectMapper;
 
-  @Autowired Yaml yamlParser;
+  @Autowired ApplicationContext applicationContext;
+
+  private Yaml getYamlParser() {
+    return applicationContext.getBean(Yaml.class);
+  }
 
   @Bean
   public Storage applicationDefaultGoogleStorage() {
@@ -71,12 +76,12 @@ public class GoogleProfileReader implements ProfileReader {
     String bomName = bomPath(version);
 
     return relaxedObjectMapper.convertValue(
-        yamlParser.load(getContents(bomName)), BillOfMaterials.class);
+        getYamlParser().load(getContents(bomName)), BillOfMaterials.class);
   }
 
   public Versions readVersions() throws IOException {
     return relaxedObjectMapper.convertValue(
-        yamlParser.load(getContents("versions.yml")), Versions.class);
+        getYamlParser().load(getContents("versions.yml")), Versions.class);
   }
 
   public InputStream readArchiveProfile(String artifactName, String version, String profileName)

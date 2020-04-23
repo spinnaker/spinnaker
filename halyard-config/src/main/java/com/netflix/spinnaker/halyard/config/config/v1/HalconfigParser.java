@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.parser.ParserException;
@@ -64,9 +65,13 @@ public class HalconfigParser {
 
   @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
 
-  @Autowired Yaml yamlParser;
+  @Autowired ApplicationContext applicationContext;
 
   private boolean useBackup = false;
+
+  private Yaml getYamlParser() {
+    return applicationContext.getBean(Yaml.class);
+  }
 
   /**
    * Parse Halyard's config.
@@ -76,7 +81,7 @@ public class HalconfigParser {
    * @see Halconfig
    */
   Halconfig parseHalconfig(InputStream is) throws IllegalArgumentException {
-    Object obj = yamlParser.load(is);
+    Object obj = getYamlParser().load(is);
     return objectMapper.convertValue(obj, Halconfig.class);
   }
 
@@ -232,7 +237,7 @@ public class HalconfigParser {
     AtomicFileWriter writer = null;
     try {
       writer = new AtomicFileWriter(path);
-      writer.write(yamlParser.dump(objectMapper.convertValue(local, Map.class)));
+      writer.write(getYamlParser().dump(objectMapper.convertValue(local, Map.class)));
       writer.commit();
     } catch (IOException e) {
       throw new HalException(

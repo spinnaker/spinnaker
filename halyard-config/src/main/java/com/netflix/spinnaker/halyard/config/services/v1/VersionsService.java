@@ -30,14 +30,11 @@ import java.io.IOException;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
 @Component
 public class VersionsService {
   @Autowired ProfileRegistry profileRegistry;
-
-  @Autowired Yaml yamlParser;
 
   @Autowired RelaxedObjectMapper relaxedObjectMapper;
 

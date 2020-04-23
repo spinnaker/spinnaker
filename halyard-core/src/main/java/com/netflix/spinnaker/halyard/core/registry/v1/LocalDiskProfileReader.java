@@ -35,6 +35,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
@@ -45,9 +46,13 @@ public class LocalDiskProfileReader implements ProfileReader {
 
   @Autowired ObjectMapper relaxedObjectMapper;
 
-  @Autowired Yaml yamlParser;
+  @Autowired ApplicationContext applicationContext;
 
   private static final String HALCONFIG_DIR = "halconfig";
+
+  private Yaml getYamlParser() {
+    return applicationContext.getBean(Yaml.class);
+  }
 
   @Override
   public InputStream readProfile(String artifactName, String version, String profileName)
@@ -72,7 +77,7 @@ public class LocalDiskProfileReader implements ProfileReader {
     String versionName = Versions.fromLocal(version);
     String bomName = bomPath(versionName);
     return relaxedObjectMapper.convertValue(
-        yamlParser.load(getContents(bomName)), BillOfMaterials.class);
+        getYamlParser().load(getContents(bomName)), BillOfMaterials.class);
   }
 
   @Override

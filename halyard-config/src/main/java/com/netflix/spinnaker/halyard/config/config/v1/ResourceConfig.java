@@ -21,7 +21,9 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -94,6 +96,8 @@ public class ResourceConfig {
   }
 
   @Bean
+  @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE) // snake yaml is not thread safe
+  // (https://bitbucket.org/asomov/snakeyaml/wiki/Documentation#markdown-header-threading)
   Yaml yamlParser() {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
