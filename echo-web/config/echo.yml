@@ -52,3 +52,21 @@ resilience4j.circuitbreaker:
       waitDurationInOpenState: 12h
       # Try to get back to a working state...
       permittedNumberOfCallsInHalfOpenState: 1
+
+---
+# This profile is used in sharded deployments for an Echo that handles only
+# scheduled tasks.
+spring:
+  profiles: scheduler
+
+scheduler:
+  enabled: true
+
+---
+# This profile is used in sharded deployments for an Echo that handles all
+# operations other than scheduled tasks.
+spring:
+  profiles: worker
+
+scheduler:
+  enabled: false
