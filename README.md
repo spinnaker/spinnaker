@@ -1,6 +1,5 @@
 _**IMPORTANT:** This service is currently under development and is not ready for production use._
 
-
 ---
 
 ![Release](https://github.com/spinnaker/keel/workflows/Release/badge.svg)

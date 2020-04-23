@@ -19,10 +19,10 @@ object MemoryCloudDriverCacheTest {
   val cloudDriver = mockk<CloudDriverService>()
   val subject = MemoryCloudDriverCache(cloudDriver)
 
-  val securityGroupSummaries = setOf(
-    SecurityGroupSummary("foo", "sg-1", "vpc-1"),
-    SecurityGroupSummary("bar", "sg-2", "vpc-1")
-  )
+  val sg1 = SecurityGroupSummary("foo", "sg-1", "vpc-1")
+  val sg2 = SecurityGroupSummary("bar", "sg-2", "vpc-1")
+
+  val securityGroupSummaries = setOf(sg1, sg2)
 
   val vpcs = setOf(
     Network("aws", "vpc-1", "vpcName", "prod", "us-west-2"),
@@ -50,8 +50,8 @@ object MemoryCloudDriverCacheTest {
   @Test
   fun `security groups are looked up from CloudDriver when accessed by id`() {
     coEvery {
-      cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
-    } returns securityGroupSummaries
+      cloudDriver.getSecurityGroupSummaryById("prod", "aws", "us-east-1", "sg-2")
+    } returns sg2
     coEvery {
       cloudDriver.getCredential("prod")
     } returns Credential("prod", "aws")
@@ -67,16 +67,16 @@ object MemoryCloudDriverCacheTest {
   @Test
   fun `security groups are looked up from CloudDriver when accessed by name`() {
     coEvery {
-      cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
-    } returns securityGroupSummaries
+      cloudDriver.getSecurityGroupSummaryByName("prod", "aws", "us-east-1", "foo")
+    } returns sg1
     coEvery {
       cloudDriver.getCredential("prod")
     } returns Credential("prod", "aws")
 
-    subject.securityGroupByName("prod", "us-east-1", "bar").let { securityGroupSummary ->
+    subject.securityGroupByName("prod", "us-east-1", "foo").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
-        get { name }.isEqualTo("bar")
-        get { id }.isEqualTo("sg-2")
+        get { name }.isEqualTo("foo")
+        get { id }.isEqualTo("sg-1")
       }
     }
   }
@@ -84,8 +84,8 @@ object MemoryCloudDriverCacheTest {
   @Test
   fun `an invalid security group id throws an exception`() {
     coEvery {
-      cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
-    } returns securityGroupSummaries
+      cloudDriver.getSecurityGroupSummaryById("prod", "aws", "us-east-1", "sg-4")
+    } returns null
 
     expectThrows<ResourceNotFound> {
       subject.securityGroupById("prod", "us-east-1", "sg-4")

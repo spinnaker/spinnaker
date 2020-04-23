@@ -31,7 +31,7 @@ class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
 ) : CloudDriverCache {
 
-  private val securityGroupSummariesById = Caffeine.newBuilder()
+  private val securityGroupSummariesByIdOrName = Caffeine.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(1, MINUTES)
     .build<String, SecurityGroupSummary>()
@@ -67,29 +67,25 @@ class MemoryCloudDriverCache(
     }
 
   override fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary =
-    securityGroupSummariesById.getOrNotFound(
+    securityGroupSummariesByIdOrName.getOrNotFound(
       "$account:$region:$id",
       "Security group with id $id not found in the $account account and $region region"
     ) {
       val credential = credentialBy(account)
 
       // TODO-AJ should be able to swap this out for a call to `/search`
-      cloudDriver
-        .getSecurityGroupSummaries(account, credential.type, region, DEFAULT_SERVICE_ACCOUNT)
-        .firstOrNull { it.id == id }
+      cloudDriver.getSecurityGroupSummaryById(account, credential.type, region, id, DEFAULT_SERVICE_ACCOUNT)
     }
 
   override fun securityGroupByName(account: String, region: String, name: String): SecurityGroupSummary =
-    securityGroupSummariesById.getOrNotFound(
+    securityGroupSummariesByIdOrName.getOrNotFound(
       "$account:$region:$name",
       "Security group with name $name not found in the $account account and $region region"
     ) {
       val credential = credentialBy(account)
 
       // TODO-AJ should be able to swap this out for a call to `/search`
-      cloudDriver
-        .getSecurityGroupSummaries(account, credential.type, region, DEFAULT_SERVICE_ACCOUNT)
-        .firstOrNull { it.name == name }
+      cloudDriver.getSecurityGroupSummaryByName(account, credential.type, region, name, DEFAULT_SERVICE_ACCOUNT)
     }
 
   override fun networkBy(id: String): Network =
@@ -99,7 +95,6 @@ class MemoryCloudDriverCache(
         ?.firstOrNull { it.id == id }
     }
 
-  // TODO rz - caches here aren't very efficient
   // TODO rz - caches here aren't very efficient
   override fun networkBy(name: String?, account: String, region: String): Network =
     networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
