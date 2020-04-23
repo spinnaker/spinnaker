@@ -52,6 +52,7 @@ class EcsTargetGroupCacheClientSpec extends Specification {
       instances: [],
       healthCheckTimeoutSeconds: 30,
       targetGroupArn: 'arn',
+      targetType: 'ip',
       healthCheckPort: 1337,
       matcher: [:],
       healthCheckProtocol: 'http',

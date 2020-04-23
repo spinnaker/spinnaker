@@ -61,6 +61,10 @@ public class EcsTargetGroupCacheClient {
     return targetGroups;
   }
 
+  public Collection<String> getAllKeys() {
+    return cacheView.getIdentifiers(TARGET_GROUPS.ns);
+  }
+
   private EcsTargetGroup convertToTargetGroup(Map<String, Object> targetGroupAttributes) {
     EcsTargetGroup ecsTargetGroup =
         objectMapper.convertValue(targetGroupAttributes, EcsTargetGroup.class);

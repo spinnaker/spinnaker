@@ -28,7 +28,7 @@ public class EcsLoadBalancerDetail implements Details {
   String region;
   String name;
   String vpcId;
-  String type = "aws";
+  String type = "ecs";
   String loadBalancerType;
   List<String> securityGroups = new LinkedList<>();
   List<String> targetGroups = new LinkedList<>();

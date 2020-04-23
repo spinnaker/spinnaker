@@ -16,34 +16,49 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancer;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
+
+import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
+import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsLoadbalancerCacheClient;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsTargetGroupCacheClient;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsLoadBalancerCache;
+import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
+import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsLoadBalancer;
 import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsLoadBalancerDetail;
 import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsLoadBalancerSummary;
-import com.netflix.spinnaker.clouddriver.ecs.security.ECSCredentialsConfig;
+import com.netflix.spinnaker.clouddriver.ecs.model.loadbalancer.EcsTargetGroup;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
+public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBalancer> {
 
   private final EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient;
-  private final ECSCredentialsConfig ecsCredentialsConfig;
+  private final EcsAccountMapper ecsAccountMapper;
+  private final ServiceCacheClient ecsServiceCacheClient;
+  private final EcsTargetGroupCacheClient ecsTargetGroupCacheClient;
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
   public EcsLoadBalancerProvider(
       EcsLoadbalancerCacheClient ecsLoadbalancerCacheClient,
-      ECSCredentialsConfig ecsCredentialsConfig) {
+      EcsAccountMapper ecsAccountMapper,
+      ServiceCacheClient ecsServiceCacheClient,
+      EcsTargetGroupCacheClient ecsTargetGroupCacheClient) {
     this.ecsLoadbalancerCacheClient = ecsLoadbalancerCacheClient;
-    this.ecsCredentialsConfig = ecsCredentialsConfig;
+    this.ecsAccountMapper = ecsAccountMapper;
+    this.ecsServiceCacheClient = ecsServiceCacheClient;
+    this.ecsTargetGroupCacheClient = ecsTargetGroupCacheClient;
   }
 
   @Override
@@ -57,8 +72,7 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
     List<EcsLoadBalancerCache> loadBalancers = ecsLoadbalancerCacheClient.findAll();
 
     for (EcsLoadBalancerCache lb : loadBalancers) {
-      String account = getEcsAccountName(lb.getAccount());
-      if (account == null) {
+      if (lb.getAccount() == null) {
         continue;
       }
 
@@ -72,7 +86,7 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
       }
 
       EcsLoadBalancerDetail loadBalancer = new EcsLoadBalancerDetail();
-      loadBalancer.setAccount(account);
+      loadBalancer.setAccount(lb.getAccount());
       loadBalancer.setRegion(region);
       loadBalancer.setName(name);
       loadBalancer.setVpcId(lb.getVpcId());
@@ -81,7 +95,7 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
       loadBalancer.setTargetGroups(lb.getTargetGroups());
 
       summary
-          .getOrCreateAccount(account)
+          .getOrCreateAccount(lb.getAccount())
           .getOrCreateRegion(region)
           .getLoadBalancers()
           .add(loadBalancer);
@@ -92,27 +106,113 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadB
 
   @Override
   public Item get(String name) {
-    return null; // TODO - Implement this.
+    return null; // intentionally null, implement if/when needed in Deck.
   }
 
   @Override
   public List<Details> byAccountAndRegionAndName(String account, String region, String name) {
-    return null; // TODO - Implement this.  This is used to show the details view of a load balancer
-    // which is not even implemented yet
+    return null; // intentionally null, implement if/when needed in Deck.
   }
 
   @Override
-  public Set<AmazonLoadBalancer> getApplicationLoadBalancers(String application) {
-    return null; // TODO - Implement this.  This is used to show load balancers and reveals other
-    // buttons
-  }
+  public Set<EcsLoadBalancer> getApplicationLoadBalancers(String application) {
+    // Find the load balancers currently in use by ECS services in this application
+    Set<Service> services =
+        ecsServiceCacheClient.getAll().stream()
+            .filter(service -> service.getApplicationName().equals(application))
+            .collect(Collectors.toSet());
+    log.debug("Retrieved {} services for application '{}'", services.size(), application);
 
-  private String getEcsAccountName(String awsAccountName) {
-    for (ECSCredentialsConfig.Account ecsAccount : ecsCredentialsConfig.getAccounts()) {
-      if (ecsAccount.getAwsAccount().equals(awsAccountName)) {
-        return ecsAccount.getName();
+    Collection<String> allTargetGroupKeys = ecsTargetGroupCacheClient.getAllKeys();
+    log.debug(
+        "Retrieved {} target group keys for application '{}'",
+        allTargetGroupKeys.size(),
+        application);
+
+    Map<String, Set<String>> targetGroupToServicesMap = new HashMap<>();
+    Set<String> targetGroupKeys = new HashSet<>();
+
+    // find all the target group cache keys
+    for (Service service : services) {
+      String awsAccountName =
+          ecsAccountMapper.fromEcsAccountNameToAwsAccountName(service.getAccount());
+      for (LoadBalancer loadBalancer : service.getLoadBalancers()) {
+        if (loadBalancer.getTargetGroupArn() != null) {
+          String tgArn = loadBalancer.getTargetGroupArn();
+          String keyPrefix =
+              String.format(
+                  "%s:%s:%s:%s:%s:",
+                  AmazonCloudProvider.ID,
+                  TARGET_GROUPS.getNs(),
+                  awsAccountName,
+                  service.getRegion(),
+                  ArnUtils.extractTargetGroupName(tgArn).get());
+          Set<String> matchingKeys =
+              allTargetGroupKeys.stream()
+                  .filter(key -> key.startsWith(keyPrefix))
+                  .collect(Collectors.toSet());
+          targetGroupKeys.addAll(matchingKeys);
+          // associate target groups with services it contains targets for
+          if (targetGroupToServicesMap.containsKey(tgArn)) {
+            Set<String> serviceList = targetGroupToServicesMap.get(tgArn);
+            serviceList.add(service.getServiceName());
+            targetGroupToServicesMap.put(tgArn, serviceList);
+          } else {
+            Set<String> srcServices = Collections.singleton(service.getServiceName());
+            targetGroupToServicesMap.put(tgArn, srcServices);
+          }
+        }
       }
     }
-    return null;
+
+    // retrieve matching target groups
+    List<EcsTargetGroup> tgs = ecsTargetGroupCacheClient.find(targetGroupKeys);
+
+    // find the load balancers for those target groups
+    List<EcsLoadBalancerCache> tgLBs =
+        ecsLoadbalancerCacheClient.findWithTargetGroups(targetGroupKeys);
+    log.debug(
+        "Retrieved {} load balancers for {} target group keys.",
+        tgLBs.size(),
+        targetGroupKeys.size());
+
+    Set<EcsLoadBalancer> ecsLoadBalancers = new HashSet<>();
+    for (EcsLoadBalancerCache loadBalancerCache : tgLBs) {
+      List<EcsTargetGroup> matchingTGs =
+          tgs.stream()
+              .filter(tg -> loadBalancerCache.getTargetGroups().contains(tg.getTargetGroupName()))
+              .collect(Collectors.toList());
+      EcsLoadBalancer ecsLB =
+          makeEcsLoadBalancer(loadBalancerCache, matchingTGs, targetGroupToServicesMap);
+      ecsLoadBalancers.add(ecsLB);
+    }
+
+    return ecsLoadBalancers;
+  }
+
+  private EcsLoadBalancer makeEcsLoadBalancer(
+      EcsLoadBalancerCache elbCacheData,
+      List<EcsTargetGroup> tgCacheData,
+      Map<String, Set<String>> tgToServiceMap) {
+    EcsLoadBalancer ecsLoadBalancer = new EcsLoadBalancer();
+    ecsLoadBalancer.setAccount(elbCacheData.getAccount());
+    ecsLoadBalancer.setRegion(elbCacheData.getRegion());
+    ecsLoadBalancer.setLoadBalancerArn(elbCacheData.getLoadBalancerArn());
+    ecsLoadBalancer.setLoadBalancerName(elbCacheData.getLoadBalancerName());
+    ecsLoadBalancer.setLoadBalancerType(elbCacheData.getLoadBalancerType());
+    ecsLoadBalancer.setCloudProvider(elbCacheData.getCloudProvider());
+    ecsLoadBalancer.setListeners(elbCacheData.getListeners());
+    ecsLoadBalancer.setAvailabilityZones(elbCacheData.getAvailabilityZones());
+    ecsLoadBalancer.setIpAddressType(elbCacheData.getIpAddressType());
+    ecsLoadBalancer.setDnsname(elbCacheData.getDnsname());
+    ecsLoadBalancer.setVpcId(elbCacheData.getVpcId());
+    ecsLoadBalancer.setCreatedTime(elbCacheData.getCreatedTime());
+    ecsLoadBalancer.setSecurityGroups(elbCacheData.getSecurityGroups());
+    ecsLoadBalancer.setSubnets(elbCacheData.getSubnets());
+    ecsLoadBalancer.setTargetGroups(tgCacheData);
+    ecsLoadBalancer.setTargetGroupServices(tgToServiceMap);
+    // TODO: get, add target healths per service/tg
+
+    return ecsLoadBalancer;
   }
 }

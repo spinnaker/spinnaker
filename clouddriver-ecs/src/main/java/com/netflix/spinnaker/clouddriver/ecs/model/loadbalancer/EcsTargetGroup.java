@@ -27,6 +27,7 @@ public class EcsTargetGroup implements LoadBalancerProvider.Details {
 
   List<String> loadBalancerNames;
   List<String> instances;
+  String targetType;
   Integer healthCheckTimeoutSeconds;
   String targetGroupArn;
   String healthCheckPort;
