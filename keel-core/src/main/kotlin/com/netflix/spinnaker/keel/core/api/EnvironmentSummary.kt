@@ -14,7 +14,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
-import com.netflix.spinnaker.kork.exceptions.SystemException
+import org.slf4j.LoggerFactory
 
 /**
  * Summarized data about a specific environment, mostly for use by the UI.
@@ -30,6 +30,10 @@ data class EnvironmentSummary(
   val resources: Set<String>
     get() = environment.resources.map { it.id }.toSet()
 
+  companion object {
+    val log = LoggerFactory.getLogger(javaClass)
+  }
+
   fun getArtifactPromotionStatus(artifact: DeliveryArtifact, version: String) =
     artifacts.find { it.name == artifact.name && it.type == artifact.type }
       ?.let {
@@ -41,8 +45,10 @@ data class EnvironmentSummary(
           in it.versions.pending -> PENDING
           in it.versions.vetoed -> VETOED
           in it.versions.skipped -> SKIPPED
-          else -> throw SystemException("Unknown promotion status for artifact ${it.type}:${it.name}@$version in environment ${this.name}"
-          )
+          else -> {
+            log.error("Unknown promotion status for artifact ${it.type}:${it.name}@$version in environment ${this.name}: ${it.versions}")
+            null
+          }
         }
       }
 }
