@@ -144,4 +144,9 @@ public class KubernetesV2SecurityGroupProvider
         .findFirst()
         .orElse(null);
   }
+
+  @Override
+  public KubernetesV2SecurityGroup getById(String account, String region, String id, String vpcId) {
+    throw new UnsupportedOperationException("Not currently implemented.");
+  }
 }

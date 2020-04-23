@@ -49,4 +49,9 @@ class NoopSecurityGroupProvider implements SecurityGroupProvider {
   SecurityGroup get(String account, String region, String name, String vpcId) {
     null
   }
+
+  @Override
+  SecurityGroup getById(String account, String region, String id, String vpcId) {
+    null
+  }
 }

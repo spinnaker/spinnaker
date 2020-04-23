@@ -154,18 +154,29 @@ class SecurityGroupController {
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}/{region}/{securityGroupName:.+}")
-  SecurityGroup get(@PathVariable String account,
-                    @PathVariable String cloudProvider,
-                    @PathVariable String region,
-                    @PathVariable String securityGroupName,
-                    @RequestParam(value = "vpcId", required = false) String vpcId) {
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}/{region}/{securityGroupNameOrId:.+}")
+  SecurityGroup get(
+    @PathVariable String account,
+    @PathVariable String cloudProvider,
+    @PathVariable String region,
+    @PathVariable String securityGroupNameOrId,
+    @RequestParam(value = "vpcId", required = false) String vpcId,
+    @RequestParam(value = "getById", required = false, defaultValue = "false") boolean getById
+  ) {
     def securityGroup = securityGroupProviders.findResults { secGrpProv ->
-      secGrpProv.cloudProvider == cloudProvider ? secGrpProv.get(account, region, securityGroupName, vpcId) : null
+      if (secGrpProv.cloudProvider == cloudProvider) {
+        if (getById) {
+          secGrpProv.getById(account, region, securityGroupNameOrId, vpcId)
+        } else {
+          secGrpProv.get(account, region, securityGroupNameOrId, vpcId)
+        }
+      } else {
+        null
+      }
     }
 
     if (securityGroup.size() != 1) {
-      throw new NotFoundException("Security group '${securityGroupName}' does not exist")
+      throw new NotFoundException("Security group '${securityGroupNameOrId}' does not exist")
     }
 
     return securityGroup.first()

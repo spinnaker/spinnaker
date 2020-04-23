@@ -73,6 +73,11 @@ class AzureSecurityGroupProvider implements SecurityGroupProvider<AzureSecurityG
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(azureCloudProvider, name, '*', region, account), true)[0]
   }
 
+  @Override
+  AzureSecurityGroup getById(String account, String region, String id, String vnet) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(azureCloudProvider, '*', id, region, account), true)[0]
+  }
+
   Set<AzureSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
     loadResults(includeRules, cacheView.filterIdentifiers(Keys.Namespace.SECURITY_GROUPS.ns, pattern))
   }

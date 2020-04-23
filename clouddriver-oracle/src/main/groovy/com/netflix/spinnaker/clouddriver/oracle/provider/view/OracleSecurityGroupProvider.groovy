@@ -67,6 +67,12 @@ class OracleSecurityGroupProvider implements SecurityGroupProvider<OracleSecurit
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account), true)[0]
   }
 
+  @Override
+  OracleSecurityGroup getById(String account, String region, String id, String vpcId) {
+    // We ignore vpcId here.
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', id, region, account), true)[0]
+  }
+
   Set<OracleSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
     def identifiers = cacheView.filterIdentifiers(Keys.Namespace.SECURITY_GROUPS.ns, pattern)
     return loadResults(includeRules, identifiers)

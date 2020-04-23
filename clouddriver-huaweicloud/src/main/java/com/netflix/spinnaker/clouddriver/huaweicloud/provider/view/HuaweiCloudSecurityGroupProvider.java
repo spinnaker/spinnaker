@@ -170,6 +170,27 @@ public class HuaweiCloudSecurityGroupProvider
         .orElse(null);
   }
 
+  @Override
+  public HuaweiCloudSecurityGroup getById(String account, String region, String id, String vpcId) {
+    Set<HuaweiCloudSecurityGroup> result =
+        loadResults(
+            Keys.getSecurityGroupKey("*", id, account, region),
+            this.cacheView,
+            this.objectMapper,
+            true);
+
+    return result.stream()
+        .filter(
+            it -> {
+              boolean e1 = HuaweiCloudUtils.isEmptyStr(it.getVpcId());
+              boolean e2 = HuaweiCloudUtils.isEmptyStr(vpcId);
+
+              return (e1 == e2) && (e1 || vpcId.equals(it.getVpcId()));
+            })
+        .findFirst()
+        .orElse(null);
+  }
+
   private static Set<HuaweiCloudSecurityGroup> loadResults(
       String pattern, Cache cacheView, ObjectMapper objectMapper, boolean includeRules) {
 

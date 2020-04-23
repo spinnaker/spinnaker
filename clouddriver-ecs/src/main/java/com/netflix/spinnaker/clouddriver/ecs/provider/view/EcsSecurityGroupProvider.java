@@ -88,6 +88,13 @@ class EcsSecurityGroupProvider implements SecurityGroupProvider<EcsSecurityGroup
   }
 
   @Override
+  public EcsSecurityGroup getById(String account, String region, String id, String vpcId) {
+    String awsAccount = ecsAccountMapper.fromEcsAccountNameToAwsAccountName(account);
+    return amazonPrimitiveConverter.convertToEcsSecurityGroup(
+        amazonSecurityGroupProvider.getById(awsAccount, region, id, vpcId));
+  }
+
+  @Override
   public String getCloudProvider() {
     return cloudProvider;
   }

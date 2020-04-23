@@ -32,4 +32,5 @@ interface SecurityGroupProvider<T extends SecurityGroup> {
 
   T get(String account, String region, String name, String vpcId)
 
+  T getById(String account, String region, String id, String vpcId)
 }

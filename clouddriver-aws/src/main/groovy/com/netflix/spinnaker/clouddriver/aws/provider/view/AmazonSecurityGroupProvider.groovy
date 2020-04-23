@@ -140,6 +140,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     }
   }
 
+  @Override
   AmazonSecurityGroup getById(String account, String region, String securityGroupId, String vpcId) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId), true)[0]
   }

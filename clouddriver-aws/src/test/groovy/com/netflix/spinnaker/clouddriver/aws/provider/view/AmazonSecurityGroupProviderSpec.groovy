@@ -162,6 +162,23 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   }
 
+  void "getById returns match based on account, region, and id"() {
+
+    when:
+    def result = provider.getById(account, region, id, null)
+
+    then:
+    result != null
+    result.accountName == account
+    result.region == region
+    result.id == id
+
+    where:
+    account = 'prod'
+    region = 'us-east-1'
+    id = 'a'
+  }
+
   void "should add both ipRangeRules and securityGroup rules"() {
     given:
     String groupId = 'id-a'

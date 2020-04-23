@@ -70,6 +70,13 @@ class KubernetesV1SecurityGroupProvider implements SecurityGroupProvider<Kuberne
     lookup(account, namespace, name, true).getAt(0)
   }
 
+  @Override
+  KubernetesV1SecurityGroup getById(String account, String namespace, String id, String vpcId) {
+    lookup(account, namespace, "*", true).find { KubernetesV1SecurityGroup sg ->
+      sg.id == id
+    }
+  }
+
   Set<KubernetesV1SecurityGroup> lookup(String account, String namespace, String name, boolean includeRule) {
     def keys = cacheView.filterIdentifiers(Keys.Namespace.SECURITY_GROUPS.ns, Keys.getSecurityGroupKey(account, namespace, name))
     cacheView.getAll(Keys.Namespace.SECURITY_GROUPS.ns, keys).collect {

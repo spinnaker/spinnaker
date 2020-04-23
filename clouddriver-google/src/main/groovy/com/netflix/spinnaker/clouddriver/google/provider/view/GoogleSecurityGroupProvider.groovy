@@ -85,6 +85,11 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account), true)[0]
   }
 
+  @Override
+  GoogleSecurityGroup getById(String account, String region, String id, String vpcId) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', id, region, account), true)[0]
+  }
+
   Set<GoogleSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
     loadResults(includeRules, cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
   }

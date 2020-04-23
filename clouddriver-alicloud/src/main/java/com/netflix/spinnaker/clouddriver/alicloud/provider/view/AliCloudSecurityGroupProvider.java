@@ -52,6 +52,16 @@ public class AliCloudSecurityGroupProvider implements SecurityGroupProvider<AliC
   @Override
   public AliCloudSecurityGroup get(String account, String region, String name, String vpcId) {
     String key = Keys.getSecurityGroupKey(name, "*", region, account, vpcId);
+    return getByKey(key);
+  }
+
+  @Override
+  public AliCloudSecurityGroup getById(String account, String region, String id, String vpcId) {
+    String key = Keys.getSecurityGroupKey("*", id, region, account, vpcId);
+    return getByKey(key);
+  }
+
+  private AliCloudSecurityGroup getByKey(String key) {
     Collection<String> allSecurityGroupKeys =
         cacheView.filterIdentifiers(Namespace.SECURITY_GROUPS.ns, key);
     Collection<CacheData> allData =
