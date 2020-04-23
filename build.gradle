@@ -102,10 +102,18 @@ String toVers(String v) {
   return v
 }
 
+String toRelease(String v) {
+  int idx = v.lastIndexOf('-')
+  if (idx != -1) {
+    return v.substring(idx + 1)
+  }
+  return ''
+}
+
 ospackage {
   packageName = "spinnaker-deck"
   version = toVers(project.version.toString())
-  release '3'
+  release toRelease(project.version.toString())
   into "/opt/deck/html"
   from "build/webpack"
   os = LINUX
