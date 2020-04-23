@@ -25,7 +25,6 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -55,7 +54,7 @@ public class GooglePubsubProperties {
 
     @NotEmpty private String subscriptionName;
 
-    @NotNull @Builder.Default private Integer ackDeadlineSeconds = 10;
+    @Builder.Default private int ackDeadlineSeconds = 10;
 
     // Not required since subscriptions can be public.
     private String jsonPath;

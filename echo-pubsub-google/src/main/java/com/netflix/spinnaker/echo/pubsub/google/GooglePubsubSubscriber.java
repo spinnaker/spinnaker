@@ -149,7 +149,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
   private static class GooglePubsubMessageReceiver implements MessageReceiver {
 
-    private Integer ackDeadlineSeconds;
+    private int ackDeadlineSeconds;
 
     private PubsubMessageHandler pubsubMessageHandler;
 
@@ -161,7 +161,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     private NodeIdentity identity = new NodeIdentity();
 
     public GooglePubsubMessageReceiver(
-        Integer ackDeadlineSeconds,
+        int ackDeadlineSeconds,
         String subscriptionName,
         PubsubMessageHandler pubsubMessageHandler) {
       this.ackDeadlineSeconds = ackDeadlineSeconds;
@@ -173,7 +173,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
       String messagePayload = message.getData().toStringUtf8();
       String messageId = message.getMessageId();
-      Map messageAttributes =
+      Map<String, String> messageAttributes =
           message.getAttributesMap() == null ? new HashMap<>() : message.getAttributesMap();
       log.debug(
           "Received Google pub/sub message with payload: {}\n and attributes: {}",

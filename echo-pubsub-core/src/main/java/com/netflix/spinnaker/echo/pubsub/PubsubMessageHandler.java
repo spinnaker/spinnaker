@@ -112,7 +112,7 @@ public class PubsubMessageHandler {
 
   private boolean tryAck(
       String messageKey,
-      Integer ackDeadlineSeconds,
+      int ackDeadlineSeconds,
       MessageAcknowledger acknowledger,
       String identifier) {
     if (!acquireMessageLock(messageKey, identifier, ackDeadlineSeconds)) {
@@ -124,8 +124,7 @@ public class PubsubMessageHandler {
     }
   }
 
-  private Boolean acquireMessageLock(
-      String messageKey, String identifier, Integer ackDeadlineSeconds) {
+  private boolean acquireMessageLock(String messageKey, String identifier, int ackDeadlineSeconds) {
     String response =
         redisClientDelegate.withCommandsClient(
             c -> {

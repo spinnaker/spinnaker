@@ -45,7 +45,7 @@ public class MessageDescription {
 
   private PubsubSystem pubsubSystem;
 
-  private Integer ackDeadlineSeconds;
+  private int ackDeadlineSeconds;
 
   private Integer retentionDeadlineSeconds;
 

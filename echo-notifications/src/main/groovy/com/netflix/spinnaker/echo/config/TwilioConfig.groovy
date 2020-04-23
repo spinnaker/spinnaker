@@ -43,7 +43,7 @@ import retrofit.converter.JacksonConverter
 class TwilioConfig {
 
     @Bean
-    Endpoint twilioEndpoint(@Value('${twilio.base-url}') String twilioBaseUrl) {
+    Endpoint twilioEndpoint(@Value('${twilio.base-url:https://api.twilio.com/}') String twilioBaseUrl) {
         newFixedEndpoint(twilioBaseUrl)
     }
 
