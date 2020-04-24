@@ -11,7 +11,7 @@ if (SETTINGS.feature.managedDelivery) {
     label: 'Import Delivery Config',
     description:
       "Retrieve a Delivery Config manifest from the git repository configured in the pipeline's trigger, then update it in Spinnaker.",
-    extendedDescription: `<a target="_blank" href="https://www.spinnaker.io/reference/managed-delivery/git-based-workflows/">
+    extendedDescription: `<a target="_blank" href="https://www.spinnaker.io/guides/user/managed-delivery/git-based-workflows/">
       <span class="small glyphicon glyphicon-file"></span> Documentation</a>`,
     key: 'importDeliveryConfig',
     restartable: false,
