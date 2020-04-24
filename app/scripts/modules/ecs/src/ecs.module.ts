@@ -39,6 +39,12 @@ import { ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE } from './pipeline/stag
 import { ECS_PIPELINE_STAGES_SCALEDOWNCLUSTER_ECSSCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage';
 import { ECS_PIPELINE_STAGES_SHRINKCLUSTER_ECSSHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/ecsShrinkClusterStage';
 
+import { ECS_TARGET_GROUP_STATES } from './loadBalancer/targetGroup.states';
+import { EcsLoadBalancerDetails } from './loadBalancer/details/loadBalancerDetails';
+import { EcsLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
+import { EcsLoadBalancerClusterContainer } from './loadBalancer/EcsLoadBalancerClusterContainer';
+import { EcsTargetGroupDetails } from './loadBalancer/details/targetGroupDetails';
+
 require('./ecs.settings');
 
 // load all templates into the $templateCache
@@ -79,6 +85,7 @@ module(ECS_MODULE, [
   ECS_PIPELINE_STAGES_SHRINKCLUSTER_ECSSHRINKCLUSTERSTAGE,
   ECS_SECURITY_GROUP_MODULE,
   ECS_SERVERGROUP_MODULE,
+  ECS_TARGET_GROUP_STATES,
 ]).config(function() {
   CloudProviderRegistry.registerProvider('ecs', {
     name: 'EC2 Container Service',
@@ -92,6 +99,12 @@ module(ECS_MODULE, [
       commandBuilder: 'ecsServerGroupCommandBuilder',
       // configurationService: 'ecsServerGroupConfigurationService',
       scalingActivitiesEnabled: false,
+    },
+    loadBalancer: {
+      transformer: EcsLoadBalancerTransformer,
+      ClusterContainer: EcsLoadBalancerClusterContainer,
+      targetGroupDetails: EcsTargetGroupDetails,
+      details: EcsLoadBalancerDetails,
     },
     instance: {
       detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
