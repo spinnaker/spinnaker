@@ -38,6 +38,8 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
 import retrofit.RetrofitError
@@ -120,13 +122,19 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
           )
         ),
         "pathExpression" to ".someField"
-      )
+      ),
+      // Jackson writes this as ms-since-epoch, so we need to strip off the nanoseconds, since we'll
+      // be round-tripping it through Jackson before testing for equality.
+      timestamp = Instant.now().truncatedTo(ChronoUnit.MILLIS)
     )
 
     val accessDeniedError = SpringHttpError(
       status = FORBIDDEN.value(),
       error = FORBIDDEN.reasonPhrase,
-      message = "Access denied"
+      message = "Access denied",
+      // Jackson writes this as ms-since-epoch, so we need to strip off the nanoseconds, since we'll
+      // be round-tripping it through Jackson before testing for equality.
+      timestamp = Instant.now().truncatedTo(ChronoUnit.MILLIS)
     )
   }
 

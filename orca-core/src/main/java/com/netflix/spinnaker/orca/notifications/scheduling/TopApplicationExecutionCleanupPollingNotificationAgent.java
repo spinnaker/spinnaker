@@ -139,7 +139,8 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
   }
 
   private void cleanup(Observable<PipelineExecution> observable, String application, String type) {
-    List<Map> executions = observable.filter(filter).map(mapper).toList().toBlocking().single();
+    List<? extends Map> executions =
+        observable.filter(filter).map(mapper).toList().toBlocking().single();
     executions.sort(comparing(a -> (Long) Optional.ofNullable(a.get("startTime")).orElse(0L)));
     if (executions.size() > threshold) {
       executions
