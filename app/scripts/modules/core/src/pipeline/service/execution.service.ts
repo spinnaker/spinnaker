@@ -494,6 +494,7 @@ export class ExecutionService {
       });
       unhydrated.hydrated = true;
       unhydrated.graphStatusHash = hydrated.graphStatusHash;
+      unhydrated.stageSummaries = hydrated.stageSummaries;
       return unhydrated;
     });
     unhydrated.hydrator = Promise.resolve(executionHydrator);
