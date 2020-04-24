@@ -84,8 +84,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     }
 
     def asg = serverGroupData.attributes["asg"]
-    def serverGroup = new AmazonServerGroup(serverGroupData.attributes)
     def serverGroupById = [(serverGroupData.id): new AmazonServerGroup(serverGroupData.attributes)]
+    def serverGroup = serverGroupById.values().first()
 
     String imageId
 
@@ -104,7 +104,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     }
 
     CacheData imageConfigs = imageId ? cacheView.get(IMAGES.ns, Keys.getImageKey(imageId, account, region)) : null
-    updateServerGroupBuildInfo(serverGroupById, [imageConfigs])
+    serverGroup.image = imageConfigs ? imageConfigs.attributes : null
+    serverGroup.buildInfo = imageConfigs ? getBuildInfoFromImage(imageConfigs) : null
 
     serverGroup.accountName = account
 
@@ -564,17 +565,17 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
    */
   private static void updateServerGroupLaunchSettings(Map<String, AmazonServerGroup> serverGroups, Collection<CacheData> launchData) {
     for (ld in launchData) {
-      if (ld.relationships.containsKey(SERVER_GROUPS.ns)) {
-        def serverGroup = serverGroups[ld.relationships.serverGroups.first()]
-        if (serverGroup == null) {
-          continue
-        }
-
-        if (serverGroup.asg?.launchTemplate) {
-          def launchTemplateSpec = serverGroup.asg.launchTemplate as Map
-          serverGroup.launchTemplate = getLaunchTemplateVersion(ld, launchTemplateSpec.version as String)
-        } else {
-          serverGroup.launchConfig = ld.attributes
+      if (ld.relationships != null && ld.relationships.containsKey(SERVER_GROUPS.ns)) {
+        ld.relationships[SERVER_GROUPS.ns].each {
+          def serverGroup = serverGroups[it]
+          if (serverGroup != null) {
+            if (serverGroup.asg?.launchTemplate) {
+              def launchTemplateSpec = serverGroup.asg.launchTemplate as Map
+              serverGroup.launchTemplate = getLaunchTemplateVersion(ld, launchTemplateSpec.version as String)
+            } else {
+              serverGroup.launchConfig = ld.attributes
+            }
+          }
         }
       }
     }
@@ -589,8 +590,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     }
 
     imageData.each { ld ->
-      if (ld.relationships.containsKey(SERVER_GROUPS.ns)) {
-        def serverGroup = serverGroups[ld.relationships.serverGroups.first()]
+      if (ld.relationships != null && ld.relationships.containsKey(SERVER_GROUPS.ns)) {
+        def serverGroup = serverGroups[ld.relationships[SERVER_GROUPS.ns].first()]
         def imageId = ld.relationships[IMAGES.ns]?.first()
         if (serverGroup && imageId && images.containsKey(imageId)) {
           serverGroup.image = images[imageId].attributes
