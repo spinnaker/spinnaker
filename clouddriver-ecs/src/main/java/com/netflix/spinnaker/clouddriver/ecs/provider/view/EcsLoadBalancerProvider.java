@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
 
 import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
@@ -158,7 +159,7 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
             serviceList.add(service.getServiceName());
             targetGroupToServicesMap.put(tgArn, serviceList);
           } else {
-            Set<String> srcServices = Collections.singleton(service.getServiceName());
+            Set<String> srcServices = Sets.newHashSet(service.getServiceName());
             targetGroupToServicesMap.put(tgArn, srcServices);
           }
         }
