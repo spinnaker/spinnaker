@@ -6,7 +6,7 @@ javaPlatform {
 
 ext {
   versions = [
-    aws            : "1.11.723",
+    aws            : "1.11.764",
     bouncycastle   : "1.61",
     groovy         : "2.5.10", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     hystrix        : "1.4.21",
