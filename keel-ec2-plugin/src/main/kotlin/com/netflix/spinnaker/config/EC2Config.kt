@@ -33,6 +33,7 @@ import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
+import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import java.time.Clock
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -66,7 +67,8 @@ class EC2Config {
     taskLauncher: TaskLauncher,
     clock: Clock,
     normalizers: List<Resolver<*>>,
-    publisher: ApplicationEventPublisher
+    publisher: ApplicationEventPublisher,
+    clusterExportHelper: ClusterExportHelper
   ): ClusterHandler =
     ClusterHandler(
       cloudDriverService,
@@ -75,7 +77,8 @@ class EC2Config {
       taskLauncher,
       clock,
       publisher,
-      normalizers
+      normalizers,
+      clusterExportHelper
     )
 
   @Bean

@@ -50,6 +50,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
@@ -59,6 +60,7 @@ import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ExportError
+import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -82,7 +84,8 @@ class TitusClusterHandler(
   private val clock: Clock,
   private val taskLauncher: TaskLauncher,
   private val publisher: ApplicationEventPublisher,
-  resolvers: List<Resolver<*>>
+  resolvers: List<Resolver<*>>,
+  private val clusterExportHelper: ClusterExportHelper
 ) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
 
   private val mapper = configuredObjectMapper()
@@ -192,12 +195,20 @@ class TitusClusterHandler(
       }.toSet()
     )
 
+    val deployStrategy = clusterExportHelper.discoverDeploymentStrategy(
+      cloudProvider = "titus",
+      account = exportable.account,
+      application = exportable.moniker.app,
+      serverGroupName = base.name
+    ) ?: RedBlack()
+
     val spec = TitusClusterSpec(
       moniker = exportable.moniker,
       locations = locations,
       _defaults = base.exportSpec(exportable.moniker.app),
       overrides = mutableMapOf(),
-      containerProvider = base.container
+      containerProvider = base.container,
+      deployWith = deployStrategy.withDefaultsOmitted()
     )
 
     spec.generateOverrides(

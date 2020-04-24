@@ -48,6 +48,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
+import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
@@ -57,6 +58,7 @@ import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ExportError
+import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.dependsOn
 import com.netflix.spinnaker.keel.orca.restrictedExecutionWindow
@@ -82,7 +84,8 @@ class ClusterHandler(
   private val taskLauncher: TaskLauncher,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
-  resolvers: List<Resolver<*>>
+  resolvers: List<Resolver<*>>,
+  private val clusterExportHelper: ClusterExportHelper
 ) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
 
   private val mapper = configuredObjectMapper()
@@ -360,6 +363,13 @@ class ClusterHandler(
       regions = subnetAwareRegionSpecs
     ).withDefaultsOmitted()
 
+    val deployStrategy = clusterExportHelper.discoverDeploymentStrategy(
+      cloudProvider = "aws",
+      account = exportable.account,
+      application = exportable.moniker.app,
+      serverGroupName = base.name
+    ) ?: RedBlack()
+
     val spec = ClusterSpec(
       moniker = exportable.moniker,
       imageProvider = if (base.buildInfo?.packageName != null) {
@@ -368,6 +378,7 @@ class ClusterHandler(
         null
       },
       locations = locations,
+      deployWith = deployStrategy.withDefaultsOmitted(),
       _defaults = base.exportSpec(exportable.account, exportable.moniker.app),
       overrides = mutableMapOf()
     )
@@ -382,10 +393,17 @@ class ClusterHandler(
     return spec
   }
 
-  private fun List<ResourceDiff<ServerGroup>>.createsNewServerGroups() =
-    any {
-      !it.isCapacityOrAutoScalingOnly()
-    }
+  override suspend fun actuationInProgress(resource: Resource<ClusterSpec>) =
+    resource
+      .spec
+      .locations
+      .regions
+      .map { it.name }
+      .any { region ->
+        orcaService
+          .getCorrelatedExecutions("${resource.id}:$region")
+          .isNotEmpty()
+      }
 
   private fun ClusterSpec.generateOverrides(account: String, application: String, serverGroups: Map<String, ServerGroup>) =
     serverGroups.forEach { (region, serverGroup) ->
@@ -399,18 +417,6 @@ class ClusterHandler(
         (overrides as MutableMap)[region] = override
       }
     }
-
-  override suspend fun actuationInProgress(resource: Resource<ClusterSpec>) =
-    resource
-      .spec
-      .locations
-      .regions
-      .map { it.name }
-      .any { region ->
-        orcaService
-          .getCorrelatedExecutions("${resource.id}:$region")
-          .isNotEmpty()
-      }
 
   /**
    * @return `true` if the only changes in the diff are to capacity.

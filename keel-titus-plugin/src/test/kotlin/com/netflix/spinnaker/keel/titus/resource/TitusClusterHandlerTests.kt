@@ -51,6 +51,7 @@ import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
@@ -104,6 +105,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     publisher
   )
   val clock = Clock.systemUTC()
+  val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
 
   val sg1West = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")
   val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")
@@ -181,7 +183,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         clock,
         taskLauncher,
         publisher,
-        resolvers
+        resolvers,
+        clusterExportHelper
       )
     }
 
@@ -204,6 +207,9 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
       coEvery { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
       every { deliveryConfigRepository.environmentFor(any()) } returns Environment("test")
+      coEvery {
+        clusterExportHelper.discoverDeploymentStrategy("titus", "titustest", "keel", any())
+      } returns RedBlack()
     }
 
     after {
@@ -369,8 +375,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
-            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable.seconds)
-            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown.seconds)
+            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable?.seconds)
+            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown?.seconds)
             get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(deployWith.rollbackOnFailure)
             get("scaleDown").isEqualTo(deployWith.resizePreviousToZero)
             get("maxRemainingAsgs").isEqualTo(deployWith.maxServerGroups)
@@ -393,8 +399,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
-            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable.seconds)
-            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown.seconds)
+            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable?.seconds)
+            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown?.seconds)
             get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(deployWith.rollbackOnFailure)
             get("scaleDown").isEqualTo(deployWith.resizePreviousToZero)
             get("maxRemainingAsgs").isEqualTo(deployWith.maxServerGroups)

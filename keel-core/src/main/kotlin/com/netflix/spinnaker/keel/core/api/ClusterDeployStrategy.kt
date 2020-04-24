@@ -23,35 +23,61 @@ import java.time.Duration.ZERO
   Type(Highlander::class)
 )
 sealed class ClusterDeployStrategy {
-  abstract fun toOrcaJobProperties(): Map<String, Any?>
   @get:JsonIgnore
   open val isStaggered: Boolean = false
   @get:JsonInclude(NON_EMPTY)
   open val stagger: List<StaggeredRegion> = emptyList()
+  abstract fun toOrcaJobProperties(): Map<String, Any?>
+  abstract fun withDefaultsOmitted(): ClusterDeployStrategy
 }
 
 @JsonTypeName("red-black")
 data class RedBlack(
-  val rollbackOnFailure: Boolean = true,
-  val resizePreviousToZero: Boolean = false,
-  val maxServerGroups: Int = 2,
-  val delayBeforeDisable: Duration = ZERO,
-  val delayBeforeScaleDown: Duration = ZERO,
+  val rollbackOnFailure: Boolean? = true,
+  val resizePreviousToZero: Boolean? = false,
+  val maxServerGroups: Int? = 2,
+  val delayBeforeDisable: Duration? = ZERO,
+  val delayBeforeScaleDown: Duration? = ZERO,
   // The order of this list is important for pauseTime based staggers
   @JsonInclude(NON_EMPTY)
   override val stagger: List<StaggeredRegion> = emptyList()
 ) : ClusterDeployStrategy() {
+
+  companion object {
+    fun fromOrcaStageContext(context: Map<String, Any?>) =
+      RedBlack(
+        rollbackOnFailure = context["rollback"]
+          ?.let { it as Map<String, Any> }
+          ?.get("onFailure") as Boolean,
+        resizePreviousToZero = context["scaleDown"] as Boolean,
+        maxServerGroups = context["maxRemainingAsgs"] as Int,
+        delayBeforeDisable = Duration.ofSeconds((context["delayBeforeDisableSec"] as Int).toLong()),
+        delayBeforeScaleDown = Duration.ofSeconds((context["delayBeforeScaleDownSec"] as Int).toLong())
+      )
+
+    val DEFAULTS = RedBlack()
+  }
+
   override fun toOrcaJobProperties() = mapOf(
     "strategy" to "redblack",
     "maxRemainingAsgs" to maxServerGroups,
-    "delayBeforeDisableSec" to delayBeforeDisable.seconds,
-    "delayBeforeScaleDownSec" to delayBeforeScaleDown.seconds,
+    "delayBeforeDisableSec" to delayBeforeDisable?.seconds,
+    "delayBeforeScaleDownSec" to delayBeforeScaleDown?.seconds,
     "scaleDown" to resizePreviousToZero,
     "rollback" to mapOf("onFailure" to rollbackOnFailure)
   )
 
   override val isStaggered: Boolean
-    get() = stagger.isNotEmpty()
+    get() = stagger.isNotEmpty() ?: false
+
+  override fun withDefaultsOmitted() =
+    RedBlack(
+      maxServerGroups = nullIfDefault(maxServerGroups, DEFAULTS.maxServerGroups),
+      delayBeforeDisable = nullIfDefault(delayBeforeDisable, DEFAULTS.delayBeforeDisable),
+      delayBeforeScaleDown = nullIfDefault(delayBeforeScaleDown, DEFAULTS.delayBeforeScaleDown),
+      resizePreviousToZero = nullIfDefault(resizePreviousToZero, DEFAULTS.resizePreviousToZero),
+      rollbackOnFailure = nullIfDefault(rollbackOnFailure, DEFAULTS.rollbackOnFailure)
+    )
 }
 
 @JsonTypeName("highlander")
@@ -59,6 +85,8 @@ object Highlander : ClusterDeployStrategy() {
   override fun toOrcaJobProperties() = mapOf(
     "strategy" to "highlander"
   )
+
+  override fun withDefaultsOmitted() = this
 }
 
 /**
@@ -96,3 +124,6 @@ data class StaggeredRegion(
   val allowedHours: Set<Int>
     get() = AllowedTimesConstraintEvaluator.parseHours(hours)
 }
+
+private fun <T> nullIfDefault(value: T, default: T): T? =
+  if (value == default) null else value

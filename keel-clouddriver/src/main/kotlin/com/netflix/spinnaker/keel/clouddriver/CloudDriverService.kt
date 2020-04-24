@@ -27,13 +27,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CloudDriverService {
-
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   suspend fun getSecurityGroup(
     @Header("X-SPINNAKER-USER") user: String,
@@ -155,4 +155,13 @@ interface CloudDriverService {
     @Path("account") account: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Map<String, Any?>
+
+  @GET("/tags")
+  suspend fun getEntityTags(
+    @Query("cloudProvider") cloudProvider: String,
+    @Query("account") account: String,
+    @Query("application") application: String,
+    @Query("entityType") entityType: String,
+    @Query("entityId") entityId: String
+  ): List<EntityTags>
 }
