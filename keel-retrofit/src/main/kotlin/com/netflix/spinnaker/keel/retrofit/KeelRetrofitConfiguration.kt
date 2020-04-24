@@ -93,6 +93,6 @@ class KeelRetrofitConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  fun authorizationHeadersInterceptor(fiatPermissionEvaluator: FiatPermissionEvaluator) =
-    AuthorizationHeadersInterceptor(fiatPermissionEvaluator)
+  fun spinnakerHeadersInterceptor(fiatPermissionEvaluator: FiatPermissionEvaluator) =
+    SpinnakerHeadersInterceptor(fiatPermissionEvaluator)
 }

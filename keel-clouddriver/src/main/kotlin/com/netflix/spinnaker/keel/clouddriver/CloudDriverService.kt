@@ -162,6 +162,7 @@ interface CloudDriverService {
     @Query("account") account: String,
     @Query("application") application: String,
     @Query("entityType") entityType: String,
-    @Query("entityId") entityId: String
+    @Query("entityId") entityId: String,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<EntityTags>
 }
