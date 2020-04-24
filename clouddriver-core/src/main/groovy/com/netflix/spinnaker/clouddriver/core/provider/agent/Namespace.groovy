@@ -38,7 +38,8 @@ enum Namespace {
   RESERVATION_REPORTS,
   RESERVED_INSTANCES,
   PROJECT_CLUSTERS,
-  STACKS
+  STACKS,
+  LAUNCH_TEMPLATES
 
   public final String ns
   final Set<String> fields

@@ -50,6 +50,7 @@ class KeysSpec extends Specification {
     Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null, 'classic')) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, loadBalancerType: 'classic', stack: 'main', detail: 'frontend', application: 'kato']
     Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null, null)) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, loadBalancerType: 'classic', stack: 'main', detail: 'frontend', application: 'kato']
     Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345', 'application')) == [provider: 'aws', type: Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', loadBalancerType: 'application', application: 'loadbalancer', stack: null, detail: null]
+    Keys.parse(Keys.getLaunchTemplateKey('kato-main-v056-10062014221307', 'account', 'region')) == [provider: 'aws', type: Namespace.LAUNCH_TEMPLATES.ns, launchTemplateName: 'kato-main-v056-10062014221307', region: 'region', account: 'account', application: 'kato', stack: 'main']
   }
 
   def 'load balancer key backwards compatibility'() {
