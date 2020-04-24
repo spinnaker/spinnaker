@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
+import java.time.Duration
 
 @Slf4j
 @Component
@@ -75,8 +76,13 @@ class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask
         "notification.type"   : "runjob",
         "kato.result.expected": creator.katoResultExpected,
         "kato.last.task.id"   : taskId,
-        "deploy.account.name" : credentials,
+        "deploy.account.name" : credentials
     ]
+
+    Optional<Duration> actualJobTimeout = creator.getJobTimeout(stage)
+    if (actualJobTimeout.isPresent()) {
+      outputs.put("jobRuntimeLimit", actualJobTimeout.get().toString())
+    }
 
     outputs.putAll(
       creator.getAdditionalOutputs(stage, ops)

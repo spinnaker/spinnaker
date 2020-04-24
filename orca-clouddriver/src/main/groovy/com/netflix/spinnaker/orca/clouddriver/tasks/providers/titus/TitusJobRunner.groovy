@@ -21,6 +21,9 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+import java.time.Duration
+
 @Slf4j
 @Component
 class TitusJobRunner implements JobRunner {
@@ -61,6 +64,18 @@ class TitusJobRunner implements JobRunner {
     }
 
     return [:]
+  }
+
+  @Nonnull
+  @Override
+  Optional<Duration> getJobTimeout(StageExecution stage) {
+    Long timeoutSec = stage.context.get("cluster")?.get("runtimeLimitSecs") as Long
+
+    if (timeoutSec == null) {
+      return Optional.empty()
+    }
+
+    return Optional.of(Duration.ofSeconds(timeoutSec))
   }
 
   private static void addAllNonEmpty(List<String> baseList, List<String> listToBeAdded) {

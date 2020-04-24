@@ -27,15 +27,21 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.OverridableStageTimeout
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
+import java.time.Duration
+import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
 @Component
 public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
+  private final Logger log = LoggerFactory.getLogger(getClass())
+
   final long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   final long timeout = TimeUnit.MINUTES.toMillis(120)
 
@@ -52,13 +58,30 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
   JobUtils jobUtils
 
   static final String REFRESH_TYPE = "Job"
+  /**
+   * Extra minute to pad the timing supplied by the job provider.
+   * E.g. if TitusJobRunner says this task is limitted to 50minutes we will wait 50m + 5m(padding),
+   * we should wait a bit longer to allow for any inaccuracies of the clock across the systems
+   */
+  static final Duration PROVIDER_PADDING = Duration.ofMinutes(5)
 
   @Override
   long getDynamicTimeout(@Nonnull StageExecution stage) {
+    String jobTimeoutFromProvider = (stage.context.get("jobRuntimeLimit") as String)
+
+    if (jobTimeoutFromProvider != null) {
+      try {
+        return Duration.parse(jobTimeoutFromProvider).plus(PROVIDER_PADDING).toMillis()
+      } catch (DateTimeParseException e) {
+        log.warn("Failed to parse job timeout specified by provider: '${jobTimeoutFromProvider}', using default", e)
+      }
+    }
+
     OverridableStageTimeout timeout = stage.mapTo(OverridableStageTimeout.class)
     if (timeout.timeoutMinutes.isPresent()) {
       return TimeUnit.MINUTES.toMillis(timeout.timeoutMinutes.getAsLong())
     }
+
     return getTimeout()
   }
 
@@ -79,7 +102,7 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
     String account = getCredentials(stage)
     Map<String, List<String>> jobs = stage.context."deploy.jobs"
 
-    def status = ExecutionStatus.RUNNING;
+    def status = ExecutionStatus.RUNNING
 
     if (!jobs) {
       throw new IllegalStateException("No jobs in stage context.")

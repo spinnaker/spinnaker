@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,21 @@ final class WaitOnJobCompletionTest {
     WaitOnJobCompletion task = new WaitOnJobCompletion();
     StageExecutionImpl myStage = createStageWithContext(ImmutableMap.of("timeoutMinutes", "1"));
     assertThat(task.getDynamicTimeout(myStage)).isEqualTo(60000);
+  }
+
+  @Test
+  void jobTimeoutSpecifiedByRunJobTask() {
+    Duration duration = Duration.ofMinutes(10);
+
+    WaitOnJobCompletion task = new WaitOnJobCompletion();
+    StageExecutionImpl myStage =
+        createStageWithContext(ImmutableMap.of("jobRuntimeLimit", duration.toString()));
+    assertThat(task.getDynamicTimeout(myStage))
+        .isEqualTo((duration.plus(WaitOnJobCompletion.getPROVIDER_PADDING())).toMillis());
+
+    StageExecutionImpl myStageInvalid =
+        createStageWithContext(ImmutableMap.of("jobRuntimeLimit", "garbage"));
+    assertThat(task.getDynamicTimeout(myStageInvalid)).isEqualTo(7200000);
   }
 
   private StageExecutionImpl createStageWithContext(Map<String, ?> context) {
