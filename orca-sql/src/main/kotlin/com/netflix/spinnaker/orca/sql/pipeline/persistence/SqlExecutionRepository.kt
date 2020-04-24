@@ -274,6 +274,8 @@ class SqlExecutionRepository(
 
       deleteInternal(dslContext, type, listOf(ulid))
     }
+
+    cleanupOldDeletedExecutions()
   }
 
   /**
@@ -284,6 +286,8 @@ class SqlExecutionRepository(
     jooq.transactional { tx ->
       deleteInternal(tx, type, idsToDelete)
     }
+
+    cleanupOldDeletedExecutions()
   }
 
   private fun deleteInternal(dslContext: DSLContext, type: ExecutionType, idsToDelete: List<String>) {
@@ -319,11 +323,31 @@ class SqlExecutionRepository(
 
     insertQueryBuilder
       .execute()
+  }
 
-    dslContext
-      .deleteFrom(table("deleted_executions"))
-      .where(field("deleted_at").lt(timestampSub(now(), 1, DatePart.DAY)))
-      .execute()
+  private fun cleanupOldDeletedExecutions() {
+    // Note: this runs as part of a delete operation but is not critical (best effort cleanup)
+    // Hence it doesn't need to be in a transaction and we "eat" the exceptions here
+
+    try {
+      val idsToDelete = jooq
+        .select(field("id"))
+        .from(table("deleted_executions"))
+        .where(field("deleted_at").lt(timestampSub(now(), 1, DatePart.DAY)))
+        .fetch(field("id"), Int::class.java)
+
+      // Perform chunked delete in the rare event that there are many executions to clean up
+      idsToDelete
+        .chunked(25)
+        .forEach { chunk ->
+          jooq
+            .deleteFrom(table("deleted_executions"))
+            .where(field("id").`in`(*chunk.toTypedArray()))
+            .execute()
+        }
+    } catch (e: Exception) {
+      log.error("Failed to cleanup some deleted_executions", e)
+    }
   }
 
   // TODO rz - Refactor to not use exceptions. So weird.

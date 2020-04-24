@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20200424-index-deleted-executions-table
+      author: mvulfson
+      changes:
+        - createIndex:
+            indexName: deleted_at_idx
+            tableName: deleted_executions
+            columns:
+              - column:
+                  name: deleted_at
+    rollback:
+      - dropIndex:
+          indexName: deleted_at_idx
+          tableName: deleted_executions
