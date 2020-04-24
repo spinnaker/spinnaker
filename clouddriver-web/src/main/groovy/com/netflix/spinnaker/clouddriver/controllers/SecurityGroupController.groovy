@@ -160,16 +160,14 @@ class SecurityGroupController {
     @PathVariable String cloudProvider,
     @PathVariable String region,
     @PathVariable String securityGroupNameOrId,
-    @RequestParam(value = "vpcId", required = false) String vpcId,
+    @RequestParam(value = "vpcId", required = false, defaultValue = "*") String vpcId,
     @RequestParam(value = "getById", required = false, defaultValue = "false") boolean getById
   ) {
     def securityGroup = securityGroupProviders.findResults { secGrpProv ->
       if (secGrpProv.cloudProvider == cloudProvider) {
-        if (getById) {
-          secGrpProv.getById(account, region, securityGroupNameOrId, vpcId)
-        } else {
-          secGrpProv.get(account, region, securityGroupNameOrId, vpcId)
-        }
+        getById
+          ? secGrpProv.getById(account, region, securityGroupNameOrId, vpcId)
+          : secGrpProv.get(account, region, securityGroupNameOrId, vpcId)
       } else {
         null
       }
