@@ -188,4 +188,78 @@ class EcsLoadBalancerProviderSpec extends Specification {
       lb.targetGroupServices[tgArn][0] == ecsService.getServiceName()
     }
   }
+
+  def 'should retrieve load balancers mapped to multiple services'() {
+    given:
+    def applicationName = 'myEcsApp'
+    def tgArn = 'arn:aws:elasticloadbalancing:us-west-1:1234567890:targetgroup/test-tg-1/2136bac'
+
+    // define 2 ecs services load balanced behind the same target group
+    LoadBalancer service1lb = new LoadBalancer()
+    service1lb.setContainerName("container-name")
+    service1lb.setContainerPort(8080)
+    service1lb.setTargetGroupArn(tgArn)
+
+    Service ecsService1 = new Service()
+    ecsService1.setServiceName('ecs-test-one-000v')
+    ecsService1.setServiceArn('arn:aws:ecs:service/ecs-test-one-000v')
+    ecsService1.setLoadBalancers([service1lb])
+    ecsService1.setAccount('test-account')
+    ecsService1.setApplicationName(applicationName)
+
+    LoadBalancer service2lb = new LoadBalancer()
+    service2lb.setContainerName("container-name")
+    service2lb.setContainerPort(8080)
+    service2lb.setTargetGroupArn(tgArn)
+
+    Service ecsService2 = new Service()
+    ecsService2.setServiceName('ecs-test-two-000v')
+    ecsService2.setServiceArn('arn:aws:ecs:service/ecs-test-two-000v')
+    ecsService2.setLoadBalancers([service2lb])
+    ecsService2.setAccount('test-account')
+    ecsService2.setApplicationName(applicationName)
+
+    // mock the cache entries for the TG and associated LB
+    EcsTargetGroup ecsTg = new EcsTargetGroup()
+    ecsTg.setTargetGroupArn(tgArn)
+    ecsTg.setTargetGroupName('test-tg-1')
+
+    EcsLoadBalancerCache ecsLoadBalancerCache = new EcsLoadBalancerCache(
+      account: 'test-account',
+      region: 'us-west-2',
+      loadBalancerArn: 'arn:1',
+      loadBalancerType: 'application',
+      cloudProvider: EcsCloudProvider.ID,
+      listeners: [],
+      scheme: 'scheme',
+      availabilityZones: [],
+      ipAddressType: 'ipv4',
+      loadBalancerName: 'load-balancer-name1',
+      canonicalHostedZoneId: 'zone-id',
+      vpcId: 'vpc-id',
+      dnsname: 'dns-name',
+      createdTime: System.currentTimeMillis(),
+      subnets: [],
+      securityGroups: [],
+      targetGroups: [ecsTg.getTargetGroupName()],
+      serverGroups: []
+    )
+
+    when:
+    def loadBalancerList = provider.getApplicationLoadBalancers(applicationName)
+
+    then:
+    mockServiceCache.getAll() >> [ecsService1, ecsService2]
+    mockTargetGroupCache.getAllKeys() >> ['fake-tg-key-1']
+    mockTargetGroupCache.find(_) >> [ecsTg]
+    mockLBCache.findWithTargetGroups(_) >> Collections.singletonList(ecsLoadBalancerCache)
+
+    loadBalancerList.size() == 1
+
+    def lb = loadBalancerList[0]
+    lb.targetGroupServices.size() == 1
+    lb.targetGroups.size() == 1
+    def services = lb.targetGroupServices[tgArn]
+    services.size() == 2
+  }
 }

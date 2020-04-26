@@ -153,12 +153,14 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
                   .filter(key -> key.startsWith(keyPrefix))
                   .collect(Collectors.toSet());
           targetGroupKeys.addAll(matchingKeys);
-          // associate target groups with services it contains targets for
+          // associate target group with services it contains targets for
           if (targetGroupToServicesMap.containsKey(tgArn)) {
+            log.debug("Mapping additional service '{}' to '{}'", service.getServiceName(), tgArn);
             Set<String> serviceList = targetGroupToServicesMap.get(tgArn);
             serviceList.add(service.getServiceName());
             targetGroupToServicesMap.put(tgArn, serviceList);
           } else {
+            log.debug("Mapping service '{}' to '{}'", service.getServiceName(), tgArn);
             Set<String> srcServices = Sets.newHashSet(service.getServiceName());
             targetGroupToServicesMap.put(tgArn, srcServices);
           }
