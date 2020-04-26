@@ -163,4 +163,49 @@ class EmailNotificationAgentSpec extends Specification {
                                 name: "foo-stage",
                                 execution: [id: "abc", name: "foo-pipeline"]])
   }
+
+  def "expand email address/cc from parameters"() {
+    given:
+    def email = new BlockingVariables()
+    mailService.send(*_) >> { to, cc, subject, text ->
+      email.to = to
+      email.cc = cc
+      email.subject = subject
+      email.text = text
+    }
+
+    when:
+    agent.sendNotifications(
+      [address: address, cc: cc],
+      application,
+      event,
+      [type: "stage"],
+      status
+    )
+
+    then:
+    email.to == ["fake@email.com"]
+    email.cc == ["fakecc@email.com"]
+
+    and:
+    0 * _
+
+    where:
+    customSubject = "A custom subject"
+    customBody = "A **custom** body"
+    application = "whatever"
+    address = '''${parameters.EmailTo}'''
+    cc = '''${parameters.EmailCc}'''
+    status = "complete"
+    pipelineName = "foo-pipeline"
+    stageName = "foo-stage"
+    trigger = [ parameters: [EmailTo: "fake@email.com",
+						EmailCc: "fakecc@email.com",
+						]]
+
+    event = new Event(content: [context: [customSubject: customSubject,
+                                          customBody: customBody],
+                                name: "foo-stage",
+                                execution: [id: "abc", name: "foo-pipeline", trigger: trigger]])
+  }
 }
