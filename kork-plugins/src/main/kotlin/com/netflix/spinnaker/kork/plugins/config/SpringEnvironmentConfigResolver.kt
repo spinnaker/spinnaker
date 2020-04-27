@@ -61,7 +61,7 @@ class SpringEnvironmentConfigResolver(
     .registerModules(KotlinModule())
 
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T =
-    resolveInternal(coordinates, { expectedType.newInstance() }) {
+    resolveInternal(coordinates, { mapper.convertValue(emptyMap<Any, Any>(), expectedType) }) {
       mapper.readValue(it, expectedType)
     }
 
@@ -75,7 +75,7 @@ class SpringEnvironmentConfigResolver(
         //  with HashMap instead of Map.
         throw SystemConfigException("Expected type must be a concrete class, interface given")
       }
-      type.newInstance() as T
+      mapper.convertValue(emptyMap<Any, Any>(), type)
     }) {
       mapper.readValue(it, expectedType)
     }

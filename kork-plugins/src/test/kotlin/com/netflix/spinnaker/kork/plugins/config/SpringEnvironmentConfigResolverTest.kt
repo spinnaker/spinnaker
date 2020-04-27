@@ -25,6 +25,7 @@ import java.net.URL
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.MutablePropertySources
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -32,6 +33,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import strikt.assertions.succeeded
 
 class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
@@ -64,6 +66,21 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
           get { somelist }.hasSize(1)
             .get { first().hello }.isEqualTo("Future Rob")
         }
+    }
+
+    test("plugin extension where config properties are not present and the config class does not have a no-arg constructor") {
+      expectCatching {
+        subject.resolve(
+          ExtensionConfigCoordinates("netflix.sweet-plugin", "config.nonexistent"),
+          MissingNoArgConstructor::class.java
+        )
+      }.succeeded()
+
+      expectThat(subject.resolve(
+        ExtensionConfigCoordinates("netflix.sweet-plugin", "config.nonexistent"),
+        MissingNoArgConstructor::class.java
+      ))
+        .isA<MissingNoArgConstructor>()
     }
 
     test("plugin extension with expanded path") {
@@ -133,6 +150,8 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     var optional: String? = null,
     var somelist: List<NestedConfig> = listOf()
   )
+
+  internal class MissingNoArgConstructor(var param: Any?)
 
   internal class NestedConfig(
     var hello: String
