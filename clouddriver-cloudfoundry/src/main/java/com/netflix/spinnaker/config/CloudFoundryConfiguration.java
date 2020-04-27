@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.module.CatsModule;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentialsSynchronizer;
@@ -52,13 +53,15 @@ public class CloudFoundryConfiguration {
       CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
       AccountCredentialsRepository accountCredentialsRepository,
       CatsModule catsModule,
-      Registry registry) {
+      Registry registry,
+      CacheRepository cacheRepository) {
     return new CloudFoundryCredentialsSynchronizer(
         cloudFoundryProvider,
         cloudFoundryConfigurationProperties,
         accountCredentialsRepository,
         catsModule,
-        registry);
+        registry,
+        cacheRepository);
   }
 
   @Bean

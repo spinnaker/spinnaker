@@ -18,11 +18,13 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
@@ -43,8 +45,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
+
   private static CloudFoundryCredentials createCredentials(String name) {
     CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
+    CacheRepository cacheRepository = mock(CacheRepository.class);
     {
       when(cloudFoundryClient.getOrganizations().findByName(any()))
           .thenAnswer(
@@ -69,7 +73,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                       .build()));
     }
 
-    return new CloudFoundryCredentials(name, "", "", "", "", "", "", false, 500, 16) {
+    return new CloudFoundryCredentials(
+        name, "", "", "", "", "", "", false, 500, 16, cacheRepository) {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }

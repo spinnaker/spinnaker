@@ -34,11 +34,11 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import io.vavr.collection.HashMap;
 import java.util.*;
 import javax.annotation.Nullable;
@@ -55,8 +55,8 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
       Collections.singletonList(AUTHORITATIVE.forType(LOAD_BALANCERS.getNs()));
 
   public CloudFoundryLoadBalancerCachingAgent(
-      String account, CloudFoundryClient client, Registry registry) {
-    super(account, client, registry);
+      CloudFoundryCredentials credentials, Registry registry) {
+    super(credentials, registry);
   }
 
   @Override
@@ -106,7 +106,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
       Map<String, CacheData> onDemandCacheDataToKeep,
       CloudFoundryLoadBalancer cloudFoundryLoadBalancer,
       long start) {
-    String account = this.getAccount();
+    String account = this.getAccountName();
     String key = Keys.getLoadBalancerKey(account, cloudFoundryLoadBalancer);
     CacheData lbCacheData = onDemandCacheDataToKeep.get(key);
     if (lbCacheData != null && (long) lbCacheData.getAttributes().get("cacheTime") > start) {
@@ -156,7 +156,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
     String loadBalancerKey =
         Optional.ofNullable(cloudFoundryLoadBalancer)
             .map(lb -> Keys.getLoadBalancerKey(account, lb))
-            .orElse(Keys.getLoadBalancerKey(this.getAccount(), loadBalancerName, region));
+            .orElse(Keys.getLoadBalancerKey(this.getAccountName(), loadBalancerName, region));
     Map<String, Collection<String>> evictions;
 
     DefaultCacheResult loadBalancerCacheResults;

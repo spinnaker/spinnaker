@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,6 +89,7 @@ class CacheRepositoryTest {
     Applications apps = mock(Applications.class);
     Routes routes = mock(Routes.class);
     ProviderCache providerCache = mock(ProviderCache.class);
+    CloudFoundryCredentials credentials = mock(CloudFoundryCredentials.class);
 
     when(client.getApplications()).thenReturn(apps);
     when(client.getRoutes()).thenReturn(routes);
@@ -95,14 +97,31 @@ class CacheRepositoryTest {
     when(routes.all()).thenReturn(emptyList());
     when(providerCache.filterIdentifiers(any(), any())).thenReturn(emptyList());
     when(providerCache.getAll(any(), anyCollectionOf(String.class))).thenReturn(emptyList());
+    when(credentials.getName()).thenReturn("devaccount");
+    when(credentials.getClient()).thenReturn(client);
 
     CloudFoundryServerGroupCachingAgent agent =
-        new CloudFoundryServerGroupCachingAgent("devaccount", client, mock(Registry.class));
+        new CloudFoundryServerGroupCachingAgent(credentials, mock(Registry.class));
 
     CacheResult result = agent.loadData(providerCache);
     List<String> authoritativeTypes =
         agent.getProvidedDataTypes().stream().map(AgentDataType::getTypeName).collect(toList());
     cache.putCacheResult(agent.getAgentType(), authoritativeTypes, result);
+  }
+
+  private CloudFoundryCredentials createCredentials(String name) {
+    return new CloudFoundryCredentials(
+        name,
+        null,
+        null,
+        "api." + name,
+        "user-" + name,
+        "pwd-" + name,
+        null,
+        false,
+        null,
+        16,
+        repo);
   }
 
   @Test

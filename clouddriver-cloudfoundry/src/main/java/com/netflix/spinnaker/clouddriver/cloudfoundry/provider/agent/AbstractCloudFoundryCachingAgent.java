@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.Views;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.Collection;
@@ -50,19 +51,17 @@ abstract class AbstractCloudFoundryCachingAgent
   private static final ObjectMapper cacheViewMapper =
       new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
 
-  private final String account;
   private final OnDemandMetricsSupport metricsSupport;
-  private final CloudFoundryClient client;
   private final Clock internalClock;
+  private final CloudFoundryCredentials credentials;
 
-  AbstractCloudFoundryCachingAgent(String account, CloudFoundryClient client, Registry registry) {
-    this(account, client, registry, Clock.systemDefaultZone());
+  AbstractCloudFoundryCachingAgent(CloudFoundryCredentials credentials, Registry registry) {
+    this(credentials, registry, Clock.systemDefaultZone());
   }
 
   private AbstractCloudFoundryCachingAgent(
-      String account, CloudFoundryClient client, Registry registry, Clock internalClock) {
-    this.account = account;
-    this.client = client;
+      CloudFoundryCredentials credentials, Registry registry, Clock internalClock) {
+    this.credentials = credentials;
     cacheViewMapper.setConfig(cacheViewMapper.getSerializationConfig().withView(Views.Cache.class));
     this.metricsSupport =
         new OnDemandMetricsSupport(
@@ -72,7 +71,7 @@ abstract class AbstractCloudFoundryCachingAgent
 
   @Override
   public String getAccountName() {
-    return account;
+    return credentials.getName();
   }
 
   @Override
@@ -98,6 +97,10 @@ abstract class AbstractCloudFoundryCachingAgent
   static Map<String, Object> cacheView(Object o) {
     return Collections.singletonMap(
         "resource", cacheViewMapper.convertValue(o, new TypeReference<Map<String, Object>>() {}));
+  }
+
+  protected CloudFoundryClient getClient() {
+    return credentials.getClient();
   }
 
   Map<String, Collection<ResourceCacheData>> getCacheResultsFromCacheData(CacheData cacheData) {

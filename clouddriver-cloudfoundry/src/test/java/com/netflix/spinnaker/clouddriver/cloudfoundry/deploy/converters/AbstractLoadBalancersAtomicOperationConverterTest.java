@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
@@ -47,6 +49,7 @@ import org.mockito.stubbing.Answer;
 
 class AbstractLoadBalancersAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
+  private final CacheRepository cacheRepository = mock(CacheRepository.class);
 
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
@@ -85,7 +88,7 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
-      new CloudFoundryCredentials("test", "", "", "", "", "", "", false, 500, 16) {
+      new CloudFoundryCredentials("test", "", "", "", "", "", "", false, 500, 16, cacheRepository) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

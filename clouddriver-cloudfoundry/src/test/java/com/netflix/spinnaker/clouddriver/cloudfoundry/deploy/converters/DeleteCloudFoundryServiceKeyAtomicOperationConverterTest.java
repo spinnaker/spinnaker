@@ -18,9 +18,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceKeyDescription;
@@ -38,6 +40,7 @@ import org.junit.jupiter.api.Test;
 
 class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
+  private final CacheRepository cacheRepository = mock(CacheRepository.class);
 
   private CloudFoundryOrganization cloudFoundryOrganization =
       CloudFoundryOrganization.builder().id("org-guid").name("org").build();
@@ -57,7 +60,8 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
-      new CloudFoundryCredentials("my-account", "", "", "", "", "", "", false, 500, 16) {
+      new CloudFoundryCredentials(
+          "my-account", "", "", "", "", "", "", false, 500, 16, cacheRepository) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

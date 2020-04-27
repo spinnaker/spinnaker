@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
@@ -37,7 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-@JsonIgnoreProperties({"credentials", "client", "password", "spaceSupplier"})
+@JsonIgnoreProperties({
+  "credentials",
+  "client",
+  "password",
+  "spaceSupplier",
+  "cacheRepository",
+  "spacesLive"
+})
 public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryClient> {
   private static final int SPACE_EXPIRY_SECONDS = 30;
 
@@ -66,6 +74,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   private CloudFoundryClient credentials;
 
+  private CacheRepository cacheRepository;
+
   public CloudFoundryCredentials(
       String name,
       String appsManagerUri,
@@ -76,7 +86,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
       String environment,
       boolean skipSslValidation,
       Integer resultsPerPage,
-      Integer maxCapiConnectionsForCache) {
+      Integer maxCapiConnectionsForCache,
+      CacheRepository cacheRepository) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -87,6 +98,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
     this.skipSslValidation = skipSslValidation;
     this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(100);
     this.maxCapiConnectionsForCache = Optional.ofNullable(maxCapiConnectionsForCache).orElse(16);
+    this.cacheRepository = cacheRepository;
   }
 
   public CloudFoundryClient getCredentials() {
@@ -117,8 +129,16 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
   }
 
   protected List<CloudFoundrySpace> spaceSupplier() {
+    Set<CloudFoundrySpace> spaces = cacheRepository.findSpacesByAccount(name);
+    if (!spaces.isEmpty()) {
+      return new ArrayList<>(spaces);
+    }
+    return getSpacesLive();
+  }
+
+  public List<CloudFoundrySpace> getSpacesLive() {
     try {
-      return getCredentials().getSpaces().all();
+      return getClient().getSpaces().all();
     } catch (CloudFoundryApiException e) {
       log.warn("Unable to determine regions for Cloud Foundry account " + name, e);
       return emptyList();

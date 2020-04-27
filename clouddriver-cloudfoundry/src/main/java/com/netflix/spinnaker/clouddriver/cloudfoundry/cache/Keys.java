@@ -78,6 +78,14 @@ public class Keys implements KeyParser {
     return ID + ":" + Namespace.APPLICATIONS + ":" + app.toLowerCase();
   }
 
+  public static String getSpaceKey(String account, String region) {
+    return ID + ":" + Namespace.SPACES + ":" + account + ":" + region;
+  }
+
+  public static String getAllSpacesKey(String account) {
+    return ID + ":" + Namespace.SPACES + ":" + account + ":*";
+  }
+
   public static String getAllLoadBalancers() {
     return ID + ":" + Namespace.LOAD_BALANCERS + ":*";
   }
@@ -187,7 +195,8 @@ public class Keys implements KeyParser {
     INSTANCES("instances"),
     LOAD_BALANCERS("loadBalancers"),
     ON_DEMAND("onDemand"),
-    SERVER_GROUPS("serverGroups");
+    SERVER_GROUPS("serverGroups"),
+    SPACES("spaces");
 
     final String ns;
 

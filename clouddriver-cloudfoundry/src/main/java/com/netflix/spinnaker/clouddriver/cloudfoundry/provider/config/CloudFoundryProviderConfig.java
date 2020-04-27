@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryLoadBalancerCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundrySpaceCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
@@ -56,14 +57,13 @@ public class CloudFoundryProviderConfig {
           if (!scheduledAccounts.contains(credentials.getName())) {
             cloudFoundryProvider
                 .getAgents()
-                .add(
-                    new CloudFoundryServerGroupCachingAgent(
-                        credentials.getName(), credentials.getClient(), registry));
+                .add(new CloudFoundryServerGroupCachingAgent(credentials, registry));
             cloudFoundryProvider
                 .getAgents()
-                .add(
-                    new CloudFoundryLoadBalancerCachingAgent(
-                        credentials.getName(), credentials.getClient(), registry));
+                .add(new CloudFoundryLoadBalancerCachingAgent(credentials, registry));
+            cloudFoundryProvider
+                .getAgents()
+                .add(new CloudFoundrySpaceCachingAgent(credentials, registry));
           }
         });
   }

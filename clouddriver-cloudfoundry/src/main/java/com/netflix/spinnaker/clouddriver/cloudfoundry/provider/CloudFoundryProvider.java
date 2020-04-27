@@ -43,7 +43,8 @@ public class CloudFoundryProvider extends AgentSchedulerAware implements Searcha
               CLUSTERS.getNs(),
               SERVER_GROUPS.getNs(),
               INSTANCES.getNs(),
-              LOAD_BALANCERS.getNs())
+              LOAD_BALANCERS.getNs(),
+              SPACES.getNs())
           .collect(toSet());
 
   private final Map<SearchableResource, SearchResultHydrator> searchResultHydrators =

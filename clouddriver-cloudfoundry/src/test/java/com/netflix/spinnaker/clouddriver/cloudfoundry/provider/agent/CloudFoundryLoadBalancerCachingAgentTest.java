@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Organizations;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.moniker.Moniker;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.HashSet;
@@ -34,6 +35,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CloudFoundryLoadBalancerCachingAgentTest {
@@ -44,8 +46,9 @@ class CloudFoundryLoadBalancerCachingAgentTest {
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
   private Registry registry = mock(Registry.class);
   private final Clock internalClock = Clock.fixed(now, ZoneId.systemDefault());
+  private CloudFoundryCredentials credentials = mock(CloudFoundryCredentials.class);
   private CloudFoundryLoadBalancerCachingAgent cloudFoundryLoadBalancerCachingAgent =
-      new CloudFoundryLoadBalancerCachingAgent(accountName, cloudFoundryClient, registry);
+      new CloudFoundryLoadBalancerCachingAgent(credentials, registry);
   private ProviderCache mockProviderCache = mock(ProviderCache.class);
   private String spaceId = "space-guid";
   private String spaceName = "space";
@@ -57,6 +60,12 @@ class CloudFoundryLoadBalancerCachingAgentTest {
           .name(spaceName)
           .organization(CloudFoundryOrganization.builder().id(orgId).name(orgName).build())
           .build();
+
+  @BeforeEach
+  void before() {
+    when(credentials.getClient()).thenReturn(cloudFoundryClient);
+    when(credentials.getName()).thenReturn(accountName);
+  }
 
   @Test
   void handleShouldReturnNullWhenAccountDoesNotMatch() {

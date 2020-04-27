@@ -54,6 +54,19 @@ public class CacheRepository {
             });
   }
 
+  public Set<CloudFoundrySpace> findSpacesByAccount(String account) {
+    return cacheView
+        .getAll(
+            SPACES.getNs(),
+            cacheView.filterIdentifiers(SPACES.getNs(), Keys.getAllSpacesKey(account)))
+        .stream()
+        .map(
+            spaceData ->
+                objectMapper.convertValue(
+                    spaceData.getAttributes().get("resource"), CloudFoundrySpace.class))
+        .collect(toSet());
+  }
+
   public Set<CloudFoundryApplication> findApplicationsByKeys(
       Collection<String> keys, Detail detail) {
     return cacheView.getAll(APPLICATIONS.getNs(), keys, detail.appFilter()).stream()

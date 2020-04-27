@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
@@ -54,6 +55,7 @@ class CloudFoundryCredentialsSynchronizerTest {
   private final CatsModule catsModule = mock(CatsModule.class);
   private final ProviderRegistry providerRegistry = mock(ProviderRegistry.class);
   private final Registry registry = mock(Registry.class);
+  private final CacheRepository cacheRepository = mock(CacheRepository.class);
 
   @BeforeEach
   void setUp() {
@@ -64,7 +66,7 @@ class CloudFoundryCredentialsSynchronizerTest {
 
     synchronizer =
         new CloudFoundryCredentialsSynchronizer(
-            provider, configurationProperties, repository, catsModule, registry);
+            provider, configurationProperties, repository, catsModule, registry, cacheRepository);
   }
 
   private class StaticOtherProviderCredentials implements AccountCredentials<Void> {
@@ -131,7 +133,8 @@ class CloudFoundryCredentialsSynchronizerTest {
         .containsExactlyInAnyOrder("unchanged2", "unchanged3", "added", "to-be-changed");
 
     assertThat(scheduler.getScheduledAccountNames())
-        .containsExactlyInAnyOrder("added", "added", "to-be-changed", "to-be-changed");
+        .containsExactlyInAnyOrder(
+            "added", "added", "added", "to-be-changed", "to-be-changed", "to-be-changed");
     assertThat(scheduler.getUnscheduledAccountNames())
         .containsExactlyInAnyOrder("to-be-changed", "to-be-deleted");
   }
@@ -149,7 +152,17 @@ class CloudFoundryCredentialsSynchronizerTest {
 
   private CloudFoundryCredentials createCredentials(String name) {
     return new CloudFoundryCredentials(
-        name, null, null, "api." + name, "user-" + name, "pwd-" + name, null, false, null, 16);
+        name,
+        null,
+        null,
+        "api." + name,
+        "user-" + name,
+        "pwd-" + name,
+        null,
+        false,
+        null,
+        16,
+        cacheRepository);
   }
 
   private void loadProviderFromRepository() {
@@ -158,10 +171,7 @@ class CloudFoundryCredentialsSynchronizerTest {
 
     List<CloudFoundryServerGroupCachingAgent> agents =
         accounts.stream()
-            .map(
-                account ->
-                    new CloudFoundryServerGroupCachingAgent(
-                        account.getName(), account.getClient(), registry))
+            .map(account -> new CloudFoundryServerGroupCachingAgent(account, registry))
             .collect(Collectors.toList());
 
     provider.getAgents().addAll(agents);

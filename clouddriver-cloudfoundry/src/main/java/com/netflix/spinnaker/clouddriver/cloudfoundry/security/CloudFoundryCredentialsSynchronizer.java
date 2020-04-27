@@ -19,10 +19,12 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryLoadBalancerCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundrySpaceCachingAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
@@ -40,18 +42,21 @@ public class CloudFoundryCredentialsSynchronizer implements CredentialsInitializ
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final CatsModule catsModule;
   private final Registry registry;
+  private final CacheRepository cacheRepository;
 
   public CloudFoundryCredentialsSynchronizer(
       CloudFoundryProvider cloudFoundryProvider,
       CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
       AccountCredentialsRepository accountCredentialsRepository,
       CatsModule catsModule,
-      Registry registry) {
+      Registry registry,
+      CacheRepository cacheRepository) {
     this.cloudFoundryProvider = cloudFoundryProvider;
     this.cloudFoundryConfigurationProperties = cloudFoundryConfigurationProperties;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.catsModule = catsModule;
     this.registry = registry;
+    this.cacheRepository = cacheRepository;
   }
 
   @Override
@@ -88,7 +93,8 @@ public class CloudFoundryCredentialsSynchronizer implements CredentialsInitializ
                   managedAccount.getEnvironment(),
                   managedAccount.isSkipSslValidation(),
                   managedAccount.getResultsPerPage(),
-                  managedAccount.getMaxCapiConnectionsForCache());
+                  managedAccount.getMaxCapiConnectionsForCache(),
+                  cacheRepository);
 
           AccountCredentials existingCredentials =
               accountCredentialsRepository.getOne(credentials.getName());
@@ -149,12 +155,9 @@ public class CloudFoundryCredentialsSynchronizer implements CredentialsInitializ
         .filter(account -> !existingAgentAccountNames.contains(account.getName()))
         .forEach(
             account -> {
-              agents.add(
-                  new CloudFoundryServerGroupCachingAgent(
-                      account.getName(), account.getClient(), registry));
-              agents.add(
-                  new CloudFoundryLoadBalancerCachingAgent(
-                      account.getName(), account.getClient(), registry));
+              agents.add(new CloudFoundryServerGroupCachingAgent(account, registry));
+              agents.add(new CloudFoundryLoadBalancerCachingAgent(account, registry));
+              agents.add(new CloudFoundrySpaceCachingAgent(account, registry));
             });
     return agents;
   }
