@@ -8,10 +8,10 @@ export const iamRoleValidator = (value: string, label: string) => {
 };
 
 export const s3BucketNameValidator = (value: string, label: string) => {
-  const s3BucketName = value.match(/^[0-9A-Za-z.-_]*[^.]$/);
+  const s3BucketName = value.match(/^[0-9A-Za-z.-]*[^.]$/);
   const err = s3BucketName
     ? undefined
-    : `Invalid S3 Bucket name.  ${label} must match regular expression: [0-9A-Za-z.-_]*[^.]$`;
+    : `Invalid S3 Bucket name.  ${label} must match regular expression: [0-9A-Za-z.-]*[^.]$`;
   return err;
 };
 
