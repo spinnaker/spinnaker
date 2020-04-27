@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.comparator
+import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -247,10 +249,37 @@ class SqlArtifactRepository(
           .getValues(ARTIFACT_VERSIONS.VERSION)
       }
         .sortedWith(artifact.versioningStrategy.comparator)
+        .also { versions ->
+          return if (artifact is DockerArtifact) {
+            filterDockerVersions(artifact, versions)
+          } else {
+            versions
+          }
+        }
     } else {
       throw NoSuchArtifactException(artifact)
     }
   }
+
+  /**
+   * Given a docker artifact and a list of docker tags, filters out all tags that don't produce exactly one capture
+   * group with the provided regex.
+   *
+   * This means that this will filter out tags like "latest" from the list.
+   */
+  private fun filterDockerVersions(artifact: DockerArtifact, versions: List<String>): List<String> =
+    versions.filter { shouldInclude(it, artifact) }
+
+  /**
+   * Returns true if a docker tag is not latest and the regex produces exactly one capture group on the tag, false otherwise.
+   */
+  private fun shouldInclude(tag: String, artifact: DockerArtifact) =
+    try {
+      tag != "latest" && TagComparator.parseWithRegex(tag, artifact.tagVersionStrategy, artifact.captureGroupRegex) != null
+    } catch (e: InvalidRegexException) {
+      log.warn("Version $tag produced more than one capture group based on artifact $artifact, excluding")
+      false
+    }
 
   override fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
@@ -691,6 +720,7 @@ class SqlArtifactRepository(
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
+          .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
         val pendingVersions = jooq
           .select(
             ARTIFACT_VERSIONS.VERSION,
@@ -712,6 +742,7 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT.NAME.eq(environment.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
           .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
+          .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
           .andNotExists(
             selectOne()
               .from(ENVIRONMENT_ARTIFACT_VERSIONS)
@@ -726,9 +757,15 @@ class SqlArtifactRepository(
               Triple(version, releaseStatus, PromotionStatus.valueOf(promotionStatus))
             }
         }
-          .filter { (_, releaseStatus, _) ->
-            artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(releaseStatus) in artifact.statuses
+          .filter { (version, _, _) ->
+            if (artifact is DockerArtifact) {
+              // filter out invalid docker tags
+              shouldInclude(version, artifact)
+            } else {
+              true
+            }
           }
+
         val releaseStatuses: Set<ArtifactStatus> = unionedVersions
           .filter { (_, releaseStatus, _) ->
             releaseStatus != null

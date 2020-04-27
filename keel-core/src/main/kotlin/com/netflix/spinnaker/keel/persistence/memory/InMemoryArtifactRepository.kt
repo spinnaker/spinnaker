@@ -5,6 +5,8 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
@@ -21,6 +23,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.comparator
+import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -169,6 +172,14 @@ class InMemoryArtifactRepository(
       .filter {
         if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) {
           it.status in artifact.statuses
+        } else if (artifact is DockerArtifact) {
+          // we only want to give valid versions, so this will filter out tags like "latest"
+          // and others that don't fit the chosen versioning strategy.
+          try {
+            it.version != "latest" && TagComparator.parseWithRegex(it.version, artifact.tagVersionStrategy, artifact.captureGroupRegex) != null
+          } catch (e: InvalidRegexException) {
+            false
+          }
         } else {
           // select all
           true
@@ -408,8 +419,14 @@ class InMemoryArtifactRepository(
             val currentVersion = statuses.filterValues { it == CURRENT }.keys.firstOrNull()
             val pending = versions[VersionsKey(artifact.name, artifact.type)]
               ?.filter {
-                it.status == null || it.status in ((artifact as? DebianArtifact)?.statuses
-                  ?: emptySet<ArtifactStatus>())
+                when (artifact) {
+                  is DebianArtifact -> {
+                    artifact.statuses.isEmpty() || it.status in artifact.statuses
+                  }
+                  is DockerArtifact -> {
+                    it.version != "latest" && TagComparator.parseWithRegex(it.version, artifact.tagVersionStrategy, artifact.captureGroupRegex) != null
+                  }
+                }
               }
               ?.map { it.version }
               ?.filter { it !in statuses.keys }

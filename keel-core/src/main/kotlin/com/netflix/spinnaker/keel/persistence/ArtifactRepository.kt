@@ -47,6 +47,9 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   /**
    * @returns the versions we have for an artifact, filtering by the artifact status information,
    * and sorting with the artifact's sorting strategy
+   *
+   * This endpoint filters out invalid docker tags (tags that produce 0 or 2+ capture groups according to
+   * the supplied versioning strategy).
    */
   fun versions(
     artifact: DeliveryArtifact

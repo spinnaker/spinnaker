@@ -10,6 +10,8 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -69,7 +71,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val artifact3 = DockerArtifact(
       name = "docker",
       deliveryConfigName = "my-manifest",
-      reference = "docker-artifact"
+      reference = "docker-artifact",
+      tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB
     )
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
@@ -86,6 +89,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version4 = "keeldemo-1.0.0-h11.518aea2" // release
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d" // release
     val version6 = "master-h12.4ea8a9d"
+    val versionBad = "latest"
 
     val pin1 = EnvironmentArtifactPin(
       targetEnvironment = environment2.name, // staging
@@ -112,7 +116,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         store(artifact2, it, RELEASE)
       }
       register(artifact3)
-      store(artifact3, version6, null)
+      setOf(version6, versionBad).forEach {
+        store(artifact3, it, null)
+      }
     }
     persist(manifest)
   }
@@ -128,11 +134,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       .first { it.name == environment.name }
       .artifacts
       .first {
-        if (artifact is DebianArtifact) {
-          it.name == artifact.name && it.type == artifact.type && artifact.statuses == it.statuses
-        } else {
-          it.name == artifact.name && it.type == artifact.type
-        }
+        it.reference == artifact.reference
       }
       .versions
   }
@@ -239,13 +241,35 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           persist()
         }
 
-        test("querying for all returns all") {
-          val artifactWithAll = artifact1.copy(statuses = emptySet())
-          expectThat(subject.versions(artifactWithAll)).containsExactly(version5, version4, version3, version2, version1)
+        context("debian") {
+          test("querying for all returns all") {
+            val artifactWithAll = artifact1.copy(statuses = emptySet())
+            expectThat(subject.versions(artifactWithAll)).containsExactly(version5, version4, version3, version2, version1)
+          }
+
+          test("querying with only release returns correct versions") {
+            expectThat(subject.versions(artifact2)).containsExactly(version5, version4)
+          }
         }
 
-        test("querying with only release returns correct versions") {
-          expectThat(subject.versions(artifact2)).containsExactly(version5, version4)
+        context("docker") {
+          test("querying for all returns all") {
+            expectThat(subject.versions(artifact3.name, artifact3.type)).containsExactlyInAnyOrder(version6, versionBad)
+          }
+
+          test("querying the artifact filters out the bad tag") {
+            expectThat(subject.versions(artifact3)).containsExactly(version6)
+          }
+
+          test("querying with a wrong strategy filters out everything") {
+            val incorrectArtifact = DockerArtifact(
+              name = "docker",
+              deliveryConfigName = "my-manifest",
+              reference = "docker-artifact",
+              tagVersionStrategy = SEMVER_JOB_COMMIT_BY_JOB
+            )
+            expectThat(subject.versions(incorrectArtifact)).isEmpty()
+          }
         }
       }
     }
