@@ -17,6 +17,7 @@ import { COMMON_MODULE } from './common/common.module';
 import { ECS_SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { ECS_SERVER_GROUP_LOGGING } from './serverGroup/configure/wizard/logging/logging.component';
 import { CONTAINER_REACT } from './serverGroup/configure/wizard/container/Container';
+import { SERVICE_DISCOVERY_REACT } from './serverGroup/configure/wizard/serviceDiscovery/ServiceDiscovery';
 import { TASK_DEFINITION_REACT } from './serverGroup/configure/wizard/taskDefinition/TaskDefinition';
 import { ECS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
 
@@ -26,7 +27,6 @@ import './logo/ecs.logo.less';
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER } from './serverGroup/configure/wizard/CloneServerGroup.ecs.controller';
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGS_COMPONENT } from './serverGroup/configure/wizard/advancedSettings/advancedSettings.component';
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMPONENT } from './serverGroup/configure/wizard/horizontalScaling/horizontalScaling.component';
-import { ECS_SERVERGROUP_CONFIGURE_WIZARD_SERVICEDISCOVERY_SERVICEDISCOVERY_COMPONENT } from './serverGroup/configure/wizard/serviceDiscovery/serviceDiscovery.component';
 import { ECS_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_SERVERGROUPBASICSETTINGS_CONTROLLER } from './serverGroup/configure/wizard/location/ServerGroupBasicSettings.controller';
 import { ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
@@ -64,11 +64,11 @@ module(ECS_MODULE, [
   ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMPONENT,
   TASK_DEFINITION_REACT,
   CONTAINER_REACT,
+  SERVICE_DISCOVERY_REACT,
   ECS_SERVER_GROUP_LOGGING,
   ECS_NETWORKING_SECTION,
   ECS_CLUSTER_READ_SERVICE,
   ECS_SECRET_READ_SERVICE,
-  ECS_SERVERGROUP_CONFIGURE_WIZARD_SERVICEDISCOVERY_SERVICEDISCOVERY_COMPONENT,
   METRIC_ALARM_READ_SERVICE,
   PLACEMENT_STRATEGY_SERVICE,
   COMMON_MODULE,
