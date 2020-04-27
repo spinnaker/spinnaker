@@ -18,22 +18,14 @@
 package com.netflix.spinnaker.igor.travis.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.simpleframework.xml.Default;
+import lombok.Data;
 
-@Default
+@Data
 public class GithubAuth {
   @JsonProperty("github_token")
   private String githubToken;
 
   public GithubAuth(String githubToken) {
-    this.githubToken = githubToken;
-  }
-
-  public String getGithubToken() {
-    return githubToken;
-  }
-
-  public void setGithubToken(String githubToken) {
     this.githubToken = githubToken;
   }
 }

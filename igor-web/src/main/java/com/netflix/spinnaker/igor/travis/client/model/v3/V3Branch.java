@@ -19,23 +19,16 @@ package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
 
-@Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Root(name = "branch")
 @EqualsAndHashCode
+@Data
+@XmlRootElement(name = "branch")
 public class V3Branch {
+
   private String name;
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
 }

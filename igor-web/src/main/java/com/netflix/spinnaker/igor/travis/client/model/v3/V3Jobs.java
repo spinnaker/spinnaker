@@ -19,24 +19,19 @@ package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import java.util.List;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.ElementList;
-import org.simpleframework.xml.Root;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
-@Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Root(strict = false)
+@Data
+@XmlRootElement
 public class V3Jobs {
-  @ElementList(required = false, name = "jobs", inline = true)
+
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @XmlElement(name = "jobs", required = false)
   private List<V3Job> jobs;
-
-  public List<V3Job> getJobs() {
-    return jobs;
-  }
-
-  public void setJobs(List<V3Job> jobs) {
-    this.jobs = jobs;
-  }
 }

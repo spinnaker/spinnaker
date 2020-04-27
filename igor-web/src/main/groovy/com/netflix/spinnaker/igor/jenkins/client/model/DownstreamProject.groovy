@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a Jenkins job downstream project
  */
-@Root(name = 'downstreamProject', strict=false)
+@XmlRootElement(name = 'downstreamProject')
 class DownstreamProject extends RelatedProject {
 }

@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Default
 
 /**
  * Represents either an upstream or downstream dependency in Jenkins
  */
-@Default
 @CompileStatic
 class BuildDependency {
     String name

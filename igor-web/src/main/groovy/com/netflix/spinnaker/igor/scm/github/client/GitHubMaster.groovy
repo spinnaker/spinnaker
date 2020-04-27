@@ -23,7 +23,7 @@ import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
-import retrofit.converter.SimpleXMLConverter
+import retrofit.converter.JacksonConverter
 
 import javax.validation.Valid
 
@@ -45,10 +45,9 @@ class GitHubMaster  extends AbstractScmMaster {
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
             .setClient(new OkClient())
-            .setConverter(new SimpleXMLConverter())
+            .setConverter(new JacksonConverter())
             .build()
-            .create(GitHubClient(address:address))
-
+            .create(GitHubClient)
     }
 
     static class BasicAuthRequestInterceptor implements RequestInterceptor {

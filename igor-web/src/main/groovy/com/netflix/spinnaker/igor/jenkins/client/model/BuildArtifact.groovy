@@ -18,10 +18,6 @@ package com.netflix.spinnaker.igor.jenkins.client.model
 
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Default
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.Root
-
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
 

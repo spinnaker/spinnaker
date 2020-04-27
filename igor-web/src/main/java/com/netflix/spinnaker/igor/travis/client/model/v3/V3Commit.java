@@ -23,17 +23,15 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import java.time.Instant;
+import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
 
-@Default
-@Root(name = "commits")
 @Data
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@XmlRootElement(name = "commit")
 public class V3Commit {
   private int id;
   private String sha;

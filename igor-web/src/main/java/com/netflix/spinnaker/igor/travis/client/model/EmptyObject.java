@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.igor.travis.client.model;
 
-import org.simpleframework.xml.Default;
+import javax.xml.bind.annotation.XmlRootElement;
 
-@Default
+@XmlRootElement
 public class EmptyObject {}

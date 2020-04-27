@@ -17,21 +17,22 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.Root
+import javax.xml.bind.annotation.XmlElement
+
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a build artifact
  */
 @CompileStatic
-@Root(name = 'action', strict = false)
+@XmlRootElement(name = 'action')
 class TestResults {
-    @Element(required = false)
+    @XmlElement(required = false)
     int failCount
-    @Element(required = false)
+    @XmlElement(required = false)
     int skipCount
-    @Element(required = false)
+    @XmlElement(required = false)
     int totalCount
-    @Element(required = false)
+    @XmlElement(required = false)
     String urlName
 }

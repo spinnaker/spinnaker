@@ -23,36 +23,42 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import java.time.Instant;
 import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
 
-@Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Root(name = "builds")
 @Slf4j
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@XmlRootElement(name = "builds")
 public class V3Build {
+
   private V3Branch branch;
 
   @JsonProperty("commit_id")
   private int commitId;
 
   private V3Commit commit;
+
   private int duration;
 
   @JsonProperty("event_type")
   private String eventType;
 
   @EqualsAndHashCode.Include private int id;
+
   private V3Repository repository;
 
   @JsonProperty("repository_id")
   private int repositoryId;
 
   private int number;
+
   @EqualsAndHashCode.Include private TravisBuildState state;
 
   @JsonProperty("finished_at")
@@ -102,109 +108,5 @@ public class V3Build {
     }
 
     return "[" + tmpSlug + ":" + number + ":" + state + "]";
-  }
-
-  public V3Branch getBranch() {
-    return branch;
-  }
-
-  public void setBranch(V3Branch branch) {
-    this.branch = branch;
-  }
-
-  public int getCommitId() {
-    return commitId;
-  }
-
-  public void setCommitId(int commitId) {
-    this.commitId = commitId;
-  }
-
-  public V3Commit getCommit() {
-    return commit;
-  }
-
-  public void setCommit(V3Commit commit) {
-    this.commit = commit;
-  }
-
-  public int getDuration() {
-    return duration;
-  }
-
-  public void setDuration(int duration) {
-    this.duration = duration;
-  }
-
-  public String getEventType() {
-    return eventType;
-  }
-
-  public void setEventType(String eventType) {
-    this.eventType = eventType;
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public V3Repository getRepository() {
-    return repository;
-  }
-
-  public void setRepository(V3Repository repository) {
-    this.repository = repository;
-  }
-
-  public int getRepositoryId() {
-    return repositoryId;
-  }
-
-  public void setRepositoryId(int repositoryId) {
-    this.repositoryId = repositoryId;
-  }
-
-  public int getNumber() {
-    return number;
-  }
-
-  public void setNumber(int number) {
-    this.number = number;
-  }
-
-  public TravisBuildState getState() {
-    return state;
-  }
-
-  public void setState(TravisBuildState state) {
-    this.state = state;
-  }
-
-  public Instant getFinishedAt() {
-    return finishedAt;
-  }
-
-  public void setFinishedAt(Instant finishedAt) {
-    this.finishedAt = finishedAt;
-  }
-
-  public List<V3Job> getJobs() {
-    return jobs;
-  }
-
-  public void setJobs(List<V3Job> jobs) {
-    this.jobs = jobs;
-  }
-
-  public Boolean getLogComplete() {
-    return logComplete;
-  }
-
-  public void setLogComplete(Boolean logComplete) {
-    this.logComplete = logComplete;
   }
 }

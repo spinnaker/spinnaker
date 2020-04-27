@@ -21,17 +21,21 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import java.time.Instant;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
 
-@Default
-@Root(name = "commits")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
+@XmlRootElement(name = "commits")
 public class Commit {
+
   private int id;
+
   private String sha;
+
   private String branch;
+
   private String message;
 
   @JsonProperty("author_name")
@@ -64,63 +68,6 @@ public class Commit {
     if (isTag()) {
       return "tags";
     }
-
     return branch;
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public String getSha() {
-    return sha;
-  }
-
-  public void setSha(String sha) {
-    this.sha = sha;
-  }
-
-  public String getBranch() {
-    return branch;
-  }
-
-  public void setBranch(String branch) {
-    this.branch = branch;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public void setMessage(String message) {
-    this.message = message;
-  }
-
-  public String getAuthorName() {
-    return authorName;
-  }
-
-  public void setAuthorName(String authorName) {
-    this.authorName = authorName;
-  }
-
-  public String getCompareUrl() {
-    return compareUrl;
-  }
-
-  public void setCompareUrl(String compareUrl) {
-    this.compareUrl = compareUrl;
-  }
-
-  public Instant getTimestamp() {
-    return timestamp;
-  }
-
-  public void setTimestamp(Instant timestamp) {
-    this.timestamp = timestamp;
   }
 }

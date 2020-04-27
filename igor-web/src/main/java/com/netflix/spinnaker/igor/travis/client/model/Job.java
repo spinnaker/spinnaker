@@ -20,14 +20,15 @@ package com.netflix.spinnaker.igor.travis.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
-@Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Root(name = "job")
+@Data
+@XmlRootElement(name = "job")
 public class Job {
+
   private int id;
 
   @JsonProperty("log_id")
@@ -35,28 +36,4 @@ public class Job {
 
   @JsonProperty("repository_slug")
   private String repositorySlug;
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public int getLogId() {
-    return logId;
-  }
-
-  public void setLogId(int logId) {
-    this.logId = logId;
-  }
-
-  public String getRepositorySlug() {
-    return repositorySlug;
-  }
-
-  public void setRepositorySlug(String repositorySlug) {
-    this.repositorySlug = repositorySlug;
-  }
 }

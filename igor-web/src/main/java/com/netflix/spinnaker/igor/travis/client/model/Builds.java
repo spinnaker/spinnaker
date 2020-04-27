@@ -18,45 +18,26 @@
 package com.netflix.spinnaker.igor.travis.client.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import java.util.List;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.ElementList;
-import org.simpleframework.xml.Root;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
-@Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(strict = false)
+@Data
+@XmlRootElement
 public class Builds {
-  @ElementList(required = false, name = "builds", inline = true)
+
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @XmlElement(name = "builds", required = false)
   private List<Build> builds;
 
-  @ElementList(required = false, name = "jobs", inline = true)
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @XmlElement(name = "jobs", required = false)
   private List<Job> jobs;
 
-  @ElementList(required = false, name = "commits", inline = true)
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @XmlElement(name = "commits", required = false)
   private List<Commit> commits;
-
-  public List<Build> getBuilds() {
-    return builds;
-  }
-
-  public void setBuilds(List<Build> builds) {
-    this.builds = builds;
-  }
-
-  public List<Job> getJobs() {
-    return jobs;
-  }
-
-  public void setJobs(List<Job> jobs) {
-    this.jobs = jobs;
-  }
-
-  public List<Commit> getCommits() {
-    return commits;
-  }
-
-  public void setCommits(List<Commit> commits) {
-    this.commits = commits;
-  }
 }

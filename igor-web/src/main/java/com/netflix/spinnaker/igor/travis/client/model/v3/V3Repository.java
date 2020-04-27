@@ -18,38 +18,17 @@
 package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
-@Default
-@Root(name = "repository")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
+@XmlRootElement(name = "repository")
 public class V3Repository {
+
   private int id;
+
   private String name;
+
   private String slug;
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getSlug() {
-    return slug;
-  }
-
-  public void setSlug(String slug) {
-    this.slug = slug;
-  }
 }

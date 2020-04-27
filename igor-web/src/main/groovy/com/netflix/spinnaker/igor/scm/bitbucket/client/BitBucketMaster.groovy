@@ -25,7 +25,7 @@ import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
-import retrofit.converter.SimpleXMLConverter
+import retrofit.converter.JacksonConverter
 import javax.validation.Valid
 
 /**
@@ -49,9 +49,9 @@ class BitBucketMaster extends AbstractScmMaster {
       .setEndpoint(Endpoints.newFixedEndpoint(address))
       .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
       .setClient(new OkClient())
-      .setConverter(new SimpleXMLConverter())
+      .setConverter(new JacksonConverter())
       .build()
-      .create(BitBucketClient(address:address))
+      .create(BitBucketClient)
   }
 
   static class BasicAuthRequestInterceptor implements RequestInterceptor {

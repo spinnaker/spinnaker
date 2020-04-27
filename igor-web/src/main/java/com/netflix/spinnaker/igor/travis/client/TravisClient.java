@@ -68,7 +68,7 @@ public interface TravisClient {
 
   @POST("/users/sync")
   public abstract Response usersSync(
-      @Header("Authorization") String accessToken, @Body EmptyObject emptyObject);
+      @Header("Authorization") String accessToken, @Body EmptyObject empty);
 
   @Headers({"Travis-API-Version: 3", "Accept: text/plain"})
   @GET("/job/{jobId}/log")

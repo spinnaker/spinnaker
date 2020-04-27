@@ -19,21 +19,14 @@ package com.netflix.spinnaker.igor.travis.client.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.Root;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
-@Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(strict = false)
+@Data
+@XmlRootElement
 public class AccessToken {
+
   @JsonProperty("access_token")
   private String accessToken;
-
-  public String getAccessToken() {
-    return accessToken;
-  }
-
-  public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
-  }
 }

@@ -19,29 +19,14 @@ package com.netflix.spinnaker.igor.travis.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.simpleframework.xml.Default;
+import lombok.Data;
 
-@Default
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class TriggerResponse {
+
   @JsonProperty("remaining_requests")
   private int remainingRequests;
 
   private Request request;
-
-  public int getRemainingRequests() {
-    return remainingRequests;
-  }
-
-  public void setRemainingRequests(int remainingRequests) {
-    this.remainingRequests = remainingRequests;
-  }
-
-  public Request getRequest() {
-    return request;
-  }
-
-  public void setRequest(Request request) {
-    this.request = request;
-  }
 }
