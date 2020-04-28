@@ -1,7 +1,9 @@
 const { readJson, writeJson } = require('../util/readWriteJson');
 
 const get = (path, obj) => {
-  return path.split('.').reduce((acc, key) => (acc !== undefined ? acc[key] : undefined), obj);
+  return path.split('.').reduce((acc, key) => {
+    return acc === undefined ? undefined : key ? acc[key] : acc;
+  }, obj);
 };
 
 const writeJsonField = (filename, field, val) => {
