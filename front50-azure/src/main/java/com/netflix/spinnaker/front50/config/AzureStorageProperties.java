@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AzureStorageProperties {
   private String storageAccountKey;
   private String storageAccountName;
-  private String storageContainerName;
+  private String storageContainerName = "spinnaker";
 
   public String getStorageConnectionString() {
     return "DefaultEndpointsProtocol=https;"
