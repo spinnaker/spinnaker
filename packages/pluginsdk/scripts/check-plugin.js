@@ -87,12 +87,10 @@ function checkPlugin(options) {
   console.log();
 
   if (fix) {
-    const commits = errorFixers.map(fixer => fixer());
-    commits.filter(x => typeof x === 'function').forEach(commit => commit());
+    errorFixers.forEach(fix => fix());
   }
 
   if (fixWarnings) {
-    const commits = warningFixers.map(fixer => fixer());
-    commits.filter(x => typeof x === 'function').forEach(commit => commit());
+    warningFixers.forEach(fix => fix());
   }
 }
