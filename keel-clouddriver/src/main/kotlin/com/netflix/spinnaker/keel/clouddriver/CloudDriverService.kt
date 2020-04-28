@@ -45,23 +45,13 @@ interface CloudDriverService {
     @Query("vpcId") vpcId: String? = null
   ): SecurityGroupModel
 
-  @GET("/securityGroups/{account}/{provider}/{region}/{id}?getById=true")
-  suspend fun getSecurityGroupSummaryById(
+  @GET("/securityGroups/{account}/{provider}")
+  suspend fun getSecurityGroupSummaries(
     @Path("account") account: String,
     @Path("provider") provider: String,
-    @Path("region") region: String,
-    @Path("id") id: String,
+    @Query("region") region: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): SecurityGroupSummary?
-
-  @GET("/securityGroups/{account}/{provider}/{region}/{name}")
-  suspend fun getSecurityGroupSummaryByName(
-    @Path("account") account: String,
-    @Path("provider") provider: String,
-    @Path("region") region: String,
-    @Path("name") name: String,
-    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
-  ): SecurityGroupSummary?
+  ): Collection<SecurityGroupSummary>
 
   @GET("/networks")
   suspend fun listNetworks(
