@@ -21,4 +21,4 @@ import org.pf4j.update.PluginInfo
 /**
  * A tuple of [pluginId] and [PluginInfo.PluginRelease]
  */
-data class PluginInfoRelease(val pluginId: String, val props: PluginInfo.PluginRelease)
+data class PluginInfoRelease(val pluginId: String, var props: PluginInfo.PluginRelease)

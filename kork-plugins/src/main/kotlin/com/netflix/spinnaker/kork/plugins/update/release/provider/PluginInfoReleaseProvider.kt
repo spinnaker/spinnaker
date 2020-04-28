@@ -12,16 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.kork.plugins.update.release
+package com.netflix.spinnaker.kork.plugins.update.release.provider
 
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
+import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource
 import org.pf4j.update.PluginInfo
 
 /**
- * Implement to select the desired release(s) from [PluginInfo].
+ * Provide the desired release(s) from the provided [PluginInfo] list.
+ *
+ * A similar signature as PluginInfoReleaseSource, but used by consumers to obtain a final set
+ * of plugin releases.
  */
 @Beta
 interface PluginInfoReleaseProvider {
@@ -32,9 +38,7 @@ interface PluginInfoReleaseProvider {
   fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease>
 }
 
-class PluginReleaseNotFoundException(pluginId: String, pluginVersion: String?) :
+class PluginReleaseNotFoundException(pluginId: String, sources: List<PluginInfoReleaseSource>) :
   IntegrationException(
-    "'$pluginId' is enabled with version '${pluginVersion ?: "undefined" }', but a " +
-      "release version could not be found that satisfies the version and/or the service " +
-      "requirement constraints."
+    "A release version of '$pluginId' was not sourced from the provider sources '$sources'"
   )

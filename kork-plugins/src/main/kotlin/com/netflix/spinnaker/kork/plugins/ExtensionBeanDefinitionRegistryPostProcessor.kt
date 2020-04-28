@@ -20,7 +20,7 @@ import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
-import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoReleaseProvider
+import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
 import kotlin.jvm.javaClass
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
@@ -37,6 +37,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginManager: SpinnakerPluginManager,
   private val updateManager: SpinnakerUpdateManager,
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
+  private val springPluginStatusProvider: SpringPluginStatusProvider,
   private val applicationEventPublisher: ApplicationEventPublisher,
   private val invocationAspects: List<InvocationAspect<*>>
 ) : BeanDefinitionRegistryPostProcessor {
@@ -50,8 +51,10 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
     // 1) Load plugins prior to downloading so we can resolve what needs to be updated
     pluginManager.loadPlugins()
 
-    // 2) Determine the plugins for release from the list of plugins
-    val releases = pluginInfoReleaseProvider.getReleases(updateManager.plugins)
+    // 2) Determine the plugins for release from the list of enabled plugins
+    val releases = updateManager.plugins
+      .filter { springPluginStatusProvider.isPluginEnabled(it.id) }
+      .let { enabledPlugins -> pluginInfoReleaseProvider.getReleases(enabledPlugins) }
 
     // 3) Download releases, updating previously loaded plugins where necessary
     updateManager.downloadPluginReleases(releases).forEach { pluginPath ->

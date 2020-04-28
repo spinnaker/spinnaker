@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.config.PluginsConfigurationProperties.CONFIG_NAMESPACE
+import com.netflix.spinnaker.config.PluginsConfigurationProperties.DEFAULT_ROOT_PATH
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.confirmVerified
@@ -54,10 +57,10 @@ class SpringPluginStatusProviderTest : JUnit5Minutests {
     }
 
     test("plugins default to disabled") {
-      every { environment.getProperty(any()) } returnsMany listOf(
-        "false",
-        "true",
-        "false"
+      every { dynamicConfigService.isEnabled(any(), false) } returnsMany listOf(
+        false,
+        true,
+        false
       )
 
       expectThat(subject.isPluginDisabled("hello")).describedAs("initial state").isTrue()
@@ -68,14 +71,15 @@ class SpringPluginStatusProviderTest : JUnit5Minutests {
     }
 
     test("get plugin version") {
-      val versionProp = "${SpringPluginStatusProvider.ROOT_CONFIG}.hello.version"
-      every { environment.getProperty(versionProp) } returns "1.0.0"
+      val versionProp = "$CONFIG_NAMESPACE.$DEFAULT_ROOT_PATH.hello.version"
+      every { dynamicConfigService.getConfig(String::class.java, versionProp, "unspecified") } returns "1.0.0"
       expectThat(subject.pluginVersion("hello")).isEqualTo("1.0.0")
     }
   }
 
   private class Fixture {
     val environment: ConfigurableEnvironment = mockk(relaxed = true)
-    val subject = SpringPluginStatusProvider(environment)
+    val dynamicConfigService: DynamicConfigService = mockk(relaxed = true)
+    val subject = SpringPluginStatusProvider(dynamicConfigService, "$CONFIG_NAMESPACE.$DEFAULT_ROOT_PATH")
   }
 }
