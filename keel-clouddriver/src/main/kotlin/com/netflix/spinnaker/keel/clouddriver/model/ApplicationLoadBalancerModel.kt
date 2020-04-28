@@ -8,6 +8,7 @@ data class ApplicationLoadBalancerModel(
   override val moniker: Moniker?,
   override val loadBalancerName: String,
   override val loadBalancerType: String = "application",
+  override val region: String,
   override val availabilityZones: Set<String>,
   override val vpcId: String,
   override val subnets: Set<String>,

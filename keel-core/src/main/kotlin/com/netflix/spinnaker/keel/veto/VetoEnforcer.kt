@@ -32,7 +32,7 @@ class VetoEnforcer(
   val vetos: List<Veto>
 ) {
 
-  fun canCheck(resource: Resource<*>): VetoResponse {
+  suspend fun canCheck(resource: Resource<*>): VetoResponse {
     vetos.forEach { veto ->
       val response = veto.check(resource)
       if (!response.allowed) {

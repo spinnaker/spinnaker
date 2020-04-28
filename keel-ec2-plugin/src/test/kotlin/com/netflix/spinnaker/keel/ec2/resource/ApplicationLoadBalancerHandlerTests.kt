@@ -111,6 +111,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val model = ApplicationLoadBalancerModel(
     moniker = null,
     loadBalancerName = "testapp-managedogge-wow",
+    region = "us-east-1",
     availabilityZones = setOf("us-east-1c", "us-east-1d"),
     vpcId = vpc.id,
     subnets = setOf(sub1.id, sub2.id),

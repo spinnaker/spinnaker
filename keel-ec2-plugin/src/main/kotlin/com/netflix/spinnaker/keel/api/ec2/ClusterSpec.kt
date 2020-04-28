@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
@@ -116,7 +117,7 @@ data class ClusterSpec(
   override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
   @JsonInclude(NON_EMPTY)
-  val overrides: Map<String, ServerGroupSpec> = emptyMap(),
+  override val overrides: Map<String, ServerGroupSpec> = emptyMap(),
   @JsonIgnore
   override val artifactType: ArtifactType? = ArtifactType.deb,
   @JsonIgnore
@@ -128,7 +129,7 @@ data class ClusterSpec(
   @JsonIgnore
   // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
   override val unhappyWaitTime: Duration? = Duration.ZERO
-) : ComputeResourceSpec, Monikered, Locatable<SubnetAwareLocations>, UnhappyControl {
+) : ComputeResourceSpec, Monikered, Locatable<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, UnhappyControl {
   @JsonIgnore
   override val id = "${locations.account}:$moniker"
 
@@ -139,7 +140,7 @@ data class ClusterSpec(
    * seems to overwrite it. This is a bit nasty but I think having the cluster-wide defaults at the
    * top level in the cluster spec YAML / JSON is nicer for the user.
    */
-  val defaults: ServerGroupSpec
+  override val defaults: ServerGroupSpec
     @JsonUnwrapped get() = _defaults
 
   // Returns the artifact name set by resolvers, or attempts to find the artifact name from the image provider.
@@ -192,12 +193,12 @@ data class ClusterSpec(
   data class ServerGroupSpec(
     val launchConfiguration: LaunchConfigurationSpec? = null,
     val capacity: Capacity? = null,
-    val dependencies: ClusterDependencies? = null,
+    override val dependencies: ClusterDependencies? = null,
     val health: HealthSpec? = null,
     val scaling: Scaling? = null,
     @JsonInclude(NON_EMPTY)
     val tags: Map<String, String>? = null
-  ) {
+  ) : ClusterDependencyContainer {
     init {
       // Require capacity.desired or scaling policies, or let them both be blank for constructing overrides
       require(

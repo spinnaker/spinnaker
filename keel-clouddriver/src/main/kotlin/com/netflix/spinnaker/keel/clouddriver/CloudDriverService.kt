@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.AmazonLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
@@ -78,6 +79,12 @@ interface CloudDriverService {
     @Path("account") account: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Credential
+
+  @GET("/applications/{application}/loadBalancers")
+  suspend fun loadBalancersForApplication(
+    @Header("X-SPINNAKER-USER") user: String,
+    @Path("application") application: String
+  ): List<AmazonLoadBalancer>
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   suspend fun getClassicLoadBalancer(

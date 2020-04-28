@@ -49,7 +49,7 @@ class UnhappyVeto(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun check(resource: Resource<*>): VetoResponse {
+  override suspend fun check(resource: Resource<*>): VetoResponse {
     val resourceId = resource.id
     val application = resource.application
 
@@ -70,14 +70,6 @@ class UnhappyVeto(
     }
 
     return allowedResponse()
-  }
-
-  override fun messageFormat(): Map<String, Any> {
-    TODO("not implemented")
-  }
-
-  override fun passMessage(message: Map<String, Any>) {
-    TODO("not implemented")
   }
 
   override fun currentRejections(): List<String> =

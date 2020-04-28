@@ -31,6 +31,7 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Duration
+import kotlinx.coroutines.runBlocking
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -38,7 +39,6 @@ import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
 class UnhappyVetoTests : JUnit5Minutests {
-  val r = resource()
 
   internal class Fixture {
     val clock = MutableClock()
@@ -54,6 +54,9 @@ class UnhappyVetoTests : JUnit5Minutests {
       } returns "PT10M"
     }
     val subject = UnhappyVeto(resourceRepository, diffFingerprintRepository, unhappyRepository, dynamicConfigService, "PT10M")
+
+    val r = resource()
+    fun check() = runBlocking { subject.check(r) }
   }
 
   fun tests() = rootContext<Fixture> {
@@ -69,7 +72,7 @@ class UnhappyVetoTests : JUnit5Minutests {
       }
 
       test("happy resources aren't vetoed") {
-        expectThat(subject.check(r).allowed).isEqualTo(true)
+        expectThat(check().allowed).isEqualTo(true)
       }
     }
 
@@ -80,17 +83,17 @@ class UnhappyVetoTests : JUnit5Minutests {
         }
 
         test("unhappy resources are vetoed") {
-          expectThat(subject.check(r).allowed).isEqualTo(false)
+          expectThat(check().allowed).isEqualTo(false)
         }
 
         test("resources are checked once every wait time") {
           unhappyRepository.markUnhappyForWaitingTime(r.id, r.spec.application)
 
-          val response1 = subject.check(r)
+          val response1 = check()
           clock.incrementBy(Duration.ofMinutes(11))
-          val response2 = subject.check(r)
+          val response2 = check()
           clock.incrementBy(Duration.ofMinutes(3))
-          val response3 = subject.check(r)
+          val response3 = check()
 
           expect {
             that(response1.allowed).isFalse()
@@ -100,13 +103,13 @@ class UnhappyVetoTests : JUnit5Minutests {
         }
 
         test("a happy resource should no longer be skipped ") {
-          val response1 = subject.check(r) // unhappy, so vetoed
+          val response1 = check() // unhappy, so vetoed
           clock.incrementBy(Duration.ofMinutes(11))
 
           // returnsMany seems to not work for enums, so this is a workaround.
           every { resourceRepository.getStatus(r.id) } returns ResourceStatus.HAPPY
 
-          val response2 = subject.check(r) // rechecked, and it's happy now
+          val response2 = check() // rechecked, and it's happy now
           expect {
             that(response1.allowed).isEqualTo(false)
             that(response2.allowed).isEqualTo(true)
@@ -120,7 +123,7 @@ class UnhappyVetoTests : JUnit5Minutests {
         }
 
         test("resource not skipped") {
-          expectThat(subject.check(r).allowed).isEqualTo(true)
+          expectThat(check().allowed).isEqualTo(true)
         }
       }
     }

@@ -42,12 +42,10 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
 import io.mockk.verifySequence
 import java.time.Clock
 import kotlinx.coroutines.runBlocking
@@ -123,11 +121,11 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
           }
           test("the resource is skipped") {
-            coVerify(exactly = 0) { plugin1.desired(any()) }
-            coVerify(exactly = 0) { plugin1.current(any()) }
-            coVerify(exactly = 0) { plugin1.create(any(), any()) }
-            coVerify(exactly = 0) { plugin1.update(any(), any()) }
-            coVerify(exactly = 0) { plugin1.delete(any()) }
+            verify(exactly = 0) { plugin1.desired(any()) }
+            verify(exactly = 0) { plugin1.current(any()) }
+            verify(exactly = 0) { plugin1.create(any(), any()) }
+            verify(exactly = 0) { plugin1.update(any(), any()) }
+            verify(exactly = 0) { plugin1.delete(any()) }
           }
 
           test("a telemetry event is published") {
@@ -137,7 +135,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the plugin is already actuating this resource") {
           before {
-            coEvery { plugin1.actuationInProgress(resource) } returns true
+            every { plugin1.actuationInProgress(resource) } returns true
 
             runBlocking {
               subject.checkResource(resource)
@@ -145,14 +143,14 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
 
           test("the resource is not resolved") {
-            coVerify(exactly = 0) { plugin1.desired(any()) }
-            coVerify(exactly = 0) { plugin1.current(any()) }
+            verify(exactly = 0) { plugin1.desired(any()) }
+            verify(exactly = 0) { plugin1.current(any()) }
           }
 
           test("the resource is not updated") {
-            coVerify(exactly = 0) { plugin1.create(any(), any()) }
-            coVerify(exactly = 0) { plugin1.update(any(), any()) }
-            coVerify(exactly = 0) { plugin1.delete(any()) }
+            verify(exactly = 0) { plugin1.create(any(), any()) }
+            verify(exactly = 0) { plugin1.update(any(), any()) }
+            verify(exactly = 0) { plugin1.delete(any()) }
           }
 
           test("a telemetry event is published") {
@@ -162,15 +160,15 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the plugin is not already actuating this resource") {
           before {
-            coEvery { plugin1.actuationInProgress(resource) } returns false
+            every { plugin1.actuationInProgress(resource) } returns false
           }
 
           context("the current state matches the desired state") {
             before {
-              coEvery {
+              every {
                 plugin1.desired(resource)
               } returns DummyArtifactVersionedResourceSpec(data = "fnord")
-              coEvery {
+              every {
                 plugin1.current(resource)
               } returns DummyArtifactVersionedResourceSpec(data = "fnord")
             }
@@ -185,14 +183,14 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               }
 
               test("the resource is not updated") {
-                coVerify(exactly = 0) { plugin1.create(any(), any()) }
-                coVerify(exactly = 0) { plugin1.update(any(), any()) }
-                coVerify(exactly = 0) { plugin1.delete(any()) }
+                verify(exactly = 0) { plugin1.create(any(), any()) }
+                verify(exactly = 0) { plugin1.update(any(), any()) }
+                verify(exactly = 0) { plugin1.delete(any()) }
               }
 
               test("only the relevant plugin is queried") {
-                coVerify(exactly = 0) { plugin2.desired(any()) }
-                coVerify(exactly = 0) { plugin2.current(any()) }
+                verify(exactly = 0) { plugin2.desired(any()) }
+                verify(exactly = 0) { plugin2.current(any()) }
               }
 
               test("a telemetry event is published") {
@@ -244,14 +242,14 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               }
 
               test("the resource is not updated") {
-                coVerify(exactly = 0) { plugin1.create(any(), any()) }
-                coVerify(exactly = 0) { plugin1.update(any(), any()) }
-                coVerify(exactly = 0) { plugin1.delete(any()) }
+                verify(exactly = 0) { plugin1.create(any(), any()) }
+                verify(exactly = 0) { plugin1.update(any(), any()) }
+                verify(exactly = 0) { plugin1.delete(any()) }
               }
 
               test("only the relevant plugin is queried") {
-                coVerify(exactly = 0) { plugin2.desired(any()) }
-                coVerify(exactly = 0) { plugin2.current(any()) }
+                verify(exactly = 0) { plugin2.desired(any()) }
+                verify(exactly = 0) { plugin2.current(any()) }
               }
 
               test("a telemetry event is published") {
@@ -262,9 +260,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("the current state is missing") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-              coEvery { plugin1.current(resource) } returns null
-              coEvery { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+              every { plugin1.current(resource) } returns null
+              every { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
               runBlocking {
                 subject.checkResource(resource)
@@ -272,7 +270,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
 
             test("the resource is created via the relevant handler") {
-              coVerify { plugin1.create(resource, any()) }
+              verify { plugin1.create(resource, any()) }
             }
 
             test("a telemetry event is published") {
@@ -285,9 +283,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("the current state is wrong") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
-              coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
-              coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+              every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+              every { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
               runBlocking {
                 subject.checkResource(resource)
@@ -295,7 +293,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
 
             test("the resource is updated") {
-              coVerify { plugin1.update(eq(resource), any()) }
+              verify { plugin1.update(eq(resource), any()) }
             }
 
             test("a telemetry event is published") {
@@ -308,8 +306,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws an exception in current state resolution") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-              coEvery { plugin1.current(resource) } throws RuntimeException("o noes")
+              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+              every { plugin1.current(resource) } throws RuntimeException("o noes")
 
               runBlocking {
                 subject.checkResource(resource)
@@ -317,7 +315,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
 
             test("the resource is not updated") {
-              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+              verify(exactly = 0) { plugin1.update(any(), any()) }
             }
 
             test("an event is published with the wrapped exception") {
@@ -331,8 +329,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             context("the exception is a resolution exception caused by user error") {
               before {
-                coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-                coEvery { plugin1.current(resource) } throws UserException("bad, bad user!")
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.current(resource) } throws UserException("bad, bad user!")
 
                 runBlocking {
                   subject.checkResource(resource)
@@ -351,8 +349,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             context("the exception is a resolution exception caused by system error") {
               before {
-                coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-                coEvery { plugin1.current(resource) } throws SystemException("oopsies!")
+                every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+                every { plugin1.current(resource) } throws SystemException("oopsies!")
 
                 runBlocking {
                   subject.checkResource(resource)
@@ -372,8 +370,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws an unhandled exception in desired state resolution") {
             before {
-              coEvery { plugin1.desired(resource) } throws RuntimeException("o noes")
-              coEvery { plugin1.current(resource) } returns null
+              every { plugin1.desired(resource) } throws RuntimeException("o noes")
+              every { plugin1.current(resource) } returns null
 
               runBlocking {
                 subject.checkResource(resource)
@@ -381,7 +379,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
 
             test("the resource is not updated") {
-              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+              verify(exactly = 0) { plugin1.update(any(), any()) }
             }
 
             test("a telemetry event is published with the wrapped exception") {
@@ -396,8 +394,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws a transient dependency exception in desired state resolution") {
             before {
-              coEvery { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
-              coEvery { plugin1.current(resource) } returns null
+              every { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
+              every { plugin1.current(resource) } returns null
 
               runBlocking {
                 subject.checkResource(resource)
@@ -405,7 +403,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
 
             test("the resource is not updated") {
-              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+              verify(exactly = 0) { plugin1.update(any(), any()) }
             }
 
             test("a telemetry event is published with detail of the problem") {
@@ -420,9 +418,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws an exception on resource update") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-              coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec(artifactVersion = "fnord-41.0")
-              coEvery { plugin1.update(resource, any()) } throws RuntimeException("o noes")
+              every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+              every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec(artifactVersion = "fnord-41.0")
+              every { plugin1.update(resource, any()) } throws RuntimeException("o noes")
 
               runBlocking {
                 subject.checkResource(resource)
@@ -444,9 +442,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       context("the resource check is vetoed") {
         before {
           every { veto.check(resource) } returns VetoResponse(false, "aVeto")
-          coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-          coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
-          coEvery { plugin1.actuationInProgress(resource) } returns false
+          every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+          every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+          every { plugin1.actuationInProgress(resource) } returns false
 
           runBlocking {
             subject.checkResource(resource)
@@ -462,9 +460,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       context("the artifact versioned resource is vetoed and the veto response has vetoArtifact set") {
         before {
           every { veto.check(resource) } returns VetoResponse(allowed = false, vetoName = "aVeto", vetoArtifact = true)
-          coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
-          coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
-          coEvery { plugin1.actuationInProgress(resource) } returns false
+          every { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+          every { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+          every { plugin1.actuationInProgress(resource) } returns false
           every { deliveryConfigRepository.deliveryConfigFor(any()) } returns DeliveryConfig(
             name = "fnord-manifest",
             application = "fnord",

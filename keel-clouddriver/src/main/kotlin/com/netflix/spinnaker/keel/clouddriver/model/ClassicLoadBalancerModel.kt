@@ -23,6 +23,7 @@ data class ClassicLoadBalancerModel(
   override val moniker: Moniker?,
   override val loadBalancerName: String,
   override val loadBalancerType: String = "classic",
+  override val region: String,
   override val availabilityZones: Set<String>,
 
   @JsonAlias("vpcid", "vpcId")

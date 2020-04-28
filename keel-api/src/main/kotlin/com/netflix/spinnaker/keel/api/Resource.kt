@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.api
 /**
  * Internal representation of a resource.
  */
-data class Resource<T : ResourceSpec>(
+data class Resource<out T : ResourceSpec>(
   val kind: ResourceKind,
   val metadata: Map<String, Any?>,
   val spec: T
