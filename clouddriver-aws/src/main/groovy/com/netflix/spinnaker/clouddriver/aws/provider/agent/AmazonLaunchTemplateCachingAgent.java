@@ -181,7 +181,7 @@ public class AmazonLaunchTemplateCachingAgent implements CachingAgent, AccountAw
 
   @Override
   public String getAgentType() {
-    return String.format("%s/%s/%s", account.getName(), region, getClass());
+    return String.format("%s/%s/%s", account.getName(), region, getClass().getSimpleName());
   }
 
   @Override
