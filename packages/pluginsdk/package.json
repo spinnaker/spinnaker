@@ -6,7 +6,7 @@
   "typings": "dist/index.d.ts",
   "license": "Apache-2.0",
   "scripts": {
-    "clean": "shx rm -rf dist",
+    "clean": "npx shx rm -rf dist",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "postinstall": "./scripts/syncPeerDependencies.js",
