@@ -9,9 +9,6 @@
     "watch": "rollup -c -w",
     "postinstall": "check-plugin && check-peer-dependencies"
   },
-  "files": [
-    "build/dist"
-  ],
   "dependencies": {
     "@spinnaker/pluginsdk": "latest"
   },

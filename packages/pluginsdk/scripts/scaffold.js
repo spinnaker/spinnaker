@@ -48,6 +48,7 @@ function updatePackageJson(pkgJsonPath, scaffoldPath) {
   const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath).toString());
   pkgJson.name = path.basename(scaffoldPath);
   pkgJson.dependencies['@spinnaker/pluginsdk'] = pluginSdkVersion;
+  pkgJson.files = ['build/dist'];
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
 }
 
