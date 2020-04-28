@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class LoadBalancerV2UpsertHandler {
 
   private static final String BASE_PHASE = "UPSERT_ELB_V2"
@@ -77,10 +79,9 @@ class LoadBalancerV2UpsertHandler {
         .withAttributes(targetGroupAttributes))
       task.updateStatus BASE_PHASE, "Modified target group ${targetGroup.targetGroupName} attributes."
     } catch (AmazonServiceException e) {
-      def exceptionMessage = "Failed to modify attributes for target group ${targetGroup.targetGroupName} - reason: ${e.errorMessage}."
-      task.updateStatus BASE_PHASE, exceptionMessage
-      return exceptionMessage
+      return handleError("Failed to modify attributes for target group ${targetGroup.targetGroupName} - reason: ${e.toString()}.", e)
     }
+
     return null
   }
 
@@ -136,9 +137,7 @@ class LoadBalancerV2UpsertHandler {
         createdTargetGroup = createTargetGroupResult.getTargetGroups().get(0)
 
       } catch (AmazonServiceException e) {
-        String exceptionMessage = "Failed to create target group ${targetGroup.name} for ${loadBalancerName} - reason: ${e.errorMessage}."
-        task.updateStatus BASE_PHASE, exceptionMessage
-        amazonErrors << exceptionMessage
+        amazonErrors << handleError("Failed to create target group ${targetGroup.name} for ${loadBalancerName} - reason: ${e.toString()}.", e)
       }
 
       if (createdTargetGroup != null) {
@@ -164,9 +163,7 @@ class LoadBalancerV2UpsertHandler {
         removedTargetGroups.push(it)
         task.updateStatus BASE_PHASE, "Target group removed from ${loadBalancer.loadBalancerName} (${it.targetGroupName}:${it.port}:${it.protocol})."
       } catch (ResourceInUseException e) {
-        String exceptionMessage = "Failed to delete target group ${it.targetGroupName} from ${loadBalancer.loadBalancerName} - reason: ${e.errorMessage}."
-        task.updateStatus BASE_PHASE, exceptionMessage
-        amazonErrors << exceptionMessage
+        amazonErrors << handleError("Failed to delete target group ${it.targetGroupName} from ${loadBalancer.loadBalancerName} - reason: ${e.toString()}.", e)
       }
     }
     return removedTargetGroups
@@ -220,9 +217,7 @@ class LoadBalancerV2UpsertHandler {
         .withDefaultActions(defaultActions))
       task.updateStatus BASE_PHASE, "Listener added to ${loadBalancer.loadBalancerName} (${listener.port}:${listener.protocol})."
     } catch (AmazonServiceException e) {
-      String exceptionMessage = "Failed to add listener to ${loadBalancer.loadBalancerName} (${listener.port}:${listener.protocol}) - reason: ${e.errorMessage}."
-      task.updateStatus BASE_PHASE, exceptionMessage
-      amazonErrors << exceptionMessage
+      amazonErrors << handleError("Failed to add listener to ${loadBalancer.loadBalancerName} (${listener.port}:${listener.protocol}) - reason: ${e.toString()}.", e)
       return false
     }
 
@@ -233,9 +228,7 @@ class LoadBalancerV2UpsertHandler {
           loadBalancing.createRule(new CreateRuleRequest(listenerArn: listenerArn, conditions: rule.conditions, actions: rule.actions, priority: Integer.valueOf(rule.priority)))
         }
       } catch (AmazonServiceException e) {
-        String exceptionMessage = "Failed to add rule to listener ${loadBalancer.loadBalancerName} (${listener.port}:${listener.protocol}) reason: ${e.errorMessage}."
-        task.updateStatus BASE_PHASE, exceptionMessage
-        amazonErrors << exceptionMessage
+        amazonErrors << handleError("Failed to add rule to listener ${loadBalancer.loadBalancerName} (${listener.port}:${listener.protocol}) reason: ${e.toString()}.", e)
         return false
       }
     }
@@ -269,9 +262,7 @@ class LoadBalancerV2UpsertHandler {
         .withDefaultActions(defaultActions))
       task.updateStatus BASE_PHASE, "Listener ${listenerArn} updated (${listener.port}:${listener.protocol})."
     } catch (AmazonServiceException e) {
-      String exceptionMessage = "Failed to modify listener ${listenerArn} (${listener.port}:${listener.protocol}) - reason: ${e.errorMessage}."
-      task.updateStatus BASE_PHASE, exceptionMessage
-      amazonErrors << exceptionMessage
+      amazonErrors << handleError("Failed to modify listener ${listenerArn} (${listener.port}:${listener.protocol}) - reason: ${e.toString()}.", e)
     }
 
     // Compare the old rules; if any are different, just replace them all.
@@ -291,9 +282,7 @@ class LoadBalancerV2UpsertHandler {
         try {
           loadBalancing.createRule(new CreateRuleRequest(listenerArn: listenerArn, conditions: rule.conditions, actions: rule.actions, priority: Integer.valueOf(rule.priority)))
         } catch (AmazonServiceException e) {
-          String exceptionMessage = "Failed to add rule to listener ${listenerArn} (${listener.port}:${listener.protocol}) reason: ${e.errorMessage}."
-          task.updateStatus BASE_PHASE, exceptionMessage
-          amazonErrors << exceptionMessage
+          amazonErrors << handleError("Failed to add rule to listener ${listenerArn} (${listener.port}:${listener.protocol}) reason: ${e.toString()}.", e)
         }
       }
     }
@@ -306,7 +295,7 @@ class LoadBalancerV2UpsertHandler {
         task.updateStatus BASE_PHASE, "Listener removed from ${loadBalancer.loadBalancerName} (${it.port}:${it.protocol})."
         existingListeners.remove(it)
       } catch (ListenerNotFoundException e) {
-        task.updateStatus BASE_PHASE, "Failed to delete listener ${it.listenerArn}. Listener could not be found. ${e.errorMessage}"
+        handleError("Failed to delete listener ${it.listenerArn}. Listener could not be found. ${e.toString()}", e)
       }
     }
   }
@@ -530,9 +519,8 @@ class LoadBalancerV2UpsertHandler {
     try {
       result = loadBalancing.createLoadBalancer(request)
     } catch (AmazonServiceException e) {
-      def errors = []
-      errors << e.errorMessage
-      throw new AtomicOperationException("Failed to create load balancer.", errors)
+      log.error("Failed to create load balancer", e)
+      throw new AtomicOperationException("Failed to create load balancer.", [e.toString()])
     }
 
     LoadBalancer createdLoadBalancer = null
@@ -543,5 +531,11 @@ class LoadBalancerV2UpsertHandler {
     }
 
     createdLoadBalancer
+  }
+
+  private static String handleError(String message, Exception e) {
+    log.error(message, e)
+    task.updateStatus BASE_PHASE, message
+    return message
   }
 }
