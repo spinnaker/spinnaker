@@ -106,7 +106,9 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
   val registry = NoopRegistry()
   val contextParameterProcessor: ContextParameterProcessor = mock()
 
-  val emptyStage = object : StageDefinitionBuilder {}
+  val emptyStage = object : StageDefinitionBuilder {
+    override fun getType() = "emptyStage"
+  }
 
   val stageWithTaskAndAfterStages = object : StageDefinitionBuilder {
     override fun getType() = "stageWithTaskAndAfterStages"

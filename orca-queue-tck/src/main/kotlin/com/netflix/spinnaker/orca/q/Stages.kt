@@ -156,6 +156,7 @@ val stageWithNestedSynthetics = object : StageDefinitionBuilder {
 }
 
 val stageWithParallelBranches = object : StageDefinitionBuilder {
+  override fun getType() = "stageWithParallelBranches"
   override fun beforeStages(parent: StageExecution, graph: StageGraphBuilder) {
     listOf("us-east-1", "us-west-2", "eu-west-1")
       .map { region ->

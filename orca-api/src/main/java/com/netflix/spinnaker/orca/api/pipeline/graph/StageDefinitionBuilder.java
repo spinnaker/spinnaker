@@ -108,6 +108,10 @@ public interface StageDefinitionBuilder extends ExtensionPoint {
    */
   static String getType(Class<? extends StageDefinitionBuilder> clazz) {
     String className = clazz.getSimpleName();
+    if (className.equals("")) {
+      throw new IllegalStateException(
+          "StageDefinitionBuilder.getType() cannot be called on an anonymous type");
+    }
     return className.substring(0, 1).toLowerCase()
         + className
             .substring(1)

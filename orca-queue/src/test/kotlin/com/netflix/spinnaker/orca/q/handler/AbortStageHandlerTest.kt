@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.q.AbortStage
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.CompleteStage
-import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.any
@@ -120,7 +119,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       it("marks the stage as TERMINAL") {
         verify(repository).storeStage(check {
           assertThat(it.status).isEqualTo(TERMINAL)
-          assertThat(it.endTime.toInstant()).isEqualTo(clock.instant())
+          assertThat(it.endTime).isEqualTo(clock.instant().toEpochMilli())
         })
       }
 
@@ -170,7 +169,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       it("marks the stage as TERMINAL") {
         verify(repository).storeStage(check {
           assertThat(it.status).isEqualTo(TERMINAL)
-          assertThat(it.endTime.toInstant()).isEqualTo(clock.instant())
+          assertThat(it.endTime).isEqualTo(clock.instant().toEpochMilli())
         })
       }
 

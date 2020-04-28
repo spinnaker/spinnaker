@@ -58,7 +58,6 @@ import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
-import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.check
@@ -72,14 +71,12 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import java.time.Clock
 import java.time.Duration
-import kotlin.collections.first
-import kotlin.collections.forEach
-import kotlin.collections.hashMapOf
-import kotlin.collections.listOf
-import kotlin.collections.mapOf
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.collections.set
-import kotlin.collections.setOf
 import kotlin.reflect.jvm.jvmName
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
@@ -103,7 +100,10 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     on { aliases() } doReturn emptyList<String>()
   }
   val exceptionHandler: ExceptionHandler = mock()
-  val clock = fixedClock()
+  // Stages store times as ms-since-epoch, and we do a lot of tests to make sure things run at the
+  // appropriate time, so we need to make sure
+  // clock.instant() == Instant.ofEpochMilli(clock.instant())
+  val clock = Clock.fixed(Instant.now().truncatedTo(ChronoUnit.MILLIS), ZoneId.systemDefault())
   val contextParameterProcessor = ContextParameterProcessor()
   val dynamicConfigService: DynamicConfigService = mock()
   val taskExecutionInterceptors: List<TaskExecutionInterceptor> = listOf(mock())
