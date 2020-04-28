@@ -2,6 +2,7 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Role;
@@ -35,7 +36,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
-@Import(RetrofitConfig.class)
+@Import({RetrofitConfig.class, PluginsAutoConfiguration.class})
 @EnableConfigurationProperties(FiatServerConfigurationProperties.class)
 public class FiatConfig extends WebMvcConfigurerAdapter {
 
