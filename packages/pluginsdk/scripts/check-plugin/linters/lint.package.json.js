@@ -26,7 +26,7 @@ function checkPackageJson(report) {
   checkPackageJsonField('scripts.clean', 'npx shx rm -rf build');
   checkPackageJsonField('scripts.build', 'rollup -c');
   checkPackageJsonField('scripts.watch', 'rollup -c -w');
-  checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies');
+  checkPackageJsonField('scripts.postinstall', 'check-plugin && check-peer-dependencies || true');
 
   const bundlesFiles = pkgJson.files && pkgJson.files.includes('build/dist');
   const bundlesFilesFixer = () => {

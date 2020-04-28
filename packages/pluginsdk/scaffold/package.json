@@ -7,7 +7,7 @@
     "clean": "npx shx rm -rf build",
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "postinstall": "check-plugin && check-peer-dependencies"
+    "postinstall": "check-plugin && check-peer-dependencies || true"
   },
   "dependencies": {
     "@spinnaker/pluginsdk": "latest"
