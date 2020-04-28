@@ -14,6 +14,7 @@ jobs:
   ci:
     # Meta-job that depends on the other job statuses.  Branch protection then checks this job status.
     name: Deck CI
+    if: startsWith(github.repository, 'spinnaker/')
     needs: [test, build, functional-tests, packages]
     runs-on: ubuntu-latest
     steps:
