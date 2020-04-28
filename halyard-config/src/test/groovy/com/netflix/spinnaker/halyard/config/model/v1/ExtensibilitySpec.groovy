@@ -29,7 +29,6 @@ class ExtensibilitySpec extends Specification {
         plugin.enabled = true
         plugin.id = 'should-not-be-present'
         plugin.version = '1.2.3'
-        plugin.uiResourceLocation = 'https://example.com/'
         plugin.extensions.put("test.plugin", new PluginExtension().setEnabled(true))
         def pluginsMap = [
                 "Test.Plugin": plugin
@@ -50,7 +49,6 @@ class ExtensibilitySpec extends Specification {
                                         "config": [:]
                                 ]
                         ],
-                        'uiResourceLocation': 'https://example.com/'
                 ]
         ]
         subject == expectedOptions

@@ -34,12 +34,6 @@ public class AddPluginCommand extends AbstractHasPluginCommand {
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "Add a plugin";
 
-  @Parameter(
-      names = "--ui-resource-location",
-      description = "The location of the plugin's ui resource.",
-      required = false)
-  private String uiResourceLocation;
-
   @Parameter(names = "--version", description = "The plugin version to use", required = false)
   private String version;
 
@@ -57,7 +51,6 @@ public class AddPluginCommand extends AbstractHasPluginCommand {
         new Plugin()
             .setId(name)
             .setEnabled(isSet(enabled) ? Boolean.parseBoolean(enabled) : false)
-            .setUiResourceLocation(uiResourceLocation)
             .setVersion(version);
     Arrays.stream(extensions.split(","))
         .forEach(e -> plugin.getExtensions().put(e, new PluginExtension().setId(e)));

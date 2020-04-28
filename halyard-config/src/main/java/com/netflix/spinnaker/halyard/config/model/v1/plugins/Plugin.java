@@ -29,7 +29,7 @@ public class Plugin extends Node {
 
   private String id;
   private Boolean enabled;
-  private String uiResourceLocation;
+  @Deprecated private String uiResourceLocation;
   private String version;
   private Map<String, PluginExtension> extensions = new HashMap<>();
 
@@ -51,7 +51,6 @@ public class Plugin extends Node {
     pluginYaml.put("enabled", enabled);
     pluginYaml.put("version", version);
     pluginYaml.put("extensions", extensionsConfig());
-    pluginYaml.put("uiResourceLocation", uiResourceLocation);
     return pluginYaml;
   }
 }

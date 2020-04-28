@@ -33,12 +33,6 @@ public class EditPluginCommand extends AbstractHasPluginCommand {
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "Edit a plugin";
 
-  @Parameter(
-      names = "--ui-resource-location",
-      description = "The location of the plugin's ui resource.",
-      required = false)
-  private String uiResourceLocation;
-
   @Parameter(names = "--version", description = "The plugin version to use", required = false)
   private String version;
 
@@ -54,8 +48,6 @@ public class EditPluginCommand extends AbstractHasPluginCommand {
     Plugin plugin = getPlugin();
 
     plugin.setEnabled(isSet(enabled) ? Boolean.parseBoolean(enabled) : plugin.getEnabled());
-    plugin.setUiResourceLocation(
-        isSet(uiResourceLocation) ? uiResourceLocation : plugin.getUiResourceLocation());
     plugin.setVersion(isSet(version) ? version : plugin.getVersion());
 
     for (String pluginExtensionName : extensions.split(",")) {

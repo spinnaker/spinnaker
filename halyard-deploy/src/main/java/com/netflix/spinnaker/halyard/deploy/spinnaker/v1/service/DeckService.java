@@ -26,7 +26,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApachePass
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApachePortsProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.ApacheSpinnakerProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.DeckProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.PluginManifestProfileFactory;
 import java.nio.file.Paths;
 import java.util.*;
 import lombok.Data;
@@ -45,8 +44,6 @@ public abstract class DeckService extends SpinnakerService<DeckService.Deck> {
   @Autowired ApachePortsProfileFactory apachePortsProfileFactory;
 
   @Autowired ApacheSpinnakerProfileFactory apacheSpinnakerProfileFactory;
-
-  @Autowired PluginManifestProfileFactory pluginManifestProfileFactory;
 
   String htmlPath = "/opt/deck/html/";
 
@@ -101,12 +98,6 @@ public abstract class DeckService extends SpinnakerService<DeckService.Deck> {
     result.add(
         apacheSpinnakerProfileFactory.getProfile(
             "apache2/" + filename, path, deploymentConfiguration, endpoints));
-
-    filename = "plugin-manifest.json";
-    path = Paths.get(htmlPath, filename).toString();
-    result.add(
-        pluginManifestProfileFactory.getProfile(
-            filename, path, deploymentConfiguration, endpoints));
 
     return result;
   }
