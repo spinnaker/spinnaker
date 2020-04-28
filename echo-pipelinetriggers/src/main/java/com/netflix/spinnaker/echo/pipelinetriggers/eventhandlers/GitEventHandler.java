@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   private static final String GIT_TRIGGER_TYPE = "git";
-  private static final String GITHUB_SECURE_SIGNATURE_HEADER = "X-Hub-Signature";
+  private static final String GITHUB_SECURE_SIGNATURE_HEADER = "x-hub-signature";
   private static final List<String> supportedTriggerTypes =
       Collections.singletonList(GIT_TRIGGER_TYPE);
 
