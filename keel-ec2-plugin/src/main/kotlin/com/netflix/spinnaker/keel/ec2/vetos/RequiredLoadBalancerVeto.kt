@@ -75,6 +75,13 @@ class RequiredLoadBalancerVeto(
     }
     return missing
   }
+
+  /**
+   * I'd like to add a `region` property to [AmazonLoadBalancer] but CloudDriver doesn't
+   * consistently return it from all the endpoints we use.
+   */
+  private val AmazonLoadBalancer.region: String
+    get() = availabilityZones.first().dropLast(1)
 }
 
 sealed class MissingDependency(

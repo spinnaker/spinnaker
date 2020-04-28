@@ -20,7 +20,6 @@ interface AmazonLoadBalancer {
   val moniker: Moniker?
   val loadBalancerName: String
   val loadBalancerType: String
-  val region: String
   val availabilityZones: Set<String>
   val vpcId: String
   val subnets: Set<String>

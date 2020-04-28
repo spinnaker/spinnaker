@@ -245,8 +245,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
           ClassicLoadBalancerModel(
             moniker = Moniker("fnord", "elb"), // TODO: parse from name
             loadBalancerName = loadBalancerName,
-            region = region,
-            availabilityZones = setOf(),
+            availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
             vpcId = vpcId,
             subnets = setOf(),
             scheme = "internal",
@@ -266,7 +265,6 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
         ApplicationLoadBalancerModel(
           moniker = Moniker(resourceSpec.application, "stub", "alb"),
           loadBalancerName = "${resourceSpec.application}-stub-alb",
-          region = region,
           targetGroups = targetGroupNames.map { targetGroupName ->
             TargetGroup(
               targetGroupName = targetGroupName,
@@ -287,7 +285,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
               attributes = TargetGroupAttributes()
             )
           },
-          availabilityZones = emptySet(),
+          availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
           vpcId = vpcId,
           subnets = emptySet(),
           scheme = "https",
