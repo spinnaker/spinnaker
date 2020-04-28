@@ -3,6 +3,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
 
   api "com.netflix.spinnaker.kork:kork-artifacts"
+  api "com.netflix.spinnaker.kork:kork-plugins"
   api "org.codehaus.groovy:groovy"
 
   implementation "com.netflix.frigga:frigga"

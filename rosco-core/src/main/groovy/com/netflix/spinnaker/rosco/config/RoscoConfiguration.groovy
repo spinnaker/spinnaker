@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.config
 
+import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.rosco.executor.BakePoller
@@ -30,6 +31,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.core.convert.ConversionService
 import org.springframework.core.convert.support.DefaultConversionService
 import redis.clients.jedis.JedisPool
@@ -37,6 +39,7 @@ import redis.clients.jedis.JedisPool
 @Configuration
 @CompileStatic
 @Slf4j
+@Import(PluginsAutoConfiguration.class)
 class RoscoConfiguration {
 
   @Bean
