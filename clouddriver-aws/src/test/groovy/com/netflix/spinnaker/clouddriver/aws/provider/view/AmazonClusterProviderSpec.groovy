@@ -23,13 +23,16 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import org.junit.jupiter.api.BeforeEach
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAUNCH_CONFIGS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAUNCH_TEMPLATES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
@@ -47,12 +50,13 @@ class AmazonClusterProviderSpec extends Specification {
 
   def app = "app"
   def account = "test"
+  def region = "us-east-1"
   def clusterName = "app-main"
   String clusterId = Keys.getClusterKey(clusterName, app, account)
   def clusterAttributes = [name: clusterName, application: app]
 
   def serverGroupName = "app-main-v000"
-  String serverGroupId = Keys.getServerGroupKey(clusterName, serverGroupName, account, "us-east-1")
+  String serverGroupId = Keys.getServerGroupKey(clusterName, serverGroupName, account, region)
   def serverGroup = [
     name: serverGroupName,
     instances: [],
@@ -65,6 +69,102 @@ class AmazonClusterProviderSpec extends Specification {
   @BeforeEach
   def setup() {
     serverGroup.asg.clear()
+  }
+
+  def "should get cluster details with build info"() {
+    given:
+    def imageId = "ami-1"
+    def imageKey = Keys.getImageKey(imageId, account, region)
+    def imageAttributes = [
+      imageId: imageId,
+      tags: [appversion: "app-0.487.0-h514.f4be391/job/1"]
+    ]
+
+    serverGroup.asg = [ launchConfigurationName: launchConfigName]
+    def launchConfiguration = new DefaultCacheData(
+      Keys.getLaunchConfigKey(launchConfigName, account, region),
+      [imageId: imageId],
+      [images: [imageKey]]
+    )
+
+    and:
+    cacheView.supportsGetAllByApplication() >> false
+    cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(app)) >> new DefaultCacheData(
+      Keys.getApplicationKey(app), [name: app], [serverGroups: [serverGroupId], clusters: [clusterId]]
+    )
+    cacheView.getAll(LAUNCH_CONFIGS.ns, _ as Set) >> [launchConfiguration]
+    cacheView.getAll(CLUSTERS.ns, _, _) >> [new DefaultCacheData(clusterId, clusterAttributes, [serverGroups: [serverGroupId]])]
+    cacheView.getAll(SERVER_GROUPS.ns, [ serverGroupId ], _ as CacheFilter) >> [
+      new DefaultCacheData(serverGroupId, serverGroup, [launchConfigs: [launchConfiguration.id]])
+    ]
+    cacheView.getAll(IMAGES.ns, _ as Set) >> [
+      new DefaultCacheData(imageKey, imageAttributes, [:])
+    ]
+
+    when:
+    def result = provider.getClusterDetails(app)
+
+    then:
+    def clusters = result.values()
+    def allServerGroups = clusters*.serverGroups.flatten() as Set<AmazonServerGroup>
+
+    clusters.size() == 1
+    allServerGroups.size() == 1
+    allServerGroups[0].launchConfig != null
+    allServerGroups[0].buildInfo != null
+    allServerGroups[0].image != null
+  }
+
+  def "should get cluster details by app with build info"() {
+    given:
+    def imageId = "ami-1"
+    def imageKey = Keys.getImageKey(imageId, account, region)
+    def imageAttributes = [
+      imageId: imageId,
+      tags: [appversion: "app-0.487.0-h514.f4be391/job/514"]
+    ]
+
+    serverGroup.asg = [ launchConfigurationName: launchConfigName]
+    def launchConfiguration = new DefaultCacheData(
+      Keys.getLaunchConfigKey(launchConfigName, account, region),
+      [imageId: imageId],
+      [images: [imageKey]]
+    )
+
+    def cluster = new DefaultCacheData(clusterId, clusterAttributes, [serverGroups: [serverGroupId]])
+    def serverGroup = new DefaultCacheData(serverGroupId, serverGroup, [launchConfigs: [launchConfiguration.id]])
+    def image = new DefaultCacheData(imageKey, imageAttributes, [:])
+
+    and:
+    cacheView.getAllByApplication(_, _, _) >> [
+      serverGroups: [serverGroup],
+      clusters: [cluster],
+      launchConfigs: [launchConfiguration],
+      images: [image]
+    ]
+
+    cacheView.getAll(LAUNCH_CONFIGS.ns, _ as Set) >> [launchConfiguration]
+    cacheView.getAll(CLUSTERS.ns, _, _) >> [cluster]
+    cacheView.getAll(SERVER_GROUPS.ns, [ serverGroupId ], _ as CacheFilter) >> [serverGroup]
+
+    cacheView.getAll(IMAGES.ns, _ as Set) >> [image]
+
+    when:
+    def result = provider.getClusterDetails(app)
+
+    then:
+    1 * cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(app)) >> new DefaultCacheData(
+      Keys.getApplicationKey(app), [name: app], [serverGroups: [serverGroupId], clusters: [clusterId]]
+    )
+
+    def clusters = result.values()
+    def allServerGroups = clusters*.serverGroups.flatten() as Set<AmazonServerGroup>
+
+    clusters.size() == 1
+    allServerGroups.size() == 1
+    allServerGroups[0].launchConfig != null
+    allServerGroups[0].buildInfo != null
+    allServerGroups[0].image != null
   }
 
   def "should resolve server group launch config"() {
@@ -89,7 +189,7 @@ class AmazonClusterProviderSpec extends Specification {
       type == "aws"
       name == clusterName
       accountName == account
-      serverGroups.size() == 1
+      result.serverGroups.size() == 1
       sg.launchConfig == launchConfiguration.attributes
       sg.launchTemplate == null
     }

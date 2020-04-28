@@ -183,9 +183,14 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       cacheResults[CLUSTERS.ns],
       TARGET_GROUPS.ns
     )
-    Collection<CacheData> allImages = resolveRelationshipDataForCollection(
-      cacheResults[LAUNCH_CONFIGS.ns],
-      IMAGES.ns
+
+    Collection<CacheData> allImages = []
+    allImages.addAll(
+      resolveRelationshipDataForCollection(cacheResults[LAUNCH_CONFIGS.ns], IMAGES.ns)
+    )
+
+    allImages.addAll(
+      resolveRelationshipDataForCollection(cacheResults[LAUNCH_TEMPLATES.ns], IMAGES.ns)
     )
 
     Map<String, AmazonLoadBalancer> loadBalancers = translateLoadBalancers(allLoadBalancers)
@@ -316,9 +321,17 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       [(sg.id): serverGroup]
     }
 
+    // expand and set launch templates
     updateServerGroupLaunchSettings(serverGroups, launchTemplateData)
+
+    // expand and set launch configs
     updateServerGroupLaunchSettings(serverGroups, launchConfigData)
-    updateServerGroupBuildInfo(serverGroups, imageData)
+
+    // update build info for launch templates
+    updateServerGroupBuildInfo(serverGroups, launchTemplateData, imageData)
+
+    // update build info for launch configs
+    updateServerGroupBuildInfo(serverGroups, launchConfigData, imageData)
 
     serverGroups
   }
@@ -584,12 +597,13 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   /**
    * Updates server groups build info
    */
-  private void updateServerGroupBuildInfo(Map<String, AmazonServerGroup> serverGroups, Collection<CacheData> imageData) {
+  private void updateServerGroupBuildInfo(
+    Map<String, AmazonServerGroup> serverGroups, Collection<CacheData> launchData, Collection<CacheData> imageData) {
     Map<String, CacheData> images = imageData?.collectEntries { image ->
       [(image.id): image]
     }
 
-    imageData.each { ld ->
+    launchData.each { ld ->
       if (ld?.relationships?.containsKey(SERVER_GROUPS.ns)) {
         def serverGroup = serverGroups[ld.relationships[SERVER_GROUPS.ns].first()]
         def imageId = ld.relationships[IMAGES.ns]?.first()
