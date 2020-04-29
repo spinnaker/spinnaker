@@ -17,13 +17,15 @@ package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
+import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
+import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import java.nio.file.Files
 import java.nio.file.Paths
 import org.pf4j.update.PluginInfo
@@ -59,8 +61,10 @@ class DeckPluginCacheTest : JUnit5Minutests {
   private inner class Fixture {
     val updateManager: SpinnakerUpdateManager = mockk(relaxed = true)
     val pluginBundleExtractor: PluginBundleExtractor = mockk(relaxed = true)
+    val pluginStatusProvider: SpringPluginStatusProvider = mockk(relaxed = true)
+    val pluginInfoReleaseProvider: PluginInfoReleaseProvider = mockk(relaxed = true)
     val registry: Registry = NoopRegistry()
-    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, registry)
+    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, pluginStatusProvider, pluginInfoReleaseProvider, registry)
 
     init {
       val plugins = listOf(
@@ -88,14 +92,14 @@ class DeckPluginCacheTest : JUnit5Minutests {
         }
       )
 
-      every { updateManager.plugins } returns plugins
+      val pluginInfoReleases = setOf(
+        PluginInfoRelease(plugins[0].id, plugins[0].releases[1]),
+        PluginInfoRelease(plugins[1].id, plugins[1].releases[1])
+      )
 
-      val pluginIdSlot = slot<String>()
-      every { updateManager.getLastPluginRelease(capture(pluginIdSlot), "deck") } answers {
-        PluginInfo.PluginRelease().apply {
-          version = plugins.find { it.id == pluginIdSlot.captured }!!.releases.last().version
-        }
-      }
+      every { updateManager.plugins } returns plugins
+      every { pluginStatusProvider.isPluginEnabled(any()) } returns true
+      every { pluginInfoReleaseProvider.getReleases(plugins) } returns pluginInfoReleases
 
       every { updateManager.downloadPluginRelease(any(), any()) } returns Paths.get("/dev/null")
 

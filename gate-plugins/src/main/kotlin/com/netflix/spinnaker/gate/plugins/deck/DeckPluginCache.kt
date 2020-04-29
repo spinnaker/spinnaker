@@ -17,8 +17,10 @@ package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
+import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -31,6 +33,8 @@ import org.springframework.scheduling.annotation.Scheduled
 class DeckPluginCache(
   private val updateManager: SpinnakerUpdateManager,
   private val pluginBundleExtractor: PluginBundleExtractor,
+  private val springPluginStatusProvider: SpringPluginStatusProvider,
+  private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val registry: Registry
 ) {
 
@@ -61,14 +65,15 @@ class DeckPluginCache(
 
       updateManager.refresh()
 
-      val newCache = updateManager.plugins
-        .mapNotNull { pluginInfo ->
-          updateManager.getLastPluginRelease(pluginInfo.id, DECK_REQUIREMENT)?.let { lastRelease ->
-            val plugin = DeckPluginVersion(pluginInfo.id, lastRelease.version)
+      val releases = updateManager.plugins
+        .filter { springPluginStatusProvider.isPluginEnabled(it.id) }
+        .let { enabledPlugins -> pluginInfoReleaseProvider.getReleases(enabledPlugins) }
+
+      val newCache = releases.map { release ->
+            val plugin = DeckPluginVersion(release.pluginId, release.props.version)
             val path = getOrDownload(plugin.id, plugin.version)
             PluginCacheEntry(plugin, path)
           }
-        }
 
       cache.removeIf { !newCache.contains(it) }
       cache.addAll(newCache)
