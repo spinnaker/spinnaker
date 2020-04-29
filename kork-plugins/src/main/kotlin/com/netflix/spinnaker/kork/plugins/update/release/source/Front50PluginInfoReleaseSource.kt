@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.plugins.update.ServerGroupNameResolver
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.internal.PinnedVersions
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
+import java.io.IOException
 import org.pf4j.update.PluginInfo
 import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered.LOWEST_PRECEDENCE
@@ -52,12 +53,17 @@ class Front50PluginInfoReleaseSource(
       return
     }
 
-    val response = front50Service.pinVersions(
-      serverGroupName,
-      serviceName,
-      serverGroupLocation,
-      pluginInfoReleases.toVersionMap()
-    ).execute()
+    val response = try {
+      front50Service.pinVersions(
+        serverGroupName,
+        serviceName,
+        serverGroupLocation,
+        pluginInfoReleases.toVersionMap()
+      ).execute()
+    } catch (e: IOException) {
+      log.error("Failed pinning versions in front50, falling back to locally-sourced plugin versions", e)
+      return
+    }
 
     if (!response.isSuccessful) {
       log.error(
