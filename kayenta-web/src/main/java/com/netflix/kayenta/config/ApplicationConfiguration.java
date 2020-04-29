@@ -1,5 +1,6 @@
 package com.netflix.kayenta.config;
 
+import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Import({
   KayentaConfiguration.class,
   WebConfiguration.class,
+  PluginsAutoConfiguration.class,
 })
 @ComponentScan({
   "com.netflix.spinnaker.config",
