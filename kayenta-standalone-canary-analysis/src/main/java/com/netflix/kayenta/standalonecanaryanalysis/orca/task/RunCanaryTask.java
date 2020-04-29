@@ -100,7 +100,7 @@ public class RunCanaryTask implements Task {
       canaryExecutionResponse =
           executionMapper.buildExecution(
               Optional.ofNullable(context.getApplication()).orElse(AD_HOC),
-              stage.getExecution().getId(),
+              context.getParentPipelineExecutionId(),
               Optional.ofNullable(context.getCanaryConfigId()).orElse(AD_HOC),
               request.getCanaryConfig(),
               null,
