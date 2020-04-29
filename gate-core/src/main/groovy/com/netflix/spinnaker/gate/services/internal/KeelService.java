@@ -116,6 +116,12 @@ public interface KeelService {
       @Path("name") String name,
       @Query("serviceAccount") String serviceAccount);
 
+  @GET("/export/artifact/{cloudProvider}/{account}/{clusterName}")
+  Map<String, Object> exportArtifact(
+      @Path("cloudProvider") String cloudProvider,
+      @Path("account") String account,
+      @Path("clusterName") String clusterName);
+
   @POST("/application/{application}/pin")
   Response pin(@Path("application") String application, @Body EnvironmentArtifactPin pin);
 

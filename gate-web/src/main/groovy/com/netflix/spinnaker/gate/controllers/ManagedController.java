@@ -106,6 +106,18 @@ public class ManagedController {
     return new ResponseEntity<>(resource, yamlResponseHeaders, HttpStatus.OK);
   }
 
+  @ApiOperation(
+      value = "Generates an artifact definition based on the artifact used in a running cluster",
+      response = Map.class)
+  @GetMapping(path = "/resources/export/artifact/{cloudProvider}/{account}/{clusterName}")
+  ResponseEntity<Map> exportResource(
+      @PathVariable("cloudProvider") String cloudProvider,
+      @PathVariable("account") String account,
+      @PathVariable("clusterName") String clusterName) {
+    Map<String, Object> artifact = keelService.exportArtifact(cloudProvider, account, clusterName);
+    return new ResponseEntity<>(artifact, yamlResponseHeaders, HttpStatus.OK);
+  }
+
   @ApiOperation(value = "Get a delivery config manifest", response = DeliveryConfig.class)
   @GetMapping(path = "/delivery-configs/{name}")
   DeliveryConfig getManifest(@PathVariable("name") String name) {

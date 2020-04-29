@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.gate.model.manageddelivery;
 
+import lombok.Data;
+
+@Data
 public class EnvironmentArtifactVeto {
   String targetEnvironment;
   String reference;
