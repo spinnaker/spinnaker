@@ -53,7 +53,7 @@ if [ -z "$HALYARD_DAEMON_PID" ]; then
     start_daemon
 else
     set +e
-    ps -e $HALYARD_DAEMON_PID &> /dev/null
+    ps $HALYARD_DAEMON_PID &> /dev/null
     exit_code=$?
     set -e
 
