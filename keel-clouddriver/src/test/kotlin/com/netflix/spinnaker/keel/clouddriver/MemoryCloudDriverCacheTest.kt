@@ -4,7 +4,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import io.mockk.coEvery
+import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.retrofit.RETROFIT_SERVICE_UNAVAILABLE
+import io.mockk.coEvery as every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -49,10 +51,10 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `security groups are looked up from CloudDriver when accessed by id`() {
-    coEvery {
+    every {
       cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
     } returns securityGroupSummaries
-    coEvery {
+    every {
       cloudDriver.getCredential("prod")
     } returns Credential("prod", "aws")
 
@@ -66,10 +68,10 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `security groups are looked up from CloudDriver when accessed by name`() {
-    coEvery {
+    every {
       cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
     } returns securityGroupSummaries
-    coEvery {
+    every {
       cloudDriver.getCredential("prod")
     } returns Credential("prod", "aws")
 
@@ -83,7 +85,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid security group id throws an exception`() {
-    coEvery {
+    every {
       cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
     } returns securityGroupSummaries
 
@@ -93,8 +95,30 @@ object MemoryCloudDriverCacheTest {
   }
 
   @Test
+  fun `a 404 from CloudDriver is translated into a ResourceNotFound exception`() {
+    every {
+      cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
+    } throws RETROFIT_NOT_FOUND
+
+    expectThrows<ResourceNotFound> {
+      subject.securityGroupById("prod", "us-east-1", "sg-4")
+    }
+  }
+
+  @Test
+  fun `any other exception is propagated`() {
+    every {
+      cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")
+    } throws RETROFIT_SERVICE_UNAVAILABLE
+
+    expectThrows<CacheLoadingException> {
+      subject.securityGroupById("prod", "us-east-1", "sg-4")
+    }
+  }
+
+  @Test
   fun `VPC networks are looked up by id from CloudDriver`() {
-    coEvery {
+    every {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
@@ -109,7 +133,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid VPC id throws an exception`() {
-    coEvery {
+    every {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
@@ -120,7 +144,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `VPC networks are looked up by name and region from CloudDriver`() {
-    coEvery {
+    every {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
@@ -131,7 +155,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid VPC name and region throws an exception`() {
-    coEvery {
+    every {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
@@ -142,7 +166,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `availability zones are looked up by account, VPC id and region from CloudDriver`() {
-    coEvery {
+    every {
       cloudDriver.listSubnets("aws")
     } returns subnets
 
@@ -154,7 +178,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid account, VPC id and region returns an empty set`() {
-    coEvery {
+    every {
       cloudDriver.listNetworks()
     } returns mapOf("aws" to vpcs)
 
@@ -165,7 +189,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `availability zones are scoped by subnet`() {
-    coEvery {
+    every {
       cloudDriver.listSubnets("aws")
     } returns subnets
 

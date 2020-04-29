@@ -25,7 +25,7 @@ import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
-import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import dev.minutest.junit.JUnit5Minutests

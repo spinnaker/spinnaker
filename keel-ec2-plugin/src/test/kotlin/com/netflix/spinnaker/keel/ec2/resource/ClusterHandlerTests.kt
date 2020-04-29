@@ -37,7 +37,6 @@ import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.api.StaggeredRegion
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
@@ -47,6 +46,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.test.combinedMockRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests

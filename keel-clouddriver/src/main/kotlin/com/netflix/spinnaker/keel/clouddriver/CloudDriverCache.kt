@@ -35,3 +35,4 @@ interface CloudDriverCache {
 }
 
 class ResourceNotFound(message: String) : IntegrationException(message)
+class CacheLoadingException(message: String, cause: Throwable) : IntegrationException(message, cause)

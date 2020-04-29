@@ -19,6 +19,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
 
   testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-retrofit-test-support"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")
   testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")

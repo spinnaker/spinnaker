@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.MINUTES
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 
 class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
@@ -138,6 +139,15 @@ class MemoryCloudDriverCache(
     notFoundMessage: String,
     loader: suspend CoroutineScope.() -> T?
   ): T = get(key) {
-    runBlocking(block = loader)
+    runCatching {
+      runBlocking(block = loader)
+    }
+      .getOrElse { ex ->
+        if (ex is HttpException && ex.code() == 404) {
+          null
+        } else {
+          throw CacheLoadingException("Error loading cache for $key", ex)
+        }
+      }
   } ?: throw ResourceNotFound(notFoundMessage)
 }
