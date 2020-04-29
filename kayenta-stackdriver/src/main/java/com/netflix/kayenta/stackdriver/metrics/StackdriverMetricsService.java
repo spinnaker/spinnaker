@@ -414,19 +414,30 @@ public class StackdriverMetricsService implements MetricsService {
               .stepMillis(alignmentPeriodSec * 1000)
               .values(pointValues);
 
-      // TODO(duftler): Still not quite sure whether this is right or if we should use
-      // timeSeries.getMetric().getLabels() instead.
-      MonitoredResource monitoredResource = timeSeries.getResource();
+      Map<String, String> filteredLabels = new HashMap<>();
 
+      MonitoredResource monitoredResource = timeSeries.getResource();
       if (monitoredResource != null) {
         Map<String, String> labels = monitoredResource.getLabels();
 
         if (labels != null) {
-          Map<String, String> prunedLabels = new HashMap<>(labels);
-          prunedLabels.remove("project_id");
-          metricSetBuilder.tags(prunedLabels);
+          filteredLabels.putAll(
+              labels.entrySet().stream()
+                  .filter(entry -> entry.getKey() != "project_id")
+                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         }
       }
+
+      Metric metric = timeSeries.getMetric();
+      if (metric != null) {
+        Map<String, String> labels = metric.getLabels();
+
+        if (labels != null) {
+          filteredLabels.putAll(labels);
+        }
+      }
+
+      metricSetBuilder.tags(filteredLabels);
 
       metricSetBuilder.attribute("query", filter);
       metricSetBuilder.attribute("crossSeriesReducer", crossSeriesReducer);
