@@ -22,8 +22,11 @@ import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient;
+import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DeleteTitusScalingPolicyDescription;
 import com.netflix.spinnaker.clouddriver.titus.deploy.events.TitusScalingPolicyDeleted;
 import com.netflix.spinnaker.kork.exceptions.UserException;
@@ -42,9 +45,13 @@ public class DeleteTitusScalingPolicy
     implements SagaAction<DeleteTitusScalingPolicy.DeleteTitusScalingPolicyCommand> {
 
   private final TitusClientProvider titusClientProvider;
+  final AccountCredentialsRepository accountCredentialsRepository;
 
-  public DeleteTitusScalingPolicy(TitusClientProvider titusClientProvider) {
+  public DeleteTitusScalingPolicy(
+      TitusClientProvider titusClientProvider,
+      AccountCredentialsRepository accountCredentialsRepository) {
     this.titusClientProvider = titusClientProvider;
+    this.accountCredentialsRepository = accountCredentialsRepository;
   }
 
   @NotNull
@@ -53,10 +60,12 @@ public class DeleteTitusScalingPolicy
       @NotNull DeleteTitusScalingPolicy.DeleteTitusScalingPolicyCommand command,
       @NotNull Saga saga) {
     saga.log("Initializing Delete Scaling Policy " + command.description.getScalingPolicyID());
+    AccountCredentials accountCredentials =
+        accountCredentialsRepository.getOne(command.description.getAccount());
 
     TitusAutoscalingClient client =
         titusClientProvider.getTitusAutoscalingClient(
-            command.description.getCredentials(), command.description.getRegion());
+            (NetflixTitusCredentials) accountCredentials, command.description.getRegion());
     if (client == null) {
       throw new UserException(
               new UnsupportedOperationException(
