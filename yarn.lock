@@ -1623,33 +1623,33 @@
     semver "^6.3.0"
     tsutils "^3.17.1"
 
-"@uirouter/angularjs@1.0.25", "@uirouter/angularjs@^1.0.15":
-  version "1.0.25"
-  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.25.tgz#9969788eca03bc3f8b1d1b39946713a18e824e33"
-  integrity sha512-kf9bxBhqa1ZUw0aDlz4H17VqAD30MVJY6HM7J628vDeNN9yZt7SDYpwqSrR3y6NBadZUPjaKsDoKsyQQSWArNA==
+"@uirouter/angularjs@1.0.26", "@uirouter/angularjs@^1.0.15":
+  version "1.0.26"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.26.tgz#680ba48ac2c5608a6621c09fadb88a80ceb2e0cc"
+  integrity sha512-90kS4j0cBk1rpipE/CFC+/cNpc32WHI5536oHsJzAOIDY1NoSmb5TMOISrJslg7sBGF56NEtGoRVf42gaACrfA==
   dependencies:
-    "@uirouter/core" "6.0.4"
+    "@uirouter/core" "6.0.5"
 
-"@uirouter/core@6.0.4":
-  version "6.0.4"
-  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-6.0.4.tgz#fcdc75ab10f1035176acf87a27d9d27a0101ecf9"
-  integrity sha512-TQ9XOzZY+jmWKkU4993MAEBIy7Bs3kijDzj+A6RHR8gq/3UoQm3Q/l1igfao5GZyBjid7eRVeipPK14ovCYQ3g==
+"@uirouter/core@6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-6.0.5.tgz#60f13fd530fc75daa283e2bece944516559d066b"
+  integrity sha512-WN2HyELsxvqLaCMYCWojGW/QLRBgFBfwyERp5jC3Vn1njo/FLI5hplVqWMu6LIGp6Hpz3pbdtSaiFb1iY7iTVw==
 
-"@uirouter/react-hybrid@0.3.9", "@uirouter/react-hybrid@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-1.0.0.tgz#ec7660616b6a34648db1e32fdaf839883af5ae0e"
-  integrity sha512-uAFxISnBNTs9Y9d41Z6bu8LRAg+LvvT66JKh6G+ZHyI9SZ3G5NMjoVfVRjt/2kI6cnWiHQnQURn4gln7TEwDPg==
+"@uirouter/react-hybrid@0.3.9", "@uirouter/react-hybrid@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-1.0.2.tgz#8fbe0126ab873b1f525cfdd5bb2303cf72428adf"
+  integrity sha512-bi+ul3BQdfj1/fYBemtNm2BZtwyNCOHbHDprE3IZZnejPRd6C+ZuHihi6cCUk0UFAVD14D8llqcjehbCW4Mp3Q==
   dependencies:
-    "@uirouter/angularjs" "1.0.25"
-    "@uirouter/core" "6.0.4"
-    "@uirouter/react" "1.0.1"
+    "@uirouter/angularjs" "1.0.26"
+    "@uirouter/core" "6.0.5"
+    "@uirouter/react" "1.0.3"
 
-"@uirouter/react@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-1.0.1.tgz#885011c77a20ac5921f9fa8461ec0c27e7f21cc6"
-  integrity sha512-fWWMGB6U1xJNStltUUZ+ENKEnYrqwXpOoJZj9jWgZnP0NXGbhRt+vHrVJPqc4VMwlpemNpkIjn+vO3KNG00ZWA==
+"@uirouter/react@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-1.0.3.tgz#fbfa63e9aa6ad8444198754ef732e63c187d44ed"
+  integrity sha512-LTZK2BFapYTTjAVOc1mQF1mSeC5v++SNzOizhGNn//0npjzbhzy4qSt0EsFwlDtIkuZscVMsxBVNBRxnuy6G/Q==
   dependencies:
-    "@uirouter/core" "6.0.4"
+    "@uirouter/core" "6.0.5"
     classnames "^2.2.5"
     prop-types "^15.6.1"
 

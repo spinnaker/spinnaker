@@ -31,7 +31,7 @@
     "@fortawesome/fontawesome-free": "^5.4.1",
     "@spinnaker/kayenta": "^0.0.91",
     "@spinnaker/styleguide": "^1.0.18",
-    "@uirouter/react-hybrid": "1.0.0",
+    "@uirouter/react-hybrid": "1.0.2",
     "@uirouter/rx": "0.6.5",
     "@uirouter/visualizer": "^7.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
@@ -220,10 +220,10 @@
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
-    "@uirouter/react-hybrid": "1.0.0",
-    "@uirouter/react": "1.0.1",
-    "@uirouter/angularjs": "1.0.25",
-    "@uirouter/core": "6.0.4"
+    "@uirouter/react-hybrid": "1.0.2",
+    "@uirouter/react": "1.0.3",
+    "@uirouter/angularjs": "1.0.26",
+    "@uirouter/core": "6.0.5"
   },
   "husky": {
     "hooks": {
