@@ -48,7 +48,6 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -137,7 +136,6 @@ public class Front50PluginsConfiguration {
   }
 
   @Bean
-  @Primary
   public static PluginInfoReleaseSource front50PluginReleaseProvider(
       Front50Service front50Service, Environment environment) {
     String appName = environment.getProperty("spring.application.name");

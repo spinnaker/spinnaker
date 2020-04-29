@@ -25,7 +25,7 @@ class EnvironmentServerGroupNameResolver(
 ) : ServerGroupNameResolver {
 
   override fun get(): String? =
-    SEARCH_CHAIN.firstOrNull { environment.getProperty(it) != null }
+    SEARCH_CHAIN.mapNotNull { environment.getProperty(it) }.firstOrNull()
 
   private companion object {
     val SEARCH_CHAIN = listOf(
