@@ -38,6 +38,21 @@ public class ServerGroupPluginVersions
 
   private String lastModifiedBy;
 
+  public ServerGroupPluginVersions() {
+    // Jackson
+  }
+
+  public ServerGroupPluginVersions(
+      @Nonnull String id,
+      @Nonnull String serverGroupName,
+      @Nonnull String location,
+      @Nonnull Map<String, String> pluginVersions) {
+    this.id = id;
+    this.serverGroupName = serverGroupName;
+    this.location = location;
+    this.pluginVersions = pluginVersions;
+  }
+
   @Override
   public int compareTo(@Nonnull ServerGroupPluginVersions o) {
     return createTs.compareTo(o.createTs);

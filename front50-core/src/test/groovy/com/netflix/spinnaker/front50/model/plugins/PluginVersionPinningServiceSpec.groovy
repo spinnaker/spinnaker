@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.plugins
 
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -45,7 +46,7 @@ class PluginVersionPinningServiceSpec extends Specification {
     then:
     result.foo.version == "1.0.0"
     result.bar.version == "1.0.0"
-    1 * versionRepository.findById(id) >> null
+    1 * versionRepository.findById(id) >> { throw new NotFoundException("booo") }
     1 * versionRepository.create(id, _)
     1 * infoRepository.findById("foo") >> pluginInfo("foo", "1.0.0")
     1 * infoRepository.findById("bar") >> pluginInfo("bar", "1.0.0")

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.front50.controllers;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.front50.model.plugins.PluginVersionPinningService;
 import java.util.Map;
-import lombok.Value;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,13 +35,8 @@ public class PluginVersionController {
       @PathVariable String serverGroupName,
       @RequestParam String location,
       @RequestParam String serviceName,
-      @RequestBody PinnedVersions pinnedVersions) {
+      @RequestBody Map<String, String> pinnedVersions) {
     return pluginVersionPinningService.pinVersions(
-        serviceName, location, serverGroupName, pinnedVersions.pluginVersions);
-  }
-
-  @Value
-  public static class PinnedVersions {
-    Map<String, String> pluginVersions;
+        serviceName, location, serverGroupName, pinnedVersions);
   }
 }

@@ -17,10 +17,15 @@ package com.netflix.spinnaker.front50.model.plugins;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.front50.exception.NotFoundException;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PluginVersionPinningService {
+
+  private static final Logger log = LoggerFactory.getLogger(PluginVersionPinningService.class);
 
   private final PluginVersionPinningRepository pluginVersionPinningRepository;
   private final PluginInfoRepository pluginInfoRepository;
@@ -39,12 +44,15 @@ public class PluginVersionPinningService {
       Map<String, String> pluginVersions) {
     String id = format("%s-%s-%s", serviceName, location, serverGroupName);
 
-    ServerGroupPluginVersions existing = pluginVersionPinningRepository.findById(id);
-    if (existing == null) {
+    ServerGroupPluginVersions existing;
+    try {
+      existing = pluginVersionPinningRepository.findById(id);
+    } catch (NotFoundException e) {
       pluginVersionPinningRepository.create(
           id, new ServerGroupPluginVersions(id, serverGroupName, location, pluginVersions));
       return getReleasesForIds(pluginVersions);
     }
+
     return getReleasesForIds(existing.pluginVersions);
   }
 
@@ -52,11 +60,17 @@ public class PluginVersionPinningService {
     Map<String, PluginInfo.Release> releases = new HashMap<>();
 
     versions.forEach(
-        (pluginId, version) ->
-            pluginInfoRepository
-                .findById(pluginId)
-                .getReleaseByVersion(version)
-                .ifPresent(it -> releases.put(pluginId, it)));
+        (pluginId, version) -> {
+          PluginInfo info;
+          // Stupid, stupid, stupid: throwing exceptions for flow control.
+          try {
+            info = pluginInfoRepository.findById(pluginId);
+          } catch (NotFoundException e) {
+            log.error("Failed to find plugin release info for plugin '{}': Skipping", pluginId, e);
+            return;
+          }
+          info.getReleaseByVersion(version).ifPresent(it -> releases.put(pluginId, it));
+        });
 
     return releases;
   }
