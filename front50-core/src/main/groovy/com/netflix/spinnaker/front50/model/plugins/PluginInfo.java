@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.plugininfo;
+package com.netflix.spinnaker.front50.model.plugins;
 
 import com.netflix.spinnaker.front50.model.Timestamped;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -59,6 +60,10 @@ public class PluginInfo implements Timestamped {
   private String lastModifiedBy;
 
   public PluginInfo() {}
+
+  public Optional<Release> getReleaseByVersion(String version) {
+    return releases.stream().filter(it -> it.version.equals(version)).findFirst();
+  }
 
   /** A singular {@code PluginInfo} release. */
   @Data

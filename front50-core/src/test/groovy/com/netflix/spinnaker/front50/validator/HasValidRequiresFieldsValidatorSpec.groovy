@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.validator
 
-import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo
+import com.netflix.spinnaker.front50.model.plugins.PluginInfo
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.plugininfo;
+package com.netflix.spinnaker.front50.model.plugins;
 
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;

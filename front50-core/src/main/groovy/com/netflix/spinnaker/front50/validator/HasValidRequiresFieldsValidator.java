@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.validator;
 
-import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
+import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser;
 import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.IllegalVersionRequirementsOperator;
 import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.InvalidPluginVersionRequirementException;

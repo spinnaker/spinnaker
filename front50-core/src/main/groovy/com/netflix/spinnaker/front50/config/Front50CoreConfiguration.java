@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.front50.config;
 
+import com.netflix.spinnaker.moniker.Namer;
+import com.netflix.spinnaker.moniker.frigga.FriggaReflectiveNamer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,5 +34,11 @@ public class Front50CoreConfiguration {
   @ConditionalOnMissingBean(RestTemplate.class)
   public RestTemplate restTemplate() {
     return new RestTemplate();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(Namer.class)
+  public Namer<?> namer() {
+    return new FriggaReflectiveNamer();
   }
 }

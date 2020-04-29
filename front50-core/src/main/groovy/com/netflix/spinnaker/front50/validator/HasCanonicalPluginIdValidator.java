@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.validator;
 
-import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
+import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.kork.plugins.CanonicalPluginId;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

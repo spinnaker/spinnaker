@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.validator
 
-import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo
+import com.netflix.spinnaker.front50.model.plugins.PluginInfo
 import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Subject

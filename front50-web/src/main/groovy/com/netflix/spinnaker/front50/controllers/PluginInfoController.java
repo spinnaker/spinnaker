@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
-import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
-import com.netflix.spinnaker.front50.model.plugininfo.PluginInfoService;
+import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
+import com.netflix.spinnaker.front50.model.plugins.PluginInfoService;
 import java.util.Collection;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;

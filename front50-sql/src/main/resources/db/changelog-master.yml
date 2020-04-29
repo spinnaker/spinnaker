@@ -47,3 +47,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200113-rename-plugin-artifacts-to-plugin-info.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200428-initial-plugin-versions-schema.yml
+      relativeToChangelogFile: true

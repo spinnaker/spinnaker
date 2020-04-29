@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.validator;
+package com.netflix.spinnaker.front50.model.plugins;
 
-import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
-import org.springframework.validation.Errors;
+import com.netflix.spinnaker.front50.model.ItemDAO;
 
-/** A {@link PluginInfo} validator. */
-public interface PluginInfoValidator {
-  void validate(PluginInfo pluginInfo, Errors validationErrors);
-}
+public interface PluginVersionPinningRepository extends ItemDAO<ServerGroupPluginVersions> {}
