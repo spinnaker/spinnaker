@@ -73,7 +73,22 @@ public class PrometheusResponseConverter implements Converter {
           List<Double> dataValues = new ArrayList<Double>(values.size());
 
           for (List tuple : values) {
-            dataValues.add(Double.valueOf((String) tuple.get(1)));
+            String val = (String) tuple.get(1);
+            if (val != null) {
+              switch (val) {
+                case "+Inf":
+                  dataValues.add(Double.POSITIVE_INFINITY);
+                  break;
+                case "-Inf":
+                  dataValues.add(Double.NEGATIVE_INFINITY);
+                  break;
+                case "NaN":
+                  dataValues.add(Double.NaN);
+                  break;
+                default:
+                  dataValues.add(Double.valueOf(val));
+              }
+            }
           }
 
           long startTimeMillis =
