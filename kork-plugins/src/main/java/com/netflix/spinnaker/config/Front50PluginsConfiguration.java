@@ -22,14 +22,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
+import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupLocationResolver;
+import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupNameResolver;
+import com.netflix.spinnaker.kork.plugins.update.ServerGroupLocationResolver;
+import com.netflix.spinnaker.kork.plugins.update.ServerGroupNameResolver;
 import com.netflix.spinnaker.kork.plugins.update.downloader.FileDownloaderProvider;
 import com.netflix.spinnaker.kork.plugins.update.downloader.Front50FileDownloader;
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service;
 import com.netflix.spinnaker.kork.plugins.update.internal.PluginOkHttpClientProvider;
+import com.netflix.spinnaker.kork.plugins.update.release.source.Front50PluginInfoReleaseSource;
+import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.repository.Front50UpdateRepository;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.net.URL;
 import java.util.Map;
+import java.util.Objects;
 import okhttp3.OkHttpClient;
 import org.pf4j.update.UpdateRepository;
 import org.pf4j.update.verifier.CompoundVerifier;
@@ -41,6 +48,7 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -84,12 +92,10 @@ public class Front50PluginsConfiguration {
   }
 
   @Bean
-  public static UpdateRepository pluginFront50UpdateRepository(
+  public static Front50Service pluginFront50Service(
       Environment environment,
       PluginOkHttpClientProvider pluginsOkHttpClientProvider,
-      Map<String, PluginRepositoryProperties> pluginRepositoriesConfig,
-      FileDownloaderProvider fileDownloaderProvider) {
-
+      Map<String, PluginRepositoryProperties> pluginRepositoriesConfig) {
     PluginRepositoryProperties front50RepositoryProps =
         pluginRepositoriesConfig.get(PluginsConfigurationProperties.FRONT5O_REPOSITORY);
 
@@ -102,13 +108,25 @@ public class Front50PluginsConfiguration {
             .configure(SerializationFeature.INDENT_OUTPUT, true)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-    Front50Service front50Service =
-        new Retrofit.Builder()
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-            .baseUrl(front50Url)
-            .client(pluginsOkHttpClientProvider.getOkHttpClient())
-            .build()
-            .create(Front50Service.class);
+    return new Retrofit.Builder()
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .baseUrl(front50Url)
+        .client(pluginsOkHttpClientProvider.getOkHttpClient())
+        .build()
+        .create(Front50Service.class);
+  }
+
+  @Bean
+  public static UpdateRepository pluginFront50UpdateRepository(
+      Front50Service front50Service,
+      Environment environment,
+      Map<String, PluginRepositoryProperties> pluginRepositoriesConfig,
+      FileDownloaderProvider fileDownloaderProvider) {
+
+    PluginRepositoryProperties front50RepositoryProps =
+        pluginRepositoriesConfig.get(PluginsConfigurationProperties.FRONT5O_REPOSITORY);
+
+    URL front50Url = getFront50Url(environment, front50RepositoryProps);
 
     return new Front50UpdateRepository(
         PluginsConfigurationProperties.FRONT5O_REPOSITORY,
@@ -116,6 +134,21 @@ public class Front50PluginsConfiguration {
         fileDownloaderProvider.get(front50RepositoryProps.fileDownloader),
         new CompoundVerifier(),
         front50Service);
+  }
+
+  @Bean
+  @Primary
+  public static PluginInfoReleaseSource front50PluginReleaseProvider(
+      Front50Service front50Service, Environment environment) {
+    String appName = environment.getProperty("spring.application.name");
+    Objects.requireNonNull(appName, "spring.application.name property must be set");
+
+    ServerGroupNameResolver nameResolver = new EnvironmentServerGroupNameResolver(environment);
+    ServerGroupLocationResolver locationResolver =
+        new EnvironmentServerGroupLocationResolver(environment);
+
+    return new Front50PluginInfoReleaseSource(
+        front50Service, nameResolver, locationResolver, appName);
   }
 
   /**

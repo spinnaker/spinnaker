@@ -17,12 +17,21 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
+import com.netflix.spinnaker.kork.plugins.update.ServerGroupLocationResolver
+import com.netflix.spinnaker.kork.plugins.update.ServerGroupNameResolver
+import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
+import com.netflix.spinnaker.kork.plugins.update.internal.PinnedVersions
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import org.pf4j.update.PluginInfo
 import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered.LOWEST_PRECEDENCE
 
-class Front50PluginInfoReleaseSource : PluginInfoReleaseSource {
+class Front50PluginInfoReleaseSource(
+  private val front50Service: Front50Service,
+  private val serverGroupNameResolver: ServerGroupNameResolver,
+  private val serverGroupLocationResolver: ServerGroupLocationResolver,
+  private val serviceName: String
+) : PluginInfoReleaseSource {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -31,7 +40,48 @@ class Front50PluginInfoReleaseSource : PluginInfoReleaseSource {
   }
 
   override fun processReleases(pluginInfoReleases: Set<PluginInfoRelease>) {
-    // Front50 stuff to sync / pin release
+    val serverGroupName = serverGroupNameResolver.get()
+    if (serverGroupName == null) {
+      log.warn("Could not resolve server group name: Skipping front50 plugin version resolution")
+      return
+    }
+
+    val serverGroupLocation = serverGroupLocationResolver.get()
+    if (serverGroupLocation == null) {
+      log.warn("Could not resolve server group location: Skipping front50 plugin version resolution")
+      return
+    }
+
+    val response = front50Service.pinVersions(
+      serverGroupName,
+      serviceName,
+      serverGroupLocation,
+      pluginInfoReleases.toVersionMap()
+    ).execute()
+
+    if (!response.isSuccessful) {
+      log.error(
+        "Failed pinning plugin versions in front50, falling back to locally-sourced plugin versions: {}",
+        response.message()
+      )
+      return
+    }
+
+    response.body()?.updateReleases(pluginInfoReleases)
+  }
+
+  private fun Set<PluginInfoRelease>.toVersionMap(): Map<String, String> =
+    map { it.pluginId to it.props.version }.toMap()
+
+  private fun PinnedVersions.updateReleases(pluginInfoReleases: Set<PluginInfoRelease>) {
+    pluginInfoReleases.map {
+      this[it.pluginId]?.let { release ->
+        if (it.props.version != release.version) {
+          log.info("Aligning plugin '${it.pluginId}' to pinned version: ${it.props.version} -> ${release.version}")
+          it.props = release
+        }
+      }
+    }
   }
 
   /**

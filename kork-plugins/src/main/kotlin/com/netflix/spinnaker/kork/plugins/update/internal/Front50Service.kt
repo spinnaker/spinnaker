@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.kork.plugins.update.internal
 
+import org.pf4j.update.PluginInfo
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * List and get plugin info objects from Front50. Used in conjunction with [Front50UpdateRepository]
@@ -31,4 +35,14 @@ interface Front50Service {
 
   @GET("/pluginInfo")
   fun listAll(): Call<Collection<SpinnakerPluginInfo>>
+
+  @PUT("/pluginVersions/{serverGroupName}")
+  fun pinVersions(
+    @Path("serverGroupName") serverGroupName: String,
+    @Query("serviceName") serviceName: String,
+    @Query("location") location: String,
+    @Body versions: Map<String, String>
+  ): Call<PinnedVersions>
 }
+
+typealias PinnedVersions = Map<String, PluginInfo.PluginRelease>
