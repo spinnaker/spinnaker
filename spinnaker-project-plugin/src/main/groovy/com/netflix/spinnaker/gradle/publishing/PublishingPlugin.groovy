@@ -25,6 +25,11 @@ class PublishingPlugin implements Plugin<Project> {
             pub.artifact(it)
           }
         }
+        // Presence of a module metadata file causes IntelliJ to not associate -sources jars with libraries.
+        //  removing for now, can revisit if there is a good reason to have .modules
+        project.tasks.named("generateMetadataFileFor${PUBLICATION_NAME.capitalize()}Publication", GenerateModuleMetadata) {
+          it.enabled = false
+        }
       }
     }
 
