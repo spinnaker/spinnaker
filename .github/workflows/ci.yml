@@ -1,4 +1,4 @@
-name: Deck CI
+name: Branch Build
 
 on:
   pull_request:

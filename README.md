@@ -1,6 +1,6 @@
 # Spinnaker UI
 
-![Deck CI](https://github.com/spinnaker/deck/workflows/Deck%20CI/badge.svg)
+![Branch Build](https://github.com/spinnaker/deck/workflows/Branch%20Build/badge.svg)
 
 ## Prerequisites
 
