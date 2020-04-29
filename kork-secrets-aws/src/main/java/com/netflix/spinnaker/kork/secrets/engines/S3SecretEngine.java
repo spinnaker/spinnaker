@@ -95,12 +95,13 @@ public class S3SecretEngine extends AbstractStorageSecretEngine {
       } else {
         sb.append(String.format("Error: %s", ex.toString()));
       }
-      throw new SecretException(sb.toString());
+      throw new SecretException(sb.toString(), ex);
     } catch (AmazonClientException ex) {
       throw new SecretException(
           String.format(
               "Error reading contents of S3. Bucket: %s, Object: %s, Region: %s.\nError: %s",
-              bucket, objName, region, ex.toString()));
+              bucket, objName, region, ex.toString()),
+          ex);
     }
   }
 }
