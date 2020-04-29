@@ -1,9 +1,9 @@
 <div class="collapsible-filter-section">
   <a href class="section-heading" ng-click="toggle()">
     <h4>
-      <span class="glyphicon glyphicon-chevron-right" style="{{getIconStyle()}}"></span>
-      {{heading}}
+      <div class="sp-margin-xs-right">{{heading}}</div>
       <help-field ng-if="helpKey" key="{{helpKey}}" placement="right"></help-field>
+      <div class="arrow glyphicon glyphicon-chevron-right" style="{{getIconStyle()}}"></div>
     </h4>
   </a>
   <div class="content-body" ng-if="state.expanded" ng-transclude></div>

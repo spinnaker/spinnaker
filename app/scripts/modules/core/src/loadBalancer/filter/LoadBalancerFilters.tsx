@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { CloudProviderLabel, CloudProviderLogo } from 'core/cloudProvider';
-import { FilterCollapse, ISortFilter, digestDependentFilters } from 'core/filterModel';
+import { ISortFilter, digestDependentFilters } from 'core/filterModel';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { LoadBalancerState } from 'core/state';
 
@@ -190,7 +190,6 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
 
     return (
       <div>
-        <FilterCollapse />
         <div className="heading">
           <span
             className="btn btn-default btn-xs"

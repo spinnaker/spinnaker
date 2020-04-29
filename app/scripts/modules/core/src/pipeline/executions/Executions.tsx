@@ -17,7 +17,7 @@ import { CreatePipeline } from '../config/CreatePipeline';
 import { ExecutionFilters } from '../filter/ExecutionFilters';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
-import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
+import { FilterTags, FilterCollapse, IFilterTag, ISortFilter } from 'core/filterModel';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
@@ -236,14 +236,10 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.state.poll && this.state.poll.cancel();
   }
 
-  private showFilters = (): void => {
-    this.setState({ filtersExpanded: true });
-    this.insightFilterStateModel.pinFilters(true);
-  };
-
-  private hideFilters = (): void => {
-    this.setState({ filtersExpanded: false });
-    this.insightFilterStateModel.pinFilters(false);
+  private toggleFilters = (): void => {
+    const newState = !this.state.filtersExpanded;
+    this.setState({ filtersExpanded: newState });
+    this.insightFilterStateModel.pinFilters(newState);
   };
 
   private groupByChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -290,23 +286,11 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       return (
         <div className="executions-section">
           <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
+            <div onClick={this.toggleFilters}>
+              <FilterCollapse />
+            </div>
+
             <div className="nav">
-              <h3 className="filters-placeholder">
-                <Tooltip value="Show filters">
-                  <a className="btn btn-xs btn-default pin clickable" onClick={this.showFilters}>
-                    <i className="fa fa-forward" />
-                  </a>
-                </Tooltip>
-              </h3>
-              <a
-                className="btn btn-xs btn-default pull-right unpin clickable"
-                style={{ display: filtersExpanded ? '' : 'none' }}
-                onClick={this.hideFilters}
-              >
-                <Tooltip value="Hide filters">
-                  <i className="fa fa-backward" />
-                </Tooltip>
-              </a>
               {!loading && <ExecutionFilters application={app} setReloadingForFilters={this.setReloadingForFilters} />}
             </div>
             <div
