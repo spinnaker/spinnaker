@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
@@ -9,6 +10,9 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
@@ -39,6 +43,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
@@ -370,10 +375,12 @@ class ClusterHandler(
       serverGroupName = base.name
     ) ?: RedBlack()
 
+    val appversion = AppVersion.parseName(base.image?.appVersion).packageName
+
     val spec = ClusterSpec(
       moniker = exportable.moniker,
-      imageProvider = if (base.buildInfo?.packageName != null) {
-        ReferenceArtifactImageProvider(reference = base.buildInfo.packageName.toString())
+      imageProvider = if (appversion != null) {
+        ReferenceArtifactImageProvider(reference = appversion)
       } else {
         null
       },
@@ -392,6 +399,52 @@ class ClusterHandler(
 
     return spec
   }
+
+  override suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact {
+    val serverGroups = cloudDriverService.getServerGroups(
+      account = exportable.account,
+      moniker = exportable.moniker,
+      regions = exportable.regions,
+      serviceAccount = exportable.user
+    )
+      .byRegion()
+
+    if (serverGroups.isEmpty()) {
+      throw ResourceNotFound("Could not find cluster: ${exportable.moniker} " +
+        "in account: ${exportable.account} for export")
+    }
+
+    val base = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }
+      ?: throw ExportError("Unable to determine largest server group: $serverGroups")
+
+    if (base.image == null) {
+      throw ExportError("Server group ${base.name} doesn't have image information - unable to correctly export artifact.")
+    }
+
+    val artifactName = AppVersion.parseName(base.launchConfiguration.appVersion).packageName
+
+    // todo: can we also discover status information?
+    return DebianArtifact(
+      name = artifactName,
+      vmOptions = VirtualMachineOptions(regions = serverGroups.keys, baseOs = guessBaseOsFrom(base.image)))
+  }
+
+  /**
+   * This function attempts to use fields on an image to guess what OS the image is.
+   * If not found, it will default to "bionic".
+   */
+  fun guessBaseOsFrom(image: ActiveServerGroupImage): String =
+    when {
+      image.name.signalsBionic() || image.imageLocation.signalsBionic() || image.description?.signalsBionic() ?: false -> "bionic"
+      image.name.signalsXenial() || image.imageLocation.signalsXenial() || image.description?.signalsXenial() ?: false -> "xenial"
+      else -> {
+        log.error("Unable to determine OS from image $image, defaulting to bionic...")
+        "bionic"
+      }
+    }
+
+  private fun String.signalsBionic(): Boolean = contains("bionic")
+  private fun String.signalsXenial(): Boolean = contains("xenial")
 
   override suspend fun actuationInProgress(resource: Resource<ClusterSpec>) =
     resource
@@ -814,7 +867,8 @@ class ClusterHandler(
         targetTrackingPolicies = scalingPolicies.toTargetTrackingPolicies(),
         stepScalingPolicies = scalingPolicies.toStepScalingPolicies()
       ),
-      tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
+      tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS },
+      image = image
     )
 
   private fun List<MetricDimensionModel>?.toSpec(): Set<MetricDimension> =

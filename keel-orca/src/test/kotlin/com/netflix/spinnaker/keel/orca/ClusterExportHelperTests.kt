@@ -33,7 +33,7 @@ class ClusterExportHelperTests : JUnit5Minutests {
       name = "keel-test-v001",
       region = "us-east-1",
       zones = listOf("a", "b", "c").map { "us-east-1$it" }.toSet(),
-      image = ActiveServerGroupImage("foo", "bar", "baz"),
+      image = ActiveServerGroupImage(imageId = "foo", appVersion = "bar", baseImageVersion = "baz", name = "name", imageLocation = "location", description = "description"),
       launchConfig = LaunchConfig(
         ramdiskId = "diskId",
         ebsOptimized = false,

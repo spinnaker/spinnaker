@@ -827,6 +827,9 @@ private fun ActiveServerGroup.withMissingAppVersion(): ActiveServerGroup =
   copy(
     image = ActiveServerGroupImage(
       imageId = "ami-573e1b2650a5",
+      name = "name",
+      imageLocation = "location",
+      description = null,
       tags = emptyList()
     )
   )

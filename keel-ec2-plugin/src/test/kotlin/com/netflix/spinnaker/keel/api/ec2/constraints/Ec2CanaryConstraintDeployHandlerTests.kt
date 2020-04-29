@@ -207,7 +207,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     name = "fnord-prod",
     region = region,
     zones = emptySet(),
-    image = ActiveServerGroupImage("ami-42b", null, null),
+    image = ActiveServerGroupImage(imageId = "ami-42b", name = "name", imageLocation = "location", appVersion = null, description = null, baseImageVersion = null),
     launchConfig = LaunchConfig(
       ramdiskId = null,
       ebsOptimized = true,

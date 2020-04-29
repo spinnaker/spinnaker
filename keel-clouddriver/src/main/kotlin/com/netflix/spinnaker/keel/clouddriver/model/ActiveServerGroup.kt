@@ -37,16 +37,25 @@ fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =
 data class ActiveServerGroupImage(
   val imageId: String,
   val appVersion: String?,
-  val baseImageVersion: String?
+  val baseImageVersion: String?,
+  val name: String,
+  val imageLocation: String,
+  val description: String?
 ) {
   @JsonCreator
   constructor(
     imageId: String,
+    name: String,
+    imageLocation: String,
+    description: String?,
     tags: List<Map<String, Any?>>
   ) : this(
-    imageId,
+    imageId = imageId,
     appVersion = tags.getTag("appversion")?.substringBefore("/"),
-    baseImageVersion = tags.getTag("base_ami_version")
+    baseImageVersion = tags.getTag("base_ami_version"),
+    name = name,
+    imageLocation = imageLocation,
+    description = description
   )
 }
 

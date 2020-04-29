@@ -413,7 +413,10 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     image = ActiveServerGroupImage(
       imageId = ami,
       appVersion = "$app-3.16.0-h205.121d4ac",
-      baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
+      baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78",
+      description = "name=$app, arch=x86_64, ancestor_name=xenialbase-x86_64-201811142132-ebs, ancestor_id=ami-0fe383ecea7f75eac, ancestor_version=nflx-base-5.308.0-h1044.b4b3f78",
+      imageLocation = "$owner/$app-3.16.0-h205.121d4ac-x86_64-20181115184054-xenial-hvm-sriov-ebs-ebs-ebs",
+      name = "$app-3.16.0-h205.121d4ac-x86_64-20181115184054-xenial-hvm-sriov-ebs-ebs-ebs"
     ),
     launchConfig = LaunchConfig(
       ramdiskId = "",

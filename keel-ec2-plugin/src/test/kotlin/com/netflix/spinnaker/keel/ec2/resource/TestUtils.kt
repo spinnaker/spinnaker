@@ -35,9 +35,12 @@ fun ServerGroup.toCloudDriverResponse(
       location.region,
       location.availabilityZones,
       ActiveServerGroupImage(
-        launchConfiguration.imageId,
-        launchConfiguration.appVersion,
-        launchConfiguration.baseImageVersion
+        imageId = launchConfiguration.imageId,
+        appVersion = launchConfiguration.appVersion,
+        baseImageVersion = launchConfiguration.baseImageVersion,
+        name = "name",
+        imageLocation = "location",
+        description = null
       ),
       LaunchConfig(
         launchConfiguration.ramdiskId,

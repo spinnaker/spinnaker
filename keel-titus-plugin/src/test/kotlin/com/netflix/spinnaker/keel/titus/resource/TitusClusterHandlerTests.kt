@@ -48,7 +48,6 @@ import com.netflix.spinnaker.keel.core.api.Highlander
 import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -78,7 +77,6 @@ import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import retrofit2.Response
 import strikt.api.Assertion
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
@@ -489,32 +487,6 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
       test("semver-job-commit parses to semver version") {
         expectThat(findTagVersioningStrategy(image.copy(tag = "v1.12.3-rc.1-h1196.49b8dc5"))).isEqualTo(SEMVER_JOB_COMMIT_BY_SEMVER)
-      }
-    }
-
-    context("generate container") {
-      val container = DigestProvider(
-        organization = "emburns",
-        image = "spin-titus-demo",
-        digest = "sha:1111"
-      )
-
-      before {
-        coEvery { cloudDriverService.findDockerImages("testregistry", container.repository()) } returns images
-        coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
-      }
-
-      test("no sha match does not generate an artifact strategy") {
-        expectThat(generateContainer(container, titusAccount)).isEqualTo(container)
-      }
-
-      test("sha match generates a container with a strategy") {
-        val generatedContainer = generateContainer(
-          container = container.copy(digest = "sha:2222"),
-          account = titusAccount)
-        expect {
-          that(generatedContainer).isA<VersionedTagProvider>().get { tagVersionStrategy }.isEqualTo(INCREASING_TAG)
-        }
       }
     }
   }

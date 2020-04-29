@@ -5,12 +5,15 @@ import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration.Companion.defaultIamRoleFor
+import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
@@ -20,6 +23,7 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -143,9 +147,17 @@ internal class ClusterExportTests : JUnit5Minutests {
     )
   )
 
+  val image = ActiveServerGroupImage(
+    imageId = "ami-123543254134",
+    name = "keel-0.287.0-h208.fe2e8a1-x86_64-20200413213533-bionic-classic-hvm-sriov-ebs",
+    description = "name=keel, arch=x86_64, ancestor_name=bionic-classicbase-x86_64-202002251430-ebs, ancestor_id=ami-0000, ancestor_version=nflx-base-5.308.0-h1044.b4b3f78",
+    imageLocation = "1111/keel-0.287.0-h208.fe2e8a1-x86_64-20200413213533-bionic-classic-hvm-sriov-ebs",
+    tags = emptyList()
+  )
+
   val serverGroups = spec.resolve()
-  val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
-  val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }
+  val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }.copy(image = image)
+  val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }.copy(image = image)
 
   val resource = resource(
     kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
@@ -218,6 +230,25 @@ internal class ClusterExportTests : JUnit5Minutests {
       clearAllMocks()
     }
 
+    context("exporting an artifact from a cluster") {
+      before {
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+      }
+
+      test("deb is exported correctly") {
+        val artifact = runBlocking {
+          exportArtifact(exportable.copy(regions = setOf("us-east-1")))
+        }
+
+        expect {
+          that(artifact.name).isEqualTo("keel")
+          that(artifact)
+            .isA<DebianArtifact>()
+            .get { vmOptions }.isEqualTo(VirtualMachineOptions(regions = setOf("us-east-1"), baseOs = "bionic"))
+        }
+      }
+    }
+
     context("basic export behavior") {
       before {
         coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
@@ -257,6 +288,7 @@ internal class ClusterExportTests : JUnit5Minutests {
           get { defaults.scaling!!.targetTrackingPolicies }.hasSize(1)
           get { defaults.health }.isNull()
           get { deployWith }.isA<RedBlack>()
+          get { imageProvider }.isA<ReferenceArtifactImageProvider>()
         }
       }
     }

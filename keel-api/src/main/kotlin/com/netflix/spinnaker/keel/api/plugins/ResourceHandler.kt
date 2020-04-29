@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import org.slf4j.Logger
@@ -136,6 +137,14 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
    */
   open suspend fun export(exportable: Exportable): S {
     TODO("Not implemented")
+  }
+
+  /**
+   * Generates an artifact from a currently existing resource.
+   * Note: this only applies to clusters.
+   */
+  open suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact {
+    TODO("Not implemented or not supported with this handler")
   }
 
   /**

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.BuildInfo
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
@@ -48,6 +49,9 @@ data class ServerGroup(
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap(),
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  val image: ActiveServerGroupImage? = null,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val buildInfo: BuildInfo? = null,

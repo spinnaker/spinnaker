@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -45,7 +46,7 @@ class ExportController(
     "securitygroup" to "security-group",
     "securitygroups" to "security-group",
     "cluster" to "cluster",
-    "clustersx" to "cluster"
+    "clusters" to "cluster"
   )
 
   /**
@@ -71,20 +72,7 @@ class ExportController(
   ): SubmittedResource<*> {
     val kind = parseKind(cloudProvider, type)
     val handler = handlers.supporting(kind)
-    val exportable = Exportable(
-      cloudProvider = kind.group,
-      account = account,
-      user = user,
-      moniker = parseMoniker(name),
-      regions = (
-        cloudDriverCache
-          .credentialBy(account)
-          .attributes["regions"] as List<Map<String, Any>>
-        )
-        .map { it["name"] as String }
-        .toSet(),
-      kind = kind
-    )
+    val exportable = generateExportable(cloudProvider, type, account, user, name)
 
     return runBlocking {
       withTracingContext(exportable) {
@@ -93,6 +81,28 @@ class ExportController(
           kind = kind,
           spec = handler.export(exportable)
         )
+      }
+    }
+  }
+
+  @GetMapping(
+    path = ["/artifact/{cloudProvider}/{account}/{clusterName}"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun getArtifactFromCluster(
+    @PathVariable("cloudProvider") cloudProvider: String,
+    @PathVariable("account") account: String,
+    @PathVariable("clusterName") name: String,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ): DeliveryArtifact? {
+    val kind = parseKind(cloudProvider, "cluster")
+    val handler = handlers.supporting(kind)
+    val exportable = generateExportable(cloudProvider, "cluster", account, user, name)
+
+    return runBlocking {
+      withTracingContext(exportable) {
+        log.info("Exporting artifact from cluster ${exportable.toResourceId()}")
+        handler.exportArtifact(exportable)
       }
     }
   }
@@ -122,6 +132,24 @@ class ExportController(
 
       "$group/$normalizedType@v$version"
     }.let(ResourceKind.Companion::parseKind)
+
+  fun generateExportable(cloudProvider: String, type: String, account: String, user: String, name: String): Exportable {
+    val kind = parseKind(cloudProvider, type)
+    return Exportable(
+      cloudProvider = kind.group,
+      account = account,
+      user = user,
+      moniker = parseMoniker(name),
+      regions = (
+        cloudDriverCache
+          .credentialBy(account)
+          .attributes["regions"] as List<Map<String, Any>>
+        )
+        .map { it["name"] as String }
+        .toSet(),
+      kind = kind
+    )
+  }
 
   companion object {
     val versionSuffix = """@v(\d+)$""".toRegex()

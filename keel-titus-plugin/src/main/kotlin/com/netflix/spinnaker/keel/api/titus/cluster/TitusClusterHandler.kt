@@ -26,6 +26,8 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
@@ -54,11 +56,11 @@ import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
-import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.docker.VersionedTagProvider
+import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
+import com.netflix.spinnaker.keel.exceptions.DockerArtifactExportError
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -207,7 +209,7 @@ class TitusClusterHandler(
       locations = locations,
       _defaults = base.exportSpec(exportable.moniker.app),
       overrides = mutableMapOf(),
-      containerProvider = base.container,
+      containerProvider = ReferenceProvider(base.container.repository()),
       deployWith = deployStrategy.withDefaultsOmitted()
     )
 
@@ -219,21 +221,37 @@ class TitusClusterHandler(
     return spec
   }
 
-  // todo eb: this should generate a reference...
-  fun generateContainer(container: DigestProvider, account: String): ContainerProvider {
-    val images = runBlocking {
-      cloudDriverService.findDockerImages(
-        account = getRegistryForTitusAccount(account),
-        repository = container.repository(),
-        user = DEFAULT_SERVICE_ACCOUNT
-      )
+  override suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact {
+    val serverGroups = cloudDriverService.getServerGroups(
+      exportable.account,
+      exportable.moniker,
+      exportable.regions,
+      exportable.user
+    ).byRegion()
+
+    if (serverGroups.isEmpty()) {
+      throw ResourceNotFound("Could not find cluster: ${exportable.moniker} " +
+        "in account: ${exportable.account} for export")
     }
 
-    val image = images.find { it.digest == container.digest } ?: return container
-    val tagVersionStrategy = findTagVersioningStrategy(image) ?: return container
-    return VersionedTagProvider(
-      organization = container.organization,
-      image = container.image,
+    val container = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }?.container
+      ?: throw ExportError("Unable to locate container from the largest server group: $serverGroups")
+
+    val registry = getRegistryForTitusAccount(exportable.account)
+
+    val images = cloudDriverService.findDockerImages(
+      account = getRegistryForTitusAccount(exportable.account),
+      repository = container.repository(),
+      user = DEFAULT_SERVICE_ACCOUNT
+    )
+
+    val image = images.find { it.digest == container.digest }
+      ?: throw ExportError("Unable to find matching image (searching by digest) in registry ($registry) for $container")
+    val tagVersionStrategy = findTagVersioningStrategy(image)
+      ?: throw DockerArtifactExportError(image.toString(), container.toString())
+
+    return DockerArtifact(
+      name = container.repository(),
       tagVersionStrategy = tagVersionStrategy
     )
   }
@@ -491,7 +509,7 @@ class TitusClusterHandler(
       capacity = capacity,
       capacityGroup = capacityGroup,
       constraints = constraints,
-      container = generateContainer(container, location.account),
+      container = ReferenceProvider(container.repository()),
       dependencies = dependencies,
       entryPoint = entryPoint,
       env = env,

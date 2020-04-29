@@ -5,6 +5,9 @@ import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -22,6 +25,8 @@ import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.docker.ReferenceProvider
+import com.netflix.spinnaker.keel.exceptions.DockerArtifactExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
@@ -42,8 +47,11 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.containsKey
 import strikt.assertions.hasSize
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 
@@ -115,19 +123,25 @@ internal class TitusClusterExportTests : JUnit5Minutests {
     kind = SPINNAKER_TITUS_API_V1.qualify("cluster")
   )
 
+  val image = DockerImage(
+    account = "testregistry",
+    repository = "emburns/spin-titus-demo",
+    tag = "1",
+    digest = "sha:1111"
+  )
+
   val images = listOf(
-    DockerImage(
-      account = "testregistry",
-      repository = "emburns/spin-titus-demo",
-      tag = "1",
-      digest = "sha:2222"
-    ),
-    DockerImage(
-      account = "testregistry",
-      repository = "emburns/spin-titus-demo",
-      tag = "2",
-      digest = "sha:3333"
-    )
+    image,
+    image.copy(tag = "2", digest = "sha:2222")
+  )
+
+  val branchJobShaImages = listOf(
+    image.copy(tag = "master-h10.62bbbd6"),
+    image.copy(tag = "master-h11.4e26fbd", digest = "sha:2222")
+  )
+
+  val weirdImages = listOf(
+    image.copy(tag = "blahblah")
   )
 
   fun tests() = rootContext<TitusClusterHandler> {
@@ -199,6 +213,49 @@ internal class TitusClusterExportTests : JUnit5Minutests {
               that(spec.defaults.env).isNull()
               that(spec.defaults.containerAttributes).isNull()
               that(spec.defaults.tags).isNull()
+              that(containerProvider).isA<ReferenceProvider>()
+            }
+          }
+        }
+      }
+
+      context("exported artifact") {
+        context("tags are just increasing numbers") {
+          before {
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
+          }
+          test("tag strategy is chosen as INCREASING_TAG") {
+            val artifact = runBlocking {
+              exportArtifact(exportable)
+            }
+            expectThat(artifact)
+              .isA<DockerArtifact>()
+              .get { tagVersionStrategy }.isEqualTo(INCREASING_TAG)
+          }
+        }
+        context("tags are branch-job.sha") {
+          before {
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns branchJobShaImages
+          }
+
+          test("tag strategy is chosen as BRANCH_JOB_COMMIT_BY_JOB") {
+            val artifact = runBlocking {
+              exportArtifact(exportable)
+            }
+            expectThat(artifact)
+              .isA<DockerArtifact>()
+              .get { tagVersionStrategy }.isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
+          }
+        }
+
+        context("tags are just string garbage") {
+          before {
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns weirdImages
+          }
+
+          test("exception is throw") {
+            expectThrows<DockerArtifactExportError> {
+              exportArtifact(exportable)
             }
           }
         }
