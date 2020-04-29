@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory
   Type(value = ResourceCheckUnresolvable::class, name = "ResourceCheckUnresolvable"),
   Type(value = ResourceActuationPaused::class, name = "ResourceActuationPaused"),
   Type(value = ResourceActuationResumed::class, name = "ResourceActuationResumed"),
+  Type(value = ResourceActuationVetoed::class, name = "ResourceActuationVetoed"),
   Type(value = ResourceTaskFailed::class, name = "ResourceTaskFailed"),
   Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded")
 )
