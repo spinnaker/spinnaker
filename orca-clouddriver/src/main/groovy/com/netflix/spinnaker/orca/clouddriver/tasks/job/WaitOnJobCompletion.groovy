@@ -26,9 +26,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import com.netflix.spinnaker.orca.pipeline.model.OverridableStageTimeout
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -44,6 +44,7 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
   final long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   final long timeout = TimeUnit.MINUTES.toMillis(120)
+
 
   @Autowired
   KatoRestService katoRestService
@@ -64,26 +65,6 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
    * we should wait a bit longer to allow for any inaccuracies of the clock across the systems
    */
   static final Duration PROVIDER_PADDING = Duration.ofMinutes(5)
-
-  @Override
-  long getDynamicTimeout(@Nonnull StageExecution stage) {
-    String jobTimeoutFromProvider = (stage.context.get("jobRuntimeLimit") as String)
-
-    if (jobTimeoutFromProvider != null) {
-      try {
-        return Duration.parse(jobTimeoutFromProvider).plus(PROVIDER_PADDING).toMillis()
-      } catch (DateTimeParseException e) {
-        log.warn("Failed to parse job timeout specified by provider: '${jobTimeoutFromProvider}', using default", e)
-      }
-    }
-
-    OverridableStageTimeout timeout = stage.mapTo(OverridableStageTimeout.class)
-    if (timeout.timeoutMinutes.isPresent()) {
-      return TimeUnit.MINUTES.toMillis(timeout.timeoutMinutes.getAsLong())
-    }
-
-    return getTimeout()
-  }
 
   @Override @Nullable
   TaskResult onTimeout(@Nonnull StageExecution stage) {

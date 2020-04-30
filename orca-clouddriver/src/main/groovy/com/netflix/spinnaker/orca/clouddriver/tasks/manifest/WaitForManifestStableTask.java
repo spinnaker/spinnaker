@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.pipeline.model.OverridableStageTimeout;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,16 +53,6 @@ public class WaitForManifestStableTask
   @Override
   public long getTimeout() {
     return TimeUnit.MINUTES.toMillis(30);
-  }
-
-  @Override
-  public long getDynamicTimeout(StageExecution stage) {
-    OverridableStageTimeout timeout = stage.mapTo(OverridableStageTimeout.class);
-    if (timeout.getTimeoutMinutes().isPresent()) {
-      return TimeUnit.MINUTES.toMillis(timeout.getTimeoutMinutes().getAsLong());
-    }
-
-    return getTimeout();
   }
 
   @Nonnull
