@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.constraints.allPass
+import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
@@ -20,6 +21,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
+import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -30,6 +32,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -986,6 +989,17 @@ class SqlDeliveryConfigRepository(
         .fetchOne(DELIVERY_CONFIG.APPLICATION)
     }
       ?: throw NoSuchDeliveryConfigName(name)
+
+  override fun getApplicationSummaries(): Collection<ApplicationSummary> =
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_CONFIG.NAME, DELIVERY_CONFIG.APPLICATION, DELIVERY_CONFIG.SERVICE_ACCOUNT, DELIVERY_CONFIG.API_VERSION, PAUSED.NAME)
+        .from(DELIVERY_CONFIG)
+        .leftOuterJoin(PAUSED).on(PAUSED.NAME.eq(DELIVERY_CONFIG.APPLICATION).and(PAUSED.SCOPE.eq(APPLICATION.toString())))
+        .fetch { (name, application, serviceAccount, apiVersion, paused) ->
+          ApplicationSummary(deliveryConfigName = name, application = application, serviceAccount = serviceAccount, apiVersion = apiVersion, isPaused = paused != null)
+        }
+    }
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 
