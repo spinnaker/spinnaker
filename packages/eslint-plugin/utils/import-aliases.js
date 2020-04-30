@@ -85,14 +85,8 @@ function _getSourceFileDetails(sourceFile) {
 }
 
 function getSubPackage(packageName, filePath) {
-  if (packageName === 'kubernetes') {
-    // subpackage is v1/foo or v2/foo
-    const [, subPkg] = /^((?:v[12]\/)?[^/]+)\/?.*/.exec(filePath) || [];
-    return subPkg;
-  } else {
-    const [, subPkg] = /^([^/]+)\/?.*/.exec(filePath) || [];
-    return subPkg;
-  }
+  const [, subPkg] = /^([^/]+)\/?.*/.exec(filePath) || [];
+  return subPkg;
 }
 
 const getSourceFileDetails = memoize(_getSourceFileDetails);

@@ -68,7 +68,7 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
       return false;
     }
     const account = this.props.accounts.find(({ name }) => name === cluster.account);
-    return account.type === 'kubernetes' && account.providerVersion === 'v2';
+    return account.type === 'kubernetes';
   }
 
   public render() {
