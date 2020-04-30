@@ -47,6 +47,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
         containerPort: cmd.containerPort,
       });
       cmd.targetGroup = '';
+      cmd.loadBalancedContainer = '';
     }
 
     cmd.targetGroupMappings = uniqWith(defaultTargetGroup, isEqual);

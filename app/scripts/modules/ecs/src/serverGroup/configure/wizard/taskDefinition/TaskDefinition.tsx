@@ -58,6 +58,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
         containerPort: cmd.containerPort,
       });
       cmd.targetGroup = '';
+      cmd.loadBalancedContainer = '';
     }
 
     cmd.targetGroupMappings = uniqWith(defaultTargetGroup, isEqual);
