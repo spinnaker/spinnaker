@@ -24,7 +24,7 @@ public class GcsProperties {
 
   private String bucketLocation;
 
-  private String rootFolder;
+  private String rootFolder = "front50";
 
   private String jsonPath = "";
 
