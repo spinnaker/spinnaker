@@ -7,7 +7,6 @@ import com.netflix.spinnaker.orca.gremlin.GremlinService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -18,7 +17,6 @@ import retrofit.RestAdapter
 import retrofit.client.Client
 
 @Configuration
-@ConditionalOnProperty("integrations.gremlin.enabled")
 @ComponentScan(
   "com.netflix.spinnaker.orca.gremlin.pipeline",
   "com.netflix.spinnaker.orca.gremlin.tasks"
@@ -27,7 +25,7 @@ class GremlinConfiguration {
 
   @Bean
   fun gremlinEndpoint(
-    @Value("\${integrations.gremlin.base-url}") gremlinBaseUrl: String
+    @Value("\${integrations.gremlin.base-url:https://api.gremlin.com/v1}") gremlinBaseUrl: String
   ): Endpoint {
     return Endpoints.newFixedEndpoint(gremlinBaseUrl)
   }
