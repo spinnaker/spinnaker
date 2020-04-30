@@ -4,7 +4,7 @@ on:
   push:
     branches:
     - master
-    - version-*
+    - release-*
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
