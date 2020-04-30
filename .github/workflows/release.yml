@@ -7,7 +7,7 @@ on:
     - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
 
 env:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx6g -Xms6g -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.http.connectionTimeout=120000
 
 jobs:
   release:
