@@ -133,6 +133,9 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
             features.getManagedPipelineTemplatesV2UI() != null
                 ? features.getManagedPipelineTemplatesV2UI()
                 : false));
+    bindings.put(
+        "features.gremlin",
+        Boolean.toString(features.getGremlin() != null ? features.getGremlin() : false));
 
     // Configure Kubernetes
     KubernetesProvider kubernetesProvider = deploymentConfiguration.getProviders().getKubernetes();
