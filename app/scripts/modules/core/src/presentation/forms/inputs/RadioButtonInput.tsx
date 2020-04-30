@@ -28,13 +28,13 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
 
   const userClassName = orEmptyString(inputClassName);
   const validClassName = validationClassName(validation);
-  const verticalClassName = inline ? '' : 'vertical left';
-  const elementClassName = `RadioButtonInput radio ${userClassName} ${validClassName} ${verticalClassName}`;
+  const layoutClassName = inline ? 'flex-container-h margin-between-md' : 'flex-container-v margin-between-sm';
+  const elementClassName = `RadioButtonInput radio ${userClassName} ${validClassName} ${layoutClassName}`;
 
   return (
     <div className={elementClassName}>
       {radioOptions.map(option => (
-        <RadioButton inline={inline} key={option.label} value={value} option={option} {...otherProps} />
+        <RadioButton key={option.label} value={value} option={option} {...otherProps} />
       ))}
     </div>
   );
@@ -42,13 +42,12 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
 
 interface IRadioButtonProps {
   option: IRadioButtonOptions;
-  inline: boolean;
   value: any;
 }
-const RadioButton = ({ option, inline, value, ...otherProps }: IRadioButtonProps) => (
-  <label className={inline ? 'radio-inline clickable' : 'inline clickable'}>
+const RadioButton = ({ option, value, ...otherProps }: IRadioButtonProps) => (
+  <label className={'clickable'}>
     <input type="radio" {...otherProps} value={option.value as any} checked={option.value === value} />
     <Markdown message={option.label} style={option.help && { display: 'inline-block' }} />
-    {option.help && <> {option.help}</>}
+    {option.help && <>{option.help}</>}
   </label>
 );
