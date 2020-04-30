@@ -19,6 +19,18 @@ class BintrayPublishPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.plugins.apply(BasePlugin)
     def extension = project.extensions.create("bintraySpinnaker", BintrayPublishExtension, project)
+
+    project.afterEvaluate {
+      if (extension.enabled().get() && extension.jarEnabled().get()) {
+        def bintraySpinnaker = project.repositories.maven {
+          it.name = 'bintraySpinnakerRepo'
+          it.url = extension.jarMavenRepoUrl()
+        }
+        project.repositories.remove(bintraySpinnaker)
+        project.repositories.addFirst(bintraySpinnaker)
+      }
+    }
+
     if (!extension.hasCreds()) {
       project.logger.info("Not configuring bintray publishing, ensure bintrayUser and bintrayKey project properties are set")
       return

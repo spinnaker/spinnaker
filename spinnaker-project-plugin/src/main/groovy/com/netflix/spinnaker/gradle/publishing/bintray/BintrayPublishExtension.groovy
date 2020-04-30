@@ -124,6 +124,14 @@ class BintrayPublishExtension {
     }
   }
 
+  Provider<String> jarMavenRepoUrl() {
+    return bintrayOrg().flatMap { String org ->
+      bintrayJarRepo().map { String repo ->
+        "https://dl.bintray.com/$org/$repo/".toString()
+      }
+    }
+  }
+
   Provider<String> jarPublishVersionUri() {
     return bintrayOrg().flatMap { String org ->
       bintrayJarRepo().flatMap { String repo ->
