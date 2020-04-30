@@ -10,7 +10,7 @@ import { ICommonFormFieldProps, renderContent } from './index';
 import { IFormInputValidation } from '../inputs';
 import { ILayoutProps, LayoutContext } from '../layouts';
 import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
-import { useIsFirstRender } from '../../hooks/useIsFirstRender.hook';
+import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';
 
 export interface IFormikFieldProps<T> {
   /**
@@ -74,9 +74,9 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
 
   const revalidate = () => coalescedRevalidate(formik);
-  const isFirstRender = useIsFirstRender();
+  const mountStatus = useMountStatusRef();
   React.useEffect(() => {
-    if (isFirstRender && internalValidators.length === 0) {
+    if (mountStatus.current === 'FIRST_RENDER' && internalValidators.length === 0) {
       return;
     }
     revalidate();
