@@ -26,7 +26,7 @@ export const NavCategory = ({ app, category, isActive }: INavCategoryProps) => {
   const badgeClassNames = runningCount ? 'badge-running-count' : 'badge-none';
 
   return (
-    <div className="nav-category flex-container-h middle sp-padding-s-yaxis'">
+    <div className="nav-category flex-container-h middle sp-padding-s-yaxis">
       <div className={badgeClassNames}>{runningCount > 0 ? runningCount : ''}</div>
       <div className="nav-item">
         {iconName && (

@@ -1,53 +1,94 @@
-.nav-section {
-  font-size: 14px;
-  text-transform: uppercase;
+.vertical-navigation {
+  width: 240px;
+  height: 100%;
+  background-color: var(--color-accent-g2);
+  box-shadow: 2px 0 3px 1px var(--color-alto);
 
-  .nav-category {
-    color: var(--color-accent);
-    padding-left: 40px;
-  
-    .badge-none {
-      min-width: 18px;
-      margin-right: 8px;
-    }
-  
-    .badge-running-count {
-      min-width: 18px;
-      margin-right: 8px;
-      border-radius: 3px;
-      color: var(--color-white);
+  .nav-header {
+    color: var(--color-primary);
+
+    .application-header-icon {
+      border-radius: 50%;
       background-color: var(--color-primary);
-      padding: 3px;
-      line-height: 14px;
+      border: 2px solid var(--color-white);
+      color: var(--color-white);
       text-align: center;
-      @media (max-width: 1400px) {
-        font-size: 10px;
+      width: 30px;
+      height: 30px;
+      line-height: 28px;
+      font-size: 15px;
+    }
+
+    .refresher {
+      font-size: 75%;
+      margin-left: 10px;
+      margin-top: 3px;
+    }
+  }
+
+  .nav-section {
+    font-size: 14px;
+    text-transform: uppercase;
+
+    .nav-category {
+      color: var(--color-accent);
+      padding-left: 40px;
+      align-items: center;
+
+      .badge-none {
+        min-width: 18px;
+        margin-right: 8px;
+      }
+
+      .badge-running-count {
+        min-width: 18px;
+        margin-right: 8px;
+        border-radius: 3px;
+        color: var(--color-white);
+        background-color: var(--color-primary);
+        padding: 3px;
+        line-height: 14px;
+        text-align: center;
+        @media (max-width: 1400px) {
+          font-size: 10px;
+        }
+      }
+
+      .nav-item {
+        min-width: 16px;
+        margin-right: 8px;
+        line-height: 10px;
       }
     }
-  
-    .nav-item {
-      min-width: 16px;
-      margin-right: 8px;
-      line-height: 10px;
+
+    a {
+      text-decoration: none;
+    }
+
+    .active {
+      .nav-category {
+        background: var(--color-accessory-light);
+        color: var(--color-primary);
+      }
+
+      .nav-icon {
+        color: var(--color-primary);
+      }
+    }
+
+    .page-category {
+      color: var(--color-accent);
+      padding-left: 68px;
+      margin-top: -4px;
+
+      .nav-item {
+        min-width: 16px;
+        line-height: 10px;
+      }
     }
   }
 
-  a {
-    text-decoration: none;
+  .nav-section:not(:first-of-type):not(:last-of-type) {
+    border-top: 1px solid var(--color-white);
   }
-  
-  .active {
-    .nav-category {
-      background: var(--color-accessory-light);
-      color: var(--color-primary);
-    }
-  
-    .nav-icon {
-      color: var(--color-primary);
-    }
-  }
-}
-
-.nav-section:not(:first-of-type):not(:last-of-type) {
-  border-top: 1px solid var(--color-white);
 }

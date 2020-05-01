@@ -18,7 +18,7 @@ describe('NavCategory', () => {
       mockServerGroupDataSourceConfig,
     );
 
-    const wrapper = shallow(<NavSection app={app} categories={app.dataSources} activeCategoryName="Pipelines" />);
+    const wrapper = shallow(<NavSection app={app} categories={app.dataSources} />);
     const nodes = wrapper.children();
     expect(nodes.length).toEqual(3);
   });
@@ -26,7 +26,7 @@ describe('NavCategory', () => {
   it('should not render if no categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');
 
-    const wrapper = shallow(<NavSection app={app} categories={[]} activeCategoryName="" />);
+    const wrapper = shallow(<NavSection app={app} categories={[]} />);
     const nodes = wrapper.children();
     expect(nodes.length).toEqual(0);
   });
