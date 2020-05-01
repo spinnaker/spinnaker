@@ -8,6 +8,7 @@ import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
 import { getResourceName, getArtifactVersionDisplayName } from './displayNames';
+import { IStatusBubbleProps, StatusBubble } from './StatusBubble';
 
 export interface IManagedResourceObjectProps {
   resource: IManagedResourceSummary;
@@ -56,6 +57,20 @@ const getResourceRoutingInfo = (
   return null;
 };
 
+const resourceStatusConfig: {
+  [status: string]: Pick<IStatusBubbleProps, 'appearance' | 'iconName'>;
+} = {
+  ACTUATING: { appearance: 'progress', iconName: 'mdActuating' },
+  CREATED: { appearance: 'info', iconName: 'mdCreated' },
+  DIFF: { appearance: 'info', iconName: 'mdDiff' },
+  CURRENTLY_UNRESOLVABLE: { appearance: 'warning', iconName: 'mdError' },
+  ERROR: { appearance: 'error', iconName: 'mdError' },
+  PAUSED: { appearance: 'warning', iconName: 'mdPaused' },
+  RESUMED: { appearance: 'info', iconName: 'mdResumed' },
+  UNHAPPY: { appearance: 'error', iconName: 'mdUnhappy' },
+  UNKNOWN: { appearance: 'warning', iconName: 'mdUnknown' },
+};
+
 export const ManagedResourceObject = memo(
   ({ resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
     const { kind } = resource;
@@ -78,11 +93,15 @@ export const ManagedResourceObject = memo(
       </>
     );
 
+    const resourceStatusProps = resourceStatusConfig[resource.status];
+    const resourceStatus = resourceStatusProps && <StatusBubble {...resourceStatusProps} size="small" />;
+
     return (
       <ObjectRow
         icon={getIconTypeFromKind(kind)}
         title={route ? <a {...route}>{resourceName}</a> : resourceName}
         depth={depth}
+        content={resourceStatus}
         metadata={
           <>
             {currentPill}

@@ -67,7 +67,7 @@ import { ReactComponent as mdDeltaDetected } from './vectors/mdDeltaDetected.svg
 import { ReactComponent as mdDeltaResolved } from './vectors/mdDeltaResolved.svg';
 import { ReactComponent as mdDiff } from './vectors/mdDiff.svg';
 import { ReactComponent as mdError } from './vectors/mdError.svg';
-import { ReactComponent as mdFlapping } from './vectors/mdFlapping.svg';
+import { ReactComponent as mdUnhappy } from './vectors/mdUnhappy.svg';
 import { ReactComponent as mdPaused } from './vectors/mdPaused.svg';
 import { ReactComponent as mdResumed } from './vectors/mdResumed.svg';
 import { ReactComponent as mdUnknown } from './vectors/mdUnknown.svg';
@@ -130,7 +130,7 @@ export const iconsByName = {
   mdDeltaResolved,
   mdDiff,
   mdError,
-  mdFlapping,
+  mdUnhappy,
   mdPaused,
   mdResumed,
   mdUnknown,
