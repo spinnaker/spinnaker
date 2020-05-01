@@ -3,11 +3,11 @@ import ReactGA from 'react-ga';
 import classNames from 'classnames';
 import { UISref } from '@uirouter/react';
 
-import { HoverablePopover, IHoverablePopoverContentsProps, showModal } from 'core/presentation';
+import { HoverablePopover, IHoverablePopoverContentsProps } from 'core/presentation';
 import { IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
 import { Application } from 'core/application';
 
-import { ManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
+import { showManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
 import { toggleResourcePause } from './toggleResourceManagement';
 
 import './ManagedResourceStatusIndicator.less';
@@ -218,7 +218,7 @@ const PopoverActions = ({
       className="passive flex-none"
       onClick={() => {
         hidePopover();
-        showModal(ManagedResourceHistoryModal, { resourceSummary });
+        showManagedResourceHistoryModal({ resourceSummary });
       }}
     >
       <i className="fa fa-history" /> History

@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { CSSTransition } from 'react-transition-group';
-
-const { useMemo } = React;
+import { isNumber } from 'lodash';
 
 import { useLatestCallback, useContainerClassNames, useEventListener } from '../hooks';
 import { TabBoundary } from '../TabBoundary';
@@ -10,14 +9,17 @@ import { TabBoundary } from '../TabBoundary';
 import { ModalContext } from './ModalContext';
 import styles from './Modal.module.css';
 
+const DEFAULT_MAX_WIDTH = '1400px';
+
 export interface IModalProps {
   isOpen: boolean;
+  maxWidth?: number | string;
   onRequestClose?: () => any;
   onAfterClose?: () => any;
   children?: React.ReactNode;
 }
 
-export const Modal = ({ onRequestClose, onAfterClose, isOpen, children }: IModalProps) => {
+export const Modal = ({ isOpen, maxWidth, onRequestClose, onAfterClose, children }: IModalProps) => {
   useContainerClassNames(isOpen ? [styles.backdropBlurEffect] : []);
 
   const keydownCallback = ({ keyCode }: KeyboardEvent) => {
@@ -46,7 +48,15 @@ export const Modal = ({ onRequestClose, onAfterClose, isOpen, children }: IModal
             onExited={onAfterClose}
           >
             <div className={styles.dialogWrapper}>
-              <div className={styles.dialog}>{children}</div>
+              <div
+                className={styles.dialogSizer}
+                style={{
+                  gridTemplateColumns: `minmax(min-content, ${(isNumber(maxWidth) ? `${maxWidth}px` : maxWidth) ??
+                    DEFAULT_MAX_WIDTH})`,
+                }}
+              >
+                <div className={styles.dialog}>{children}</div>
+              </div>
             </div>
           </CSSTransition>
         </TabBoundary>,

@@ -120,6 +120,11 @@
   align-items: center;
 }
 
+.dialogSizer {
+  display: grid;
+  margin: 0 64px;
+}
+
 .dialog {
   position: relative;
   border-radius: 8px;
@@ -127,8 +132,6 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 64px);
-  max-width: 1400px;
   max-height: calc(100% - 64px);
   min-height: 320px;
   will-change: transform, opacity;
@@ -137,7 +140,7 @@
 @media belowMobileSize {
   .dialog {
     max-height: calc(100% - 32px);
-    width: calc(100% - 24px);
+    margin: 0 24px;
   }
 }
 

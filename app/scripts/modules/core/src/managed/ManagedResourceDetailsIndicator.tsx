@@ -3,14 +3,14 @@ import ReactGA from 'react-ga';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { SETTINGS } from 'core/config/settings';
-import { HoverablePopover, showModal } from 'core/presentation';
+import { HoverablePopover } from 'core/presentation';
 import { HelpField } from 'core/help';
 import { Application } from 'core/application';
 import { IManagedResourceSummary } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 
 import { toggleResourcePause } from './toggleResourceManagement';
-import { ManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
+import { showManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
 import managedDeliveryLogo from './icons/md-logo-color.svg';
 
 import './ManagedResourceDetailsIndicator.css';
@@ -103,7 +103,7 @@ export const ManagedResourceDetailsIndicator = ({
             <li>
               <a
                 onClick={() => {
-                  showModal(ManagedResourceHistoryModal, { resourceSummary });
+                  showManagedResourceHistoryModal({ resourceSummary });
                   logClick('History', id);
                 }}
               >

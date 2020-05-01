@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 
-import { Modal } from './Modal';
+import { Modal, IModalProps } from './Modal';
 
 /** The Modal content Component will be passed these two props */
 export interface IModalComponentProps<C = any, D = any> {
@@ -44,11 +44,13 @@ export type IModalResult<C, D> = ModalCloseResult<C> | ModalDismissResult<D>;
  *
  * @param ModalComponent the component to be rendered inside a modal
  * @param componentProps to pass to the ModalComponent
+ * @param modalProps props to pass to the modal itself
  * @returns {Promise<IModalResult<C, D>}
  */
 export const showModal = <P, C = any, D = any>(
   ModalComponent: React.ComponentType<P & IModalComponentProps<C, D>>,
   componentProps?: P,
+  modalProps?: Omit<IModalProps, 'isOpen' | 'onRequestClose' | 'onAfterClose' | 'children'>,
 ): Promise<IModalResult<C, D>> =>
   new Promise<IModalResult<C, D>>(resolve => {
     let mountNode = document.createElement('div');
@@ -80,7 +82,7 @@ export const showModal = <P, C = any, D = any>(
 
     function render() {
       ReactDOM.render(
-        <Modal isOpen={show} onRequestClose={handleRequestClose} onAfterClose={onAfterClose}>
+        <Modal isOpen={show} onRequestClose={handleRequestClose} onAfterClose={onAfterClose} {...modalProps}>
           <UIRouterContextComponent>
             <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
           </UIRouterContextComponent>

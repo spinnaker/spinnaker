@@ -13,6 +13,7 @@ import {
   standardGridTableLayout,
   usePollingData,
   usePrevious,
+  showModal,
 } from '../presentation';
 
 import { relativeTime, timestamp } from 'core/utils';
@@ -171,6 +172,9 @@ const renderExpandedRowContent = (
     </div>
   );
 };
+
+export const showManagedResourceHistoryModal = (props: IManagedResourceHistoryModalProps) =>
+  showModal(ManagedResourceHistoryModal, props);
 
 export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: IManagedResourceHistoryModalProps) => {
   const {
