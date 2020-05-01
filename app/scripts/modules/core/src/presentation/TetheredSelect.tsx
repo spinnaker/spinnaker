@@ -23,7 +23,7 @@ export class TetheredSelect extends Select {
 
     return (
       <TetherComponent
-        classes={{ element: 'layer-high' }}
+        classes={{ element: 'layer-critical' }}
         attachment="top left"
         targetAttachment="top left"
         constraints={[{ to: 'window', attachment: 'together', pin: ['top'] }]}
