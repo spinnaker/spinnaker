@@ -145,46 +145,50 @@ public class Applications {
     // if the update time doesn't match then we need to update the cache
     // if the app is not found in the cache we need to process with `map` and update the cache
     try {
-      forkJoinPool.submit(
-          () ->
-              newCloudFoundryAppList
-                  .parallelStream()
-                  .filter(
-                      app -> {
-                        CloudFoundryServerGroup cachedApp = findById(app.getGuid());
-                        if (cachedApp != null) {
-                          if (!cachedApp
-                              .getUpdatedTime()
-                              .equals(app.getUpdatedAt().toInstant().toEpochMilli())) {
-                            log.trace(
-                                "App '{}' cached version is out of date on foundation '{}'",
-                                app.getName(),
-                                this.account);
-                            return true;
-                          } else {
-                            return false;
-                          }
-                        } else {
-                          log.trace(
-                              "App '{}' not found in cache for foundation '{}'",
-                              app.getName(),
-                              this.account);
-                          return true;
-                        }
-                      })
-                  .map(this::map)
-                  .forEach(sg -> serverGroupCache.put(sg.getId(), sg)));
+      forkJoinPool
+          .submit(
+              () ->
+                  newCloudFoundryAppList
+                      .parallelStream()
+                      .filter(
+                          app -> {
+                            CloudFoundryServerGroup cachedApp = findById(app.getGuid());
+                            if (cachedApp != null) {
+                              if (!cachedApp
+                                  .getUpdatedTime()
+                                  .equals(app.getUpdatedAt().toInstant().toEpochMilli())) {
+                                log.trace(
+                                    "App '{}' cached version is out of date on foundation '{}'",
+                                    app.getName(),
+                                    this.account);
+                                return true;
+                              } else {
+                                return false;
+                              }
+                            } else {
+                              log.trace(
+                                  "App '{}' not found in cache for foundation '{}'",
+                                  app.getName(),
+                                  this.account);
+                              return true;
+                            }
+                          })
+                      .map(this::map)
+                      .forEach(sg -> serverGroupCache.put(sg.getId(), sg)))
+          .get();
 
-      forkJoinPool.submit(
-          () ->
-              // execute health check on instances, set number of available instances and health
-              // status
-              newCloudFoundryAppList
-                  .parallelStream()
-                  .forEach(
-                      a ->
-                          serverGroupCache.put(
-                              a.getGuid(), checkHealthStatus(findById(a.getGuid()), a))));
+      forkJoinPool
+          .submit(
+              () ->
+                  // execute health check on instances, set number of available instances and health
+                  // status
+                  newCloudFoundryAppList
+                      .parallelStream()
+                      .forEach(
+                          a ->
+                              serverGroupCache.put(
+                                  a.getGuid(), checkHealthStatus(findById(a.getGuid()), a))))
+          .get();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -230,9 +234,11 @@ public class Applications {
 
   @Nullable
   public CloudFoundryServerGroup findServerGroupByNameAndSpaceId(String name, String spaceId) {
-    return Optional.ofNullable(findServerGroupId(name, spaceId))
-        .flatMap(serverGroupId -> Optional.ofNullable(findById(serverGroupId)))
-        .orElse(null);
+    Optional<CloudFoundryServerGroup> result =
+        safelyCall(() -> api.all(null, 1, singletonList(name), singletonList(spaceId)))
+            .flatMap(page -> page.getResources().stream().findFirst().map(this::map));
+    result.ifPresent(sg -> serverGroupCache.put(sg.getId(), sg));
+    return result.orElse(null);
   }
 
   @Nullable
