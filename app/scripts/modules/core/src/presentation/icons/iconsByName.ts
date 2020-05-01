@@ -25,6 +25,7 @@ import { ReactComponent as fnNew } from './vectors/fnNew.svg';
 import { ReactComponent as instances } from './vectors/instances.svg';
 import { ReactComponent as loadBalancer } from './vectors/loadBalancer.svg';
 import { ReactComponent as manualJudgement } from './vectors/manualJudgement.svg';
+import { ReactComponent as pin } from './vectors/pin.svg';
 import { ReactComponent as placeholder } from './vectors/placeholder.svg';
 import { ReactComponent as securityGroup } from './vectors/securityGroup.svg';
 import { ReactComponent as servergroupAws } from './vectors/servergroupAws.svg';
@@ -120,6 +121,7 @@ export const iconsByName = {
   mdConstraintDependsOn,
   mdConstraintAllowedTimes,
   md,
+  pin,
   placeholder,
   securityGroup,
   servergroupAws,
