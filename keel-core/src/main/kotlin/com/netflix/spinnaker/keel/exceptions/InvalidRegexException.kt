@@ -31,4 +31,4 @@ class InvalidRegexException(
 class NoDockerImageSatisfiesConstraints(
   val artifactName: String,
   val environment: String
-) : ResourceCurrentlyUnresolvable("No docker image found for artifact $artifactName in $environment")
+) : ResourceCurrentlyUnresolvable("No docker image found for artifact $artifactName that satisfies constraints in environment $environment")

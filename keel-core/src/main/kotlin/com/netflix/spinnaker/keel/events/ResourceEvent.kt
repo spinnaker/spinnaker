@@ -385,14 +385,14 @@ enum class ResourceCheckErrorOrigin {
   @JsonProperty("unknown") UNKNOWN;
 
   companion object {
-    val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
-    fun fromException(exceptionType: Class<out SpinnakerException>) =
-      when {
-        UserException::class.java.isAssignableFrom(exceptionType) -> USER
-        SystemException::class.java.isAssignableFrom(exceptionType) -> SYSTEM
+    val log: Logger by lazy { LoggerFactory.getLogger(ResourceCheckErrorOrigin.javaClass) }
+    fun fromException(exception: SpinnakerException) =
+      when (exception) {
+        is UserException -> USER
+        is SystemException -> SYSTEM
         else -> UNKNOWN.also {
-          log.error("All keel exceptions should inherit from UserException or SystemException (got ${exceptionType.name}). " +
-            "This is a bug.")
+          log.debug("All keel exceptions should inherit from UserException or SystemException (got ${exception.javaClass.name}). " +
+            "This is a probably a bug.")
         }
       }
   }
@@ -403,21 +403,23 @@ data class ResourceCheckError(
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
-  val exceptionType: Class<out SpinnakerException>,
-  val exceptionMessage: String?
+  @JsonIgnore
+  private val exception: SpinnakerException,
+  val exceptionMessage: String? = exception.message,
+  @JsonProperty(access = Access.READ_ONLY)
+  val origin: ResourceCheckErrorOrigin = ResourceCheckErrorOrigin.fromException(exception)
 ) : ResourceCheckResult(message = exceptionMessage) {
   @JsonIgnore
   override val state = Error
 
-  @JsonProperty(access = Access.READ_ONLY)
-  val origin: ResourceCheckErrorOrigin = ResourceCheckErrorOrigin.fromException(exceptionType)
+  val exceptionType: Class<out SpinnakerException> =
+    exception.javaClass
 
   constructor(resource: Resource<*>, exception: SpinnakerException, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
     resource.application,
     clock.instant(),
-    exception.javaClass,
-    exception.message
+    exception
   )
 }

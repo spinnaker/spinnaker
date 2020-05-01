@@ -171,7 +171,7 @@ class ResourceActuator(
           }
         }
       } catch (e: ResourceCurrentlyUnresolvable) {
-        log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
+        log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message, e)
         publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
       } catch (e: Exception) {
         log.error("Resource check for $id failed", e)
