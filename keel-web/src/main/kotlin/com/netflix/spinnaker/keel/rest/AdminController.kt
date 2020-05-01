@@ -46,7 +46,7 @@ class AdminController(
   @PostMapping(
     path = ["/recheck/{resourceId}"]
   )
-  fun triggerRecheck(resourceId: String) {
+  fun triggerRecheck(@PathVariable("resourceId") resourceId: String) {
     adminService.triggerRecheck(resourceId)
   }
 }
