@@ -427,8 +427,10 @@ const helpContents: { [key: string]: string } = {
     'if unchecked, marks the stage as successful right away without waiting for the Wercker job to complete',
   'script.waitForCompletion':
     'if unchecked, marks the stage as successful right away without waiting for the script to complete',
-  'markdown.examples':
-    'Some examples of markdown syntax: <br/> *<em>emphasis</em>* <br/> **<b>strong</b>** <br/> [link text](http://url-goes-here)',
+  // eslint-disable-next-line no-useless-escape
+  'markdown.examples': `
+    Some examples of markdown syntax: <br/> \`*italic*\` <br/> \`**bold**\` <br/> \`[link text](http://url-goes-here)\`
+  `,
   'pipeline.config.webhook.payload': 'JSON payload to be added to the webhook call.',
   'pipeline.config.webhook.cancelPayload':
     'JSON payload to be added to the webhook call when it is called in response to a cancellation.',
