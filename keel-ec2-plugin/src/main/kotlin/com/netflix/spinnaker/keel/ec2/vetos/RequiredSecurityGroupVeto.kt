@@ -66,7 +66,7 @@ class RequiredSecurityGroupVeto(
 
   private suspend fun securityGroupExists(
     account: String,
-    vpcName: String?,
+    subnet: String?,
     region: String,
     name: String
   ): Boolean =
@@ -77,14 +77,14 @@ class RequiredSecurityGroupVeto(
         type = CLOUD_PROVIDER,
         securityGroupName = name,
         region = region,
-        vpcId = if (vpcName == null) null else cloudDriverCache.networkBy(vpcName, account, region).id
+        vpcId = if (subnet == null) null else cloudDriverCache.subnetBy(account, region, subnet).vpcId
       )
     }
       .onFailure { ex ->
         if (ex is HttpException && ex.code() == 404) {
-          log.warn("security group $name not found in $account/$vpcName/$region")
+          log.warn("security group $name not found in $account/$subnet/$region")
         } else {
-          log.error("error finding security group $name in $account/$vpcName/$region", ex)
+          log.error("error finding security group $name in $account/$subnet/$region", ex)
         }
       }
       .isSuccess

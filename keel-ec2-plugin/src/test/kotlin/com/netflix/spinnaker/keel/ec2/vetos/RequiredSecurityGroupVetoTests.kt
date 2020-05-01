@@ -17,8 +17,8 @@ import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
+import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.api.randomUID
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.retrofit.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.test.randomString
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import dev.minutest.junit.JUnit5Minutests
@@ -54,7 +55,7 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
     val resource: Resource<SPEC>
       get() = resource(resourceKind, resourceSpec)
 
-    val vpcName = "vpc0"
+    val subnet = "internal (vpc0)"
     val vpcId = "vpc-5318008"
 
     val veto = RequiredSecurityGroupVeto(cloudDriver, cloudDriverCache)
@@ -368,13 +369,13 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
    */
   private fun Fixture<Locatable<SubnetAwareLocations>>.stubSubnets() {
     every {
-      cloudDriverCache.networkBy(
-        resourceSpec.locations.subnet,
+      cloudDriverCache.subnetBy(
         resourceSpec.locations.account,
-        match { it in resourceSpec.locations.regions.map(SubnetAwareRegionSpec::name) }
+        match { it in resourceSpec.locations.regions.map(SubnetAwareRegionSpec::name) },
+        resourceSpec.locations.subnet!!
       )
     } answers {
-      Network("aws", vpcId, firstArg(), secondArg(), thirdArg())
+      Subnet(randomString(8), vpcId, firstArg(), secondArg(), "${secondArg<String>()}a", thirdArg())
     }
   }
 
