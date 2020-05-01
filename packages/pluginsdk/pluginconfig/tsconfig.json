@@ -3,6 +3,8 @@
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true,
+    "inlineSources": true,
+    "inlineSourceMap": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react",
