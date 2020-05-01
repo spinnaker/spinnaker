@@ -16,9 +16,9 @@ import { isConstraintSupported } from './constraints/constraintRegistry';
 
 import './ArtifactDetail.less';
 
-function shouldDisplayResource(name: string, type: string, resource: IManagedResourceSummary) {
+function shouldDisplayResource(reference: string, resource: IManagedResourceSummary) {
   //TODO: naively filter on presence of moniker but how should we really decide what to display?
-  return !!resource.moniker && name === resource.artifact?.name && type === resource.artifact?.type;
+  return !!resource.moniker && reference === resource.artifact?.reference;
 }
 
 const inStyles = {
@@ -115,7 +115,7 @@ const EnvironmentCards = memo(
 export interface IArtifactDetailProps {
   application: Application;
   name: string;
-  type: string;
+  reference: string;
   version: IManagedArtifactVersion;
   allVersions: IManagedArtifactSummary['versions'];
   resourcesByEnvironment: { [environment: string]: IManagedResourceSummary[] };
@@ -125,7 +125,7 @@ export interface IArtifactDetailProps {
 export const ArtifactDetail = ({
   application,
   name,
-  type,
+  reference,
   version: versionDetails,
   allVersions,
   resourcesByEnvironment,
@@ -167,7 +167,7 @@ export const ArtifactDetail = ({
               </div>
               <div className="sp-margin-l-top">
                 {resourcesByEnvironment[environmentName]
-                  .filter(resource => shouldDisplayResource(name, type, resource))
+                  .filter(resource => shouldDisplayResource(reference, resource))
                   .map(resource => (
                     <div key={resource.id} className="flex-container-h middle">
                       {state === 'deploying' && (

@@ -55,8 +55,7 @@ const detailPaneTransitionConfig = {
 };
 
 export interface ISelectedArtifactVersion {
-  name: string;
-  type: string;
+  reference: string;
   version: string;
 }
 
@@ -89,14 +88,12 @@ export function Environments({ app }: IEnvironmentsProps) {
   );
 
   const selectedVersion = useMemo<ISelectedArtifactVersion>(
-    () => (params.version ? pick(params, ['type', 'name', 'version']) : null),
-    [params.type, params.name, params.version],
+    () => (params.version ? pick(params, ['reference', 'version']) : null),
+    [params.reference, params.version],
   );
   const selectedArtifactDetails = useMemo(
-    () =>
-      selectedVersion &&
-      artifacts.find(({ type, name }) => type === selectedVersion.type && name === selectedVersion.name),
-    [selectedVersion?.type, selectedVersion?.name, artifacts],
+    () => selectedVersion && artifacts.find(({ reference }) => reference === selectedVersion.reference),
+    [selectedVersion?.reference, artifacts],
   );
   const selectedVersionDetails = useMemo(
     () => selectedArtifactDetails?.versions.find(({ version }) => version === selectedVersion.version),
@@ -170,8 +167,8 @@ export function Environments({ app }: IEnvironmentsProps) {
               <animated.div key={key} className={styles.environmentsPane} style={props}>
                 <ArtifactDetail
                   application={app}
-                  name={item.selectedVersion.name}
-                  type={item.selectedVersion.type}
+                  name={item.selectedArtifactDetails.name}
+                  reference={item.selectedArtifactDetails.reference}
                   version={item.selectedVersionDetails}
                   allVersions={item.selectedArtifactDetails.versions}
                   resourcesByEnvironment={resourcesByEnvironment}

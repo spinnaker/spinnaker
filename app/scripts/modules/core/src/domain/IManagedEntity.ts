@@ -53,6 +53,7 @@ export interface IManagedResourceSummary {
   artifact?: {
     name: string;
     type: string;
+    reference: string;
   };
 }
 
@@ -62,6 +63,7 @@ export interface IManagedEnviromentSummary {
   artifacts: Array<{
     name: string;
     type: string;
+    reference: string;
     statuses: string[];
     versions: {
       current?: string;
@@ -98,6 +100,7 @@ export interface IManagedArtifactVersion {
 export interface IManagedArtifactSummary {
   name: string;
   type: string;
+  reference: string;
   versions: IManagedArtifactVersion[];
 }
 

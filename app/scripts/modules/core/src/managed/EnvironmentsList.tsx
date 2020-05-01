@@ -32,13 +32,9 @@ export function EnvironmentsList({ environments, resourcesById, artifacts: allAr
             .map(resource => {
               const artifactVersionsByState =
                 resource.artifact &&
-                artifacts.find(({ name, type }) => name === resource.artifact.name && type === resource.artifact.type)
-                  ?.versions;
+                artifacts.find(({ reference }) => reference === resource.artifact.reference)?.versions;
               const artifactDetails =
-                resource.artifact &&
-                allArtifacts.find(
-                  ({ name, type }) => name === resource.artifact.name && type === resource.artifact.type,
-                );
+                resource.artifact && allArtifacts.find(({ reference }) => reference === resource.artifact.reference);
               return (
                 <ManagedResourceObject
                   key={resource.id}

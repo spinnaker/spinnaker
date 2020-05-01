@@ -12,10 +12,9 @@ module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
     if (SETTINGS.feature.managedDelivery) {
       const artifactVersion: INestedState = {
         name: 'artifactVersion',
-        url: '/{type}/{name}/{version}',
+        url: '/{reference}/{version}',
         params: {
-          type: { dynamic: true },
-          name: { dynamic: true },
+          reference: { dynamic: true },
           version: { dynamic: true },
         },
         children: [],
