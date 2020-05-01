@@ -1,8 +1,4 @@
 shifts:
-- startDate: Mon 13 Apr 2020
-  user: ajordens
-- startDate: Mon 20 Apr 2020
-  user: cfieber
 - startDate: Mon 27 Apr 2020
   user: ethanfrogers
 - startDate: Mon 04 May 2020
@@ -16,5 +12,9 @@ shifts:
 - startDate: Mon 01 Jun 2020
   user: robzienert
 - startDate: Mon 08 Jun 2020
-  stopDate: Sun 14 Jun 2020
   user: ttomsu@google.com
+- startDate: Mon 15 Jun 2020
+  user: ajordens
+- startDate: Mon 22 Jun 2020
+  stopDate: Sun 28 Jun 2020
+  user: cfieber
