@@ -44,6 +44,10 @@ class InMemoryDiffFingerprintRepository(
   override fun seen(entityId: String, diff: ResourceDiff<*>): Boolean =
     hashes[entityId]?.hash == diff.generateHash()
 
+  override fun clear(entityId: String) {
+    hashes.remove(entityId)
+  }
+
   private data class Record(
     val hash: String,
     val timestamp: Instant, // timestamp when diff was first seen

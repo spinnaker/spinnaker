@@ -31,6 +31,8 @@ interface DiffFingerprintRepository {
 
   fun seen(entityId: String, diff: ResourceDiff<*>): Boolean
 
+  fun clear(entityId: String)
+
   fun ResourceDiff<*>.generateHash(): String {
     val bytes = MessageDigest
       .getInstance("SHA-1")

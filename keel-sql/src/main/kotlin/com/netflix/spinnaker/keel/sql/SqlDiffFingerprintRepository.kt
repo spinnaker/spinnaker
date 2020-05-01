@@ -92,4 +92,12 @@ class SqlDiffFingerprintRepository(
           .and(DIFF_FINGERPRINT.HASH.eq(diff.generateHash()))
       )
     }
+
+  override fun clear(entityId: String) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.ENTITY_ID.eq(entityId))
+        .execute()
+    }
+  }
 }

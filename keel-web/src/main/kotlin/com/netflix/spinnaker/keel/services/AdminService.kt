@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.pause.ActuationPauser
+import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -9,7 +10,8 @@ import org.springframework.stereotype.Component
 @Component
 class AdminService(
   private val repository: KeelRepository,
-  private val actuationPauser: ActuationPauser
+  private val actuationPauser: ActuationPauser,
+  private val diffFingerprintRepository: DiffFingerprintRepository
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -24,5 +26,10 @@ class AdminService(
 
   fun getManagedApplications(): Collection<ApplicationSummary> {
     return repository.getApplicationSummaries()
+  }
+
+  fun triggerRecheck(resourceId: String) {
+    log.info("Triggering a recheck for $resourceId by clearing our record of the diff")
+    diffFingerprintRepository.clear(resourceId)
   }
 }
