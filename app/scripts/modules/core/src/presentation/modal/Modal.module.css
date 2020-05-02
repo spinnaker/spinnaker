@@ -122,33 +122,36 @@
 
 .dialogSizer {
   display: grid;
+  grid-template-rows: 1fr;
+  max-height: calc(100vh - 64px);
+  min-height: 320px;
   margin: 0 64px;
 }
 
-.dialog {
-  position: relative;
-  border-radius: 8px;
-  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100% - 64px);
-  min-height: 320px;
-  will-change: transform, opacity;
-}
-
 @media belowMobileSize {
-  .dialog {
-    max-height: calc(100% - 32px);
+  .dialogSizer {
+    max-height: calc(100vh - 32px);
     margin: 0 24px;
   }
 }
 
 /* for large screens, place an eventual cap on the height of a modal */
 @media screen and (min-height: 1164px) {
-  .dialog {
+  .dialogSizer {
     max-height: 1100px;
   }
+}
+
+.dialog {
+  display: flex;
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+  will-change: transform, opacity;
 }
 
 .dialogWrapper.enter {
