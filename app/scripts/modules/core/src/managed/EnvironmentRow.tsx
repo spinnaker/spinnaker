@@ -35,8 +35,8 @@ export function EnvironmentRow({ name, resources = [], children }: IEnvironmentR
           <span className={envLabelClasses}>{name}</span>
         </span>
         <div className="expand" onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed && <Icon name="accordionExpand" size="medium" />}
-          {!isCollapsed && <Icon name="accordionCollapse" size="medium" />}
+          {isCollapsed && <Icon name="accordionExpand" size="extraSmall" />}
+          {!isCollapsed && <Icon name="accordionCollapse" size="extraSmall" />}
         </div>
         {/* <div className="select">
             <i className={`ico icon-checkbox-unchecked`}/>
