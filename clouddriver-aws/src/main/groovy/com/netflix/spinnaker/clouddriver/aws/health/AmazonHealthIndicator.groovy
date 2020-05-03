@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.health
 
 import com.amazonaws.AmazonClientException
 import com.amazonaws.AmazonServiceException
+import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AmazonEC2Exception
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
@@ -84,13 +85,15 @@ class AmazonHealthIndicator implements HealthIndicator {
       } as Set<NetflixAmazonCredentials>
       for (NetflixAmazonCredentials credentials in amazonCredentials) {
         try {
-          def ec2 = amazonClientProvider.getAmazonEC2(credentials, AmazonClientProvider.DEFAULT_REGION, true)
+          AmazonEC2 ec2 = amazonClientProvider.getAmazonEC2(credentials, AmazonClientProvider.DEFAULT_REGION, true)
           if (!ec2) {
             throw new AmazonClientException("Could not create Amazon client for ${credentials.name}")
           }
           ec2.describeAccountAttributes()
         } catch (AmazonServiceException e) {
-          throw new AmazonUnreachableException("Failed to describe account attributes for '${credentials.name}'",  e)
+          if (!e.errorCode?.equalsIgnoreCase("RequestLimitExceeded")) {
+            throw new AmazonUnreachableException("Failed to describe account attributes for '${credentials.name}'", e)
+          }
         }
       }
       hasInitialized.set(Boolean.TRUE)
