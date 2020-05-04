@@ -157,7 +157,7 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
       healthyThreshold: 10,
       unhealthyThreshold: 10,
       attributes: {
-        deregistrationDelay: 600,
+        deregistrationDelay: 300,
       },
     });
     setFieldValue('targetGroups', values.targetGroups);

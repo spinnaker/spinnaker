@@ -554,7 +554,7 @@ export class AwsLoadBalancerTransformer {
           healthyThreshold: 10,
           unhealthyThreshold: 2,
           attributes: {
-            deregistrationDelay: 600,
+            deregistrationDelay: 300,
             stickinessEnabled: false,
             stickinessType: 'lb_cookie',
             stickinessDuration: 8400,
@@ -616,7 +616,7 @@ export class AwsLoadBalancerTransformer {
           healthyThreshold: 10,
           unhealthyThreshold: 10,
           attributes: {
-            deregistrationDelay: 600,
+            deregistrationDelay: 300,
           },
         },
       ],

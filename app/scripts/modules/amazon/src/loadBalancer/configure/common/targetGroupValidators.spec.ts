@@ -7,7 +7,7 @@ import {
 
 const mockTargetGroup = {
   attributes: {
-    deregistrationDelay: 600,
+    deregistrationDelay: 300,
     stickinessDuration: 8400,
     stickinessEnabled: false,
     stickinessType: 'lb_cookie',
