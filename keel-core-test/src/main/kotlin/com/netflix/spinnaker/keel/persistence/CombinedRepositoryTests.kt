@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -158,9 +159,11 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             subject.upsertDeliveryConfig(updatedConfig)
           }
 
-          test("no longer present resources are removed") {
+          test("no longer present dependents are removed") {
             expectThrows<NoSuchResourceException> { resourceRepository.get(firstResource.id) }
-            expectThrows<ArtifactNotFoundException> { artifactRepository.get(name = artifact.name, type = artifact.type, reference = "org/image", deliveryConfigName = configName) }
+            expectThrows<ArtifactNotFoundException> {
+              artifactRepository.get(name = artifact.name, type = artifact.type, reference = "org/image", deliveryConfigName = configName)
+            }
           }
 
           test("correct resources still exist") {
@@ -168,6 +171,23 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             expectCatching {
               artifactRepository.get(name = newArtifact.name, type = newArtifact.type, reference = "myart", deliveryConfigName = configName)
             }.succeeded()
+          }
+        }
+
+        context("artifact properties modified") {
+          before {
+            val updatedConfig = deliveryConfig.copy(
+              artifacts = setOf(artifact.copy(tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB))
+            )
+            subject.upsertDeliveryConfig(updatedConfig)
+          }
+
+          test("artifact is updated but still present") {
+            expectCatching {
+              artifactRepository.get(name = artifact.name, type = artifact.type, reference = artifact.reference, deliveryConfigName = configName)
+            }.succeeded()
+              .isA<DockerArtifact>()
+              .get { tagVersionStrategy }.isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
           }
         }
 

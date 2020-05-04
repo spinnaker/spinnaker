@@ -112,7 +112,7 @@ class CombinedRepository(
     storeDeliveryConfig(deliveryConfig)
 
     if (old != null) {
-      removeResources(old, deliveryConfig)
+      removeDependents(old, deliveryConfig)
     }
     return deliveryConfig
   }
@@ -146,10 +146,16 @@ class CombinedRepository(
    * Removes artifacts, environments, and resources that were present in the [old]
    * delivery config and are not present in the [new] delivery config
    */
-  override fun removeResources(old: DeliveryConfig, new: DeliveryConfig) {
+  override fun removeDependents(old: DeliveryConfig, new: DeliveryConfig) {
     val newResources = new.resources.map { it.id }
+
     old.artifacts.forEach { artifact ->
-      if (artifact !in new.artifacts) {
+      val stillPresent = new.artifacts.any {
+        it.name == artifact.name &&
+          it.type == artifact.type &&
+          it.reference == artifact.reference
+      }
+      if (!stillPresent) {
         log.debug("Updating config ${new.name}: removing artifact $artifact")
         artifactRepository.delete(artifact)
       }

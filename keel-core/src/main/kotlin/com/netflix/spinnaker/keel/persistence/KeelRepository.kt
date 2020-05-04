@@ -75,7 +75,7 @@ interface KeelRepository {
    * Removes artifacts, environments, and resources that were present in the [old]
    * delivery config and are not present in the [new] delivery config
    */
-  fun removeResources(old: DeliveryConfig, new: DeliveryConfig)
+  fun removeDependents(old: DeliveryConfig, new: DeliveryConfig)
 
   // START Delivery config methods
   fun storeDeliveryConfig(deliveryConfig: DeliveryConfig)
