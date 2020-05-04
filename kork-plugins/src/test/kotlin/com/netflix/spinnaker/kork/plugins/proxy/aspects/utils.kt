@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.api.Meter
 import io.mockk.every
 import io.mockk.mockk
 import java.lang.reflect.Method
@@ -33,6 +34,10 @@ internal fun createMethod(): Method {
   return SomeExtension::class.java.getMethod("helloWorld")
 }
 
+internal fun createCustomIdMethod(): Method {
+  return SomeExtension::class.java.getMethod("helloWorldCustomId")
+}
+
 internal fun createPrivateMethod(): Method {
   return SomeExtension::class.java.getDeclaredMethod("privateHelloWorld")
 }
@@ -42,7 +47,13 @@ internal class SomeExtension : ExtensionPoint {
   /**
    * Public helloWorld method, exists to test public method instrumentation.
    */
+  @Meter
   fun helloWorld(): String {
+    return "Hello Public World!"
+  }
+
+  @Meter(id = "customId")
+  fun helloWorldCustomId(): String {
     return "Hello Public World!"
   }
 

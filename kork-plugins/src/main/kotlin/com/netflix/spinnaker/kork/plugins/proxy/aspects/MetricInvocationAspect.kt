@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.api.Meter
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -86,8 +87,7 @@ class MetricInvocationAspect(
     return MetricInvocationState(
       extensionName = extensionName,
       startTimeMs = System.currentTimeMillis(),
-      timingId = metricIds?.timingId,
-      invocationsId = metricIds?.invocationId
+      timingId = metricIds?.timingId
     )
   }
 
@@ -100,18 +100,17 @@ class MetricInvocationAspect(
   }
 
   private fun recordMetrics(result: Result, invocationState: MetricInvocationState) {
-    if (invocationState.invocationsId != null && invocationState.timingId != null) {
+    if (invocationState.timingId != null) {
       val registry = registryProvider.getOrFallback(invocationState.extensionName)
-
-      registry.counter(invocationState.invocationsId.withTag("result", result.toString())).increment()
       PercentileTimer.get(registry, invocationState.timingId.withTag("result", result.toString()))
         .record(System.currentTimeMillis() - invocationState.startTimeMs, TimeUnit.MILLISECONDS)
     }
   }
 
   /**
-   * Skips private methods, otherwise performs a [Cache] `get` which retrieves the cached data or
-   * else creates the data and then inserts it into the cache.
+   * Looks for methods annotated with [Meter] and skips private methods.
+   * Performs a [Cache] `get` which retrieves the cached data or else creates the data and then
+   * inserts it into the cache.
    */
   private fun Cache<Method, MetricIds>.getOrPut(
     target: Any,
@@ -123,36 +122,37 @@ class MetricInvocationAspect(
       return null
     } else {
       return this.get(method) { m ->
-        val metricIds = MetricIds(
-          timingId = registry.createId(toMetricId(m, descriptor.pluginId, TIMING), mapOf(
-            Pair("pluginVersion", descriptor.version),
-            Pair("pluginExtension", target.javaClass.simpleName.toString())
-          )),
-          invocationId = registry.createId(toMetricId(m, descriptor.pluginId, INVOCATIONS), mapOf(
-            Pair("pluginVersion", descriptor.version),
-            Pair("pluginExtension", target.javaClass.simpleName.toString())
-          ))
-        )
+        m.declaredAnnotations
+          .find { it is Meter }
+          .let { meterAnnotation ->
+            (meterAnnotation as Meter)
 
-        for (mutableEntry in this.asMap()) {
-          if (mutableEntry.value.invocationId.name() == metricIds.invocationId.name()) {
-            throw MetricNameCollisionException(target, mutableEntry.key, m)
+            val metricIds = MetricIds(
+              timingId = registry.createId(toMetricId(m, descriptor.pluginId, meterAnnotation.id, TIMING), mapOf(
+                Pair("pluginVersion", descriptor.version),
+                Pair("pluginExtension", target.javaClass.simpleName.toString())
+              ))
+            )
+
+            for (mutableEntry in this.asMap()) {
+              if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
+                throw MetricNameCollisionException(target, mutableEntry.key, m)
+              }
+            }
+            metricIds
           }
-        }
-
-        metricIds
       }
     }
   }
 
-  private fun toMetricId(method: Method, metricNamespace: String, metricName: String): String? {
-    val methodName = if (method.parameterCount == 0) method.name else String.format("%s%d",
-      method.name, method.parameterCount)
-    return toMetricId(metricNamespace, methodName, metricName)
+  private fun toMetricId(method: Method, metricNamespace: String, annotationMetricId: String?, metricName: String): String? {
+    val methodMetricId = if (method.parameterCount == 0) method.name else String.format("%s%d", method.name, method.parameterCount)
+    val metricId = if (annotationMetricId.isNullOrEmpty()) methodMetricId else annotationMetricId
+    return toMetricId(metricNamespace, metricId, metricName)
   }
 
-  private fun toMetricId(metricNamespace: String, methodName: String, metricName: String): String? {
-    return String.format("%s.%s.%s", metricNamespace, methodName, metricName)
+  private fun toMetricId(metricNamespace: String, metricId: String, metricName: String): String? {
+    return String.format("%s.%s.%s", metricNamespace, metricId, metricName)
   }
 
   private class MetricNameCollisionException(target: Any, method1: Method, method2: Method) :
@@ -162,10 +162,9 @@ class MetricInvocationAspect(
     method2.toGenericString(),
     target.javaClass.simpleName))
 
-  private data class MetricIds(val timingId: Id, val invocationId: Id)
+  private data class MetricIds(val timingId: Id)
 
   companion object {
-    private const val INVOCATIONS = "invocations"
     private const val TIMING = "timing"
 
     enum class Result {

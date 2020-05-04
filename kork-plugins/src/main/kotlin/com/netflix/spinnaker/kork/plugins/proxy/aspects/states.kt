@@ -28,8 +28,7 @@ interface InvocationState
 data class MetricInvocationState(
   internal val extensionName: String,
   internal val startTimeMs: Long,
-  internal val timingId: Id?,
-  internal val invocationsId: Id?
+  internal val timingId: Id?
 ) : InvocationState
 
 data class LogInvocationState(

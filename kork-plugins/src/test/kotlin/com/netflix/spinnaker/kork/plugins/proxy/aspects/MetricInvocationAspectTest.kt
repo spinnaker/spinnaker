@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Functions
 import com.netflix.spectator.api.Id
@@ -56,8 +55,18 @@ class MetricInvocationAspectTest : JUnit5Minutests {
               listOf(BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
                 BasicTag("pluginVersion", pluginVersion)))
           }
-          get { invocationsId }.isA<Id>().and {
-            get { name() }.isEqualTo("$pluginId.helloWorld.invocations")
+          get { extensionName }.isA<String>().isEqualTo(target.javaClass.simpleName.toString())
+        }
+    }
+
+    test("creates MetricInvocationState object with custom meter IDs") {
+      val state = subject.before(target, proxy, createCustomIdMethod(), args, spinnakerPluginDescriptor)
+
+      expectThat(state).isA<MetricInvocationState>()
+        .and {
+          get { startTimeMs }.isA<Long>()
+          get { timingId }.isA<Id>().and {
+            get { name() }.isEqualTo("$pluginId.customId.timing")
             get { tags().iterator().asSequence().toList() }.isEqualTo(
               listOf(BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
                 BasicTag("pluginVersion", pluginVersion)))
@@ -71,7 +80,6 @@ class MetricInvocationAspectTest : JUnit5Minutests {
       expectThat(state).isA<MetricInvocationState>()
         .and {
           get { timingId }.isNull()
-          get { invocationsId }.isNull()
         }
     }
 
@@ -84,11 +92,9 @@ class MetricInvocationAspectTest : JUnit5Minutests {
       val state2 = subject.before(target, proxy, method, args, spinnakerPluginDescriptor)
       subject.after(state2)
 
-      val counterSummary = registry.counters().filter(Functions.nameEquals("$pluginId.helloWorld.invocations")).collect(Collectors.summarizingLong(Counter::count))
       val timerCountSummary = registry.timers().filter(Functions.nameEquals("$pluginId.helloWorld.timing")).collect(Collectors.summarizingLong(Timer::count))
 
       // There should be two metric points for each meter type
-      expectThat(counterSummary).get { sum }.isEqualTo(2)
       expectThat(timerCountSummary).get { sum }.isEqualTo(2)
     }
 

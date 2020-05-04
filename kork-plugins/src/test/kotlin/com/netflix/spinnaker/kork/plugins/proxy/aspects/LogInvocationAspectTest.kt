@@ -45,7 +45,7 @@ class LogInvocationAspectTest : JUnit5Minutests {
 
     test("LogInvocationAspect supports LogInvocationState") {
       val state = subject.before(target, proxy, method, args, spinnakerPluginDescriptor)
-      val metricInvocationState = MetricInvocationState("Extension", 123, mockk(), mockk())
+      val metricInvocationState = MetricInvocationState("Extension", 123, mockk())
       expectThat(subject.supports(state.javaClass)).isTrue()
       expectThat(subject.supports(metricInvocationState.javaClass)).isFalse()
     }
