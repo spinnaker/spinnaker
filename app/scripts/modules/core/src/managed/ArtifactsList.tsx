@@ -26,7 +26,7 @@ export function ArtifactsList({ artifacts, selectedVersion, versionSelected }: I
             clickHandler={versionSelected}
             version={version}
             reference={reference}
-            name={name}
+            name={artifacts.length > 1 ? name : null}
           />
         )),
       )}
@@ -39,7 +39,7 @@ interface IArtifactRowProps {
   clickHandler: (artifact: ISelectedArtifactVersion) => void;
   version: IManagedArtifactVersion;
   reference: string;
-  name: string;
+  name?: string;
 }
 
 export const ArtifactRow = ({
@@ -61,7 +61,7 @@ export const ArtifactRow = ({
       )}
       <div className={classNames(styles.text, { 'sp-margin-m-left': !build?.id })}>
         <div className={styles.sha}>{git?.commit || displayName}</div>
-        <div className={styles.name}>{name}</div>
+        {name && <div className={styles.name}>{name}</div>}
       </div>
       {/* Holding spot for status bubbles */}
     </div>
