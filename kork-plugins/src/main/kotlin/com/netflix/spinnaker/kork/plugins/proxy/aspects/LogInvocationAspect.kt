@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import org.slf4j.LoggerFactory
@@ -38,7 +39,7 @@ class LogInvocationAspect : InvocationAspect<LogInvocationState> {
   }
 
   override fun before(
-    target: Any,
+    target: SpinnakerExtensionPoint,
     proxy: Any,
     method: Method,
     args: Array<out Any>?,

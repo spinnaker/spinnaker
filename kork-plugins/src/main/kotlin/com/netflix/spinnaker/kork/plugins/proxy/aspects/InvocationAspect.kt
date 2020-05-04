@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -43,7 +44,7 @@ interface InvocationAspect<I : InvocationState> {
    *
    * @return I The [InvocationState] instance, which is used to store state about the invocation.
    */
-  fun before(target: Any, proxy: Any, method: Method, args: Array<out Any>?, descriptor: SpinnakerPluginDescriptor): I
+  fun before(target: SpinnakerExtensionPoint, proxy: Any, method: Method, args: Array<out Any>?, descriptor: SpinnakerPluginDescriptor): I
 
   /**
    * After method invocation. Called immediately after invoking the method.

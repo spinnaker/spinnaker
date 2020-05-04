@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -114,7 +115,7 @@ class MetricInvocationAspectTest : JUnit5Minutests {
     val registryProvider: ObjectProvider<Registry> = mockk(relaxed = true)
     val subject = MetricInvocationAspect(registryProvider)
 
-    val target: Any = SomeExtension()
+    val target: SpinnakerExtensionPoint = SomeExtension()
     val proxy: Any = mockk(relaxed = true)
     val method: Method = createMethod()
     val privateMethod: Method = createPrivateMethod()

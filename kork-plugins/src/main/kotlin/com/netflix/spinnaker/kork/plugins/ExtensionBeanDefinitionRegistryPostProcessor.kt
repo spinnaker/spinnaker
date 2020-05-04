@@ -16,12 +16,14 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
+import com.netflix.spinnaker.kork.plugins.proxy.ExtensionInvocationProxy
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
-import kotlin.jvm.javaClass
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
@@ -108,14 +110,16 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
           throw IntegrationException("Could not find extension class '$it' for plugin '${plugin.pluginId}'", e)
         }
 
-        // TODO(rz): Major issues with using an InvocationProxy in extensions today. A lot of services are written
-        //  expecting beans to not be proxied and some extension points wind up getting serialized, which proxies
-        //  do not handle well. This functionality is very valuable, but we need to think this problem through more.
-//        val bean = ExtensionInvocationProxy.proxy(
-//          pluginManager.extensionFactory.create(extensionClass),
-//          invocationAspects as List<InvocationAspect<InvocationState>>,
-//          plugin.descriptor as SpinnakerPluginDescriptor)
-        val bean = pluginManager.extensionFactory.create(extensionClass)
+        val extensionClassInstance = pluginManager.extensionFactory.create(extensionClass)
+
+        val bean = if (extensionClassInstance is SpinnakerExtensionPoint) {
+          ExtensionInvocationProxy.proxy(
+            extensionClassInstance,
+            invocationAspects as List<InvocationAspect<InvocationState>>,
+            plugin.descriptor as SpinnakerPluginDescriptor)
+        } else {
+          extensionClassInstance
+        }
 
         val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.capitalize()}"
 

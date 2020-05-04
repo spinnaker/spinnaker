@@ -12,23 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.kork.plugins.proxy
+package com.netflix.spinnaker.kork.plugins.api.internal;
 
-import java.lang.reflect.Proxy
-import org.pf4j.ExtensionPoint
+import java.lang.reflect.InvocationHandler;
 
 /**
- * For use in service code to determine the proxied target extension class.
+ * When proxying an extension class, implement this interface to provide a mechanism to obtain the
+ * underlying proxied class.
  */
-object ExtensionClassProvider {
-  @JvmStatic
-  fun getExtensionClass(extensionPoint: ExtensionPoint): Class<*> {
-    if (Proxy.isProxyClass(extensionPoint.javaClass)) {
-      val extensionInvocationProxy = Proxy.getInvocationHandler(extensionPoint) as ExtensionInvocationProxy
-      return extensionInvocationProxy.getTargetClass()
-    }
-    return extensionPoint.javaClass
-  }
+public interface ExtensionInvocationHandler extends InvocationHandler {
+
+  /** Get the proxy target class. */
+  Class<? extends SpinnakerExtensionPoint> getTargetClass();
 }

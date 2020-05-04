@@ -59,8 +59,8 @@ class LatestPluginInfoReleaseSourceTest : JUnit5Minutests {
 
       expectThat(releases).isA<Set<PluginInfoRelease>>()
         .get { releases.size }.isEqualTo(2)
-        .get { releases.find { it?.pluginId == plugin1.id } }.isEqualTo(PluginInfoRelease(plugin1.id, plugin1ExpectedRelease))
-        .get { releases.find { it?.pluginId == plugin2.id } }.isEqualTo(PluginInfoRelease(plugin2.id, plugin2ExpectedRelease))
+        .get { releases.find { it.pluginId == plugin1.id } }.isEqualTo(PluginInfoRelease(plugin1.id, plugin1ExpectedRelease))
+        .get { releases.find { it.pluginId == plugin2.id } }.isEqualTo(PluginInfoRelease(plugin2.id, plugin2ExpectedRelease))
     }
   }
 
