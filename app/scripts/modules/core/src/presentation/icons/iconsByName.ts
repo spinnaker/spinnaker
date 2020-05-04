@@ -40,6 +40,7 @@ import { ReactComponent as spCICommit } from './vectors/spCICommit.svg';
 import { ReactComponent as spCIMaster } from './vectors/spCIMaster.svg';
 import { ReactComponent as spCIMerged } from './vectors/spCIMerged.svg';
 import { ReactComponent as spCIPullRequest } from './vectors/spCIPullRequest.svg';
+import { ReactComponent as spCIPullRequestClosed } from './vectors/spCIPullRequestClosed.svg';
 import { ReactComponent as spMenuCanaryConfig } from './vectors/spMenuCanaryConfig.svg';
 import { ReactComponent as spMenuCanaryReport } from './vectors/spMenuCanaryReport.svg';
 import { ReactComponent as spMenuClusters } from './vectors/spMenuClusters.svg';
@@ -149,6 +150,7 @@ export const iconsByName = {
   spCIMaster,
   spCIMerged,
   spCIPullRequest,
+  spCIPullRequestClosed,
   spMenuCanaryConfig,
   spMenuCanaryReport,
   spMenuClusters,
