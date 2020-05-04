@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { useSref } from '@uirouter/react';
 
+import { Application } from 'core/application';
 import { Icon, IconNames } from '../presentation';
 import { IManagedResourceSummary, IManagedEnviromentSummary, IManagedArtifactSummary } from '../domain/IManagedEntity';
 
@@ -8,9 +9,12 @@ import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
 import { getResourceName, getArtifactVersionDisplayName } from './displayNames';
-import { IStatusBubbleProps, StatusBubble } from './StatusBubble';
+import { StatusBubble } from './StatusBubble';
+import { viewConfigurationByStatus } from './managedResourceStatusConfig';
+import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
 
 export interface IManagedResourceObjectProps {
+  application: Application;
   resource: IManagedResourceSummary;
   artifactVersionsByState?: IManagedEnviromentSummary['artifacts'][0]['versions'];
   artifactDetails?: IManagedArtifactSummary;
@@ -57,22 +61,8 @@ const getResourceRoutingInfo = (
   return null;
 };
 
-const resourceStatusConfig: {
-  [status: string]: Pick<IStatusBubbleProps, 'appearance' | 'iconName'>;
-} = {
-  ACTUATING: { appearance: 'progress', iconName: 'mdActuating' },
-  CREATED: { appearance: 'info', iconName: 'mdCreated' },
-  DIFF: { appearance: 'info', iconName: 'mdDiff' },
-  CURRENTLY_UNRESOLVABLE: { appearance: 'warning', iconName: 'mdError' },
-  ERROR: { appearance: 'error', iconName: 'mdError' },
-  PAUSED: { appearance: 'warning', iconName: 'mdPaused' },
-  RESUMED: { appearance: 'info', iconName: 'mdResumed' },
-  UNHAPPY: { appearance: 'error', iconName: 'mdUnhappy' },
-  UNKNOWN: { appearance: 'warning', iconName: 'mdUnknown' },
-};
-
 export const ManagedResourceObject = memo(
-  ({ resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
+  ({ application, resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
     const { kind } = resource;
     const resourceName = getResourceName(resource);
     const routingInfo = getResourceRoutingInfo(resource) ?? { state: '', params: {} };
@@ -93,8 +83,12 @@ export const ManagedResourceObject = memo(
       </>
     );
 
-    const resourceStatusProps = resourceStatusConfig[resource.status];
-    const resourceStatus = resourceStatusProps && <StatusBubble {...resourceStatusProps} size="small" />;
+    const viewConfig = viewConfigurationByStatus[resource.status];
+    const resourceStatus = resource.status !== 'HAPPY' && viewConfig && (
+      <ManagedResourceStatusPopover application={application} placement="left" resourceSummary={resource}>
+        <StatusBubble appearance={viewConfig.appearance} iconName={viewConfig.iconName} size="small" />
+      </ManagedResourceStatusPopover>
+    );
 
     return (
       <ObjectRow

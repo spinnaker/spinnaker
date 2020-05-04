@@ -157,7 +157,7 @@ export function Environments({ app }: IEnvironmentsProps) {
             show && (
               <animated.div key={key} className={styles.environmentsPane} style={props}>
                 <ColumnHeader text="Environments" icon="environment" />
-                <EnvironmentsList {...{ environments, artifacts, resourcesById }} />
+                <EnvironmentsList application={app} {...{ environments, artifacts, resourcesById }} />
               </animated.div>
             ),
         )}

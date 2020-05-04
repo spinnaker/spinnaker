@@ -218,6 +218,7 @@ export const ArtifactDetail = ({
                         />
                       )}
                       <ManagedResourceObject
+                        application={application}
                         key={resource.id}
                         resource={resource}
                         depth={state === 'deploying' ? 0 : 1}

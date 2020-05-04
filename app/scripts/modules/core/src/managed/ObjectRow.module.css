@@ -32,13 +32,11 @@
   align-items: center;
   display: flex;
   margin-right: 8px;
-  pointer-events: none;
 }
 
 .titleCol {
   flex-basis: 50%;
   overflow: hidden;
-  pointer-events: auto;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

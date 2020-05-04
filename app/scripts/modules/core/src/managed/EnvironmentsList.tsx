@@ -1,6 +1,7 @@
 import React from 'react';
 import { pickBy, values } from 'lodash';
 
+import { Application } from 'core/application';
 import { IManagedEnviromentSummary, IManagedResourceSummary, IManagedArtifactSummary } from '../domain';
 
 import { ManagedResourceObject } from './ManagedResourceObject';
@@ -12,12 +13,18 @@ function shouldDisplayResource(resource: IManagedResourceSummary) {
 }
 
 interface IEnvironmentsListProps {
+  application: Application;
   environments: IManagedEnviromentSummary[];
   resourcesById: { [id: string]: IManagedResourceSummary };
   artifacts: IManagedArtifactSummary[];
 }
 
-export function EnvironmentsList({ environments, resourcesById, artifacts: allArtifacts }: IEnvironmentsListProps) {
+export function EnvironmentsList({
+  application,
+  environments,
+  resourcesById,
+  artifacts: allArtifacts,
+}: IEnvironmentsListProps) {
   return (
     <div>
       {environments.map(({ name, resources, artifacts }) => {
@@ -41,6 +48,7 @@ export function EnvironmentsList({ environments, resourcesById, artifacts: allAr
                   resource.artifact && allArtifacts.find(({ reference }) => reference === resource.artifact.reference);
                 return (
                   <ManagedResourceObject
+                    application={application}
                     key={resource.id}
                     resource={resource}
                     artifactVersionsByState={artifactVersionsByState}
