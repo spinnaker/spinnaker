@@ -126,21 +126,25 @@ class MetricInvocationAspect(
         m.declaredAnnotations
           .find { it is Meter }
           .let { meterAnnotation ->
-            (meterAnnotation as Meter)
+            if (meterAnnotation != null) {
+              (meterAnnotation as Meter)
 
-            val metricIds = MetricIds(
-              timingId = registry.createId(toMetricId(m, descriptor.pluginId, meterAnnotation.id, TIMING), mapOf(
-                Pair("pluginVersion", descriptor.version),
-                Pair("pluginExtension", target.javaClass.simpleName.toString())
-              ))
-            )
+              val metricIds = MetricIds(
+                timingId = registry.createId(toMetricId(m, descriptor.pluginId, meterAnnotation.id, TIMING), mapOf(
+                  Pair("pluginVersion", descriptor.version),
+                  Pair("pluginExtension", target.javaClass.simpleName.toString())
+                ))
+              )
 
-            for (mutableEntry in this.asMap()) {
-              if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
-                throw MetricNameCollisionException(target, mutableEntry.key, m)
+              for (mutableEntry in this.asMap()) {
+                if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
+                  throw MetricNameCollisionException(target, mutableEntry.key, m)
+                }
               }
+              metricIds
+            } else {
+              null
             }
-            metricIds
           }
       }
     }

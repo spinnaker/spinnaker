@@ -16,8 +16,8 @@
 
 package com.spinnaker.netflix.kork.plugins
 
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import org.pf4j.Extension
-import org.pf4j.ExtensionPoint
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 
@@ -26,4 +26,4 @@ class TestPlugin(pluginWrapper: PluginWrapper?) : Plugin(pluginWrapper)
 @Extension
 class SomeFeatureExtension : SomeFeature
 
-interface SomeFeature : ExtensionPoint
+interface SomeFeature : SpinnakerExtensionPoint

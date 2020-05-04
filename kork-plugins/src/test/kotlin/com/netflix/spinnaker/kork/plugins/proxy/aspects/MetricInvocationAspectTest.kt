@@ -76,6 +76,17 @@ class MetricInvocationAspectTest : JUnit5Minutests {
         }
     }
 
+    test("Skips public method that is not annotated") {
+      val state = subject.before(target, proxy, createNotAnnotatedPublicMethod(), args, spinnakerPluginDescriptor)
+
+      expectThat(state).isA<MetricInvocationState>()
+        .and {
+          get { startTimeMs }.isA<Long>()
+          get { timingId }.isNull()
+          get { extensionName }.isA<String>().isEqualTo(target.javaClass.simpleName.toString())
+        }
+    }
+
     test("Private method is not instrumented with meters") {
       val state = subject.before(target, proxy, privateMethod, args, spinnakerPluginDescriptor)
       expectThat(state).isA<MetricInvocationState>()

@@ -38,6 +38,10 @@ internal fun createCustomIdMethod(): Method {
   return SomeExtension::class.java.getMethod("helloWorldCustomId")
 }
 
+internal fun createNotAnnotatedPublicMethod(): Method {
+  return SomeExtension::class.java.getMethod("notAnnotatedPublicMethod")
+}
+
 internal fun createPrivateMethod(): Method {
   return SomeExtension::class.java.getDeclaredMethod("privateHelloWorld")
 }
@@ -55,6 +59,10 @@ internal class SomeExtension : SpinnakerExtensionPoint {
   @Meter(id = "customId")
   fun helloWorldCustomId(): String {
     return "Hello Public World!"
+  }
+
+  fun notAnnotatedPublicMethod(): String {
+    return "Not annotated public method"
   }
 
   /**

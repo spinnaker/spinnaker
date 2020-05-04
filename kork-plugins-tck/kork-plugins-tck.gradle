@@ -16,6 +16,8 @@ dependencies {
   api("org.springframework.security:spring-security-config")
   api("com.ninja-squad:springmockk")
 
+  testImplementation project(":kork-plugins-api")
+
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
