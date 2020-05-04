@@ -41,11 +41,6 @@
   white-space: nowrap;
 }
 
-.metaDataCol {
-  flex-basis: 110px;
-  justify-content: flex-end;
-}
-
 .rowTitle {
   overflow: hidden;
   text-overflow: ellipsis;

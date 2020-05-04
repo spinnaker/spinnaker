@@ -31,15 +31,17 @@ export function EnvironmentRow({ name, resources = [], hasPinnedVersions, childr
     <div className="EnvironmentRow">
       <div className={envRowClasses}>
         <span className="clickableArea">
-          <EnvironmentBadge name={name} critical={isCritical} />
-          <div className="environment-row-status flex-container-h flex-grow flex-pull-right">
+          <div className="titleColumn flex-container-h left middle sp-margin-s-right">
+            <EnvironmentBadge name={name} critical={isCritical} />
+          </div>
+          <div className="flex-container-h flex-grow flex-pull-right">
             {hasPinnedVersions && <StatusBubble iconName="pin" appearance="warning" size="small" />}
           </div>
+          <div className="expand" onClick={() => setIsCollapsed(!isCollapsed)}>
+            {isCollapsed && <Icon name="accordionExpand" size="extraSmall" />}
+            {!isCollapsed && <Icon name="accordionCollapse" size="extraSmall" />}
+          </div>
         </span>
-        <div className="expand" onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed && <Icon name="accordionExpand" size="extraSmall" />}
-          {!isCollapsed && <Icon name="accordionCollapse" size="extraSmall" />}
-        </div>
         {/* <div className="select">
             <i className={`ico icon-checkbox-unchecked`}/>
           </div> */}

@@ -21,8 +21,10 @@ export const ObjectRow = ({ content, icon, title, metadata, depth = 1 }: IObject
           <Icon name={icon} size="medium" appearance="dark" className="sp-margin-s-right" />
           <span className={styles.rowTitle}>{title}</span>
         </div>
-        <div className={styles.col}>{content}</div>
-        <div className={classNames([styles.col, styles.metaDataCol])}>{metadata}</div>
+        <div className={classNames(styles.col, 'flex-grow')}>
+          {content}
+          {metadata && <div className="flex-pull-right">{metadata}</div>}
+        </div>
       </span>
     </div>
   );
