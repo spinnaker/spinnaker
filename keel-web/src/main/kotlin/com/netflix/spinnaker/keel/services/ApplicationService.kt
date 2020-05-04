@@ -55,6 +55,8 @@ class ApplicationService(
 
   fun getDeliveryConfig(application: String) = repository.getDeliveryConfigForApplication(application)
 
+  fun deleteConfigByApp(application: String) = repository.deleteDeliveryConfigByApplication(application)
+
   fun getConstraintStatesFor(application: String) = repository.constraintStateFor(application)
 
   fun getConstraintStatesFor(application: String, environment: String, limit: Int): List<ConstraintState> {

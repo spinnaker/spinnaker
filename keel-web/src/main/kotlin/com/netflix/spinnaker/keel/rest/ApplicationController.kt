@@ -91,6 +91,16 @@ class ApplicationController(
     @PathVariable("application") application: String
   ): DeliveryConfig = applicationService.getDeliveryConfig(application)
 
+  @DeleteMapping(
+    path = ["/{application}/config"]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+    and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
+  )
+  fun deleteConfigByApp(@PathVariable("application") application: String) {
+    applicationService.deleteConfigByApp(application)
+  }
+
   @PostMapping(
     path = ["/{application}/environment/{environment}/constraint"],
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],

@@ -597,6 +597,21 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
         }
       }
+
+      context("DELETE /application/fnord/config") {
+        context("with no WRITE access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
+          }
+          test("request is forbidden") {
+            val request = delete("/application/fnord/config")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
     }
   }
 }
