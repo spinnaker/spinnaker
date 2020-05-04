@@ -18,6 +18,32 @@ describe('Target Group validators', () => {
     });
   });
 
+  describe('isValidJson', () => {
+    it('returns an error message if the string value is not valid json', () => {
+      expect(Validators.isValidJson('errormessage')('the quick brown fox')).toBe('errormessage');
+      expect(Validators.isValidJson('errormessage')(`{ "foo": "bar"`)).toBe('errormessage');
+      expect(Validators.isValidJson('errormessage')(`{ "foo": bar }`)).toBe('errormessage');
+    });
+
+    it('returns undefined if the string value is valid json', () => {
+      expect(Validators.isValidJson()(`{ "foo": "bar", "baz": 100 }`)).toBeUndefined();
+      expect(Validators.isValidJson()(`{ "foo": "bar", "nest": { "number": 100 } }`)).toBeUndefined();
+    });
+  });
+
+  describe('isValidXml', () => {
+    it('returns an error message if the string value is not valid xml', () => {
+      expect(Validators.isValidXml('errormessage')('the quick brown fox')).toBe('errormessage');
+      expect(Validators.isValidXml('errormessage')(`<foo>bar<foo>`)).toBe('errormessage');
+      expect(Validators.isValidXml('errormessage')(`<foo bar=123></foo>`)).toBe('errormessage');
+    });
+
+    it('returns undefined if the string value is valid xml', () => {
+      expect(Validators.isValidXml()(`<foo><bar/></foo>`)).toBeUndefined();
+      expect(Validators.isValidXml()(`<foo attr="123"><bar></bar></foo>`)).toBeUndefined();
+    });
+  });
+
   describe('of max/min limits', () => {
     it('returns an error when less than min', () => {
       const actual = Validators.checkBetween('field', 10, 100)('8');

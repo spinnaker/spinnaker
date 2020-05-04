@@ -86,6 +86,30 @@ const valueUnique = (list: any[], message?: string): IValidator => {
   };
 };
 
+const isValidJson = (message?: string): IValidator => {
+  return (val: string, label = 'this field') => {
+    try {
+      JSON.parse(val);
+    } catch (parseError) {
+      message = message || `${label} must be valid JSON: ${parseError.message}`;
+      return message;
+    }
+    return undefined;
+  };
+};
+
+const isValidXml = (message?: string): IValidator => {
+  return (val: string, label = 'this field') => {
+    const xmlDoc = new DOMParser().parseFromString(val, 'text/xml');
+    const elements = xmlDoc.getElementsByTagName('parsererror');
+    if (elements && elements.length > 0) {
+      message = message || `${label} must be valid XML`;
+      return message;
+    }
+    return undefined;
+  };
+};
+
 /**
  * A collection of reusable Validator factories.
  *
@@ -95,12 +119,14 @@ const valueUnique = (list: any[], message?: string): IValidator => {
  */
 export const Validators = {
   arrayNotEmpty,
+  checkBetween,
   emailValue,
-  isRequired,
   isNum,
+  isRequired,
+  isValidJson,
+  isValidXml,
   maxValue,
   minValue,
-  checkBetween,
   oneOf,
   skipIfUndefined,
   valueUnique,
