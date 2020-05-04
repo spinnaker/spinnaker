@@ -3,6 +3,14 @@ import { IPromise } from 'angular';
 import { API } from 'core/api';
 import { StatefulConstraintStatus } from 'core/domain';
 
+export interface IPinArtifactVersionRequest {
+  application: string;
+  environment: string;
+  reference: string;
+  version: string;
+  comment: string;
+}
+
 export interface IUpdateConstraintStatusRequest {
   application: string;
   environment: string;
@@ -12,6 +20,24 @@ export interface IUpdateConstraintStatusRequest {
 }
 
 export class ManagedWriter {
+  public static pinArtifactVersion({
+    application,
+    environment,
+    reference,
+    version,
+    comment,
+  }: IPinArtifactVersionRequest): IPromise<void> {
+    return API.one('managed')
+      .one('application', application)
+      .one('pin')
+      .post({
+        targetEnvironment: environment,
+        reference,
+        version,
+        comment,
+      });
+  }
+
   public static updateConstraintStatus({
     application,
     environment,

@@ -20,32 +20,37 @@ interface IEnvironmentsListProps {
 export function EnvironmentsList({ environments, resourcesById, artifacts: allArtifacts }: IEnvironmentsListProps) {
   return (
     <div>
-      {environments.map(({ name, resources, artifacts }) => (
-        <EnvironmentRow
-          key={name}
-          name={name}
-          resources={values(pickBy(resourcesById, resource => resources.indexOf(resource.id) > -1))}
-        >
-          {resources
-            .map(resourceId => resourcesById[resourceId])
-            .filter(shouldDisplayResource)
-            .map(resource => {
-              const artifactVersionsByState =
-                resource.artifact &&
-                artifacts.find(({ reference }) => reference === resource.artifact.reference)?.versions;
-              const artifactDetails =
-                resource.artifact && allArtifacts.find(({ reference }) => reference === resource.artifact.reference);
-              return (
-                <ManagedResourceObject
-                  key={resource.id}
-                  resource={resource}
-                  artifactVersionsByState={artifactVersionsByState}
-                  artifactDetails={artifactDetails}
-                />
-              );
-            })}
-        </EnvironmentRow>
-      ))}
+      {environments.map(({ name, resources, artifacts }) => {
+        const hasPinnedVersions = artifacts.some(({ pinnedVersion }) => pinnedVersion);
+
+        return (
+          <EnvironmentRow
+            key={name}
+            name={name}
+            hasPinnedVersions={hasPinnedVersions}
+            resources={values(pickBy(resourcesById, resource => resources.indexOf(resource.id) > -1))}
+          >
+            {resources
+              .map(resourceId => resourcesById[resourceId])
+              .filter(shouldDisplayResource)
+              .map(resource => {
+                const artifactVersionsByState =
+                  resource.artifact &&
+                  artifacts.find(({ reference }) => reference === resource.artifact.reference)?.versions;
+                const artifactDetails =
+                  resource.artifact && allArtifacts.find(({ reference }) => reference === resource.artifact.reference);
+                return (
+                  <ManagedResourceObject
+                    key={resource.id}
+                    resource={resource}
+                    artifactVersionsByState={artifactVersionsByState}
+                    artifactDetails={artifactDetails}
+                  />
+                );
+              })}
+          </EnvironmentRow>
+        );
+      })}
     </div>
   );
 }

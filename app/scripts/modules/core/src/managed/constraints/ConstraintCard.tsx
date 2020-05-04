@@ -10,7 +10,9 @@ import {
 import { Application, ApplicationDataSource } from '../../application';
 import { IRequestStatus } from '../../presentation';
 
+import { Button } from '../Button';
 import { StatusCard } from '../StatusCard';
+
 import { ManagedWriter, IUpdateConstraintStatusRequest } from '../ManagedWriter';
 import {
   isConstraintSupported,
@@ -102,9 +104,8 @@ export const ConstraintCard = memo(({ application, environment, version, constra
             {actionStatus !== 'REJECTED' &&
               actions.map(({ title, pass }) => {
                 return (
-                  <button
+                  <Button
                     key={title + pass}
-                    className="flex-container-h center middle text-bold constraint-override-action"
                     disabled={actionStatus === 'PENDING'}
                     onClick={() => {
                       setActionStatus('PENDING');
@@ -121,18 +122,13 @@ export const ConstraintCard = memo(({ application, environment, version, constra
                     }}
                   >
                     {title}
-                  </button>
+                  </Button>
                 );
               })}
             {actionStatus === 'REJECTED' && (
               <>
                 <span className="text-bold action-error-message sp-margin-l-right">Something went wrong</span>
-                <button
-                  className="flex-container-h center middle text-bold constraint-override-action"
-                  onClick={() => setActionStatus('NONE')}
-                >
-                  Try again
-                </button>
+                <Button onClick={() => setActionStatus('NONE')}>Try again</Button>
               </>
             )}
           </div>

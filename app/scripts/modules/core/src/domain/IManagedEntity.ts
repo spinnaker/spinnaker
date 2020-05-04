@@ -65,6 +65,7 @@ export interface IManagedEnviromentSummary {
     type: string;
     reference: string;
     statuses: string[];
+    pinnedVersion?: string;
     versions: {
       current?: string;
       deploying?: string;
@@ -83,6 +84,11 @@ export interface IManagedArtifactVersion {
   environments: Array<{
     name: string;
     state: 'current' | 'deploying' | 'approved' | 'pending' | 'previous' | 'vetoed' | 'skipped';
+    pinned?: {
+      at: string;
+      by: string;
+      comment?: string;
+    };
     deployedAt?: string;
     replacedAt?: string;
     replacedBy?: string;

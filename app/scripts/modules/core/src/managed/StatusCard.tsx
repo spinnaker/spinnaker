@@ -26,7 +26,7 @@ export const StatusCard = ({ appearance, iconName, title, description, actions }
       <div className="flex-container-h center middle sp-margin-l-right">
         <StatusBubble iconName={iconName} appearance={appearance} size="medium" />
       </div>
-      <div className="flex-container-v sp-margin-m-yaxis">
+      <div className="flex-container-v sp-margin-xs-yaxis">
         <div className="text-bold">{title}</div>
         {description && <div className="text-regular">{description}</div>}
       </div>

@@ -1,9 +1,11 @@
 import React from 'react';
 import classNames from 'classnames';
 
+import { Pill } from './Pill';
+import { StatusBubble } from './StatusBubble';
+
 import { IManagedArtifactSummary, IManagedArtifactVersion } from '../domain/IManagedEntity';
 import { ISelectedArtifactVersion } from './Environments';
-import { Pill } from './Pill';
 
 import styles from './ArtifactRow.module.css';
 
@@ -48,27 +50,40 @@ export const ArtifactRow = ({
   version: { version, displayName, environments, build, git },
   reference,
   name,
-}: IArtifactRowProps) => (
-  <div
-    className={classNames(styles.ArtifactRow, { [styles.selected]: isSelected })}
-    onClick={() => clickHandler({ reference, version })}
-  >
-    <div className={styles.content}>
-      {build?.id && (
-        <div className={styles.version}>
-          <Pill text={`#${build.id}`} />
+}: IArtifactRowProps) => {
+  const pinnedEnvironments = environments.filter(({ pinned }) => pinned).length;
+
+  return (
+    <div
+      className={classNames(styles.ArtifactRow, { [styles.selected]: isSelected })}
+      onClick={() => clickHandler({ reference, version })}
+    >
+      <div className={styles.content}>
+        {build?.id && (
+          <div className={styles.version}>
+            <Pill text={`#${build.id}`} />
+          </div>
+        )}
+        <div className={classNames(styles.text, { 'sp-margin-m-left': !build?.id })}>
+          <div className={styles.sha}>{git?.commit || displayName}</div>
+          {name && <div className={styles.name}>{name}</div>}
         </div>
-      )}
-      <div className={classNames(styles.text, { 'sp-margin-m-left': !build?.id })}>
-        <div className={styles.sha}>{git?.commit || displayName}</div>
-        {name && <div className={styles.name}>{name}</div>}
+        {pinnedEnvironments > 0 && (
+          <div className="sp-margin-s-right">
+            <StatusBubble
+              iconName="pin"
+              appearance="warning"
+              size="small"
+              quantity={pinnedEnvironments > 1 ? pinnedEnvironments : null}
+            />
+          </div>
+        )}
       </div>
-      {/* Holding spot for status bubbles */}
+      <div className={styles.stages}>
+        {environments
+          .map(({ name, state }) => <span key={name} className={classNames(styles.stage, styles[state])} />)
+          .reverse()}
+      </div>
     </div>
-    <div className={styles.stages}>
-      {environments
-        .map(({ name, state }) => <span key={name} className={classNames(styles.stage, styles[state])} />)
-        .reverse()}
-    </div>
-  </div>
-);
+  );
+};

@@ -72,7 +72,7 @@ const cardAppearanceByState = {
         Deployed here{' '}
         {deployedAtMillis ? (
           <>
-            since {relativeTime(deployedAtMillis)}{' '}
+            {relativeTime(deployedAtMillis)}{' '}
             <span className="text-italic text-regular sp-margin-xs-left">({timestamp(deployedAtMillis)})</span>
           </>
         ) : (

@@ -1,15 +1,20 @@
 import React, { memo, useMemo } from 'react';
 import classNames from 'classnames';
 import { useTransition, animated, UseTransitionProps } from 'react-spring';
+import { DateTime } from 'luxon';
 
+import { relativeTime, timestamp } from '../utils';
 import { IManagedArtifactSummary, IManagedArtifactVersion, IManagedResourceSummary } from '../domain';
 import { Application } from '../application';
-import { useEventListener } from '../presentation';
+import { useEventListener, Markdown } from '../presentation';
 
 import { ArtifactDetailHeader } from './ArtifactDetailHeader';
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { EnvironmentRow } from './EnvironmentRow';
 import { VersionStateCard } from './VersionStateCard';
+import { StatusCard } from './StatusCard';
+import { Button } from './Button';
+import { showPinArtifactModal } from './PinArtifactModal';
 
 import { ConstraintCard } from './constraints/ConstraintCard';
 import { isConstraintSupported } from './constraints/constraintRegistry';
@@ -62,12 +67,29 @@ const EnvironmentCards = memo(
       deployedAt,
       replacedAt,
       replacedBy,
+      pinned,
       statefulConstraints,
       statelessConstraints,
     },
     version: { version },
     allVersions,
   }: IEnvironmentCardsProps) => {
+    const pinnedAtMillis = pinned?.at ? DateTime.fromISO(pinned.at).toMillis() : null;
+
+    const pinnedCard = pinned && (
+      <StatusCard
+        iconName="pin"
+        appearance="warning"
+        title={
+          <span className="sp-group-margin-xs-xaxis">
+            Pinned here {relativeTime(pinnedAtMillis)}{' '}
+            <span className="text-italic text-regular sp-margin-xs-left">({timestamp(pinnedAtMillis)})</span>{' '}
+            <span className="text-regular">—</span> <span className="text-regular">by {pinned.by}</span>
+          </span>
+        }
+        description={pinned.comment && <Markdown message={pinned.comment} tag="span" />}
+      />
+    );
     const versionStateCard = (
       <VersionStateCard
         key="versionStateCard"
@@ -94,7 +116,11 @@ const EnvironmentCards = memo(
       [application, environmentName, version, statefulConstraints, statelessConstraints],
     );
 
-    const transitions = useTransition([...constraintCards, versionStateCard], ({ key }) => key, cardTransitionConfig);
+    const transitions = useTransition(
+      [...constraintCards, ...[versionStateCard, pinnedCard].filter(Boolean)],
+      ({ key }) => key,
+      cardTransitionConfig,
+    );
 
     return (
       <>
@@ -140,13 +166,26 @@ export const ArtifactDetail = ({
   };
   useEventListener(document, 'keydown', keydownCallback);
 
+  const isPinnedEverywhere = environments.every(({ pinned }) => pinned);
+
   return (
     <>
       <ArtifactDetailHeader name={name} version={versionDetails} onRequestClose={onRequestClose} />
 
       <div className="ArtifactDetail">
-        <div className="flex-container-h">
-          {/* a short summary with actions/buttons will live here */}
+        <div className="flex-container-h sp-margin-xl-bottom">
+          <Button
+            iconName="pin"
+            appearance="primary"
+            disabled={isPinnedEverywhere}
+            onClick={() =>
+              showPinArtifactModal({ application, reference, version: versionDetails, resourcesByEnvironment }).then(
+                ({ status }) => status === 'CLOSED' && application.getDataSource('environments').refresh(),
+              )
+            }
+          >
+            Pin
+          </Button>
           <div className="detail-section-right">{/* artifact metadata will live here */}</div>
         </div>
         {environments.map(environment => {
