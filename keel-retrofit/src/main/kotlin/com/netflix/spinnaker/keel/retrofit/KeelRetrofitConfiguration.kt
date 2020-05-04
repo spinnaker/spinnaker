@@ -26,13 +26,11 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Scope
 
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
@@ -42,7 +40,6 @@ class KeelRetrofitConfiguration {
   private val log = LoggerFactory.getLogger(javaClass)
 
   @Bean(name = ["retrofitClient", "okClient"])
-  @Scope(SCOPE_PROTOTYPE)
   fun retrofitClient(
     okHttpClientConfig: OkHttp3ClientConfiguration,
     okHttpClientProperties: OkHttpClientConfigurationProperties,
@@ -72,7 +69,7 @@ class KeelRetrofitConfiguration {
         retryOnConnectionFailure(okHttpClientProperties.isRetryOnConnectionFailure)
       }
 
-    builder.interceptors().also { it ->
+    builder.interceptors().also {
       // If the metrics interceptor (which complains about X-SPINNAKER-* auth headers missing in the request)
       // is present, move it to the end of the list so that our interceptor that adds those headers comes first
       val metricsInterceptor = it.find { interceptor -> interceptor is OkHttp3MetricsInterceptor }
