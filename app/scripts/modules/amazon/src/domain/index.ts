@@ -1,5 +1,7 @@
+export * from './IAmazonBlockDeviceMapping';
 export * from './IAmazonCertificate';
 export * from './IAmazonInstance';
+export * from './IAmazonLaunchTemplate';
 export * from './IAmazonLoadBalancer';
 export * from './IAmazonFunction';
 export * from './IAmazonLoadBalancerSourceData';
