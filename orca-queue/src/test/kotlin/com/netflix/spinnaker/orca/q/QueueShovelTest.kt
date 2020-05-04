@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.Queue
@@ -41,7 +42,7 @@ class QueueShovelTest : SubjectSpek<QueueShovel>({
   }
 
   subject(CachingMode.GROUP) {
-    QueueShovel(queue, previousQueue, registry, activator)
+    QueueShovel(queue, previousQueue, registry, activator, DynamicConfigService.NOOP)
   }
 
   describe("polling the previous queue") {

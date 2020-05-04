@@ -17,6 +17,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
 import com.netflix.spinnaker.orca.q.QueueShovel
@@ -153,13 +154,15 @@ class RedisQueueShovelConfiguration {
     queue: AbstractRedisQueue,
     @Qualifier("previousQueue") previousQueueImpl: RedisQueue,
     registry: Registry,
-    discoveryActivator: Activator
+    discoveryActivator: Activator,
+    dynamicConfigService: DynamicConfigService
   ) =
     QueueShovel(
       queue = queue,
       previousQueue = previousQueueImpl,
       registry = registry,
-      activator = discoveryActivator
+      activator = discoveryActivator,
+      config = dynamicConfigService
     )
 
   @Bean
@@ -168,12 +171,14 @@ class RedisQueueShovelConfiguration {
     queue: AbstractRedisQueue,
     @Qualifier("previousClusterQueue") previousQueueImpl: AbstractRedisQueue,
     registry: Registry,
-    discoveryActivator: Activator
+    discoveryActivator: Activator,
+    dynamicConfigService: DynamicConfigService
   ) =
     QueueShovel(
       queue = queue,
       previousQueue = previousQueueImpl,
       registry = registry,
-      activator = discoveryActivator
+      activator = discoveryActivator,
+      config = dynamicConfigService
     )
 }

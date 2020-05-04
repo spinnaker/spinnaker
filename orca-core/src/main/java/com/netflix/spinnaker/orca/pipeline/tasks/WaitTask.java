@@ -78,6 +78,7 @@ public class WaitTask implements RetryableTask {
         return completion.toEpochMilli() - now.toEpochMilli();
       }
     }
+
     return getBackoffPeriod();
   }
 

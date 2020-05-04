@@ -16,11 +16,17 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.Queue
+import java.time.Duration
+import java.time.Instant
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
+
+private const val rateMs: Long = 5_000
+private const val workDurationMs = (0.95 * rateMs).toLong()
 
 /**
  * The QueueShovel can be used to migrate from one queue implementation to another without an
@@ -34,7 +40,8 @@ class QueueShovel(
   private val queue: Queue,
   private val previousQueue: Queue,
   private val registry: Registry,
-  private val activator: Activator
+  private val activator: Activator,
+  private val config: DynamicConfigService
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -42,24 +49,39 @@ class QueueShovel(
   private val shoveledMessageId = registry.createId("orca.nu.shovel.pushedMessageRate")
   private val shovelErrorId = registry.createId("orca.nu.shovel.pushedMessageErrorRate")
 
-  @Scheduled(fixedDelayString = "\${queue.shovel.poll-frequency.ms:50}")
+  @Scheduled(fixedRate = rateMs)
+  fun migrateIfActive() {
+    if (!isActive()) {
+      return
+    }
+
+    log.info("Actively shoveling from $previousQueue to $queue")
+    val workDuration = Duration.ofMillis(workDurationMs)
+    val start = Instant.now()
+
+    while (Duration.between(start, Instant.now()) < workDuration) {
+      migrateOne()
+      Thread.sleep(50)
+    }
+  }
+
+  private fun isActive() = config.getConfig(Boolean::class.java, "queue.shovel.active", false) && activator.enabled
+
   fun migrateOne() {
-    activator.ifEnabled {
-      registry.counter(pollOpsRateId).increment()
-      previousQueue.poll { message, ack ->
-        try {
-          queue.push(message)
-          ack.invoke()
-          registry.counter(shoveledMessageId).increment()
-        } catch (e: Throwable) {
-          log.error("Failed shoveling message from previous queue to active (message: {})", message, e)
-          registry.counter(shovelErrorId).increment()
-        }
+    registry.counter(pollOpsRateId).increment()
+    previousQueue.poll { message, ack ->
+      try {
+        queue.push(message)
+        ack.invoke()
+        registry.counter(shoveledMessageId).increment()
+      } catch (e: Throwable) {
+        log.error("Failed shoveling message from previous queue to active (message: $message)", e)
+        registry.counter(shovelErrorId).increment()
       }
     }
   }
 
   @PostConstruct
   fun confirmShovelUsage() =
-    log.info("Running ${javaClass.simpleName} migrator")
+    log.info("${javaClass.simpleName} migrator from $previousQueue to $queue is enabled")
 }
