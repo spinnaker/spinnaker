@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjavaFactory
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
+import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,6 +36,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.core.Ordered
 import org.springframework.http.HttpStatus
 import org.springframework.security.web.firewall.StrictHttpFirewall
@@ -56,6 +58,7 @@ import java.util.concurrent.Executors
 @CompileStatic
 @Slf4j
 @EnableFiatAutoConfig
+@Import(PluginsAutoConfiguration.class)
 class IgorConfig extends WebMvcConfigurerAdapter {
     @Autowired
     Registry registry

@@ -39,7 +39,7 @@ import java.security.Security
 @ComponentScan(['com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor'])
 class Main extends SpringBootServletInitializer {
 
-  static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build()
+  static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "igor").build()
 
   static {
     /**

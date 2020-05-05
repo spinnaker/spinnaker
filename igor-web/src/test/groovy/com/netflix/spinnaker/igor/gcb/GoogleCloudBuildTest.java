@@ -78,7 +78,11 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
       GoogleCloudBuildTestConfig.class
     },
     properties = {"fiat.enabled=false"})
-@TestPropertySource(properties = {"spring.config.location=classpath:gcb/gcb-test.yml"})
+@TestPropertySource(
+    properties = {
+      "spring.config.location=classpath:gcb/gcb-test.yml",
+      "spring.application.name = igor"
+    })
 public class GoogleCloudBuildTest {
   @Autowired private MockMvc mockMvc;
 

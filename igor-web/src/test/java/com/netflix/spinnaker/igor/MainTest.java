@@ -21,10 +21,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RedisConfig.class, Main.class})
+@TestPropertySource(properties = {"spring.application.name = igor"})
 public class MainTest {
   @MockBean HystrixSpectatorPublisher hystrixSpectatorPublisher;
 
