@@ -68,6 +68,9 @@ public interface KeelService {
   @DELETE("/delivery-configs/{name}")
   DeliveryConfig deleteManifest(@Path("name") String name);
 
+  @DELETE("/application/{application}/config")
+  DeliveryConfig deleteManifestByAppName(@Path("application") String application);
+
   @POST("/delivery-configs/diff")
   List<Map> diffManifest(@Body DeliveryConfig manifest);
 

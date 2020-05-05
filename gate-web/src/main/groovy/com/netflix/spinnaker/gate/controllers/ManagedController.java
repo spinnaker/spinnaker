@@ -200,6 +200,14 @@ public class ManagedController {
     return keelService.getConfigBy(application);
   }
 
+  @ApiOperation(
+      value = "Delete a delivery config manifest for an application",
+      response = DeliveryConfig.class)
+  @DeleteMapping(path = "/application/{application}/config")
+  DeliveryConfig deleteManifestByApp(@PathVariable("application") String application) {
+    return keelService.deleteManifestByAppName(application);
+  }
+
   @ApiOperation(value = "Update the status of an environment constraint")
   @PostMapping(path = "/application/{application}/environment/{environment}/constraint")
   void updateConstraintStatus(
