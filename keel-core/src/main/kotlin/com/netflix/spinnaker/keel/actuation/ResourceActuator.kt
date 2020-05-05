@@ -81,6 +81,8 @@ class ResourceActuator(
         val diff = DefaultResourceDiff(desired, current)
         if (diff.hasChanges()) {
           diffFingerprintRepository.store(id, diff)
+        } else {
+          diffFingerprintRepository.clear(id)
         }
 
         val response = vetoEnforcer.canCheck(resource)
