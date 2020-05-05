@@ -1,3 +1,11 @@
+['kork'].each { prj ->
+  String propName = "${prj}Composite"
+  String projectPath = "../$prj"
+  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
+    includeBuild projectPath
+  }
+}
+
 rootProject.name = 'rosco'
 
 include 'rosco-bom', 'rosco-core', 'rosco-web', 'rosco-manifests'
