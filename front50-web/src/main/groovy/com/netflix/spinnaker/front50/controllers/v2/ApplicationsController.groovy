@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.front50.controllers.v2
 
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
@@ -63,6 +64,9 @@ public class ApplicationsController {
   @Autowired
   Optional<FiatService> fiatService;
 
+  @Autowired
+  Optional<ServiceAccountsService> serviceAccountsService;
+
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @ApiOperation(value = "", notes = """Fetch all applications.
@@ -107,7 +111,7 @@ public class ApplicationsController {
       fiatService.ifPresent { it.sync() }
     } catch (Exception ignored) {
       log.warn("failed to trigger fiat permission sync", ignored)
-    } 
+    }
     return createdApplication
   }
 
@@ -188,7 +192,8 @@ public class ApplicationsController {
       pipelineDao: pipelineDAO,
       pipelineStrategyDao: pipelineStrategyDAO,
       validators: applicationValidators,
-      applicationEventListeners: applicationEventListeners
+      applicationEventListeners: applicationEventListeners,
+      serviceAccountsService: serviceAccountsService
     )
   }
 }

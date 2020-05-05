@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSetter
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
@@ -118,6 +119,9 @@ class Application implements Timestamped {
 
   @JsonIgnore
   Collection<ApplicationEventListener> applicationEventListeners
+
+  @JsonIgnore
+  Optional<ServiceAccountsService> serviceAccountsService;
 
   void update(Application updatedApplication) {
 
@@ -218,6 +222,11 @@ class Application implements Timestamped {
     Collection<Pipeline> pipelinesToDelete = pipelineDao.getPipelinesByApplication(application, true)
     log.info("Deleting pipelines for application {}: {}", application, pipelinesToDelete.findResults { it.id } )
     pipelinesToDelete.each { Pipeline p -> pipelineDao.delete(p.id) }
+
+    if (pipelinesToDelete && serviceAccountsService.isPresent()) {
+      log.info("Deleting managed service accounts for application {}: {}", application, pipelinesToDelete.findResults { it.id })
+      serviceAccountsService.get().deleteManagedServiceAccounts(pipelinesToDelete.findResults { it.id })
+    }
 
     Collection<Pipeline> strategiesToDelete = pipelineStrategyDao.getPipelinesByApplication(application)
     log.info("Deleting strategies for application {}: {}", application, strategiesToDelete.findResults { it.id } )

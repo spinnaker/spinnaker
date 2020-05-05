@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.front50.model.application
 
+import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
@@ -171,6 +172,7 @@ class ApplicationModelSpec extends Specification {
     def pipelineStrategyDao = Stub(PipelineStrategyDAO) {
       getPipelinesByApplication(_) >> []
     }
+    def serviceAccountsService = Mock(ServiceAccountsService)
     def app = new Application()
     app.name = "TEST_APP"
     app.dao = dao
@@ -178,7 +180,7 @@ class ApplicationModelSpec extends Specification {
     app.notificationDao = notificationDao
     app.pipelineDao = pipelineDao
     app.pipelineStrategyDao = pipelineStrategyDao
-
+    app.serviceAccountsService = Optional.of(serviceAccountsService)
     when:
     app.delete()
 
@@ -333,12 +335,14 @@ class ApplicationModelSpec extends Specification {
     PipelineStrategyDAO pipelineStrategyDao = Stub(PipelineStrategyDAO) {
       getPipelinesByApplication(_) >> []
     }
+    ServiceAccountsService serviceAccountsService = Mock(ServiceAccountsService)
 
     application.dao = dao
     application.notificationDao = notificationDao
     application.projectDao = projectDao
     application.pipelineDao = pipelineDao
     application.pipelineStrategyDao = pipelineStrategyDao
+    application.serviceAccountsService = Optional.of(serviceAccountsService)
 
     when:
     application.delete()
@@ -353,7 +357,7 @@ class ApplicationModelSpec extends Specification {
     0 * _
   }
 
-  void 'should delete all pipeline and strategy configs when deleting an application'() {
+  void 'should delete all pipeline, managed service account and strategy configs when deleting an application'() {
     given:
     def application = new Application(name: 'app1')
     ProjectDAO projectDao = Stub(ProjectDAO) {
@@ -365,12 +369,14 @@ class ApplicationModelSpec extends Specification {
     }
     PipelineDAO pipelineDao = Mock(PipelineDAO)
     PipelineStrategyDAO pipelineStrategyDao = Mock(PipelineStrategyDAO)
+    ServiceAccountsService serviceAccountsService = Mock(ServiceAccountsService)
 
     application.dao = dao
     application.notificationDao = notificationDao
     application.projectDao = projectDao
     application.pipelineDao = pipelineDao
     application.pipelineStrategyDao = pipelineStrategyDao
+    application.serviceAccountsService = Optional.of(serviceAccountsService)
 
     when:
     application.delete()
@@ -383,6 +389,7 @@ class ApplicationModelSpec extends Specification {
     1 * pipelineDao.delete('b')
     1 * pipelineStrategyDao.getPipelinesByApplication(_) >> [ new Pipeline(id: 'a') ]
     1 * pipelineStrategyDao.delete('a')
+    1 * serviceAccountsService.deleteManagedServiceAccounts(['a', 'b'])
     0 * _
   }
 }

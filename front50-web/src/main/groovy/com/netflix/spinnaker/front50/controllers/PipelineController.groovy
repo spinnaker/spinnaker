@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.exception.BadRequestException
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
@@ -51,15 +52,18 @@ class PipelineController {
 
   private final PipelineDAO pipelineDAO
   private final ObjectMapper objectMapper
+  private final Optional<ServiceAccountsService> serviceAccountsService
 
   private final List<PipelineValidator> pipelineValidators
 
   @Autowired
   public PipelineController(PipelineDAO pipelineDAO,
                             ObjectMapper objectMapper,
+                            Optional<ServiceAccountsService> serviceAccountsService,
                             Optional<List<PipelineValidator>> pipelineValidators) {
     this.pipelineDAO = pipelineDAO
     this.objectMapper = objectMapper
+    this.serviceAccountsService = serviceAccountsService
     this.pipelineValidators = pipelineValidators.orElse([])
   }
 
@@ -142,10 +146,16 @@ class PipelineController {
     String pipelineId = pipelineDAO.getPipelineId(application, pipeline)
     log.info("Deleting pipeline \"{}\" with id {} in application {}", pipeline, pipelineId, application)
     pipelineDAO.delete(pipelineId)
+    if (serviceAccountsService.isPresent()) {
+      serviceAccountsService.get().deleteManagedServiceAccounts([pipelineId])
+    }
   }
 
   void delete(@PathVariable String id) {
     pipelineDAO.delete(id)
+    if (serviceAccountsService.isPresent()) {
+      serviceAccountsService.get().deleteManagedServiceAccounts([id])
+    }
   }
 
   @PreAuthorize("hasPermission(#pipeline.application, 'APPLICATION', 'WRITE')")

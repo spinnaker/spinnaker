@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
@@ -50,12 +51,14 @@ abstract class PipelineControllerTck extends Specification {
   MockMvc mockMvc
 
   @Subject PipelineDAO pipelineDAO
+  def serviceAccountsService
 
   void setup() {
     this.pipelineDAO = createPipelineDAO()
+    this.serviceAccountsService = Mock(ServiceAccountsService)
 
     mockMvc = MockMvcBuilders
-      .standaloneSetup(new PipelineController(pipelineDAO, new ObjectMapper(), Optional.empty()))
+      .standaloneSetup(new PipelineController(pipelineDAO, new ObjectMapper(), serviceAccountsService, Optional.empty()))
       .setHandlerExceptionResolvers(createExceptionResolver())
       .build()
   }
@@ -226,9 +229,9 @@ abstract class PipelineControllerTck extends Specification {
     updatedPipeline.get("triggers").find { it.expression == "3" }.id.length() > 1
   }
 
-  void 'should delete an existing pipeline by name or id'() {
+  void 'should delete an existing pipeline by name or id and its associated managed service account'() {
     given:
-    pipelineDAO.create(null, new Pipeline([
+    def pipelineToDelete = pipelineDAO.create(null, new Pipeline([
         name: "pipeline1", application: "test"
     ]))
     pipelineDAO.create(null, new Pipeline([
@@ -249,6 +252,7 @@ abstract class PipelineControllerTck extends Specification {
     then:
     response.status == OK
     pipelineDAO.all()*.name == ["pipeline2"]
+    1 * serviceAccountsService.deleteManagedServiceAccounts([pipelineToDelete.id])
   }
 
   void 'should enforce unique names on save operations'() {
