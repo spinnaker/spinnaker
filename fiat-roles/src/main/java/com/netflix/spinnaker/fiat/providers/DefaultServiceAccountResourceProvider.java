@@ -17,35 +17,21 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.config.FiatRoleConfig;
-import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
-public class DefaultServiceAccountResourceProvider extends BaseResourceProvider<ServiceAccount>
-    implements ResourceProvider<ServiceAccount> {
+public class DefaultServiceAccountResourceProvider extends BaseServiceAccountResourceProvider {
 
   private final Front50Service front50Service;
 
-  private final FiatRoleConfig fiatRoleConfig;
-
-  @Autowired
   public DefaultServiceAccountResourceProvider(
       Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
-    super();
+    super(fiatRoleConfig);
     this.front50Service = front50Service;
-    this.fiatRoleConfig = fiatRoleConfig;
   }
 
   @Override
@@ -55,32 +41,5 @@ public class DefaultServiceAccountResourceProvider extends BaseResourceProvider<
     } catch (Exception e) {
       throw new ProviderException(this.getClass(), e.getCause());
     }
-  }
-
-  @Override
-  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles, boolean isAdmin)
-      throws ProviderException {
-    List<String> roleNames = roles.stream().map(Role::getName).collect(Collectors.toList());
-    return getAll().stream()
-        .filter(svcAcct -> !svcAcct.getMemberOf().isEmpty())
-        .filter(getServiceAccountPredicate(isAdmin, roleNames))
-        .collect(Collectors.toSet());
-  }
-
-  private Predicate<ServiceAccount> getServiceAccountPredicate(
-      boolean isAdmin, List<String> roleNames) {
-    if (isAdmin) {
-      return svcAcct -> true;
-    }
-    if (fiatRoleConfig.isOrMode()) {
-      return svcAcct -> svcAcct.getMemberOf().stream().anyMatch(roleNames::contains);
-    } else {
-      return svcAcct -> roleNames.containsAll(svcAcct.getMemberOf());
-    }
-  }
-
-  @Override
-  public Set<ServiceAccount> getAllUnrestricted() throws ProviderException {
-    return Collections.emptySet();
   }
 }

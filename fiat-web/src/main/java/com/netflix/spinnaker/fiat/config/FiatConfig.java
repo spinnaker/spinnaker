@@ -10,6 +10,7 @@ import com.netflix.spinnaker.fiat.permissions.DefaultFallbackPermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.permissions.FallbackPermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.DefaultApplicationResourceProvider;
+import com.netflix.spinnaker.fiat.providers.DefaultServiceAccountResourceProvider;
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
@@ -24,6 +25,7 @@ import java.util.Map;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -86,6 +88,15 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
         permissionProvider,
         executeFallbackPermissionsResolver,
         properties.isAllowAccessToUnknownApplications());
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "fiat.service-account-resource-provider.default.enabled",
+      matchIfMissing = true)
+  DefaultServiceAccountResourceProvider serviceAccountResourceProvider(
+      Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
+    return new DefaultServiceAccountResourceProvider(front50Service, fiatRoleConfig);
   }
 
   @Bean
