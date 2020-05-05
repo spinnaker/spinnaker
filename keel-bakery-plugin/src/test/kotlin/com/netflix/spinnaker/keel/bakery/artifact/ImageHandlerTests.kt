@@ -41,6 +41,8 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isTrue
+import strikt.mockk.captured
+import strikt.mockk.isCaptured
 
 internal class ImageHandlerTests : JUnit5Minutests {
 
@@ -437,12 +439,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
     }
   }
 
-  fun <T : Any> Assertion.Builder<CapturingSlot<T>>.isCaptured(): Assertion.Builder<CapturingSlot<T>> =
-    assertThat("captured a value", CapturingSlot<T>::isCaptured)
-
   fun <T : Any> Assertion.Builder<CapturingSlot<T>>.isNotCaptured(): Assertion.Builder<CapturingSlot<T>> =
     assertThat("did not capture a value") { !it.isCaptured }
-
-  val <T : Any> Assertion.Builder<CapturingSlot<T>>.captured: Assertion.Builder<T>
-    get() = get { captured }
 }
