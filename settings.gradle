@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+['fiat', 'keiko', 'kork'].each { prj ->
+  String propName = "${prj}Composite"
+  String projectPath = "../$prj"
+  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
+    includeBuild projectPath
+  }
+}
+
 include "orca-api",
   "orca-api-tck",
   "orca-applications",
