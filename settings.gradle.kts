@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+listOf("fiat", "kork").forEach { prj ->
+  val propName = "${prj}Composite"
+  val projectPath = "../$prj"
+  if (settings.extra.has(propName) && java.lang.Boolean.parseBoolean(settings.extra.get(propName).toString())) {
+    includeBuild(projectPath)
+  }
+}
+
 include(
   "keel-api",
   "keel-api-jackson",
