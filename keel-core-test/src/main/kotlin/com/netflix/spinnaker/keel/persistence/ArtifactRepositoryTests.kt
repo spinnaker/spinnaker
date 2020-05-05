@@ -38,8 +38,8 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import strikt.assertions.succeeded
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -348,7 +348,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             clock.incrementBy(Duration.ofHours(1))
             subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
           }
-            .succeeded()
+            .isSuccess()
             .isFalse()
         }
 
@@ -357,7 +357,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             clock.incrementBy(Duration.ofHours(1))
             subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
           }
-            .succeeded()
+            .isSuccess()
             .isTrue()
         }
 

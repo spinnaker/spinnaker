@@ -20,7 +20,7 @@ import java.time.Instant.EPOCH
 import strikt.api.expectCatching
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.succeeded
+import strikt.assertions.isSuccess
 
 internal class LegacySpecUpgradeTests : JUnit5Minutests {
 
@@ -109,7 +109,7 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
       context("retrieving the resource") {
         test("the spec is converted to the new kind before being returned") {
           expectCatching { repository.get(oldResource.id) }
-            .succeeded()
+            .isSuccess()
             .isA<Resource<SpecV3>>()
             .and {
               get { spec.name }.isEqualTo(oldResource.spec.name)
@@ -128,7 +128,7 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
       context("retrieving the resource") {
         test("the spec is converted to the newest kind before being returned") {
           expectCatching { repository.get(oldResource.id) }
-            .succeeded()
+            .isSuccess()
             .isA<Resource<SpecV3>>()
             .and {
               get { spec.name }.isEqualTo(ancientResource.spec.name)

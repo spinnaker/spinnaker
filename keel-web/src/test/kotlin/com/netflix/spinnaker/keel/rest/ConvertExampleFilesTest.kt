@@ -34,7 +34,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.assertions.isA
-import strikt.assertions.succeeded
+import strikt.assertions.isSuccess
 
 class ConvertExampleFilesTest : JUnit5Minutests {
   private val mapper = configuredYamlMapper()
@@ -56,7 +56,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<ClusterSpec>()
       }
@@ -69,7 +69,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<ClusterSpec>()
       }
@@ -82,7 +82,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<SecurityGroupSpec>()
       }
@@ -95,7 +95,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<ClassicLoadBalancerSpec>()
       }
@@ -108,7 +108,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<ApplicationLoadBalancerSpec>()
       }
@@ -120,7 +120,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
       test("yml can be parsed") {
         expectCatching {
           mapper.readValue<SubmittedResource<TitusClusterSpec>>(file)
-        }.succeeded()
+        }.isSuccess()
       }
     }
 
@@ -131,7 +131,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<TitusClusterSpec>()
       }
@@ -144,7 +144,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         expectCatching {
           mapper.readValue<SubmittedResource<*>>(file)
         }
-          .succeeded()
+          .isSuccess()
           .get { spec }
           .isA<TitusClusterSpec>()
       }

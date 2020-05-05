@@ -25,7 +25,7 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
-import strikt.assertions.succeeded
+import strikt.assertions.isSuccess
 
 internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
 
@@ -112,7 +112,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         expectCatching {
           subject.checkEnvironments(deliveryConfig)
         }
-          .succeeded()
+          .isSuccess()
       }
     }
 
@@ -379,7 +379,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           expectCatching {
             subject.checkEnvironments(deliveryConfig)
           }
-            .succeeded()
+            .isSuccess()
         }
 
         test("no artifact is registered") {
@@ -440,7 +440,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           expectCatching {
             subject.checkEnvironments(deliveryConfig)
           }
-            .succeeded()
+            .isSuccess()
         }
       }
 

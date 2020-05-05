@@ -24,11 +24,11 @@ import org.junit.jupiter.api.AfterAll
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsKey
-import strikt.assertions.failed
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.succeeded
+import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
 
 internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   ResourceRepositoryPeriodicallyCheckedTests<SqlResourceRepository>() {
@@ -144,23 +144,23 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
     context("there's an unreadable resource in the database") {
       test("fetching next items throws an exception the first time it is called") {
-        expectCatching { nextResults() }.failed().isA<UnsupportedKind>()
+        expectCatching { nextResults() }.isFailure().isA<UnsupportedKind>()
       }
 
       test("subsequent calls will start returning valid results") {
-        expectCatching { nextResults() }.failed().isA<UnsupportedKind>()
-        expectCatching { nextResults() }.succeeded().hasSize(2)
-        expectCatching { nextResults() }.succeeded().hasSize(0)
+        expectCatching { nextResults() }.isFailure().isA<UnsupportedKind>()
+        expectCatching { nextResults() }.isSuccess().hasSize(2)
+        expectCatching { nextResults() }.isSuccess().hasSize(0)
       }
 
       test("after the last check time limit has passed we never try to read the unreadable resource again") {
-        expectCatching { nextResults() }.failed().isA<UnsupportedKind>()
-        expectCatching { nextResults() }.succeeded().hasSize(2)
-        expectCatching { nextResults() }.succeeded().hasSize(0)
+        expectCatching { nextResults() }.isFailure().isA<UnsupportedKind>()
+        expectCatching { nextResults() }.isSuccess().hasSize(2)
+        expectCatching { nextResults() }.isSuccess().hasSize(0)
         clock.incrementBy(Duration.ofMinutes(31))
-        expectCatching { nextResults() }.succeeded().hasSize(2)
-        expectCatching { nextResults() }.succeeded().hasSize(1)
-        expectCatching { nextResults() }.succeeded().hasSize(0)
+        expectCatching { nextResults() }.isSuccess().hasSize(2)
+        expectCatching { nextResults() }.isSuccess().hasSize(1)
+        expectCatching { nextResults() }.isSuccess().hasSize(0)
       }
     }
   }

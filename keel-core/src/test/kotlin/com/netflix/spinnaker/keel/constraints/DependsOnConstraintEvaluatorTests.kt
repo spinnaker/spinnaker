@@ -14,8 +14,8 @@ import io.mockk.mockk
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.failed
 import strikt.assertions.isA
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -52,13 +52,13 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
       expectCatching {
         subject.canPromote(artifact, "1.1", manifest, Environment(name = "foo"))
       }
-        .failed()
+        .isFailure()
         .isA<IllegalArgumentException>()
     }
 
     test("an environment without the constraint throws an exception (don't pass it to this method)") {
       expectCatching { subject.canPromote(artifact, "1.1", manifest, previousEnvironment) }
-        .failed()
+        .isFailure()
     }
 
     test("constraint serializes with type information") {

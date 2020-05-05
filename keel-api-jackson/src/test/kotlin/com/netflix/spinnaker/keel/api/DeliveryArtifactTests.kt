@@ -11,7 +11,7 @@ import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsKey
-import strikt.assertions.succeeded
+import strikt.assertions.isSuccess
 
 internal class DeliveryArtifactTests : JUnit5Minutests {
   val debianArtifact = """
@@ -52,7 +52,7 @@ internal class DeliveryArtifactTests : JUnit5Minutests {
         context("deserialization") {
           test("works") {
             expectCatching { mapper.readValue<DeliveryArtifact>(json) }
-              .succeeded()
+              .isSuccess()
           }
 
           derivedContext<Map<String, Any?>>("serialization") {

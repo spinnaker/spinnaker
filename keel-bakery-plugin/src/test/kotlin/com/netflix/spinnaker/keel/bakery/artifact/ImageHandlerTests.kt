@@ -31,16 +31,15 @@ import io.mockk.slot
 import java.util.UUID.randomUUID
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
-import strikt.api.Try
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isTrue
 
 internal class ImageHandlerTests : JUnit5Minutests {
@@ -88,7 +87,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
       artifact = artifact
     )
 
-    lateinit var handlerResult: Assertion.Builder<Try<Unit>>
+    lateinit var handlerResult: Assertion.Builder<Result<Unit>>
     val bakeTask = slot<List<Map<String, Any?>>>()
     val bakeTaskUser = slot<String>()
     val bakeTaskApplication = slot<String>()
@@ -213,7 +212,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
           }
 
           test("the handler throws an exception") {
-            handlerResult.failed().isA<NoKnownArtifactVersions>()
+            handlerResult.isFailure().isA<NoKnownArtifactVersions>()
           }
         }
 

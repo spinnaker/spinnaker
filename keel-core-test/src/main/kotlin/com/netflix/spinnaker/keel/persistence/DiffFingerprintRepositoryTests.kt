@@ -28,8 +28,8 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import strikt.assertions.succeeded
 
 abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -104,7 +104,7 @@ abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : J
         expectThat(subject.diffCount(r.id)).isEqualTo(0)
       }
       test("deletes successfully when not present") {
-        expectCatching { subject.clear(r.id) }.succeeded()
+        expectCatching { subject.clear(r.id) }.isSuccess()
       }
     }
   }

@@ -20,11 +20,11 @@ import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.failed
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.succeeded
+import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
   JUnit5Minutests {
@@ -128,13 +128,13 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     context("an empty repository") {
       test("retrieving config by name fails") {
         getByName()
-          .failed()
+          .isFailure()
           .isA<NoSuchDeliveryConfigException>()
       }
 
       test("retrieving config by application returns an empty list") {
         getByApplication()
-          .failed()
+          .isFailure()
           .isA<NoSuchDeliveryConfigException>()
       }
     }
@@ -146,7 +146,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
       test("the config can be retrieved by name") {
         getByName()
-          .succeeded()
+          .isSuccess()
           .and {
             get { name }.isEqualTo(deliveryConfig.name)
             get { application }.isEqualTo(deliveryConfig.application)
@@ -155,7 +155,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
       test("the config can be retrieved by application") {
         getByApplication()
-          .succeeded()
+          .isSuccess()
           .get(DeliveryConfig::name)
           .isEqualTo(deliveryConfig.name)
       }
@@ -208,7 +208,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         test("the config can be retrieved by name") {
           getByName()
-            .succeeded()
+            .isSuccess()
             .and {
               get { name }.isEqualTo(deliveryConfig.name)
               get { application }.isEqualTo(deliveryConfig.application)
@@ -217,26 +217,26 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         test("artifacts are attached when retrieved by name") {
           getByName()
-            .succeeded()
+            .isSuccess()
             .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
         }
 
         test("artifacts are attached when retrieved by application") {
           getByApplication()
-            .succeeded()
+            .isSuccess()
             .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
         }
 
         test("environments are attached when retrieved by name") {
           getByName()
-            .succeeded()
+            .isSuccess()
             .get { environments }
             .isEqualTo(deliveryConfig.environments)
         }
 
         test("environments are attached when retrieved by application") {
           getByApplication()
-            .succeeded()
+            .isSuccess()
             .get { environments }
             .isEqualTo(deliveryConfig.environments)
         }
@@ -277,7 +277,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           val resource = environment.resources.random()
 
           getEnvironment(resource)
-            .succeeded()
+            .isSuccess()
             .isEqualTo(environment)
         }
 
@@ -285,7 +285,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           val resource = deliveryConfig.resources.random()
 
           getDeliveryConfig(resource)
-            .succeeded()
+            .isSuccess()
             .isEqualTo(deliveryConfig)
         }
       }
@@ -300,7 +300,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         test("the environments are not duplicated") {
           getByName()
-            .succeeded()
+            .isSuccess()
             .get { environments }.hasSize(deliveryConfig.environments.size)
         }
       }
@@ -313,7 +313,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         test("delete application data successfully") {
           getByName()
-            .failed()
+            .isFailure()
         }
       }
     }

@@ -22,8 +22,8 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isFalse
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import strikt.assertions.succeeded
 
 internal class AuthorizationSupportTests : JUnit5Minutests {
   private val dynamicConfigService: DynamicConfigService = mockk(relaxed = true)
@@ -194,7 +194,7 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
         expectCatching {
           checkApplicationPermission(Action.READ, TargetEntity.APPLICATION, application)
           checkApplicationPermission(Action.WRITE, TargetEntity.APPLICATION, application)
-        }.succeeded()
+        }.isSuccess()
         expectThat(
           hasApplicationPermission(Action.READ.name, TargetEntity.APPLICATION.name, application)
         ).isTrue()
@@ -207,7 +207,7 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
         expectCatching {
           checkCloudAccountPermission(Action.READ, TargetEntity.APPLICATION, application)
           checkCloudAccountPermission(Action.WRITE, TargetEntity.APPLICATION, application)
-        }.succeeded()
+        }.isSuccess()
         expectThat(
           hasCloudAccountPermission(Action.READ.name, TargetEntity.APPLICATION.name, application)
         ).isTrue()
@@ -220,7 +220,7 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
         expectCatching {
           checkServiceAccountAccess(TargetEntity.APPLICATION, application)
           checkServiceAccountAccess(TargetEntity.APPLICATION, application)
-        }.succeeded()
+        }.isSuccess()
         expectThat(
           hasServiceAccountAccess(TargetEntity.APPLICATION.name, application)
         ).isTrue()

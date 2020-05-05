@@ -28,9 +28,9 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isNull
 
 class VersioningStrategyTests : JUnit5Minutests {
@@ -111,7 +111,7 @@ class VersioningStrategyTests : JUnit5Minutests {
         val regex = """^master-h(\d+)(.*)$"""
         expectCatching {
           TagComparator.parseWithRegex(tag, INCREASING_TAG, regex)
-        }.failed()
+        }.isFailure()
           .isA<InvalidRegexException>()
       }
 

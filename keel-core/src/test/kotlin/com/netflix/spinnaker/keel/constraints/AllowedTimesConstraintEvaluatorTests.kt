@@ -16,8 +16,8 @@ import java.time.Instant
 import java.time.ZoneId
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.isA
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -269,7 +269,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
             tz = "America/Los_Angeles"
           )
         }
-          .failed()
+          .isFailure()
           .isA<IllegalArgumentException>()
       }
 
@@ -285,7 +285,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
             tz = "America/Los_Angeles"
           )
         }
-          .failed()
+          .isFailure()
           .isA<IllegalArgumentException>()
       }
 
@@ -301,7 +301,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
             tz = "America/Los_Spingeles"
           )
         }
-          .failed()
+          .isFailure()
           .isA<IllegalArgumentException>()
       }
     }

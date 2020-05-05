@@ -75,9 +75,9 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNull
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.map
-import strikt.assertions.succeeded
 
 internal class ClusterHandlerTests : JUnit5Minutests {
 
@@ -391,10 +391,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       test("no exception is thrown") {
         expectCatching {
-          runBlocking {
-            current(resource)
-          }
-        }.succeeded()
+          current(resource)
+        }.isSuccess()
       }
 
       test("no event is fired indicating an app version is deployed") {

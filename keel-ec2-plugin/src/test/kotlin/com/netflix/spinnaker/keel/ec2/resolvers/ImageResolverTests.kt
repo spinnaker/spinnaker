@@ -35,9 +35,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isNotNull
 import strikt.assertions.propertiesAreEqualTo
 
@@ -218,7 +218,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           }
           test("throws an exception") {
             expectCatching { resolve() }
-              .failed()
+              .isFailure()
               .isA<NoImageSatisfiesConstraints>()
           }
         }
@@ -239,7 +239,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
           test("throws an exception") {
             expectCatching { resolve() }
-              .failed()
+              .isFailure()
               .isA<NoImageFoundForRegions>()
           }
         }
@@ -275,7 +275,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
           test("throws an exception") {
             expectCatching { resolve() }
-              .failed()
+              .isFailure()
               .isA<NoImageFoundForRegions>()
           }
         }

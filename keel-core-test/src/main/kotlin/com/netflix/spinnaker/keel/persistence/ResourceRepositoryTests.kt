@@ -47,11 +47,11 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.all
-import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
@@ -307,13 +307,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("zero limit is not allowed") {
           expectCatching { subject.eventHistory(resource.id, limit = 0) }
-            .failed()
+            .isFailure()
             .isA<IllegalArgumentException>()
         }
 
         test("negative limit is not allowed") {
           expectCatching { subject.eventHistory(resource.id, limit = -1) }
-            .failed()
+            .isFailure()
             .isA<IllegalArgumentException>()
         }
       }

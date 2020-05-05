@@ -26,10 +26,10 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
 
@@ -194,7 +194,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         }
         expectCatching {
           resourceRepository.get(resource.id)
-        }.failed()
+        }.isFailure()
           .isA<NoSuchResourceId>()
 
         expectThat(repository.getTasks().size).isEqualTo(0)

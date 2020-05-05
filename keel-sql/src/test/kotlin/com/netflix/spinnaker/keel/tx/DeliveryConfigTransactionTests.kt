@@ -33,9 +33,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
+import strikt.assertions.isFailure
 import strikt.assertions.isFalse
 
 @ExtendWith(SpringExtension::class)
@@ -121,13 +121,13 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
         } throws DataAccessException("o noes")
 
         expectCatching { repository.upsertDeliveryConfig(submittedManifest) }
-          .failed()
+          .isFailure()
           .isA<DataAccessException>()
       }
 
       test("the delivery config is not persisted") {
         expectCatching { repository.getDeliveryConfig("keel-manifest") }
-          .failed()
+          .isFailure()
           .isA<NoSuchDeliveryConfigName>()
       }
 
@@ -147,13 +147,13 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
         every { artifactRepository.register(any()) } throws DataAccessException("o noes")
 
         expectCatching { repository.upsertDeliveryConfig(submittedManifest) }
-          .failed()
+          .isFailure()
           .isA<DataAccessException>()
       }
 
       test("the delivery config is not persisted") {
         expectCatching { repository.getDeliveryConfig("keel-manifest") }
-          .failed()
+          .isFailure()
           .isA<NoSuchDeliveryConfigName>()
       }
 
@@ -168,7 +168,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
         every { deliveryConfigRepository.store(any()) } throws DataAccessException("o noes")
 
         expectCatching { repository.upsertDeliveryConfig(submittedManifest) }
-          .failed()
+          .isFailure()
           .isA<DataAccessException>()
       }
 

@@ -31,14 +31,14 @@ import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
-import strikt.assertions.succeeded
 
 /**
  * Tests that involve creating, updating, or deleting things from two or more of the three repositories present.
@@ -121,7 +121,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
       context("delivery config created") {
         test("delivery config is persisted") {
           expectCatching { subject.getDeliveryConfig(deliveryConfig.name) }
-            .succeeded()
+            .isSuccess()
         }
 
         test("artifacts are persisted") {
@@ -133,7 +133,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           deliveryConfig.resources.map { it.id }.forEach { id ->
             expectCatching {
               subject.getResource(id)
-            }.succeeded()
+            }.isSuccess()
           }
         }
       }
@@ -167,10 +167,10 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           }
 
           test("correct resources still exist") {
-            expectCatching { resourceRepository.get(secondResource.id) }.succeeded()
+            expectCatching { resourceRepository.get(secondResource.id) }.isSuccess()
             expectCatching {
               artifactRepository.get(name = newArtifact.name, type = newArtifact.type, reference = "myart", deliveryConfigName = configName)
-            }.succeeded()
+            }.isSuccess()
           }
         }
 
@@ -185,7 +185,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           test("artifact is updated but still present") {
             expectCatching {
               artifactRepository.get(name = artifact.name, type = artifact.type, reference = artifact.reference, deliveryConfigName = configName)
-            }.succeeded()
+            }.isSuccess()
               .isA<DockerArtifact>()
               .get { tagVersionStrategy }.isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
           }
@@ -333,7 +333,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         test("an error is thrown and config is deleted") {
           expectCatching {
             subject.upsertDeliveryConfig(submittedConfig)
-          }.failed()
+          }.isFailure()
             .isA<DuplicateResourceIdException>()
 
           expectThat(subject.allResourceNames().size).isEqualTo(0)
@@ -369,7 +369,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         test("an error is thrown and config is deleted") {
           expectCatching {
             subject.upsertDeliveryConfig(submittedConfig)
-          }.failed()
+          }.isFailure()
             .isA<DuplicateArtifactReferenceException>()
 
           expectThat(subject.allResourceNames().size).isEqualTo(0)
@@ -402,7 +402,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           subject.upsertDeliveryConfig(submittedConfig1)
           expectCatching {
             subject.upsertDeliveryConfig(submittedConfig2)
-          }.failed()
+          }.isFailure()
             .isA<TooManyDeliveryConfigsException>()
 
           expectThat(subject.getDeliveryConfigForApplication("keel").name).isEqualTo(configName)

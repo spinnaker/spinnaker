@@ -24,8 +24,8 @@ import io.mockk.mockk
 import io.mockk.slot
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.failed
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isNull
 
@@ -88,7 +88,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
       test("throws an exception if the constraint state uid is not present") {
         expectCatching {
           subject.constraintStateChanged(event.withoutStateUid())
-        }.failed()
+        }.isFailure()
 
         coVerify(exactly = 0) {
           echoService.sendNotification(any())
@@ -208,6 +208,6 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
             type = NotificationType.email,
             address = "john@doe.com",
             frequency = NotificationFrequency.normal)
-        )
+      )
     )
 }
