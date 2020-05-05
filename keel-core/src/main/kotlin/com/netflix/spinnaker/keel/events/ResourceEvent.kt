@@ -386,12 +386,12 @@ enum class ResourceCheckErrorOrigin {
 
   companion object {
     val log: Logger by lazy { LoggerFactory.getLogger(ResourceCheckErrorOrigin.javaClass) }
-    fun fromException(exception: SpinnakerException) =
-      when (exception) {
-        is UserException -> USER
-        is SystemException -> SYSTEM
+    fun fromException(exceptionType: Class<out SpinnakerException>) =
+      when {
+        UserException::class.java.isAssignableFrom(exceptionType) -> USER
+        SystemException::class.java.isAssignableFrom(exceptionType) -> SYSTEM
         else -> UNKNOWN.also {
-          log.debug("All keel exceptions should inherit from UserException or SystemException (got ${exception.javaClass.name}). " +
+          log.trace("All keel exceptions should inherit from UserException or SystemException (got ${exceptionType.name}). " +
             "This is a probably a bug.")
         }
       }
@@ -403,23 +403,21 @@ data class ResourceCheckError(
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
-  @JsonIgnore
-  private val exception: SpinnakerException,
-  val exceptionMessage: String? = exception.message,
-  @JsonProperty(access = Access.READ_ONLY)
-  val origin: ResourceCheckErrorOrigin = ResourceCheckErrorOrigin.fromException(exception)
+  val exceptionType: Class<out SpinnakerException>,
+  val exceptionMessage: String?
 ) : ResourceCheckResult(message = exceptionMessage) {
   @JsonIgnore
   override val state = Error
 
-  val exceptionType: Class<out SpinnakerException> =
-    exception.javaClass
+  @JsonProperty(access = Access.READ_ONLY)
+  val origin: ResourceCheckErrorOrigin = ResourceCheckErrorOrigin.fromException(exceptionType)
 
   constructor(resource: Resource<*>, exception: SpinnakerException, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
     resource.application,
     clock.instant(),
-    exception
+    exception.javaClass,
+    exception.message
   )
 }
