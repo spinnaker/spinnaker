@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder;
 import static com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.GraphType.FULL;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.TaskGraph;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import java.lang.annotation.ElementType;
@@ -30,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
-import org.pf4j.ExtensionPoint;
 
 /**
  * Provides a low-level API for building stages.
@@ -41,7 +41,7 @@ import org.pf4j.ExtensionPoint;
  * stages.
  */
 @Beta
-public interface StageDefinitionBuilder extends ExtensionPoint {
+public interface StageDefinitionBuilder extends SpinnakerExtensionPoint {
 
   default @Nonnull TaskGraph buildTaskGraph(@Nonnull StageExecution stage) {
     Builder graphBuilder = Builder(FULL);

@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.api.preconfigured.jobs;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import java.util.List;
-import org.pf4j.ExtensionPoint;
 
 /** Extension point for provisioning preconfigured Job stages. */
 @Beta
-public interface PreconfiguredJobConfigurationProvider extends ExtensionPoint {
+public interface PreconfiguredJobConfigurationProvider extends SpinnakerExtensionPoint {
 
   /**
    * Provides list of job configurations that gets launched from PreConfigured job stage.

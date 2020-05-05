@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.api.simplestage;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
-import org.pf4j.ExtensionPoint;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 
 /**
  * Allows the creation of the most simple stage possible: One with a single task.
@@ -26,7 +26,7 @@ import org.pf4j.ExtensionPoint;
  *     fields that are required for the stage to run.
  */
 @Beta
-public interface SimpleStage<T> extends ExtensionPoint {
+public interface SimpleStage<T> extends SpinnakerExtensionPoint {
   /**
    * When this stage runs, the execute method gets called. It takes in a class that is created that
    * has the data needed by the stage. It returns a class that contains the status of the stage,

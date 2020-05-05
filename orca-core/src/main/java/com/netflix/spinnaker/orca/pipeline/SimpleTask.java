@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.plugins.proxy.ExtensionClassProvider;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -47,7 +46,7 @@ public class SimpleTask implements Task {
 
   private SimpleStageInput getStageInput(StageExecution stage, ObjectMapper objectMapper) {
     try {
-      Class<?> extensionClass = ExtensionClassProvider.getExtensionClass(simpleStage);
+      Class<?> extensionClass = simpleStage.getExtensionClass();
       List<Class<?>> cArg = Arrays.asList(SimpleStageInput.class);
       Method method = extensionClass.getMethod("execute", cArg.toArray(new Class[0]));
       Type inputType = ResolvableType.forMethodParameter(method, 0).getGeneric().getType();

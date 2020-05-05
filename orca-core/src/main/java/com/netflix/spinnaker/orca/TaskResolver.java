@@ -113,7 +113,8 @@ public class TaskResolver {
   @Nonnull
   public Class<? extends Task> getTaskClass(@Nonnull String taskTypeIdentifier) {
     try {
-      return getTask(taskTypeIdentifier).getClass();
+      Task task = getTask(taskTypeIdentifier);
+      return (Class<? extends Task>) task.getClass();
     } catch (IllegalArgumentException e) {
       if (!allowFallback) {
         throw e;
