@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
+import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -230,6 +232,19 @@ class CombinedRepository(
 
       log.error("Validation failed for ${config.name}, duplicate artifact references found: $duplicatesArtifactNameToRef")
       throw DuplicateArtifactReferenceException(duplicatesArtifactNameToRef)
+    }
+
+    /**
+     * validating depends on environments
+     */
+    config.environments.forEach { environment ->
+      environment.constraints.forEach { constraint ->
+        if (constraint is DependsOnConstraint) {
+          config.environments.find {
+            it.name == constraint.environment
+          } ?: throw MissingEnvironmentReferenceException(constraint.environment)
+        }
+      }
     }
   }
 

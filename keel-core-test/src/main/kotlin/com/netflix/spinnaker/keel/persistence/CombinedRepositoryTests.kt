@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
@@ -16,6 +17,7 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
+import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -406,6 +408,39 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
             .isA<TooManyDeliveryConfigsException>()
 
           expectThat(subject.getDeliveryConfigForApplication("keel").name).isEqualTo(configName)
+        }
+      }
+
+      context("submitting delivery config with invalid environment name as a constraint") {
+        val submittedConfig = SubmittedDeliveryConfig(
+          name = configName,
+          application = "keel",
+          serviceAccount = "keel@spinnaker",
+          artifacts = setOf(DockerArtifact(name = "org/thing-1", deliveryConfigName = configName, reference = "thing")),
+          environments = setOf(
+            SubmittedEnvironment(
+              name = "test",
+              resources = emptySet(),
+              constraints = emptySet()
+            ),
+              SubmittedEnvironment(
+              name = "test",
+            resources = emptySet(),
+            constraints = setOf(DependsOnConstraint(environment = "notARealEnvironment"))
+          )
+          )
+        )
+
+        test("an error is thrown and config is not persisted") {
+          expectCatching {
+            subject.upsertDeliveryConfig(submittedConfig)
+          }.isFailure()
+            .isA<MissingEnvironmentReferenceException>()
+
+          expectCatching {
+            subject.getDeliveryConfig(configName)
+          }.isFailure()
+            .isA<NoSuchDeliveryConfigException>()
         }
       }
     }
