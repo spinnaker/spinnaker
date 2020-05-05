@@ -49,7 +49,7 @@ public class TaskResolver {
 
   public TaskResolver(Collection<Task> tasks, List<SimpleStage> stages, boolean allowFallback) {
     for (Task task : tasks) {
-      taskByAlias.put(task.getClass().getCanonicalName(), task);
+      taskByAlias.put(task.getExtensionClass().getCanonicalName(), task);
       for (String alias : task.aliases()) {
         if (taskByAlias.containsKey(alias)) {
           throw new DuplicateTaskAliasException(
@@ -57,7 +57,7 @@ public class TaskResolver {
                   "Duplicate task alias detected (alias: %s, previous: %s, current: %s)",
                   alias,
                   taskByAlias.get(alias).getClass().getCanonicalName(),
-                  task.getClass().getCanonicalName()));
+                  task.getExtensionClass().getCanonicalName()));
         }
 
         taskByAlias.put(alias, task);
@@ -114,7 +114,7 @@ public class TaskResolver {
   public Class<? extends Task> getTaskClass(@Nonnull String taskTypeIdentifier) {
     try {
       Task task = getTask(taskTypeIdentifier);
-      return (Class<? extends Task>) task.getClass();
+      return (Class<? extends Task>) task.getExtensionClass();
     } catch (IllegalArgumentException e) {
       if (!allowFallback) {
         throw e;
