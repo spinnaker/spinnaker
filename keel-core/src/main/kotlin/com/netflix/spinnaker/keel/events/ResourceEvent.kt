@@ -33,6 +33,7 @@ import com.netflix.spinnaker.keel.events.ResourceState.Diff
 import com.netflix.spinnaker.keel.events.ResourceState.Error
 import com.netflix.spinnaker.keel.events.ResourceState.Missing
 import com.netflix.spinnaker.keel.events.ResourceState.Ok
+import com.netflix.spinnaker.keel.events.ResourceState.Unresolvable
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.exceptions.UserException
@@ -364,7 +365,7 @@ data class ResourceCheckUnresolvable(
   override val message: String?
 ) : ResourceCheckResult(message = message) {
   @JsonIgnore
-  override val state = Diff
+  override val state = Unresolvable
 
   @JsonIgnore
   override val ignoreRepeatedInHistory = true

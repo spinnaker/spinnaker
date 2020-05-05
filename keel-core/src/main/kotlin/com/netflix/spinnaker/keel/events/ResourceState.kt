@@ -16,5 +16,5 @@
 package com.netflix.spinnaker.keel.events
 
 enum class ResourceState {
-  Ok, Diff, Missing, Error
+  Ok, Diff, Missing, Error, Unresolvable
 }
