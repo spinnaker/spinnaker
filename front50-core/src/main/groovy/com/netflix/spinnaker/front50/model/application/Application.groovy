@@ -360,7 +360,7 @@ class Application implements Timestamped {
       }
 
       log.error("Failed to perform action (name: {})",
-        value("application", originalApplication?.name ?: updatedApplication?.name))
+        value("application", originalApplication?.name ?: updatedApplication?.name), e)
       throw e
     }
   }

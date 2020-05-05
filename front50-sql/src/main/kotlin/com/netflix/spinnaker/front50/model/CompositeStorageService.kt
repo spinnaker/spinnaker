@@ -82,11 +82,11 @@ class CompositeStorageService(
       try {
         return primary.loadObject<T>(objectType, objectKey)
       } catch (e: NotFoundException) {
-        log.debug("{}.loadObject({}, {}) not found (primary)", primary.javaClass.simpleName, objectType, objectKey)
+        log.debug("{}.loadObject({}, {}) not found (primary)", primary.javaClass.simpleName, objectType, objectKey, e)
 
         exception = e
       } catch (e: Exception) {
-        log.error("{}.loadObject({}, {}) failed (primary)", primary.javaClass.simpleName, objectType, objectKey)
+        log.error("{}.loadObject({}, {}) failed (primary)", primary.javaClass.simpleName, objectType, objectKey, e)
 
         exception = e
       }
@@ -199,7 +199,8 @@ class CompositeStorageService(
           primary.javaClass.simpleName,
           objectType,
           objectKey,
-          maxResults
+          maxResults,
+          e
         )
 
         exception = e
@@ -220,7 +221,7 @@ class CompositeStorageService(
       try {
         return primary.getLastModified(objectType)
       } catch (e: Exception) {
-        log.error("{}.getLastModified({}) failed (primary)", primary.javaClass.simpleName, objectType)
+        log.error("{}.getLastModified({}) failed (primary)", primary.javaClass.simpleName, objectType, e)
 
         exception = e
       }

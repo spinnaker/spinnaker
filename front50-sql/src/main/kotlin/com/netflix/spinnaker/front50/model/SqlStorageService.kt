@@ -258,7 +258,7 @@ class SqlStorageService(
         }
       }
     } catch (e: Exception) {
-      log.error("Unable to store object (objectType: {}, objectKey: {})", objectType, objectKey)
+      log.error("Unable to store object (objectType: {}, objectKey: {})", objectType, objectKey, e)
       throw e
     }
   }

@@ -230,7 +230,7 @@ public class ApplicationPermissionsService {
           (originalPermission == null)
               ? (updatedPermission == null) ? "unknown" : updatedPermission.getName()
               : originalPermission.getName();
-      log.error("Failed to perform action (name: {})", name);
+      log.error("Failed to perform action (name: {})", name, e);
       throw e;
     }
   }
