@@ -119,6 +119,7 @@ class BakeStage implements StageDefinitionBuilder {
   static class CompleteParallelBakeTask implements Task {
     public static final List<String> DEPLOYMENT_DETAILS_CONTEXT_FIELDS = [
       "ami",
+      "amiName",
       "imageId",
       "imageName",
       "amiSuffix",

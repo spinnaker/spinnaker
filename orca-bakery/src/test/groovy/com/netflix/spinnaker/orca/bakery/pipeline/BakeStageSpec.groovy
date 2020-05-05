@@ -205,6 +205,40 @@ class BakeStageSpec extends Specification {
     notThrown(ConstraintViolationException)
   }
 
+  def "should expose amiName in stage outputs"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        id = "1"
+        type = "bake"
+        context = [
+                "region": "us-east-1",
+                "regions": ["us-east-1"],
+                "amiName" : "iwantthisname"
+        ]
+        status = ExecutionStatus.RUNNING
+      }
+    }
+
+    def bakeStage = pipeline.stageById("1")
+    def graph = StageGraphBuilderImpl.beforeStages(bakeStage)
+    new BakeStage(regionCollector: new RegionCollector()).beforeStages(bakeStage, graph)
+    def parallelStages = graph.build()
+
+    parallelStages.eachWithIndex { it, idx ->
+      it.context.ami = "ami-$idx"
+    }
+    pipeline.stages.addAll(parallelStages)
+
+    when:
+    def taskResult = new BakeStage.CompleteParallelBakeTask().execute(pipeline.stageById("1"))
+
+    then:
+    with(taskResult.outputs) {
+      deploymentDetails[0].amiName == "iwantthisname"
+    }
+  }
+
   private
   static List<Map> deployAz(String cloudProvider, String prefix, String... regions) {
     if (prefix == "clusters") {
