@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.wercker.model.Application
 import com.netflix.spinnaker.igor.wercker.model.Owner
 import com.netflix.spinnaker.igor.wercker.model.Pipeline
 import com.netflix.spinnaker.igor.wercker.model.Run
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 
 import java.util.concurrent.TimeUnit
@@ -219,6 +220,7 @@ class WerckerBuildMonitorSpec extends Specification {
         return new WerckerBuildMonitor(
                 cfg,
                 new NoopRegistry(),
+                new DynamicConfigService.NoopDynamicConfig(),
                 Optional.empty(),
                 Optional.empty(),
                 cache,

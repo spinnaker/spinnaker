@@ -39,6 +39,7 @@ import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.time.Instant;
@@ -72,13 +73,14 @@ public class TravisBuildMonitor
   public TravisBuildMonitor(
       IgorConfigurationProperties properties,
       Registry registry,
+      DynamicConfigService dynamicConfigService,
       Optional<DiscoveryClient> discoveryClient,
       BuildCache buildCache,
       BuildServices buildServices,
       TravisProperties travisProperties,
       Optional<EchoService> echoService,
       Optional<LockService> lockService) {
-    super(properties, registry, discoveryClient, lockService);
+    super(properties, registry, dynamicConfigService, discoveryClient, lockService);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.travisProperties = travisProperties;

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.Logger
 import retrofit.RetrofitError
 import rx.schedulers.Schedulers
@@ -51,6 +52,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         monitor = new JenkinsBuildMonitor(
             igorConfigurationProperties,
             new NoopRegistry(),
+            new DynamicConfigService.NoopDynamicConfig(),
             Optional.empty(),
             Optional.empty(),
             cache,

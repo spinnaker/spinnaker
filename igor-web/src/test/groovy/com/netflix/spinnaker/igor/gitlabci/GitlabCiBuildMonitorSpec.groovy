@@ -26,6 +26,7 @@ import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -47,6 +48,7 @@ class GitlabCiBuildMonitorSpec extends Specification {
         buildMonitor = new GitlabCiBuildMonitor(
             new IgorConfigurationProperties(),
             new NoopRegistry(),
+            new DynamicConfigService.NoopDynamicConfig(),
             Optional.empty(),
             Optional.empty(),
             buildCache,

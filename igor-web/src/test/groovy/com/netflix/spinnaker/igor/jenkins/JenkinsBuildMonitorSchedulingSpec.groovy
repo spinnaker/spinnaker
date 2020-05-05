@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import rx.schedulers.TestScheduler
 import spock.lang.Specification
@@ -52,6 +53,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         monitor = new JenkinsBuildMonitor(
             cfg,
             new NoopRegistry(),
+            new DynamicConfigService.NoopDynamicConfig(),
             Optional.empty(),
             Optional.empty(),
             cache,
@@ -102,6 +104,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         monitor = new JenkinsBuildMonitor(
             cfg,
             new NoopRegistry(),
+            new DynamicConfigService.NoopDynamicConfig(),
             Optional.empty(),
             Optional.empty(),
             cache,

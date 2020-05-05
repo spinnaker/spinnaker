@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Commit
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 
 class TravisBuildMonitorSpec extends Specification {
@@ -48,6 +49,7 @@ class TravisBuildMonitorSpec extends Specification {
         travisBuildMonitor = new TravisBuildMonitor(
             new IgorConfigurationProperties(),
             new NoopRegistry(),
+            new DynamicConfigService.NoopDynamicConfig(),
             Optional.empty(),
             buildCache,
             buildServices,

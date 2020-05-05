@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.artifactory.model.ArtifactorySearch
 import com.netflix.spinnaker.igor.config.ArtifactoryProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.polling.LockService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import rx.schedulers.Schedulers
@@ -41,6 +42,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
     monitor = new ArtifactoryBuildMonitor(
       igorConfigurationProperties,
       new NoopRegistry(),
+      new DynamicConfigService.NoopDynamicConfig(),
       Optional.empty(),
       Optional.ofNullable(lockService),
       Optional.of(echoService),

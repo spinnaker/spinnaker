@@ -38,6 +38,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
 import java.util.Date;
@@ -66,13 +67,14 @@ public class GitlabCiBuildMonitor
   public GitlabCiBuildMonitor(
       IgorConfigurationProperties properties,
       Registry registry,
+      DynamicConfigService dynamicConfigService,
       Optional<DiscoveryClient> discoveryClient,
       Optional<LockService> lockService,
       BuildCache buildCache,
       BuildServices buildServices,
       GitlabCiProperties gitlabCiProperties,
       Optional<EchoService> echoService) {
-    super(properties, registry, discoveryClient, lockService);
+    super(properties, registry, dynamicConfigService, discoveryClient, lockService);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.gitlabCiProperties = gitlabCiProperties;

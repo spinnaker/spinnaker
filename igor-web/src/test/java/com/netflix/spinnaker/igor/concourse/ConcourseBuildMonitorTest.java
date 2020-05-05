@@ -26,6 +26,7 @@ import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 import java.util.Collections;
@@ -62,6 +63,7 @@ class ConcourseBuildMonitorTest {
         new ConcourseBuildMonitor(
             igorConfigurationProperties,
             new NoopRegistry(),
+            new DynamicConfigService.NoopDynamicConfig(),
             Optional.empty(),
             Optional.empty(),
             Optional.of(echoService),

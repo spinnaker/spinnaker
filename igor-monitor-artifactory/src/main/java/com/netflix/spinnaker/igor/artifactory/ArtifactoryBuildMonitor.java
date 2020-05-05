@@ -33,6 +33,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.time.Instant;
@@ -63,12 +64,13 @@ public class ArtifactoryBuildMonitor
   public ArtifactoryBuildMonitor(
       IgorConfigurationProperties properties,
       Registry registry,
+      DynamicConfigService dynamicConfigService,
       Optional<DiscoveryClient> discoveryClient,
       Optional<LockService> lockService,
       Optional<EchoService> echoService,
       ArtifactoryCache cache,
       ArtifactoryProperties artifactoryProperties) {
-    super(properties, registry, discoveryClient, lockService);
+    super(properties, registry, dynamicConfigService, discoveryClient, lockService);
     this.cache = cache;
     this.artifactoryProperties = artifactoryProperties;
     this.echoService = echoService;

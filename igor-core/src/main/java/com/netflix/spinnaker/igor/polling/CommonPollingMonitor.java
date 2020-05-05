@@ -22,6 +22,7 @@ import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import java.time.Duration;
 import java.util.Optional;
@@ -50,23 +51,33 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
   private final Optional<LockService> lockService;
   protected Logger log = LoggerFactory.getLogger(getClass());
   protected Scheduler.Worker worker;
+  protected final DynamicConfigService dynamicConfigService;
 
   public CommonPollingMonitor(
       IgorConfigurationProperties igorProperties,
       Registry registry,
+      DynamicConfigService dynamicConfigService,
       Optional<DiscoveryClient> discoveryClient,
       Optional<LockService> lockService) {
-    this(igorProperties, registry, discoveryClient, lockService, Schedulers.io());
+    this(
+        igorProperties,
+        registry,
+        dynamicConfigService,
+        discoveryClient,
+        lockService,
+        Schedulers.io());
   }
 
   public CommonPollingMonitor(
       IgorConfigurationProperties igorProperties,
       Registry registry,
+      DynamicConfigService dynamicConfigService,
       Optional<DiscoveryClient> discoveryClient,
       Optional<LockService> lockService,
       Scheduler scheduler) {
     this.igorProperties = igorProperties;
     this.registry = registry;
+    this.dynamicConfigService = dynamicConfigService;
     this.discoveryClient = discoveryClient;
     this.lockService = lockService;
     this.worker = scheduler.createWorker();
@@ -208,6 +219,8 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
             .set(0);
       }
 
+      sendEvents = sendEvents && isSendingEventsEnabled();
+
       commitDelta(delta, sendEvents);
       registry
           .gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName))
@@ -262,6 +275,10 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
   @Override
   public Long getLastPoll() {
     return lastPoll.get();
+  }
+
+  private boolean isSendingEventsEnabled() {
+    return dynamicConfigService.isEnabled("igor.build.sendEvents", true);
   }
 
   protected @Nullable Integer getPartitionUpperThreshold(String partition) {

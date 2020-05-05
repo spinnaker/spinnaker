@@ -34,6 +34,7 @@ import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.time.TimeCategory
 import org.springframework.beans.factory.annotation.Autowired
@@ -61,6 +62,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     @Autowired
     JenkinsBuildMonitor(IgorConfigurationProperties properties,
                         Registry registry,
+                        DynamicConfigService dynamicConfigService,
                         Optional<DiscoveryClient> discoveryClient,
                         Optional<LockService> lockService,
                         JenkinsCache cache,
@@ -68,7 +70,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
                         @Value('${jenkins.polling.enabled:true}') boolean pollingEnabled,
                         Optional<EchoService> echoService,
                         JenkinsProperties jenkinsProperties) {
-        super(properties, registry, discoveryClient, lockService)
+        super(properties, registry, dynamicConfigService, discoveryClient, lockService)
         this.cache = cache
         this.buildServices = buildServices
         this.pollingEnabled = pollingEnabled

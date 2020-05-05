@@ -8,6 +8,7 @@
  */
 package com.netflix.spinnaker.igor.wercker
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 
 import static com.netflix.spinnaker.igor.wercker.model.Run.finishedAtComparator
@@ -61,16 +62,17 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
 
     @Autowired
     WerckerBuildMonitor(
-        IgorConfigurationProperties properties,
-        Registry registry,
-        Optional<DiscoveryClient> discoveryClient,
-        Optional<LockService> lockService,
-        WerckerCache cache,
-        BuildServices buildServices,
-        @Value('${wercker.polling.enabled:true}') boolean pollingEnabled,
-        Optional<EchoService> echoService,
-        WerckerProperties werckerProperties) {
-        super(properties, registry, discoveryClient, lockService)
+      IgorConfigurationProperties properties,
+      Registry registry,
+      DynamicConfigService dynamicConfigService,
+      Optional<DiscoveryClient> discoveryClient,
+      Optional<LockService> lockService,
+      WerckerCache cache,
+      BuildServices buildServices,
+      @Value('${wercker.polling.enabled:true}') boolean pollingEnabled,
+      Optional<EchoService> echoService,
+      WerckerProperties werckerProperties) {
+        super(properties, registry, dynamicConfigService, discoveryClient, lockService)
         this.cache = cache
         this.buildServices = buildServices
         this.pollingEnabled = pollingEnabled
