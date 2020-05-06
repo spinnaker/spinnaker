@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.core.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.NotificationConfig
@@ -13,12 +14,15 @@ const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
 @Description("A manifest specifying the environments and resources that comprise an application.")
 data class SubmittedDeliveryConfig(
   val application: String,
-  val name: String = "$application-manifest",
+  val name: String?,
   @Description("The service account Spinnaker will authenticate with when making changes.")
   val serviceAccount: String,
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<SubmittedEnvironment> = emptySet()
-)
+) {
+  val safeName: String
+    @JsonIgnore get() = name ?: "$application-manifest"
+}
 
 @JsonDeserialize(using = SubmittedEnvironmentDeserializer::class)
 data class SubmittedEnvironment(

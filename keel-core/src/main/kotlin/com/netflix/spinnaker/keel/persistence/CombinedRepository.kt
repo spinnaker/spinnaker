@@ -61,10 +61,10 @@ class CombinedRepository(
   @Transactional(propagation = Propagation.REQUIRED)
   override fun upsertDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
     val new = DeliveryConfig(
-      name = submittedDeliveryConfig.name,
+      name = submittedDeliveryConfig.safeName,
       application = submittedDeliveryConfig.application,
       serviceAccount = submittedDeliveryConfig.serviceAccount,
-      artifacts = submittedDeliveryConfig.artifacts.transform(submittedDeliveryConfig.name),
+      artifacts = submittedDeliveryConfig.artifacts.transform(submittedDeliveryConfig.safeName),
       environments = submittedDeliveryConfig.environments.mapTo(mutableSetOf()) { env ->
         Environment(
           name = env.name,

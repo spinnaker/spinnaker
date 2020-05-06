@@ -72,7 +72,7 @@ class AdHocDiffer(
 
       EnvironmentDiff(
         name = env.name,
-        manifestName = submittedDeliveryConfig.name,
+        manifestName = submittedDeliveryConfig.safeName,
         resourceDiffs = resourceDiffs
       )
     }
