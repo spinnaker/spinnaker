@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.NexusTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
+import com.netflix.spinnaker.orca.pipeline.model.PluginTrigger
 
 class TriggerDeserializer :
   StdDeserializer<Trigger>(Trigger::class.java) {
@@ -141,6 +142,23 @@ class TriggerDeserializer :
           get("slug").textValue(),
           get("action")?.textValue() ?: "undefined"
         )
+        looksLikePlugin() -> PluginTrigger(
+          get("type").textValue(),
+          get("correlationId")?.textValue(),
+          get("user")?.textValue() ?: "[anonymous]",
+          get("parameters")?.mapValue(parser) ?: mutableMapOf(),
+          get("artifacts")?.listValue(parser) ?: mutableListOf(),
+          get("notifications")?.listValue(parser) ?: mutableListOf(),
+          get("rebake")?.booleanValue() == true,
+          get("dryRun")?.booleanValue() == true,
+          get("strategy")?.booleanValue() == true,
+          get("pluginId").textValue(),
+          get("version").textValue(),
+          get("releaseDate").textValue(),
+          get("requires").listValue(parser),
+          get("binaryUrl").textValue(),
+          get("preferred").booleanValue()
+        )
         looksLikeCustom() -> {
           // chooses the first custom deserializer to keep behavior consistent
           // with the rest of this conditional
@@ -182,6 +200,9 @@ class TriggerDeserializer :
 
   private fun JsonNode.looksLikeNexus() =
     hasNonNull("nexusSearchName")
+
+  private fun JsonNode.looksLikePlugin() =
+    hasNonNull("pluginId")
 
   private fun JsonNode.looksLikeCustom() =
     customTriggerSuppliers.any { it.predicate.invoke(this) }
