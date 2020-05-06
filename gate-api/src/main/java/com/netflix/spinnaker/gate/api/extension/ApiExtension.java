@@ -18,16 +18,16 @@
 package com.netflix.spinnaker.gate.api.extension;
 
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import java.util.Collections;
 import javax.annotation.Nonnull;
-import org.pf4j.ExtensionPoint;
 
 /**
  * An {@code ExtensionPoint} that allows for a new api to be exposed under a common
  * `/extensions/{id}` path.
  */
 @Alpha
-public interface ApiExtension extends ExtensionPoint {
+public interface ApiExtension extends SpinnakerExtensionPoint {
   @Nonnull
   String id();
 
