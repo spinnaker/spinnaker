@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.telemetry
 
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.annotations.Metered
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -51,12 +52,12 @@ interface MyContract {
 
   String doStuff()
 
-  @Instrumented(ignore = true)
+  @Metered(ignore = true)
   String ignored();
 
   String sig1(String p1);
 
-  @Instrumented(metricName = "sig1Long", tags = ["foo", "bar"])
+  @Metered(metricName = "sig1Long", tags = ["foo", "bar"])
   String sig1(Long p1);
 
   void throwError()

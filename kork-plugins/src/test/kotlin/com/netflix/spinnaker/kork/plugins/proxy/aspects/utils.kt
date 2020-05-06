@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
+import com.netflix.spinnaker.kork.annotations.Metered
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
-import com.netflix.spinnaker.kork.plugins.api.Meter
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import io.mockk.every
 import io.mockk.mockk
@@ -51,12 +51,12 @@ internal class SomeExtension : SpinnakerExtensionPoint {
   /**
    * Public helloWorld method, exists to test public method instrumentation.
    */
-  @Meter
+  @Metered
   fun helloWorld(): String {
     return "Hello Public World!"
   }
 
-  @Meter(id = "customId")
+  @Metered(metricName = "customId")
   fun helloWorldCustomId(): String {
     return "Hello Public World!"
   }

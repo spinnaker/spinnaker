@@ -15,20 +15,26 @@
  *
  */
 
-package com.netflix.spinnaker.kork.plugins.api;
+package com.netflix.spinnaker.kork.annotations;
 
-import com.netflix.spinnaker.kork.annotations.Alpha;
 import java.lang.annotation.*;
 
-@Alpha
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Documented
-public @interface Meter {
+public @interface Metered {
 
   /**
-   * If set, this value will be added to the meter ID in the format of {pluginId}.{id}. If not
-   * specified, the meter ID will be inherited from the method name.
+   * If set, this value will be used as an override to the metric name that would normally be
+   * generated automatically. This can be useful for when there may be metric name collisions.
+   *
+   * @return Optional metric name override
    */
-  String id() default "";
+  String metricName() default "";
+
+  /** @return If set to true, the associated method will not be metered. */
+  boolean ignore() default false;
+
+  /** @return Sequence of alternating key/value tag pairs. Expects key as first element. */
+  String[] tags() default {};
 }

@@ -18,12 +18,12 @@ package com.netflix.spinnaker.kork.telemetry;
 import static com.netflix.spinnaker.kork.telemetry.MetricTags.RESULT_KEY;
 import static com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue.FAILURE;
 import static com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue.SUCCESS;
-import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileTimer;
+import com.netflix.spinnaker.kork.annotations.Metered;
 import com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  * per target. The "method" is automatically generated, using the method name and parameter count of
  * the method.
  *
- * <p>Instrumented methods can be customized slightly via the {@code Instrumented} annotation:
+ * <p>Instrumented methods can be customized slightly via the {@code Metered} annotation:
  *
  * <p>- A method can be ignored, causing no metrics to be collected on it. - Provided a custom
  * metric name, in case auto naming produces naming conflicts. - A list of tags added to the
@@ -121,31 +121,23 @@ public class InstrumentedProxy implements InvocationHandler {
   }
 
   private Id invocationId(Method method, Map<String, String> tags) {
-    return registry.createId(toMetricId(method, INVOCATIONS), tags);
+    return registry.createId(
+        MethodInstrumentation.toMetricId(metricNamespace, method, INVOCATIONS), tags);
   }
 
   private Id invocationId(String methodOverride, Map<String, String> tags) {
-    return registry.createId(toMetricId(methodOverride, INVOCATIONS), tags);
+    return registry.createId(
+        MethodInstrumentation.toMetricId(methodOverride, metricNamespace, INVOCATIONS), tags);
   }
 
   private Id timingId(Method method, Map<String, String> tags) {
-    return registry.createId(toMetricId(method, TIMING), tags);
+    return registry.createId(
+        MethodInstrumentation.toMetricId(metricNamespace, method, TIMING), tags);
   }
 
   private Id timingId(String methodOverride, Map<String, String> tags) {
-    return registry.createId(toMetricId(methodOverride, TIMING), tags);
-  }
-
-  private String toMetricId(Method method, String metricName) {
-    String methodName =
-        (method.getParameterCount() == 0)
-            ? method.getName()
-            : format("%s%d", method.getName(), method.getParameterCount());
-    return toMetricId(methodName, metricName);
-  }
-
-  private String toMetricId(String methodName, String metricName) {
-    return format("%s.%s.%s", metricNamespace, methodName, metricName);
+    return registry.createId(
+        MethodInstrumentation.toMetricId(methodOverride, metricNamespace, TIMING), tags);
   }
 
   private MethodMetrics getMethodMetrics(Method method) {
@@ -153,16 +145,17 @@ public class InstrumentedProxy implements InvocationHandler {
       seenMethods.add(method);
       boolean processed = false;
       for (Annotation a : method.getDeclaredAnnotations()) {
-        if (a instanceof Instrumented) {
+        if (a instanceof Metered) {
           processed = true;
 
-          Instrumented instrumented = (Instrumented) a;
-          if (instrumented.ignore()) {
+          Metered metered = (Metered) a;
+          if (metered.ignore()) {
             return null;
           }
 
-          Map<String, String> methodTags = coalesceTags(method, tags, instrumented.tags());
-          if (Strings.isNullOrEmpty(instrumented.metricName())) {
+          Map<String, String> methodTags =
+              MethodInstrumentation.coalesceTags(target, method, tags, metered.tags());
+          if (Strings.isNullOrEmpty(metered.metricName())) {
             addInstrumentedMethod(
                 instrumentedMethods,
                 method,
@@ -172,8 +165,8 @@ public class InstrumentedProxy implements InvocationHandler {
                 instrumentedMethods,
                 method,
                 new MethodMetrics(
-                    timingId(instrumented.metricName(), methodTags),
-                    invocationId(instrumented.metricName(), methodTags)));
+                    timingId(metered.metricName(), methodTags),
+                    invocationId(metered.metricName(), methodTags)));
           }
         }
       }
@@ -188,37 +181,15 @@ public class InstrumentedProxy implements InvocationHandler {
     return instrumentedMethods.get(method);
   }
 
-  private Map<String, String> coalesceTags(
-      Method method, Map<String, String> classTags, String[] methodTags) {
-    if (methodTags.length % 2 != 0) {
-      throw new UnevenTagSequenceException(target, method.toGenericString());
-    }
-    Map<String, String> result = new HashMap<>(classTags);
-    for (int i = 0; i < methodTags.length; i = i + 2) {
-      result.put(methodTags[i], methodTags[i + 1]);
-    }
-    return result;
-  }
-
   private void addInstrumentedMethod(
       Map<Method, MethodMetrics> existingMethodMetrics,
       Method method,
       MethodMetrics methodMetrics) {
-    if (!isMethodAllowed(method)) {
+    if (!MethodInstrumentation.isMethodAllowed(method)) {
       return;
     }
 
     existingMethodMetrics.putIfAbsent(method, methodMetrics);
-  }
-
-  private static boolean isMethodAllowed(Method method) {
-    return
-    // Only instrument public methods
-    Modifier.isPublic(method.getModifiers())
-        ||
-        // Ignore any methods from the root Object class
-        Arrays.stream(Object.class.getDeclaredMethods())
-            .noneMatch(m -> m.getName().equals(method.getName()));
   }
 
   private static void addHierarchy(Set<Class<?>> classes, Class<?> cl) {
@@ -244,28 +215,6 @@ public class InstrumentedProxy implements InvocationHandler {
     MethodMetrics(Id timingId, Id invocationsId) {
       this.timingId = timingId;
       this.invocationsId = invocationsId;
-    }
-  }
-
-  private static class MetricNameCollisionException extends IllegalStateException {
-    public MetricNameCollisionException(
-        Object target, String metricName, Method method1, Method method2) {
-      super(
-          format(
-              "Metric name (%s) collision detected between methods '%s' and '%s' in '%s'",
-              metricName,
-              method1.toGenericString(),
-              method2.toGenericString(),
-              target.getClass().getSimpleName()));
-    }
-  }
-
-  private static class UnevenTagSequenceException extends IllegalStateException {
-    public UnevenTagSequenceException(Object target, String method) {
-      super(
-          format(
-              "There are an uneven number of values provided for tags on method '%s' in '%s'",
-              method, target.getClass().getSimpleName()));
     }
   }
 }

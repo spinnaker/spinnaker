@@ -3,6 +3,7 @@ apply plugin: "groovy"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
+  api project(":kork-annotations")
 
   api "com.netflix.spectator:spectator-api"
   api "com.github.ben-manes.caffeine:guava"

@@ -23,12 +23,12 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
+import com.netflix.spinnaker.kork.annotations.Metered
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
-import com.netflix.spinnaker.kork.plugins.api.Meter
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
+import com.netflix.spinnaker.kork.telemetry.MethodInstrumentation
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import java.lang.reflect.Modifier
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
@@ -109,7 +109,7 @@ class MetricInvocationAspect(
   }
 
   /**
-   * Looks for methods annotated with [Meter] and skips private methods.
+   * Looks for methods annotated with [Metered] and skips private methods.
    * Performs a [Cache] `get` which retrieves the cached data or else creates the data and then
    * inserts it into the cache.
    */
@@ -119,29 +119,37 @@ class MetricInvocationAspect(
     descriptor: SpinnakerPluginDescriptor,
     registry: Registry
   ): MetricIds? {
-    if (!Modifier.isPublic(method.modifiers)) {
+    if (!MethodInstrumentation.isMethodAllowed(method)) {
       return null
     } else {
       return this.get(method) { m ->
         m.declaredAnnotations
-          .find { it is Meter }
-          .let { meterAnnotation ->
-            if (meterAnnotation != null) {
-              (meterAnnotation as Meter)
+          .find { it is Metered }
+          .let { metered ->
+            if (metered != null) {
+              (metered as Metered)
 
-              val metricIds = MetricIds(
-                timingId = registry.createId(toMetricId(m, descriptor.pluginId, meterAnnotation.id, TIMING), mapOf(
+              if (metered.ignore) {
+                null
+              } else {
+                val defaultTags = mapOf(
                   Pair("pluginVersion", descriptor.version),
                   Pair("pluginExtension", target.javaClass.simpleName.toString())
-                ))
-              )
+                )
+                val tags = MethodInstrumentation.coalesceTags(target,
+                  method, defaultTags, metered.tags)
 
-              for (mutableEntry in this.asMap()) {
-                if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
-                  throw MetricNameCollisionException(target, mutableEntry.key, m)
+                val metricIds = MetricIds(
+                  timingId = registry.createId(toMetricId(m, descriptor.pluginId, metered.metricName, TIMING), tags))
+
+                for (mutableEntry in this.asMap()) {
+                  if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
+                    throw MethodInstrumentation.MetricNameCollisionException(target,
+                      metricIds.timingId.name(), mutableEntry.key, m)
+                  }
                 }
+                metricIds
               }
-              metricIds
             } else {
               null
             }
@@ -153,19 +161,8 @@ class MetricInvocationAspect(
   private fun toMetricId(method: Method, metricNamespace: String, annotationMetricId: String?, metricName: String): String? {
     val methodMetricId = if (method.parameterCount == 0) method.name else String.format("%s%d", method.name, method.parameterCount)
     val metricId = if (annotationMetricId.isNullOrEmpty()) methodMetricId else annotationMetricId
-    return toMetricId(metricNamespace, metricId, metricName)
+    return MethodInstrumentation.toMetricId(metricNamespace, metricId, metricName)
   }
-
-  private fun toMetricId(metricNamespace: String, metricId: String, metricName: String): String? {
-    return String.format("%s.%s.%s", metricNamespace, metricId, metricName)
-  }
-
-  private class MetricNameCollisionException(target: Any, method1: Method, method2: Method) :
-    IllegalStateException(String.format(
-    "Metric name collision detected between methods '%s' and '%s' in '%s'",
-    method1.toGenericString(),
-    method2.toGenericString(),
-    target.javaClass.simpleName))
 
   private data class MetricIds(val timingId: Id)
 

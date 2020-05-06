@@ -8,6 +8,7 @@ dependencies {
   implementation project(":kork-core")
   implementation project(":kork-exceptions")
   implementation project(":kork-security")
+  implementation project(":kork-telemetry")
 
   implementation "com.github.ben-manes.caffeine:caffeine"
   implementation "com.netflix.spectator:spectator-api"
