@@ -62,9 +62,7 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
 
   @Override
   protected boolean isValidTrigger(Trigger trigger) {
-    return trigger.isEnabled()
-        && trigger.getType().equals(PLUGIN_TRIGGER_TYPE)
-        && trigger.isPreferred();
+    return trigger.isEnabled() && trigger.getType().equals(PLUGIN_TRIGGER_TYPE);
   }
 
   @Override
