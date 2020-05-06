@@ -5,6 +5,7 @@ import ReportScores from './reportScores';
 import MetricResults from './metricResults';
 
 import './detail.less';
+import ReportExplanation from './reportExplanation';
 
 /*
 * Layout for report detail view.
@@ -37,6 +38,7 @@ export default class DetailView extends React.Component<any, IDetailViewState> {
         </div>
         <div className="vertical flex-1">
           {isExpanded && <ReportHeader />}
+          <ReportExplanation />
           <ReportScores />
           <MetricResults />
         </div>

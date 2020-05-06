@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/spinnaker/deck-kayenta.png?branch=master)](https://travis-ci.org/spinnaker/deck-kayenta)
 
+## PR Process
+
+In order to commit to this repo, please fork the repository and submit Pull Requests from a fork rather than a branch. It requires additional permissions to push branches.
+
 ## Development
 
 Make sure that [node](http://nodejs.org/download/) and [yarn](https://yarnpkg.com/en/docs/install)
@@ -12,6 +16,7 @@ To develop this module, run it as a [Deck](https://github.com/spinnaker/deck) de
 ### yarn
 
 In the root of this repository and the main Deck repository, run
+
 ```bash
 yarn
 ```
