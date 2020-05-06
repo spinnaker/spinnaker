@@ -32,7 +32,7 @@ import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Propagation.REQUIRED
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -57,7 +57,7 @@ class CombinedRepository(
 
   override val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @Transactional(propagation = Propagation.REQUIRED)
+  @Transactional(propagation = REQUIRED)
   override fun upsertDeliveryConfig(submittedDeliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
     val new = DeliveryConfig(
       name = submittedDeliveryConfig.safeName,
@@ -82,7 +82,7 @@ class CombinedRepository(
     return upsertDeliveryConfig(new)
   }
 
-  @Transactional(propagation = Propagation.REQUIRED)
+  @Transactional(propagation = REQUIRED)
   override fun upsertDeliveryConfig(deliveryConfig: DeliveryConfig): DeliveryConfig {
     val old = try {
       getDeliveryConfig(deliveryConfig.name)
@@ -119,12 +119,24 @@ class CombinedRepository(
   }
 
   /**
+   * Fetches delivery config by name, then deletes everything in it.
+   */
+  @Transactional(propagation = REQUIRED)
+  override fun deleteDeliveryConfig(deliveryConfigName: String): DeliveryConfig =
+    deleteDeliveryConfigFull(deliveryConfigRepository.get(deliveryConfigName))
+
+  /**
+   * Fetches delivery config by application, then deletes everything in it.
+   */
+  @Transactional(propagation = REQUIRED)
+  override fun deleteDeliveryConfigByApplication(application: String): DeliveryConfig =
+    deleteDeliveryConfigFull(deliveryConfigRepository.getByApplication(application))
+
+  /**
    * Deletes a delivery config and everything in it.
    */
-  @Transactional(propagation = Propagation.REQUIRED)
-  override fun deleteDeliveryConfig(deliveryConfigName: String): DeliveryConfig {
-    val deliveryConfig = deliveryConfigRepository.get(deliveryConfigName)
-
+  @Transactional(propagation = REQUIRED)
+  internal fun deleteDeliveryConfigFull(deliveryConfig: DeliveryConfig): DeliveryConfig {
     deliveryConfig.environments.forEach { environment ->
       environment.resources.forEach { resource ->
         // resources must be removed from the environment then deleted
@@ -270,9 +282,6 @@ class CombinedRepository(
 
   override fun getDeliveryConfigForApplication(application: String): DeliveryConfig =
     deliveryConfigRepository.getByApplication(application)
-
-  override fun deleteDeliveryConfigByApplication(application: String): Int =
-    deliveryConfigRepository.deleteByApplication(application)
 
   override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String) =
     deliveryConfigRepository.deleteResourceFromEnv(deliveryConfigName, environmentName, resourceId)

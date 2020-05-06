@@ -71,6 +71,12 @@ interface KeelRepository {
   fun deleteDeliveryConfig(deliveryConfigName: String): DeliveryConfig
 
   /**
+   * Deletes a delivery config and everything in it.
+   */
+  @Transactional(propagation = Propagation.REQUIRED)
+  fun deleteDeliveryConfigByApplication(application: String): DeliveryConfig
+
+  /**
    * Removes artifacts, environments, and resources that were present in the [old]
    * delivery config and are not present in the [new] delivery config
    */
@@ -86,8 +92,6 @@ interface KeelRepository {
   fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
   fun getDeliveryConfigForApplication(application: String): DeliveryConfig
-
-  fun deleteDeliveryConfigByApplication(application: String): Int
 
   fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String)
 
