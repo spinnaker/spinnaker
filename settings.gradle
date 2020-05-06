@@ -33,7 +33,7 @@ def cloudProviderProjects = [
   'dcos': [':clouddriver-dcos'],
   'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
   'huaweicloud': [':clouddriver-huaweicloud'],
-  'kubernetes': [':clouddriver-kubernetes', ':clouddriver-kubernetes-v1', ':clouddriver-kubernetes-v2', ':clouddriver-docker'],
+  'kubernetes': [':clouddriver-kubernetes'],
   'oracle': [':clouddriver-oracle'],
   'tencentcloud': [':clouddriver-tencentcloud']
 ]

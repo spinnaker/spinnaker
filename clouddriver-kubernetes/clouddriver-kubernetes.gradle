@@ -2,11 +2,13 @@ tasks.compileGroovy.enabled = false
 sourceSets.main.java.srcDirs = ['src/main/java']
 
 dependencies {
+  implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-security")
 
   compileOnly "org.projectlombok:lombok"
+  testCompile "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
@@ -14,12 +16,21 @@ dependencies {
 
   implementation "com.google.code.findbugs:jsr305"
   implementation "com.google.guava:guava"
+  implementation 'com.jayway.jsonpath:json-path:2.3.0'
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-annotations"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-config"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "io.kubernetes:client-java:7.0.0"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.security:spring-security-config"
 
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
