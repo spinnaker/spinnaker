@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.Source;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RunJobManifestContext;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
@@ -49,11 +48,7 @@ public class KubernetesJobRunner implements JobRunner {
   public List<Map> getOperations(StageExecution stage) {
     Map<String, Object> operation = new HashMap<>();
 
-    if (stage.getContext().containsKey("cluster")) {
-      operation.putAll((Map) stage.getContext().get("cluster"));
-    } else {
-      operation.putAll(stage.getContext());
-    }
+    operation.putAll(stage.getContext());
 
     operation.putAll(getManifestFields(stage));
 
@@ -67,16 +62,6 @@ public class KubernetesJobRunner implements JobRunner {
   // Gets the fields relevant to manifests that should be added to the operation
   private ImmutableMap<String, Object> getManifestFields(StageExecution stage) {
     RunJobManifestContext runJobManifestContext = stage.mapTo(RunJobManifestContext.class);
-
-    // This short-circuit exists to handle jobs from the Kubernetes V1 provider; these have the
-    // source set to Text (because it's the default and they don't set a source), but also have no
-    // manifests. This will fail if we try to call manifestEvaluator.evaluate() so short-circuit
-    // as the additional fields are not relevant. This workaround can be removed once the V1
-    // provider is removed (currently scheduled for the 1.21 release).
-    if (runJobManifestContext.getSource() == Source.Text
-        && runJobManifestContext.getManifests() == null) {
-      return ImmutableMap.of();
-    }
 
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, runJobManifestContext);
 

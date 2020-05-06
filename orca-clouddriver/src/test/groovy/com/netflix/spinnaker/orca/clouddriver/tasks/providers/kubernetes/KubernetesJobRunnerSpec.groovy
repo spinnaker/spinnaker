@@ -33,48 +33,27 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 
 class KubernetesJobRunnerSpec extends Specification {
-  def "should return a run job operation if cluster set in context"() {
-    given:
-    ArtifactUtils artifactUtils = Mock(ArtifactUtils)
-    ObjectMapper objectMapper = new ObjectMapper()
-    ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
-        Mock(ArtifactUtils),
-        Mock(ContextParameterProcessor),
-        Mock(OortService),
-        new RetrySupport()
-    )
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("test"), "runJob", [
-      credentials: "abc", cloudProvider: "kubernetes",
-      cluster: [
-        foo: "bar"
-      ]
-    ])
-    KubernetesJobRunner kubernetesJobRunner = new KubernetesJobRunner(artifactUtils, objectMapper, manifestEvaluator)
-
-    when:
-    def ops = kubernetesJobRunner.getOperations(stage)
-    def op = ops.get(0)
-
-    then:
-    op.containsKey("runJob") == true
-    op.get("runJob").containsKey("foo") == true
-    op.get("runJob").get("foo") == "bar"
-
-  }
-
   def "should return a run job operation with all context"() {
     given:
     ArtifactUtils artifactUtils = Mock(ArtifactUtils)
     ObjectMapper objectMapper = new ObjectMapper()
     ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
-        Mock(ArtifactUtils),
+        Mock(ArtifactUtils) {
+          getArtifacts(_ as StageExecution) >> ImmutableList.of()
+        },
         Mock(ContextParameterProcessor),
         Mock(OortService),
         new RetrySupport()
     )
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("test"), "runJob", [
       credentials: "abc", cloudProvider: "kubernetes",
-      foo: "bar"
+      foo: "bar",
+      source: "text",
+      manifest: [
+        metadata: [
+          name: "my-job"
+        ]
+      ]
     ])
     KubernetesJobRunner kubernetesJobRunner = new KubernetesJobRunner(artifactUtils, objectMapper, manifestEvaluator)
 
