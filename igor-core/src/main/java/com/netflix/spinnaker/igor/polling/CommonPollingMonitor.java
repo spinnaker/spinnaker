@@ -219,7 +219,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
             .set(0);
       }
 
-      sendEvents = sendEvents && isSendingEventsEnabled();
+      sendEvents = sendEvents && isSendEventsEnabled();
 
       commitDelta(delta, sendEvents);
       registry
@@ -277,8 +277,8 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     return lastPoll.get();
   }
 
-  private boolean isSendingEventsEnabled() {
-    return dynamicConfigService.isEnabled("igor.build.sendEvents", true);
+  private boolean isSendEventsEnabled() {
+    return dynamicConfigService.getConfig(Boolean.class, "spinnaker.build.sendEventsEnabled", true);
   }
 
   protected @Nullable Integer getPartitionUpperThreshold(String partition) {
