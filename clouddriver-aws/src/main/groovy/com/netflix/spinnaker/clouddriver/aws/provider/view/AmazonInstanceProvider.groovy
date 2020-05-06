@@ -67,19 +67,19 @@ class AmazonInstanceProvider implements InstanceProvider<AmazonInstance, String>
       instance.serverGroup = serverGroup.serverGroup
       instance.cluster = serverGroup.cluster
     }
+    def healthKeys = []
     if (instanceEntry.relationships[HEALTH.ns]) {
-      instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)
+      healthKeys.addAll(instanceEntry.relationships[HEALTH.ns])
     }
     externalHealthProviders.each { externalHealthProvider ->
-      def healthKeys = []
       externalHealthProvider.agents.each { externalHealthAgent ->
         healthKeys << Keys.getInstanceHealthKey(instance.name, account, region, externalHealthAgent.healthId)
       }
-      healthKeys.unique().each { key ->
-        def externalHealth = cacheView.getAll(HEALTH.ns, key)
-        if (externalHealth) {
-          instance.health.addAll(externalHealth*.attributes)
-        }
+    }
+    healthKeys.unique().each { key ->
+      def instanceHealth = cacheView.getAll(HEALTH.ns, key)
+      if (instanceHealth) {
+        instance.health.addAll(instanceHealth*.attributes)
       }
     }
     instance

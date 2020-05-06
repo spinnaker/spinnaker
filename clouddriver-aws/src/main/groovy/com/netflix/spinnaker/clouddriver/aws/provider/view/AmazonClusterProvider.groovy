@@ -165,12 +165,12 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   private Collection<AmazonCluster> allClustersByApplication(String application) {
     // TODO: only supports the equiv of includeDetails=true, consider adding support for the inverse
 
-    List<String> toFetch = [CLUSTERS.ns, SERVER_GROUPS.ns, LAUNCH_CONFIGS.ns, INSTANCES.ns, HEALTH.ns, LAUNCH_TEMPLATES.ns]
+    List<String> toFetch = [CLUSTERS.ns, SERVER_GROUPS.ns, LAUNCH_CONFIGS.ns, INSTANCES.ns, LAUNCH_TEMPLATES.ns]
     Map<String, CacheFilter> filters = [:]
     filters[SERVER_GROUPS.ns] = RelationshipCacheFilter.include(INSTANCES.ns, LAUNCH_CONFIGS.ns, LAUNCH_TEMPLATES.ns)
     filters[LAUNCH_CONFIGS.ns] = RelationshipCacheFilter.include(IMAGES.ns, SERVER_GROUPS.ns)
     filters[LAUNCH_TEMPLATES.ns] = RelationshipCacheFilter.include(IMAGES.ns, SERVER_GROUPS.ns)
-    filters[INSTANCES.ns] = RelationshipCacheFilter.include(SERVER_GROUPS.ns, HEALTH.ns)
+    filters[INSTANCES.ns] = RelationshipCacheFilter.include(SERVER_GROUPS.ns)
 
     def cacheResults = cacheView.getAllByApplication(toFetch, application, filters)
 
@@ -198,7 +198,6 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     Map<String, AmazonServerGroup> serverGroups = translateServerGroups(
       cacheResults[SERVER_GROUPS.ns],
       cacheResults[INSTANCES.ns],
-      cacheResults[HEALTH.ns],
       cacheResults[LAUNCH_CONFIGS.ns],
       cacheResults[LAUNCH_TEMPLATES.ns],
       allImages
@@ -288,26 +287,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   private Map<String, AmazonServerGroup> translateServerGroups(
     Collection<CacheData> serverGroupData,
     Collection<CacheData> instanceData,
-    Collection<CacheData> healthData,
     Collection<CacheData> launchConfigData,
     Collection<CacheData> launchTemplateData,
     Collection<CacheData> imageData
   ) {
-    Map<String, AmazonInstance> instances = instanceData?.collectEntries { instanceEntry ->
-      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes)
-      instance.name = instanceEntry.attributes.instanceId.toString()
-      [(instanceEntry.id): instance]
-    } ?: new HashMap<>()
-
-    healthData?.forEach {
-      def instanceId = it.relationships?.find {
-        r -> r.key == INSTANCES.ns && !r.value.empty
-      }?.value?.first()
-
-      if (instanceId != null && instances.containsKey(instanceId)) {
-        instances[instanceId].health << it.attributes
-      }
-    }
+    Map<String, AmazonInstance> instances = translateInstances(instanceData)
 
     Map<String, AmazonServerGroup> serverGroups = serverGroupData?.collectEntries { sg ->
       Map<String, String> parsed = Keys.parse(sg.id)
