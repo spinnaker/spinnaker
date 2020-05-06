@@ -70,13 +70,20 @@ func MarshalToJsonPathWrapper(expression string) OutputFormater {
 			return nil, fmt.Errorf("Failed to parse jsonpath expression: %v", err)
 		}
 
-		buffer := new(bytes.Buffer)
-		err := jp.Execute(buffer, input)
+		values, err := jp.FindResults(input)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to execute jsonpath %s on input %s: %v ", expr, input, err)
 		}
 
-		return unquote(buffer.Bytes()), nil
+		if values == nil || len(values) == 0 || len(values[0]) == 0 {
+			return nil, errors.New(fmt.Sprintf("Error parsing value from input %v using template %s: %v ", input, expr, err))
+		}
+
+		json, err := MarshalToJson(values[0][0].Interface())
+		if err != nil {
+			return nil, err
+		}
+		return unquote(json), err
 	}
 }
 
