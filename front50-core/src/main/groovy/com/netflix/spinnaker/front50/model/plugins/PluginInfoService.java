@@ -20,6 +20,8 @@ import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
 import com.netflix.spinnaker.front50.validator.PluginInfoValidator;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -83,6 +85,9 @@ public class PluginInfoService {
   }
 
   public PluginInfo createRelease(@Nonnull String id, @Nonnull PluginInfo.Release release) {
+    release.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    release.setLastModified(Instant.now());
+
     PluginInfo pluginInfo = repository.findById(id);
     pluginInfo.getReleases().add(release);
     validate(pluginInfo);
@@ -110,16 +115,27 @@ public class PluginInfoService {
     PluginInfo pluginInfo = repository.findById(id);
     Optional<PluginInfo.Release> release = pluginInfo.getReleaseByVersion(releaseVersion);
 
+    Instant now = Instant.now();
+    String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+
     return release
         .map(
             r -> {
               r.setPreferred(preferred);
+              r.setLastModified(now);
+              r.setLastModifiedBy(user);
+
               pluginInfo.setReleaseByVersion(releaseVersion, r);
 
               if (preferred) {
                 pluginInfo.getReleases().stream()
                     .filter(it -> !it.getVersion().equals(r.getVersion()))
-                    .forEach(it -> it.setPreferred(false));
+                    .forEach(
+                        it -> {
+                          it.setPreferred(false);
+                          it.setLastModified(now);
+                          it.setLastModifiedBy(user);
+                        });
               }
 
               repository.update(pluginInfo.getId(), pluginInfo);
