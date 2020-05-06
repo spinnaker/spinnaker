@@ -32,7 +32,7 @@ abstract class ApplicationEvent(
 data class ApplicationActuationPaused(
   override val application: String,
   override val timestamp: Instant,
-  override val triggeredBy: String
+  override val triggeredBy: String?
 ) : ApplicationEvent() {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
@@ -49,7 +49,7 @@ data class ApplicationActuationPaused(
  */
 data class ApplicationActuationResumed(
   override val application: String,
-  override val triggeredBy: String,
+  override val triggeredBy: String?,
   override val timestamp: Instant
 ) : ApplicationEvent() {
   @JsonIgnore override val ignoreRepeatedInHistory = true

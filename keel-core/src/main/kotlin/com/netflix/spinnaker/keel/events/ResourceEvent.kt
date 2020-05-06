@@ -216,7 +216,7 @@ data class ResourceActuationPaused(
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
-  override val triggeredBy: String
+  override val triggeredBy: String?
 ) : ResourceEvent() {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
@@ -267,7 +267,7 @@ data class ResourceActuationResumed(
   override val kind: ResourceKind,
   override val id: String,
   override val application: String,
-  override val triggeredBy: String,
+  override val triggeredBy: String?,
   override val timestamp: Instant
 ) : ResourceEvent() {
   @JsonIgnore
