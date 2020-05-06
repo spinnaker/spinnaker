@@ -57,7 +57,7 @@ class DefaultConfiguration(
      * Lorin chose these particular variables arbitrarily as potentially useful. Once we start consuming
      * these metrics, we should revisit whether to change these based on usefulness & cardinality
      */
-    val pathVarsToTag = listOf("name", "application")
+    val pathVarsToTag = listOf("application")
 
     val queryParamsToTag = null
 
