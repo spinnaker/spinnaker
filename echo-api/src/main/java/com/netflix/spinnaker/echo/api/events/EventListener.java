@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.echo.api.events;
 
-import org.pf4j.ExtensionPoint;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 
 /**
  * This is the main touch point for Echo. Implementations of `EventListener` will, if wired up as a
  * Spring bean, process all events that are posted into Echo.
  */
-public interface EventListener extends ExtensionPoint {
+public interface EventListener extends SpinnakerExtensionPoint {
 
   /** Process an Echo {@link Event} */
   void processEvent(Event event);
