@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig
@@ -52,8 +53,11 @@ interface Front50Service {
   @POST("/pluginInfo")
   PluginInfo upsertPluginInfo(@Body PluginInfo pluginInfo)
 
-  @DELETE("/pluginInfo/{pluginInfoId}")
-  Response deletePluginInfo(@Path("pluginInfoId") String pluginInfoId)
+  @DELETE("/pluginInfo/{pluginId}")
+  Response deletePluginInfo(@Path("pluginId") String pluginId)
+
+  @PUT("/pluginInfo/{pluginId}/releases/{version}")
+  Response setPreferredPluginVersion(@Path("pluginId") String pluginId, @Path("version") String version)
 
   @GET("/pipelines/{applicationName}")
   List<Map<String, Object>> getPipelines(@Path("applicationName") String applicationName)
