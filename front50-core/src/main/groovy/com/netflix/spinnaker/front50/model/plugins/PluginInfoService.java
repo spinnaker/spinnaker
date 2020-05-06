@@ -58,6 +58,11 @@ public class PluginInfoService {
     validate(pluginInfo);
 
     try {
+      // Because we first validate the plugin info, we can assume there will be only one preferred
+      // release
+      Optional<PluginInfo.Release> preferredRelease =
+          pluginInfo.getReleases().stream().filter(PluginInfo.Release::isPreferred).findFirst();
+
       PluginInfo currentPluginInfo = repository.findById(pluginInfo.getId());
       List<PluginInfo.Release> newReleases = new ArrayList<>(pluginInfo.getReleases());
       List<PluginInfo.Release> oldReleases = new ArrayList<>(currentPluginInfo.getReleases());
@@ -73,6 +78,8 @@ public class PluginInfoService {
       List<PluginInfo.Release> allReleases = new ArrayList<>();
       Stream.of(oldReleases, newReleases).forEach(allReleases::addAll);
       pluginInfo.setReleases(allReleases);
+      preferredRelease.ifPresent(release -> cleanupPreferredReleases(pluginInfo, release));
+
       repository.update(pluginInfo.getId(), pluginInfo);
       return pluginInfo;
     } catch (NotFoundException e) {
@@ -90,6 +97,8 @@ public class PluginInfoService {
 
     PluginInfo pluginInfo = repository.findById(id);
     pluginInfo.getReleases().add(release);
+    cleanupPreferredReleases(pluginInfo, release);
+
     validate(pluginInfo);
     repository.update(pluginInfo.getId(), pluginInfo);
     return pluginInfo;
@@ -126,17 +135,7 @@ public class PluginInfoService {
               r.setLastModifiedBy(user);
 
               pluginInfo.setReleaseByVersion(releaseVersion, r);
-
-              if (preferred) {
-                pluginInfo.getReleases().stream()
-                    .filter(it -> !it.getVersion().equals(r.getVersion()))
-                    .forEach(
-                        it -> {
-                          it.setPreferred(false);
-                          it.setLastModified(now);
-                          it.setLastModifiedBy(user);
-                        });
-              }
+              cleanupPreferredReleases(pluginInfo, r);
 
               repository.update(pluginInfo.getId(), pluginInfo);
               return r;
@@ -149,6 +148,22 @@ public class PluginInfoService {
     validators.forEach(v -> v.validate(pluginInfo, errors));
     if (errors.hasErrors()) {
       throw new ValidationException(errors);
+    }
+  }
+
+  private void cleanupPreferredReleases(PluginInfo pluginInfo, PluginInfo.Release release) {
+    if (release.isPreferred()) {
+      Instant now = Instant.now();
+      String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+
+      pluginInfo.getReleases().stream()
+          .filter(it -> !it.getVersion().equals(release.getVersion()))
+          .forEach(
+              it -> {
+                it.setPreferred(false);
+                it.setLastModified(now);
+                it.setLastModifiedBy(user);
+              });
     }
   }
 
