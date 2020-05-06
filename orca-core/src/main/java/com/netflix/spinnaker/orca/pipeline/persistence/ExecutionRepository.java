@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 
 import static java.util.stream.Collectors.toList;
 
-import com.netflix.spinnaker.kork.telemetry.Instrumented;
+import com.netflix.spinnaker.kork.annotations.Metered;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
@@ -39,7 +39,7 @@ public interface ExecutionRepository {
 
   void addStage(@Nonnull StageExecution stage);
 
-  @Instrumented(metricName = "cancelNullReason")
+  @Metered(metricName = "cancelNullReason")
   void cancel(@Nonnull ExecutionType type, @Nonnull String id);
 
   void cancel(
@@ -50,7 +50,7 @@ public interface ExecutionRepository {
 
   void pause(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
-  @Instrumented(metricName = "resumeNoIgnore")
+  @Metered(metricName = "resumeNoIgnore")
   void resume(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
   void resume(
@@ -64,7 +64,7 @@ public interface ExecutionRepository {
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
   @Nonnull
-  @Instrumented(metricName = "retrieveById")
+  @Metered(metricName = "retrieveById")
   PipelineExecution retrieve(@Nonnull ExecutionType type, @Nonnull String id)
       throws ExecutionNotFoundException;
 
@@ -73,11 +73,11 @@ public interface ExecutionRepository {
   void delete(@Nonnull ExecutionType type, @Nonnull List<String> idsToDelete);
 
   @Nonnull
-  @Instrumented(metricName = "retrieveByType")
+  @Metered(metricName = "retrieveByType")
   Observable<PipelineExecution> retrieve(@Nonnull ExecutionType type);
 
   @Nonnull
-  @Instrumented(metricName = "retrieveByCriteria")
+  @Metered(metricName = "retrieveByCriteria")
   Observable<PipelineExecution> retrieve(
       @Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
 
@@ -119,7 +119,7 @@ public interface ExecutionRepository {
 
   @Deprecated // Use the non-rx interface instead
   @Nonnull
-  @Instrumented(metricName = "retrieveOrchestrationsForApplicationSortedAsc")
+  @Metered(metricName = "retrieveOrchestrationsForApplicationSortedAsc")
   Observable<PipelineExecution> retrieveOrchestrationsForApplication(
       @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
@@ -151,7 +151,7 @@ public interface ExecutionRepository {
   List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType);
 
   @Nonnull
-  @Instrumented(metricName = "retrieveAllApplicationNamesWithMinExecutions")
+  @Metered(metricName = "retrieveAllApplicationNamesWithMinExecutions")
   List<String> retrieveAllApplicationNames(
       @Nullable ExecutionType executionType, int minExecutions);
 
