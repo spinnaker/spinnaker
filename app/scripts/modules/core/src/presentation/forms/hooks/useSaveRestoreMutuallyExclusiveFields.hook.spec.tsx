@@ -12,6 +12,7 @@ function PizzaComponent() {
       <FormikFormField name="topping" input={props => <SelectInput {...props} options={['peppers', 'mushrooms']} />} />
       <FormikFormField name="crust" input={props => <SelectInput {...props} options={['thin', 'deepdish']} />} />
       <FormikFormField name="sauce" input={props => <SelectInput {...props} options={['red', 'white']} />} />
+      <FormikFormField name="cheese" input={props => <SelectInput {...props} options={['mozzarella', 'cheddar']} />} />
     </>
   );
 }
@@ -28,7 +29,7 @@ function SandwichComponent() {
 
 function OrderComponent({ formik }: { formik: FormikProps<any> }) {
   useSaveRestoreMutuallyExclusiveFields(formik, formik.values.pizzaOrSandwich, {
-    pizza: ['topping', 'crust', 'sauce'],
+    pizza: ['topping', 'crust', 'sauce', 'cheese'],
     sandwich: ['bread', 'meat', 'cheese'],
   });
 
@@ -52,6 +53,7 @@ const initialValues = {
   topping: 'pepperoni',
   crust: 'thin',
   sauce: 'red',
+  cheese: 'cheddar',
 };
 
 const setupTest = (formikRef: React.MutableRefObject<any>) => {
@@ -92,6 +94,7 @@ describe('useSaveRestoreMutuallyExclusiveFields hook', () => {
       topping: 'pepperoni',
       crust: 'thin',
       sauce: 'red',
+      cheese: 'cheddar',
     });
   });
 
@@ -115,6 +118,7 @@ describe('useSaveRestoreMutuallyExclusiveFields hook', () => {
       topping: 'pepperoni',
       crust: 'thin',
       sauce: 'red',
+      cheese: 'cheddar',
     });
 
     formikRef.current.setFieldValue('pizzaOrSandwich', 'sandwich');
@@ -126,5 +130,29 @@ describe('useSaveRestoreMutuallyExclusiveFields hook', () => {
       meat: 'ham',
       cheese: 'cheddar',
     });
+  });
+
+  it(`saves and restores different values for keys that exist in multiple field sets`, () => {
+    const formikRef = React.createRef<Formik>();
+    const wrapper = setupTest(formikRef);
+
+    formikRef.current.setFieldValue('cheese', 'mozzarella');
+
+    formikRef.current.setFieldValue('pizzaOrSandwich', 'sandwich');
+    wrapper.setProps({});
+
+    formikRef.current.setFieldValue('bread', 'wheat');
+    formikRef.current.setFieldValue('meat', 'ham');
+    formikRef.current.setFieldValue('cheese', 'cheddar');
+
+    formikRef.current.setFieldValue('pizzaOrSandwich', 'pizza');
+    wrapper.setProps({});
+    // restored the pizza fields
+    expect(formikRef.current.getFormikBag().values.cheese).toEqual('mozzarella');
+
+    formikRef.current.setFieldValue('pizzaOrSandwich', 'sandwich');
+    wrapper.setProps({});
+    // restored the sandwich fields
+    expect(formikRef.current.getFormikBag().values.cheese).toEqual('cheddar');
   });
 });

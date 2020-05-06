@@ -13,11 +13,11 @@ import { get } from 'lodash';
  *
  * Note: this hook does not explicitly attempt to manage default values for form fields
  *
- * @param formik formik props (typically from the Formik render function)
- * @param currentFieldSetKey the current form mode (e.g., the value of the selected radio button)
+ * @param formik
+ * @param currentFieldSetKey the key for the current field (the form mode, e.g., the value of the selected radio button)
  * @param mutuallyExclusiveFieldSets an object with:
- *        - keys: one for each form mode
- *        - values: lodash paths to the form fields exclusively owned by that form mode
+ *        - keys: one for each mutually exclusive fieldset
+ *        - values: lodash paths to the form fields exclusively owned by that fieldset
  *
  * Example:
  *
@@ -35,35 +35,51 @@ import { get } from 'lodash';
  *   <FormikFormField name="toppings" input={props => <SelectInput {...props} options={toppingsOptions}>} />
  *   <FormikFormField name="crust" input={props => <SelectInput {...props} options={crustOptions}>} />
  *   <FormikFormField name="sauce" input={props => <SelectInput {...props} options={sauceOptions}>} />
+ *   <FormikFormField name="cheese" input={props => <SelectInput {...props} options={pizzaCheeseOptions}>} />
  * </>)}
  *
  * { formik.values.pizzaOrSandwich === 'sandwich' && (<>
  *   <FormikFormField name="bread" input={props => <SelectInput {...props} options={breadOptions}>} />
  *   <FormikFormField name="meat" input={props => <SelectInput {...props} options={meatOptions}>} />
- *   <FormikFormField name="cheese" input={props => <SelectInput {...props} options={cheeseOptions}>} />
+ *   <FormikFormField name="cheese" input={props => <SelectInput {...props} options={sandwichCheeseOptions}>} />
  * </>)}
  */
 export function useSaveRestoreMutuallyExclusiveFields(
   formik: FormikProps<any>,
   currentFieldSetKey: string,
-  mutuallyExclusiveFieldSets: { [fieldSetId: string]: string[] },
+  mutuallyExclusiveFieldSets: { [fieldSetKey: string]: string[] },
 ) {
-  const previousFormMode = usePrevious(currentFieldSetKey);
-  const [savedData, setSavedData] = useState({} as { [path: string]: any });
+  interface SavedFieldsets {
+    [fieldSetKey: string]: FieldsetData;
+  }
+  interface FieldsetData {
+    [path: string]: any;
+  }
 
-  // Whenever the user switches the form mode source, clear out the
-  // previous form mode's exclusive field values and restore the new mode's values.
+  const previousFieldSetKey = usePrevious(currentFieldSetKey);
+  const [savedData, setSavedData] = useState<SavedFieldsets>({});
+
+  // Whenever the fieldset key changes, save and clear out the
+  // previous fieldset's values and restore the current fieldset's values.
   useEffect(() => {
-    if (!!previousFormMode && currentFieldSetKey !== previousFormMode) {
-      const fieldsToSave = mutuallyExclusiveFieldSets[previousFormMode] ?? [];
+    if (!!previousFieldSetKey && currentFieldSetKey !== previousFieldSetKey) {
+      const fieldsToSave = mutuallyExclusiveFieldSets[previousFieldSetKey] ?? [];
       const fieldsToRestore = mutuallyExclusiveFieldSets[currentFieldSetKey] ?? [];
 
-      const savedDataCopy = { ...savedData };
-      fieldsToSave.forEach(path => (savedDataCopy[path] = get(formik.values, path)));
-      setSavedData(savedDataCopy);
+      const dataToSave = fieldsToSave.reduce((data, path) => {
+        data[path] = get(formik.values, path);
+        return data;
+      }, {} as FieldsetData);
+      setSavedData({ ...savedData, [previousFieldSetKey]: dataToSave });
+
+      const dataToRestore = savedData[currentFieldSetKey] || {};
 
       fieldsToSave.forEach(field => formik.setFieldValue(field, undefined));
-      fieldsToRestore.forEach(path => formik.setFieldValue(path, savedData[path]));
+      fieldsToRestore.forEach(path => {
+        if (dataToRestore.hasOwnProperty(path)) {
+          formik.setFieldValue(path, savedData[currentFieldSetKey][path]);
+        }
+      });
     }
   }, [currentFieldSetKey]);
 }
