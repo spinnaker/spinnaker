@@ -55,7 +55,7 @@ abstract class PausedRepositoryTests<T : PausedRepository> : JUnit5Minutests {
 
     context("application paused") {
       before {
-        subject.pauseApplication(application)
+        subject.pauseApplication(application, "keel@keel.io")
       }
 
       test("app appears in list of paused apps") {

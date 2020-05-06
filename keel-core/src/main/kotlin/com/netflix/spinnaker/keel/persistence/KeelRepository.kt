@@ -15,7 +15,6 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
-import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
@@ -132,8 +131,6 @@ interface KeelRepository {
 
   fun getResourcesByApplication(application: String): List<Resource<*>>
 
-  fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary>
-
   fun storeResource(resource: Resource<*>)
 
   fun deleteResource(id: String)
@@ -146,13 +143,13 @@ interface KeelRepository {
 
   fun resourceLastEvent(id: String): ResourceEvent?
 
-  fun resourceAppendHistory(event: ResourceEvent)
+  fun appendResourceHistory(event: ResourceEvent)
+
+  fun appendApplicationHistory(event: ApplicationEvent)
 
   fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>>
 
   fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact>
-
-  fun getResourceStatus(id: String): ResourceStatus
   // END ResourceRepository methods
 
   // START ArtifactRepository methods

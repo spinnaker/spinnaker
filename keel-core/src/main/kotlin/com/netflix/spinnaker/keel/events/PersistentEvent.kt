@@ -21,6 +21,7 @@ abstract class PersistentEvent {
   abstract val application: String
   abstract val uid: String // The unique ID of the thing associated with the scope. Defined in sub-classes.
   abstract val timestamp: Instant
+  abstract val triggeredBy: String?
   @JsonIgnore
   open val ignoreRepeatedInHistory: Boolean = false
 

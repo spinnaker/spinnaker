@@ -19,8 +19,6 @@ package com.netflix.spinnaker.keel.veto
 
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryUnhappyVetoRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
@@ -43,7 +41,6 @@ class UnhappyVetoTests : JUnit5Minutests {
   internal class Fixture {
     val clock = MutableClock()
     val unhappyRepository = InMemoryUnhappyVetoRepository(clock)
-    val resourceRepository: ResourceRepository = mockk()
     val diffFingerprintRepository: DiffFingerprintRepository = mockk()
     private val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
       every {
@@ -53,7 +50,7 @@ class UnhappyVetoTests : JUnit5Minutests {
         getConfig(String::class.java, "veto.unhappy.waiting-time", any())
       } returns "PT10M"
     }
-    val subject = UnhappyVeto(resourceRepository, diffFingerprintRepository, unhappyRepository, dynamicConfigService, "PT10M")
+    val subject = UnhappyVeto(diffFingerprintRepository, unhappyRepository, dynamicConfigService, "PT10M")
 
     val r = resource()
     fun check() = runBlocking { subject.check(r) }
@@ -99,20 +96,6 @@ class UnhappyVetoTests : JUnit5Minutests {
             that(response1.allowed).isFalse()
             that(response2.allowed).isTrue()
             that(response3.allowed).isFalse()
-          }
-        }
-
-        test("a happy resource should no longer be skipped ") {
-          val response1 = check() // unhappy, so vetoed
-          clock.incrementBy(Duration.ofMinutes(11))
-
-          // returnsMany seems to not work for enums, so this is a workaround.
-          every { resourceRepository.getStatus(r.id) } returns ResourceStatus.HAPPY
-
-          val response2 = check() // rechecked, and it's happy now
-          expect {
-            that(response1.allowed).isEqualTo(false)
-            that(response2.allowed).isEqualTo(true)
           }
         }
       }

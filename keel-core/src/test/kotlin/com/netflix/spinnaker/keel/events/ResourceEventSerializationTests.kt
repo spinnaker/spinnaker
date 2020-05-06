@@ -43,10 +43,10 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         mapOf("exceptionType" to SpinnakerException::class.java, "exceptionMessage" to "oops!"),
       ResourceCheckUnresolvable(resource, object : ResourceCurrentlyUnresolvable("oops!") {}, clock) to
         emptyMap(),
-      ResourceActuationPaused(resource, clock) to
-        emptyMap(),
-      ResourceActuationResumed(resource, clock) to
-        emptyMap(),
+      ResourceActuationPaused(resource, "keel@keel.io", clock) to
+        mapOf("triggeredBy" to "keel@keel.io"),
+      ResourceActuationResumed(resource, "keel@keel.io", clock) to
+        mapOf("triggeredBy" to "keel@keel.io"),
       ResourceActuationVetoed(resource, "vetoed", clock) to
         mapOf("reason" to "vetoed"),
       ResourceTaskFailed(resource, "failed", emptyList(), clock) to

@@ -17,47 +17,48 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
+import com.netflix.spinnaker.keel.pause.Pause
+import com.netflix.spinnaker.keel.pause.PauseScope
+import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
+import com.netflix.spinnaker.keel.pause.PauseScope.RESOURCE
 import com.netflix.spinnaker.keel.persistence.PausedRepository
-import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope
-import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.APPLICATION
-import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.RESOURCE
+import java.time.Clock
 
-class InMemoryPausedRepository : PausedRepository {
-  private val paused: MutableList<Record> = mutableListOf()
+class InMemoryPausedRepository(override val clock: Clock = Clock.systemUTC()) : PausedRepository {
+  private val paused: MutableList<Pause> = mutableListOf()
 
-  override fun pauseApplication(application: String) {
-    paused.add(Record(APPLICATION, application))
+  override fun getPause(scope: PauseScope, name: String): Pause? {
+    return paused.find { it.scope == scope && it.name == name }
+  }
+
+  override fun pauseApplication(application: String, user: String) {
+    paused.add(Pause(APPLICATION, application, user, clock.instant()))
   }
 
   override fun resumeApplication(application: String) {
-    paused.remove(Record(APPLICATION, application))
+    paused.removeIf { it.scope == APPLICATION && it.name == application }
   }
 
-  override fun pauseResource(id: String) {
-    paused.add(Record(RESOURCE, id))
+  override fun pauseResource(id: String, user: String) {
+    paused.add(Pause(RESOURCE, id, user, clock.instant()))
   }
 
   override fun resumeResource(id: String) {
-    paused.remove(Record(RESOURCE, id))
+    paused.removeIf { it.scope == RESOURCE && it.name == id }
   }
 
   override fun resourcePaused(id: String): Boolean =
-    paused.contains(Record(RESOURCE, id))
+    paused.any { it.scope == RESOURCE && it.name == id }
 
   override fun getPausedResources(): List<String> =
     paused.filter { it.scope == RESOURCE }.map { it.name }.toList()
 
   override fun applicationPaused(application: String): Boolean =
-    paused.contains(Record(APPLICATION, application))
+    paused.any { it.scope == APPLICATION && it.name == application }
 
   override fun getPausedApplications(): List<String> =
     paused.filter { it.scope == APPLICATION }.map { it.name }.toList()
 
   fun flush() =
     paused.clear()
-
-  data class Record(
-    val scope: Scope,
-    val name: String
-  )
 }

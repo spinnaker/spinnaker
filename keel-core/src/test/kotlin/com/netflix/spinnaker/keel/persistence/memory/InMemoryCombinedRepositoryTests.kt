@@ -7,6 +7,7 @@ class InMemoryCombinedRepositoryTests : CombinedRepositoryTests<InMemoryDelivery
   private val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
   private val resourceRepository = InMemoryResourceRepository()
   private val artifactRepository = InMemoryArtifactRepository()
+  private val pausedRepository = InMemoryPausedRepository()
 
   override fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier) =
     deliveryConfigRepository
@@ -21,5 +22,6 @@ class InMemoryCombinedRepositoryTests : CombinedRepositoryTests<InMemoryDelivery
     deliveryConfigRepository.dropAll()
     resourceRepository.dropAll()
     artifactRepository.dropAll()
+    pausedRepository.flush()
   }
 }

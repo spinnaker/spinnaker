@@ -15,13 +15,11 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
@@ -34,7 +32,7 @@ import java.time.Instant
 import java.time.Instant.EPOCH
 
 class InMemoryResourceRepository(
-  private val clock: Clock = Clock.systemUTC()
+  override val clock: Clock = Clock.systemUTC()
 ) : ResourceRepository {
 
   private val resources = mutableMapOf<String, Resource<*>>()
@@ -75,13 +73,6 @@ class InMemoryResourceRepository(
       .map { it.value }
       .toList()
 
-  override fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> =
-    resources
-      .filterValues { it.application == deliveryConfig.application }
-      .map { (_, resource) ->
-        resource.toResourceSummary(deliveryConfig)
-      }
-
   override fun store(resource: Resource<*>) {
     resources[resource.id] = resource
     lastCheckTimes[resource.id] = EPOCH
@@ -108,9 +99,9 @@ class InMemoryResourceRepository(
       ?: emptyList()
   }
 
-  override fun applicationEventHistory(application: String, until: Instant): List<ApplicationEvent> {
+  override fun applicationEventHistory(application: String, after: Instant): List<ApplicationEvent> {
     return applicationEvents[application]
-      ?.takeWhile { !it.timestamp.isBefore(until) }
+      ?.takeWhile { !it.timestamp.isBefore(after) }
       ?: emptyList()
   }
 
@@ -140,6 +131,12 @@ class InMemoryResourceRepository(
         }
       }
   }
+
+  fun clearResourceEvents(id: String) =
+    resourceEvents.remove(id)
+
+  fun clearApplicationEvents(application: String) =
+    applicationEvents.remove(application)
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)

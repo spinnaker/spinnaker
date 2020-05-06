@@ -24,8 +24,4 @@ class InMemoryDiffFingerprintRepositoryTests : DiffFingerprintRepositoryTests<In
   override fun factory(clock: Clock): InMemoryDiffFingerprintRepository {
     return InMemoryDiffFingerprintRepository(clock)
   }
-
-  override fun InMemoryDiffFingerprintRepository.flush() {
-    flush()
-  }
 }

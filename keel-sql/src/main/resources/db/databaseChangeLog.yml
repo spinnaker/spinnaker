@@ -128,3 +128,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200410-rename-diff-fingerprint-column.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200427-add-info-to-paused-table.yml
+      relativeToChangelogFile: true

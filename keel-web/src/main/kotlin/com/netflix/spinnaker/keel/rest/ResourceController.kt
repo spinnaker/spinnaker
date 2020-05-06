@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.diff.DiffResult
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
+import com.netflix.spinnaker.keel.services.ResourceHistoryService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -41,7 +42,8 @@ import org.springframework.web.bind.annotation.RestController
 class ResourceController(
   private val repository: KeelRepository,
   private val actuationPauser: ActuationPauser,
-  private val adHocDiffer: AdHocDiffer
+  private val adHocDiffer: AdHocDiffer,
+  private val resourceHistoryService: ResourceHistoryService
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -66,19 +68,18 @@ class ResourceController(
     and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
   )
   fun getStatus(@PathVariable("id") id: String): ResourceStatus =
-    if (actuationPauser.isPaused(id)) { // todo eb: we could make determining status easier and more straight forward.
-      PAUSED
-    } else {
-      repository.getResourceStatus(id)
-    }
+    resourceHistoryService.getStatus(id)
 
   @PostMapping(
     path = ["/{id}/pause"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #id)")
-  fun pauseResource(@PathVariable("id") id: String) {
-    actuationPauser.pauseResource(id)
+  fun pauseResource(
+    @PathVariable("id") id: String,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ) {
+    actuationPauser.pauseResource(id, user)
   }
 
   @DeleteMapping(
@@ -88,8 +89,11 @@ class ResourceController(
   @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #id)
     and @authorizationSupport.hasServiceAccountAccess('RESOURCE', #id)"""
   )
-  fun resumeResource(@PathVariable("id") id: String) {
-    actuationPauser.resumeResource(id)
+  fun resumeResource(
+    @PathVariable("id") id: String,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ) {
+    actuationPauser.resumeResource(id, user)
   }
 
   @PostMapping(

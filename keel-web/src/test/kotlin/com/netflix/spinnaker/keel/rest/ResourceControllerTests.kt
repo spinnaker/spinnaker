@@ -59,6 +59,8 @@ internal class ResourceControllerTests : JUnit5Minutests {
 
   var resource = resource()
 
+  val user = "keel@keel.io"
+
   fun tests() = rootContext {
     before {
       every { authorizationSupport.hasApplicationPermission(READ.name, RESOURCE.name, any()) } returns true
@@ -119,7 +121,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = get("/resources/test:${resource.id}")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -132,7 +134,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = get("/resources/test:${resource.id}")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -147,7 +149,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = get("/resources/test:${resource.id}/status")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -160,7 +162,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = get("/resources/test:${resource.id}/status")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -174,7 +176,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = post("/resources/test:${resource.id}/pause")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -189,7 +191,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = delete("/resources/test:${resource.id}/pause")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -202,7 +204,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = delete("/resources/test:${resource.id}/pause")
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }
@@ -216,7 +218,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
           test("request is forbidden") {
             val request = post("/resources/diff").addData(jsonMapper, submittedResource())
               .accept(MediaType.APPLICATION_JSON_VALUE)
-              .header("X-SPINNAKER-USER", "keel@keel.io")
+              .header("X-SPINNAKER-USER", user)
 
             mvc.perform(request).andExpect(status().isForbidden)
           }

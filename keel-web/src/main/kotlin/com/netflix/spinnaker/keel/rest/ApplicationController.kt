@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
+import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.services.ApplicationService
@@ -134,8 +135,11 @@ class ApplicationController(
     path = ["/{application}/pause"]
   )
   @PreAuthorize("@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)")
-  fun pause(@PathVariable("application") application: String) {
-    actuationPauser.pauseApplication(application)
+  fun pause(
+    @PathVariable("application") application: String,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ) {
+    actuationPauser.pauseApplication(application, user)
   }
 
   @DeleteMapping(
@@ -144,8 +148,11 @@ class ApplicationController(
   @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
-  fun resume(@PathVariable("application") application: String) {
-    actuationPauser.resumeApplication(application)
+  fun resume(
+    @PathVariable("application") application: String,
+    @RequestHeader("X-SPINNAKER-USER") user: String
+  ) {
+    actuationPauser.resumeApplication(application, user)
   }
 
   @PostMapping(
@@ -222,4 +229,14 @@ class ApplicationController(
   ) {
     applicationService.deleteVeto(application, targetEnvironment, reference, version)
   }
+
+  @GetMapping(
+    path = ["/{application}/events"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)""")
+  fun getEvents(
+    @PathVariable("application") application: String,
+    @RequestParam("limit") limit: Int?
+  ): List<ApplicationEvent> = applicationService.getApplicationEventHistory(application, limit ?: DEFAULT_MAX_EVENTS)
 }

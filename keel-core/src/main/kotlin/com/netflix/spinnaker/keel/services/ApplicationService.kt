@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component
 @Component
 class ApplicationService(
   private val repository: KeelRepository,
+  private val resourceHistoryService: ResourceHistoryService,
   constraintEvaluators: List<ConstraintEvaluator<*>>
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -123,16 +124,15 @@ class ApplicationService(
 
   /**
    * Returns a list of [ResourceSummary] for the specified application.
-   *
-   * This function assumes there's a single delivery config associated with the application.
    */
-  fun getResourceSummariesFor(application: String): List<ResourceSummary> =
-    try {
-      val config = repository.getDeliveryConfigForApplication(application)
-      repository.getResourceSummaries(config)
+  fun getResourceSummariesFor(application: String): List<ResourceSummary> {
+    return try {
+      val deliveryConfig = repository.getDeliveryConfigForApplication(application)
+      resourceHistoryService.getResourceSummariesFor(deliveryConfig)
     } catch (e: NoSuchDeliveryConfigException) {
       emptyList()
     }
+  }
 
   /**
    * Returns a list of [EnvironmentSummary] for the specific application.
@@ -336,6 +336,9 @@ class ApplicationService(
         )
       }
     }
+
+  fun getApplicationEventHistory(application: String, limit: Int) =
+    repository.applicationEventHistory(application, limit)
 
   private val ArtifactVersions.key: String
     get() = "${type.name}:$name"

@@ -65,7 +65,8 @@ import org.slf4j.LoggerFactory
   Type(value = ResourceTaskSucceeded::class, name = "ResourceTaskSucceeded")
 )
 abstract class ResourceEvent(
-  open val message: String? = null
+  open val message: String? = null,
+  override val triggeredBy: String? = null
 ) : PersistentEvent() {
   override val scope = Scope.RESOURCE
   abstract val kind: ResourceKind
@@ -214,16 +215,24 @@ data class ResourceActuationPaused(
   override val kind: ResourceKind,
   override val id: String,
   override val application: String,
-  override val timestamp: Instant
+  override val timestamp: Instant,
+  override val triggeredBy: String
 ) : ResourceEvent() {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
-  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
+  constructor(resource: Resource<*>, timestamp: Instant, triggeredBy: String) : this(
     resource.kind,
     resource.id,
     resource.application,
-    clock.instant()
+    timestamp,
+    triggeredBy
+  )
+
+  constructor(resource: Resource<*>, triggeredBy: String, clock: Clock = Companion.clock) : this(
+    resource,
+    clock.instant(),
+    triggeredBy
   )
 }
 
@@ -258,15 +267,17 @@ data class ResourceActuationResumed(
   override val kind: ResourceKind,
   override val id: String,
   override val application: String,
+  override val triggeredBy: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
-  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
+  constructor(resource: Resource<*>, triggeredBy: String, clock: Clock = Companion.clock) : this(
     resource.kind,
     resource.id,
     resource.application,
+    triggeredBy,
     clock.instant()
   )
 }

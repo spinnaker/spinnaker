@@ -17,24 +17,27 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.pause.Pause
+import com.netflix.spinnaker.keel.pause.PauseScope
+import java.time.Clock
+
 /**
  * A repository to track what scopes are paused, starting with application
  */
 interface PausedRepository {
+  val clock: Clock
+    get() = Clock.systemUTC()
 
-  fun pauseApplication(application: String)
+  fun getPause(scope: PauseScope, name: String): Pause?
+
+  fun pauseApplication(application: String, user: String)
   fun resumeApplication(application: String)
   fun applicationPaused(application: String): Boolean
 
-  fun pauseResource(id: String)
+  fun pauseResource(id: String, user: String)
   fun resumeResource(id: String)
   fun resourcePaused(id: String): Boolean
 
   fun getPausedApplications(): List<String>
   fun getPausedResources(): List<String>
-
-  // todo eb: add environment
-  enum class Scope {
-    APPLICATION, RESOURCE;
-  }
 }

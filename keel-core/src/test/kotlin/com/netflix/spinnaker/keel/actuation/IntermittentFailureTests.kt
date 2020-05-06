@@ -76,7 +76,6 @@ class IntermittentFailureTests : JUnit5Minutests {
     }
 
     val veto = UnhappyVeto(
-      resourceRepository,
       diffFingerprintRepository,
       vetoRepository,
       dynamicConfigService,

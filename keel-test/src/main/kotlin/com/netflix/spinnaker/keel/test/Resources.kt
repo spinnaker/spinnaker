@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.test
 
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
@@ -122,6 +123,36 @@ fun <T : ResourceSpec> submittedResource(
     spec = spec
   )
 
+fun versionedArtifactResource(
+  kind: ResourceKind = TEST_API_V1.qualify("versionedArtifact"),
+  id: String = randomString(),
+  application: String = "fnord"
+): Resource<DummyArtifactVersionedResourceSpec> =
+  DummyArtifactVersionedResourceSpec(id = id, application = application)
+    .let { spec ->
+      resource(
+        kind = kind,
+        spec = spec,
+        id = spec.id,
+        application = application
+      )
+    }
+
+fun artifactReferenceResource(
+  kind: ResourceKind = TEST_API_V1.qualify("artifactReference"),
+  id: String = randomString(),
+  application: String = "fnord"
+): Resource<DummyArtifactReferenceResourceSpec> =
+  DummyArtifactReferenceResourceSpec(id = id, application = application)
+    .let { spec ->
+      resource(
+        kind = kind,
+        spec = spec,
+        id = spec.id,
+        application = application
+      )
+    }
+
 enum class DummyEnum { VALUE }
 
 data class DummyResourceSpec(
@@ -155,6 +186,15 @@ data class DummyArtifactVersionedResourceSpec(
   override val artifactName: String? = "fnord",
   override val artifactType: ArtifactType? = ArtifactType.deb
 ) : ResourceSpec, VersionedArtifactProvider
+
+data class DummyArtifactReferenceResourceSpec(
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  override val id: String = randomString(),
+  val data: String = randomString(),
+  override val application: String = "fnord",
+  override val artifactType: ArtifactType? = ArtifactType.deb,
+  override val artifactReference: String? = "fnord"
+) : ResourceSpec, ArtifactReferenceProvider
 
 data class DummyResource(
   val id: String = randomString(),

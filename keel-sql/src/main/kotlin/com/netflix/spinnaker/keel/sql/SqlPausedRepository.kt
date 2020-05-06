@@ -17,22 +17,40 @@
  */
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.pause.Pause
+import com.netflix.spinnaker.keel.pause.PauseScope
+import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
+import com.netflix.spinnaker.keel.pause.PauseScope.RESOURCE
 import com.netflix.spinnaker.keel.persistence.PausedRepository
-import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope
-import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.APPLICATION
-import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import org.jooq.DSLContext
 
 class SqlPausedRepository(
   val jooq: DSLContext,
-  val sqlRetry: SqlRetry
+  val sqlRetry: SqlRetry,
+  override val clock: Clock
 ) : PausedRepository {
 
-  override fun pauseApplication(application: String) {
-    insert(APPLICATION, application)
+  override fun getPause(scope: PauseScope, name: String): Pause? {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(PAUSED.PAUSED_AT, PAUSED.PAUSED_BY)
+        .from(PAUSED)
+        .where(PAUSED.SCOPE.eq(scope.name))
+        .and(PAUSED.NAME.eq(name))
+        .fetchOne { (timestamp, user) ->
+          Pause(scope, name, user, timestamp.toInstant(ZoneOffset.UTC))
+        }
+    }
+  }
+
+  override fun pauseApplication(application: String, user: String) {
+    insert(APPLICATION, application, user)
   }
 
   override fun resumeApplication(application: String) {
@@ -42,8 +60,8 @@ class SqlPausedRepository(
   override fun applicationPaused(application: String): Boolean =
     exists(APPLICATION, application)
 
-  override fun pauseResource(id: String) {
-    insert(RESOURCE, id)
+  override fun pauseResource(id: String, user: String) {
+    insert(RESOURCE, id, user)
   }
 
   override fun resumeResource(id: String) {
@@ -59,18 +77,20 @@ class SqlPausedRepository(
   override fun getPausedResources(): List<String> =
     get(RESOURCE)
 
-  private fun insert(scope: Scope, name: String) {
+  private fun insert(scope: PauseScope, name: String, user: String) {
     sqlRetry.withRetry(WRITE) {
       jooq
         .insertInto(PAUSED)
         .set(PAUSED.SCOPE, scope.name)
         .set(PAUSED.NAME, name)
+        .set(PAUSED.PAUSED_AT, clock.instant().toLocal())
+        .set(PAUSED.PAUSED_BY, user)
         .onDuplicateKeyIgnore()
         .execute()
     }
   }
 
-  private fun remove(scope: Scope, name: String) {
+  private fun remove(scope: PauseScope, name: String) {
     sqlRetry.withRetry(WRITE) {
       jooq
         .deleteFrom(PAUSED)
@@ -80,7 +100,7 @@ class SqlPausedRepository(
     }
   }
 
-  private fun exists(scope: Scope, name: String): Boolean {
+  private fun exists(scope: PauseScope, name: String): Boolean {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(PAUSED.NAME)
@@ -91,7 +111,7 @@ class SqlPausedRepository(
     } != null
   }
 
-  private fun get(scope: Scope): List<String> =
+  private fun get(scope: PauseScope): List<String> =
     sqlRetry.withRetry(READ) {
       jooq
         .select(PAUSED.NAME)
@@ -99,4 +119,6 @@ class SqlPausedRepository(
         .where(PAUSED.SCOPE.eq(scope.name))
         .fetch(PAUSED.NAME)
     }
+
+  private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

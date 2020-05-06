@@ -5,7 +5,9 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class ResourceHistoryListener(private val resourceRepository: ResourceRepository) {
+class ResourceHistoryListener(
+  private val resourceRepository: ResourceRepository
+) {
 
   @EventListener(ResourceEvent::class)
   fun onResourceEvent(event: ResourceEvent) {

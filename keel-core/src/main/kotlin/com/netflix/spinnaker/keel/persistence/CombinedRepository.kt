@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
-import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.normalize
@@ -337,9 +336,6 @@ class CombinedRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> =
     resourceRepository.getResourcesByApplication(application)
 
-  override fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> =
-    resourceRepository.getResourceSummaries(deliveryConfig)
-
   override fun storeResource(resource: Resource<*>) =
     resourceRepository.store(resource)
 
@@ -358,7 +354,10 @@ class CombinedRepository(
   override fun resourceLastEvent(id: String): ResourceEvent? =
     resourceRepository.lastEvent(id)
 
-  override fun resourceAppendHistory(event: ResourceEvent) =
+  override fun appendResourceHistory(event: ResourceEvent) =
+    resourceRepository.appendHistory(event)
+
+  override fun appendApplicationHistory(event: ApplicationEvent) =
     resourceRepository.appendHistory(event)
 
   override fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> =
@@ -367,8 +366,6 @@ class CombinedRepository(
   override fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> =
     artifactRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
 
-  override fun getResourceStatus(id: String): ResourceStatus =
-    resourceRepository.getStatus(id)
   // END ResourceRepository methods
 
   // START ArtifactRepository methods

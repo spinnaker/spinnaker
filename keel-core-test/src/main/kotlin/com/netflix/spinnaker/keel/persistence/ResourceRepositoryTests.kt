@@ -18,7 +18,6 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
@@ -54,7 +53,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotNull
 import strikt.assertions.map
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
@@ -159,18 +157,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("full resource returned for the application") {
           expectThat(subject.getResourcesByApplication("toast")).hasSize(1)
-        }
-
-        test("resource summary is formatted correctly") {
-          val summaries = subject.getResourceSummaries(deliveryConfig)
-
-          expectThat(summaries) {
-            hasSize(1)
-            with(first()) {
-              get(ResourceSummary::id).isEqualTo(lr.id)
-              get(ResourceSummary::locations).isNotNull()
-            }
-          }
         }
       }
 

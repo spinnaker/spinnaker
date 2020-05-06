@@ -2,13 +2,11 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent.Scope
@@ -38,7 +36,7 @@ import org.jooq.impl.DSL.select
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
-  private val clock: Clock,
+  override val clock: Clock,
   private val resourceSpecIdentifier: ResourceSpecIdentifier,
   private val specMigrators: List<SpecMigrator<*, *>>,
   private val objectMapper: ObjectMapper,
@@ -119,24 +117,6 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun getResourceSummaries(deliveryConfig: DeliveryConfig): List<ResourceSummary> {
-    val resourceSummaries: List<ResourceSummary> = sqlRetry.withRetry(READ) {
-      jooq
-        .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-        .from(RESOURCE)
-        .where(RESOURCE.APPLICATION.eq(deliveryConfig.application))
-        .fetch()
-        .map { (kind, metadata, spec) ->
-          Resource(
-            kind = parseKind(kind),
-            metadata = objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            spec = objectMapper.readValue(spec, resourceSpecIdentifier.identify(parseKind(kind)))
-          ).toResourceSummary(deliveryConfig)
-        }
-    }
-    return resourceSummaries
-  }
-
   // todo: this is not retryable due to overall repository structure: https://github.com/spinnaker/keel/issues/740
   override fun store(resource: Resource<*>) {
     val uid = jooq.select(RESOURCE.UID)
@@ -187,14 +167,14 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun applicationEventHistory(application: String, until: Instant): List<ApplicationEvent> {
+  override fun applicationEventHistory(application: String, after: Instant): List<ApplicationEvent> {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(EVENT.JSON)
         .from(EVENT)
         .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
         .and(EVENT.UID.eq(application))
-        .and(EVENT.TIMESTAMP.lessOrEqual(LocalDateTime.ofInstant(until, ZoneOffset.UTC)))
+        .and(EVENT.TIMESTAMP.greaterOrEqual(LocalDateTime.ofInstant(after, ZoneOffset.UTC)))
         .orderBy(EVENT.TIMESTAMP.desc())
         .fetch()
         .map { (json) ->

@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.events.PersistentEvent
-import com.netflix.spinnaker.keel.pause.ActuationPauser
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
+import com.netflix.spinnaker.keel.services.ResourceHistoryService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -17,11 +16,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/resources/events"])
 class EventController(
-  private val repository: KeelRepository,
-  private val actuationPauser: ActuationPauser
+  private val resourceHistoryService: ResourceHistoryService
 ) {
   private val log by lazy { getLogger(javaClass) }
 
+  // TODO: move this to ResourceController since the request path belongs there
   @GetMapping(
     path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
@@ -34,8 +33,6 @@ class EventController(
     @RequestParam("limit") limit: Int?
   ): List<PersistentEvent> {
     log.debug("Getting state history for: $id")
-    val resource = repository.getResource(id)
-    val events = repository.resourceEventHistory(id, limit ?: DEFAULT_MAX_EVENTS)
-    return actuationPauser.addApplicationActuationEvents(events, resource)
+    return resourceHistoryService.getEnrichedEventHistory(id, limit ?: DEFAULT_MAX_EVENTS)
   }
 }

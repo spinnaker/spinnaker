@@ -85,7 +85,7 @@ class SqlConfiguration {
   @Bean
   fun pausedRepository(
     jooq: DSLContext
-  ) = SqlPausedRepository(jooq, SqlRetry(sqlRetryProperties))
+  ) = SqlPausedRepository(jooq, SqlRetry(sqlRetryProperties), clock)
 
   @Bean
   fun taskTrackingRepository(

@@ -22,11 +22,11 @@ import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.Clock
 import java.time.Duration
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
@@ -57,7 +57,6 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   open fun flush() {}
 
   val configName = "my-config"
-
   val artifact = DockerArtifact(name = "org/image", deliveryConfigName = configName)
   val newArtifact = artifact.copy(reference = "myart")
   val firstResource = resource()
@@ -77,7 +76,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     val resourceRepositoryProvider: (ResourceSpecIdentifier) -> R,
     val artifactRepositoryProvider: () -> A
   ) {
-    private val clock: Clock = Clock.systemUTC()
+    internal val clock = MutableClock()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
     internal val deliveryConfigRepository: D = deliveryConfigRepositoryProvider(DummyResourceSpecIdentifier)
