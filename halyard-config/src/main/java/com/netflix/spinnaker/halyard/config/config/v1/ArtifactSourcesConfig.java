@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class ArtifactSourcesConfig {
   String gitPrefix = "https://github.com/spinnaker";
   String googleImageProject = "marketplace-spinnaker-release";
-  String dockerRegistry = "gcr.io/spinnaker-marketplace";
+  String dockerRegistry = "us-docker.pkg.dev/spinnaker-community/releases";
   String debianRepository = "https://dl.bintray.com/spinnaker-releases/debians";
 
   public ArtifactSourcesConfig mergeWithBomSources(
