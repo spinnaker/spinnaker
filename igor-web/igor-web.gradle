@@ -18,6 +18,7 @@ test {
 dependencies {
     implementation project(":igor-core")
     implementation project(":igor-monitor-artifactory")
+    implementation project(":igor-monitor-plugins")
 
     implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     compileOnly "org.projectlombok:lombok"

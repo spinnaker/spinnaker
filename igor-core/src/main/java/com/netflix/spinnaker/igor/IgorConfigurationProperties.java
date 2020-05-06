@@ -156,6 +156,8 @@ public class IgorConfigurationProperties {
     /** Config for keel connectivity. */
     @NestedConfigurationProperty private ServiceConfiguration keel = new ServiceConfiguration();
 
+    @NestedConfigurationProperty private ServiceConfiguration front50 = new ServiceConfiguration();
+
     @Data
     public static class ServiceConfiguration {
       /**
