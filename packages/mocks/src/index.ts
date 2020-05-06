@@ -1,3 +1,4 @@
+export * from './amazon';
 export * from './mockCluster';
 export * from './mockDataSourceConfig';
 export * from './mockEntityTags';
