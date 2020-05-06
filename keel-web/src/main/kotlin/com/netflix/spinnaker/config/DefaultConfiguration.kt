@@ -2,6 +2,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -21,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryTaskTrackingRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
 import java.time.Clock
 import org.springframework.beans.factory.annotation.Qualifier
@@ -33,10 +35,39 @@ import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+
+private const val IPC_SERVER_METRIC = "controller.invocations"
 
 @EnableFiatAutoConfig
 @Configuration
-class DefaultConfiguration {
+class DefaultConfiguration(
+  val spectatorRegistry: Registry
+) : WebMvcConfigurer {
+
+  /**
+   * Enable controller metrics
+   */
+  override fun addInterceptors(interceptorRegistry: InterceptorRegistry) {
+
+    /**
+     * Path variables that will be added as tags to the metrics
+     *
+     * Lorin chose these particular variables arbitrarily as potentially useful. Once we start consuming
+     * these metrics, we should revisit whether to change these based on usefulness & cardinality
+     */
+    val pathVarsToTag = listOf("name", "application")
+
+    val queryParamsToTag = null
+
+    // exclude list copied from fiat: https://github.com/spinnaker/fiat/blob/0d58386152ad78234b2554f5efdf12d26b77d57c/fiat-web/src/main/java/com/netflix/spinnaker/fiat/config/FiatConfig.java#L50
+    val exclude = listOf("BasicErrorController")
+
+    val interceptor = MetricsInterceptor(spectatorRegistry, IPC_SERVER_METRIC, pathVarsToTag, queryParamsToTag, exclude)
+    interceptorRegistry.addInterceptor(interceptor)
+  }
+
   @Bean
   @ConditionalOnMissingBean
   fun clock(): Clock = Clock.systemUTC()
