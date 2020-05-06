@@ -68,7 +68,7 @@ open class CreatePluginInfoTask : DefaultTask() {
           "date" to Instant.now().toString(),
           "requires" to requires,
           "sha512sum" to getChecksum(),
-          "state" to "RELEASE"
+          "preferred" to false
         )
       )
     )
