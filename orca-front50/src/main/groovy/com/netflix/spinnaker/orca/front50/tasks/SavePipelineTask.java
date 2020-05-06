@@ -57,20 +57,12 @@ public class SavePipelineTask implements RetryableTask {
       throw new IllegalArgumentException("pipeline context must be provided");
     }
 
+    Map<String, Object> pipeline;
     if (!(stage.getContext().get("pipeline") instanceof String)) {
-      throw new IllegalArgumentException(
-          "'pipeline' context key must be a base64-encoded string: Ensure you're on the most recent version of gate");
+      pipeline = (Map<String, Object>) stage.getContext().get("pipeline");
+    } else {
+      pipeline = (Map<String, Object>) stage.decodeBase64("/pipeline", Map.class);
     }
-
-    byte[] pipelineData;
-    try {
-      pipelineData = Base64.getDecoder().decode((String) stage.getContext().get("pipeline"));
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("pipeline must be encoded as base64", e);
-    }
-    log.info("Expanded encoded pipeline:" + new String(pipelineData));
-
-    Map<String, Object> pipeline = (Map<String, Object>) stage.decodeBase64("/pipeline", Map.class);
 
     if (!pipeline.containsKey("index")) {
       Map<String, Object> existingPipeline = fetchExistingPipeline(pipeline);
