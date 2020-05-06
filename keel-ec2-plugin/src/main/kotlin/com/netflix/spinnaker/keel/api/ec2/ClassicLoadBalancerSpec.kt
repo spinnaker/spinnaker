@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.CLASSIC
 import java.time.Duration
 
@@ -18,13 +19,20 @@ data class ClassicLoadBalancerSpec(
   val healthCheck: ClassicLoadBalancerHealthCheck,
   @JsonInclude(NON_EMPTY)
   val overrides: Map<String, ClassicLoadBalancerOverride> = emptyMap()
-) : LoadBalancerSpec {
+) : LoadBalancerSpec, UnhappyControl {
 
   init {
     require(moniker.toString().length <= 32) {
       "load balancer names have a 32 character limit"
     }
   }
+
+  @JsonIgnore
+  override val maxDiffCount: Int? = 2
+
+  @JsonIgnore
+  // Once load balancers go unhappy, only retry when the diff changes, or if manually unvetoed
+  override val unhappyWaitTime: Duration? = Duration.ZERO
 
   @JsonIgnore
   override val loadBalancerType: LoadBalancerType = CLASSIC
