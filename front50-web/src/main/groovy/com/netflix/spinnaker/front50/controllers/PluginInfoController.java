@@ -67,6 +67,14 @@ public class PluginInfoController {
     return pluginInfoService.createRelease(id, release);
   }
 
+  @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.PUT)
+  PluginInfo.Release preferReleaseVersion(
+      @PathVariable String id,
+      @PathVariable String releaseVersion,
+      @RequestParam(value = "preferred") boolean preferred) {
+    return pluginInfoService.preferReleaseVersion(id, releaseVersion, preferred);
+  }
+
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   PluginInfo deleteRelease(@PathVariable String id, @PathVariable String releaseVersion) {

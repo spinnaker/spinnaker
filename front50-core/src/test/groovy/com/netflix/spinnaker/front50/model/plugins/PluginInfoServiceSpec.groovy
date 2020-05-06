@@ -113,4 +113,21 @@ class PluginInfoServiceSpec extends Specification {
     result.releases*.version == ["1.0.0", "2.0.0"]
     0 * _
   }
+
+  def "Sets preferred on a release, sets previous preferred version to false"() {
+    given:
+    PluginInfo pluginInfo = new PluginInfo(id: "foo.bar")
+    pluginInfo.releases.add(new PluginInfo.Release(version: "1.0.0", preferred: true))
+    pluginInfo.releases.add(new PluginInfo.Release(version: "2.0.0"))
+
+    when:
+    def result = subject.preferReleaseVersion("foo.bar", "2.0.0", true)
+
+    then:
+    1 * repository.findById("foo.bar") >> pluginInfo
+    1 * repository.update("foo.bar", pluginInfo)
+    result.preferred
+    !pluginInfo.getReleaseByVersion("1.0.0").get().preferred
+    0 * _
+  }
 }

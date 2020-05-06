@@ -65,6 +65,14 @@ public class PluginInfo implements Timestamped {
     return releases.stream().filter(it -> it.version.equals(version)).findFirst();
   }
 
+  public void setReleaseByVersion(String version, Release release) {
+    Optional<Release> versionRelease = getReleaseByVersion(version);
+    if (versionRelease.isPresent()) {
+      int index = releases.indexOf(versionRelease.get());
+      releases.set(index, release);
+    }
+  }
+
   /** A singular {@code PluginInfo} release. */
   @Data
   public static class Release {
@@ -110,10 +118,10 @@ public class PluginInfo implements Timestamped {
     private String sha512sum;
 
     /**
-     * Defines the state of this release, which can help services to determine what version they
-     * should be installing.
+     * Whether or not this release is the preferred release, which services can use to determine if
+     * this version should be installed.
      */
-    private State state;
+    private boolean preferred;
 
     /**
      * The last time this release was modified, typically defining the last time the {@code active}
@@ -143,11 +151,6 @@ public class PluginInfo implements Timestamped {
                 }
                 return false;
               });
-    }
-
-    public enum State {
-      CANDIDATE,
-      RELEASE
     }
   }
 }

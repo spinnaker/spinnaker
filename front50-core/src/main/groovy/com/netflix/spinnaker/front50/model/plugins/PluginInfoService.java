@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
@@ -101,6 +102,30 @@ public class PluginInfoService {
             });
     repository.update(pluginInfo.getId(), pluginInfo);
     return pluginInfo;
+  }
+
+  /** Set the preferred release. If preferred is true, sets previous preferred release to false. */
+  public PluginInfo.Release preferReleaseVersion(
+      @Nonnull String id, @Nonnull String releaseVersion, boolean preferred) {
+    PluginInfo pluginInfo = repository.findById(id);
+    Optional<PluginInfo.Release> release = pluginInfo.getReleaseByVersion(releaseVersion);
+
+    return release
+        .map(
+            r -> {
+              r.setPreferred(preferred);
+              pluginInfo.setReleaseByVersion(releaseVersion, r);
+
+              if (preferred) {
+                pluginInfo.getReleases().stream()
+                    .filter(it -> !it.getVersion().equals(r.getVersion()))
+                    .forEach(it -> it.setPreferred(false));
+              }
+
+              repository.update(pluginInfo.getId(), pluginInfo);
+              return r;
+            })
+        .orElse(null);
   }
 
   private void validate(PluginInfo pluginInfo) {
