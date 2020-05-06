@@ -82,7 +82,8 @@ public class Trigger {
     WEBHOOK("webhook"),
     PUBSUB("pubsub"),
     DRYRUN("dryrun"),
-    PIPELINE("pipeline");
+    PIPELINE("pipeline"),
+    PLUGIN("plugin");
 
     private final String type;
 
@@ -156,6 +157,14 @@ public class Trigger {
 
   // Artifact constraints
   List<String> expectedArtifactIds;
+
+  // Configuration for plugin triggers
+  String pluginId;
+  String version;
+  String releaseDate;
+  List<Map<String, String>> requires;
+  String binaryUrl;
+  boolean preferred;
 
   /** Field to use for custom triggers involving artifacts */
   String artifactName;
