@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Option } from 'react-select';
+import { isNil } from 'lodash';
 
 import { StringsAsOptions } from './StringsAsOptions';
-import { isStringArray, orEmptyString, validationClassName } from './utils';
+import { createFakeReactSyntheticEvent, isStringArray, orEmptyString, validationClassName } from './utils';
 import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 
 export interface ISelectInputProps
@@ -10,11 +11,28 @@ export interface ISelectInputProps
     OmitControlledInputPropsFrom<React.InputHTMLAttributes<any>> {
   inputClassName?: string;
   options: Array<string | Option<string>>;
+  /**
+   * If the value prop does not match any of the options, this value will be used.
+   * This can be used to ensures that a valid option is always selected (for initial state, for example).
+   * This mechanism calls onChange with the defaultValue.
+   * If this prop is used, the options prop provided should be stable (useMemo).
+   */
+  defaultValue?: string;
 }
 
 export function SelectInput(props: ISelectInputProps) {
-  const { value, validation, options, inputClassName, ...otherProps } = props;
+  const { value, defaultValue, validation, options, inputClassName, ...otherProps } = props;
   const className = `SelectInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
+
+  useEffect(() => {
+    if (!isNil(defaultValue)) {
+      const values = isStringArray(options) ? options : (options as Array<Option<string>>).map(o => o.value);
+      if (!values.includes(value)) {
+        console.error(`Setting ${props.name} to ${defaultValue}`);
+        props.onChange(createFakeReactSyntheticEvent({ name: props.name, value: defaultValue }));
+      }
+    }
+  }, [value, defaultValue, options]);
 
   const SelectElement = ({ opts }: { opts: Array<Option<string>> }) => (
     <select className={className} value={orEmptyString(value)} {...otherProps}>
