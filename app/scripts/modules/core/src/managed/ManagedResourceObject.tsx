@@ -97,10 +97,10 @@ export const ManagedResourceObject = memo(
         depth={depth}
         content={resourceStatus}
         metadata={
-          <>
+          <span className="flex-container-h middle">
             {currentPill}
             {deployingPill}
-          </>
+          </span>
         }
       />
     );
