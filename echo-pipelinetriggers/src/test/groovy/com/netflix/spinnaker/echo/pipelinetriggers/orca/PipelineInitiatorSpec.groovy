@@ -11,11 +11,9 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContext
-import com.netflix.spinnaker.kork.web.context.RequestContextProvider
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import org.slf4j.MDC
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,6 +22,7 @@ import java.util.concurrent.TimeUnit
 
 class PipelineInitiatorSpec extends Specification {
   def registry = new NoopRegistry()
+  def noopDynamicConfigService = new DynamicConfigService.NoopDynamicConfig()
   def orca = Mock(OrcaService)
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
   def fiatStatus = Mock(FiatStatus)
@@ -59,8 +58,9 @@ class PipelineInitiatorSpec extends Specification {
   @Unroll
   def "calls orca #expectedTriggerCalls times when enabled=#enabled flag"() {
     given:
+    def dynamicConfigService = Mock(DynamicConfigService)
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, enabled, 5, 5000
+      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, dynamicConfigService, 5, 5000
     )
 
     def pipeline = Pipeline
@@ -78,6 +78,7 @@ class PipelineInitiatorSpec extends Specification {
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
 
     then:
+    _ * dynamicConfigService.isEnabled("orca", true) >> { return enabled }
     _ * fiatStatus.isEnabled() >> { return enabled }
     _ * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }
 
@@ -107,7 +108,7 @@ class PipelineInitiatorSpec extends Specification {
     RequestContext context = contextProvider.get()
     def executor = Executors.newFixedThreadPool(2)
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, true, 5, 5000
+      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, noopDynamicConfigService, 5, 5000
     )
 
     Trigger trigger = (new Trigger.TriggerBuilder().type("cron").build()).atPropagateAuth(true)
@@ -151,7 +152,7 @@ class PipelineInitiatorSpec extends Specification {
   def "calls orca #expectedPlanCalls to plan pipeline if templated"() {
     given:
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.empty(), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, true, 5, 5000
+      registry, orca, Optional.empty(), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, noopDynamicConfigService, 5, 5000
     )
 
     def pipeline = Pipeline.builder()
