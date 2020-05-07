@@ -17,10 +17,16 @@
 package com.netflix.spinnaker.orca
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.plugins.api.internal.ExtensionInvocationHandler
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
 
 class DynamicStageResolverSpec extends Specification {
 
@@ -64,6 +70,38 @@ class DynamicStageResolverSpec extends Specification {
     preference                     || expectedBuilder
     BuilderOne.class.canonicalName || BuilderOne.class
     BuilderTwo.class.canonicalName || BuilderTwo.class
+  }
+
+  def "should support extension proxies"() {
+    given:
+    InvocationHandler handler = new ExtensionInvocationHandler() {
+      @Override
+      Class<? extends SpinnakerExtensionPoint> getTargetClass() {
+        return BuilderOne.class
+      }
+
+      @Override
+      Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        return method.invoke(new BuilderOne(), args)
+      }
+    }
+
+    List<StageDefinitionBuilder> builders = [
+        (StageDefinitionBuilder) Proxy.newProxyInstance(
+            this.class.getClassLoader(),
+            BuilderOne.class.interfaces,
+            handler
+        ),
+        new BuilderTwo()
+    ]
+
+    when:
+    def result = new DynamicStageResolver(dynamicConfigService, builders, null)
+        .getStageDefinitionBuilder("same", null).class
+
+    then:
+    result == BuilderOne.class
+    3 * dynamicConfigService.getConfig(_, _, _) >> BuilderOne.class.canonicalName
   }
 
   def "should raise exception when stage not found"() {

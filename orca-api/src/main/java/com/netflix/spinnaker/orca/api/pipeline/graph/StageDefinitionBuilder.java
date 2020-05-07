@@ -126,7 +126,7 @@ public interface StageDefinitionBuilder extends SpinnakerExtensionPoint {
 
   /** A collection of known aliases. */
   default Collection<String> aliases() {
-    if (getClass().isAnnotationPresent(Aliases.class)) {
+    if (this.getClass().isAnnotationPresent(Aliases.class)) {
       return Arrays.asList(getClass().getAnnotation(Aliases.class).value());
     }
 

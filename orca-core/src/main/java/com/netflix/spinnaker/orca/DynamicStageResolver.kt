@@ -102,7 +102,7 @@ class DynamicStageResolver(
         }
 
         // Ensure the preference is actually valid: Is there a StageDefinitionBuilder with a matching canonical name?
-        duplicate.value.map { it.javaClass.canonicalName }.let {
+        duplicate.value.map { it.extensionClass.canonicalName }.let {
           if (!it.contains(pref)) {
             throw InvalidStageDefinitionBuilderPreference(duplicate.key, pref, it)
           }
@@ -116,7 +116,7 @@ class DynamicStageResolver(
   private fun validateClassNames(duplicates: Map<String, MutableList<StageDefinitionBuilder>>) {
     duplicates
       .filter { entry ->
-        entry.value.map { it.javaClass.canonicalName }.distinct().size != entry.value.size
+        entry.value.map { it.extensionClass.canonicalName }.distinct().size != entry.value.size
       }
       .also {
         if (it.isNotEmpty()) {
@@ -149,10 +149,10 @@ class DynamicStageResolver(
     }
 
     val pref = getPreference(type)
-    val builder = firstOrNull { it.javaClass.canonicalName == pref }
+    val builder = firstOrNull { it.extensionClass.canonicalName == pref }
     if (builder == null && fallbackPreferences.containsKey(type)) {
       log.warn("Preference for '$type' ($pref) is invalid, falling back to '${fallbackPreferences[type]}'")
-      return firstOrNull { it.javaClass.canonicalName == fallbackPreferences[type] }
+      return firstOrNull { it.extensionClass.canonicalName == fallbackPreferences[type] }
     }
 
     return builder
