@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
 import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import java.util.ArrayList;
 import java.util.Map;
@@ -126,6 +127,7 @@ public class TravisConfig {
         .setLog(fooLog)
         .setLogLevel(RestAdapter.LogLevel.FULL)
         .setConverter(new JacksonConverter(objectMapper))
+        .setLog(new Slf4jRetrofitLogger(TravisClient.class))
         .build()
         .create(TravisClient.class);
   }

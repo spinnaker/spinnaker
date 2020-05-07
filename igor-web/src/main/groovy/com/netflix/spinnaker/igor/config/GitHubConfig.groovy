@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -55,6 +56,7 @@ class GitHubConfig {
             .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
             .setClient(new OkClient())
             .setConverter(new JacksonConverter(mapper))
+            .setLog(new Slf4jRetrofitLogger(GitHubClient))
             .build()
             .create(GitHubClient)
 

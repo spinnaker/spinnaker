@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabClient;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,7 @@ public class GitLabConfig {
         .setRequestInterceptor(new PrivateTokenRequestInterceptor(privateToken))
         .setClient(new OkClient())
         .setConverter(new JacksonConverter())
+        .setLog(new Slf4jRetrofitLogger(GitLabClient.class))
         .build()
         .create(GitLabClient.class);
   }

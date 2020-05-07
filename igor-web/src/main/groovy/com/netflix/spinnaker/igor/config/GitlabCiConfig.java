@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -88,14 +89,11 @@ public class GitlabCiConfig {
     OkHttpClient client = new OkHttpClient();
     client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
 
-    // Need this code because without FULL log level, fetching logs will fail. Ref
-    // https://github.com/square/retrofit/issues/953.
-    RestAdapter.Log fooLog = message -> {};
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(address))
         .setRequestInterceptor(new GitlabCiHeaders(privateToken))
         .setClient(new OkClient(client))
-        .setLog(fooLog)
+        .setLog(new Slf4jRetrofitLogger(GitlabCiClient.class))
         .setLogLevel(RestAdapter.LogLevel.FULL)
         .setConverter(new JacksonConverter(objectMapper))
         .build()

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import java.time.ZonedDateTime;
 import lombok.Getter;
@@ -88,6 +89,7 @@ public class ConcourseClient {
                 request -> {
                   request.addHeader("Authorization", "Basic Zmx5OlpteDU=");
                 })
+            .setLog(new Slf4jRetrofitLogger(TokenService.class))
             .build()
             .create(TokenService.class);
 
@@ -120,6 +122,7 @@ public class ConcourseClient {
         .setClient(new OkClient(okHttpClient))
         .setConverter(jacksonConverter)
         .setRequestInterceptor(oauthInterceptor)
+        .setLog(new Slf4jRetrofitLogger(serviceClass))
         .build()
         .create(serviceClass);
   }

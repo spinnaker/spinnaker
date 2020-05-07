@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.scm.github.client
 
 import com.netflix.spinnaker.igor.config.GitHubProperties
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import org.springframework.context.annotation.Bean
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
@@ -46,6 +47,7 @@ class GitHubMaster  extends AbstractScmMaster {
             .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
             .setClient(new OkClient())
             .setConverter(new JacksonConverter())
+            .setLog(new Slf4jRetrofitLogger(GitHubClient))
             .build()
             .create(GitHubClient)
     }

@@ -30,8 +30,8 @@ import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestIntercepto
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -187,6 +187,7 @@ class JenkinsConfig {
             .setLogLevel(RestAdapter.LogLevel.BASIC)
             .setClient(new OkClient(client))
             .setConverter(new JacksonConverter(getObjectMapper()))
+            .setLog(new Slf4jRetrofitLogger(JenkinsClient))
             .build()
             .create(JenkinsClient)
     }
