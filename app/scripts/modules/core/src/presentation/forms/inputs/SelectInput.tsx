@@ -28,7 +28,6 @@ export function SelectInput(props: ISelectInputProps) {
     if (!isNil(defaultValue)) {
       const values = isStringArray(options) ? options : (options as Array<Option<string>>).map(o => o.value);
       if (!values.includes(value)) {
-        console.error(`Setting ${props.name} to ${defaultValue}`);
         props.onChange(createFakeReactSyntheticEvent({ name: props.name, value: defaultValue }));
       }
     }
