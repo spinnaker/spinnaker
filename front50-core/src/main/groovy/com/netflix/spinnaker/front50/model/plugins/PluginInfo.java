@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import javax.validation.Valid;
 import lombok.Data;
 
 /**
@@ -48,7 +49,7 @@ public class PluginInfo implements Timestamped {
   private String provider;
 
   /** A list of plugin releases. */
-  @Nonnull private List<Release> releases = new ArrayList<>();
+  @Valid @Nonnull private List<Release> releases = new ArrayList<>();
 
   /** The time (epoch millis) when the plugin info was first created. */
   private Long createTs;
@@ -76,6 +77,7 @@ public class PluginInfo implements Timestamped {
   /** A singular {@code PluginInfo} release. */
   @Data
   public static class Release {
+    public static final String VERSION_PATTERN = "^[1-9]\\d*\\.\\d+\\.\\d+(?:-[a-zA-Z0-9]+)?$";
     public static final Pattern SUPPORTS_PATTERN =
         Pattern.compile(
             "^(?<service>[\\w\\-]+)(?<operator>[><=]{1,2})(?<version>[0-9]+\\.[0-9]+\\.[0-9]+)$");
@@ -88,6 +90,7 @@ public class PluginInfo implements Timestamped {
      *
      * @link https://semver.org/
      */
+    @javax.validation.constraints.Pattern(regexp = VERSION_PATTERN)
     private String version;
 
     /** The date of the plugin release. */
