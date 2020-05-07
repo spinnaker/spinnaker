@@ -20,6 +20,7 @@ import com.netflix.spinnaker.front50.model.plugins.PluginInfoService;
 import java.util.Collection;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** TODO(rz): What's the permissions model for something like plugin info? */
 @RestController
 @RequestMapping("/pluginInfo")
 public class PluginInfoController {
@@ -56,6 +56,7 @@ public class PluginInfoController {
     return pluginInfoService.upsert(pluginInfo);
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void delete(@PathVariable String id) {
@@ -67,6 +68,7 @@ public class PluginInfoController {
     return pluginInfoService.createRelease(id, release);
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.PUT)
   PluginInfo.Release preferReleaseVersion(
       @PathVariable String id,
@@ -75,6 +77,7 @@ public class PluginInfoController {
     return pluginInfoService.preferReleaseVersion(id, releaseVersion, preferred);
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   PluginInfo deleteRelease(@PathVariable String id, @PathVariable String releaseVersion) {
