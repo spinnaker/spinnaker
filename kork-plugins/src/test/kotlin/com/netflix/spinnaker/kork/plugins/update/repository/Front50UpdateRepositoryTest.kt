@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.plugins.update.repository
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo.SpinnakerPluginRelease
-import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo.SpinnakerPluginRelease.State
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -47,14 +46,12 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
       expectThat(plugins)
         .isA<MutableMap<String, SpinnakerPluginInfo>>()[pluginId]
         .get { plugin.id }.isEqualTo(pluginId)
-        .get { plugin.getReleases()[0].state == pluginReleaseState }
 
       val plugin = subject.getPlugin(pluginId)
 
       expectThat(plugin)
         .isA<SpinnakerPluginInfo>()
         .get { plugin.id }.isEqualTo(pluginId)
-        .get { plugin.getReleases()[0].state == pluginReleaseState }
     }
 
     test("Response error results in empty plugin list") {
@@ -73,7 +70,6 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     val pluginId = "netflix.custom-stage"
     val repositoryName = "front50"
     val front50Url = URL("https://front50.com")
-    val pluginReleaseState = State.CANDIDATE
 
     val subject = Front50UpdateRepository(
             repositoryName,
@@ -87,7 +83,7 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     val response: Response<Collection<SpinnakerPluginInfo>> = Response.success(Collections.singletonList(plugin))
 
     init {
-      plugin.setReleases(listOf(SpinnakerPluginRelease(pluginReleaseState)))
+      plugin.setReleases(listOf(SpinnakerPluginRelease(true)))
       plugin.id = pluginId
     }
   }

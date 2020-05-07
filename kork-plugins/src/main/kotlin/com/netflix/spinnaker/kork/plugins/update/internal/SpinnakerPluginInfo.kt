@@ -31,9 +31,5 @@ class SpinnakerPluginInfo : PluginInfo() {
     releases = spinnakerReleases
   }
 
-  data class SpinnakerPluginRelease(val state: State) : PluginRelease() {
-    enum class State {
-      CANDIDATE, RELEASE
-    }
-  }
+  data class SpinnakerPluginRelease(val preferred: Boolean) : PluginRelease()
 }
