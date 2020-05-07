@@ -839,10 +839,10 @@
   dependencies:
     lodash "^4.17.15"
 
-"@spinnaker/kayenta@^0.0.91":
-  version "0.0.91"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.91.tgz#595c79b6103273a08c9c5019e53f7f58561be1d1"
-  integrity sha512-zVuXsWufsX5aXhf4lgXdi6TrLwstCX08HXOaZzgxldJuaezy59AeDa41oJe/ee34iIdUaDnsh5x9TOMKhZI3KQ==
+"@spinnaker/kayenta@^0.0.92":
+  version "0.0.92"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.92.tgz#231f9a6ce41e4a7e2373cee17e0966faa2115ff5"
+  integrity sha512-9ZyC0X1bfjkNRppYo+Yn3ipMQ0u4NOxkglEnnoN8eMpGAdqSWSknley45k/7d4bc4DsuX+dP0z4ZxquZ7H3wPA==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "^1.0.15"
