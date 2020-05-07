@@ -4,7 +4,7 @@ dependencies {
   implementation "com.diffplug.spotless:spotless-plugin-gradle:3.27.2"
   implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
   implementation 'com.netflix.nebula:gradle-java-cross-compile-plugin:4.1.0'
-  implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.2.0'
+  implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.3.0'
 }
 
 gradlePlugin {
