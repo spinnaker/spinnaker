@@ -70,7 +70,8 @@ public class PluginsBuildMonitor
         item -> {
           if (sendEvents) {
             postEvent(item.pluginRelease);
-            log.debug("{} event posted", item.pluginRelease);
+          } else {
+            log.debug("{} processed, but not sending event", item.pluginRelease);
           }
         });
 
@@ -90,6 +91,7 @@ public class PluginsBuildMonitor
     } else if (release != null) {
       AuthenticatedRequest.allowAnonymous(
           () -> echoService.get().postEvent(new PluginEvent(release)));
+      log.debug("{} event posted", release);
     }
   }
 

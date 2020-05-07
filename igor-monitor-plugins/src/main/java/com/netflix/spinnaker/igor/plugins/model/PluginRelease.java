@@ -102,4 +102,24 @@ public class PluginRelease {
       return version;
     }
   }
+
+  @Override
+  public String toString() {
+    return "PluginRelease{"
+        + "pluginId='"
+        + pluginId
+        + '\''
+        + ", version='"
+        + version
+        + '\''
+        + ", releaseDate='"
+        + releaseDate
+        + '\''
+        + ", preferred="
+        + preferred
+        + ", lastModified='"
+        + lastModified
+        + '\''
+        + '}';
+  }
 }
