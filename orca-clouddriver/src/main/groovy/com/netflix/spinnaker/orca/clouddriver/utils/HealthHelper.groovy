@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.utils
 
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState
+
+import static com.netflix.spinnaker.orca.clouddriver.model.HealthState.*
 
 class HealthHelper {
   /**
@@ -36,9 +39,9 @@ class HealthHelper {
    * on the instance.
    */
   static List<Map> filterHealths(Map instance, Collection<String> interestingHealthProviderNames) {
-    return interestingHealthProviderNames != null ? instance.health.findAll { health ->
-      health.type in interestingHealthProviderNames
-    } : instance.health
+    return interestingHealthProviderNames != null
+        ? instance.health.findAll { health -> health.type in interestingHealthProviderNames }
+        : instance.health
   }
 
   /**
@@ -83,7 +86,6 @@ class HealthHelper {
   }
 
   static boolean someAreDownAndNoneAreUp(Map instance, Collection<String> interestingHealthProviderNames) {
-
     List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
 
     if (!interestingHealthProviderNames && !healths) {
@@ -96,22 +98,19 @@ class HealthHelper {
     }
 
     // no health indicators is indicative of being down
-    boolean someAreDown = !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' || it.state == 'Starting' }
-    boolean noneAreUp = !healths.any { it.state == 'Up' }
+    boolean someAreDown = !healths || healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting] }
+    boolean noneAreUp = !healths.any { HealthState.fromString(it.state) == Up }
 
     return someAreDown && noneAreUp
   }
 
   static boolean someAreUpAndNoneAreDownOrStarting(Map instance, Collection<String> interestingHealthProviderNames) {
     List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
-    boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
-    someAreUp = areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp)
 
-    boolean noneAreDownOrStarting = !healths.any {
-      Map health -> health.state == 'Down' || health.state == 'Starting'
-    }
+    boolean someAreUp = healths.any { HealthState.fromString(it.state) == Up }
+    boolean noneAreDown = !healths.any { HealthState.fromString(it.state) in [Down, OutOfService, Starting] }
 
-    return someAreUp && noneAreDownOrStarting
+    return areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp) && noneAreDown
   }
 
   static class HealthCountSnapshot {
@@ -123,5 +122,4 @@ class HealthHelper {
     int failed
     int unknown
   }
-
 }

@@ -16,32 +16,56 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.orca.clouddriver.model.HealthState
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.clouddriver.model.HealthState.*
+
 class WaitForUpInstanceHealthTaskSpec extends Specification {
-  @Unroll("#interestedHealthProviderNames instance: #instance => shouldBeUp: #shouldBeUp")
+  @Unroll("#interestingHealthProviderNames instance: #instance => shouldBeUp: #shouldBeUp")
   def "test if instance with a given interested health provider name should be considered up"() {
     expect:
-    new WaitForUpInstanceHealthTask().hasSucceeded(instance, interestedHealthProviderNames) == shouldBeUp
+    new WaitForUpInstanceHealthTask().hasSucceeded(instance, interestingHealthProviderNames) == shouldBeUp
 
     where:
-    interestedHealthProviderNames || instance                                                                                                            || shouldBeUp
-    []                            || [health: []]                                                                                                        || false
-    []                            || [health: null]                                                                                                      || false
-    ["Amazon"]                    || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"]]]                                             || true
-    ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "Down"]]]         || false
-    ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "OutOfService"]]] || true
-    ["Discovery"]                 || [health: [[type: "Discovery", state: "Down"]]]                                                                      || false
-    ["Discovery"]                 || [health: [[type: "Discovery", state: "OutOfService"]]]                                                              || false
-    ["Discovery", "Other"]        || [health: [[type: "Other", state: "Down"]]]                                                                          || false
-    ["Amazon"]                    || [health: []]                                                                                                        || false
-    ["Amazon"]                    || [health: [[type: "Amazon", healthClass: "platform", state: "Up"]]]                                                  || true
-    ["Amazon", "Discovery"]       || [health: [[type: "Amazon", healthClass: "platform", state: "Unknown"], [type: "Discovery", state: "Up"]]]           || true
-    ["Discovery"]                 || [health: [[type: "Discovery", state: "Up"]]]                                                                        || true
-    ["Discovery"]                 || [health: [[type: "Other", state: "Up"]]]                                                                            || false
-    ["Discovery", "Other"]        || [health: [[type: "Other", state: "Up"]]]                                                                            || true
-    ["Discovery"]                 || [health: [[type: "Other", state: "Down"]]]                                                                          || false
+    interestingHealthProviderNames || instance || shouldBeUp
+    []                             || [health: []]                                                            || false
+    []                             || [health: null]                                                          || false
+    null                           || [health: [Amazon(Unknown)]]                                             || false
+    []                             || [health: [Amazon(Unknown)]]                                             || false
+    ["Amazon"]                     || [health: [Amazon(Unknown)]]                                             || true
+    ["Amazon", "Discovery"]        || [health: [Amazon(Unknown), Discovery(Down)]]                            || false
+    ["Amazon", "Discovery"]        || [health: [Amazon(Unknown), Discovery(OutOfService)]]                    || false
+    null                           || [health: [Amazon(Unknown), Discovery(OutOfService), LoadBalancer(Up)]]  || false
+    null                           || [health: [Amazon(Unknown), Discovery(Up), LoadBalancer(Down)]]          || false
+    null                           || [health: [Amazon(Unknown), Discovery(Up), LoadBalancer(Up)]]            || true
+    null                           || [health: [Amazon(Unknown), Discovery(Up), LoadBalancer(Unknown)]]       || true
+    ["Discovery"]                  || [health: [Discovery(Down)]]                                             || false
+    ["Discovery"]                  || [health: [Discovery(OutOfService)]]                                     || false
+    ["Discovery", "Other"]         || [health: [Other(Down)]]                                                 || false
+    ["Amazon"]                     || [health: []]                                                            || false
+    ["Amazon"]                     || [health: [Amazon(Up)]]                                                  || true
+    ["Amazon", "Discovery"]        || [health: [Amazon(Unknown), Discovery(Up)]]                              || true
+    ["Discovery"]                  || [health: [Discovery(Up)]]                                               || true
+    ["Discovery"]                  || [health: [Other(Up)]]                                                   || false
+    ["Discovery", "Other"]         || [health: [Other(Up)]]                                                   || true
+    ["Discovery"]                  || [health: [Other(Down)]]                                                 || false
   }
 
+  def Amazon(HealthState state) {
+    return [type: "Amazon", healthClass: "platform", state: state.name()]
+  }
+
+  def Discovery(HealthState state) {
+    return [type: "Discovery", state: state.name()]
+  }
+
+  def Other(HealthState state) {
+    return [type: "Other", state: state.name()]
+  }
+
+  def LoadBalancer(HealthState state) {
+    return [type: "LoadBalancer", state: state.name()]
+  }
 }
