@@ -27,6 +27,13 @@ class BlockDeviceConfig {
   BlockDeviceConfig(DeployDefaults deployDefaults) {
     this.deployDefaults = deployDefaults
     blockDevicesByInstanceType = [
+      "a1.medium"   : sizedBlockDevicesForEbs(40),
+      "a1.large"    : sizedBlockDevicesForEbs(40),
+      "a1.xlarge"   : sizedBlockDevicesForEbs(80),
+      "a1.2xlarge"  : sizedBlockDevicesForEbs(80),
+      "a1.4xlarge"  : sizedBlockDevicesForEbs(120),
+      "a1.metal"    : sizedBlockDevicesForEbs(120),
+
       "c1.medium"   : enumeratedBlockDevicesWithVirtualName(1),
       "c1.xlarge"   : enumeratedBlockDevicesWithVirtualName(4),
 
@@ -47,14 +54,27 @@ class BlockDeviceConfig {
       "c5.2xlarge"  : defaultBlockDevicesForEbsOnly(),
       "c5.4xlarge"  : defaultBlockDevicesForEbsOnly(),
       "c5.9xlarge"  : defaultBlockDevicesForEbsOnly(),
+      "c5.12xlarge" : defaultBlockDevicesForEbsOnly(),
       "c5.18xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c5.24xlarge" : defaultBlockDevicesForEbsOnly(),
 
       "c5d.large"    : enumeratedBlockDevicesWithVirtualName(1),
       "c5d.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
       "c5d.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
       "c5d.4xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
       "c5d.9xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c5d.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
       "c5d.18xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "c5d.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+      "c5d.metal"    : enumeratedBlockDevicesWithVirtualName(4),
+
+      "c5n.large"   : defaultBlockDevicesForEbsOnly(),
+      "c5n.xlarge"  : defaultBlockDevicesForEbsOnly(),
+      "c5n.2xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c5n.4xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c5n.9xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c5n.18xlarge": defaultBlockDevicesForEbsOnly(),
+      "c5n.metal"   : defaultBlockDevicesForEbsOnly(),
 
       "cc2.8xlarge" : enumeratedBlockDevicesWithVirtualName(4),
 
@@ -78,6 +98,14 @@ class BlockDeviceConfig {
       "g3.4xlarge"  : sizedBlockDevicesForEbs(120),
       "g3.8xlarge"  : sizedBlockDevicesForEbs(120),
       "g3.16xlarge" : sizedBlockDevicesForEbs(120),
+
+      "g4dn.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "g4dn.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "g4dn.4xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "g4dn.8xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "g4dn.12xlarge" : enumeratedBlockDevicesWithVirtualName(1),
+      "g4dn.16xlarge" : enumeratedBlockDevicesWithVirtualName(1),
+      "g4dn.metal"    : enumeratedBlockDevicesWithVirtualName(2),
 
       "h1.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
       "h1.4xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
@@ -106,6 +134,11 @@ class BlockDeviceConfig {
       "i3en.6xlarge": enumeratedBlockDevicesWithVirtualName(2),
       "i3en.12xlarge": enumeratedBlockDevicesWithVirtualName(4),
       "i3en.24xlarge": enumeratedBlockDevicesWithVirtualName(8),
+
+      "inf1.xlarge"   : sizedBlockDevicesForEbs(80),
+      "inf1.2xlarge"  : sizedBlockDevicesForEbs(80),
+      "inf1.6xlarge"  : sizedBlockDevicesForEbs(120),
+      "inf1.24xlarge" : sizedBlockDevicesForEbs(120),
 
       "m1.small"    : enumeratedBlockDevicesWithVirtualName(1),
       "m1.medium"   : enumeratedBlockDevicesWithVirtualName(1),
@@ -145,6 +178,49 @@ class BlockDeviceConfig {
       "m5d.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
       "m5d.16xlarge" : enumeratedBlockDevicesWithVirtualName(4),
       "m5d.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+
+      "m5n.large"    : sizedBlockDevicesForEbs(40),
+      "m5n.xlarge"   : sizedBlockDevicesForEbs(80),
+      "m5n.2xlarge"  : sizedBlockDevicesForEbs(80),
+      "m5n.4xlarge"  : sizedBlockDevicesForEbs(120),
+      "m5n.8xlarge"  : sizedBlockDevicesForEbs(120),
+      "m5n.12xlarge" : sizedBlockDevicesForEbs(120),
+      "m5n.16xlarge" : sizedBlockDevicesForEbs(120),
+      "m5n.24xlarge" : sizedBlockDevicesForEbs(120),
+
+      "m5dn.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "m5dn.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "m5dn.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "m5dn.4xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
+      "m5dn.8xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
+      "m5dn.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "m5dn.16xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+      "m5dn.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+
+      "m5a.large"    : sizedBlockDevicesForEbs(40),
+      "m5a.xlarge"   : sizedBlockDevicesForEbs(80),
+      "m5a.2xlarge"  : sizedBlockDevicesForEbs(80),
+      "m5a.4xlarge"  : sizedBlockDevicesForEbs(120),
+      "m5a.8xlarge"  : sizedBlockDevicesForEbs(120),
+      "m5a.12xlarge" : sizedBlockDevicesForEbs(120),
+      "m5a.16xlarge" : sizedBlockDevicesForEbs(120),
+      "m5a.24xlarge" : sizedBlockDevicesForEbs(120),
+
+      "m5ad.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "m5ad.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "m5ad.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "m5ad.4xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
+      "m5ad.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "m5ad.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+
+      "m6g.medium"   : sizedBlockDevicesForEbs(40),
+      "m6g.large"    : sizedBlockDevicesForEbs(40),
+      "m6g.xlarge"   : sizedBlockDevicesForEbs(80),
+      "m6g.2xlarge"  : sizedBlockDevicesForEbs(80),
+      "m6g.4xlarge"  : sizedBlockDevicesForEbs(120),
+      "m6g.8xlarge"  : sizedBlockDevicesForEbs(120),
+      "m6g.12xlarge" : sizedBlockDevicesForEbs(120),
+      "m6g.16xlarge" : sizedBlockDevicesForEbs(120),
 
       "r3.large"    : enumeratedBlockDevicesWithVirtualName(1),
       "r3.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
@@ -195,6 +271,22 @@ class BlockDeviceConfig {
       "r5dn.16xlarge" : enumeratedBlockDevicesWithVirtualName(4),
       "r5dn.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
 
+      "r5a.large"    : sizedBlockDevicesForEbs(40),
+      "r5a.xlarge"   : sizedBlockDevicesForEbs(80),
+      "r5a.2xlarge"  : sizedBlockDevicesForEbs(80),
+      "r5a.4xlarge"  : sizedBlockDevicesForEbs(120),
+      "r5a.8xlarge"  : sizedBlockDevicesForEbs(120),
+      "r5a.12xlarge" : sizedBlockDevicesForEbs(120),
+      "r5a.16xlarge" : sizedBlockDevicesForEbs(120),
+      "r5a.24xlarge" : sizedBlockDevicesForEbs(120),
+
+      "r5ad.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "r5ad.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "r5ad.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "r5ad.4xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
+      "r5ad.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "r5ad.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+
       "p2.xlarge"   : sizedBlockDevicesForEbs(80),
       "p2.8xlarge"  : sizedBlockDevicesForEbs(120),
       "p2.16xlarge" : sizedBlockDevicesForEbs(120),
@@ -202,6 +294,8 @@ class BlockDeviceConfig {
       "p3.2xlarge"  : sizedBlockDevicesForEbs(80),
       "p3.8xlarge"  : sizedBlockDevicesForEbs(120),
       "p3.16xlarge" : sizedBlockDevicesForEbs(120),
+
+      "p3dn.24xlarge" : sizedBlockDevicesForEbs(120),
 
       "t1.micro"    : [],
 
@@ -220,6 +314,14 @@ class BlockDeviceConfig {
       "t3.large"    : [],
       "t3.xlarge"   : [],
       "t3.2xlarge"  : [],
+
+      "t3a.nano"    : [],
+      "t3a.micro"   : [],
+      "t3a.small"   : [],
+      "t3a.medium"  : [],
+      "t3a.large"   : [],
+      "t3a.xlarge"  : [],
+      "t3a.2xlarge" : [],
 
       "x1.16xlarge" : enumeratedBlockDevicesWithVirtualName(1),
       "x1.32xlarge" : enumeratedBlockDevicesWithVirtualName(2),
