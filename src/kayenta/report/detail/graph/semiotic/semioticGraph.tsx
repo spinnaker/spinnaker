@@ -20,7 +20,7 @@ export default class SemioticGraph extends React.Component<IMetricSetPairGraphPr
       ...this.props,
       parentWidth,
     };
-    const filterInvalidValues = (data: number[]) => data.filter(v => typeof v === 'number');
+    const filterInvalidValues = (data: number[]) => data.filter((v) => typeof v === 'number');
 
     if (filterInvalidValues(control).length === 0 && filterInvalidValues(experiment).length === 0) {
       return <NoValidDataSign />;

@@ -25,8 +25,8 @@ interface IReportScoresDispatchProps {
 }
 
 /*
-* Layout for the report scores.
-* */
+ * Layout for the report scores.
+ * */
 const ReportScores = ({
   groups,
   selectedGroup,
@@ -60,7 +60,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IReportScoresDisp
   clearSelectedGroup: () => dispatch(Creators.selectReportMetricGroup({ group: null })),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ReportScores);
+export default connect(mapStateToProps, mapDispatchToProps)(ReportScores);

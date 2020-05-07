@@ -30,7 +30,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IOpenConf
   };
 }
 
-export default connect(
-  null,
-  mapDispatchToProps,
-)(OpenConfigJsonModalButton);
+export default connect(null, mapDispatchToProps)(OpenConfigJsonModalButton);

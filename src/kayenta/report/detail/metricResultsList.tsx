@@ -64,12 +64,12 @@ const ResultsList = ({
   return (
     <section className="vertical metric-results-list flex-1">
       <Table
-        rowKey={r => r.metricName}
+        rowKey={(r) => r.metricName}
         tableBodyClassName="list-unstyled tabs-vertical flex-1"
-        rowClassName={r => classNames('horizontal', { selected: r.results[0].id === selectedMetric })}
+        rowClassName={(r) => classNames('horizontal', { selected: r.results[0].id === selectedMetric })}
         rows={rows}
         columns={metricResultsColumns}
-        onRowClick={r => select(r.results[0].id)}
+        onRowClick={(r) => select(r.results[0].id)}
         className="flex-1 vertical"
         customRow={buildRowForMetricWithMultipleResults}
       />
@@ -89,7 +89,4 @@ const mapDispatchToProps = (
   ...ownProps,
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ResultsList);
+export default connect(mapStateToProps, mapDispatchToProps)(ResultsList);

@@ -38,7 +38,7 @@ const combined = combineReducers<ICanaryState>({
 });
 
 const getRenderState = (judges: IJudge[], judgeConfig: ICanaryJudgeConfig): JudgeSelectRenderState => {
-  if (judges.some(judge => judge.name === judgeConfig.name)) {
+  if (judges.some((judge) => judge.name === judgeConfig.name)) {
     if (judges.length === 1) {
       return JudgeSelectRenderState.None;
     } else {
@@ -90,7 +90,7 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
         if (!editedConfig) {
           return true;
         } else {
-          const originalConfig = state.data.configs.find(c => c.id === editedConfig.id);
+          const originalConfig = state.data.configs.find((c) => c.id === editedConfig.id);
           // If we're saving the config right now, don't warn that
           // the config hasn't been saved.
           if (
@@ -124,7 +124,7 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
       }
 
       const group = action.payload.group;
-      const filter: (r: ICanaryAnalysisResult) => boolean = group ? r => r.groups.includes(group) : () => true;
+      const filter: (r: ICanaryAnalysisResult) => boolean = group ? (r) => r.groups.includes(group) : () => true;
 
       return results.find(filter) ? results.find(filter).id : null;
     }
@@ -173,14 +173,14 @@ const selectedMetricStoreReducer = (state: ICanaryState, action: Action & any) =
     case Actions.SELECT_CONFIG:
     case Actions.LOAD_KAYENTA_ACCOUNTS_SUCCESS: {
       const stores = chain(state.data.kayentaAccounts.data)
-        .filter(account => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
-        .map(account => account.metricsStoreType || account.type)
+        .filter((account) => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
+        .map((account) => account.metricsStoreType || account.type)
         .uniq()
         .valueOf();
 
       let selectedStore = (state.selectedConfig.metricList || [])
-        .map(metric => metric.query.type)
-        .find(store => !!store);
+        .map((metric) => metric.query.type)
+        .find((store) => !!store);
 
       selectedStore =
         selectedStore ||

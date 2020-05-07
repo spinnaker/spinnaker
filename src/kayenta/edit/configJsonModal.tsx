@@ -75,14 +75,13 @@ function ConfigJsonModal({
             {tabState === ConfigJsonModalTabState.Edit && (
               <JsonEditor value={configJson} debounceChangePeriod={500} onChange={setConfigJson} readOnly={disabled} />
             )}
-            {tabState === ConfigJsonModalTabState.Diff &&
-              !deserializationError && (
-                <div className="modal-show-history">
-                  <div className="show-history">
-                    <DiffView diff={diff} />
-                  </div>
+            {tabState === ConfigJsonModalTabState.Diff && !deserializationError && (
+              <div className="modal-show-history">
+                <div className="show-history">
+                  <DiffView diff={diff} />
                 </div>
-              )}
+              </div>
+            )}
             {!!deserializationError && (
               <div className="horizontal row center">
                 <span className="error-message">Error: {deserializationError}</span>
@@ -136,7 +135,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigJs
 function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
   const id: string = get(state, 'selectedConfig.config.id');
   const persistedConfig = JsonUtils.makeSortedStringFromObject(
-    omit(state.data.configs.find(c => c.id === id) || {}, 'id'),
+    omit(state.data.configs.find((c) => c.id === id) || {}, 'id'),
   );
 
   const configJson =
@@ -156,7 +155,4 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ConfigJsonModal);
+export default connect(mapStateToProps, mapDispatchToProps)(ConfigJsonModal);

@@ -27,12 +27,7 @@ an additional date label is returned, otherwise only a single label showing hour
 */
 export const dateTimeTickFormatter = (d: number) => {
   const m = moment(d);
-  if (
-    m
-      .clone()
-      .startOf('day')
-      .unix() === m.unix()
-  ) {
+  if (m.clone().startOf('day').unix() === m.unix()) {
     return [m.format('HH:mm'), m.format('MMM DD')];
   } else {
     return [m.format('HH:mm')];
@@ -47,11 +42,11 @@ export const calculateDateTimeTicks = (millisSet: number[]) => {
   const maxMillis = millisSet[millisSet.length - 1];
 
   /*
-  * since d3 scale doesn't support custom timezone, we have to:
-  * 1)shift the UTC domain based on the tz,
-  * 2)have d3 calculate the ideal tick values as usual, and
-  * 3)shift back the result
-  */
+   * since d3 scale doesn't support custom timezone, we have to:
+   * 1)shift the UTC domain based on the tz,
+   * 2)have d3 calculate the ideal tick values as usual, and
+   * 3)shift back the result
+   */
   const offsetMillis = moment(minMillis).utcOffset() * 60000;
   const minMillisShifted = minMillis + offsetMillis;
   const maxMillisShifted = maxMillis + offsetMillis;

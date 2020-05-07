@@ -11,7 +11,7 @@ export const buildDelegateService = <T extends IDelegate>() => {
     }
 
     public getDelegate(name: string): T {
-      return this.delegates.find(d => d.name === name);
+      return this.delegates.find((d) => d.name === name);
     }
   }
 

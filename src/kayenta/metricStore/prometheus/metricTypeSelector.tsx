@@ -54,7 +54,7 @@ export class PrometheusMetricTypeSelector extends React.Component<
     const { accountOptions, load, loading, metricOptions, onChange, value } = this.props;
 
     const metricOptionsWithSelected =
-      value && metricOptions.every(o => o.value !== value)
+      value && metricOptions.every((o) => o.value !== value)
         ? metricOptions.concat({ label: value, value })
         : metricOptions;
 
@@ -66,7 +66,7 @@ export class PrometheusMetricTypeSelector extends React.Component<
           onChange={onChange}
           value={value}
           placeholder={'Enter at least three characters to search.'}
-          onInputChange={input => {
+          onInputChange={(input) => {
             load(input, this.state.selectedAccount);
             return input;
           }}
@@ -111,9 +111,9 @@ const accountOptionsSelector = createSelector(
   (state: ICanaryState) => state.data.kayentaAccounts.data,
   (accounts): Array<Option<string>> => {
     return chain(accounts)
-      .filter(a => a.supportedTypes.includes(KayentaAccountType.MetricsStore) && a.type === 'prometheus')
-      .sortBy(a => a.name)
-      .map(a => ({ label: a.name, value: a.name }))
+      .filter((a) => a.supportedTypes.includes(KayentaAccountType.MetricsStore) && a.type === 'prometheus')
+      .sortBy((a) => a.name)
+      .map((a) => ({ label: a.name, value: a.name }))
       .value();
   },
 );
@@ -121,7 +121,7 @@ const accountOptionsSelector = createSelector(
 const metricOptionsSelector = createSelector(
   (state: ICanaryState) => state.data.metricsServiceMetadata.data,
   (descriptors: IPrometheusMetricDescriptor[]): Array<Option<string>> =>
-    descriptors.map(d => ({ label: d.name, value: d.name })),
+    descriptors.map((d) => ({ label: d.name, value: d.name })),
 );
 
 const mapStateToProps = (state: ICanaryState, ownProps: IPrometheusMetricTypeSelectorOwnProps) => {
@@ -141,7 +141,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(PrometheusMetricTypeSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(PrometheusMetricTypeSelector);

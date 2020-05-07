@@ -66,7 +66,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
           },
         },
         children: [configDefault, configDetail],
-        redirectTo: transition => transition.to().name + '.configDefault',
+        redirectTo: (transition) => transition.to().name + '.configDefault',
       };
 
       const reportDetail: INestedState = {
@@ -108,7 +108,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
           },
         },
         children: [reportDetail, reportDefault],
-        redirectTo: transition => transition.to().name + '.reportDefault',
+        redirectTo: (transition) => transition.to().name + '.reportDefault',
       };
 
       const canaryRoot: INestedState = {
@@ -148,7 +148,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       $uiRouter.transitionService.onBefore(
         {
           from: '**.configDetail.**',
-          to: state => !state.name.includes('configDetail'),
+          to: (state) => !state.name.includes('configDetail'),
         },
         () => {
           canaryStore.dispatch(Creators.clearSelectedConfig());
@@ -157,7 +157,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
       // Prompts confirmation for page navigation if config hasn't been saved.
       // Should be possible with a $uiRouter transition hook, but it's not.
-      $rootScope.$on('$stateChangeStart', event => {
+      $rootScope.$on('$stateChangeStart', (event) => {
         const state = canaryStore.getState();
         const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
         if (state.selectedConfig && !state.selectedConfig.isInSyncWithServer) {

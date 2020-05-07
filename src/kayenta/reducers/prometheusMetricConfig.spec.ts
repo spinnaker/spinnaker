@@ -20,7 +20,7 @@ describe('Reducer: prometheusMetricConfigReducer', () => {
     });
 
     it('deletes key/value pair if passed falsy value', () => {
-      [null, undefined, ''].forEach(falsyValue => {
+      [null, undefined, ''].forEach((falsyValue) => {
         const nextState = prometheusMetricConfigReducer({ query: { resourceType: 'aws_ec2_instance' } } as any, {
           type: Actions.UPDATE_PROMETHEUS_METRIC_QUERY_FIELD,
           payload: { field: 'resourceType', value: falsyValue },

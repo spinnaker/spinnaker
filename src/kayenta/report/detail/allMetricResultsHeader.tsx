@@ -13,8 +13,8 @@ export interface IAllMetricResultsHeader {
 }
 
 /*
-* Clickable header for all metric results.
-*/
+ * Clickable header for all metric results.
+ */
 export default ({ className, onClick, score, scoreThresholds }: IAllMetricResultsHeader) => (
   <section className={className}>
     <div

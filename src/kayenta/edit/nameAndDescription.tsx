@@ -79,7 +79,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): INameAndD
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(NameAndDescription);
+export default connect(mapStateToProps, mapDispatchToProps)(NameAndDescription);

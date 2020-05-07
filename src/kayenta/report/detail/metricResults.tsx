@@ -38,12 +38,12 @@ const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
 
   // Build list of metric results to render.
   const filter: (r: ICanaryAnalysisResult) => boolean = selectedGroup
-    ? r => r.groups.includes(selectedGroup)
+    ? (r) => r.groups.includes(selectedGroup)
     : () => true;
 
   return {
     metricResults: Object.values(result.results).filter(filter),
-    selectedMetricResult: Object.values(result.results).find(r => r.id === selectedMetric),
+    selectedMetricResult: Object.values(result.results).find((r) => r.id === selectedMetric),
   };
 };
 

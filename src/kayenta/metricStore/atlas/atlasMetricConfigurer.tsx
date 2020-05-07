@@ -124,9 +124,6 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IAtlasMet
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(AtlasMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(AtlasMetricConfigurer);
 
 export { queryFinder };

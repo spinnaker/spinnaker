@@ -230,7 +230,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
         actions.setSubmitting(false);
         actions.setStatus({ succeeded: true });
       })
-      .catch(error => {
+      .catch((error) => {
         actions.setSubmitting(false);
         actions.setStatus({ succeeded: false, error });
       });
@@ -368,8 +368,8 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                             recommendedLocations={recommendedLocations}
                             locations={locations}
                             value={values.baselineLocation}
-                            onChange={location => setFieldValue('baselineLocation', location)}
-                            onShowAllChange={showAll => this.setState({ showAllControlLocations: showAll })}
+                            onChange={(location) => setFieldValue('baselineLocation', location)}
+                            onShowAllChange={(showAll) => this.setState({ showAllControlLocations: showAll })}
                             input={
                               <Field
                                 className="form-control input-sm"
@@ -399,8 +399,8 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                             recommendedLocations={recommendedLocations}
                             locations={locations}
                             value={values.canaryLocation}
-                            onChange={location => setFieldValue('canaryLocation', location)}
-                            onShowAllChange={showAll => this.setState({ showAllExperimentLocations: showAll })}
+                            onChange={(location) => setFieldValue('canaryLocation', location)}
+                            onShowAllChange={(showAll) => this.setState({ showAllExperimentLocations: showAll })}
                             input={
                               <Field
                                 className="form-control input-sm"
@@ -434,7 +434,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                         <div className="col-md-7">
                           <MapEditor
                             model={values.extendedScopeParams}
-                            onChange={model => setFieldValue('extendedScopeParams', model)}
+                            onChange={(model) => setFieldValue('extendedScopeParams', model)}
                             hiddenKeys={['resourceType']}
                           />
                         </div>
@@ -529,7 +529,7 @@ const LocationField = ({
   }
 
   const combinedLocations = combineLocations(showAll, recommendedLocations, locations);
-  const options = combinedLocations.map(location => ({ label: location, value: location }));
+  const options = combinedLocations.map((location) => ({ label: location, value: location }));
 
   return (
     <>
@@ -539,23 +539,22 @@ const LocationField = ({
         options={options}
         onChange={(item: { label: string; value: string }) => onChange((item && item.value) || '')}
       />
-      {recommendedLocations.length > 0 &&
-        locations.length > 0 && (
-          <div className="pull-right">
-            <button
-              type="button"
-              className="link"
-              onClick={() => {
-                onShowAllChange(!showAll);
-                if (!combineLocations(!showAll, recommendedLocations, locations).includes(value)) {
-                  onChange('');
-                }
-              }}
-            >
-              {showAll ? 'Only show recommended locations' : 'Show all locations'}
-            </button>
-          </div>
-        )}
+      {recommendedLocations.length > 0 && locations.length > 0 && (
+        <div className="pull-right">
+          <button
+            type="button"
+            className="link"
+            onClick={() => {
+              onShowAllChange(!showAll);
+              if (!combineLocations(!showAll, recommendedLocations, locations).includes(value)) {
+                onChange('');
+              }
+            }}
+          >
+            {showAll ? 'Only show recommended locations' : 'Show all locations'}
+          </button>
+        </div>
+      )}
     </>
   );
 };

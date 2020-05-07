@@ -41,15 +41,13 @@ function GroupTabs({
     return (
       <Tab selected={selected}>
         <GroupName group={group} editing={selected && editing} onClick={selectGroup} defaultGroup={ALL} />
-        {selected &&
-          editable &&
-          !editing && (
-            <i
-              data-group={group}
-              onClick={disableConfigEdit ? noop : editGroupBegin}
-              className={classNames('fas', 'fa-pencil-alt', { disabled: disableConfigEdit })}
-            />
-          )}
+        {selected && editable && !editing && (
+          <i
+            data-group={group}
+            onClick={disableConfigEdit ? noop : editGroupBegin}
+            className={classNames('fas', 'fa-pencil-alt', { disabled: disableConfigEdit })}
+          />
+        )}
       </Tab>
     );
   };
@@ -57,7 +55,7 @@ function GroupTabs({
     <section className="group-tabs">
       <Tabs style={{ marginBottom: '0' }}>
         <GroupTab group="" />
-        {groupList.map(group => (
+        {groupList.map((group) => (
           <GroupTab key={group} group={group} editable={true} />
         ))}
         <DisableableButton className="passive float-right" onClick={addGroup} disabledStateKeys={[DISABLE_EDIT_CONFIG]}>
@@ -95,7 +93,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupTab
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GroupTabs);
+export default connect(mapStateToProps, mapDispatchToProps)(GroupTabs);

@@ -64,7 +64,7 @@ function JudgeSelect({
 
 function mapStateToProps(state: ICanaryState): IJudgeSelectStateProps {
   return {
-    judgeOptions: (state.data.judges || []).map(judge => ({ value: judge.name, label: judge.name })),
+    judgeOptions: (state.data.judges || []).map((judge) => ({ value: judge.name, label: judge.name })),
     selectedJudge: state.selectedConfig.judge.judgeConfig.name,
     renderState: state.selectedConfig.judge.renderState,
   };
@@ -78,7 +78,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IJudgeSel
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(JudgeSelect);
+export default connect(mapStateToProps, mapDispatchToProps)(JudgeSelect);

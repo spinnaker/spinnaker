@@ -40,8 +40,8 @@ const requiredForAnalysisTypes = (
 };
 
 const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
-  return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
-    let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+  return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then((configDetails) => {
+    let definedScopeNames = uniq(map(configDetails.metrics, (metric) => metric.scopeName || 'default'));
     definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
 
     const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
@@ -58,8 +58,8 @@ const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaStage): 
 };
 
 const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
-  return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
-    let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
+  return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then((configDetails) => {
+    let definedScopeNames = uniq(map(configDetails.metrics, (metric) => metric.scopeName || 'default'));
     definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
 
     const configureScopedNames: string[] = map(get(stage, 'canaryConfig.scopes'), 'scopeName');
@@ -68,9 +68,7 @@ const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaS
     if (missingScopeNames.length > 1) {
       return `Scopes <strong>${missingScopeNames.join()}</strong> are configured but are not defined in the canary configuration.`;
     } else if (missingScopeNames.length === 1) {
-      return `Scope <strong>${
-        missingScopeNames[0]
-      }</strong> is configured but is not defined in the canary configuration.`;
+      return `Scope <strong>${missingScopeNames[0]}</strong> is configured but is not defined in the canary configuration.`;
     } else {
       return null;
     }
@@ -175,7 +173,7 @@ module(KAYENTA_CANARY_STAGE, [
               return null;
             }
 
-            return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
+            return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then((configDetails) => {
               if (
                 get(configDetails, 'metrics[0].query.type') === 'atlas' &&
                 !get(stage, 'canaryConfig.scopes[0].extendedScopeParams.type')
@@ -206,7 +204,7 @@ module(KAYENTA_CANARY_STAGE, [
               return null;
             }
             const emails = Array.isArray(notificationEmail) ? notificationEmail : [notificationEmail];
-            const invalidEmail = emails.find(email => !isValidEmail(email));
+            const invalidEmail = emails.find((email) => !isValidEmail(email));
             return invalidEmail ? `Invalid <strong>Notification Email</strong> (${invalidEmail})` : null;
           },
         },

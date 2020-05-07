@@ -138,7 +138,7 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
         <div className={`group group-${group.label}`} key={group.label || index}>
           <Label label={group.label || ''} extraClass="label-lg" />
           <ul className="list-unstyled">
-            {group.entries.map(e => (
+            {group.entries.map((e) => (
               <li key={e.label || index}>
                 <Label label={e.label} />
                 {e.popover ? (

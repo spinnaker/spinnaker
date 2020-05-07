@@ -49,15 +49,15 @@ function MetricList({
   const columns: Array<ITableColumn<ICanaryMetricConfig>> = [
     {
       label: 'Metric Name',
-      getContent: metric => <span>{metric.name || '(new)'}</span>,
+      getContent: (metric) => <span>{metric.name || '(new)'}</span>,
     },
     {
       label: 'Groups',
-      getContent: metric => <span>{metric.groups.join(', ')}</span>,
+      getContent: (metric) => <span>{metric.groups.join(', ')}</span>,
       hide: () => !showGroups,
     },
     {
-      getContent: metric => (
+      getContent: (metric) => (
         <div className="horizontal pull-right metrics-action-buttons">
           <button className="link" data-id={metric.id} onClick={editMetric}>
             {disableEdit ? 'View' : 'Edit'}
@@ -78,7 +78,7 @@ function MetricList({
 
   return (
     <>
-      <NativeTable columns={columns} rows={metrics} rowKey={metric => metric.id} className="header-white" />
+      <NativeTable columns={columns} rows={metrics} rowKey={(metric) => metric.id} className="header-white" />
       {!metrics.length && selectedGroup ? (
         <p>
           This group is empty! The group will be not be present the next time the config is loaded unless it is saved
@@ -109,9 +109,9 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
     selectedGroup,
     groupList: state.selectedConfig.group.list,
     metrics: metricList.filter(filter),
-    showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
+    showGroups: !selectedGroup || metricList.filter(filter).some((metric) => metric.groups.length > 1),
     changingGroupMetric: state.selectedConfig.metricList.find(
-      m => m.id === state.selectedConfig.changeMetricGroup.metric,
+      (m) => m.id === state.selectedConfig.changeMetricGroup.metric,
     ),
     metricStore: state.selectedConfig.selectedStore,
     disableEdit: state.app.disableConfigEdit,
@@ -158,7 +158,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(MetricList);
+export default connect(mapStateToProps, mapDispatchToProps)(MetricList);

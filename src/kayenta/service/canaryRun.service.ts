@@ -31,10 +31,7 @@ export const startCanaryRun = (
   executionRequest: ICanaryExecutionRequest,
   params: ICanaryExecutionRequestParams = {},
 ): Promise<ICanaryExecutionResponse> => {
-  return API.one('v2/canaries/canary')
-    .one(configId)
-    .withParams(params)
-    .post(executionRequest);
+  return API.one('v2/canaries/canary').one(configId).withParams(params).post(executionRequest);
 };
 
 export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): Promise<IMetricSetPair> =>
@@ -43,7 +40,7 @@ export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: s
     .withParams({ storageAccountName: CanarySettings.storageAccountName })
     .useCache()
     .get()
-    .then((list: IMetricSetPair[]) => list.find(pair => pair.id === metricSetPairId));
+    .then((list: IMetricSetPair[]) => list.find((pair) => pair.id === metricSetPairId));
 
 export const listCanaryExecutions = (
   application: string,
@@ -51,11 +48,7 @@ export const listCanaryExecutions = (
   statuses?: string,
   storageAccountName?: string,
 ): Promise<ICanaryExecutionStatusResult[]> =>
-  API.one('v2/canaries')
-    .one(application)
-    .one('executions')
-    .withParams({ limit, statuses, storageAccountName })
-    .get();
+  API.one('v2/canaries').one(application).one('executions').withParams({ limit, statuses, storageAccountName }).get();
 
 export const getHealthLabel = (health: string, result: string): string => {
   const healthLC = (health || '').toLowerCase();
@@ -63,8 +56,8 @@ export const getHealthLabel = (health: string, result: string): string => {
   return healthLC === 'unhealthy'
     ? 'unhealthy'
     : resultLC === 'success'
-      ? 'healthy'
-      : resultLC === 'failure'
-        ? 'failing'
-        : 'unknown';
+    ? 'healthy'
+    : resultLC === 'failure'
+    ? 'failing'
+    : 'unknown';
 };

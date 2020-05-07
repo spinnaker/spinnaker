@@ -16,7 +16,7 @@ const ConfigValidationErrors = ({ errors }: IConfigValidationErrorsStateProps) =
     <section>
       <p>The following errors may prevent this config from working properly:</p>
       <ul>
-        {errors.map(e => (
+        {errors.map((e) => (
           <li key={e}>{e}</li>
         ))}
       </ul>
@@ -33,7 +33,7 @@ const ConfigValidationErrors = ({ errors }: IConfigValidationErrorsStateProps) =
 };
 
 const mapStateToProps = (state: ICanaryState): IConfigValidationErrorsStateProps => ({
-  errors: state.selectedConfig.validationErrors.map(e => e.message),
+  errors: state.selectedConfig.validationErrors.map((e) => e.message),
 });
 
 export default connect(mapStateToProps)(ConfigValidationErrors);

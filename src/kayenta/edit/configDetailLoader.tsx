@@ -57,7 +57,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigLo
   };
 }
 
-export default connect(
-  null,
-  mapDispatchToProps,
-)(ConfigDetailLoader);
+export default connect(null, mapDispatchToProps)(ConfigDetailLoader);

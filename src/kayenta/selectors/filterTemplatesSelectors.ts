@@ -29,18 +29,18 @@ export const queryTypeToTransformFunctions: { [queryType: string]: ITemplateTran
 
 export const queryTypeSelector = createSelector(
   (state: ICanaryState) => state.selectedConfig.editingMetric,
-  editingMetric => {
+  (editingMetric) => {
     return editingMetric && editingMetric.query.serviceType === 'prometheus'
       ? getPrometheusQueryType(editingMetric)
       : null;
   },
 );
 
-export const transformInlineTemplateForDisplay = createSelector(queryTypeSelector, queryType =>
+export const transformInlineTemplateForDisplay = createSelector(queryTypeSelector, (queryType) =>
   get(queryTypeToTransformFunctions, [queryType, 'fromValue'], identity),
 );
 
-export const transformInlineTemplateForSave = createSelector(queryTypeSelector, queryType =>
+export const transformInlineTemplateForSave = createSelector(queryTypeSelector, (queryType) =>
   get(queryTypeToTransformFunctions, [queryType, 'toValue'], identity),
 );
 
@@ -67,15 +67,15 @@ export const editingTemplateValidationSelector = createSelector(
     }),
 );
 
-export const isFilterTemplateValidSelector = createSelector(editingTemplateValidationSelector, validation =>
+export const isFilterTemplateValidSelector = createSelector(editingTemplateValidationSelector, (validation) =>
   isEmpty(Object.keys(validation.errors)),
 );
 
-export const isInlineTemplateValidSelector = createSelector(inlineTemplateValueSelector, value => !isEmpty(value));
+export const isInlineTemplateValidSelector = createSelector(inlineTemplateValueSelector, (value) => !isEmpty(value));
 
 const inlineTemplateQueryTypes = [PrometheusQueryType.PROMQL];
 
-export const useInlineTemplateEditorSelector = createSelector(queryTypeSelector, queryType =>
+export const useInlineTemplateEditorSelector = createSelector(queryTypeSelector, (queryType) =>
   inlineTemplateQueryTypes.includes(queryType),
 );
 

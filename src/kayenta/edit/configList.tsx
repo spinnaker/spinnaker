@@ -24,7 +24,7 @@ function ConfigList({ configs, selectedConfigId, application }: IConfigListState
   return (
     <section className="config-list">
       <ul className="tabs-vertical list-unstyled " style={{ wordBreak: 'break-all' }}>
-        {configs.map(config => (
+        {configs.map((config) => (
           <li key={config.id} className={config.id === selectedConfigId ? 'selected' : ''}>
             <UISref to=".configDetail" params={{ id: config.id, new: false, copy: false }}>
               <a>

@@ -54,18 +54,18 @@ export default class Histogram extends React.Component<ISemioticChartProps, IHis
   };
 
   private decorateData = (dataPoints: number[], group: string): IInputDataPoint[] => {
-    return dataPoints.map(dp => ({
+    return dataPoints.map((dp) => ({
       group,
       value: dp,
     }));
   };
 
   /*
-  * Semiotic actually supports histogram as a "summary type" out of the box, but the customization is
-  * currently limited (e.g. it can't display the y-axis ticks & labels)
-  * Hence we're manually generating histogram data using D3 and display it as
-  * a grouped bar chart in semiotic
-  */
+   * Semiotic actually supports histogram as a "summary type" out of the box, but the customization is
+   * currently limited (e.g. it can't display the y-axis ticks & labels)
+   * Hence we're manually generating histogram data using D3 and display it as
+   * a grouped bar chart in semiotic
+   */
   private generateChartData = () => {
     const { metricSetPair } = this.props;
     const filterFunc = (v: IInputDataPoint) => typeof v.value === 'number';
@@ -74,7 +74,7 @@ export default class Histogram extends React.Component<ISemioticChartProps, IHis
     const combinedInput = baselineInput.concat(canaryInput).filter(filterFunc);
 
     const x = scaleLinear()
-      .domain(extent(combinedInput.map(o => o.value)))
+      .domain(extent(combinedInput.map((o) => o.value)))
       .nice();
     const domain = x.domain() as [number, number];
 
@@ -86,11 +86,11 @@ export default class Histogram extends React.Component<ISemioticChartProps, IHis
     const chartData: IChartDataPoint[] = [];
 
     // Convert it to ordinal data format for bar chart in semiotic
-    histogramData.forEach(h => {
+    histogramData.forEach((h) => {
       const { x0, x1 } = h;
       const baselineBin = { group: 'baseline', x0, x1, count: 0 };
       const canaryBin = { group: 'canary', x0, x1, count: 0 };
-      h.forEach(d => (d.group === 'baseline' ? baselineBin.count++ : canaryBin.count++));
+      h.forEach((d) => (d.group === 'baseline' ? baselineBin.count++ : canaryBin.count++));
       chartData.push(baselineBin);
       chartData.push(canaryBin);
     });

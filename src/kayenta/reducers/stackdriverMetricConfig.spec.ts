@@ -20,7 +20,7 @@ describe('Reducer: stackdriverMetricConfigReducer', () => {
     });
 
     it('deletes key/value pair if passed falsy value', () => {
-      [null, undefined, ''].forEach(falsyValue => {
+      [null, undefined, ''].forEach((falsyValue) => {
         const nextState = stackdriverMetricConfigReducer({ query: { crossSeriesReducer: 'REDUCE_NONE' } } as any, {
           type: Actions.UPDATE_STACKDRIVER_METRIC_QUERY_FIELD,
           payload: { field: 'crossSeriesReducer', value: falsyValue },

@@ -26,8 +26,8 @@ interface IGroupScoresDispatchProps {
 }
 
 /*
-* Renders list of group scores.
-* */
+ * Renders list of group scores.
+ * */
 const GroupScores = ({
   groups,
   groupWeights,
@@ -37,7 +37,7 @@ const GroupScores = ({
   selectedGroup,
 }: IGroupScoresOwnProps & IGroupScoresDispatchProps & IGroupScoresStateProps) => (
   <section className={classNames('horizontal', className)}>
-    {groups.map(g => (
+    {groups.map((g) => (
       <ClickableHeader
         key={g.name}
         style={{
@@ -66,7 +66,4 @@ const mapDispatchToProps = (
   ...ownProps,
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GroupScores);
+export default connect(mapStateToProps, mapDispatchToProps)(GroupScores);

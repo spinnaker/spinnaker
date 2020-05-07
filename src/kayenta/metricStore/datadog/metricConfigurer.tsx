@@ -26,8 +26,8 @@ export const nameFinder = (metric: ICanaryMetricConfig) => queryFinder(metric).s
 export const aggFinder = (metric: ICanaryMetricConfig) => queryFinder(metric).split(':', 2)[0];
 
 /*
-* Component for configuring a Datadog metric.
-* */
+ * Component for configuring a Datadog metric.
+ * */
 function DatadogMetricConfigurer({ changeMetricName, editingMetric }: DatadogMetricConfigurerProps) {
   return (
     <>
@@ -86,7 +86,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IDatadogM
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DatadogMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(DatadogMetricConfigurer);

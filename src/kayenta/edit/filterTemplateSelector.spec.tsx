@@ -39,10 +39,7 @@ describe('<FilterTemplateSelector />', () => {
   });
   it('builds options from filter template map', () => {
     const component = buildComponent(defaultProps);
-    const allProps: any = component
-      .find(Select)
-      .first()
-      .props();
+    const allProps: any = component.find(Select).first().props();
 
     expect(allProps.options.map((o: Option) => o.value)).toEqual([
       'my-filter-template',
@@ -90,12 +87,7 @@ describe('<FilterTemplateSelector />', () => {
         },
       },
     });
-    expect(
-      component
-        .find(ValidationMessage)
-        .first()
-        .props().message,
-    ).toEqual('Template name is required');
+    expect(component.find(ValidationMessage).first().props().message).toEqual('Template name is required');
   });
 
   it('renders input and textarea when editing template', () => {

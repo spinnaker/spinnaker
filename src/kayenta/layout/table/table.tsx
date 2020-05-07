@@ -47,13 +47,8 @@ export function Table<T>({
     <div className={className}>
       <ul className={classNames(tableBodyClassName, 'list-group')}>
         <TableHeader columns={columns} className={classNames('table-header', 'sticky-header', headerClassName)} />
-        {rows.map(
-          r =>
-            customRow && customRow(r) ? (
-              <div key={rowKey(r)}>{customRow(r)}</div>
-            ) : (
-              <TableRow key={rowKey(r)} row={r} />
-            ),
+        {rows.map((r) =>
+          customRow && customRow(r) ? <div key={rowKey(r)}>{customRow(r)}</div> : <TableRow key={rowKey(r)} row={r} />,
         )}
       </ul>
     </div>

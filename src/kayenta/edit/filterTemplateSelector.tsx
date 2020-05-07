@@ -44,7 +44,7 @@ export type IFilterTemplateSelectorProps = IFilterTemplateSelectorStateProps & I
 
 export class FilterTemplateSelector extends React.Component<IFilterTemplateSelectorProps> {
   private getOptions = (): Option[] => {
-    const templateOptions = Object.keys(this.props.templates).map(t => ({
+    const templateOptions = Object.keys(this.props.templates).map((t) => ({
       value: t,
       label: t,
       requestingNew: false,
@@ -61,12 +61,12 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
       <span className="filter-template-option">
         <span>{option.label}</span>
         <span>
-          <button className="link" onMouseDown={e => this.props.deleteTemplate(e, option.value)}>
+          <button className="link" onMouseDown={(e) => this.props.deleteTemplate(e, option.value)}>
             Delete
           </button>
           <button
             className="link"
-            onMouseDown={e => this.props.editTemplateBegin(e, option.value, this.props.templates[option.value])}
+            onMouseDown={(e) => this.props.editTemplateBegin(e, option.value, this.props.templates[option.value])}
           >
             Edit
           </button>
@@ -130,7 +130,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
                 </button>
                 <button
                   className="link"
-                  disabled={[validation.errors.templateName, validation.errors.templateValue].some(e => e != null)}
+                  disabled={[validation.errors.templateName, validation.errors.templateValue].some((e) => e != null)}
                   onClick={editTemplateConfirm}
                 >
                   Save
@@ -139,12 +139,11 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
             </FormRow>
           </>
         )}
-        {!isEditing &&
-          selectedTemplateName && (
-            <FormRow>
-              <pre className="template-editor-value-formatted">{templates[selectedTemplateName]}</pre>
-            </FormRow>
-          )}
+        {!isEditing && selectedTemplateName && (
+          <FormRow>
+            <pre className="template-editor-value-formatted">{templates[selectedTemplateName]}</pre>
+          </FormRow>
+        )}
       </>
     );
   }
@@ -188,7 +187,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IFilterTemplateSe
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(FilterTemplateSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(FilterTemplateSelector);

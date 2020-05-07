@@ -54,8 +54,8 @@ export class StackdriverMetricTypeSelector extends React.Component<IStackdriverM
   public render() {
     const { loading, load, descriptors, value, onChange } = this.props;
 
-    let options: Option[] = descriptors.map(d => ({ label: d.type, value: d.type }));
-    if (value && options.every(o => o.value !== value)) {
+    let options: Option[] = descriptors.map((d) => ({ label: d.type, value: d.type }));
+    if (value && options.every((o) => o.value !== value)) {
       options = options.concat({ label: value, value });
     }
 
@@ -66,7 +66,7 @@ export class StackdriverMetricTypeSelector extends React.Component<IStackdriverM
         onChange={onChange}
         value={value}
         optionRenderer={(option: Option<string>) => {
-          const descriptor = descriptors.find(d => d.type === option.value);
+          const descriptor = descriptors.find((d) => d.type === option.value);
           if (!descriptor) {
             return <span>{option.label}</span>;
           }
@@ -82,7 +82,7 @@ export class StackdriverMetricTypeSelector extends React.Component<IStackdriverM
           );
         }}
         placeholder={'Enter at least three characters to search.'}
-        onInputChange={input => {
+        onInputChange={(input) => {
           load(input);
           return input;
         }}
@@ -109,7 +109,4 @@ export const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(StackdriverMetricTypeSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(StackdriverMetricTypeSelector);

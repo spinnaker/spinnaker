@@ -33,9 +33,9 @@ interface IDifferenceAreaProps extends ISemioticChartProps {
 }
 
 /*
-* Supplemental visualization in the time series view to highlight
-* Canary difference to baseline at any given timestamp
-*/
+ * Supplemental visualization in the time series view to highlight
+ * Canary difference to baseline at any given timestamp
+ */
 export default class DifferenceArea extends React.Component<IDifferenceAreaProps> {
   private margin: IMargin = {
     left: 60,
@@ -123,16 +123,16 @@ export default class DifferenceArea extends React.Component<IDifferenceAreaProps
     const { metricSetPair, parentWidth, millisBaselineSet } = this.props;
 
     /*
-    * Generate the data needed for the graph components
-    */
+     * Generate the data needed for the graph components
+     */
     const { scopes } = metricSetPair;
     const { chartData } = this.getChartData();
     const millisOffset = scopes.experiment.startTimeMillis - scopes.control.startTimeMillis;
     const shouldUseSecondaryXAxis = millisOffset !== 0;
 
     /*
-    * Build the visualization components
-    */
+     * Build the visualization components
+     */
     const xAxisTotalHeight = this.getXAxisTotalHeight(shouldUseSecondaryXAxis);
     const computedConfig = {
       lines: chartData,

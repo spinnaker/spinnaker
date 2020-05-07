@@ -5,7 +5,7 @@ import { KayentaAnalysisType } from 'kayenta/domain';
 import { AnalysisType, AnalysisTypeWarning, IAnalysisTypeProps } from './AnalysisType';
 
 describe('<AnalysisType />', () => {
-  const component = (props: IAnalysisTypeProps) => mount(<AnalysisType {...props} /> as any);
+  const component = (props: IAnalysisTypeProps) => mount((<AnalysisType {...props} />) as any);
 
   const tests = [
     {
@@ -41,7 +41,7 @@ describe('<AnalysisType />', () => {
     },
   ];
 
-  tests.forEach(test => {
+  tests.forEach((test) => {
     it(test.it, () => test.assertion(component(test.props)));
   });
 });

@@ -11,14 +11,14 @@ interface IGroupWeightsStateProps {
 }
 
 /*
-* Component for rendering list of group weight configurers.
-*/
+ * Component for rendering list of group weight configurers.
+ */
 function GroupWeights({ groups }: IGroupWeightsStateProps) {
   const hasGroups = groups.length > 0;
   return (
     <section>
       {hasGroups ? (
-        groups.map(group => <GroupWeight key={group} group={group} />)
+        groups.map((group) => <GroupWeight key={group} group={group} />)
       ) : (
         <p key="no-groups">You have not configured any grouped metrics.</p>
       )}
@@ -29,7 +29,7 @@ function GroupWeights({ groups }: IGroupWeightsStateProps) {
 function mapStateToProps(state: ICanaryState): IGroupWeightsStateProps {
   const config = mapStateToConfig(state);
   const metrics = config ? config.metrics : [];
-  const groups = uniq(flatMap(metrics, metric => metric.groups || []));
+  const groups = uniq(flatMap(metrics, (metric) => metric.groups || []));
   return {
     groups,
   };

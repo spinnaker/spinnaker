@@ -10,12 +10,8 @@ interface IReportMetadata {
   run: ICanaryExecutionStatusResult;
 }
 
-const getReason = (run: ICanaryExecutionStatusResult): string => {
-  if (run && run.result && run.result.judgeResult && run.result.judgeResult.score) {
-    return run.result.judgeResult.score.classificationReason;
-  }
-  return null;
-};
+const getReason = (run: ICanaryExecutionStatusResult): string =>
+  run?.result?.judgeResult?.score?.classificationReason ?? null;
 
 const ReportExplanation = ({ run }: IReportMetadata) => {
   const classificationReason = getReason(run);

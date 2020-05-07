@@ -52,7 +52,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IResultLoaderDisp
     ),
 });
 
-export default connect(
-  null,
-  mapDispatchToProps,
-)(ResultDetailLoader);
+export default connect(null, mapDispatchToProps)(ResultDetailLoader);

@@ -56,7 +56,7 @@ const getScopeLocations = (scopes: ICanaryScopesByName, metrics: ICanaryMetricCo
 const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
   {
     label: 'Summary',
-    getContent: execution => (
+    getContent: (execution) => (
       <div>
         <ReportLink
           configName={execution.config.name}
@@ -80,7 +80,7 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
 
       return (
         <div className="vertical">
-          {locations.map(location => (
+          {locations.map((location) => (
             <span key={location}>{location}</span>
           ))}
         </div>
@@ -89,7 +89,7 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
   },
   {
     label: 'Config',
-    getContent: execution => (
+    getContent: (execution) => (
       <ConfigLink
         configName={execution.config.name}
         executionId={execution.pipelineId}
@@ -115,7 +115,7 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
       if (areScopesIdentical) {
         return (
           <div className="vertical" style={styles}>
-            {[...canaryScopeNames].map(scope => (
+            {[...canaryScopeNames].map((scope) => (
               <span key={scope}>{scope}</span>
             ))}
           </div>
@@ -124,13 +124,13 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
         return (
           <div className="vertical" style={styles}>
             <span className="heading-6 uppercase color-text-caption">Baseline</span>
-            {[...baselineScopeNames].map(scope => (
+            {[...baselineScopeNames].map((scope) => (
               <span key={scope}>{scope}</span>
             ))}
             <span className="heading-6 uppercase color-text-caption" style={{ marginTop: '5px' }}>
               Canary
             </span>
-            {[...canaryScopeNames].map(scope => (
+            {[...canaryScopeNames].map((scope) => (
               <span key={scope}>{scope}</span>
             ))}
           </div>
@@ -185,14 +185,14 @@ const ExecutionListTable = ({ executions, application, accounts }: IExecutionLis
         rows={executions}
         className="flex-1 execution-list-table"
         columns={columns}
-        rowKey={execution => execution.pipelineId}
+        rowKey={(execution) => execution.pipelineId}
       />
     </div>
   );
 };
 
 const mapStateToProps = (state: ICanaryState) => ({
-  executions: Object.values(state.data.executions.data).filter(e => e.result),
+  executions: Object.values(state.data.executions.data).filter((e) => e.result),
   application: state.data.application,
   accounts: state.data.kayentaAccounts.data,
 });

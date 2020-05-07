@@ -34,7 +34,7 @@ const MetricStoreSelector = ({
         className="form-control input-sm"
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
-        {stores.map(s => (
+        {stores.map((s) => (
           <option key={s} value={s}>
             {s}
           </option>
@@ -47,8 +47,8 @@ const MetricStoreSelector = ({
 const mapStateToProps = (state: ICanaryState): IMetricStoreSelectorStateProps => {
   return {
     stores: chain(state.data.kayentaAccounts.data)
-      .filter(account => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
-      .map(account => account.metricsStoreType || account.type)
+      .filter((account) => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
+      .map((account) => account.metricsStoreType || account.type)
       .uniq()
       .sort()
       .valueOf(),
@@ -62,7 +62,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IMetricStoreSelec
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(MetricStoreSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(MetricStoreSelector);

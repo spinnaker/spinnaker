@@ -10,10 +10,10 @@ export interface ITooltipProps {
 }
 
 /*
-* Custom tooltip component to render on top of any svg component.
-* It creates an invisible pixel and uses react-tooltip library
-* to point to it.
-*/
+ * Custom tooltip component to render on top of any svg component.
+ * It creates an invisible pixel and uses react-tooltip library
+ * to point to it.
+ */
 export default class Tooltip extends React.Component<ITooltipProps> {
   private tooltipTarget: HTMLDivElement;
 
@@ -45,7 +45,7 @@ export default class Tooltip extends React.Component<ITooltipProps> {
 
     return (
       <div style={containerStyle}>
-        <div data-tip={true} data-for={id} style={tooltipTargetStyle} ref={el => (this.tooltipTarget = el)} />
+        <div data-tip={true} data-for={id} style={tooltipTargetStyle} ref={(el) => (this.tooltipTarget = el)} />
         <ReactTooltip id={id} type="light" border={true}>
           {content ? content : null}
         </ReactTooltip>

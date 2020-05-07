@@ -22,7 +22,7 @@ interface IDisableableOwnProps {
 }
 
 const mapStateToProps = (state: ICanaryState, ownProps: IDisableableOwnProps) => ({
-  disabledBecauseOfState: (ownProps.disabledStateKeys || []).some(key => get<boolean>(state, key, false)),
+  disabledBecauseOfState: (ownProps.disabledStateKeys || []).some((key) => get<boolean>(state, key, false)),
 });
 
 // A component wrapped in `disableable` is disabled if one of the keys passed
@@ -41,13 +41,13 @@ type IDisableableButtonProps = React.DetailedHTMLProps<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
 >;
-export const DisableableButton = disableable<IDisableableButtonProps>(props => {
+export const DisableableButton = disableable<IDisableableButtonProps>((props) => {
   const { children, ...otherProps } = props;
   return <button {...otherProps}>{children}</button>;
 });
 
 type IDisableableInputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
-export const DisableableInput = disableable<IDisableableInputProps>(props => {
+export const DisableableInput = disableable<IDisableableInputProps>((props) => {
   const { className, ...inputProps } = props;
   return (
     <input
@@ -60,18 +60,18 @@ export const DisableableInput = disableable<IDisableableInputProps>(props => {
   );
 });
 
-export const DisableableReactSelect = disableable<ReactSelectProps>(props => {
+export const DisableableReactSelect = disableable<ReactSelectProps>((props) => {
   const { children, ...selectProps } = props;
   return <Select {...selectProps}>{children}</Select>;
 });
 
-export const DisableableReactTypeahead = disableable<TypeaheadProps<any>>(props => {
+export const DisableableReactTypeahead = disableable<TypeaheadProps<any>>((props) => {
   const { children, ...selectProps } = props;
   return <Typeahead {...selectProps}>{children}</Typeahead>;
 });
 
 type IDisableableSelectProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>;
-export const DisableableSelect = disableable<IDisableableSelectProps>(props => {
+export const DisableableSelect = disableable<IDisableableSelectProps>((props) => {
   const { children, ...selectProps } = props;
   return <select {...selectProps}>{children}</select>;
 });
@@ -81,7 +81,7 @@ type IDisableableTextareaProps = React.DetailedHTMLProps<
   React.InputHTMLAttributes<HTMLTextAreaElement>,
   HTMLTextAreaElement
 > & { rows?: number };
-export const DisableableTextarea = disableable<IDisableableTextareaProps>(props => {
+export const DisableableTextarea = disableable<IDisableableTextareaProps>((props) => {
   const { className, ...textareaProps } = props;
   return <textarea className={classNames('form-control', 'input-sm', className)} {...textareaProps} />;
 });

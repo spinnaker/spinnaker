@@ -46,7 +46,4 @@ function mapDispatchToProps(dispatch: any): IDeleteButtonDispatchProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DeleteConfigButton);
+export default connect(mapStateToProps, mapDispatchToProps)(DeleteConfigButton);

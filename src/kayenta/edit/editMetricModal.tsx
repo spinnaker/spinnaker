@@ -110,7 +110,7 @@ function EditMetricModal({
     'canary',
     'effectSize',
   ]);
-  const isConfirmDisabled = !isTemplateValid || disableEdit || values(validationErrors).some(e => !isNull(e));
+  const isConfirmDisabled = !isTemplateValid || disableEdit || values(validationErrors).some((e) => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   const templatesEnabled =
@@ -141,7 +141,7 @@ function EditMetricModal({
                 className="form-control input-sm"
                 disabledStateKeys={[DISABLE_EDIT_CONFIG]}
               >
-                {groups.map(g => (
+                {groups.map((g) => (
                   <option key={g} value={g}>
                     {g}
                   </option>
@@ -272,7 +272,4 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(EditMetricModal);
+export default connect(mapStateToProps, mapDispatchToProps)(EditMetricModal);

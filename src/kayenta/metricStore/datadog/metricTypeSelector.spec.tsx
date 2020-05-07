@@ -28,18 +28,12 @@ describe('<DatadogMetricTypeSelector />', () => {
       },
     };
 
-    Component = connect(
-      mapStateToProps,
-      mapDispatchToProps,
-    )(DatadogMetricTypeSelector);
+    Component = connect(mapStateToProps, mapDispatchToProps)(DatadogMetricTypeSelector);
   });
 
   it('builds options from input descriptors', () => {
     const component = mountWithState(<Component value="" onChange={noop} />, state);
-    const allProps: any = component
-      .find(Select)
-      .first()
-      .props();
+    const allProps: any = component.find(Select).first().props();
 
     expect(allProps.options.map((o: Option) => o.value)).toEqual([
       'datadog.agent.running',

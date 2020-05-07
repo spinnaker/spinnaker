@@ -21,8 +21,8 @@ type GraphiteMetricConfigurerProps = IGraphiteMetricConfigurerStateProps & IGrap
 export const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.metricName', '');
 
 /*
-* Component for configuring a Graphite metric.
-* */
+ * Component for configuring a Graphite metric.
+ * */
 function GraphiteMetricConfigurer({ changeMetricName, editingMetric }: GraphiteMetricConfigurerProps) {
   return (
     <FormRow label="Graphite Metric">
@@ -50,7 +50,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGraphite
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GraphiteMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(GraphiteMetricConfigurer);

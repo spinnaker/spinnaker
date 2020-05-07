@@ -29,17 +29,17 @@ const createValidationReducer = (validator: IConfigValidator) => {
   };
 };
 
-const isConfigNameUnique: IConfigValidator = state => {
+const isConfigNameUnique: IConfigValidator = (state) => {
   const selectedConfig = state.selectedConfig.config;
   const configSummaries = state.data.configSummaries;
-  const isUnique = configSummaries.every(s => selectedConfig.name !== s.name || selectedConfig.id === s.id);
+  const isUnique = configSummaries.every((s) => selectedConfig.name !== s.name || selectedConfig.id === s.id);
 
   return isUnique ? null : { message: `Canary config '${selectedConfig.name}' already exists.` };
 };
 
 // See https://github.com/Netflix-Skunkworks/kayenta/blob/master/kayenta-web/src/main/java/com/netflix/kayenta/controllers/CanaryConfigController.java
 const pattern = /^[a-zA-Z0-9_-]*$/;
-const isConfigNameValid: IConfigValidator = state => {
+const isConfigNameValid: IConfigValidator = (state) => {
   const isValid = pattern.test(state.selectedConfig.config.name);
   return isValid
     ? null
@@ -48,7 +48,7 @@ const isConfigNameValid: IConfigValidator = state => {
       };
 };
 
-const isGroupWeightsSumValid: IConfigValidator = state => {
+const isGroupWeightsSumValid: IConfigValidator = (state) => {
   const weights = Object.values(state.selectedConfig.group.groupWeights);
   const sumOfWeights = weights.reduce((sum, weight) => sum + weight, 0);
   const groupWeightsSumIsValid = weights.length === 0 || sumOfWeights === 100;
@@ -56,25 +56,25 @@ const isGroupWeightsSumValid: IConfigValidator = state => {
   return groupWeightsSumIsValid ? null : { message: 'Metric group weights must sum to 100.' };
 };
 
-const isEveryGroupWeightValid: IConfigValidator = state => {
-  const everyGroupWeightIsValid = Object.values(state.selectedConfig.group.groupWeights).every(weight => weight >= 0);
+const isEveryGroupWeightValid: IConfigValidator = (state) => {
+  const everyGroupWeightIsValid = Object.values(state.selectedConfig.group.groupWeights).every((weight) => weight >= 0);
 
   return everyGroupWeightIsValid ? null : { message: 'A group weight must be greater than or equal to 0.' };
 };
 
-const isEveryQueriedMetricStoreAvailable: IConfigValidator = state => {
+const isEveryQueriedMetricStoreAvailable: IConfigValidator = (state) => {
   const available = chain(state.data.kayentaAccounts.data)
-    .filter(account => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
-    .map(account => account.metricsStoreType || account.type)
+    .filter((account) => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
+    .map((account) => account.metricsStoreType || account.type)
     .uniq()
     .valueOf();
 
   const queried = chain(state.selectedConfig.metricList)
-    .map(metric => metric.query.type)
+    .map((metric) => metric.query.type)
     .uniq()
     .valueOf();
 
-  const unavailableQueried = queried.filter(store => !available.includes(store));
+  const unavailableQueried = queried.filter((store) => !available.includes(store));
   let message: string;
   if (unavailableQueried.length === 1) {
     message = `This config contains metrics configured to query a metric
@@ -88,9 +88,9 @@ const isEveryQueriedMetricStoreAvailable: IConfigValidator = state => {
   return unavailableQueried.length ? { message } : null;
 };
 
-const areMultipleMetricStoresQueried: IConfigValidator = state => {
+const areMultipleMetricStoresQueried: IConfigValidator = (state) => {
   const queried = chain(state.selectedConfig.metricList)
-    .map(metric => metric.query.type)
+    .map((metric) => metric.query.type)
     .uniq()
     .valueOf();
 

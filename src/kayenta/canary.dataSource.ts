@@ -92,7 +92,7 @@ module(CANARY_DATA_SOURCE, []).run([
       // TODO(dpeach): make the number of canary executions rendered configurable from the UI.
       const listExecutionsRequest = listCanaryExecutions(application.name, 20);
 
-      listExecutionsRequest.catch(error => {
+      listExecutionsRequest.catch((error) => {
         canaryStore.dispatch(Creators.loadExecutionsFailure({ error }));
       });
 

@@ -5,14 +5,14 @@ export interface IFormListProps {
 }
 
 /*
-* Mostly exists to centralize styles for form components.
-* */
+ * Mostly exists to centralize styles for form components.
+ * */
 export default function FormList({ children }: IFormListProps) {
   return (
     <ul className="list-group">
       {React.Children.map(
         children,
-        c =>
+        (c) =>
           c && (
             <li className="list-unstyled">
               <form role="form" className="form-horizontal container-fluid">

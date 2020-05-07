@@ -30,11 +30,11 @@ const MultipleResultsTable = ({
   selectedResult,
 }: IMultipleResultsTableOwnProps & IMultipleResultsTableStateProps & IMultipleResultsTableDispatchProps) => {
   const tagKeys = chain(results)
-    .flatMap(r => Object.keys(r.tags || {}))
+    .flatMap((r) => Object.keys(r.tags || {}))
     .uniq()
     .value();
 
-  let columns: Array<ITableColumn<ICanaryAnalysisResult>> = tagKeys.map(key => ({
+  let columns: Array<ITableColumn<ICanaryAnalysisResult>> = tagKeys.map((key) => ({
     label: key,
     width: 5,
     getContent: (result: ICanaryAnalysisResult) => <span>{result.tags[key]}</span>,
@@ -57,13 +57,13 @@ const MultipleResultsTable = ({
       columns={columns}
       className="multiple-results-table"
       headerClassName="sticky-header-2"
-      rowClassName={r => classNames('horizontal', { selected: r.id === selectedResult })}
-      rowKey={r =>
+      rowClassName={(r) => classNames('horizontal', { selected: r.id === selectedResult })}
+      rowKey={(r) =>
         Object.entries(r.tags || {})
           .map(([key, value]) => `${key}:${value}`)
           .join(':')
       }
-      onRowClick={r => select(r.id)}
+      onRowClick={(r) => select(r.id)}
     />
   );
 };
@@ -77,7 +77,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>, ownProps: IMultipl
   select: (metricId: string) => dispatch(Creators.selectReportMetric({ metricId })),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(MultipleResultsTable);
+export default connect(mapStateToProps, mapDispatchToProps)(MultipleResultsTable);

@@ -21,7 +21,7 @@ export interface IMetricResultStatsStateProps {
 }
 
 const getStats = (run: ICanaryExecutionStatusResult, id: string, target: string): ICanaryAnalysisResultsStats => {
-  const result = run.result.judgeResult.results.find(r => r.id === id);
+  const result = run.result.judgeResult.results.find((r) => r.id === id);
   if (target === 'experiment') {
     return result.experimentMetadata.stats;
   } else if (target === 'control') {
@@ -52,11 +52,11 @@ const ResultMetadataRow = ({ row }: { row: IResultMetadataRow }) => {
 const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultStatsStateProps) => {
   const tableColumns: Array<ITableColumn<string>> = [
     {
-      getContent: target => <span>{target === 'control' ? 'Baseline' : 'Canary'}</span>,
+      getContent: (target) => <span>{target === 'control' ? 'Baseline' : 'Canary'}</span>,
     },
     {
       label: 'start',
-      getContent: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso} />,
+      getContent: (target) => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso} />,
       hide: () => {
         const request = run.canaryExecutionRequest;
         const configuredControlStart = request.scopes[metricConfig.scopeName].controlScope.start;
@@ -70,19 +70,19 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
     },
     {
       label: 'count',
-      getContent: target => <span>{getStats(run, metricSetPair.id, target).count}</span>,
+      getContent: (target) => <span>{getStats(run, metricSetPair.id, target).count}</span>,
     },
     {
       label: 'avg',
-      getContent: target => <span>{round(getStats(run, metricSetPair.id, target).mean, 3)}</span>,
+      getContent: (target) => <span>{round(getStats(run, metricSetPair.id, target).mean, 3)}</span>,
     },
     {
       label: 'max',
-      getContent: target => <span>{round(getStats(run, metricSetPair.id, target).max, 3)}</span>,
+      getContent: (target) => <span>{round(getStats(run, metricSetPair.id, target).max, 3)}</span>,
     },
     {
       label: 'min',
-      getContent: target => <span>{round(getStats(run, metricSetPair.id, target).min, 3)}</span>,
+      getContent: (target) => <span>{round(getStats(run, metricSetPair.id, target).min, 3)}</span>,
     },
   ];
 
@@ -90,7 +90,7 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
     {
       label: 'classification reason',
       getContent: () => {
-        const result = run.result.judgeResult.results.find(r => r.id === metricSetPair.id);
+        const result = run.result.judgeResult.results.find((r) => r.id === metricSetPair.id);
 
         if (!result.classificationReason) {
           return null;
@@ -103,10 +103,10 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
 
   return (
     <div className="metric-stats vertical">
-      {metadataRows.map(row => (
+      {metadataRows.map((row) => (
         <ResultMetadataRow row={row} key={row.label} />
       ))}
-      <NativeTable columns={tableColumns} rows={['control', 'experiment']} rowKey={row => row} />
+      <NativeTable columns={tableColumns} rows={['control', 'experiment']} rowKey={(row) => row} />
     </div>
   );
 };

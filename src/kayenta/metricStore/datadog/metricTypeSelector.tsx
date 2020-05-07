@@ -31,7 +31,7 @@ export const DatadogMetricTypeSelector = ({
 }: IDatadogMetricTypeSelectorDispatchProps &
   IDatadogMetricTypeSelectorStateProps &
   IDatadogMetricTypeSelectorOwnProps) => {
-  if (value && options.every(o => o.value !== value)) {
+  if (value && options.every((o) => o.value !== value)) {
     options = options.concat({ label: value, value });
   }
 
@@ -53,7 +53,7 @@ export const DatadogMetricTypeSelector = ({
 
 export const mapStateToProps = (state: ICanaryState, ownProps: IDatadogMetricTypeSelectorOwnProps) => {
   const descriptors = state.data.metricsServiceMetadata.data as IDatadogMetricDescriptor[];
-  const options: Option[] = descriptors.map(d => ({ label: d.name, value: d.name }));
+  const options: Option[] = descriptors.map((d) => ({ label: d.name, value: d.name }));
   return {
     options,
     loading: state.data.metricsServiceMetadata.load === AsyncRequestState.Requesting,
@@ -69,7 +69,4 @@ export const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DatadogMetricTypeSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(DatadogMetricTypeSelector);

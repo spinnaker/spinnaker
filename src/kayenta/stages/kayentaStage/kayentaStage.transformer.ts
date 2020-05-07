@@ -15,7 +15,7 @@ export class KayentaStageTransformer implements ITransformer {
 
     let stagesToRenderAsTasks: IExecutionStage[] = [];
 
-    execution.stages.forEach(stage => {
+    execution.stages.forEach((stage) => {
       if (stage.type === KAYENTA_CANARY) {
         OrchestratedItemTransformer.defineProperties(stage);
 
@@ -29,8 +29,8 @@ export class KayentaStageTransformer implements ITransformer {
 
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
-        const runCanaryStages = syntheticCanaryStages.filter(s => s.type === RUN_CANARY);
-        syntheticCanaryStages.forEach(syntheticStage => OrchestratedItemTransformer.defineProperties(syntheticStage));
+        const runCanaryStages = syntheticCanaryStages.filter((s) => s.type === RUN_CANARY);
+        syntheticCanaryStages.forEach((syntheticStage) => OrchestratedItemTransformer.defineProperties(syntheticStage));
         this.calculateRunCanaryResults(runCanaryStages);
         this.calculateKayentaCanaryResults(stage, syntheticCanaryStages);
 
@@ -53,7 +53,7 @@ export class KayentaStageTransformer implements ITransformer {
       ({ parentStageId, type }) => kayentaStageIds.includes(parentStageId) && type === DEPLOY_CANARY_SERVER_GROUPS,
     );
 
-    deployCanaryServerGroupsStages.forEach(deployCanaryStage => {
+    deployCanaryServerGroupsStages.forEach((deployCanaryStage) => {
       const parentKayentaStage = kayentaStages.find(({ id }) => deployCanaryStage.parentStageId === id);
       if (parentKayentaStage && (deployCanaryStage.outputs.deployedServerGroups || []).length) {
         const [{ controlScope, experimentScope }] = deployCanaryStage.outputs.deployedServerGroups;
@@ -61,7 +61,7 @@ export class KayentaStageTransformer implements ITransformer {
       }
     });
     execution.stages = execution.stages.filter(
-      stage =>
+      (stage) =>
         !stagesToRenderAsTasks.includes(stage) &&
         (!this.isDescendantOf(stage, kayentaStages, execution) ||
           stageTypesToAlwaysShow.includes(stage.type) ||
@@ -86,7 +86,7 @@ export class KayentaStageTransformer implements ITransformer {
 
   // Massages each runCanary stage into what the `canaryScore` component expects.
   private calculateRunCanaryResults(runCanaryStages: IExecutionStage[]): void {
-    runCanaryStages.forEach(run => {
+    runCanaryStages.forEach((run) => {
       if (typeof run.getValueFor('canaryScore') === 'number') {
         if (run.status === 'SUCCEEDED') {
           if (run.context.canaryScore >= run.context.scoreThresholds.pass) {
@@ -134,20 +134,20 @@ export class KayentaStageTransformer implements ITransformer {
 
   private getLastCanaryRunScore(runCanaryStages: IExecutionStage[] = []): number {
     const canaryRunScores = runCanaryStages
-      .filter(s => typeof s.getValueFor('canaryScore') === 'number')
-      .map(s => s.getValueFor('canaryScore'));
+      .filter((s) => typeof s.getValueFor('canaryScore') === 'number')
+      .map((s) => s.getValueFor('canaryScore'));
     return last(canaryRunScores);
   }
 
   private getLastCanaryScoreMessage(runCanaryStages: IExecutionStage[] = []): number {
     const canaryRunMessages = runCanaryStages
-      .filter(s => s.getValueFor('canaryScoreMessage'))
-      .map(s => s.getValueFor('canaryScoreMessage'));
+      .filter((s) => s.getValueFor('canaryScoreMessage'))
+      .map((s) => s.getValueFor('canaryScoreMessage'));
     return last(canaryRunMessages);
   }
 
   private addExceptions(stages: IExecutionStage[], exceptions: string[]): void {
-    stages.forEach(stage => {
+    stages.forEach((stage) => {
       if (this.getException(stage)) {
         exceptions.push(this.getException(stage));
       }

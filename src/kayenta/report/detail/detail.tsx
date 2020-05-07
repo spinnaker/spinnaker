@@ -8,8 +8,8 @@ import './detail.less';
 import ReportExplanation from './reportExplanation';
 
 /*
-* Layout for report detail view.
-* */
+ * Layout for report detail view.
+ * */
 
 export interface IDetailViewState {
   isExpanded: boolean;

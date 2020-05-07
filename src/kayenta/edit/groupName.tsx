@@ -75,7 +75,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupNam
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GroupName);
+export default connect(mapStateToProps, mapDispatchToProps)(GroupName);

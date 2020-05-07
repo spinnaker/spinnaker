@@ -38,7 +38,7 @@ export function validateTemplateName(
 
   const isNameEdited = editingTemplate && editingTemplate.editedName !== editingTemplate.name;
   const savedTemplateNames = Object.keys(configTemplates || {});
-  const isNameDuplicate = isNameEdited && savedTemplateNames.some(name => editingTemplate.editedName === name);
+  const isNameDuplicate = isNameEdited && savedTemplateNames.some((name) => editingTemplate.editedName === name);
   if (isNameDuplicate) {
     validation.errors.templateName = {
       message: `Filter template named '${editingTemplate.editedName}' already exists`,
@@ -73,12 +73,12 @@ export function validateTemplateInUseWarning(
   const otherMetricsUsingTemplate =
     editingMetric != null &&
     filterTemplate != null &&
-    metricList.filter(m => m.name !== editingMetric.name && filterTemplate === get(m, 'query.customFilterTemplate'));
+    metricList.filter((m) => m.name !== editingMetric.name && filterTemplate === get(m, 'query.customFilterTemplate'));
 
   if (!isEmpty(otherMetricsUsingTemplate)) {
     validation.warnings.template = {
       message: `Warning: editing or deleting this template will affect the following metrics: ${otherMetricsUsingTemplate
-        .map(m => m.name)
+        .map((m) => m.name)
         .join(', ')}`,
     };
   }

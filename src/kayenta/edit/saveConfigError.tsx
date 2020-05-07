@@ -56,7 +56,4 @@ function mapDispatchToProps(dispatch: any): ISaveErrorDispatchProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SaveConfigError);
+export default connect(mapStateToProps, mapDispatchToProps)(SaveConfigError);

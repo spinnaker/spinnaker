@@ -128,12 +128,12 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
   }
 
   /*
-  *  Generate chart Data
-  * In cases where the start Millis is different betwen canary and baseline, we want to:
-  * 1) If data point count is different, extend the shorter dataset to match the longer one (i.e. match the x extent)
-  * 2) normalize canary timestamp to match baseline timestamps (needed for the tooltip's
-  * voronoi overlay logic in semiotic to work properly)
-  */
+   *  Generate chart Data
+   * In cases where the start Millis is different betwen canary and baseline, we want to:
+   * 1) If data point count is different, extend the shorter dataset to match the longer one (i.e. match the x extent)
+   * 2) normalize canary timestamp to match baseline timestamps (needed for the tooltip's
+   * voronoi overlay logic in semiotic to work properly)
+   */
   private getChartData = (dataSetsAttr: IDataSetsAttributes, metricSetPair: IMetricSetPair) => {
     const { maxDataCount } = dataSetsAttr;
     const { showGroup } = this.state;
@@ -145,12 +145,12 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
     const stepMillis = scopes.control.stepMillis;
 
     /*
-    * Deriving timestamps for the main line chart: use baseline's ts if baseline group or both groups are selected,
-    * else use canary ts as reference (since we only show 1 x-axis)
-    * Minimap should still consider both groups (hence using baseline's ts as reference)
-    * as we want to maintain brush state when user toggles groups
-    * Finally we also trim out timestamps with invalid values at both ends of the dataset
-    */
+     * Deriving timestamps for the main line chart: use baseline's ts if baseline group or both groups are selected,
+     * else use canary ts as reference (since we only show 1 x-axis)
+     * Minimap should still consider both groups (hence using baseline's ts as reference)
+     * as we want to maintain brush state when user toggles groups
+     * Finally we also trim out timestamps with invalid values at both ends of the dataset
+     */
     const intDataSet: IInterimDataSet[] = chain(Array(maxDataCount).fill(0))
       .map((_, i) => {
         const valueList = groups.map((g: string) => values[dataGroupMap[g]][i]);
@@ -181,7 +181,7 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
       return {
         label: g,
         color: colors[g],
-        coordinates: dataPoints.filter(d => typeof d.value === 'number'),
+        coordinates: dataPoints.filter((d) => typeof d.value === 'number'),
         coordinatesUnfiltered: dataPoints,
       };
     });
@@ -314,8 +314,8 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
     const { minimapDataPointsThreshold, minimapHeight } = vizConfig.timeSeries;
 
     /*
-    * Generate the data needed for the graph components
-    */
+     * Generate the data needed for the graph components
+     */
     const baselineStartTimeMillis = metricSetPair.scopes.control.startTimeMillis;
     const canaryStartTimeMillis = metricSetPair.scopes.experiment.startTimeMillis;
     const isStartTimeMillisEqual = baselineStartTimeMillis === canaryStartTimeMillis;
@@ -331,8 +331,8 @@ export default class TimeSeries extends React.Component<ISemioticChartProps, ITi
     const chartData = this.getChartData(dataSetsAttributes, metricSetPair);
 
     /*
-    * Build the visualization components
-    */
+     * Build the visualization components
+     */
     const commonChartProps = this.createCommonChartProps();
     const lineChartProps = this.createLineChartProps(chartData, dataSetsAttributes, commonChartProps);
 

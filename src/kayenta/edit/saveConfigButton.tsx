@@ -61,7 +61,4 @@ function mapDispatchToProps(dispatch: any): ISaveButtonDispatchProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SaveConfigButton);
+export default connect(mapStateToProps, mapDispatchToProps)(SaveConfigButton);

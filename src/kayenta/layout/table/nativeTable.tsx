@@ -42,9 +42,8 @@ export function NativeTable<T>({
     <table className={className}>
       <NativeTableHeader rows={rows} columns={columns} className={classNames('table-header', headerClassName)} />
       <tbody className={tableBodyClassName}>
-        {rows.map(
-          r =>
-            customRow && customRow(r) ? <td key={rowKey(r)}>{customRow(r)}</td> : <TableRow key={rowKey(r)} row={r} />,
+        {rows.map((r) =>
+          customRow && customRow(r) ? <td key={rowKey(r)}>{customRow(r)}</td> : <TableRow key={rowKey(r)} row={r} />,
         )}
       </tbody>
     </table>

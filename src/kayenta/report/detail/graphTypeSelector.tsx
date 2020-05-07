@@ -25,7 +25,7 @@ const GraphTypeSelector = ({
           Graph:
         </label>
       </li>
-      {Object.values(GraphType).map(type => (
+      {Object.values(GraphType).map((type) => (
         <li
           style={selected === type ? { textDecoration: 'underline' } : null}
           key={type}
@@ -46,7 +46,4 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IGraphTypeSelecto
   selectGraphType: (type: GraphType) => dispatch(Creators.selectGraphType({ type })),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GraphTypeSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(GraphTypeSelector);

@@ -5,6 +5,6 @@ const supportedGraphTypes: GraphType[] = [GraphType.TimeSeries, GraphType.Histog
 // Semiotic component registration
 metricSetPairGraphService.register({
   name: 'semiotic',
-  handlesGraphType: type => supportedGraphTypes.includes(type),
+  handlesGraphType: (type) => supportedGraphTypes.includes(type),
   getGraph: () => SemioticGraph,
 });

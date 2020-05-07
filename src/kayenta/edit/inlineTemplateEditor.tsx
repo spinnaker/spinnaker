@@ -56,7 +56,4 @@ function mapDispatchToProps(dispatch: any): IInlineTemplateEditorDispatchProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(InlineTemplateEditor);
+export default connect(mapStateToProps, mapDispatchToProps)(InlineTemplateEditor);

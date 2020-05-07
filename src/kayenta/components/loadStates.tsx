@@ -9,9 +9,9 @@ export interface ILoadStatesProps {
 }
 
 /*
-* Builder for rendering load states. Defaults to standard spinner during
-* `Requesting` state.
-* */
+ * Builder for rendering load states. Defaults to standard spinner during
+ * `Requesting` state.
+ * */
 export default class LoadStatesBuilder {
   private requesting: JSX.Element;
   private fulfilled: JSX.Element;

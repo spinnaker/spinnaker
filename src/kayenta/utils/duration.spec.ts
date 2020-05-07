@@ -48,7 +48,7 @@ describe('Duration utils', () => {
       });
     });
     it('handles invalid input', () => {
-      invalidDurationStrings.forEach(durationString => {
+      invalidDurationStrings.forEach((durationString) => {
         expect(parseDurationString(durationString)).toEqual(defaultDurationObject);
       });
     });
@@ -61,7 +61,7 @@ describe('Duration utils', () => {
       });
     });
     it('handles invalid input', () => {
-      invalidDurationObjects.forEach(durationObject => {
+      invalidDurationObjects.forEach((durationObject) => {
         expect(getDurationString(durationObject)).toEqual(defaultDurationString);
       });
     });

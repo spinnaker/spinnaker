@@ -42,11 +42,11 @@ export const GraphiteMetricTypeSelector = ({
         load(option[0]);
       }}
       defaultInputValue={value}
-      renderMenuItemChildren={option => (
+      renderMenuItemChildren={(option) => (
         <a style={{ pointerEvents: 'all', textDecoration: 'none', color: '#000000' }}>{option}</a>
       )}
       placeholder={'Enter at least three characters to search.'}
-      onInputChange={input => {
+      onInputChange={(input) => {
         onChange([input]);
         load(input);
         return input;
@@ -58,7 +58,7 @@ export const GraphiteMetricTypeSelector = ({
 
 export const mapStateToProps = (state: ICanaryState, ownProps: IGraphiteMetricTypeSelectorOwnProps) => {
   const descriptors = state.data.metricsServiceMetadata.data as IGraphiteMetricDescriptor[];
-  const options: string[] = descriptors.map(d => d.name);
+  const options: string[] = descriptors.map((d) => d.name);
 
   return {
     options,
@@ -75,7 +75,4 @@ export const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GraphiteMetricTypeSelector);
+export default connect(mapStateToProps, mapDispatchToProps)(GraphiteMetricTypeSelector);

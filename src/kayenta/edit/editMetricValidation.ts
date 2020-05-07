@@ -27,7 +27,7 @@ export function validateMetricName(
     return nextErrors;
   }
 
-  const isNameUnique = metricList.every(m => m.name !== editingMetricName || m.id === editingMetric.id);
+  const isNameUnique = metricList.every((m) => m.name !== editingMetricName || m.id === editingMetric.id);
   if (!isNameUnique) {
     nextErrors.name = { message: `Metric '${editingMetricName}' already exists` };
   }

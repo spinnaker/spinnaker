@@ -58,7 +58,7 @@ export default class BoxPlot extends React.Component<ISemioticChartProps, IBoxPl
   };
 
   private decorateData = (dataPoints: number[], group: string): IChartDataPoint[] => {
-    return dataPoints.map(dp => ({
+    return dataPoints.map((dp) => ({
       group,
       value: dp,
       color: vizConfig.colors[group],
@@ -246,7 +246,7 @@ export default class BoxPlot extends React.Component<ISemioticChartProps, IBoxPl
         r: 3,
         iterations: 50,
       },
-      rExtent: extent(chartData.map(o => o.value)),
+      rExtent: extent(chartData.map((o) => o.value)),
       customHoverBehavior: this.createChartHoverHandler(),
       hoverAnnotation: false,
       annotations: this.defineAnnotations(),

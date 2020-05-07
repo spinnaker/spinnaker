@@ -9,8 +9,8 @@ interface ICreateConfigButtonStateProps {
 }
 
 /*
-* Button for creating a new canary config.
-*/
+ * Button for creating a new canary config.
+ */
 function CreateConfigButton({ disabled }: ICreateConfigButtonStateProps) {
   return (
     <UISref to=".configDetail" params={{ id: UUIDGenerator.generateUuid(), new: true }}>

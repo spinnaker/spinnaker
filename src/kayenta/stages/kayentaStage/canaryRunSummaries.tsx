@@ -23,7 +23,7 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
   const canaryRunColumns: Array<ITableColumn<IStage>> = [
     {
       label: 'Canary Result',
-      getContent: run => {
+      getContent: (run) => {
         return (
           <>
             <CanaryScore
@@ -44,14 +44,14 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
     },
     {
       label: 'Duration',
-      getContent: run => <span>{run.context.durationString || ' - '}</span>,
+      getContent: (run) => <span>{run.context.durationString || ' - '}</span>,
     },
     {
       label: 'Last Updated',
-      getContent: run => <span>{timestamp(run.context.lastUpdated)}</span>,
+      getContent: (run) => <span>{timestamp(run.context.lastUpdated)}</span>,
     },
     {
-      getContent: run => {
+      getContent: (run) => {
         const popoverTemplate = <CanaryRunTimestamps canaryRun={run} firstScopeName={firstScopeName} />;
         return (
           <section className="horizontal text-center">
@@ -75,7 +75,7 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
         rows={canaryRuns}
         className="header-transparent flex-1"
         columns={canaryRunColumns}
-        rowKey={run => run.id}
+        rowKey={(run) => run.id}
       />
     </Styleguide>
   );

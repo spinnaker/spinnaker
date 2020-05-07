@@ -116,4 +116,4 @@ const helpContents: { [key: string]: string } = {
   'stackdriver.perSeriesAligner': 'Use an algorithm to align individual time series.',
 };
 
-Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
+Object.keys(helpContents).forEach((key) => HelpContentsRegistry.register(key, helpContents[key]));

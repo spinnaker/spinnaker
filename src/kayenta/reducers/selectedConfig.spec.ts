@@ -52,7 +52,7 @@ describe('Reducer: editGroupConfirmReducer', () => {
   it('ignores the updated group name if the value is JS false', () => {
     const editedGroupNames = ['', null, undefined];
 
-    editedGroupNames.forEach(edited => {
+    editedGroupNames.forEach((edited) => {
       const action = {
         type: Actions.EDIT_GROUP_CONFIRM,
         payload: {
@@ -111,9 +111,9 @@ describe('Reducer: changeMetricGroupConfirmReducer', () => {
 
     const updatedState = changeMetricGroupConfirmReducer(state, action);
 
-    expect(updatedState.metricList.find(m => m.id === '1').groups).toEqual(['updatedGroup']);
+    expect(updatedState.metricList.find((m) => m.id === '1').groups).toEqual(['updatedGroup']);
 
-    expect(updatedState.metricList.find(m => m.id === '2').groups).toEqual([]);
+    expect(updatedState.metricList.find((m) => m.id === '2').groups).toEqual([]);
   });
 
   it('handles metrics with multiple groups', () => {
@@ -122,14 +122,14 @@ describe('Reducer: changeMetricGroupConfirmReducer', () => {
 
     let updatedState = changeMetricGroupConfirmReducer(state, action);
 
-    expect(updatedState.metricList.find(m => m.id === '1').groups).toEqual(['c']);
+    expect(updatedState.metricList.find((m) => m.id === '1').groups).toEqual(['c']);
 
     state = createSelectedConfigState(['a', 'b'], 'b');
     action = createAction('1');
 
     updatedState = changeMetricGroupConfirmReducer(state, action);
 
-    expect(updatedState.metricList.find(m => m.id === '1').groups).toEqual(['b']);
+    expect(updatedState.metricList.find((m) => m.id === '1').groups).toEqual(['b']);
   });
 });
 

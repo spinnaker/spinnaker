@@ -36,12 +36,9 @@ describe('<PrometheusMetricTypeSelector />', () => {
 
   it('displays which account will populate the search when >1 account is configured, defaulting to the first account alphabetically', () => {
     wrapper = shallow(<PrometheusMetricTypeSelector {...defaultProps} />);
-    expect(
-      wrapper
-        .find('.prometheus-metric-type-selector-account-hint span')
-        .at(0)
-        .text(),
-    ).toEqual('Metric search is currently populating from my-first-prometheus-account.');
+    expect(wrapper.find('.prometheus-metric-type-selector-account-hint span').at(0).text()).toEqual(
+      'Metric search is currently populating from my-first-prometheus-account.',
+    );
   });
 
   it('allows the user to switch which account populates the search when >1 account is configured', () => {

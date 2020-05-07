@@ -84,7 +84,4 @@ function mapStateToProps(state: ICanaryState): IDeleteModalStateProps {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DeleteConfigModal);
+export default connect(mapStateToProps, mapDispatchToProps)(DeleteConfigModal);

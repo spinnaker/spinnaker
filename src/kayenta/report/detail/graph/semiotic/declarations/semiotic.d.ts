@@ -76,8 +76,8 @@ declare module 'semiotic' {
   }
 
   /*
-  * Args supplied by semiotic's OrdinalFrame to client's custom hover event callback function
-  */
+   * Args supplied by semiotic's OrdinalFrame to client's custom hover event callback function
+   */
   export interface IOrFrameHoverArgs<DataPoint> {
     column?: IOrGroup<DataPoint>;
     summary?: IOrPiece<DataPoint>[];
@@ -131,8 +131,8 @@ declare module 'semiotic' {
   }
 
   /*
-  * Args supplied by semiotic's Frame to client's custom annotation function
-  */
+   * Args supplied by semiotic's Frame to client's custom annotation function
+   */
   export interface ISemioticAnnotationArgs<AnnotationData, CategoryData> {
     d: AnnotationData; // client-defined custom annotation data
     i: number; // index

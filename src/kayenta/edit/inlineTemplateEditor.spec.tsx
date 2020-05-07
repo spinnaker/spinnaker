@@ -23,12 +23,7 @@ describe('<InlineTemplateEditor />', () => {
       transformValueForSave: identity,
       editTemplateValue: noop,
     });
-    expect(
-      component
-        .find(DisableableTextarea)
-        .first()
-        .props().value,
-    ).toEqual('metadata.user_labels."app"="${scope}"');
+    expect(component.find(DisableableTextarea).first().props().value).toEqual('metadata.user_labels."app"="${scope}"');
   });
   it('renders an error for empty input', () => {
     let component = buildComponent({

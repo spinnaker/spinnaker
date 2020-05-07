@@ -47,7 +47,7 @@ function ChangeMetricGroupModal({
             disabledStateKeys={[DISABLE_EDIT_CONFIG]}
           >
             <option value={''}>-- select group --</option>
-            {groups.map(g => (
+            {groups.map((g) => (
               <option key={g} value={g}>
                 {g}
               </option>
@@ -81,7 +81,7 @@ function mapStateToProps(
   // e.g., a [system, requests] -> [requests] move should be allowed, but
   // don't offer a [system] -> [system] move.
   return {
-    groups: state.selectedConfig.group.list.filter(g => metric.groups.length > 1 || !metric.groups.includes(g)),
+    groups: state.selectedConfig.group.list.filter((g) => metric.groups.length > 1 || !metric.groups.includes(g)),
     toGroup: state.selectedConfig.changeMetricGroup.toGroup,
   };
 }
@@ -103,7 +103,4 @@ function mapDispatchToProps(
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ChangeMetricGroupModal);
+export default connect(mapStateToProps, mapDispatchToProps)(ChangeMetricGroupModal);

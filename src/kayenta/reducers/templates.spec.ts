@@ -120,7 +120,7 @@ describe('Reducer: selectedConfig (templates)', () => {
         editingTemplate: { name, editedName, editedValue },
       } = reducer(state, createAction(EDIT_TEMPLATE_CONFIRM));
 
-      [name, editedName, editedValue].forEach(value => expect(value).toEqual(null));
+      [name, editedName, editedValue].forEach((value) => expect(value).toEqual(null));
     });
 
     it('deletes a template', () => {

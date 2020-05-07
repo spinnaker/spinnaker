@@ -153,7 +153,7 @@ function validateQueryPairs(
 
   const queryPairs: IKeyValuePair[] = getQueryPairs(editingMetric);
 
-  queryPairs.forEach(qp => {
+  queryPairs.forEach((qp) => {
     if (!qp.key || !qp.value) {
       nextErrors.queryPairs = { message: 'All query pairs must contain a non-blank key and value.' };
     }
@@ -179,11 +179,8 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): ISignalFx
     updateAggregationMethod: (aggregationMethod: string): void => {
       dispatch(Creators.updateSignalFxAggregationMethod({ aggregationMethod }));
     },
-    updateQueryPairs: payload => dispatch(Creators.updateSignalFxQueryPairs(payload)),
+    updateQueryPairs: (payload) => dispatch(Creators.updateSignalFxQueryPairs(payload)),
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SignalFxMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(SignalFxMetricConfigurer);

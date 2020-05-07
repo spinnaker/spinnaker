@@ -36,11 +36,11 @@ interface IPrometheusMetricConfigurerDispatchProps {
 const RESOURCE_TYPES = ['gce_instance', 'aws_ec2_instance'];
 
 const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
-  values.map(value => ({ value, label: value }));
+  values.map((value) => ({ value, label: value }));
 
 /*
-* Component for configuring a Prometheus metric.
-* */
+ * Component for configuring a Prometheus metric.
+ * */
 function PrometheusMetricConfigurer({
   editingMetric,
   queryType,
@@ -104,8 +104,8 @@ function mapStateToProps(state: ICanaryState): IPrometheusMetricConfigurerStateP
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IPrometheusMetricConfigurerDispatchProps {
   return {
-    updateLabelBindings: payload => dispatch(Creators.updatePrometheusLabelBindings(payload)),
-    updateGroupBy: payload => dispatch(Creators.updatePrometheusGroupBy(payload)),
+    updateLabelBindings: (payload) => dispatch(Creators.updatePrometheusLabelBindings(payload)),
+    updateGroupBy: (payload) => dispatch(Creators.updatePrometheusGroupBy(payload)),
     updatePrometheusMetricQueryField: (field, option) =>
       dispatch(Creators.updatePrometheusMetricQueryField({ field, value: option && option.value })),
     updateFilterQueryType: (value: PrometheusQueryType) => {
@@ -117,7 +117,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IPromethe
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(PrometheusMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(PrometheusMetricConfigurer);

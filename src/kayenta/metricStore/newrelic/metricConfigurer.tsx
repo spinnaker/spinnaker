@@ -55,7 +55,4 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): INewRelic
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(NewRelicMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(NewRelicMetricConfigurer);

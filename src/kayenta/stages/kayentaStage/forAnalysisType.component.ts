@@ -16,7 +16,7 @@ class ForAnalysisTypeController implements IComponentController {
 
     return (this.types || '')
       .split(',')
-      .map(type => {
+      .map((type) => {
         const val = type.trim() as KayentaAnalysisType;
         if (
           ![

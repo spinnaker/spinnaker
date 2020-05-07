@@ -23,8 +23,8 @@ interface IGroupWeightDispatchProps {
 }
 
 /*
-* Component for configuring a group weight.
-* */
+ * Component for configuring a group weight.
+ * */
 function GroupWeight({
   group,
   config,
@@ -75,7 +75,4 @@ function mapDispatchToProps(
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GroupWeight);
+export default connect(mapStateToProps, mapDispatchToProps)(GroupWeight);

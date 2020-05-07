@@ -59,10 +59,11 @@ export const configSummaries = handleActions(
 const configs = handleActions(
   {
     [Actions.LOAD_CONFIG_SUCCESS]: (state: ICanaryConfig[], action: Action & any): ICanaryConfig[] => {
-      if (state.some(config => config.id === action.payload.config.id)) {
-        return without(state, state.find(config => config.id === action.payload.config.id)).concat([
-          action.payload.config,
-        ]);
+      if (state.some((config) => config.id === action.payload.config.id)) {
+        return without(
+          state,
+          state.find((config) => config.id === action.payload.config.id),
+        ).concat([action.payload.config]);
       } else {
         return state.concat([action.payload.config]);
       }

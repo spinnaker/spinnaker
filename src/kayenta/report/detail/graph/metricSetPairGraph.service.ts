@@ -18,18 +18,18 @@ export interface IMetricSetPairGraphProps {
 
 export interface IMetricSetPairGraph {
   /*
-  * Name of the graph implementation, referenced in settings.js.
-  * */
+   * Name of the graph implementation, referenced in settings.js.
+   * */
   name: string;
 
   /*
-  * Returns top-level graph component class.
-  * */
+   * Returns top-level graph component class.
+   * */
   getGraph: () => React.ComponentClass<IMetricSetPairGraphProps>;
 
   /*
-  * Returns true if the graph implementation supports a given graph type.
-  * */
+   * Returns true if the graph implementation supports a given graph type.
+   * */
   handlesGraphType: (type: GraphType) => boolean;
 }
 

@@ -78,11 +78,11 @@ const PER_SERIES_ALIGNERS = [
 const STACKDRIVER_HELP_ID_PREFIX = 'stackdriver';
 
 const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
-  values.map(value => ({ value, label: value }));
+  values.map((value) => ({ value, label: value }));
 
 /*
-* Component for configuring a Stackdriver metric.
-* */
+ * Component for configuring a Stackdriver metric.
+ * */
 function StackdriverMetricConfigurer({
   editingMetric,
   updateGroupBy,
@@ -137,11 +137,8 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IStackdri
   return {
     updateStackdriverQueryField: (field, option) =>
       dispatch(Creators.updateStackdriverMetricResourceField({ field, value: option && option.value })),
-    updateGroupBy: payload => dispatch(Creators.updateStackdriverGroupBy(payload)),
+    updateGroupBy: (payload) => dispatch(Creators.updateStackdriverGroupBy(payload)),
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(StackdriverMetricConfigurer);
+export default connect(mapStateToProps, mapDispatchToProps)(StackdriverMetricConfigurer);

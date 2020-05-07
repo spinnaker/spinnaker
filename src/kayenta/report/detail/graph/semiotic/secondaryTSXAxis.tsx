@@ -17,10 +17,10 @@ interface ISecondaryTSXAxisProps {
 }
 
 /*
-* Secondary X Axis for Time Series Graph
-* Used when canary and baseline have different start time. We can overlay this axis component
-* on the main graph component
-*/
+ * Secondary X Axis for Time Series Graph
+ * Used when canary and baseline have different start time. We can overlay this axis component
+ * on the main graph component
+ */
 export default class SecondaryTSXAxis extends React.Component<ISecondaryTSXAxisProps> {
   public render() {
     const { margin, width, millisSet, axisLabel, bottomOffset } = this.props;
@@ -44,9 +44,7 @@ export default class SecondaryTSXAxis extends React.Component<ISecondaryTSXAxisP
           <Axis
             className="x axis bottom canary-dual-axis"
             size={[netWidth, axisTickLineHeight]}
-            scale={scaleUtc()
-              .domain(extent)
-              .range(range)}
+            scale={scaleUtc().domain(extent).range(range)}
             orient="bottom"
             label="Canary"
             tickValues={utils.calculateDateTimeTicks(millisSet)}

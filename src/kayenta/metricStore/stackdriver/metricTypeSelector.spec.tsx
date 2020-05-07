@@ -52,10 +52,7 @@ describe('<StackdriverMetricTypeSelector />', () => {
       state,
     );
 
-    const allProps: any = component
-      .find(Select)
-      .first()
-      .props();
+    const allProps: any = component.find(Select).first().props();
 
     expect(allProps.options.map((o: Option) => o.value)).toEqual([
       'compute.googleapis.com/disk/read_ops_count',
