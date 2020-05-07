@@ -49,7 +49,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -157,7 +156,6 @@ final class KubernetesCoreCachingAgentTest {
     KubernetesConfigurationProperties.ManagedAccount managedAccount =
         new KubernetesConfigurationProperties.ManagedAccount();
     managedAccount.setName(ACCOUNT);
-    managedAccount.setProviderVersion(ProviderVersion.v2);
 
     KubernetesV2Credentials mockV2Credentials = mockKubernetesV2Credentials();
     KubernetesV2Credentials.Factory credentialFactory = mock(KubernetesV2Credentials.Factory.class);

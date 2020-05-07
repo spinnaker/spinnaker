@@ -92,7 +92,6 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
       new KubernetesConfigurationProperties.ManagedAccount(
         name: "test-account",
         namespaces: ["default"],
-        providerVersion: ProviderVersion.v2,
       )
     ])
     accountCredentialsRepository.getAll() >> new HashSet<AccountCredentials>()
@@ -104,7 +103,6 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
     }
 
     credentials.getName() == "test-account"
-    credentials.getProviderVersion() == ProviderVersion.v2
     credentials.getEnvironment() == "test-account"
     credentials.getAccountType() == "test-account"
     credentials.getSkin() == "v2"

@@ -49,7 +49,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.moniker.Moniker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -171,7 +170,6 @@ final class KubernetesDeployManifestOperationTest {
     KubernetesConfigurationProperties.ManagedAccount managedAccount =
         new KubernetesConfigurationProperties.ManagedAccount();
     managedAccount.setName("my-account");
-    managedAccount.setProviderVersion(ProviderVersion.v2);
 
     NamerRegistry.lookup()
         .withProvider(KubernetesCloudProvider.ID)

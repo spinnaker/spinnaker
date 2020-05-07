@@ -61,9 +61,13 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
   @PostConstruct
   public void setup() {
+    if (kubernetesConfigurationProperties.getAccounts().stream()
+        .anyMatch(a -> ProviderVersion.v1.equals(a.getProviderVersion()))) {
+      throw new IllegalArgumentException(
+          "The legacy Kubernetes provider (V1) is no longer supported. Please migrate all Kubernetes accounts to the standard provider (V2).");
+    }
     Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> allAccounts =
         kubernetesConfigurationProperties.getAccounts().stream()
-            .filter(a -> ProviderVersion.v2.equals(a.getProviderVersion()))
             .map(
                 managedAccount ->
                     new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory))

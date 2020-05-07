@@ -45,7 +45,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlException;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.HashMap;
@@ -75,7 +74,6 @@ final class KubernetesV2CredentialsTest {
             new KubernetesSpinnakerKindMap(ImmutableList.of()));
     ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName("my-account");
-    managedAccount.setProviderVersion(ProviderVersion.v2);
     return factory.build(managedAccount);
   }
 
