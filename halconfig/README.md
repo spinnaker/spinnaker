@@ -1,4 +1,4 @@
-This directory contains skeleton clouddriver configs to which Halyard concatenates
+This directory contains skeleton orca configs to which Halyard concatenates
 its generated deployment-specific config.
 
 These configs are **deprecated** and in general should not be further updated. To
