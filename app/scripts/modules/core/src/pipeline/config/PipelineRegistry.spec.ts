@@ -27,19 +27,16 @@ const mockProviderAccount = {
 const awsProviderAccount = {
   ...mockProviderAccount,
   cloudProvider: 'aws',
-  providerVersion: 'foo',
 };
 
 const titusProviderAccount = {
   ...mockProviderAccount,
   cloudProvider: 'titus',
-  providerVersion: 'foo',
 };
 
 const gcpProviderAccount = {
   ...mockProviderAccount,
   cloudProvider: 'gcp',
-  providerVersion: 'foo',
 };
 
 describe('PipelineRegistry: API', function() {

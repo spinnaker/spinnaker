@@ -8,7 +8,7 @@ import {
   Application,
   ApplicationModelBuilder,
 } from 'core/application';
-import { SkinService } from 'core/cloudProvider';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { FirewallLabels } from './label';
 
 import { SecurityGroupReader } from './securityGroupReader.service';
@@ -99,11 +99,7 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
           controllerProvider: [
             '$stateParams',
             ($stateParams: StateParams) => {
-              return SkinService.getValue(
-                $stateParams.provider,
-                $stateParams.accountId,
-                'securityGroup.detailsController',
-              );
+              return CloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
             },
           ],
           controllerAs: 'ctrl',

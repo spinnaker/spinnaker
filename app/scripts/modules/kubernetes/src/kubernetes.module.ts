@@ -94,7 +94,6 @@ module(KUBERNETES_MODULE, [
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
-    skin: 'v2',
     logo: {
       path: kubernetesLogo,
     },

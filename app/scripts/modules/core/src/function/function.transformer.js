@@ -4,7 +4,6 @@ import { module } from 'angular';
 
 import { chain, flow } from 'lodash';
 
-import { AccountService } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export const CORE_FUNCTION_FUNCTION_TRANSFORMER = 'spinnaker.core.function.transformer';
@@ -13,15 +12,9 @@ module(CORE_FUNCTION_FUNCTION_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).factory(
   'providerServiceDelegate',
   function(providerServiceDelegate) {
     function normalizeFunction(functionDef) {
-      return AccountService.getAccountDetails(functionDef.account).then(accountDetails => {
-        return providerServiceDelegate
-          .getDelegate(
-            functionDef.provider ? functionDef.provider : 'aws',
-            'function.transformer',
-            accountDetails && accountDetails.skin,
-          )
-          .normalizeFunction(functionDef);
-      });
+      return providerServiceDelegate
+        .getDelegate(functionDef.provider ? functionDef.provider : 'aws', 'function.transformer')
+        .normalizeFunction(functionDef);
     }
 
     function normalizeFunctionSet(functions) {

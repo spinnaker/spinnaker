@@ -66,7 +66,7 @@ export class KubernetesManifestCommandBuilder {
     }
 
     const dataToFetch = {
-      accounts: AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
+      accounts: AccountService.getAllAccountDetailsForProvider('kubernetes'),
       artifactAccounts: AccountService.getArtifactAccounts(),
     };
 

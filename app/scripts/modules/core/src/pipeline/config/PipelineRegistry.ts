@@ -227,7 +227,7 @@ export class PipelineRegistry {
     providersFromStage = providersFromStage.filter((providerKey: string) => {
       const providerAccounts = accounts.filter(acc => acc.cloudProvider === providerKey);
       return !!providerAccounts.find(acc => {
-        const provider = CloudProviderRegistry.getProvider(acc.cloudProvider, acc.skin);
+        const provider = CloudProviderRegistry.getProvider(acc.cloudProvider);
         return !isExcludedStageType(type, provider);
       });
     });
@@ -252,7 +252,7 @@ export class PipelineRegistry {
     );
     configurableStageTypes = configurableStageTypes.filter(type => {
       return !accounts.every(a => {
-        const p = CloudProviderRegistry.getProvider(a.cloudProvider, a.skin);
+        const p = CloudProviderRegistry.getProvider(a.cloudProvider);
         return isExcludedStageType(type, p);
       });
     });

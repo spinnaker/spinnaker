@@ -148,7 +148,6 @@ describe('ProviderSelectionService: API', () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
-    k8s.skin = 'v2';
     accounts = [k8s];
     CloudProviderRegistry.registerProvider('kubernetes', config);
     SETTINGS.defaultProvider = 'defaultProvider';
@@ -165,7 +164,6 @@ describe('ProviderSelectionService: API', () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
-    k8s.skin = 'v2';
     accounts = [k8s, fakeAccount('titus')];
     CloudProviderRegistry.registerProvider('titus', config);
     CloudProviderRegistry.registerProvider('kubernetes', config);

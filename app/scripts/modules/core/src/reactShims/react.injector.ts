@@ -17,7 +17,6 @@ import { PageTitleService } from 'core/pageTitle';
 import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
-import { SkinSelectionService } from '../cloudProvider/skinSelection/skinSelection.service';
 import { StateEvents } from './state.events';
 
 export abstract class ReactInject {
@@ -59,7 +58,6 @@ export class CoreReactInject extends ReactInject {
   public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
   public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
-  public get skinSelectionService() { return this.$injector.get('skinSelectionService') as SkinSelectionService; }
 
   private createStateService(): StateService {
     const wrappedState = Object.create(this.$injector.get('$state')) as StateService;

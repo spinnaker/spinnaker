@@ -17,12 +17,12 @@ export class RegistrationQueue {
     this.flush();
   }
 
-  public register(component: React.ComponentClass, key: string, cloudProvider?: string, cloudProviderVersion?: string) {
+  public register(component: React.ComponentClass, key: string, cloudProvider?: string) {
     this.queue.push(() => {
       if (!cloudProvider) {
         this.overrideRegistry.overrideComponent(key, component);
       } else {
-        CloudProviderRegistry.overrideValue(cloudProvider, key, component, cloudProviderVersion);
+        CloudProviderRegistry.overrideValue(cloudProvider, key, component);
       }
     });
 
@@ -49,15 +49,14 @@ export const overrideRegistrationQueue = new RegistrationQueue();
  * The component class will be used instead of the OverridableComponent with the same key.
  *
  * If an (optional) cloudProvider is specified, the component override takes effect only for that cloud provider.
- * If an (optional) cloudProviderVersion is specified, the component override takes effect only for a specific version of that cloud provider.
  *
- * @Overrides('overrideKey', "aws", "v2")
+ * @Overrides('overrideKey', "aws")
  * class MyOverridingCmp extends React.Component {
  *   render() { return <h1>Overridden component</h1> }
  * }
  */
-export function Overrides(key: string, cloudProvider?: string, cloudProviderVersion?: string) {
+export function Overrides(key: string, cloudProvider?: string) {
   return function<P, T extends React.ComponentClass<P>>(targetComponent: T): void {
-    overrideRegistrationQueue.register(targetComponent, key, cloudProvider, cloudProviderVersion);
+    overrideRegistrationQueue.register(targetComponent, key, cloudProvider);
   };
 }

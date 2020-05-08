@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { Application } from 'core/application';
 import { CloudProviderRegistry, ICloudProviderConfig, ProviderSelectionService } from 'core/cloudProvider';
-import { ModalInjector, ReactInjector } from 'core/reactShims';
+import { ModalInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 import { IAccountDetails } from 'core/account';
 import { SETTINGS } from 'core/config/settings';
@@ -49,21 +49,15 @@ const getReactModalOptions = (selectedProvider: string, app: Application) => ({
 
 export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {
   const createSecurityGroup = (): void => {
-    const { skinSelectionService } = ReactInjector;
-
     ProviderSelectionService.selectProvider(app, 'securityGroup', providerFilterFn).then(selectedProvider => {
-      skinSelectionService.selectSkin(selectedProvider).then(selectedSkin => {
-        const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedSkin);
+      const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
 
-        if (provider.CreateSecurityGroupModal) {
-          provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app));
-        } else {
-          // angular
-          ModalInjector.modalService
-            .open(getAngularModalOptions(provider, selectedProvider, app))
-            .result.catch(() => {});
-        }
-      });
+      if (provider.CreateSecurityGroupModal) {
+        provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app));
+      } else {
+        // angular
+        ModalInjector.modalService.open(getAngularModalOptions(provider, selectedProvider, app)).result.catch(() => {});
+      }
     });
   };
 

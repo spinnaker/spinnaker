@@ -10,9 +10,6 @@ export interface ICloudProviderLogo {
 export interface ICloudProviderConfig {
   name: string;
   logo?: ICloudProviderLogo;
-  providerVersion?: string;
-  skin?: string;
-  defaultSkin?: boolean;
   [attribute: string]: any;
 }
 
@@ -24,32 +21,21 @@ class Providers {
     // The tests depend on this behavior, but maybe something else does as well.
     this.providers = without(
       this.providers,
-      this.providers.find(p => p.cloudProvider === cloudProvider && p.config.skin === config.skin),
+      this.providers.find(p => p.cloudProvider === cloudProvider),
     ).concat([{ cloudProvider, config }]);
   }
 
-  public get(cloudProvider: string, skin?: string): ICloudProviderConfig {
-    if (skin) {
-      const provider = this.providers.find(p => p.cloudProvider === cloudProvider && p.config.skin === skin);
-      return provider ? provider.config : this.getDefaultSkin(cloudProvider);
-    } else {
-      return this.getDefaultSkin(cloudProvider);
-    }
+  public get(cloudProvider: string): ICloudProviderConfig {
+    const provider = this.providers.find(p => p.cloudProvider === cloudProvider);
+    return provider ? provider.config : null;
   }
 
-  public has(cloudProvider: string, skin?: string): boolean {
-    return !!this.get(cloudProvider, skin);
+  public has(cloudProvider: string): boolean {
+    return !!this.get(cloudProvider);
   }
 
   public keys(): string[] {
     return uniq(this.providers.map(p => p.cloudProvider));
-  }
-
-  private getDefaultSkin(cloudProvider: string): ICloudProviderConfig {
-    const provider = this.providers.some(p => p.cloudProvider === cloudProvider && p.config.defaultSkin)
-      ? this.providers.find(p => p.cloudProvider === cloudProvider && p.config.defaultSkin)
-      : this.providers.find(p => p.cloudProvider === cloudProvider);
-    return provider ? provider.config : null;
   }
 }
 
@@ -65,22 +51,20 @@ export class CloudProviderRegistry {
     }
   }
 
-  public static getProvider(cloudProvider: string, skin?: string): ICloudProviderConfig {
-    return this.providers.has(cloudProvider, skin) ? cloneDeep(this.providers.get(cloudProvider, skin)) : null;
+  public static getProvider(cloudProvider: string): ICloudProviderConfig {
+    return this.providers.has(cloudProvider) ? cloneDeep(this.providers.get(cloudProvider)) : null;
   }
 
   public static listRegisteredProviders(): string[] {
     return Array.from(this.providers.keys());
   }
 
-  public static overrideValue(cloudProvider: string, key: string, overrideValue: any, skin?: string) {
-    if (!this.providers.has(cloudProvider, skin)) {
-      console.warn(
-        `Cannot override "${key}" for provider "${cloudProvider}${skin ? `:${skin}` : ''}" (provider not registered)`,
-      );
+  public static overrideValue(cloudProvider: string, key: string, overrideValue: any) {
+    if (!this.providers.has(cloudProvider)) {
+      console.warn(`Cannot override "${key}" for provider "${cloudProvider}" (provider not registered)`);
       return;
     }
-    const config = this.providers.get(cloudProvider, skin);
+    const config = this.providers.get(cloudProvider);
     const parentKeys = key.split('.');
     const lastKey = parentKeys.pop();
     let current = config;
@@ -95,15 +79,15 @@ export class CloudProviderRegistry {
     current[lastKey] = overrideValue;
   }
 
-  public static hasValue(cloudProvider: string, key: string, skin?: string) {
-    return this.providers.has(cloudProvider, skin) && this.getValue(cloudProvider, key, skin) !== null;
+  public static hasValue(cloudProvider: string, key: string) {
+    return this.providers.has(cloudProvider) && this.getValue(cloudProvider, key) !== null;
   }
 
-  public static getValue(cloudProvider: string, key: string, skin?: string): any {
-    if (!key || !this.providers.has(cloudProvider, skin)) {
+  public static getValue(cloudProvider: string, key: string): any {
+    if (!key || !this.providers.has(cloudProvider)) {
       return null;
     }
-    const config = this.getProvider(cloudProvider, skin);
+    const config = this.getProvider(cloudProvider);
     const keyParts = key.split('.');
     let current = config;
     let notFound = false;

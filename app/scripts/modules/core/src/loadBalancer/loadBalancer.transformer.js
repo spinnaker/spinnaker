@@ -4,7 +4,6 @@ import { module } from 'angular';
 
 import { chain, flow } from 'lodash';
 
-import { AccountService } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export const CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.core.loadBalancer.transformer';
@@ -13,15 +12,9 @@ module(CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).
   'providerServiceDelegate',
   function(providerServiceDelegate) {
     function normalizeLoadBalancer(loadBalancer) {
-      return AccountService.getAccountDetails(loadBalancer.account).then(accountDetails => {
-        return providerServiceDelegate
-          .getDelegate(
-            loadBalancer.provider || loadBalancer.type,
-            'loadBalancer.transformer',
-            accountDetails && accountDetails.skin,
-          )
-          .normalizeLoadBalancer(loadBalancer);
-      });
+      return providerServiceDelegate
+        .getDelegate(loadBalancer.provider || loadBalancer.type, 'loadBalancer.transformer')
+        .normalizeLoadBalancer(loadBalancer);
     }
 
     function normalizeLoadBalancerSet(loadBalancers) {
