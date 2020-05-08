@@ -18,6 +18,9 @@ spring.jackson.serialization.write_dates_as_timestamps: false
 
 server.port: 8088
 
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
+
 #artifact:
 #  This is a feature toggle for decoration of artifacts.
 #  decorator:
