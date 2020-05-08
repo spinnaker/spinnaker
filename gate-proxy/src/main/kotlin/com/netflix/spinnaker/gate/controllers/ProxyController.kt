@@ -32,8 +32,10 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod.DELETE
 import org.springframework.web.bind.annotation.RequestMethod.GET
 import org.springframework.web.bind.annotation.RequestMethod.POST
+import org.springframework.web.bind.annotation.RequestMethod.PUT
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
@@ -48,7 +50,7 @@ class ProxyController(
 
   val proxyInvocationsId = registry.createId("proxy.invocations")
 
-  @RequestMapping(value = ["/{proxy}/**"], method = [GET, POST])
+  @RequestMapping(value = ["/{proxy}/**"], method = [DELETE, GET, POST, PUT])
   fun any(
     @PathVariable(value = "proxy") proxy: String,
     @RequestParam requestParams: Map<String, String>,
