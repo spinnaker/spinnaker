@@ -77,17 +77,6 @@ public interface AccountCredentials<T> {
     return ProviderVersion.v1;
   }
 
-  /**
-   * Provides a named "skin" as a signal for Spinnaker API clients, e.g. Deck, to alter their
-   * behavior. By default, returns an account's provider version, but does not need to be coupled to
-   * a provider version.
-   *
-   * @return the account's skin.
-   */
-  default String getSkin() {
-    return getProviderVersion().toString();
-  }
-
   /** @return the id for the account (may be null if not supported by underlying cloud provider) */
   default String getAccountId() {
     return null;

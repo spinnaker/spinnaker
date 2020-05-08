@@ -46,7 +46,6 @@ public class KubernetesConfigurationProperties {
     private boolean configureImagePullSecrets = true;
     private List<String> namespaces = new ArrayList<>();
     private List<String> omitNamespaces = new ArrayList<>();
-    private String skin;
     private int cacheThreads = DEFAULT_CACHE_THREADS;
     private List<LinkedDockerRegistryConfiguration> dockerRegistries;
     private List<String> requiredGroupMembership = new ArrayList<>();

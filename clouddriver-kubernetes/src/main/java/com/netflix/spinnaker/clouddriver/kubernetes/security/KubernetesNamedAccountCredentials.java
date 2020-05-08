@@ -44,8 +44,6 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
 
   @Include private final String accountType;
 
-  @Include private final String skin;
-
   @Include private final int cacheThreads;
 
   @Include private final C credentials;
@@ -64,9 +62,6 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
         Optional.ofNullable(managedAccount.getEnvironment()).orElse(managedAccount.getName());
     this.accountType =
         Optional.ofNullable(managedAccount.getAccountType()).orElse(managedAccount.getName());
-    this.skin =
-        Optional.ofNullable(managedAccount.getSkin())
-            .orElse(managedAccount.getProviderVersion().toString());
     this.cacheThreads = managedAccount.getCacheThreads();
     this.cacheIntervalSeconds = managedAccount.getCacheIntervalSeconds();
 
