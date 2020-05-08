@@ -52,9 +52,7 @@ interface ClouddriverService {
     String name
     String accountId
     String type
-    String providerVersion
     Collection<String> requiredGroupMembership = []
-    String skin
     Map<String, Collection<String>> permissions
   }
 
