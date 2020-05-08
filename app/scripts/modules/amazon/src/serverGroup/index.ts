@@ -5,3 +5,4 @@ export * from './details/scalingPolicy/ScalingPolicyWriter';
 export * from './details/scalingPolicy/upsert/PolicyTypeSelectionModal';
 export * from './details/scalingPolicy/CreateScalingPolicyButton';
 export * from './details/sections';
+export * from './details/utils';
