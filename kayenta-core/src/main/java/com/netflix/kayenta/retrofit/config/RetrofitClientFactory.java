@@ -19,6 +19,7 @@ package com.netflix.kayenta.retrofit.config;
 import static retrofit.Endpoints.newFixedEndpoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.Authenticator;
 import com.squareup.okhttp.Credentials;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +46,11 @@ import retrofit.converter.JacksonConverter;
 public class RetrofitClientFactory {
 
   @Value("${retrofit.log-level:BASIC}")
-  String retrofitLogLevel;
+  @VisibleForTesting
+  public String retrofitLogLevel;
+
+  @VisibleForTesting
+  public Function<Class<?>, Slf4jRetrofitLogger> createRetrofitLogger = Slf4jRetrofitLogger::new;
 
   @Bean
   JacksonConverter jacksonConverterWithMapper(ObjectMapper objectMapper) {
@@ -81,12 +87,14 @@ public class RetrofitClientFactory {
       okHttpClient = createAuthenticatedClient(username, password, usernamePasswordFile);
     }
 
+    Slf4jRetrofitLogger logger = createRetrofitLogger.apply(type);
+
     return new RestAdapter.Builder()
         .setEndpoint(endpoint)
         .setClient(new OkClient(okHttpClient))
         .setConverter(converter)
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-        .setLog(new Slf4jRetrofitLogger(type))
+        .setLog(logger)
         .build()
         .create(type);
   }

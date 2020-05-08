@@ -22,9 +22,11 @@ import com.netflix.kayenta.datadog.security.DatadogCredentials;
 import com.netflix.kayenta.datadog.security.DatadogNamedAccountCredentials;
 import com.netflix.kayenta.datadog.service.DatadogRemoteService;
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.IOException;
 import java.util.List;
@@ -86,11 +88,8 @@ public class DatadogConfiguration {
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
           accountCredentialsBuilder.datadogRemoteService(
-              retrofitClientFactory.createClient(
-                  DatadogRemoteService.class,
-                  new JacksonConverter(objectMapper),
-                  account.getEndpoint(),
-                  okHttpClient));
+              createDatadogRemoteService(
+                  retrofitClientFactory, objectMapper, account.getEndpoint(), okHttpClient));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }
@@ -103,5 +102,16 @@ public class DatadogConfiguration {
         "Populated DatadogMetricsService with {} Datadog accounts.",
         datadogConfigurationProperties.getAccounts().size());
     return metricsServiceBuilder.build();
+  }
+
+  @VisibleForTesting
+  public static DatadogRemoteService createDatadogRemoteService(
+      RetrofitClientFactory retrofitClientFactory,
+      ObjectMapper objectMapper,
+      RemoteService endpoint,
+      OkHttpClient okHttpClient) {
+
+    return retrofitClientFactory.createClient(
+        DatadogRemoteService.class, new JacksonConverter(objectMapper), endpoint, okHttpClient);
   }
 }
