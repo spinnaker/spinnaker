@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.QueueShovel
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.EventPublisher
@@ -76,13 +77,15 @@ class SqlQueueShovelConfiguration {
     @Qualifier("previousSqlQueue") previousQueue: SqlQueue,
     registry: Registry,
     @Qualifier("discoveryActivator") activator: Activator,
-    config: DynamicConfigService
+    config: DynamicConfigService,
+    executionRepository: ExecutionRepository
   ): QueueShovel {
     return QueueShovel(
       queue = queue,
       previousQueue = previousQueue,
       registry = registry,
       activator = activator,
-      config = config)
+      config = config,
+      executionRepository = executionRepository)
   }
 }

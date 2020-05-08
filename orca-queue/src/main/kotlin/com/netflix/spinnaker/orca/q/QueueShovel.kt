@@ -17,7 +17,10 @@ package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.q.Activator
+import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import java.time.Duration
 import java.time.Instant
@@ -41,7 +44,8 @@ class QueueShovel(
   private val previousQueue: Queue,
   private val registry: Registry,
   private val activator: Activator,
-  private val config: DynamicConfigService
+  private val config: DynamicConfigService,
+  private val executionRepository: ExecutionRepository?
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -71,9 +75,20 @@ class QueueShovel(
     registry.counter(pollOpsRateId).increment()
     previousQueue.poll { message, ack ->
       try {
+        log.debug("Shoveling message $message")
+
+        // transfer the ownership _before_ pushing the message on the queue
+        // we don't want a task handler running that message if the execution is not local
+        transferOwnership(message)
+
         queue.push(message)
         ack.invoke()
         registry.counter(shoveledMessageId).increment()
+      } catch (e: ExecutionNotFoundException) {
+        // no need to log the stack trace on ExecutionNotFoundException, which can be somewhat expected
+        log.error("Failed shoveling message from previous queue to active (message: $message) " +
+          "because of exception $e")
+        registry.counter(shovelErrorId).increment()
       } catch (e: Throwable) {
         log.error("Failed shoveling message from previous queue to active (message: $message)", e)
         registry.counter(shovelErrorId).increment()
@@ -81,7 +96,33 @@ class QueueShovel(
     }
   }
 
+  private fun transferOwnership(message: Message) {
+    if (executionRepository == null) {
+      return
+    }
+
+    if (message !is ExecutionLevel) {
+      log.warn("Message $message does not implement ExecutionLevel, can not inspect partition")
+      return
+    }
+
+    // don't catch exceptions on retrieve/store (e.g. ExecutionNotFoundException), so that we can short-circuit shoveling
+    // of this message
+    val execution = executionRepository.retrieve(message.executionType, message.executionId)
+    val isForeign = !executionRepository.handlesPartition(execution.partition)
+    if (isForeign) {
+      log.info("Taking ownership of foreign execution ${execution.id} with partition '${execution.partition}'. " +
+        "Setting partition to '${executionRepository.partition}'")
+      execution.partition = executionRepository.partition
+      executionRepository.store(execution)
+    }
+  }
+
   @PostConstruct
-  fun confirmShovelUsage() =
+  fun confirmShovelUsage() {
     log.info("${javaClass.simpleName} migrator from $previousQueue to $queue is enabled")
+    if (executionRepository == null) {
+      log.warn("${javaClass.simpleName} configured without an ExecutionRepository, won't be able to transfer ownership")
+    }
+  }
 }

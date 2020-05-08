@@ -162,7 +162,8 @@ class RedisQueueShovelConfiguration {
       previousQueue = previousQueueImpl,
       registry = registry,
       activator = discoveryActivator,
-      config = dynamicConfigService
+      config = dynamicConfigService,
+      executionRepository = null
     )
 
   @Bean
@@ -179,6 +180,7 @@ class RedisQueueShovelConfiguration {
       previousQueue = previousQueueImpl,
       registry = registry,
       activator = discoveryActivator,
-      config = dynamicConfigService
+      config = dynamicConfigService,
+      executionRepository = null
     )
 }
