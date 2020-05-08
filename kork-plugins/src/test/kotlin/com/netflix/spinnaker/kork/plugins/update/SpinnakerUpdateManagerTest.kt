@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.internal.PluginZip
 import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilder
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -60,7 +61,7 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       val plugin = createPlugin(paths.repository)
       changeRepository(subject, paths.repository, listOf(plugin))
 
-      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.releases.first()))
+      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.getReleases().first()))
       subject.downloadPluginReleases(releases)
 
       expect {
@@ -79,7 +80,7 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       pluginManager.loadPlugins()
       expectThat(pluginManager.plugins).hasSize(1)
 
-      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.releases.first()))
+      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.getReleases().first()))
       subject.downloadPluginReleases(releases)
 
       expect {
@@ -101,7 +102,7 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       pluginManager.loadPlugins()
       expectThat(pluginManager.plugins).hasSize(1)
 
-      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.releases.first()))
+      val releases = mutableSetOf(PluginInfoRelease(plugin.id, plugin.getReleases().first()))
       subject.downloadPluginReleases(releases)
 
       expect {
@@ -158,7 +159,7 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       repository: Path,
       pluginVersion: String = "0.0.1",
       className: String = "Generated"
-    ): PluginInfo {
+    ): SpinnakerPluginInfo {
       val generatedPluginPath = Files.createTempDirectory("generated-plugin")
       val pluginBuilder = TestPluginBuilder(
         pluginPath = generatedPluginPath,
@@ -189,13 +190,13 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
           pluginPath
         }
 
-      return PluginInfo().apply {
+      return SpinnakerPluginInfo().apply {
         id = pluginBuilder.pluginId
         name = pluginBuilder.name
         description = "A generated TestPlugin named $name"
         provider = "Spinnaker"
         releases = listOf(
-          PluginInfo.PluginRelease().apply {
+          SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
             requires = "orca>=0.0.0"
             version = pluginBuilder.version
             date = Date.from(Instant.now())

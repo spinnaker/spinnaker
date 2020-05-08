@@ -38,7 +38,7 @@ class LatestPluginInfoReleaseSourceTest : JUnit5Minutests {
     }
 
     test("Gets a release for a plugin") {
-      val expectedRelease = plugin1.releases.first()
+      val expectedRelease = plugin1.getReleases().first()
       every { updateManager.getLastPluginRelease(plugin1.id) } returns expectedRelease
 
       val releases = subject.getReleases(pluginInfoList.subList(0, 1))
@@ -49,8 +49,8 @@ class LatestPluginInfoReleaseSourceTest : JUnit5Minutests {
     }
 
     test("Gets releases for multiple plugins") {
-      val plugin1ExpectedRelease = plugin1.releases.first()
-      val plugin2ExpectedRelease = plugin2.releases.first()
+      val plugin1ExpectedRelease = plugin1.getReleases().first()
+      val plugin2ExpectedRelease = plugin2.getReleases().first()
       every { updateManager.getLastPluginRelease(plugin1.id) } returns plugin1ExpectedRelease
       every { updateManager.getLastPluginRelease(plugin2.id) } returns plugin2ExpectedRelease
       every { updateManager.getLastPluginRelease(pluginNoReleases.id) } returns null

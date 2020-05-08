@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.plugins.update.internal
 
-import org.pf4j.update.PluginInfo
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -45,4 +44,4 @@ interface Front50Service {
   ): Call<PinnedVersions>
 }
 
-typealias PinnedVersions = Map<String, PluginInfo.PluginRelease>
+typealias PinnedVersions = Map<String, SpinnakerPluginInfo.SpinnakerPluginRelease>

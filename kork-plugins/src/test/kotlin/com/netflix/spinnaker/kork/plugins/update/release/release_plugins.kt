@@ -17,23 +17,23 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release
 
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import java.time.Instant
 import java.util.Date
-import org.pf4j.update.PluginInfo
 
-val plugin1 = PluginInfo().apply {
+val plugin1 = SpinnakerPluginInfo().apply {
   id = "com.netflix.plugin1"
   name = "plugin1"
   description = "A test plugin"
   provider = "netflix"
   releases = listOf(
-    PluginInfo.PluginRelease().apply {
+    SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
       requires = "orca>=1.0.0"
       version = "2.0.0"
       date = Date.from(Instant.now())
       url = "front50.com/plugin.zip"
     },
-    PluginInfo.PluginRelease().apply {
+    SpinnakerPluginInfo.SpinnakerPluginRelease(true).apply {
       requires = "orca>=1.0.0"
       version = "3.0.0"
       date = Date.from(Instant.now())
@@ -42,25 +42,25 @@ val plugin1 = PluginInfo().apply {
   )
 }
 
-val plugin2 = PluginInfo().apply {
+val plugin2 = SpinnakerPluginInfo().apply {
   id = "com.netflix.plugin2"
   name = "plugin2"
   description = "A test plugin"
   provider = "netflix"
   releases = listOf(
-    PluginInfo.PluginRelease().apply {
+    SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
       requires = "orca>=2.0.0"
       version = "3.0.0"
       date = Date.from(Instant.now())
       url = "front50.com/plugin.zip"
     },
-    PluginInfo.PluginRelease().apply {
+    SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
       requires = "orca>=1.0.0"
       version = "4.0.0"
       date = Date.from(Instant.now())
       url = "front50.com/plugin.zip"
     },
-    PluginInfo.PluginRelease().apply {
+    SpinnakerPluginInfo.SpinnakerPluginRelease(true).apply {
       requires = "orca>=1.0.0"
       version = "5.0.0"
       date = Date.from(Instant.now())
@@ -69,13 +69,13 @@ val plugin2 = PluginInfo().apply {
   )
 }
 
-val plugin3 = PluginInfo().apply {
+val plugin3 = SpinnakerPluginInfo().apply {
   id = "com.netflix.plugin3"
   name = "plugin3"
   description = "A test plugin"
   provider = "netflix"
   releases = listOf(
-    PluginInfo.PluginRelease().apply {
+    SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
       requires = "orca>=2.0.0"
       version = "7.0.0"
       date = Date.from(Instant.now())
@@ -84,7 +84,7 @@ val plugin3 = PluginInfo().apply {
   )
 }
 
-val pluginNoReleases = PluginInfo().apply {
+val pluginNoReleases = SpinnakerPluginInfo().apply {
   id = "com.netflix.no.releases"
   name = "plugin2"
   description = "A test plugin"

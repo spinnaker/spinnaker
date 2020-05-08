@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,32 +17,26 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
-import com.netflix.spinnaker.config.PluginsConfigurationProperties.CONFIG_NAMESPACE
-import com.netflix.spinnaker.config.PluginsConfigurationProperties.DEFAULT_ROOT_PATH
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.plugin1
 import com.netflix.spinnaker.kork.plugins.update.release.plugin2
+import com.netflix.spinnaker.kork.plugins.update.release.plugin3
 import com.netflix.spinnaker.kork.plugins.update.release.pluginNoReleases
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
-import io.mockk.mockk
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
-class SpringPluginInfoReleaseSourceTest : JUnit5Minutests {
+class PreferredPluginInfoReleaseSourceTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture()
     }
 
-    test("Gets a release for a plugin") {
-      val expectedRelease = plugin1.getReleases().first()
-      every { pluginStatusProvider.pluginVersion(plugin1.id) } returns expectedRelease.version
+    test("Gets a preferred release for a plugin") {
+      val expectedRelease = plugin1.getReleases().find { it.preferred }!!
 
       val releases = subject.getReleases(pluginInfoList.subList(0, 1))
 
@@ -51,12 +45,9 @@ class SpringPluginInfoReleaseSourceTest : JUnit5Minutests {
         .get { releases.first() }.isEqualTo(PluginInfoRelease(plugin1.id, expectedRelease))
     }
 
-    test("Gets releases for multiple plugins, skipping plugin with empty releases") {
-      val plugin1ExpectedRelease = plugin1.getReleases().first()
-      val plugin2ExpectedRelease = plugin2.getReleases().first()
-      every { pluginStatusProvider.pluginVersion(plugin1.id) } returns plugin1ExpectedRelease.version
-      every { pluginStatusProvider.pluginVersion(plugin2.id) } returns plugin2ExpectedRelease.version
-      every { pluginStatusProvider.pluginVersion(pluginNoReleases.id) } returns "unspecified"
+    test("Gets preferred releases for multiple plugins, skipping plugins with empty releases and no preferred releases") {
+      val plugin1ExpectedRelease = plugin1.getReleases().find { it.preferred }!!
+      val plugin2ExpectedRelease = plugin2.getReleases().find { it.preferred }!!
 
       val releases = subject.getReleases(pluginInfoList)
 
@@ -68,9 +59,7 @@ class SpringPluginInfoReleaseSourceTest : JUnit5Minutests {
   }
 
   private class Fixture {
-    val pluginInfoList = mutableListOf(plugin1, plugin2, pluginNoReleases)
-    val dynamicConfigService: DynamicConfigService = mockk(relaxed = true)
-    val pluginStatusProvider = SpringPluginStatusProvider(dynamicConfigService, "$CONFIG_NAMESPACE.$DEFAULT_ROOT_PATH")
-    val subject = SpringPluginInfoReleaseSource(pluginStatusProvider)
+    val pluginInfoList = mutableListOf(plugin1, plugin2, plugin3, pluginNoReleases)
+    val subject = PreferredPluginInfoReleaseSource()
   }
 }

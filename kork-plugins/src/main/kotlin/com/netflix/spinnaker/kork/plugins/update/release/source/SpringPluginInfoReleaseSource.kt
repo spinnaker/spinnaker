@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
-import org.pf4j.update.PluginInfo
 import org.slf4j.LoggerFactory
 
 /**
@@ -31,13 +31,13 @@ class SpringPluginInfoReleaseSource(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
+  override fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease> {
     return pluginInfo.mapNotNull { pluginInfoRelease(it) }.toSet()
   }
 
-  private fun pluginInfoRelease(pluginInfo: PluginInfo): PluginInfoRelease? {
+  private fun pluginInfoRelease(pluginInfo: SpinnakerPluginInfo): PluginInfoRelease? {
     val pluginVersion = pluginStatusProvider.pluginVersion(pluginInfo.id)
-    val release = pluginInfo.releases.firstOrNull { it.version == pluginVersion }
+    val release = pluginInfo.getReleases().firstOrNull { it.version == pluginVersion }
     return if (release != null) {
       log.info("Spring configured release version '{}' for plugin '{}'", release.version, pluginInfo.id)
       PluginInfoRelease(pluginInfo.id, release)

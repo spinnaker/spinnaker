@@ -21,9 +21,9 @@ import com.netflix.spinnaker.kork.plugins.update.ServerGroupLocationResolver
 import com.netflix.spinnaker.kork.plugins.update.ServerGroupNameResolver
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.internal.PinnedVersions
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import java.io.IOException
-import org.pf4j.update.PluginInfo
 import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered.LOWEST_PRECEDENCE
 
@@ -36,7 +36,7 @@ class Front50PluginInfoReleaseSource(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
+  override fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease> {
     return mutableSetOf()
   }
 

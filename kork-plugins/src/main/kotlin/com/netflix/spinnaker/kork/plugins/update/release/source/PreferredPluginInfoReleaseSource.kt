@@ -17,19 +17,11 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
-import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import org.slf4j.LoggerFactory
-import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 
-/**
- * Source the last published plugin info release.
- */
-class LatestPluginInfoReleaseSource(
-  private val updateManager: SpinnakerUpdateManager,
-  private val serviceName: String? = null
-) : PluginInfoReleaseSource {
+class PreferredPluginInfoReleaseSource : PluginInfoReleaseSource {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -38,22 +30,15 @@ class LatestPluginInfoReleaseSource(
   }
 
   private fun pluginInfoRelease(pluginInfo: SpinnakerPluginInfo): PluginInfoRelease? {
-    val latestRelease = if (serviceName == null)
-      updateManager.getLastPluginRelease(pluginInfo.id) else
-      updateManager.getLastPluginRelease(pluginInfo.id, serviceName)
-
-    return if (latestRelease != null) {
-      log.info("Latest release version '{}' for plugin '{}'", latestRelease.version, pluginInfo.id)
-      PluginInfoRelease(pluginInfo.id, latestRelease as SpinnakerPluginInfo.SpinnakerPluginRelease)
+    val release = pluginInfo.getReleases().find { it.preferred }
+    return if (release != null) {
+      log.info("Preferred release version '{}' for plugin '{}'", release.version, pluginInfo.id)
+      PluginInfoRelease(pluginInfo.id, release)
     } else {
-      log.info("Latest release version not found for plugin '{}'", pluginInfo.id)
+      log.info("No preferred release version found for '{}'", pluginInfo.id)
       null
     }
   }
 
-  /**
-   * Ensures this runs first in
-   * [com.netflix.spinnaker.kork.plugins.update.release.provider.AggregatePluginInfoReleaseProvider]
-   */
-  override fun getOrder(): Int = HIGHEST_PRECEDENCE
+  override fun getOrder(): Int = 200
 }

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release
 
-import org.pf4j.update.PluginInfo
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 
 /**
- * A tuple of [pluginId] and [PluginInfo.PluginRelease]
+ * A tuple of [pluginId] and [SpinnakerPluginInfo.SpinnakerPluginRelease]
  */
-data class PluginInfoRelease(val pluginId: String, var props: PluginInfo.PluginRelease)
+data class PluginInfoRelease(val pluginId: String, var props: SpinnakerPluginInfo.SpinnakerPluginRelease)

@@ -19,12 +19,12 @@ package com.netflix.spinnaker.kork.plugins.update.release.provider
 
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource
-import org.pf4j.update.PluginInfo
 
 /**
- * Provide the desired release(s) from the provided [PluginInfo] list.
+ * Provide the desired release(s) from the provided [SpinnakerPluginInfo] list.
  *
  * A similar signature as PluginInfoReleaseSource, but used by consumers to obtain a final set
  * of plugin releases.
@@ -35,7 +35,7 @@ interface PluginInfoReleaseProvider {
   /**
    * Get plugin releases from a list of plugin info objects
    */
-  fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease>
+  fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease>
 }
 
 class PluginReleaseNotFoundException(pluginId: String, sources: List<PluginInfoReleaseSource>) :

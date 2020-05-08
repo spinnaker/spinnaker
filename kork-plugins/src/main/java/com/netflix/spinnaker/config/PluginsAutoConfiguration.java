@@ -44,6 +44,7 @@ import com.netflix.spinnaker.kork.plugins.update.release.provider.AggregatePlugi
 import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider;
 import com.netflix.spinnaker.kork.plugins.update.release.source.LatestPluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource;
+import com.netflix.spinnaker.kork.plugins.update.release.source.PreferredPluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.SpringPluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.repository.ConfigurableUpdateRepository;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
@@ -183,6 +184,11 @@ public class PluginsAutoConfiguration {
   public static PluginInfoReleaseSource latestPluginInfoReleaseSource(
       SpinnakerUpdateManager updateManager) {
     return new LatestPluginInfoReleaseSource(updateManager, null);
+  }
+
+  @Bean
+  public static PluginInfoReleaseSource preferredPluginInfoReleaseSource() {
+    return new PreferredPluginInfoReleaseSource();
   }
 
   @Bean

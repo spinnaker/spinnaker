@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.plugins.update.ServerGroupLocationResolver
 import com.netflix.spinnaker.kork.plugins.update.ServerGroupNameResolver
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.internal.PinnedVersions
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -27,7 +28,6 @@ import io.mockk.every
 import io.mockk.mockk
 import okhttp3.MediaType
 import okhttp3.ResponseBody
-import org.pf4j.update.PluginInfo
 import retrofit2.Call
 import retrofit2.Response
 import strikt.api.expectThat
@@ -75,8 +75,8 @@ class Front50PluginInfoReleaseSourceTest : JUnit5Minutests {
       val call: Call<PinnedVersions> = mockk(relaxed = true)
       every { front50Service.pinVersions(eq("orca-v000"), eq("orca"), eq("us-west-2"), any()) } returns call
       every { call.execute() } returns Response.success(mapOf(
-        "foo" to PluginInfo.PluginRelease().apply { version = "1.0.0" },
-        "bar" to PluginInfo.PluginRelease().apply { version = "1.0.1" }
+        "foo" to SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.0" },
+        "bar" to SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.1" }
       ))
 
       subject.processReleases(releases)
@@ -107,8 +107,8 @@ class Front50PluginInfoReleaseSourceTest : JUnit5Minutests {
     )
 
     val releases = setOf(
-      PluginInfoRelease("foo", PluginInfo.PluginRelease().apply { version = "1.0.0" }),
-      PluginInfoRelease("bar", PluginInfo.PluginRelease().apply { version = "1.0.0" })
+      PluginInfoRelease("foo", SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.0" }),
+      PluginInfoRelease("bar", SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.0" })
     )
   }
 }

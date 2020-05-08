@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.kork.plugins.update.release.provider
 
 import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.plugin1
 import com.netflix.spinnaker.kork.plugins.update.release.plugin2
@@ -28,7 +29,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
-import org.pf4j.update.PluginInfo
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isA
@@ -41,10 +41,10 @@ class AggregatePluginInfoReleaseProviderTest : JUnit5Minutests {
     }
 
     test("Provides the releases for multiple plugins from multiple plugin sources") {
-      val plugin1ExpectedRelease = plugin1.releases[0]
+      val plugin1ExpectedRelease = plugin1.getReleases()[0]
       // LastPluginInfoReleaseSource modifies the plugin2 release via processReleases
-      val plugin2ExpectedRelease = plugin2.releases[2]
-      val plugin3ExpectedRelease = plugin3.releases[0]
+      val plugin2ExpectedRelease = plugin2.getReleases()[2]
+      val plugin3ExpectedRelease = plugin3.getReleases()[0]
 
       every { pluginLoaderStatusProvider.isStrictPluginLoading() } returns false
 
@@ -75,23 +75,23 @@ class AggregatePluginInfoReleaseProviderTest : JUnit5Minutests {
   }
 
   private class FirstPluginInfoReleaseSource : PluginInfoReleaseSource {
-    override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
-      return mutableSetOf(PluginInfoRelease(plugin1.id, plugin1.releases[0]), PluginInfoRelease(plugin2.id, plugin2.releases[0]))
+    override fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease> {
+      return mutableSetOf(PluginInfoRelease(plugin1.id, plugin1.getReleases()[0]), PluginInfoRelease(plugin2.id, plugin2.getReleases()[0]))
     }
 
     override fun getOrder(): Int = 0
   }
 
   private class SecondPluginInfoReleaseSource : PluginInfoReleaseSource {
-    override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
-      return mutableSetOf(PluginInfoRelease(plugin3.id, plugin3.releases[0]))
+    override fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease> {
+      return mutableSetOf(PluginInfoRelease(plugin3.id, plugin3.getReleases()[0]))
     }
 
     override fun getOrder(): Int = 1
   }
 
   private class LastPluginInfoReleaseSource : PluginInfoReleaseSource {
-    override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
+    override fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease> {
       return mutableSetOf()
     }
 
@@ -99,7 +99,7 @@ class AggregatePluginInfoReleaseProviderTest : JUnit5Minutests {
     override fun processReleases(pluginInfoReleases: Set<PluginInfoRelease>) {
       pluginInfoReleases.forEach {
         if (it.pluginId == plugin2.id) {
-          it.props = plugin2.releases[2]
+          it.props = plugin2.getReleases()[2]
         }
       }
     }

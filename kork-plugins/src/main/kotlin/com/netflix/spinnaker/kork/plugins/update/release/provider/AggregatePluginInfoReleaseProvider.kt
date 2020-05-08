@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.kork.plugins.update.release.provider
 
 import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource
 import org.pf4j.update.PluginInfo
@@ -27,7 +28,7 @@ class AggregatePluginInfoReleaseProvider(
   private val strictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider
 ) : PluginInfoReleaseProvider {
 
-  override fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease> {
+  override fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease> {
     val pluginInfoReleases: MutableSet<PluginInfoRelease> = mutableSetOf()
 
     pluginInfoReleaseSources.forEach { source ->

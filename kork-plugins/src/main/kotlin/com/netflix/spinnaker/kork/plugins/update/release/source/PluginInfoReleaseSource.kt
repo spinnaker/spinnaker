@@ -18,12 +18,12 @@
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
 import com.netflix.spinnaker.kork.annotations.Beta
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
-import org.pf4j.update.PluginInfo
 import org.springframework.core.Ordered
 
 /**
- * Source the desired release(s) from the provided [PluginInfo] list.
+ * Source the desired release(s) from the provided [SpinnakerPluginInfo] list.
  *
  * A similar signature as PluginInfoReleaseProvider, but used to model releases from one specific
  * source.
@@ -34,7 +34,7 @@ interface PluginInfoReleaseSource : Ordered {
   /**
    * Get plugin releases from a list of plugin info objects
    */
-  fun getReleases(pluginInfo: List<PluginInfo>): Set<PluginInfoRelease>
+  fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease>
 
   /**
    * Optionally process releases (i.e., POST to front50/another service, modify in-memory set,

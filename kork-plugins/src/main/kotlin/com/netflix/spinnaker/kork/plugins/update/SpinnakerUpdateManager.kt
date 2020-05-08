@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.update
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import java.io.File
@@ -47,6 +48,16 @@ class SpinnakerUpdateManager(
 ) : UpdateManager(pluginManager, repositories) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  override fun getPlugins(): List<SpinnakerPluginInfo> {
+    val plugins: MutableCollection<SpinnakerPluginInfo> = mutableListOf()
+    for (repository in getRepositories()) {
+      val pluginInfos = repository.plugins.values as MutableCollection<SpinnakerPluginInfo>
+      plugins.addAll(pluginInfos)
+    }
+
+    return plugins.toList()
+  }
 
   internal fun downloadPluginReleases(pluginInfoReleases: Set<PluginInfoRelease>): Set<Path> {
     val downloadedPlugins: MutableSet<Path> = mutableSetOf()
