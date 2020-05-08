@@ -25,6 +25,7 @@ import java.time.Duration.ZERO
 sealed class ClusterDeployStrategy {
   @get:JsonIgnore
   open val isStaggered: Boolean = false
+
   @get:JsonInclude(NON_EMPTY)
   open val stagger: List<StaggeredRegion> = emptyList()
   abstract fun toOrcaJobProperties(): Map<String, Any?>
@@ -50,9 +51,9 @@ data class RedBlack(
           ?.let { it as Map<String, Any> }
           ?.get("onFailure") as Boolean,
         resizePreviousToZero = context["scaleDown"] as Boolean,
-        maxServerGroups = context["maxRemainingAsgs"] as Int,
-        delayBeforeDisable = Duration.ofSeconds((context["delayBeforeDisableSec"] as Int).toLong()),
-        delayBeforeScaleDown = Duration.ofSeconds((context["delayBeforeScaleDownSec"] as Int).toLong())
+        maxServerGroups = context["maxRemainingAsgs"].toString().toInt(),
+        delayBeforeDisable = Duration.ofSeconds((context["delayBeforeDisableSec"].toString().toInt()).toLong()),
+        delayBeforeScaleDown = Duration.ofSeconds((context["delayBeforeScaleDownSec"].toString().toInt()).toLong())
       )
 
     val DEFAULTS = RedBlack()

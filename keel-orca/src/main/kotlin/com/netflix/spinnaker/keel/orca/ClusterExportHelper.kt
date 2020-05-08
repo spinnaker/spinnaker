@@ -86,7 +86,14 @@ class ClusterExportHelper(
       }
 
       when (val strategy = context?.get("strategy")) {
-        "redblack" -> RedBlack.fromOrcaStageContext(context)
+        "redblack" -> {
+          try {
+            RedBlack.fromOrcaStageContext(context)
+          } catch (e: ClassCastException) {
+            log.error("Could not convert strategy to redblack, context is {}", context)
+            null
+          }
+        }
         "highlander" -> Highlander
         null -> null.also {
           log.error("Deployment strategy information not found for server group $serverGroupName " +
