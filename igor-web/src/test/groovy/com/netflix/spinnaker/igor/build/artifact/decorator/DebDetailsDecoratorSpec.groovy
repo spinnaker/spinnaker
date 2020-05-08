@@ -86,5 +86,7 @@ class DebDetailsDecoratorSpec extends Specification {
         "test-2.13.deb.true.fal" || false
         null                     || false
         ""                       || false
+        "test_2.13.deb"          || false
+        "test.deb"               || false
     }
 }

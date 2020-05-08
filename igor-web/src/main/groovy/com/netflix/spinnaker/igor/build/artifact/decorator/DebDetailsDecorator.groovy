@@ -41,7 +41,9 @@ class DebDetailsDecorator implements ArtifactDetailsDecorator {
         if (!genericArtifact.fileName) {
             return false
         }
-        return genericArtifact.fileName.tokenize('.').last() == "deb"
+        // expected package name: <name>_<version>_<architecture>.deb
+        return (genericArtifact.fileName.tokenize('.').last() == "deb" &&
+          genericArtifact.fileName.tokenize(versionDelimiter).size() >= 3)
     }
 
     @Override
