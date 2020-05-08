@@ -124,7 +124,7 @@ public class ApplicationsController {
   }
 
   @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Update an existing application")
+  @ApiOperation(value = "", notes = "Update an existing application by merging the attributes")
   @RequestMapping(method = RequestMethod.PATCH, value = "/{applicationName:.+}")
   Application update(@PathVariable String applicationName, @RequestBody final Application app) {
     if (!applicationName.trim().equalsIgnoreCase(app.getName())) {
@@ -133,7 +133,21 @@ public class ApplicationsController {
 
     def application = getApplication()
     Application existingApplication = application.findByName(app.getName())
-    application.initialize(existingApplication).withName(app.getName()).update(app)
+    application.initialize(existingApplication).withName(app.getName()).update(app, true)
+    return app
+  }
+
+  @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'WRITE')")
+  @ApiOperation(value = "", notes = "Update an existing application by replacing all attributes")
+  @RequestMapping(method = RequestMethod.PUT, value = "/{applicationName:.+}")
+  Application replace(@PathVariable String applicationName, @RequestBody final Application app) {
+    if (!applicationName.trim().equalsIgnoreCase(app.getName())) {
+      throw new InvalidApplicationRequestException("Application name '${app.getName()}' does not match path parameter '${applicationName}'")
+    }
+
+    def application = getApplication()
+    Application existingApplication = application.findByName(app.getName())
+    application.initialize(existingApplication).withName(app.getName()).update(app, false)
     return app
   }
 

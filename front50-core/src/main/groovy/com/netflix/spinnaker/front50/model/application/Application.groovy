@@ -123,14 +123,16 @@ class Application implements Timestamped {
   @JsonIgnore
   Optional<ServiceAccountsService> serviceAccountsService;
 
-  void update(Application updatedApplication) {
+  void update(Application updatedApplication, boolean merge = true) {
 
     updatedApplication.name = this.name
     updatedApplication.createTs = this.createTs
     updatedApplication.description = updatedApplication.description ?: this.description
     updatedApplication.email = updatedApplication.email ?: this.email
     updatedApplication.cloudProviders = updatedApplication.cloudProviders ?: this.cloudProviders
-    mergeDetails(updatedApplication, this)
+    if (merge) {
+      mergeDetails(updatedApplication, this)
+    }
     validate(updatedApplication)
 
     perform(
