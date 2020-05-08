@@ -66,6 +66,7 @@ public class PluginsBuildMonitor
 
   @Override
   protected void commitDelta(PluginPollingDelta delta, boolean sendEvents) {
+    log.info("Found {} new plugin releases", delta.items.size());
     delta.items.forEach(
         item -> {
           if (sendEvents) {
