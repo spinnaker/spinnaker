@@ -33,6 +33,7 @@ public class ArtifactoryItem {
   private String repo;
   private String path;
   private List<ArtifactoryArtifact> artifacts;
+  private List<ArtifactoryProperty> properties;
 
   @Nullable
   public Artifact toMatchableArtifact(ArtifactoryRepositoryType repoType, String baseUrl) {
@@ -79,16 +80,15 @@ public class ArtifactoryItem {
       case HELM:
         String filePath = null;
         if (baseUrl != null) {
-          filePath = baseUrl + "/webapp/#/artifacts/browse/tree/General/" + repo + "/" + name;
+          filePath = baseUrl + "/" + repo + "/" + name;
         }
 
-        String helmVersion = getHelmFileVersion(name, repoType.getArtifactExtension());
         Artifact.ArtifactBuilder artifactBuilderHelm =
             Artifact.builder()
-                .type("helm/file")
+                .type("helm/chart")
                 .reference("")
-                .name(name)
-                .version(helmVersion)
+                .name(getPropertyValueByKey("chart.name"))
+                .version(getPropertyValueByKey("chart.version"))
                 .provenance(repo)
                 .location(filePath);
         return artifactBuilderHelm.build();
@@ -96,8 +96,12 @@ public class ArtifactoryItem {
     return null;
   }
 
-  private String getHelmFileVersion(String artifactName, String artifactExtension) {
-    return artifactName.replaceFirst(String.format("^.*-([^-]+)\\%s$", artifactExtension), "$1");
+  private String getPropertyValueByKey(String key) {
+    return properties.stream()
+        .filter(p -> p.key.equals(key))
+        .findFirst()
+        .map(artifactoryProperty -> artifactoryProperty.value)
+        .orElse(null);
   }
 
   @Data
@@ -129,5 +133,13 @@ public class ArtifactoryItem {
 
     @JsonProperty("build.url")
     private String url;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ArtifactoryProperty {
+    private String key;
+    private String value;
   }
 }

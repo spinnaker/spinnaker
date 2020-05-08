@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryItem.*;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -52,17 +53,18 @@ class ArtifactoryItemTest {
     artifact.setName("my-app-0.0.1.tgz");
     artifact.setPath(".");
     artifact.setRepo("demo-helm-local");
+    ArtifactoryProperty chartVersion = new ArtifactoryProperty("chart.version", "0.0.1");
+    ArtifactoryProperty chartName = new ArtifactoryProperty("chart.name", "my-app");
+    artifact.setProperties(Arrays.asList(chartVersion, chartName));
 
     Artifact matchableArtifact =
         artifact.toMatchableArtifact(ArtifactoryRepositoryType.HELM, "http://localhost:8080");
     assertThat(matchableArtifact).isNotNull();
-    assertThat(matchableArtifact.getType()).isEqualTo("helm/file");
+    assertThat(matchableArtifact.getType()).isEqualTo("helm/chart");
     assertThat(matchableArtifact.getVersion()).isEqualTo("0.0.1");
-    assertThat(matchableArtifact.getName()).isEqualTo("my-app-0.0.1.tgz");
+    assertThat(matchableArtifact.getName()).isEqualTo("my-app");
     assertThat(matchableArtifact.getLocation())
-        .isEqualTo(
-            "http://localhost:8080/webapp/#/artifacts/browse/tree/General/demo-helm-local/"
-                + "my-app-0.0.1.tgz");
+        .isEqualTo("http://localhost:8080/demo-helm-local/" + "my-app-0.0.1.tgz");
   }
 
   @Test

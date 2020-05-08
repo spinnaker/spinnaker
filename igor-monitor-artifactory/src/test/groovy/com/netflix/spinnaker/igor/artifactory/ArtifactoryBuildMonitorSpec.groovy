@@ -38,7 +38,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
 
   MockWebServer mockArtifactory = new MockWebServer()
 
-  ArtifactoryBuildMonitor monitor(url, lockService = null) {
+  ArtifactoryBuildMonitor monitor(search, lockService = null) {
     monitor = new ArtifactoryBuildMonitor(
       igorConfigurationProperties,
       new NoopRegistry(),
@@ -47,17 +47,27 @@ class ArtifactoryBuildMonitorSpec extends Specification {
       Optional.ofNullable(lockService),
       Optional.of(echoService),
       cache,
-      new ArtifactoryProperties(searches: [
-        new ArtifactorySearch(
-          baseUrl: url,
-          repo: 'libs-releases-local',
-          repoType: ArtifactoryRepositoryType.MAVEN
-        )
-      ])
+      new ArtifactoryProperties(searches: [search])
     )
     monitor.worker = Schedulers.immediate().createWorker()
 
     return monitor
+  }
+
+  def mavenSearch(url) {
+    return new ArtifactorySearch(
+      baseUrl: url,
+      repo: 'libs-releases-local',
+      repoType: ArtifactoryRepositoryType.MAVEN
+    )
+  }
+
+  def helmSearch(url) {
+    return new ArtifactorySearch(
+      baseUrl: url,
+      repo: 'helm-local',
+      repoType: ArtifactoryRepositoryType.HELM
+    )
   }
 
   def 'should handle any failure to talk to artifactory graciously' () {
@@ -65,7 +75,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
     mockArtifactory.enqueue(new MockResponse().setResponseCode(400))
 
     when:
-    monitor(mockArtifactory.url('')).poll(false)
+    monitor(mavenSearch(mockArtifactory.url(''))).poll(false)
 
     then:
     notThrown(Exception)
@@ -76,7 +86,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
     mockArtifactory.enqueue(new MockResponse().setResponseCode(200).setBody('{"results": []}'))
 
     when:
-    monitor(mockArtifactory.url(contextRoot)).poll(false)
+    monitor(mavenSearch(mockArtifactory.url(contextRoot))).poll(false)
 
     then:
     mockArtifactory.takeRequest().path == "/${contextRoot}api/search/aql"
@@ -90,9 +100,35 @@ class ArtifactoryBuildMonitorSpec extends Specification {
     mockArtifactory.enqueue(new MockResponse().setResponseCode(200).setBody('{"results": []}'))
 
     when:
-    monitor("http://localhost:64610", lockService).poll(false)
+    monitor(mavenSearch("http://localhost:64610"), lockService).poll(false)
 
     then:
     1 * lockService.acquire("artifactoryPublishingMonitor.httplocalhost64610libs-releases-local", _, _)
+  }
+
+  def 'generates correct AQL for maven repository type'() {
+    given:
+    mockArtifactory.enqueue(new MockResponse().setResponseCode(200).setBody('{"results": []}'))
+
+    when:
+    monitor(mavenSearch(mockArtifactory.url(''))).poll(false)
+
+    then:
+    mockArtifactory.takeRequest().getBody().readUtf8() == "items.find({\"repo\":\"libs-releases-local\"," +
+      "\"modified\":{\"\$last\":\"36000minutes\"},\"path\":{\"\$match\":\"*\"},\"name\":{\"\$match\":\"*.pom\"}})" +
+      ".include(\"path\",\"repo\",\"name\",\"artifact.module.build\")"
+  }
+
+  def 'generates correct AQL for helm repository type'() {
+    given:
+    mockArtifactory.enqueue(new MockResponse().setResponseCode(200).setBody('{"results": []}'))
+
+    when:
+    monitor(helmSearch(mockArtifactory.url(''))).poll(false)
+
+    then:
+    mockArtifactory.takeRequest().getBody().readUtf8() == "items.find({\"repo\":\"helm-local\"," +
+      "\"modified\":{\"\$last\":\"36000minutes\"},\"path\":{\"\$match\":\"*\"},\"name\":{\"\$match\":\"*.tgz\"}})" +
+      ".include(\"path\",\"repo\",\"name\",\"artifact.module.build\",\"@chart.name\",\"@chart.version\")"
   }
 }
