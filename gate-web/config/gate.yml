@@ -56,7 +56,7 @@ services:
     baseUrl: http://localhost:8090
 
 redis:
-  connection: redis://localhost:6379
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
 
 slack:
   baseUrl: https://slack.com/api

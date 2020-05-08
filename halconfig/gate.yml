@@ -1,4 +1,1 @@
 # halconfig
-
-redis:
-  connection: ${services.redis.baseUrl:redis://localhost:6379}
