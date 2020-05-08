@@ -46,6 +46,6 @@ class SetPreferredPluginReleaseTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    1 * front50Service.setPreferredPluginVersion("netflix.foo", "1.0.1")
+    1 * front50Service.setPreferredPluginVersion("netflix.foo", "1.0.1", true)
   }
 }

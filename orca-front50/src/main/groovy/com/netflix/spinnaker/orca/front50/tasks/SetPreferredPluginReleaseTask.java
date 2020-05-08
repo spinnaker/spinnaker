@@ -47,7 +47,7 @@ public class SetPreferredPluginReleaseTask implements RetryableTask {
     Objects.requireNonNull(version);
 
     try {
-      front50Service.setPreferredPluginVersion(pluginId, version);
+      front50Service.setPreferredPluginVersion(pluginId, version, true);
     } catch (Exception e) {
       log.error("Failed setting preferred plugin version '{}' to '{}'", pluginId, version, e);
       return TaskResult.RUNNING;

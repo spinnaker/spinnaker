@@ -57,7 +57,7 @@ interface Front50Service {
   Response deletePluginInfo(@Path("pluginId") String pluginId)
 
   @PUT("/pluginInfo/{pluginId}/releases/{version}")
-  Response setPreferredPluginVersion(@Path("pluginId") String pluginId, @Path("version") String version)
+  Response setPreferredPluginVersion(@Path("pluginId") String pluginId, @Path("version") String version, @Query("preferred") boolean preferred)
 
   @GET("/pipelines/{applicationName}")
   List<Map<String, Object>> getPipelines(@Path("applicationName") String applicationName)
