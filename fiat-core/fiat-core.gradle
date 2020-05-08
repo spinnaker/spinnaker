@@ -3,6 +3,7 @@ dependencies {
   implementation "com.fasterxml.jackson.core:jackson-annotations"
   implementation "com.google.code.findbugs:jsr305"
   implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework:spring-core"
 
   testImplementation "org.springframework.boot:spring-boot"
   testImplementation "com.fasterxml.jackson.core:jackson-databind"

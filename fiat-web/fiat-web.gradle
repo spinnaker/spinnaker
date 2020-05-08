@@ -23,6 +23,7 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp-urlconnection"
   implementation "com.squareup.okhttp:okhttp-apache"
 
+  implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.netflix.spinnaker.kork:kork-core"

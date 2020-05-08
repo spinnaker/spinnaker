@@ -58,8 +58,6 @@ subprojects {
       testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       testAnnotationProcessor "org.projectlombok:lombok"
 
-      implementation "org.springframework.boot:spring-boot-properties-migrator"
-
       testImplementation "org.springframework.boot:spring-boot-starter-test"
       testImplementation "org.spockframework:spock-core"
       testImplementation "org.spockframework:spock-spring"
