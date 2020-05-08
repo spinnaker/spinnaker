@@ -136,6 +136,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   )
 
   val branchJobShaImages = listOf(
+    image.copy(tag = "latest"),
     image.copy(tag = "master-h10.62bbbd6"),
     image.copy(tag = "master-h11.4e26fbd", digest = "sha:2222")
   )

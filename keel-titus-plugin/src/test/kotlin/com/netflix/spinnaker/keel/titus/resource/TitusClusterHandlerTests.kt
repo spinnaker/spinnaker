@@ -474,19 +474,19 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         digest = "sha:1111"
       )
       test("number") {
-        expectThat(findTagVersioningStrategy(image)).isEqualTo(INCREASING_TAG)
+        expectThat(deriveVersioningStrategy(image.tag)).isEqualTo(INCREASING_TAG)
       }
       test("semver with v") {
-        expectThat(findTagVersioningStrategy(image.copy(tag = "v1.12.3-rc.1"))).isEqualTo(SEMVER_TAG)
+        expectThat(deriveVersioningStrategy("v1.12.3-rc.1")).isEqualTo(SEMVER_TAG)
       }
       test("semver without v") {
-        expectThat(findTagVersioningStrategy(image.copy(tag = "1.12.3-rc.1"))).isEqualTo(SEMVER_TAG)
+        expectThat(deriveVersioningStrategy("1.12.3-rc.1")).isEqualTo(SEMVER_TAG)
       }
       test("branch-job-commit") {
-        expectThat(findTagVersioningStrategy(image.copy(tag = "master-h3.2317144"))).isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
+        expectThat(deriveVersioningStrategy("master-h3.2317144")).isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
       }
       test("semver-job-commit parses to semver version") {
-        expectThat(findTagVersioningStrategy(image.copy(tag = "v1.12.3-rc.1-h1196.49b8dc5"))).isEqualTo(SEMVER_JOB_COMMIT_BY_SEMVER)
+        expectThat(deriveVersioningStrategy("v1.12.3-rc.1-h1196.49b8dc5")).isEqualTo(SEMVER_JOB_COMMIT_BY_SEMVER)
       }
     }
   }

@@ -245,28 +245,52 @@ class TitusClusterHandler(
       user = DEFAULT_SERVICE_ACCOUNT
     )
 
-    val image = images.find { it.digest == container.digest }
-      ?: throw ExportError("Unable to find matching image (searching by digest) in registry ($registry) for $container")
-    val tagVersionStrategy = findTagVersioningStrategy(image)
-      ?: throw DockerArtifactExportError(image.toString(), container.toString())
+    val matchingImages = images.filter { it.digest == container.digest }
+    if (matchingImages.isEmpty()) {
+      throw ExportError("Unable to find matching image (searching by digest) in registry ($registry) for $container")
+    }
+    val versionStrategy = guessVersioningStrategy(matchingImages)
+      ?: throw DockerArtifactExportError(matchingImages.map { it.tag }, container.toString())
 
     return DockerArtifact(
       name = container.repository(),
-      tagVersionStrategy = tagVersionStrategy
+      tagVersionStrategy = versionStrategy
     )
   }
 
-  fun findTagVersioningStrategy(image: DockerImage): TagVersionStrategy? {
-    if (image.tag.toIntOrNull() != null) {
+  /**
+   * Tries to find a matching versioning strategy from a list of docker tags that correspond to the same digest.
+   */
+  fun guessVersioningStrategy(images: List<DockerImage>): TagVersionStrategy? {
+    val versioningStrategies = mutableSetOf<TagVersionStrategy>()
+
+    images.forEach { image ->
+      val versionStrategy = deriveVersioningStrategy(image.tag)
+      if (versionStrategy != null) {
+        versioningStrategies.add(versionStrategy)
+      }
+    }
+    return when (versioningStrategies.size) {
+      1 -> versioningStrategies.first()
+      0 -> null
+      else -> {
+        log.warn("Multiple versioning strategies apply for image, returning first")
+        versioningStrategies.first()
+      }
+    }
+  }
+
+  fun deriveVersioningStrategy(tag: String): TagVersionStrategy? {
+    if (tag.toIntOrNull() != null) {
       return INCREASING_TAG
     }
-    if (Regex(SEMVER_JOB_COMMIT_BY_SEMVER.regex).find(image.tag) != null) {
+    if (Regex(SEMVER_JOB_COMMIT_BY_SEMVER.regex).find(tag) != null) {
       return SEMVER_JOB_COMMIT_BY_SEMVER
     }
-    if (Regex(BRANCH_JOB_COMMIT_BY_JOB.regex).find(image.tag) != null) {
+    if (Regex(BRANCH_JOB_COMMIT_BY_JOB.regex).find(tag) != null) {
       return BRANCH_JOB_COMMIT_BY_JOB
     }
-    if (isSemver(image.tag)) {
+    if (isSemver(tag)) {
       return SEMVER_TAG
     }
     return null
