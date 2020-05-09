@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
 import dev.minutest.junit.JUnit5Minutests
@@ -28,7 +29,6 @@ import io.mockk.every
 import io.mockk.mockk
 import java.nio.file.Files
 import java.nio.file.Paths
-import org.pf4j.update.PluginInfo
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
@@ -68,24 +68,24 @@ class DeckPluginCacheTest : JUnit5Minutests {
 
     init {
       val plugins = listOf(
-        PluginInfo().apply {
+        SpinnakerPluginInfo().apply {
           id = "io.spinnaker.hello"
           releases = listOf(
-            PluginInfo.PluginRelease().apply {
+            SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
               version = "1.0.0"
             },
-            PluginInfo.PluginRelease().apply {
+            SpinnakerPluginInfo.SpinnakerPluginRelease(true).apply {
               version = "1.1.0"
             }
           )
         },
-        PluginInfo().apply {
+        SpinnakerPluginInfo().apply {
           id = "io.spinnaker.goodbye"
           releases = listOf(
-            PluginInfo.PluginRelease().apply {
+            SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
               version = "2.0.0"
             },
-            PluginInfo.PluginRelease().apply {
+            SpinnakerPluginInfo.SpinnakerPluginRelease(true).apply {
               version = "2.0.1"
             }
           )
@@ -93,8 +93,8 @@ class DeckPluginCacheTest : JUnit5Minutests {
       )
 
       val pluginInfoReleases = setOf(
-        PluginInfoRelease(plugins[0].id, plugins[0].releases[1]),
-        PluginInfoRelease(plugins[1].id, plugins[1].releases[1])
+        PluginInfoRelease(plugins[0].id, plugins[0].getReleases()[1]),
+        PluginInfoRelease(plugins[1].id, plugins[1].getReleases()[1])
       )
 
       every { updateManager.plugins } returns plugins
