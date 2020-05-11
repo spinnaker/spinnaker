@@ -21,34 +21,23 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERR
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
-import io.fabric8.kubernetes.api.model.NamedContext;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -56,13 +45,12 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   @Override
   public void validate(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     switch (account.getProviderVersion()) {
-        // TODO(mneterval): remove all V1-only validators after 1.21 is released
+        // TODO(mneterval): remove all V1-only validators after 1.23 is released
       case V1:
         addV1RemovalWarning(psBuilder, account);
         validateV1KindConfig(psBuilder, account);
         validateCacheThreads(psBuilder, account);
         validateV1DockerRegistries(psBuilder, account);
-        validateKubeconfig(psBuilder, account);
         validateOnlySpinnakerConfig(psBuilder, account);
       case V2:
         validateKindConfig(psBuilder, account);
@@ -186,118 +174,6 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   private void validateCacheThreads(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     if (account.getCacheThreads() < 1) {
       psBuilder.addProblem(ERROR, "\"cacheThreads\" should be greater or equal to 1.");
-    }
-  }
-
-  private void validateKubeconfig(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
-    io.fabric8.kubernetes.api.model.Config kubeconfig;
-    String context = account.getContext();
-    String cluster = account.getCluster();
-    String user = account.getUser();
-    List<String> namespaces = account.getNamespaces();
-    List<String> omitNamespaces = account.getOmitNamespaces();
-
-    // This indicates if a first pass at the config looks OK. If we don't see any serious problems,
-    // we'll do one last check
-    // against the requested kubernetes cluster to ensure that we can run spinnaker.
-    boolean smoketest = true;
-
-    boolean namespacesProvided = namespaces != null && !namespaces.isEmpty();
-    boolean omitNamespacesProvided = omitNamespaces != null && !omitNamespaces.isEmpty();
-
-    if (namespacesProvided && omitNamespacesProvided) {
-      psBuilder.addProblem(
-          ERROR, "At most one of \"namespaces\" and \"omitNamespaces\" can be supplied.");
-      smoketest = false;
-    }
-
-    // TODO(lwander) find a good resource / list of resources for generating kubeconfig files to
-    // link to here.
-    try {
-      String kubeconfigContents = validatingFileDecrypt(psBuilder, account.getKubeconfigFile());
-      if (kubeconfigContents == null) {
-        return;
-      }
-
-      kubeconfig = KubeConfigUtils.parseConfigFromString(kubeconfigContents);
-    } catch (IOException e) {
-      psBuilder.addProblem(ERROR, e.getMessage());
-      return;
-    }
-
-    if (context != null && !context.isEmpty()) {
-      Optional<NamedContext> namedContext =
-          kubeconfig.getContexts().stream().filter(c -> c.getName().equals(context)).findFirst();
-
-      if (!namedContext.isPresent()) {
-        psBuilder
-            .addProblem(
-                ERROR,
-                "Context \""
-                    + context
-                    + "\" not found in kubeconfig \""
-                    + account.getKubeconfigFile()
-                    + "\".",
-                "context")
-            .setRemediation(
-                "Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file.");
-        smoketest = false;
-      }
-    } else {
-      String currentContext = kubeconfig.getCurrentContext();
-      if (StringUtils.isEmpty(currentContext)) {
-        psBuilder
-            .addProblem(
-                ERROR,
-                "You have not specified a Kubernetes context, and your kubeconfig \""
-                    + account.getKubeconfigFile()
-                    + "\" has no current-context.",
-                "context")
-            .setRemediation(
-                "Either specify a context in your halconfig, or set a current-context in your kubeconfig.");
-        smoketest = false;
-      } else {
-        psBuilder
-            .addProblem(
-                WARNING,
-                "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \""
-                    + currentContext
-                    + "\" instead.",
-                "context")
-            .setRemediation(
-                "We recommend explicitly setting a context in your halconfig, to ensure changes to your kubeconfig won't break your deployment.");
-      }
-    }
-
-    if (smoketest) {
-      Path kubeconfigPath = validatingFileDecryptPath(account.getKubeconfigFile());
-      Config config =
-          KubernetesConfigParser.parse(
-              kubeconfigPath != null ? kubeconfigPath.toString() : null,
-              context,
-              cluster,
-              user,
-              namespaces,
-              false);
-      try {
-        KubernetesClient client = new DefaultKubernetesClient(config);
-
-        client.namespaces().list();
-      } catch (Exception e) {
-        ConfigProblemBuilder pb =
-            psBuilder.addProblem(
-                ERROR,
-                "Unable to communicate with your Kubernetes cluster: " + e.getMessage() + ".");
-
-        if (e.getMessage().contains("Token may have expired")) {
-          pb.setRemediation(
-              "If you downloaded these keys with gcloud, it's possible they are in the wrong format. To fix this, run \n\n"
-                  + "gcloud config set container/use_client_certificate true\n\ngcloud container clusters get-credentials $CLUSTERNAME");
-        } else {
-          pb.setRemediation(
-              "Unable to authenticate with your Kubernetes cluster. Try using kubectl to verify your credentials.");
-        }
-      }
     }
   }
 

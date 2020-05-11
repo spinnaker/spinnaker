@@ -27,7 +27,6 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google.GoogleDistributedServiceProvider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1.KubernetesV1DistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubectlServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitServiceProvider;
@@ -37,8 +36,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceProviderFactory {
   @Autowired AccountService accountService;
-
-  @Autowired KubernetesV1DistributedServiceProvider kubernetesV1DistributedServiceProvider;
 
   @Autowired KubectlServiceProvider kubectlServiceProvider;
 
@@ -89,14 +86,12 @@ public class ServiceProviderFactory {
 
     switch (providerType) {
       case KUBERNETES:
-        switch (account.getProviderVersion()) {
-          case V1:
-            return kubernetesV1DistributedServiceProvider;
-          case V2:
-            return kubectlServiceProvider;
-          default:
-            return kubernetesV1DistributedServiceProvider;
+        if (account.getProviderVersion() == Provider.ProviderVersion.V1) {
+          throw new HalException(
+              Problem.Severity.FATAL,
+              "Distributed deployment is only available for standard Kubernetes (V2) accounts.");
         }
+        return kubectlServiceProvider;
       case GOOGLE:
         return googleDistributedServiceProvider;
       default:

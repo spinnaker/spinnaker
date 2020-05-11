@@ -18,8 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import static com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.ImageVariant.SLIM;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.ImageVariant;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -51,12 +50,11 @@ public interface KubernetesService {
       tag = String.format("%s-%s", version, imageVariant.getContainerSuffix());
     }
 
-    KubernetesImageDescription image =
-        KubernetesImageDescription.builder()
-            .registry(getDockerRegistry(deploymentName, getArtifact()))
-            .repository(artifactName)
-            .tag(tag)
-            .build();
-    return KubernetesUtil.getImageId(image);
+    String registry = getDockerRegistry(deploymentName, getArtifact());
+    if (!Strings.isNullOrEmpty(registry)) {
+      return String.format("%s/%s:%s", registry, artifactName, tag);
+    } else {
+      return String.format("%s:%s", artifactName, tag);
+    }
   }
 }

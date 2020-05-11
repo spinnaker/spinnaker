@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion.V2;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion.V1;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
@@ -38,7 +38,6 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.BakeDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.DistributedDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.KubectlDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalDeployer;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.LocalGitDeployer;
@@ -63,8 +62,6 @@ public class DeployService {
   @Autowired DeploymentService deploymentService;
 
   @Autowired AccountService accountService;
-
-  @Autowired DistributedDeployer distributedDeployer;
 
   @Autowired KubectlDeployer kubectlDeployer;
 
@@ -358,11 +355,13 @@ public class DeployService {
         Provider.ProviderType providerType = ((Provider) account.getParent()).providerType();
 
         if (providerType == Provider.ProviderType.KUBERNETES
-            && account.getProviderVersion() == V2) {
-          return kubectlDeployer;
-        } else {
-          return distributedDeployer;
+            && account.getProviderVersion() == V1) {
+          throw new HalException(
+              Problem.Severity.FATAL,
+              "Distributed deployment is only available for standard Kubernetes (V2) accounts.");
         }
+
+        return kubectlDeployer;
       default:
         throw new IllegalArgumentException("Unrecognized deployment type " + type);
     }
