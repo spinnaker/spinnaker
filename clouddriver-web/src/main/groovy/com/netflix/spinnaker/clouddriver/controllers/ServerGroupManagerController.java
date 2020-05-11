@@ -38,13 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/applications/{application}/serverGroupManagers")
 public class ServerGroupManagerController {
-  final List<ServerGroupManagerProvider<ServerGroupManager>> serverGroupManagerProviders;
+  final List<ServerGroupManagerProvider<? extends ServerGroupManager>> serverGroupManagerProviders;
 
   final RequestQueue requestQueue;
 
   @Autowired
   public ServerGroupManagerController(
-      List<ServerGroupManagerProvider<ServerGroupManager>> serverGroupManagerProviders,
+      List<ServerGroupManagerProvider<? extends ServerGroupManager>> serverGroupManagerProviders,
       RequestQueue requestQueue) {
     this.serverGroupManagerProviders = serverGroupManagerProviders;
     this.requestQueue = requestQueue;
