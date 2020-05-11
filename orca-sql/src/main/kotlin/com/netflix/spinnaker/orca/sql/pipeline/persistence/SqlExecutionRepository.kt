@@ -764,6 +764,7 @@ class SqlExecutionRepository(
       val updatePairs = mapOf(
         field("status") to status,
         field("body") to body,
+        field(name("partition")) to partitionName,
         // won't have started on insert
         field("start_time") to execution.startTime,
         field("canceled") to execution.isCanceled,
