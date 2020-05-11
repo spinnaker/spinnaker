@@ -390,7 +390,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   /**
    * This pulls the `springSecurityFilterChain` in front of the {@link AuthenticatedRequestFilter},
-   * because the user must be authenticated through the security filter chain before his username/credentials
+   * because the user must be authenticated through the security filter chain before their username/credentials
    * can be pulled and forwarded in the AuthenticatedRequestFilter.
    */
   @Bean
