@@ -77,7 +77,6 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.utils.Strings;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -121,7 +120,7 @@ public interface KubernetesV1DistributedService<T>
   }
 
   default String buildAddress(String namespace) {
-    return Strings.join(".", getServiceName(), namespace);
+    return String.join(".", getServiceName(), namespace);
   }
 
   default List<LocalObjectReference> getImagePullSecrets(ServiceSettings settings) {
@@ -855,10 +854,10 @@ public interface KubernetesV1DistributedService<T>
               + namespace);
     }
 
-    return Strings.join(
+    return String.join(
+        " ",
         KubernetesV1ProviderUtils.kubectlPortForwardCommand(
-            details, namespace, latestInstances.get(0).getId(), settings.getPort(), localPort),
-        " ");
+            details, namespace, latestInstances.get(0).getId(), settings.getPort(), localPort));
   }
 
   default String connectCommand(

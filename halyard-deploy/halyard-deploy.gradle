@@ -21,7 +21,6 @@ dependencies {
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.okhttp:okhttp'
   implementation 'io.fabric8:kubernetes-client'
-  implementation 'io.fabric8:fabric8-utils:2.2.216'
   implementation 'redis.clients:jedis'
   implementation 'org.codehaus.groovy:groovy'
 

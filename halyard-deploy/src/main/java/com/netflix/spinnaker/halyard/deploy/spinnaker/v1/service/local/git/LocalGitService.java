@@ -28,7 +28,6 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
-import io.fabric8.utils.Strings;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,6 +136,6 @@ public interface LocalGitService<T> extends LocalService<T> {
       }
     }
 
-    return Strings.join(allCommands, "\n");
+    return String.join("\n", allCommands);
   }
 }

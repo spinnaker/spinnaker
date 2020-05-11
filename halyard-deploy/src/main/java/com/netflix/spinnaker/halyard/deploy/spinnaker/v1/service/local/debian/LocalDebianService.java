@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
-import io.fabric8.utils.Strings;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +67,7 @@ public interface LocalDebianService<T> extends LocalService<T> {
     pinResource.setBindings(bindings);
     installResource.setBindings(bindings);
 
-    return Strings.join("\n", pinResource, installResource, ensureStopped);
+    return String.format("%s\n%s\n%s", pinResource, installResource, ensureStopped);
   }
 
   default String uninstallArtifactCommand() {

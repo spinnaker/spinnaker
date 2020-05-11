@@ -26,7 +26,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSetti
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalLogCollectorFactory;
-import io.fabric8.utils.Strings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -73,14 +72,14 @@ public class LocalDebianDeckService extends DeckService
                 .isEnabled()
             ? "a2enmod ssl"
             : "";
-    return Strings.join("\n", install, ssl);
+    return String.join("\n", install, ssl);
   }
 
   @Override
   public String stageProfilesCommand(
       DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
     String stage = LocalDebianService.super.stageProfilesCommand(details, resolvedConfiguration);
-    return Strings.join("\n", stage, "a2ensite spinnaker", "a2dissite 000-default");
+    return String.join("\n", stage, "a2ensite spinnaker", "a2dissite 000-default");
   }
 
   public String getArtifactId(String deploymentName) {

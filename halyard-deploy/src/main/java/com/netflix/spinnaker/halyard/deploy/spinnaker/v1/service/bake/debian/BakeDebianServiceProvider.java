@@ -30,7 +30,6 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
-import io.fabric8.utils.Strings;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,8 +104,8 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
             .collect(Collectors.toList());
 
     TemplatedResource resource = new StringReplaceJarResource("/debian/init.sh");
-    bindings.put("services", Strings.join(upstartNames, " "));
-    bindings.put("systemd-service-configs", Strings.join(systemdServiceConfigs, " "));
+    bindings.put("services", String.join(" ", upstartNames));
+    bindings.put("systemd-service-configs", String.join(" ", systemdServiceConfigs));
     String upstartInit = resource.setBindings(bindings).toString();
     BillOfMaterials.ArtifactSources artifactSources =
         artifactService.getArtifactSources(deploymentDetails.getDeploymentName());

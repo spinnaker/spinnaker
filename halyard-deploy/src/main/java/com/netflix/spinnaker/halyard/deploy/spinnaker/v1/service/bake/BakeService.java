@@ -21,7 +21,6 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
-import io.fabric8.utils.Strings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public interface BakeService<T> extends HasServiceSettings<T> {
       }
     }
 
-    return Strings.join(allCommands, "\n");
+    return String.join("\n", allCommands);
   }
 
   class StartupPriority {
