@@ -51,7 +51,7 @@ dependencies {
 spinnakerPlugin {
   serviceName        = "orca"
   pluginClassName    = "com.netflix.streaming.platform.cde.AwsRdsPlugin"
-  systemRequirements = "orca>=7.0.0" // Will default to `serviceName>=0.0.0` if undefined
+  requires           = "orca>=7.0.0" // Will default to `serviceName>=0.0.0` if undefined
 }
 ```
 
