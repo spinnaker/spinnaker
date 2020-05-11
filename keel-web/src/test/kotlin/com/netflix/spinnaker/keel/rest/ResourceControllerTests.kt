@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
@@ -45,8 +46,8 @@ internal class ResourceControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc
 
-  @Autowired
-  lateinit var resourceRepository: InMemoryResourceRepository
+  @MockkBean
+  lateinit var repository: KeelRepository
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
@@ -65,10 +66,6 @@ internal class ResourceControllerTests : JUnit5Minutests {
     before {
       every { authorizationSupport.hasApplicationPermission(READ.name, RESOURCE.name, any()) } returns true
       every { authorizationSupport.hasCloudAccountPermission(READ.name, RESOURCE.name, any()) } returns true
-    }
-
-    after {
-      resourceRepository.dropAll()
     }
 
     test("an invalid request body results in an HTTP 400") {
@@ -90,7 +87,8 @@ internal class ResourceControllerTests : JUnit5Minutests {
     }
 
     test("can get a resource as YAML") {
-      resourceRepository.store(resource)
+      every { repository.getResource(resource.id) } returns resource
+
       val request = get("/resources/${resource.id}")
         .accept(APPLICATION_YAML)
       val result = mvc
@@ -104,6 +102,8 @@ internal class ResourceControllerTests : JUnit5Minutests {
     }
 
     test("unknown resource name results in a 404") {
+      every { repository.getResource("i-do-not-exist") } throws NoSuchResourceId("i-do-not-exist")
+
       val request = get("/resources/i-do-not-exist")
         .accept(APPLICATION_YAML)
       mvc

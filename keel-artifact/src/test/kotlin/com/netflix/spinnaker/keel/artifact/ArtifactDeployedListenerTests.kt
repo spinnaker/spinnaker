@@ -3,26 +3,28 @@ package com.netflix.spinnaker.keel.artifact
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.combinedMockRepository
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 
 class ArtifactDeployedListenerTests : JUnit5Minutests {
   class Fixture {
-    val r: Resource<DummyResourceSpec> = spyk(resource())
-    val config = deliveryConfig(resource = r)
+    val resource = resource()
+    val resourceSpy: Resource<DummyResourceSpec> = spyk(resource)
+    val config = deliveryConfig(resource = resourceSpy)
     val artifact = config.artifacts.first()
-    val repository = combinedMockRepository()
+    val repository = mockk<KeelRepository>(relaxUnitFun = true)
 
     val event = ArtifactVersionDeployed(
-      resourceId = r.id,
+      resourceId = resourceSpy.id,
       artifactVersion = "1.1.1"
     )
 
@@ -33,9 +35,9 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
     fixture { Fixture() }
 
     before {
-      every { repository.getResource(r.id) } returns r
-      every { repository.deliveryConfigFor(r.id) } returns config
-      every { repository.environmentFor(r.id) } returns config.environments.first()
+      every { repository.getResource(resource.id) } returns resourceSpy
+      every { repository.deliveryConfigFor(resource.id) } returns config
+      every { repository.environmentFor(resource.id) } returns config.environments.first()
       every { repository.isCurrentlyDeployedTo(config, any(), event.artifactVersion, any()) } returns false
     }
 
@@ -53,7 +55,7 @@ class ArtifactDeployedListenerTests : JUnit5Minutests {
 
     context("an artifact is associated with a resource") {
       before {
-        every { r.findAssociatedArtifact(config) } returns artifact
+        every { resourceSpy.findAssociatedArtifact(config) } returns artifact
       }
       context("artifact is approved for env") {
         before {

@@ -6,29 +6,36 @@ import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.NOT_EVALUATED
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 import com.netflix.spinnaker.keel.core.api.CanarySource
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStages
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
+import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.RUNNING
+import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
+import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.CapturingSlot
+import io.mockk.MockKAnswerScope
 import io.mockk.Runs
-import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 import io.mockk.just
 import io.mockk.mockk
 import java.time.Clock
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -39,17 +46,11 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
+import strikt.assertions.last
+import strikt.mockk.captured
+import strikt.mockk.isCaptured
 
 internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
-
-  companion object {
-    val clock: Clock = Clock.systemUTC()
-    val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
-    val repository: KeelRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository)
-    val orcaService: OrcaService = mockk(relaxed = true)
-    val eventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
-    val type: String = "canary"
-  }
 
   private val defaultConstraint: CanaryConstraint = CanaryConstraint(
     canaryConfigId = randomUID().toString(),
@@ -78,6 +79,12 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     val targetEnvironment: Environment,
     val handlers: List<CanaryConstraintDeployHandler> = listOf(DummyCanaryConstraintDeployHandler())
   ) {
+    val clock: Clock = Clock.systemUTC()
+    val repository: KeelRepository = mockk()
+    val orcaService: OrcaService = mockk(relaxUnitFun = true)
+    val eventPublisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val type: String = "canary"
+
     val deliveryConfig: DeliveryConfig = DeliveryConfig(
       name = "fnord-manifest",
       application = "fnord",
@@ -107,312 +114,278 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     }
 
     context("promotion is gated on launching a canary and its status") {
-      before {
-        deliveryConfigRepository.store(deliveryConfig)
-        every {
-          eventPublisher.publishEvent(any())
-        } just Runs
-      }
-
-      after {
-        clearMocks(orcaService)
-      }
-
-      test("first pass persists state and launches canaries") {
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns emptyList()
-
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isFalse()
-
-        coVerify(exactly = 2) {
-          orcaService.getCorrelatedExecutions(any(), any())
-        }
-
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
-
-        expectThat(state)
-          .isNotNull()
-          .and {
-            get { status }.isEqualTo(ConstraintStatus.PENDING)
-            get { attributes }
-              .isA<CanaryConstraintAttributes>()
-              .and {
-                get { executions }.hasSize(2)
-                get { startAttempt }.isEqualTo(1)
-                // Canary status is only checked on post-launch constraint evals
-                get { status }.hasSize(0)
-              }
-          }
-      }
-
-      test("the next pass checks canary status") {
+      context("no canaries were launched yet") {
         before {
-          clearMocks(orcaService)
-        }
+          every { orcaService.getCorrelatedExecutions(any(), any()) } returns emptyList()
 
-        coEvery {
-          orcaService.getOrchestrationExecution(any(), any())
-        } returns executionDetailResponse()
-
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns listOf(randomUID().toString())
-
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isFalse()
-
-        coVerify(exactly = 2) {
-          orcaService.getOrchestrationExecution(any(), any())
-          orcaService.getCorrelatedExecutions(any(), any())
-        }
-
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
-
-        expectThat(state)
-          .isNotNull()
-          .and {
-            get { status }.isEqualTo(ConstraintStatus.PENDING)
-            get { attributes }
-              .isA<CanaryConstraintAttributes>()
-              .and {
-                get { executions }.hasSize(2)
-                get { startAttempt }.isEqualTo(1)
-                get { status }
-                  .hasSize(2)
-                  .all {
-                    get { executionStatus }
-                      .isEqualTo(OrcaExecutionStatus.RUNNING.toString())
-                  }
-              }
+          every {
+            repository.getConstraintState(deliveryConfig.name, targetEnvironment.name, version, constraint.type)
+          } answers {
+            canaryConstraintState(NOT_EVALUATED)
           }
+        }
+
+        test("first pass persists state and launches canaries") {
+
+          val persistedState = CapturingSlot<ConstraintState>()
+          every { repository.storeConstraintState(capture(persistedState)) } just Runs
+
+          expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+            .isFalse()
+
+          expectThat(persistedState)
+            .isCaptured()
+            .with(CapturingSlot<ConstraintState>::captured) {
+              get { status }.isEqualTo(PENDING)
+              get { attributes }
+                .isA<CanaryConstraintAttributes>()
+                .and {
+                  get { executions }.hasSize(2)
+                  get { startAttempt }.isEqualTo(1)
+                  // Canary status is only checked on post-launch constraint evals
+                  get { status }.hasSize(0)
+                }
+            }
+        }
       }
 
-      test("promotion is allowed when all canaries pass") {
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns emptyList()
+      context("canaries are running") {
+        before {
+          val west1Id = randomUID().toString()
+          val west2Id = randomUID().toString()
 
-        coEvery {
-          orcaService.getOrchestrationExecution(any(), any())
-        } returns ExecutionDetailResponse(
-          id = randomUID().toString(),
-          name = "fnord",
-          application = "fnord",
-          buildTime = clock.instant(),
-          startTime = clock.instant(),
-          endTime = clock.instant(),
-          status = OrcaExecutionStatus.SUCCEEDED,
-          execution = OrcaExecutionStages(
-            stages = listOf(
-              mapOf(
-                "refId" to "canary",
-                "context" to mapOf(
-                  "canaryScoreMessage" to "Final canary score 100.0 met or exceeded the pass score threshold."
-                )))))
+          every { orcaService.getCorrelatedExecutions(any(), any()) } returns listOf(west1Id, west2Id)
+          every { orcaService.getOrchestrationExecution(any(), any()) } answers { executionDetailResponse(id = firstArg()) }
 
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isTrue()
-
-        coVerify(exactly = 2) {
-          orcaService.getOrchestrationExecution(any(), any())
+          every {
+            repository.getConstraintState(deliveryConfig.name, targetEnvironment.name, version, constraint.type)
+          } answers {
+            canaryConstraintState(
+              status = PENDING,
+              attributes = CanaryConstraintAttributes(
+                executions = setOf(
+                  RegionalExecutionId(region = "us-west-1", executionId = west1Id),
+                  RegionalExecutionId(region = "us-west-2", executionId = west2Id)
+                ),
+                startAttempt = 1
+              )
+            )
+          }
         }
 
-        coVerify(exactly = 0) {
-          orcaService.getCorrelatedExecutions(any(), any())
+        test("the next pass checks canary status") {
+          val persistedState = CapturingSlot<ConstraintState>()
+          every { repository.storeConstraintState(capture(persistedState)) } just Runs
+
+          expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+            .isFalse()
+
+          expectThat(persistedState)
+            .isCaptured()
+            .with(CapturingSlot<ConstraintState>::captured) {
+              get { status }.isEqualTo(PENDING)
+              get { attributes }
+                .isA<CanaryConstraintAttributes>()
+                .and {
+                  get { executions }.hasSize(2)
+                  get { startAttempt }.isEqualTo(1)
+                  get { status }
+                    .hasSize(2)
+                    .all {
+                      get { executionStatus }.isEqualTo(RUNNING.toString())
+                    }
+                }
+            }
+        }
+      }
+
+      context("all canaries have passed") {
+        before {
+          val west1Id = randomUID().toString()
+          val west2Id = randomUID().toString()
+
+          every { orcaService.getCorrelatedExecutions(any(), any()) } returns emptyList()
+          every {
+            orcaService.getOrchestrationExecution(any(), any())
+          } answers {
+            ExecutionDetailResponse(
+              id = firstArg(),
+              name = "fnord",
+              application = "fnord",
+              buildTime = clock.instant(),
+              startTime = clock.instant(),
+              endTime = clock.instant(),
+              status = SUCCEEDED,
+              execution = OrcaExecutionStages(
+                stages = listOf(
+                  mapOf(
+                    "refId" to "canary",
+                    "context" to mapOf(
+                      "canaryScoreMessage" to "Final canary score 100.0 met or exceeded the pass score threshold."
+                    )
+                  )
+                )
+              )
+            )
+          }
+
+          every {
+            repository.getConstraintState(deliveryConfig.name, targetEnvironment.name, version, constraint.type)
+          } answers {
+            canaryConstraintState(
+              status = PENDING,
+              attributes = CanaryConstraintAttributes(
+                executions = setOf(
+                  RegionalExecutionId(region = "us-west-1", executionId = west1Id),
+                  RegionalExecutionId(region = "us-west-2", executionId = west2Id)
+                ),
+                startAttempt = 1
+              )
+            )
+          }
         }
 
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
+        test("promotion is allowed when all canaries pass") {
+          val stateSlot = CapturingSlot<ConstraintState>()
+          every { repository.storeConstraintState(capture(stateSlot)) } just Runs
 
-        expectThat(state!!.comment)
-          .isNotNull()
-          .contains("canary score 100.0")
+          expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+            .isTrue()
+
+          expectThat(stateSlot)
+            .isCaptured()
+            .with(CapturingSlot<ConstraintState>::captured) {
+              get { status }.isEqualTo(PASS)
+              get { comment }.isNotNull().contains("canary score 100.0")
+            }
+        }
+      }
+
+      context("a canary fails early in one region but is still running in another") {
+        val west1Id = randomUID().toString()
+        val west2Id = randomUID().toString()
+
+        before {
+          every { orcaService.getCorrelatedExecutions("$judge:us-west-1", any()) } returns listOf(west1Id)
+          every { orcaService.getCorrelatedExecutions("$judge:us-west-2", any()) } returns emptyList()
+
+          every { orcaService.getOrchestrationExecution(west1Id, any()) } returns executionDetailResponse(west1Id)
+          every { orcaService.getOrchestrationExecution(west2Id, any()) } returns executionDetailResponse(west2Id, TERMINAL)
+
+          every {
+            repository.getConstraintState(deliveryConfig.name, targetEnvironment.name, version, constraint.type)
+          } answers {
+            canaryConstraintState(
+              status = PENDING,
+              attributes = CanaryConstraintAttributes(
+                executions = setOf(
+                  RegionalExecutionId(region = "us-west-1", executionId = west1Id),
+                  RegionalExecutionId(region = "us-west-2", executionId = west2Id)
+                ),
+                startAttempt = 1
+              )
+            )
+          }
+        }
+
+        test("the constraint fails and the running canary is cancelled") {
+          val persistedState = CapturingSlot<ConstraintState>()
+          every { repository.storeConstraintState(capture(persistedState)) } just Runs
+
+          expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+            .isFalse()
+
+          expectThat(persistedState)
+            .isCaptured()
+            .captured
+            .get { status }
+            .isEqualTo(FAIL)
+
+          verify(exactly = 1) {
+            orcaService.cancelOrchestration(west1Id, any())
+          }
+        }
       }
     }
 
-    context("the canary fails early in one region but is still running in another") {
-      val west1Id = randomUID().toString()
-      val west2Id = randomUID().toString()
-
-      before {
-        deliveryConfigRepository.dropAll()
-        deliveryConfigRepository.store(deliveryConfig)
-
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns emptyList()
-
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isFalse()
-
-        coVerify(exactly = 2) {
-          orcaService.getCorrelatedExecutions(any(), any())
-        }
-
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
-
-        var attributes = state!!.attributes!! as CanaryConstraintAttributes
-
-        attributes = attributes.copy(
-          executions = setOf(
-            RegionalExecutionId(region = "us-west-1", executionId = west1Id),
-            RegionalExecutionId(region = "us-west-2", executionId = west2Id)))
-
-        deliveryConfigRepository.storeConstraintState(state.copy(attributes = attributes))
-      }
-
-      after { clearMocks(orcaService) }
-
-      test("one region failed, another is still running and is cancelled") {
-        coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-1", any())
-        } returns listOf(west1Id)
-
-        coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-2", any())
-        } returns emptyList()
-
-        coEvery {
-          orcaService.getOrchestrationExecution(west1Id, any())
-        } returns executionDetailResponse(west1Id)
-
-        coEvery {
-          orcaService.getOrchestrationExecution(west2Id, any())
-        } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
-
-        coEvery {
-          orcaService.cancelOrchestration(any(), any())
-        } just Runs
-
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isFalse()
-
-        coVerify(exactly = 1) {
-          orcaService.cancelOrchestration(west1Id, any())
-        }
-      }
-    }
-
-    context("the canary fails early in one region but passIfSucceedsInNRegions allows it") {
+    context("the constraint only requires a single region to pass") {
       deriveFixture {
         val newConstraint = defaultConstraint.copy(minSuccessfulRegions = 1)
         copy(
           constraint = newConstraint,
           targetEnvironment = targetEnvironment.copy(
-            constraints = setOf(newConstraint)))
+            constraints = setOf(newConstraint)
+          )
+        )
       }
 
       val west1Id = randomUID().toString()
       val west2Id = randomUID().toString()
 
       before {
-        deliveryConfigRepository.dropAll()
-        deliveryConfigRepository.store(deliveryConfig)
+        every { orcaService.getCorrelatedExecutions("$judge:us-west-1", any()) } returns listOf(west1Id)
+        every { orcaService.getCorrelatedExecutions("$judge:us-west-2", any()) } returns emptyList()
 
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns emptyList()
-
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isFalse()
-
-        coVerify(exactly = 2) {
-          orcaService.getCorrelatedExecutions(any(), any())
+        every {
+          repository.getConstraintState(deliveryConfig.name, targetEnvironment.name, version, constraint.type)
+        } answers {
+          canaryConstraintState(
+            status = PENDING,
+            attributes = CanaryConstraintAttributes(
+              executions = setOf(
+                RegionalExecutionId(region = "us-west-1", executionId = west1Id),
+                RegionalExecutionId(region = "us-west-2", executionId = west2Id)
+              ),
+              startAttempt = 1
+            )
+          )
         }
-
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
-
-        var attributes = state!!.attributes!! as CanaryConstraintAttributes
-
-        attributes = attributes.copy(
-          executions = setOf(
-            RegionalExecutionId(region = "us-west-1", executionId = west1Id),
-            RegionalExecutionId(region = "us-west-2", executionId = west2Id)))
-
-        deliveryConfigRepository.storeConstraintState(state.copy(attributes = attributes))
       }
 
-      after { clearMocks(orcaService) }
-
-      test("one region failed, another is still running and it continues") {
-        coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-1", any())
-        } returns listOf(west1Id)
-
-        coEvery {
-          orcaService.getCorrelatedExecutions("$judge:us-west-2", any())
-        } returns emptyList()
-
-        coEvery {
-          orcaService.getOrchestrationExecution(west1Id, any())
-        } returns executionDetailResponse(west1Id)
-
-        coEvery {
-          orcaService.getOrchestrationExecution(west2Id, any())
-        } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
-
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isFalse()
-
-        coVerify(exactly = 0) {
-          orcaService.cancelOrchestration(west1Id, any())
+      context("one region failed, another is still running") {
+        before {
+          every { orcaService.getOrchestrationExecution(west1Id, any()) } returns executionDetailResponse(west1Id)
+          every { orcaService.getOrchestrationExecution(west2Id, any()) } returns executionDetailResponse(west2Id, TERMINAL)
         }
 
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)!!
+        test("the running region continues") {
+          val persistedState = CapturingSlot<ConstraintState>()
+          every { repository.storeConstraintState(capture(persistedState)) } just Runs
 
-        expectThat(state.status)
-          .isEqualTo(ConstraintStatus.PENDING)
+          expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+            .isFalse()
+
+          expectThat(persistedState)
+            .isCaptured()
+            .captured
+            .get { status }
+            .isEqualTo(PENDING)
+
+          verify(exactly = 0) {
+            orcaService.cancelOrchestration(any(), any())
+          }
+        }
       }
 
-      test("one region has failed, the other has passed") {
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns emptyList()
+      context("one region failed, the other has passed") {
+        before {
+          every { orcaService.getOrchestrationExecution(west1Id, any()) } returns executionDetailResponse(west1Id, SUCCEEDED)
+          every { orcaService.getOrchestrationExecution(west2Id, any()) } returns executionDetailResponse(west2Id, TERMINAL)
+        }
 
-        coEvery {
-          orcaService.getOrchestrationExecution(west1Id, any())
-        } returns executionDetailResponse(west1Id, OrcaExecutionStatus.SUCCEEDED)
+        test("one region has failed, the other has passed") {
+          val persistedState = CapturingSlot<ConstraintState>()
+          every { repository.storeConstraintState(capture(persistedState)) } just Runs
 
-        coEvery {
-          orcaService.getOrchestrationExecution(west2Id, any())
-        } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
+          expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+            .isTrue()
 
-        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
-          .isTrue()
-
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)!!
-
-        expectThat(state.status)
-          .isEqualTo(ConstraintStatus.PASS)
+          expectThat(persistedState)
+            .isCaptured()
+            .captured
+            .get { status }
+            .isEqualTo(PASS)
+        }
       }
     }
 
@@ -422,30 +395,40 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       before {
-        deliveryConfigRepository.dropAll()
-        deliveryConfigRepository.store(deliveryConfig)
+        every { orcaService.getCorrelatedExecutions(any(), any()) } returns emptyList()
+
+        val retryCount = AtomicInteger()
+
+        every {
+          repository.getConstraintState(deliveryConfig.name, targetEnvironment.name, version, constraint.type)
+        } answers {
+          canaryConstraintState(NOT_EVALUATED)
+        } andThen {
+          canaryConstraintState(
+            status = PENDING,
+            attributes = CanaryConstraintAttributes(
+              startAttempt = retryCount.incrementAndGet()
+            )
+          )
+        }
       }
 
       test("retryable failures increments start attempts and remains pending") {
-        coEvery {
-          orcaService.getCorrelatedExecutions(any(), any())
-        } returns emptyList()
+        val persistedState = mutableListOf<ConstraintState>()
+        every { repository.storeConstraintState(capture(persistedState)) } just Runs
 
         repeat(3) {
           expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
             .isFalse()
         }
 
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
-
-        expectThat(state)
-          .isNotNull()
+        expectThat(persistedState)
+          .hasSize(3)
+          .all {
+            get { status }.isEqualTo(PENDING)
+          }
+          .last()
           .and {
-            get { status }.isEqualTo(ConstraintStatus.PENDING)
             get { attributes }
               .isA<CanaryConstraintAttributes>()
               .and {
@@ -455,8 +438,11 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
           }
       }
 
-      test("constraint fails when task launches fail and retries are exhausted") {
-        coEvery {
+      test("constraint fails when retries are exhausted") {
+        val persistedState = mutableListOf<ConstraintState>()
+        every { repository.storeConstraintState(capture(persistedState)) } just Runs
+
+        every {
           orcaService.getCorrelatedExecutions(any(), any())
         } returns emptyList()
 
@@ -465,24 +451,29 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
             .isFalse()
         }
 
-        val state = deliveryConfigRepository.getConstraintState(
-          deliveryConfig.name,
-          targetEnvironment.name,
-          version,
-          type)
-
-        expectThat(state)
-          .isNotNull()
-          .and {
-            get { status }.isEqualTo(ConstraintStatus.FAIL)
-          }
+        expectThat(persistedState)
+          .last()
+          .get { status }
+          .isEqualTo(FAIL)
       }
     }
   }
 
-  fun executionDetailResponse(
+  fun MockKAnswerScope<*, *>.canaryConstraintState(
+    status: ConstraintStatus,
+    attributes: CanaryConstraintAttributes = CanaryConstraintAttributes()
+  ) = ConstraintState(
+    deliveryConfigName = firstArg(),
+    environmentName = secondArg(),
+    artifactVersion = thirdArg(),
+    type = arg(3),
+    status = status,
+    attributes = attributes
+  )
+
+  fun Fixture.executionDetailResponse(
     id: String = randomUID().toString(),
-    status: OrcaExecutionStatus = OrcaExecutionStatus.RUNNING
+    status: OrcaExecutionStatus = RUNNING
   ) =
     ExecutionDetailResponse(
       id = id,

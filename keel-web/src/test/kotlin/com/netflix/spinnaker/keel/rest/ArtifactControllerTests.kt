@@ -2,16 +2,16 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
+import io.mockk.every
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -33,8 +33,8 @@ internal class ArtifactControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc
 
-  @Autowired
-  lateinit var artifactRepository: InMemoryArtifactRepository
+  @MockkBean
+  lateinit var repository: KeelRepository
 
   @Autowired
   lateinit var jsonMapper: ObjectMapper
@@ -44,7 +44,6 @@ internal class ArtifactControllerTests : JUnit5Minutests {
 
   fun tests() = rootContext {
     after {
-      artifactRepository.dropAll()
       clearAllMocks()
     }
 
@@ -57,12 +56,12 @@ internal class ArtifactControllerTests : JUnit5Minutests {
           regions = setOf("us-west-2")
         )
       )
-      with(artifactRepository) {
-        register(artifact)
-        store(artifact, "fnord-2.1.0-18ed1dc", FINAL)
-        store(artifact, "fnord-2.0.0-608bd90", FINAL)
-        store(artifact, "fnord-1.0.0-41595c4", FINAL)
-      }
+
+      every { repository.artifactVersions(artifact.name, artifact.type) } returns listOf(
+        "fnord-2.1.0-18ed1dc",
+        "fnord-2.0.0-608bd90",
+        "fnord-1.0.0-41595c4"
+      )
 
       val request = get("/artifacts/${artifact.name}/${artifact.type}")
         .accept(APPLICATION_YAML)
@@ -79,6 +78,8 @@ internal class ArtifactControllerTests : JUnit5Minutests {
     }
 
     test("versions empty for an artifact we're not tracking") {
+      every { repository.artifactVersions(any(), any()) } returns emptyList()
+
       val request = get("/artifacts/unregistered/deb")
         .accept(APPLICATION_YAML)
       mvc

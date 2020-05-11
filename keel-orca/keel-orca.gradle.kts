@@ -37,6 +37,7 @@ dependencies {
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")
+  testImplementation("io.strikt:strikt-mockk")
   testImplementation("dev.minutest:minutest")
 
   testImplementation("org.assertj:assertj-core")

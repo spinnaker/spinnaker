@@ -5,8 +5,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.combinedMockRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -21,7 +21,7 @@ import strikt.assertions.isFalse
 internal class ManualJudgementConstraintEvaluatorTests : JUnit5Minutests {
   object Fixture {
     val clock = MutableClock()
-    val repository = combinedMockRepository(clock = clock)
+    val repository = mockk<KeelRepository>(relaxUnitFun = true)
     val publisher: ApplicationEventPublisher = mockk()
     val subject = ManualJudgementConstraintEvaluator(repository, clock, publisher)
 

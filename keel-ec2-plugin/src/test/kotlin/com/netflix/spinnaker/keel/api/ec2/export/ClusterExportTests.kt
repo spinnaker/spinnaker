@@ -39,8 +39,7 @@ import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.test.combinedMockRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -71,11 +70,10 @@ internal class ClusterExportTests : JUnit5Minutests {
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val clock = Clock.systemUTC()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-  val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
-  val combinedRepository = combinedMockRepository(deliveryConfigRepository = deliveryConfigRepository)
+  val repository = mockk<KeelRepository>()
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
-    combinedRepository,
+    repository,
     publisher
   )
   val clusterExportHelper = mockk<ClusterExportHelper>(relaxed = true)
@@ -220,7 +218,7 @@ internal class ClusterExportTests : JUnit5Minutests {
       }
 
       coEvery { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
-      every { deliveryConfigRepository.environmentFor(any()) } returns Environment("test")
+      every { repository.environmentFor(any()) } returns Environment("test")
       coEvery {
         clusterExportHelper.discoverDeploymentStrategy("aws", "test", "keel", any())
       } returns RedBlack()

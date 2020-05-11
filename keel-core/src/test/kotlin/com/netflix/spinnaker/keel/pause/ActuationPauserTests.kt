@@ -23,30 +23,30 @@ import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
+import com.netflix.spinnaker.keel.persistence.PausedRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import java.time.Clock
 import org.springframework.context.ApplicationEventPublisher
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
 
 class ActuationPauserTests : JUnit5Minutests {
   class Fixture {
     val resource1 = resource()
     val resource2 = resource()
     val clock = MutableClock()
-    val repository = combinedInMemoryRepository(clock)
+    val resourceRepository = mockk<ResourceRepository>()
+    val pausedRepository = mockk<PausedRepository>(relaxUnitFun = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
-    val subject = ActuationPauser(repository.resourceRepository, repository.pausedRepository, publisher, Clock.systemUTC())
+    val subject = ActuationPauser(resourceRepository, pausedRepository, publisher, Clock.systemUTC())
     val user = "keel@keel.io"
   }
 
@@ -54,21 +54,15 @@ class ActuationPauserTests : JUnit5Minutests {
     fixture { Fixture() }
 
     before {
-      repository.storeResource(resource1)
-      repository.storeResource(resource2)
-    }
-
-    after {
-      repository.dropAll()
+      every { resourceRepository.get(resource1.id) } returns resource1
+      every { resourceRepository.get(resource2.id) } returns resource2
     }
 
     context("application wide") {
       test("pause is reflected") {
         subject.pauseApplication(resource1.application, user)
-        expect {
-          that(subject.isPaused(resource1)).isTrue()
-          that(subject.isPaused(resource2)).isTrue()
-        }
+
+        verify { pausedRepository.pauseApplication(resource1.application, user) }
       }
 
       test("pause event is generated") {
@@ -90,10 +84,8 @@ class ActuationPauserTests : JUnit5Minutests {
 
       test("resume is reflected") {
         subject.resumeApplication(resource1.application, user)
-        expect {
-          that(subject.isPaused(resource1)).isFalse()
-          that(subject.isPaused(resource2)).isFalse()
-        }
+
+        verify { pausedRepository.resumeApplication(resource1.application) }
       }
 
       test("resume event is generated") {
@@ -115,10 +107,9 @@ class ActuationPauserTests : JUnit5Minutests {
     context("just a resource") {
       test("pause is reflected") {
         subject.pauseResource(resource1.id, user)
-        expect {
-          that(subject.isPaused(resource1)).isTrue()
-          that(subject.isPaused(resource2)).isFalse()
-        }
+
+        verify { pausedRepository.pauseResource(resource1.id, any()) }
+        verify(exactly = 0) { pausedRepository.pauseResource(resource2.id, any()) }
       }
 
       test("paused event is generated") {
@@ -132,10 +123,9 @@ class ActuationPauserTests : JUnit5Minutests {
 
       test("resume is reflected") {
         subject.resumeResource(resource1.id, user)
-        expect {
-          that(subject.isPaused(resource1)).isFalse()
-          that(subject.isPaused(resource2)).isFalse()
-        }
+
+        verify { pausedRepository.resumeResource(resource1.id) }
+        verify(exactly = 0) { pausedRepository.pauseResource(resource2.id, any()) }
       }
 
       test("resume event is generated") {

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import java.time.Instant
-import java.util.HashMap
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -42,7 +41,7 @@ interface OrcaService {
   suspend fun triggerPipeline(
     @Header("X-SPINNAKER-USER") user: String,
     @Path("pipelineConfigId") pipelineConfigId: String,
-    @Body trigger: HashMap<String, Any>
+    @Body trigger: Map<String, Any>
   ): TaskRefResponse
 
   @GET("/pipelines/{id}")

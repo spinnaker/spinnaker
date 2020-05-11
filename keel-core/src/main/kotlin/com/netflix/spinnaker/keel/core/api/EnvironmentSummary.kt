@@ -63,11 +63,11 @@ data class ArtifactVersions(
 )
 
 data class ArtifactVersionStatus(
-  val current: String?,
-  val deploying: String?,
-  val pending: List<String>,
-  val approved: List<String>,
-  val previous: List<String>,
-  val vetoed: List<String>,
-  val skipped: List<String>
+  val current: String? = null,
+  val deploying: String? = null,
+  val pending: List<String> = emptyList(),
+  val approved: List<String> = emptyList(),
+  val previous: List<String> = emptyList(),
+  val vetoed: List<String> = emptyList(),
+  val skipped: List<String> = emptyList()
 )

@@ -190,9 +190,8 @@ class PipelineConstraintEvaluator(
     constraint: PipelineConstraint,
     attributes: PipelineConstraintStateAttributes?
   ): Boolean {
-    val status = when (attributes?.lastExecutionStatus) {
-      null -> null
-      else -> OrcaExecutionStatus.valueOf(attributes.lastExecutionStatus!!)
+    val status = attributes?.lastExecutionStatus?.let {
+      OrcaExecutionStatus.valueOf(it)
     }
 
     return when {

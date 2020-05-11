@@ -4,7 +4,6 @@ import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
@@ -17,8 +16,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.telemetry.ArtifactCheckSkipped
-import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -40,14 +40,13 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
-import strikt.assertions.isTrue
 import strikt.mockk.captured
 import strikt.mockk.isCaptured
 
 internal class ImageHandlerTests : JUnit5Minutests {
 
   internal class Fixture {
-    val repository = combinedInMemoryRepository()
+    val repository = mockk<KeelRepository>(relaxUnitFun = true)
     val igorService = mockk<ArtifactService>()
     val baseImageCache = mockk<BaseImageCache>()
     val imageService = mockk<ImageService>()
@@ -171,35 +170,32 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("the artifact is not registered") {
         before {
-          every {
-            igorService.getVersions(any(), any())
-          } returns listOf(image.appVersion)
+          every { repository.artifactVersions(artifact) } throws NoSuchArtifactException(artifact)
+          every { repository.isRegistered(artifact.name, artifact.type) } returns false
+          every { igorService.getVersions(any(), any()) } returns listOf(image.appVersion)
 
           runHandler(artifact)
         }
 
         test("it gets registered automatically") {
-          expectThat(repository.isRegistered(artifact.name, artifact.type)).isTrue()
+          verify { repository.register(artifact) }
         }
 
         test("an event gets published") {
-          verify {
-            publisher.publishEvent(any<ArtifactRegisteredEvent>())
-          }
+          verify { publisher.publishEvent(any<ArtifactRegisteredEvent>()) }
         }
       }
 
       context("the artifact is registered") {
         before {
-          repository.register(artifact)
-          repository.storeDeliveryConfig(deliveryConfig)
+          every { repository.getDeliveryConfig(deliveryConfig.name) } returns deliveryConfig
         }
 
         context("there are no known versions for the artifact in the repository or in Igor") {
           before {
-            every {
-              igorService.getVersions(any(), any())
-            } returns emptyList()
+            every { repository.artifactVersions(artifact) } returns emptyList()
+            every { repository.isRegistered(artifact.name, artifact.type) } returns true
+            every { igorService.getVersions(any(), any()) } returns emptyList()
 
             runHandler(artifact)
           }
@@ -227,7 +223,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
           context("the desired version is known") {
             before {
-              repository.storeArtifact(artifact.name, artifact.type, image.appVersion, FINAL)
+              every { repository.artifactVersions(artifact) } returns listOf(image.appVersion)
             }
 
             context("an AMI for the desired version and base image already exists") {
@@ -411,7 +407,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
               baseImageCache.getBaseAmiVersion(artifact.vmOptions.baseOs, artifact.vmOptions.baseLabel)
             } returns newerBaseAmiVersion
 
-            repository.storeArtifact(artifact.name, artifact.type, image.appVersion, FINAL)
+            every { repository.artifactVersions(artifact) } returns listOf(image.appVersion)
 
             every {
               imageService.getLatestImage(artifact.name, "test")

@@ -3,16 +3,17 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
@@ -26,6 +27,8 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
+import io.mockk.verify
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -40,16 +43,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import strikt.api.expectCatching
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.succeeded
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, DummyResourceConfiguration::class],
-  webEnvironment = MOCK
+  webEnvironment = MOCK,
+  properties = ["eureka.default-to-up=false"]
 )
 @AutoConfigureMockMvc
 internal class DeliveryConfigControllerTests : JUnit5Minutests {
@@ -57,16 +56,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc
 
-  @Autowired
-  lateinit var deliveryConfigRepository: InMemoryDeliveryConfigRepository
-
-  @Autowired
-  lateinit var resourceRepository: InMemoryResourceRepository
-
-  @Autowired
-  lateinit var artifactRepository: InMemoryArtifactRepository
-
-  @Autowired
+  @MockkBean
   lateinit var repository: KeelRepository
 
   @MockkBean
@@ -105,20 +95,37 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
     )
   )
 
+  private fun SubmittedDeliveryConfig.toDeliveryConfig(): DeliveryConfig = DeliveryConfig(
+    name = safeName,
+    application = application,
+    serviceAccount = serviceAccount,
+    artifacts = artifacts,
+    environments = environments.map {
+      Environment(
+        name = it.name,
+        resources = it.resources.map {
+          Resource(
+            kind = it.kind,
+            metadata = mapOf(
+              "id" to randomUID().toString(),
+              "serviceAccount" to serviceAccount,
+              "application" to application
+            ),
+            spec = it.spec
+          )
+        }.toSet()
+      )
+    }.toSet()
+  )
+
   fun tests() = rootContext {
     before {
       authorizationSupport.allowAll()
     }
 
-    after {
-      deliveryConfigRepository.dropAll()
-      resourceRepository.dropAll()
-      artifactRepository.dropAll()
-    }
-
     context("getting a delivery config manifest") {
       before {
-        repository.upsertDeliveryConfig(deliveryConfig)
+        every { repository.getDeliveryConfig(deliveryConfig.safeName) } returns deliveryConfig.toDeliveryConfig()
       }
 
       setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { contentType ->
@@ -246,6 +253,12 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
       ).forEach { (contentType, payload) ->
         derivedContext<ResultActions>("persisting a delivery config as $contentType") {
           fixture {
+            every {
+              repository.upsertDeliveryConfig(any<SubmittedDeliveryConfig>())
+            } answers {
+              firstArg<SubmittedDeliveryConfig>().toDeliveryConfig()
+            }
+
             val request = post("/delivery-configs")
               .accept(contentType)
               .contentType(contentType)
@@ -258,23 +271,8 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             andExpect(status().isOk)
           }
 
-          test("the manifest is persisted with a default name") {
-            expectCatching { deliveryConfigRepository.get("keel-manifest") }
-              .succeeded()
-          }
-
-          test("each individual resource is persisted") {
-            expectThat(resourceRepository.size()).isEqualTo(2)
-          }
-
-          test("prod constraint is persisted") {
-            expectThat(
-              deliveryConfigRepository
-                .get("keel-manifest")
-                .environments
-                .find { it.name == "prod" }
-                ?.constraints
-            ).isNotNull()
+          test("the manifest is persisted") {
+            verify { repository.upsertDeliveryConfig(match<SubmittedDeliveryConfig> { it.application == "keel" }) }
           }
         }
 

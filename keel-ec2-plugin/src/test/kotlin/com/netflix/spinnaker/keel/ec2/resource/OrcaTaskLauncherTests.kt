@@ -23,22 +23,22 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.time.Clock
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
@@ -49,11 +49,9 @@ import strikt.assertions.isNotEmpty
 
 class OrcaTaskLauncherTests : JUnit5Minutests {
   class Fixture {
-    val clock = Clock.systemUTC()
     val orcaService: OrcaService = mockk()
-    val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    val combinedRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository)
+    val combinedRepository = mockk<KeelRepository>()
     val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher)
     val resource: Resource<DummyResourceSpec> = resource()
     val request = slot<OrchestrationRequest>()
@@ -82,7 +80,7 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
           serviceAccount = "keel@spinnaker",
           environments = setOf(env)
         )
-        deliveryConfigRepository.store(deliveryConfig)
+        every { combinedRepository.environmentFor(resource.id) } returns env
 
         runBlocking {
           taskLauncher.submitJob(resource, "task description", "correlate this", mapOf())

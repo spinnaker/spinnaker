@@ -15,22 +15,19 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery
-import io.mockk.every
+import io.mockk.coEvery as every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectCatching
@@ -63,14 +60,11 @@ internal class ImageResolverTests : JUnit5Minutests {
         getConfig(String::class.java, "images.default-account", any())
       } returns account
     }
-    val cloudDriverService = mockk<CloudDriverService>()
-    val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
-    val artifactRepository = InMemoryArtifactRepository()
-    val combinedRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository, artifactRepository = artifactRepository)
+    val repository = mockk<KeelRepository>()
     val imageService = mockk<ImageService>()
     private val subject = ImageResolver(
       dynamicConfigService,
-      combinedRepository,
+      repository,
       imageService
     )
     val images = listOf(
@@ -177,27 +171,18 @@ internal class ImageResolverTests : JUnit5Minutests {
 
       context("the resource is part of an environment in a delivery config manifest") {
         before {
-          deliveryConfigRepository.store(deliveryConfig)
-        }
-
-        after {
-          deliveryConfigRepository.dropAll()
+          every { repository.deliveryConfigFor(resource.id) } returns deliveryConfig
+          every { repository.environmentFor(resource.id) } returns deliveryConfig.environments.first()
         }
 
         context("a version of the artifact has been approved for the environment") {
           before {
-            artifactRepository.register(artifact)
-            artifactRepository.store(artifact, "${artifact.name}-$version2", RELEASE)
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
-            coEvery {
+            every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
+            every {
               imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
-          }
-
-          after {
-            artifactRepository.dropAll()
           }
 
           test("returns the image id of the approved version") {
@@ -213,8 +198,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("no artifact version has been approved for the environment") {
           before {
-            artifactRepository.register(artifact)
-            artifactRepository.store(artifact, "${artifact.name}-$version2", RELEASE)
+            every { repository.latestVersionApprovedIn(any(), any(), any()) } returns null
           }
           test("throws an exception") {
             expectCatching { resolve() }
@@ -225,16 +209,10 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("no image is found for the artifact version") {
           before {
-            artifactRepository.register(artifact)
-            artifactRepository.store(artifact, "${artifact.name}-$version2", RELEASE)
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
-            coEvery {
+            every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
+            every {
               imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } returns null
-          }
-
-          after {
-            artifactRepository.dropAll()
           }
 
           test("throws an exception") {
@@ -251,26 +229,17 @@ internal class ImageResolverTests : JUnit5Minutests {
 
           // TODO: because it's a derived fixture we have to do this again, ugh
           before {
-            deliveryConfigRepository.store(deliveryConfig)
-          }
-
-          after {
-            deliveryConfigRepository.dropAll()
+            every { repository.deliveryConfigFor(resource.id) } returns deliveryConfig
+            every { repository.environmentFor(resource.id) } returns deliveryConfig.environments.first()
           }
 
           before {
-            artifactRepository.register(artifact)
-            artifactRepository.store(artifact, "${artifact.name}-$version2", RELEASE)
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
-            coEvery {
+            every { repository.latestVersionApprovedIn(deliveryConfig, artifact, "test") } returns "${artifact.name}-$version2"
+            every {
               imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
-          }
-
-          after {
-            artifactRepository.dropAll()
           }
 
           test("throws an exception") {
