@@ -1,6 +1,13 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
 
+sourceSets {
+  main {
+    java { srcDirs = [] }
+    groovy { srcDirs += ['src/main/java'] }
+  }
+}
+
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 

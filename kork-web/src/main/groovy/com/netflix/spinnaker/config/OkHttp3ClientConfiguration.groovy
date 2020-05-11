@@ -21,7 +21,6 @@ import okhttp3.Dispatcher
 import static com.google.common.base.Preconditions.checkState
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
