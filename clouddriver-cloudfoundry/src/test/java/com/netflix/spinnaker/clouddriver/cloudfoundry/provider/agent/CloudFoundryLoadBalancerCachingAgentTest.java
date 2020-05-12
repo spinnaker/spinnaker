@@ -279,8 +279,84 @@ class CloudFoundryLoadBalancerCachingAgentTest {
                 LOAD_BALANCERS.getNs(),
                 HashSet.of(loadBalancerCacheData1, loadBalancerCacheData2).toJavaSet(),
                 ON_DEMAND.getNs(),
+                emptySet(),
+                SERVER_GROUPS.getNs(),
                 emptySet())
             .toJavaMap();
+    CacheResult expectedCacheResult =
+        new DefaultCacheResult(
+            cacheResults,
+            HashMap.<String, Collection<String>>of(ON_DEMAND.getNs(), emptySet()).toJavaMap());
+
+    CacheResult result = cloudFoundryLoadBalancerCachingAgent.loadData(mockProviderCache);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedCacheResult);
+  }
+
+  @Test
+  void loadDataShouldReturnCacheResultWithUpdatedDataAndServerGroups() {
+
+    CloudFoundryInstance instance1 = CloudFoundryInstance.builder().appGuid("ap-guid-1").build();
+
+    CloudFoundryServerGroup serverGroup1 =
+        CloudFoundryServerGroup.builder()
+            .account(accountName)
+            .id("sg-guid-1")
+            .name("demo")
+            .space(cloudFoundrySpace)
+            .instances(HashSet.of(instance1).toJavaSet())
+            .build();
+
+    CloudFoundryLoadBalancer loadBalancer1 =
+        CloudFoundryLoadBalancer.builder()
+            .account(accountName)
+            .id("lb-guid-1")
+            .domain(CloudFoundryDomain.builder().name("domain-name").build())
+            .mappedApps(HashSet.of(serverGroup1).toJavaSet())
+            .build();
+
+    when(mockProviderCache.getAll(any(), anyCollection())).thenReturn(emptySet());
+
+    Routes mockRoutes = mock(Routes.class);
+
+    when(mockRoutes.all()).thenReturn(List.of(loadBalancer1).toJavaList());
+
+    when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
+
+    CacheData serverGroupCacheData1 =
+        new ResourceCacheData(
+            Keys.getServerGroupKey(
+                serverGroup1.getAccount(), serverGroup1.getName(), cloudFoundrySpace.getRegion()),
+            emptyMap(),
+            Collections.singletonMap(
+                LOAD_BALANCERS.getNs(), HashSet.of(loadBalancer1.getId()).toJavaList()));
+
+    Map<String, CacheData> loadBalancersByServerGroupIds =
+        HashMap.of("1", serverGroupCacheData1).toJavaMap();
+
+    CacheData loadBalancerCacheData1 =
+        new ResourceCacheData(
+            Keys.getLoadBalancerKey(accountName, loadBalancer1),
+            cacheView(loadBalancer1),
+            Collections.singletonMap(
+                SERVER_GROUPS.getNs(),
+                HashSet.of(
+                        Keys.getServerGroupKey(
+                            serverGroup1.getAccount(),
+                            serverGroup1.getName(),
+                            cloudFoundrySpace.getRegion()))
+                    .toJavaSet()));
+
+    Map<String, Collection<CacheData>> cacheResults =
+        HashMap.<String, Collection<CacheData>>of(
+                LOAD_BALANCERS.getNs(),
+                HashSet.of(loadBalancerCacheData1).toJavaSet(),
+                ON_DEMAND.getNs(),
+                emptySet(),
+                SERVER_GROUPS.getNs(),
+                loadBalancersByServerGroupIds.values())
+            .toJavaMap();
+
     CacheResult expectedCacheResult =
         new DefaultCacheResult(
             cacheResults,
@@ -362,6 +438,8 @@ class CloudFoundryLoadBalancerCachingAgentTest {
                 LOAD_BALANCERS.getNs(),
                 HashSet.of(onDemandCacheResults).toJavaSet(),
                 ON_DEMAND.getNs(),
+                emptySet(),
+                SERVER_GROUPS.getNs(),
                 emptySet())
             .toJavaMap();
 

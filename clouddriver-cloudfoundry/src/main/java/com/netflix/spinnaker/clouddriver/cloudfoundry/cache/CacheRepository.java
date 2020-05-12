@@ -169,6 +169,36 @@ public class CacheRepository {
         findServerGroupsByKeys(lbData.getRelationships().get(SERVER_GROUPS.getNs()), Detail.NONE));
   }
 
+  public Set<CloudFoundryLoadBalancer> findLoadBalancersByClusterKeys(
+      Collection<String> keys, Detail detail) {
+    Set<String> serverGroupKeys =
+        cacheView.getAll(CLUSTERS.getNs(), keys).stream()
+            .flatMap(cl -> cl.getRelationships().get(SERVER_GROUPS.getNs()).stream())
+            .collect(toSet());
+
+    Set<String> loadBalancerKeys =
+        cacheView.getAll(SERVER_GROUPS.getNs(), serverGroupKeys).stream()
+            .flatMap(
+                sg ->
+                    sg.getRelationships().get(LOAD_BALANCERS.getNs()).stream()
+                        .map(
+                            lb ->
+                                Keys.getLoadBalancerKey(
+                                    objectMapper
+                                        .convertValue(
+                                            sg.getAttributes().get("resource"),
+                                            CloudFoundryServerGroup.class)
+                                        .getAccount(),
+                                    lb)))
+            .collect(toSet());
+
+    return findLoadBalancersByKeys(
+        loadBalancerKeys.stream()
+            .flatMap(lb -> cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), lb).stream())
+            .collect(toSet()),
+        detail);
+  }
+
   public Set<CloudFoundryInstance> findInstancesByKeys(Collection<String> keys) {
     return cacheView.getAll(INSTANCES.getNs(), keys).stream()
         .map(

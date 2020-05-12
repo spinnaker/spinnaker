@@ -18,12 +18,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.FULL;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository.Detail.NAMES_ONLY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.LOAD_BALANCERS;
-import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.frigga.Names;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
@@ -76,18 +75,9 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
    */
   @Override
   public Set<CloudFoundryLoadBalancer> getApplicationLoadBalancers(String application) {
-    return repository
-        .findLoadBalancersByKeys(
-            cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), Keys.getAllLoadBalancers()),
-            NAMES_ONLY)
-        .stream()
-        .filter(
-            lb ->
-                lb.getServerGroups().stream()
-                    .anyMatch(
-                        serverGroup ->
-                            application.equals(Names.parseName(serverGroup.getName()).getApp())))
-        .collect(toSet());
+    return repository.findLoadBalancersByClusterKeys(
+        cacheView.filterIdentifiers(CLUSTERS.getNs(), Keys.getClusterKey("*", application, "*")),
+        NAMES_ONLY);
   }
 
   private Map<String, CloudFoundryLoadBalancerSummary> summarizeLoadBalancers(

@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
@@ -39,7 +41,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBala
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
-import io.vavr.collection.HashMap;
 import java.util.*;
 import javax.annotation.Nullable;
 import lombok.Getter;
@@ -84,12 +85,34 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
           }
         });
 
+    Map<String, CacheData> loadBalancersByServerGroupIds = new HashMap<>();
+    loadBalancers.stream()
+        .forEach(
+            lb ->
+                lb.getMappedApps().stream()
+                    .forEach(
+                        sg ->
+                            loadBalancersByServerGroupIds
+                                .computeIfAbsent(
+                                    sg.getId(),
+                                    (s) ->
+                                        new ResourceCacheData(
+                                            Keys.getServerGroupKey(
+                                                sg.getAccount(), sg.getName(), sg.getRegion()),
+                                            emptyMap(),
+                                            new java.util.HashMap<>()))
+                                .getRelationships()
+                                .computeIfAbsent(LOAD_BALANCERS.getNs(), k -> new HashSet<>())
+                                .add(lb.getId())));
+
     Map<String, Collection<CacheData>> results =
-        HashMap.<String, Collection<CacheData>>of(
+        io.vavr.collection.HashMap.of(
                 LOAD_BALANCERS.getNs(),
                 loadBalancers.stream()
                     .map(lb -> setCacheData(toKeep, lb, loadDataStart))
-                    .collect(toSet()))
+                    .collect(toSet()),
+                SERVER_GROUPS.getNs(),
+                loadBalancersByServerGroupIds.values())
             .toJavaMap();
 
     onDemandCacheData.forEach(this::processOnDemandCacheData);
@@ -205,7 +228,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
               Map<String, String> details = Keys.parse(loadbalancerId).orElse(emptyMap());
               Map<String, Object> attributes = it.getAttributes();
 
-              return HashMap.of(
+              return io.vavr.collection.HashMap.of(
                       "id",
                       loadbalancerId,
                       "details",

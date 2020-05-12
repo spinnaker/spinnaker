@@ -110,6 +110,10 @@ public class Keys implements KeyParser {
         + lb.getRegion();
   }
 
+  public static String getLoadBalancerKey(String account, String guid) {
+    return ID + ":" + Namespace.LOAD_BALANCERS + ":" + account + ":" + guid + ":*";
+  }
+
   public static String getLoadBalancerKey(String account, String uri, String region) {
     Pattern VALID_ROUTE_REGEX =
         Pattern.compile("^([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_.-]+)(:[0-9]+)?([/a-zA-Z0-9_-]+)?$");
