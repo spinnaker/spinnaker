@@ -34,7 +34,7 @@ class RawOkHttpClientConfiguration {
    */
   @Bean
   @ConditionalOnMissingBean
-  OkHttpClient okHttpClient(
+  OkHttpClient okhttp3Client(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
       List<Interceptor> interceptors) {
     return new RawOkHttpClientFactory().create(okHttpClientConfigurationProperties, interceptors);
