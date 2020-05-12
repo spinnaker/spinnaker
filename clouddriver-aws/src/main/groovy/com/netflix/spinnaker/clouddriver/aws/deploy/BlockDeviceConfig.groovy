@@ -221,6 +221,7 @@ class BlockDeviceConfig {
       "m6g.8xlarge"  : sizedBlockDevicesForEbs(120),
       "m6g.12xlarge" : sizedBlockDevicesForEbs(120),
       "m6g.16xlarge" : sizedBlockDevicesForEbs(120),
+      "m6g.metal"    : sizedBlockDevicesForEbs(120),
 
       "r3.large"    : enumeratedBlockDevicesWithVirtualName(1),
       "r3.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
