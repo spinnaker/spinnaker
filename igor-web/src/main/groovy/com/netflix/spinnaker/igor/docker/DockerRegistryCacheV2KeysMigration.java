@@ -17,11 +17,7 @@ package com.netflix.spinnaker.igor.docker;
 
 import static java.lang.String.format;
 
-import com.netflix.dyno.connectionpool.CursorBasedResult;
-import com.netflix.dyno.connectionpool.exception.DynoException;
-import com.netflix.dyno.jedis.DynoJedisClient;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.time.Duration;
 import java.util.List;
@@ -134,9 +130,6 @@ public class DockerRegistryCacheV2KeysMigration {
    */
   private int getV1Keys(MultiKeyCommands client) {
     try {
-      if (redis instanceof DynomiteClientDelegate) {
-        return v1Keys((DynoJedisClient) client);
-      }
       return v1Keys((Jedis) client);
     } catch (InterruptedException e) {
       log.error("Migration could not complete because it was interrupted", e);
@@ -159,38 +152,6 @@ public class DockerRegistryCacheV2KeysMigration {
 
         return size;
       };
-
-  /** Dynomite-compat v1keys */
-  private int v1Keys(DynoJedisClient dyno) throws InterruptedException {
-    int numMigrated = 0;
-    int failures = 0;
-
-    String pattern = oldIndexPattern();
-    CursorBasedResult<String> result = null;
-    do {
-      try {
-        // This is a really weird interface.
-        if (result == null) {
-          result = dyno.dyno_scan(pattern);
-        } else {
-          result = dyno.dyno_scan(result, 10, pattern);
-        }
-
-        numMigrated += oldKeysCallback.apply(result.getResult());
-        failures = 0;
-      } catch (DynoException e) {
-        failures++;
-        if (failures >= 5) {
-          log.error("Failed migrating v1 key batch after 5 attempts, aborting", e);
-          throw new AbortedAfterExcessiveFailures(e);
-        }
-        log.error("Failed migrating v1 key batch, retrying", e);
-        Thread.sleep(5000);
-      }
-    } while (result == null || !result.isComplete());
-
-    return numMigrated;
-  }
 
   /** Redis-compat v1keys */
   private int v1Keys(Jedis jedis) throws InterruptedException {

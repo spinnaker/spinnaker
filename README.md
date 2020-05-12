@@ -44,7 +44,6 @@ All these metrics can be grouped by a `monitor` tag (e.g. `DockerMonitor`, `Jenk
 The following storage backends are supported:
 
 - Redis
-- Dynomite
 
 Relevant properties:
 ```
