@@ -25,12 +25,13 @@ import (
 
 // Config is the CLI's authentication configuration.
 type Config struct {
-	Enabled bool           `yaml:"enabled"`
-	X509    *x509.Config   `yaml:"x509,omitempty"`
-	OAuth2  *oauth2.Config `yaml:"oauth2,omitempty"`
-	Basic   *basic.Config  `yaml:"basic,omitempty"`
-	Iap     *config.Config `yaml:"iap,omitempty"`
-	Ldap    *ldap.Config   `yaml:"ldap,omitempty"`
+	Enabled          bool           `yaml:"enabled"`
+	IgnoreCertErrors bool           `yaml:"ignoreCertErrors"`
+	X509             *x509.Config   `yaml:"x509,omitempty"`
+	OAuth2           *oauth2.Config `yaml:"oauth2,omitempty"`
+	Basic            *basic.Config  `yaml:"basic,omitempty"`
+	Iap              *config.Config `yaml:"iap,omitempty"`
+	Ldap             *ldap.Config   `yaml:"ldap,omitempty"`
 
 	GoogleServiceAccount *gsa.Config `yaml:"google_service_account,omitempty"`
 }
