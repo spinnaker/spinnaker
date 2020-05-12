@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
@@ -43,25 +44,22 @@ public class GoogleCloudBuildProperties {
   @NonnullByDefault
   @Value
   public static final class Account implements BuildService {
+    private static final String ERROR_TEMPLATE = "Missing required field for GCB account %s: %s";
+
     private final String name;
     private final String project;
-    private final String subscriptionName;
-    private final String jsonKey;
+    private final Optional<String> jsonKey;
     private final Permissions permissions;
 
     @Builder
     @ConstructorBinding
     @ParametersAreNullableByDefault
-    public Account(
-        String name,
-        String project,
-        String subscriptionName,
-        String jsonKey,
-        Permissions.Builder permissions) {
-      this.name = Strings.nullToEmpty(name);
-      this.project = Strings.nullToEmpty(project);
-      this.subscriptionName = Strings.nullToEmpty(subscriptionName);
-      this.jsonKey = Strings.nullToEmpty(jsonKey);
+    public Account(String name, String project, String jsonKey, Permissions.Builder permissions) {
+      this.name = Preconditions.checkNotNull(Strings.emptyToNull(name), ERROR_TEMPLATE, "", "name");
+      this.project =
+          Preconditions.checkNotNull(
+              Strings.emptyToNull(project), ERROR_TEMPLATE, this.name, "project");
+      this.jsonKey = Optional.ofNullable(Strings.emptyToNull(jsonKey));
       this.permissions =
           Optional.ofNullable(permissions)
               .map(Permissions.Builder::build)
