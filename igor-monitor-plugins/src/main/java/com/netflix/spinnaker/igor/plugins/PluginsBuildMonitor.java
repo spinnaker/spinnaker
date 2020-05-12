@@ -77,7 +77,7 @@ public class PluginsBuildMonitor
         });
 
     delta.items.stream()
-        .map(it -> Instant.parse(it.pluginRelease.getTimestamp()))
+        .map(it -> Instant.parse(it.pluginRelease.getReleaseDate()))
         .max(Comparator.naturalOrder())
         .ifPresent(cache::setLastPollCycleTimestamp);
   }

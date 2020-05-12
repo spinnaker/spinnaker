@@ -16,9 +16,7 @@
  */
 package com.netflix.spinnaker.igor.plugins.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
-import java.util.Optional;
 
 public class PluginRelease {
   private final String pluginId;
@@ -72,11 +70,6 @@ public class PluginRelease {
 
   public String getLastModified() {
     return lastModified;
-  }
-
-  @JsonIgnore
-  public String getTimestamp() {
-    return Optional.ofNullable(lastModified).orElse(releaseDate);
   }
 
   public static class ServiceRequirement {

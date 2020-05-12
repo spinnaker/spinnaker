@@ -59,14 +59,14 @@ class PluginReleaseServiceSpec extends Specification {
     clock.instant().plus(2, ChronoUnit.DAYS)   || []
   }
 
-  private PluginInfo.Release release(String version, Instant lastModified) {
+  private PluginInfo.Release release(String version, Instant releaseDate) {
     return new PluginInfo.Release(
       version,
-      clock.instant().toString(),
+      releaseDate.toString(),
       "orca>=0.0.0",
       "http://example.com/file.zip",
       true,
-      lastModified.toString(),
+      clock.instant().toString(),
     )
   }
 }

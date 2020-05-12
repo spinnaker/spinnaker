@@ -21,7 +21,6 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +44,12 @@ public class PluginReleaseService {
         .filter(
             r -> {
               try {
-                return Instant.parse(r.getTimestamp()).isAfter(timestamp);
+                return Instant.parse(r.getReleaseDate()).isAfter(timestamp);
               } catch (DateTimeParseException e) {
                 log.error(
                     "Failed parsing plugin timestamp for '{}': '{}', cannot index plugin",
                     r.getPluginId(),
-                    getTimestamp(r));
+                    r.getReleaseDate());
                 return false;
               }
             })
@@ -75,9 +74,5 @@ public class PluginReleaseService {
                                         release.preferred,
                                         release.lastModified)))
                 .collect(Collectors.toList()));
-  }
-
-  private String getTimestamp(PluginRelease release) {
-    return Optional.ofNullable(release.getLastModified()).orElse(release.getReleaseDate());
   }
 }
