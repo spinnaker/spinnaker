@@ -16,16 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
-import static java.util.Collections.singletonList;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.ivy.settings.IvySettings;
-import java.util.List;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class IvyArtifactAccount implements ArtifactAccount {
-  private String name;
-  private IvySettings settings;
-  private List<String> resolveConfigurations = singletonList("master");
+  private final String name;
+  @Nullable private final IvySettings settings;
+
+  @JsonIgnore
+  private final ImmutableList<String> resolveConfigurations = ImmutableList.of("master");
+
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  public IvyArtifactAccount(String name, IvySettings settings) {
+    this.name = Strings.nullToEmpty(name);
+    this.settings = settings;
+  }
 }

@@ -18,8 +18,11 @@ package com.netflix.spinnaker.clouddriver.artifacts.front50;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,15 +35,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
+@NonnullByDefault
 @Slf4j
 final class Front50ArtifactCredentials implements ArtifactCredentials {
   private static final String ACCOUNT_NAME = "front50ArtifactCredentials";
   private static final String URL_PREFIX = "spinnaker://";
 
   @Getter private final String name = ACCOUNT_NAME;
-  @Getter private final List<String> types = Collections.singletonList("front50/pipelineTemplate");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("front50/pipelineTemplate");
 
   @JsonIgnore private final Front50Service front50Service;
   @JsonIgnore private final ObjectMapper objectMapper;
@@ -52,8 +55,8 @@ final class Front50ArtifactCredentials implements ArtifactCredentials {
 
   @Override
   public InputStream download(Artifact artifact) throws IOException {
-    String reference = artifact.getReference();
-    if (StringUtils.isEmpty(reference) || !reference.startsWith(URL_PREFIX)) {
+    String reference = Strings.nullToEmpty(artifact.getReference());
+    if (!reference.startsWith(URL_PREFIX)) {
       throw new IllegalArgumentException(
           String.format(
               "'front50/pipelineTemplate' artifacts must be specified with a "

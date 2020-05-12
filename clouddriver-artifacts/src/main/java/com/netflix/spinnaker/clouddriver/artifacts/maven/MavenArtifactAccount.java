@@ -16,11 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.maven;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class MavenArtifactAccount implements ArtifactAccount {
-  private String name;
-  private String repositoryUrl;
+  private final String name;
+  private final String repositoryUrl;
+
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  public MavenArtifactAccount(String name, String repositoryUrl) {
+    this.name = Strings.nullToEmpty(name);
+    this.repositoryUrl = Strings.nullToEmpty(repositoryUrl);
+  }
 }

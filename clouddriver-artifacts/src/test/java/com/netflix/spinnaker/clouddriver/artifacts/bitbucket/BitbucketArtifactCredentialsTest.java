@@ -45,10 +45,12 @@ class BitbucketArtifactCredentialsTest {
 
   @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    BitbucketArtifactAccount account = new BitbucketArtifactAccount();
-    account.setName("my-bitbucket-account");
-    account.setUsername("user");
-    account.setPassword("passw0rd");
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder()
+            .name("my-bitbucket-account")
+            .username("user")
+            .password("passw0rd")
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("user", "passw0rd"));
   }
@@ -60,17 +62,19 @@ class BitbucketArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
-    BitbucketArtifactAccount account = new BitbucketArtifactAccount();
-    account.setName("my-bitbucket-account");
-    account.setUsernamePasswordFile(authFile.toAbsolutePath().toString());
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder()
+            .name("my-bitbucket-account")
+            .usernamePasswordFile(authFile.toAbsolutePath().toString())
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("someuser", "somepassw0rd!"));
   }
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    BitbucketArtifactAccount account = new BitbucketArtifactAccount();
-    account.setName("my-bitbucket-account");
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder().name("my-bitbucket-account").build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }

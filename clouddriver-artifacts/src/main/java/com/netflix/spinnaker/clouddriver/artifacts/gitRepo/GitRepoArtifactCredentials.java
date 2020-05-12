@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,14 +32,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.ArchiveCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -50,9 +50,10 @@ import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
+@NonnullByDefault
 @Slf4j
 final class GitRepoArtifactCredentials implements ArtifactCredentials {
-  @Getter private final List<String> types = Collections.singletonList("git/repo");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("git/repo");
 
   @Getter private final String name;
   private final String username;
@@ -81,11 +82,11 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
     this.sshKnownHostsFilePath = account.getSshKnownHostsFilePath();
     this.sshTrustUnknownHosts = account.isSshTrustUnknownHosts();
 
-    if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
+    if (!username.isEmpty() && !password.isEmpty()) {
       authType = AuthType.HTTP;
-    } else if (!StringUtils.isEmpty(token)) {
+    } else if (!token.isEmpty()) {
       authType = AuthType.TOKEN;
-    } else if (!StringUtils.isEmpty(sshPrivateKeyFilePath)) {
+    } else if (!sshPrivateKeyFilePath.isEmpty()) {
       authType = AuthType.SSH;
     } else {
       authType = AuthType.NONE;
@@ -144,7 +145,7 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
             .setFormat("tgz")
             .setOutputStream(outputStream);
 
-    if (!StringUtils.isEmpty(subPath)) {
+    if (!subPath.isEmpty()) {
       archiveCommand.setPaths(subPath);
     }
 
@@ -162,7 +163,7 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
   }
 
   private String artifactVersion(Artifact artifact) {
-    return !StringUtils.isEmpty(artifact.getVersion()) ? artifact.getVersion() : "master";
+    return !Strings.isNullOrEmpty(artifact.getVersion()) ? artifact.getVersion() : "master";
   }
 
   private CloneCommand addAuthentication(CloneCommand cloneCommand) {
@@ -185,7 +186,7 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
         new JschConfigSessionFactory() {
           @Override
           protected void configure(OpenSshConfig.Host hc, Session session) {
-            if (sshKnownHostsFilePath == null && sshTrustUnknownHosts) {
+            if (sshKnownHostsFilePath.isEmpty() && sshTrustUnknownHosts) {
               session.setConfig("StrictHostKeyChecking", "no");
             }
           }
@@ -193,18 +194,18 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
           @Override
           protected JSch createDefaultJSch(FS fs) throws JSchException {
             JSch defaultJSch = super.createDefaultJSch(fs);
-            if (!StringUtils.isEmpty(sshPrivateKeyPassphrase)) {
+            if (!sshPrivateKeyPassphrase.isEmpty()) {
               defaultJSch.addIdentity(sshPrivateKeyFilePath, sshPrivateKeyPassphrase);
             } else {
               defaultJSch.addIdentity(sshPrivateKeyFilePath);
             }
 
-            if (sshKnownHostsFilePath != null && sshTrustUnknownHosts) {
+            if (!sshKnownHostsFilePath.isEmpty() && sshTrustUnknownHosts) {
               log.warn(
                   "SSH known_hosts file path supplied, ignoring 'sshTrustUnknownHosts' option");
             }
 
-            if (sshKnownHostsFilePath != null) {
+            if (!sshKnownHostsFilePath.isEmpty()) {
               defaultJSch.setKnownHosts(sshKnownHostsFilePath);
             }
 

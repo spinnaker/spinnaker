@@ -17,19 +17,20 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.squareup.okhttp.OkHttpClient;
-import java.util.Collections;
-import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+@NonnullByDefault
 @Slf4j
 final class HttpArtifactCredentials extends SimpleHttpArtifactCredentials<HttpArtifactAccount>
     implements ArtifactCredentials {
   @Getter private final String name;
-  @Getter private final List<String> types = Collections.singletonList("http/file");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("http/file");
 
   HttpArtifactCredentials(HttpArtifactAccount account, OkHttpClient okHttpClient) {
     super(okHttpClient, account);

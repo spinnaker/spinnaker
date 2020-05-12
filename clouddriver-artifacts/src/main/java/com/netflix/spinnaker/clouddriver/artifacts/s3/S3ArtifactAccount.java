@@ -16,15 +16,39 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class S3ArtifactAccount implements ArtifactAccount {
-  private String name;
-  private String apiEndpoint;
-  private String apiRegion;
-  private String region;
-  private String awsAccessKeyId;
-  private String awsSecretAccessKey;
+  private final String name;
+  private final String apiEndpoint;
+  private final String apiRegion;
+  private final String region;
+  private final String awsAccessKeyId;
+  private final String awsSecretAccessKey;
+
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  public S3ArtifactAccount(
+      String name,
+      String apiEndpoint,
+      String apiRegion,
+      String region,
+      String awsAccessKeyId,
+      String awsSecretAccessKey) {
+    this.name = Strings.nullToEmpty(name);
+    this.apiEndpoint = Strings.nullToEmpty(apiEndpoint);
+    this.apiRegion = Strings.nullToEmpty(apiRegion);
+    this.region = Strings.nullToEmpty(region);
+    this.awsAccessKeyId = Strings.nullToEmpty(awsAccessKeyId);
+    this.awsSecretAccessKey = Strings.nullToEmpty(awsSecretAccessKey);
+  }
 }

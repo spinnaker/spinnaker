@@ -600,12 +600,16 @@ public class Applications {
         .orElse(null);
   }
 
-  @Nullable
+  @Nonnull
   public InputStream downloadPackageBits(String packageGuid) throws CloudFoundryApiException {
     try {
-      Optional<TypedInput> packageInput =
+      Optional<TypedInput> optionalPackageInput =
           safelyCall(() -> api.downloadPackage(packageGuid)).map(Response::getBody);
-      return packageInput.isPresent() ? packageInput.get().in() : null;
+      TypedInput packageInput =
+          optionalPackageInput.orElseThrow(
+              () ->
+                  new CloudFoundryApiException("Failed to retrieve input stream of package bits."));
+      return packageInput.in();
     } catch (IOException e) {
       throw new CloudFoundryApiException(e, "Failed to retrieve input stream of package bits.");
     }

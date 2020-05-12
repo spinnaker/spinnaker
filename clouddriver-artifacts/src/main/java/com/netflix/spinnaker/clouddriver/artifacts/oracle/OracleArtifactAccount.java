@@ -9,18 +9,45 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class OracleArtifactAccount implements ArtifactAccount {
-  private String name;
+  private final String name;
+  private final String namespace;
+  private final String region;
+  private final String userId;
+  private final String fingerprint;
+  private final String sshPrivateKeyFilePath;
+  private final String privateKeyPassphrase;
+  private final String tenancyId;
 
-  private String namespace;
-  private String region;
-  private String userId;
-  private String fingerprint;
-  private String sshPrivateKeyFilePath;
-  private String privateKeyPassphrase;
-  private String tenancyId;
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  OracleArtifactAccount(
+      String name,
+      String namespace,
+      String region,
+      String userId,
+      String fingerprint,
+      String sshPrivateKeyFilePath,
+      String privateKeyPassphrase,
+      String tenancyId) {
+    this.name = Strings.nullToEmpty(name);
+    this.namespace = Strings.nullToEmpty(namespace);
+    this.region = Strings.nullToEmpty(region);
+    this.userId = Strings.nullToEmpty(userId);
+    this.fingerprint = Strings.nullToEmpty(fingerprint);
+    this.sshPrivateKeyFilePath = Strings.nullToEmpty(sshPrivateKeyFilePath);
+    this.privateKeyPassphrase = Strings.nullToEmpty(privateKeyPassphrase);
+    this.tenancyId = Strings.nullToEmpty(tenancyId);
+  }
 }

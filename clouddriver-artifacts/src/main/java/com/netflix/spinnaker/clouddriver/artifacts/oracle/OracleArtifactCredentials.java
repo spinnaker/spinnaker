@@ -10,18 +10,19 @@
 package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 import javax.ws.rs.core.UriBuilder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+@NonnullByDefault
 @Slf4j
 final class OracleArtifactCredentials implements ArtifactCredentials {
   private static final String ARTIFACT_REFERENCE_PREFIX = "oci://";
@@ -30,7 +31,7 @@ final class OracleArtifactCredentials implements ArtifactCredentials {
       "https://objectstorage.{arg0}.oraclecloud.com/n/{arg1}/b/{arg2}/o/{arg3}";
 
   @Getter private final String name;
-  @Getter private final List<String> types = Collections.singletonList("oracle/object");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("oracle/object");
 
   private final String namespace;
   private final String region;

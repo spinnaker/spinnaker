@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,7 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,7 +51,7 @@ public class ArtifactCredentialsRepository {
   }
 
   public ArtifactCredentials getCredentials(String accountName, String type) {
-    if (StringUtils.isEmpty(accountName)) {
+    if (Strings.isNullOrEmpty(accountName)) {
       throw new IllegalArgumentException(
           "An artifact account must be supplied to download this artifact: " + accountName);
     }

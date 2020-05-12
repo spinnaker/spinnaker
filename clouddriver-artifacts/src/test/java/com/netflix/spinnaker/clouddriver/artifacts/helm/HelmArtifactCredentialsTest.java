@@ -49,11 +49,13 @@ class HelmArtifactCredentialsTest {
 
   @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    HelmArtifactAccount account = new HelmArtifactAccount();
-    account.setRepository(server.baseUrl() + "/" + REPOSITORY);
-    account.setName("my-helm-account");
-    account.setUsername("user");
-    account.setPassword("passw0rd");
+    HelmArtifactAccount account =
+        HelmArtifactAccount.builder()
+            .repository(server.baseUrl() + "/" + REPOSITORY)
+            .name("my-helm-account")
+            .username("user")
+            .password("passw0rd")
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("user", "passw0rd"));
   }
@@ -65,19 +67,23 @@ class HelmArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
-    HelmArtifactAccount account = new HelmArtifactAccount();
-    account.setRepository(server.baseUrl() + "/" + REPOSITORY);
-    account.setName("my-helm-account");
-    account.setUsernamePasswordFile(authFile.toAbsolutePath().toString());
+    HelmArtifactAccount account =
+        HelmArtifactAccount.builder()
+            .repository(server.baseUrl() + "/" + REPOSITORY)
+            .name("my-helm-account")
+            .usernamePasswordFile(authFile.toAbsolutePath().toString())
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("someuser", "somepassw0rd!"));
   }
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    HelmArtifactAccount account = new HelmArtifactAccount();
-    account.setRepository(server.baseUrl() + "/" + REPOSITORY);
-    account.setName("my-helm-account");
+    HelmArtifactAccount account =
+        HelmArtifactAccount.builder()
+            .repository(server.baseUrl() + "/" + REPOSITORY)
+            .name("my-helm-account")
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }

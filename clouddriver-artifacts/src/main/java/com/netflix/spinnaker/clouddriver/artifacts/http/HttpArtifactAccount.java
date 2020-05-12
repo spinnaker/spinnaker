@@ -18,27 +18,42 @@
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
-  private String name;
+  private final String name;
   /*
    One of the following are required for auth:
     - username and password
     - usernamePasswordFile : path to file containing "username:password"
   */
-  private String username;
-  private String password;
-  private String usernamePasswordFile;
+  private final Optional<String> username;
+  private final Optional<String> password;
+  private final Optional<String> usernamePasswordFile;
+
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  public HttpArtifactAccount(
+      String name, String username, String password, String usernamePasswordFile) {
+    this.name = Strings.nullToEmpty(name);
+    this.username = Optional.ofNullable(Strings.emptyToNull(username));
+    this.password = Optional.ofNullable(Strings.emptyToNull(password));
+    this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
+  }
 
   @JsonIgnore
-  public boolean usesAuth() {
-    return !(StringUtils.isEmpty(username)
-        && StringUtils.isEmpty(password)
-        && StringUtils.isEmpty(usernamePasswordFile));
+  boolean usesAuth() {
+    return username.isPresent() || password.isPresent() || usernamePasswordFile.isPresent();
   }
 }

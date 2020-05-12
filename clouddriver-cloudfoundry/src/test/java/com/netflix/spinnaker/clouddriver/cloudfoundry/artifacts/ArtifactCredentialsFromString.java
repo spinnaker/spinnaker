@@ -16,22 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@NonnullByDefault
 public class ArtifactCredentialsFromString implements ArtifactCredentials {
 
   private final String name;
-  private final List<String> types;
+  private final ImmutableList<String> types;
   private final String downloadContent;
 
   public ArtifactCredentialsFromString(String name, List<String> types, String downloadContent) {
     this.name = name;
-    this.types = types;
+    this.types = ImmutableList.copyOf(types);
     this.downloadContent = downloadContent;
   }
 
@@ -44,7 +47,7 @@ public class ArtifactCredentialsFromString implements ArtifactCredentials {
     return name;
   }
 
-  public List<String> getTypes() {
+  public ImmutableList<String> getTypes() {
     return types;
   }
 

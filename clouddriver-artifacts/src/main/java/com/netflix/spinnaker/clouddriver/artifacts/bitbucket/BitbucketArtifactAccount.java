@@ -17,14 +17,32 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth {
-  private String name;
-  private String username;
-  private String password;
-  private String usernamePasswordFile;
+  private final String name;
+  private final Optional<String> username;
+  private final Optional<String> password;
+  private final Optional<String> usernamePasswordFile;
+
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  BitbucketArtifactAccount(
+      String name, String username, String password, String usernamePasswordFile) {
+    this.name = Strings.nullToEmpty(name);
+    this.username = Optional.ofNullable(Strings.emptyToNull(username));
+    this.password = Optional.ofNullable(Strings.emptyToNull(password));
+    this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
+  }
 }

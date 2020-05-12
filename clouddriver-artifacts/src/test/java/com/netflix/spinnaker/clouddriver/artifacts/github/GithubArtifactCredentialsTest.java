@@ -45,9 +45,8 @@ class GithubArtifactCredentialsTest {
 
   @Test
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setToken("abc");
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder().name("my-github-account").token("abc").build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token abc")));
   }
@@ -59,19 +58,23 @@ class GithubArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "zzz".getBytes());
 
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setTokenFile(authFile.toAbsolutePath().toString());
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .tokenFile(authFile.toAbsolutePath().toString())
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token zzz")));
   }
 
   @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setUsername("user");
-    account.setPassword("passw0rd");
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .username("user")
+            .password("passw0rd")
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("user", "passw0rd"));
   }
@@ -83,17 +86,19 @@ class GithubArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setUsernamePasswordFile(authFile.toAbsolutePath().toString());
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .usernamePasswordFile(authFile.toAbsolutePath().toString())
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("someuser", "somepassw0rd!"));
   }
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder().name("my-github-account").build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }

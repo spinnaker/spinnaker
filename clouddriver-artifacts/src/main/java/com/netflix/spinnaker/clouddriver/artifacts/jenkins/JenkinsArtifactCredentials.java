@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.jenkins;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
-import java.util.Collections;
-import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+@NonnullByDefault
 @Slf4j
 final class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<JenkinsArtifactAccount>
     implements ArtifactCredentials {
@@ -33,7 +34,7 @@ final class JenkinsArtifactCredentials extends SimpleHttpArtifactCredentials<Jen
 
   @Getter private final String name;
 
-  @Getter private final List<String> types = Collections.singletonList(TYPE);
+  @Getter private final ImmutableList<String> types = ImmutableList.of(TYPE);
 
   private final JenkinsArtifactAccount jenkinsArtifactAccount;
 

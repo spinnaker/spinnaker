@@ -27,22 +27,24 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
+@NonnullByDefault
 @Slf4j
 final class GcsArtifactCredentials implements ArtifactCredentials {
   @Getter private final String name;
-  @Getter private final List<String> types = Collections.singletonList("gcs/object");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("gcs/object");
 
   @JsonIgnore private final Storage storage;
 
@@ -50,22 +52,21 @@ final class GcsArtifactCredentials implements ArtifactCredentials {
       throws IOException, GeneralSecurityException {
     HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-    String credentialsPath = account.getJsonPath();
+    Optional<String> credentialsPath = account.getJsonPath();
 
     GoogleCredentials credentials;
-
-    if (StringUtils.isEmpty(credentialsPath)) {
-      log.info(
-          "artifacts.gcs.enabled without artifacts.gcs.[].jsonPath. Using default application credentials.");
-
-      credentials = GoogleCredentials.getApplicationDefault();
-    } else {
-      FileInputStream stream = new FileInputStream(credentialsPath);
+    if (credentialsPath.isPresent()) {
+      FileInputStream stream = new FileInputStream(credentialsPath.get());
       credentials =
           GoogleCredentials.fromStream(stream)
               .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
 
       log.info("Loaded credentials from {}", credentialsPath);
+    } else {
+      log.info(
+          "artifacts.gcs.enabled without artifacts.gcs.[].jsonPath. Using default application credentials.");
+
+      credentials = GoogleCredentials.getApplicationDefault();
     }
 
     HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);

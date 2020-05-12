@@ -14,6 +14,7 @@ dependencies {
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-annotations"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.oracle.oci.sdk:oci-java-sdk-core"
   implementation "com.squareup.okhttp:okhttp"

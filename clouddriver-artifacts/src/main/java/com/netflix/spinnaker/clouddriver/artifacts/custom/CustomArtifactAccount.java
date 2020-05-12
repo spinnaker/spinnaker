@@ -18,9 +18,11 @@
 package com.netflix.spinnaker.clouddriver.artifacts.custom;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import lombok.Value;
 
-@Data
+@NonnullByDefault
+@Value
 final class CustomArtifactAccount implements ArtifactAccount {
-  private String name = "custom-artifact";
+  private final String name = "custom-artifact";
 }

@@ -17,23 +17,24 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.netflix.spinnaker.clouddriver.artifacts.CredentialReader;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 
+@NonnullByDefault
 public interface BasicAuth {
-  String getUsername();
+  Optional<String> getUsername();
 
-  String getPassword();
+  Optional<String> getPassword();
 
-  String getUsernamePasswordFile();
+  Optional<String> getUsernamePasswordFile();
 
   default Optional<String> getBasicAuthHeader() {
     String usernamePassword = null;
-    if (StringUtils.isNotEmpty(getUsernamePasswordFile())) {
-      usernamePassword = CredentialReader.credentialsFromFile(getUsernamePasswordFile());
-    } else if (StringUtils.isNotEmpty(getUsername()) && StringUtils.isNotEmpty(getPassword())) {
-      usernamePassword = getUsername() + ":" + getPassword();
+    if (getUsernamePasswordFile().isPresent()) {
+      usernamePassword = CredentialReader.credentialsFromFile(getUsernamePasswordFile().get());
+    } else if (getUsername().isPresent() && getPassword().isPresent()) {
+      usernamePassword = getUsername().get() + ":" + getPassword().get();
     }
 
     return Optional.ofNullable(usernamePassword)

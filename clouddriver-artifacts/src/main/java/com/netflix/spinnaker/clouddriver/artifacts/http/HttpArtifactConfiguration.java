@@ -54,7 +54,8 @@ class HttpArtifactConfiguration {
 
     if (httpArtifactProviderProperties.getAccounts().stream()
         .noneMatch(HttpArtifactAccount::usesAuth)) {
-      HttpArtifactAccount noAuthAccount = new HttpArtifactAccount().setName("no-auth-http-account");
+      HttpArtifactAccount noAuthAccount =
+          HttpArtifactAccount.builder().name("no-auth-http-account").build();
       HttpArtifactCredentials noAuthCredentials =
           new HttpArtifactCredentials(noAuthAccount, okHttpClient);
 

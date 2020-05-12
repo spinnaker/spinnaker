@@ -22,19 +22,19 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import groovy.util.logging.Slf4j;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
+@NonnullByDefault
 @Slf4j
 final class S3ArtifactCredentials implements ArtifactCredentials {
   @Getter private final String name;
-  @Getter private final List<String> types = Collections.singletonList("s3/object");
+  @Getter private final ImmutableList<String> types = ImmutableList.of("s3/object");
 
   private final String apiEndpoint;
   private final String apiRegion;
@@ -54,16 +54,16 @@ final class S3ArtifactCredentials implements ArtifactCredentials {
   private AmazonS3 getS3Client() {
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
 
-    if (!StringUtils.isEmpty(apiEndpoint)) {
+    if (!apiEndpoint.isEmpty()) {
       AwsClientBuilder.EndpointConfiguration endpoint =
           new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
       builder.setEndpointConfiguration(endpoint);
       builder.setPathStyleAccessEnabled(true);
-    } else if (!StringUtils.isEmpty(region)) {
+    } else if (!region.isEmpty()) {
       builder.setRegion(region);
     }
 
-    if (!StringUtils.isEmpty(awsAccessKeyId) && !StringUtils.isEmpty(awsSecretAccessKey)) {
+    if (!awsAccessKeyId.isEmpty() && !awsSecretAccessKey.isEmpty()) {
       BasicAWSCredentials awsStaticCreds =
           new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
       builder.withCredentials(new AWSStaticCredentialsProvider(awsStaticCreds));

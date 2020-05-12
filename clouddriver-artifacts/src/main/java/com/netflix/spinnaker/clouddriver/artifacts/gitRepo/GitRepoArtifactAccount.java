@@ -16,19 +16,45 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
-import lombok.Data;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
-@Data
+@NonnullByDefault
+@Value
 final class GitRepoArtifactAccount implements ArtifactAccount {
+  private final String name;
+  private final String username;
+  private final String password;
+  private final String token;
+  private final String sshPrivateKeyFilePath;
+  private final String sshPrivateKeyPassphrase;
+  private final String sshKnownHostsFilePath;
+  private final boolean sshTrustUnknownHosts;
 
-  private String name;
-
-  private String username;
-  private String password;
-  private String token;
-  private String sshPrivateKeyFilePath;
-  private String sshPrivateKeyPassphrase;
-  private String sshKnownHostsFilePath;
-  private boolean sshTrustUnknownHosts;
+  @Builder
+  @ConstructorBinding
+  @ParametersAreNullableByDefault
+  public GitRepoArtifactAccount(
+      String name,
+      String username,
+      String password,
+      String token,
+      String sshPrivateKeyFilePath,
+      String sshPrivateKeyPassphrase,
+      String sshKnownHostsFilePath,
+      boolean sshTrustUnknownHosts) {
+    this.name = Strings.nullToEmpty(name);
+    this.username = Strings.nullToEmpty(username);
+    this.password = Strings.nullToEmpty(password);
+    this.token = Strings.nullToEmpty(token);
+    this.sshPrivateKeyFilePath = Strings.nullToEmpty(sshPrivateKeyFilePath);
+    this.sshPrivateKeyPassphrase = Strings.nullToEmpty(sshPrivateKeyPassphrase);
+    this.sshKnownHostsFilePath = Strings.nullToEmpty(sshKnownHostsFilePath);
+    this.sshTrustUnknownHosts = sshTrustUnknownHosts;
+  }
 }

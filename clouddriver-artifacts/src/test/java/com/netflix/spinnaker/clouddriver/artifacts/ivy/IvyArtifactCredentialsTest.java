@@ -122,8 +122,8 @@ class IvyArtifactCredentialsTest {
 
   private void assertDownloadArtifact(@TempDirectory.TempDir Path tempDir, String ivySettingsXml)
       throws IOException {
-    IvyArtifactAccount account = new IvyArtifactAccount();
-    account.setSettings(IvySettings.parse(ivySettingsXml));
+    IvyArtifactAccount account =
+        IvyArtifactAccount.builder().settings(IvySettings.parse(ivySettingsXml)).build();
 
     Path cache = tempDir.resolve("cache");
     Files.createDirectories(cache);

@@ -44,10 +44,12 @@ class HttpArtifactCredentialsTest {
 
   @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    HttpArtifactAccount account = new HttpArtifactAccount();
-    account.setName("my-http-account");
-    account.setUsername("user");
-    account.setPassword("passw0rd");
+    HttpArtifactAccount account =
+        HttpArtifactAccount.builder()
+            .name("my-http-account")
+            .username("user")
+            .password("passw0rd")
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("user", "passw0rd"));
   }
@@ -59,28 +61,28 @@ class HttpArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
-    HttpArtifactAccount account = new HttpArtifactAccount();
-    account.setName("my-http-account");
-    account.setUsernamePasswordFile(authFile.toAbsolutePath().toString());
+    HttpArtifactAccount account =
+        HttpArtifactAccount.builder()
+            .name("my-http-account")
+            .usernamePasswordFile(authFile.toAbsolutePath().toString())
+            .build();
 
     runTestCase(server, account, m -> m.withBasicAuth("someuser", "somepassw0rd!"));
   }
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    HttpArtifactAccount account = new HttpArtifactAccount();
-    account.setName("my-http-account");
+    HttpArtifactAccount account = HttpArtifactAccount.builder().name("my-http-account").build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
 
   @Test
   void throwExceptionOnNonSuccessfulResponse(@WiremockResolver.Wiremock WireMockServer server) {
-    HttpArtifactAccount account = new HttpArtifactAccount();
+    HttpArtifactAccount account = HttpArtifactAccount.builder().name("my-http-account").build();
     HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
     Artifact artifact =
         Artifact.builder().reference(server.baseUrl() + URL).type("http/file").build();
-    account.setName("my-http-account");
     server.stubFor(any(urlPathEqualTo(URL)).willReturn(aResponse().withStatus(404)));
 
     Throwable thrown = catchThrowable(() -> credentials.download(artifact));

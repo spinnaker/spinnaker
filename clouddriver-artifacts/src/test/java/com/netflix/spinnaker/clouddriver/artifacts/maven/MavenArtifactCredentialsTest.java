@@ -173,8 +173,8 @@ class MavenArtifactCredentialsTest {
 
     server.stubFor(any(urlEqualTo(jarUrl)).willReturn(aResponse().withBody(expectedVersion)));
 
-    MavenArtifactAccount account = new MavenArtifactAccount();
-    account.setRepositoryUrl(server.baseUrl());
+    MavenArtifactAccount account =
+        MavenArtifactAccount.builder().repositoryUrl(server.baseUrl()).build();
 
     Artifact artifact = Artifact.builder().reference("com.test:app:" + version).build();
 

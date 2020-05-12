@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.maven;
 
-import static java.util.Collections.singletonList;
-
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -26,7 +26,6 @@ import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 import lombok.Getter;
 import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
@@ -48,19 +47,20 @@ import org.eclipse.aether.version.Version;
 import org.eclipse.aether.version.VersionConstraint;
 import org.eclipse.aether.version.VersionScheme;
 
+@NonnullByDefault
 public final class MavenArtifactCredentials implements ArtifactCredentials {
   private static final String RELEASE = "RELEASE";
   private static final String SNAPSHOT = "SNAPSHOT";
   private static final String LATEST = "LATEST";
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
 
-  public static final List<String> TYPES = singletonList("maven/file");
+  public static final ImmutableList<String> TYPES = ImmutableList.of("maven/file");
 
   private final MavenArtifactAccount account;
   private final OkHttpClient okHttpClient;
   private final RepositoryLayout repositoryLayout;
 
-  @Getter private final List<String> types = TYPES;
+  @Getter private final ImmutableList<String> types = TYPES;
 
   public MavenArtifactCredentials(MavenArtifactAccount account, OkHttpClient okHttpClient) {
     this.account = account;

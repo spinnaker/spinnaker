@@ -45,9 +45,8 @@ class GitlabArtifactCredentialsTest {
 
   @Test
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitlabArtifactAccount account = new GitlabArtifactAccount();
-    account.setName("my-gitlab-account");
-    account.setToken("abc");
+    GitlabArtifactAccount account =
+        GitlabArtifactAccount.builder().name("my-gitlab-account").token("abc").build();
 
     runTestCase(server, account, m -> m.withHeader("Private-Token", equalTo("abc")));
   }
@@ -59,17 +58,19 @@ class GitlabArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "zzz".getBytes());
 
-    GitlabArtifactAccount account = new GitlabArtifactAccount();
-    account.setName("my-gitlab-account");
-    account.setTokenFile(authFile.toAbsolutePath().toString());
+    GitlabArtifactAccount account =
+        GitlabArtifactAccount.builder()
+            .name("my-gitlab-account")
+            .tokenFile(authFile.toAbsolutePath().toString())
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Private-Token", equalTo("zzz")));
   }
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitlabArtifactAccount account = new GitlabArtifactAccount();
-    account.setName("my-gitlab-account");
+    GitlabArtifactAccount account =
+        GitlabArtifactAccount.builder().name("my-gitlab-account").build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
