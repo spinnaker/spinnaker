@@ -20,6 +20,7 @@ import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.Bulk;
@@ -42,6 +44,10 @@ import io.searchbox.params.Parameters;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -496,8 +502,51 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       results.put("deletedFromElasticsearch", true);
 
       if (deleteFromSource) {
-        Lists.partition(entityTagsForNamespace, 50).forEach(front50Service::batchUpdate);
-        results.put("deletedFromSource", true);
+        ExecutorService executor =
+            Executors.newFixedThreadPool(
+                6,
+                new ThreadFactoryBuilder()
+                    .setNameFormat(ElasticSearchEntityTagsProvider.class.getSimpleName() + "-%d")
+                    .build());
+
+        AtomicLong countProcessed = new AtomicLong();
+
+        Lists.partition(entityTagsForNamespace, 50)
+            .forEach(
+                entityTags ->
+                    executor.submit(
+                        () -> {
+                          try {
+                            AuthenticatedRequest.allowAnonymous(
+                                () -> front50Service.batchUpdate(entityTags));
+
+                            log.info(
+                                "Deleted {} out of {} tags in namespace {}",
+                                countProcessed.addAndGet(entityTags.size()),
+                                entityTagsForNamespace.size(),
+                                namespace);
+                          } catch (Exception e) {
+                            log.error(
+                                "Failed to delete a batch of tags from front50 in namespace {}",
+                                namespace,
+                                e);
+                          }
+                        }));
+
+        try {
+          executor.shutdown();
+          executor.awaitTermination(15, TimeUnit.MINUTES);
+          results.put("deletedFromSource", true);
+        } catch (InterruptedException e) {
+          String error =
+              String.format(
+                  "Failed to bulk remove tags from front50 in namespace %s due to timeout, please try again",
+                  namespace);
+
+          log.error(error, e);
+          results.put("error", error);
+          results.put("exception", e);
+        }
       }
     }
 
