@@ -22,7 +22,13 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@JsonIgnoreProperties({"jobs", "appengineContainerImageUrlDeployments"})
+@JsonIgnoreProperties({
+  "jobs",
+  "appengineContainerImageUrlDeployments",
+  "auth",
+  "entityTags",
+  "fiat"
+})
 public class Features extends Node {
   @Override
   public String getNodeName() {
@@ -34,10 +40,7 @@ public class Features extends Node {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  private boolean auth;
-  private boolean fiat;
   private boolean chaos;
-  private boolean entityTags;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.2.0",
