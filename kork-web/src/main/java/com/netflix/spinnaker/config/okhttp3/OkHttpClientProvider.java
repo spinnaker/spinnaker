@@ -18,14 +18,14 @@ package com.netflix.spinnaker.config.okhttp3;
 
 import static java.lang.String.format;
 
-import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.List;
 import okhttp3.OkHttpClient;
 import org.springframework.stereotype.Component;
 
 @Component
-class OkHttpClientProvider {
+public class OkHttpClientProvider {
 
   private final List<OkHttpClientBuilderProvider> providers;
 
@@ -40,12 +40,12 @@ class OkHttpClientProvider {
    * @param service service configuration
    * @return okHttpClient
    */
-  OkHttpClient getClient(DefaultServiceEndpoint service) {
+  public OkHttpClient getClient(ServiceEndpoint service) {
     OkHttpClientBuilderProvider provider = findProvider(service);
     return provider.get(service).build();
   }
 
-  private OkHttpClientBuilderProvider findProvider(DefaultServiceEndpoint service) {
+  private OkHttpClientBuilderProvider findProvider(ServiceEndpoint service) {
     return providers.stream()
         .filter(provider -> provider.supports(service))
         .findFirst()
