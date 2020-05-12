@@ -142,15 +142,8 @@ class BakeStage implements StageDefinitionBuilder {
 
     @Nonnull
     TaskResult execute(@Nonnull StageExecution stage) {
-      def bakeInitializationStages = stage.execution.stages.findAll {
-        it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
-      }
-
-      // FIXME? (lpollo): I don't know why we do this, but we include in relatedStages all parallel bake stages in the
-      //  same pipeline, not just the ones related to the stage passed to this task, which means this list actually
-      //  contains *unrelated* bake stages...
       def relatedBakeStages = stage.execution.stages.findAll {
-        it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId)
+        it.type == PIPELINE_CONFIG_TYPE && stage.id == it.parentStageId
       }
 
       def globalContext = [
