@@ -45,7 +45,6 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
   final long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   final long timeout = TimeUnit.MINUTES.toMillis(120)
 
-
   @Autowired
   KatoRestService katoRestService
 
@@ -60,11 +59,26 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
   static final String REFRESH_TYPE = "Job"
   /**
-   * Extra minute to pad the timing supplied by the job provider.
-   * E.g. if TitusJobRunner says this task is limitted to 50minutes we will wait 50m + 5m(padding),
+   * Extra time to pad the timing supplied by the job provider.
+   * E.g. if TitusJobRunner says this task is limited to 50minutes we will wait 50m + 5m(padding),
    * we should wait a bit longer to allow for any inaccuracies of the clock across the systems
    */
   static final Duration PROVIDER_PADDING = Duration.ofMinutes(5)
+
+  @Override
+  long getDynamicTimeout(@Nonnull StageExecution stage) {
+    String jobTimeoutFromProvider = (stage.context.get("jobRuntimeLimit") as String)
+
+    if (jobTimeoutFromProvider != null) {
+      try {
+        return Duration.parse(jobTimeoutFromProvider).plus(PROVIDER_PADDING).toMillis()
+      } catch (DateTimeParseException e) {
+        log.warn("Failed to parse job timeout specified by provider: '${jobTimeoutFromProvider}', using default", e)
+      }
+    }
+
+    return getTimeout()
+  }
 
   @Override @Nullable
   TaskResult onTimeout(@Nonnull StageExecution stage) {
