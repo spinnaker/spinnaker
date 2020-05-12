@@ -83,10 +83,10 @@ class InfoControllerSpec extends Specification {
     }
 
     GoogleCloudBuildProperties.Account createGCBAccount(String name) {
-      GoogleCloudBuildProperties.Account account = new GoogleCloudBuildProperties.Account()
-      account.setName(name)
-      account.setProject('blah')
-      return account
+      return GoogleCloudBuildProperties.Account.builder()
+        .name(name)
+        .project('blah')
+        .build()
     }
 
     void 'is able to get a list of jenkins buildMasters'() {
@@ -158,11 +158,14 @@ class InfoControllerSpec extends Specification {
                 .add(Authorization.READ, ['group-3', 'group-4'])
                 .add(Authorization.WRITE, 'group-3').build(), false)
 
-        GoogleCloudBuildProperties.Account gcbAccount = createGCBAccount('gcbAccount');
-        gcbAccount.setPermissions(new Permissions.Builder()
-          .add(Authorization.READ, ['group-5', 'group-6'])
-          .add(Authorization.WRITE, ['group-5'])
-        )
+        GoogleCloudBuildProperties.Account gcbAccount = GoogleCloudBuildProperties.Account.builder()
+          .name("gcbAccount")
+          .project('blah')
+          .permissions(
+            new Permissions.Builder()
+              .add(Authorization.READ, ['group-5', 'group-6'])
+              .add(Authorization.WRITE, ['group-5'])
+          ).build()
 
         createMocks([
             'jenkins-foo': jenkinsService1,

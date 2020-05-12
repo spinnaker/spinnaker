@@ -20,7 +20,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -47,11 +46,10 @@ final class GoogleCloudBuildAccountFactory {
   }
 
   private GoogleCredentials getCredentials(GoogleCloudBuildProperties.Account account) {
-    String jsonKey = account.getJsonKey();
-    if (StringUtils.isEmpty(jsonKey)) {
+    if (account.getJsonKey().isEmpty()) {
       return credentialService.getApplicationDefault();
     } else {
-      return credentialService.getFromKey(jsonKey);
+      return credentialService.getFromKey(account.getJsonKey());
     }
   }
 }

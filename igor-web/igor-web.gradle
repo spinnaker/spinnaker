@@ -87,6 +87,7 @@ dependencies {
 
     implementation "io.projectreactor:reactor-core"
     implementation "com.google.code.gson:gson"
+    implementation "com.google.guava:guava"
 
     testImplementation "com.squareup.okhttp:mockwebserver"
     testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"

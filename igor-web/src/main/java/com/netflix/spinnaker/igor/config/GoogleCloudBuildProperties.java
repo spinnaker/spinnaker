@@ -16,13 +16,20 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildService;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
 @ConfigurationProperties(prefix = "gcb")
 @Data
@@ -33,22 +40,37 @@ public class GoogleCloudBuildProperties {
     return this.accounts.stream().map(BuildService::getView).collect(Collectors.toList());
   }
 
-  @Data
-  public static class Account implements BuildService {
-    private String name;
-    private String project;
-    private String subscriptionName;
-    private String jsonKey;
-    private Permissions.Builder permissions = new Permissions.Builder();
+  @NonnullByDefault
+  @Value
+  public static final class Account implements BuildService {
+    private final String name;
+    private final String project;
+    private final String subscriptionName;
+    private final String jsonKey;
+    private final Permissions permissions;
+
+    @Builder
+    @ConstructorBinding
+    @ParametersAreNullableByDefault
+    public Account(
+        String name,
+        String project,
+        String subscriptionName,
+        String jsonKey,
+        Permissions.Builder permissions) {
+      this.name = Strings.nullToEmpty(name);
+      this.project = Strings.nullToEmpty(project);
+      this.subscriptionName = Strings.nullToEmpty(subscriptionName);
+      this.jsonKey = Strings.nullToEmpty(jsonKey);
+      this.permissions =
+          Optional.ofNullable(permissions)
+              .map(Permissions.Builder::build)
+              .orElse(Permissions.EMPTY);
+    }
 
     @Override
     public BuildServiceProvider getBuildServiceProvider() {
       return BuildServiceProvider.GCB;
-    }
-
-    @Override
-    public Permissions getPermissions() {
-      return this.permissions.build();
     }
   }
 }
