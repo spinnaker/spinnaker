@@ -157,8 +157,8 @@ export const setMatchingResourceSummary = (command: IServerGroupCommand) => {
 };
 
 export class ServerGroupCommandBuilderService {
-  private getDelegate(provider: string, skin?: string): any {
-    return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder', skin);
+  private getDelegate(provider: string): any {
+    return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
   }
 
   public static $inject = ['providerServiceDelegate'];
@@ -168,9 +168,8 @@ export class ServerGroupCommandBuilderService {
     application: Application,
     provider: string,
     options: IServerGroupCommandBuilderOptions,
-    skin?: string,
   ): any {
-    return this.getDelegate(provider, skin).buildNewServerGroupCommand(application, options);
+    return this.getDelegate(provider).buildNewServerGroupCommand(application, options);
   }
 
   public buildServerGroupCommandFromExisting(application: Application, serverGroup: any, mode?: string): any {

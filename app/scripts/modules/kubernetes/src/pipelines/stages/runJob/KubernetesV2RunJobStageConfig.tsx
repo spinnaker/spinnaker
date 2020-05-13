@@ -82,7 +82,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
 
   public componentDidMount() {
     this.props.updateStageField({ cloudProvider: 'kubernetes' });
-    AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2').then((accounts: any) => {
+    AccountService.getAllAccountDetailsForProvider('kubernetes').then((accounts: any) => {
       this.setState({ credentials: accounts });
     });
     this.initRawManifest();

@@ -14,7 +14,7 @@ export class FilterCollapse extends React.Component<{}> {
 
   public render() {
     return (
-      <div className="filters-toggle layer-high sp-margin-s-xaxis">
+      <div className="filters-toggle layer-medium sp-margin-s-xaxis">
         <h3 className="filters-placeholder">
           <Tooltip value="Show filters">
             <button

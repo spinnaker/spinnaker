@@ -164,7 +164,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   public componentWillUnmount = () => this.destroy$.next();
 
   public loadAccounts = (): IPromise<void> => {
-    return AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2').then(accounts => {
+    return AccountService.getAllAccountDetailsForProvider('kubernetes').then(accounts => {
       const selector = this.state.selector;
       const kind = parseSpinnakerName(selector.manifestName).kind;
 

@@ -7,6 +7,7 @@ import { Application } from 'core/application/application.model';
 import { API } from 'core/api/ApiService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from 'core/config/settings';
+import { ILoadBalancer, IServerGroup } from 'core/domain';
 
 export interface IRegion {
   account?: string;
@@ -23,8 +24,6 @@ export interface IAccount {
   name: string;
   requiredGroupMembership: string[];
   type: string;
-  providerVersion?: string;
-  skin?: string;
 }
 
 export interface IArtifactAccount {
@@ -110,11 +109,8 @@ export class AccountService {
     return this.listAllAccounts().then(accounts => accounts.find(a => a.name === account));
   }
 
-  public static getAllAccountDetailsForProvider(
-    provider: string,
-    providerVersion: string = null,
-  ): IPromise<IAccountDetails[]> {
-    return this.listAccounts(provider, providerVersion).catch((error: any) => {
+  public static getAllAccountDetailsForProvider(provider: string): IPromise<IAccountDetails[]> {
+    return this.listAccounts(provider).catch((error: any) => {
       $log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
       return [];
     });
@@ -172,19 +168,14 @@ export class AccountService {
     });
   }
 
-  public static listAllAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
+  public static listAllAccounts(provider: string = null): IPromise<IAccountDetails[]> {
     return $q
       .when(this.accounts$.toPromise())
-      .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider))
-      .then((accounts: IAccountDetails[]) =>
-        accounts.filter(account => !providerVersion || account.providerVersion === providerVersion),
-      );
+      .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider));
   }
 
-  public static listAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
-    return this.listAllAccounts(provider, providerVersion).then(accounts =>
-      accounts.filter(account => account.authorized !== false),
-    );
+  public static listAccounts(provider: string = null): IPromise<IAccountDetails[]> {
+    return this.listAllAccounts(provider).then(accounts => accounts.filter(account => account.authorized !== false));
   }
 
   public static applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
@@ -213,6 +204,27 @@ export class AccountService {
 
   public static listProviders(application: Application = null): IPromise<string[]> {
     return $q.when(this.listProviders$(application).toPromise());
+  }
+
+  public static getAccountForInstance(cloudProvider: string, instanceId: string, app: Application): IPromise<string> {
+    return app.ready().then(() => {
+      const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
+      const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];
+      const loadBalancerServerGroups = loadBalancers.map(lb => lb.serverGroups).reduce((acc, sg) => acc.concat(sg), []);
+
+      const hasInstance = (obj: IServerGroup | ILoadBalancer) => {
+        return (
+          obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId)
+        );
+      };
+
+      const all: Array<IServerGroup | ILoadBalancer> = []
+        .concat(serverGroups)
+        .concat(loadBalancers)
+        .concat(loadBalancerServerGroups);
+      const found = all.find(hasInstance);
+      return found && found.account;
+    });
   }
 }
 

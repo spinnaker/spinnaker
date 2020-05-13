@@ -51,7 +51,7 @@ export class DeployManifestStageConfig extends React.Component<IStageConfigProps
   }
 
   private fetchAccounts = (): void => {
-    Observable.fromPromise(AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'))
+    Observable.fromPromise(AccountService.getAllAccountDetailsForProvider('kubernetes'))
       .takeUntil(this.destroy$)
       .subscribe((accounts: IAccountDetails[]) => {
         this.setState({ accounts });

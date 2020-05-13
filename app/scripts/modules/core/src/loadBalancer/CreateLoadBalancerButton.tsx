@@ -5,7 +5,7 @@ import { IAccountDetails } from 'core/account';
 import { CloudProviderRegistry, ProviderSelectionService, ICloudProviderConfig } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
 import { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
-import { ModalInjector, ReactInjector } from 'core/reactShims';
+import { ModalInjector } from 'core/reactShims';
 import { IModalComponentProps, Tooltip } from 'core/presentation';
 
 export interface ILoadBalancerModalProps extends IModalComponentProps {
@@ -42,38 +42,35 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
   };
 
   private createLoadBalancer = (): void => {
-    const { skinSelectionService } = ReactInjector;
     const { app } = this.props;
     ProviderSelectionService.selectProvider(app, 'loadBalancer', this.createLoadBalancerProviderFilterFn).then(
       selectedProvider => {
-        skinSelectionService.selectSkin(selectedProvider).then(selectedSkin => {
-          const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
+        const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
 
-          if (provider.CreateLoadBalancerModal) {
-            provider.CreateLoadBalancerModal.show({
-              app: app,
-              application: app,
-              forPipelineConfig: false,
-              loadBalancer: null,
-              isNew: true,
-            });
-          } else {
-            // angular
-            ModalInjector.modalService
-              .open({
-                templateUrl: provider.createLoadBalancerTemplateUrl,
-                controller: `${provider.createLoadBalancerController} as ctrl`,
-                size: 'lg',
-                resolve: {
-                  application: () => this.props.app,
-                  loadBalancer: (): ILoadBalancer => null,
-                  isNew: () => true,
-                  forPipelineConfig: () => false,
-                },
-              })
-              .result.catch(() => {});
-          }
-        });
+        if (provider.CreateLoadBalancerModal) {
+          provider.CreateLoadBalancerModal.show({
+            app: app,
+            application: app,
+            forPipelineConfig: false,
+            loadBalancer: null,
+            isNew: true,
+          });
+        } else {
+          // angular
+          ModalInjector.modalService
+            .open({
+              templateUrl: provider.createLoadBalancerTemplateUrl,
+              controller: `${provider.createLoadBalancerController} as ctrl`,
+              size: 'lg',
+              resolve: {
+                application: () => this.props.app,
+                loadBalancer: (): ILoadBalancer => null,
+                isNew: () => true,
+                forPipelineConfig: () => false,
+              },
+            })
+            .result.catch(() => {});
+        }
       },
     );
   };

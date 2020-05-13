@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",
-    "@spinnaker/kayenta": "^0.0.91",
+    "@spinnaker/kayenta": "^0.0.92",
     "@spinnaker/styleguide": "^1.0.20",
     "@uirouter/react-hybrid": "1.0.2",
     "@uirouter/rx": "0.6.5",
@@ -101,7 +101,7 @@
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "1.0.7",
-    "@spinnaker/mocks": "1.0.5",
+    "@spinnaker/mocks": "1.0.6",
     "@svgr/webpack": "^5.2.0",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",

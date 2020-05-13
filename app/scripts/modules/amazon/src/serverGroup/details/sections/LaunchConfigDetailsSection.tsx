@@ -5,6 +5,7 @@ import { CollapsibleSection, ShowUserData } from '@spinnaker/core';
 import { IAmazonServerGroupView } from 'amazon/domain';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { getBaseImageName } from '../utils';
 
 export interface ILaunchConfigDetailsSectionState {
   image: any;
@@ -23,13 +24,7 @@ export class LaunchConfigDetailsSection extends React.Component<
   private getImage(serverGroup: IAmazonServerGroupView): any {
     const image = serverGroup.image ? serverGroup.image : undefined;
     if (serverGroup.image && serverGroup.image.description) {
-      const tags: string[] = serverGroup.image.description.split(', ');
-      tags.forEach(tag => {
-        const keyVal = tag.split('=');
-        if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
-          serverGroup.image.baseImage = keyVal[1];
-        }
-      });
+      image.baseImage = getBaseImageName(serverGroup.image.description);
     }
     return image;
   }

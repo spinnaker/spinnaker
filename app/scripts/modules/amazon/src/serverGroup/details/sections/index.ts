@@ -4,6 +4,7 @@ export * from './AmazonCapacityDetailsSection';
 export * from './HealthDetailsSection';
 export * from './IAmazonServerGroupDetailsSectionProps';
 export * from './LaunchConfigDetailsSection';
+export * from './LaunchTemplateDetailsSection';
 export * from './LogsDetailsSection';
 export * from './PackageDetailsSection';
 export * from './ScalingPoliciesDetailsSection';

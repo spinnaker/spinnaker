@@ -100,29 +100,4 @@ describe('CloudProviderRegistry: API', function() {
       expect(CloudProviderRegistry.hasValue('boo', 'bar.baz')).toBe(false);
     });
   });
-
-  describe('skinned provider configs', () => {
-    it('returns a value from a skinned provider config when skin is specified', () => {
-      CloudProviderRegistry.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v1' });
-      CloudProviderRegistry.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v2' });
-
-      expect(CloudProviderRegistry.getValue('kubernetes', 'skin', 'v1')).toBe('v1');
-      expect(CloudProviderRegistry.getValue('kubernetes', 'skin', 'v2')).toBe('v2');
-    });
-
-    it('returns a value from the default skin if skin is not specified', () => {
-      CloudProviderRegistry.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v1' });
-      CloudProviderRegistry.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v2', defaultSkin: true });
-
-      expect(CloudProviderRegistry.getValue('kubernetes', 'skin')).toBe('v2');
-    });
-
-    // This behavior is implicitly tested in other tests, but demonstrates that the provider
-    // configs do not need to add a `defaultSkin` flag if there is only one config for that provider.
-    it('behaves reasonably if a provider does not define a default config version', () => {
-      CloudProviderRegistry.registerProvider('gce', { name: 'gce', key: 'value' });
-
-      expect(CloudProviderRegistry.getValue('gce', 'key')).toBe('value');
-    });
-  });
 });

@@ -9,13 +9,13 @@ export class ProviderServiceDelegate {
   public static $inject = ['$injector', '$q'];
   constructor(private $injector: IInjectorService, private $q: IQService) {}
 
-  public hasDelegate(provider: string, serviceKey: string, skin?: string): boolean {
-    const service: string = CloudProviderRegistry.getValue(provider, serviceKey, skin);
+  public hasDelegate(provider: string, serviceKey: string): boolean {
+    const service: string = CloudProviderRegistry.getValue(provider, serviceKey);
     return isFunction(service) || (isString(service) && this.$injector.has(service));
   }
 
-  public getDelegate<T>(provider: string, serviceKey: string, skin?: string): T {
-    const service = CloudProviderRegistry.getValue(provider, serviceKey, skin);
+  public getDelegate<T>(provider: string, serviceKey: string): T {
+    const service = CloudProviderRegistry.getValue(provider, serviceKey);
     if (isString(service) && this.$injector.has(service)) {
       // service is a string, it's an AngularJS service
       return this.$injector.get<T>(service, 'providerDelegate');

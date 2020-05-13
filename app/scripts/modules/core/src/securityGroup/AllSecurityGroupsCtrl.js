@@ -3,7 +3,6 @@
 import _ from 'lodash';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 import { ProviderSelectionService } from 'core/cloudProvider/providerSelection/ProviderSelectionService';
 import { SETTINGS } from 'core/config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
@@ -16,77 +15,73 @@ import { module } from 'angular';
 
 export const CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL = 'spinnaker.core.securityGroup.all.controller';
 export const name = CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL; // for backwards compatibility
-module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [
-  SKIN_SELECTION_SERVICE,
-  ANGULAR_UI_BOOTSTRAP,
-  MANAGED_RESOURCE_STATUS_INDICATOR,
-]).controller('AllSecurityGroupsCtrl', [
-  '$scope',
-  'app',
-  '$uibModal',
-  '$timeout',
-  'skinSelectionService',
-  function($scope, app, $uibModal, $timeout, skinSelectionService) {
-    this.$onInit = () => {
-      const groupsUpdatedSubscription = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(() =>
-        groupsUpdated(),
-      );
+module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [ANGULAR_UI_BOOTSTRAP, MANAGED_RESOURCE_STATUS_INDICATOR]).controller(
+  'AllSecurityGroupsCtrl',
+  [
+    '$scope',
+    'app',
+    '$uibModal',
+    '$timeout',
+    function($scope, app, $uibModal, $timeout) {
+      this.$onInit = () => {
+        const groupsUpdatedSubscription = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(() =>
+          groupsUpdated(),
+        );
 
-      SecurityGroupState.filterModel.activate();
+        SecurityGroupState.filterModel.activate();
 
-      this.initialized = false;
+        this.initialized = false;
 
-      $scope.application = app;
+        $scope.application = app;
 
-      $scope.sortFilter = SecurityGroupState.filterModel.sortFilter;
+        $scope.sortFilter = SecurityGroupState.filterModel.sortFilter;
 
-      app.setActiveState(app.securityGroups);
-      $scope.$on('$destroy', () => {
-        app.setActiveState();
-        groupsUpdatedSubscription.unsubscribe();
-      });
+        app.setActiveState(app.securityGroups);
+        $scope.$on('$destroy', () => {
+          app.setActiveState();
+          groupsUpdatedSubscription.unsubscribe();
+        });
 
-      app.securityGroups.onRefresh($scope, () => updateSecurityGroups());
-      app.securityGroups.ready().then(() => updateSecurityGroups());
-    };
+        app.securityGroups.onRefresh($scope, () => updateSecurityGroups());
+        app.securityGroups.ready().then(() => updateSecurityGroups());
+      };
 
-    this.groupingsTemplate = require('./groupings.html');
-    this.firewallLabel = FirewallLabels.get('Firewall');
+      this.groupingsTemplate = require('./groupings.html');
+      this.firewallLabel = FirewallLabels.get('Firewall');
 
-    const updateSecurityGroups = () => {
-      $scope.$evalAsync(() => {
-        SecurityGroupState.filterService.updateSecurityGroups(app);
-        groupsUpdated();
-      });
-    };
+      const updateSecurityGroups = () => {
+        $scope.$evalAsync(() => {
+          SecurityGroupState.filterService.updateSecurityGroups(app);
+          groupsUpdated();
+        });
+      };
 
-    const groupsUpdated = () => {
-      $scope.$applyAsync(() => {
-        $scope.groups = SecurityGroupState.filterModel.groups;
-        $scope.tags = SecurityGroupState.filterModel.tags;
-        this.initialized = this.initialized || app.securityGroups.loaded;
-      });
-    };
+      const groupsUpdated = () => {
+        $scope.$applyAsync(() => {
+          $scope.groups = SecurityGroupState.filterModel.groups;
+          $scope.tags = SecurityGroupState.filterModel.tags;
+          this.initialized = this.initialized || app.securityGroups.loaded;
+        });
+      };
 
-    this.clearFilters = function() {
-      SecurityGroupState.filterService.clearFilters();
-      updateSecurityGroups();
-    };
+      this.clearFilters = function() {
+        SecurityGroupState.filterService.clearFilters();
+        updateSecurityGroups();
+      };
 
-    function createSecurityGroupProviderFilterFn(application, account, provider) {
-      const sgConfig = provider.securityGroup;
-      return (
-        sgConfig &&
-        (sgConfig.CreateSecurityGroupModal ||
-          (sgConfig.createSecurityGroupTemplateUrl && sgConfig.createSecurityGroupController))
-      );
-    }
+      function createSecurityGroupProviderFilterFn(application, account, provider) {
+        const sgConfig = provider.securityGroup;
+        return (
+          sgConfig &&
+          (sgConfig.CreateSecurityGroupModal ||
+            (sgConfig.createSecurityGroupTemplateUrl && sgConfig.createSecurityGroupController))
+        );
+      }
 
-    this.createSecurityGroup = function createSecurityGroup() {
-      ProviderSelectionService.selectProvider(app, 'securityGroup', createSecurityGroupProviderFilterFn)
-        .then(selectedProvider => {
-          skinSelectionService.selectSkin(selectedProvider).then(selectedVersion => {
-            const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
+      this.createSecurityGroup = function createSecurityGroup() {
+        ProviderSelectionService.selectProvider(app, 'securityGroup', createSecurityGroupProviderFilterFn)
+          .then(selectedProvider => {
+            const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
             const defaultCredentials =
               app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account;
             const defaultRegion =
@@ -118,11 +113,11 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [
                 },
               });
             }
-          });
-        })
-        .catch(noop);
-    };
+          })
+          .catch(noop);
+      };
 
-    this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
-  },
-]);
+      this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
+    },
+  ],
+);
