@@ -302,6 +302,23 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
       }
 
+      context("another version is stuck in deploying") {
+        before {
+          subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
+          subject.markAsDeployingTo(manifest, artifact1, version1, environment1.name)
+          subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
+          subject.markAsDeployingTo(manifest, artifact1, version2, environment1.name)
+        }
+
+        test("we update the status of the old version when we mark the new one deploying") {
+          val v1summary = subject.getArtifactSummaryInEnvironment(manifest, environment1.name, artifact1.reference, version1)
+          expectThat(v1summary)
+            .isNotNull()
+            .get { state }
+            .isEqualTo("skipped")
+        }
+      }
+
       context("a version has been promoted to an environment") {
         before {
           clock.incrementBy(Duration.ofHours(1))

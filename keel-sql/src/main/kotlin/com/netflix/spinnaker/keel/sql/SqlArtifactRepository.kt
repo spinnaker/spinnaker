@@ -409,16 +409,38 @@ class SqlArtifactRepository(
   ) {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val environmentUid = deliveryConfig.getUidFor(environment)
+    val now = clock.instant()
     sqlRetry.withRetry(WRITE) {
-      jooq
-        .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
-        .onDuplicateKeyUpdate()
-        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
-        .execute()
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        val stuckVersions = txn.select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+          .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING.name))
+          .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+        if (stuckVersions.isNotEmpty()) {
+          log.error("Stuck deploying versions ${stuckVersions.joinToString()} for artifact '${artifact.reference}' in delivery config ${deliveryConfig.name} found when deploying version $version")
+          txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, SKIPPED.name)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_BY, version)
+            .set(ENVIRONMENT_ARTIFACT_VERSIONS.REPLACED_AT, now.toLocal())
+            .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(DEPLOYING.name))
+            .execute()
+        }
+
+        txn
+          .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
+          .onDuplicateKeyUpdate()
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
+          .execute()
+      }
     }
   }
 

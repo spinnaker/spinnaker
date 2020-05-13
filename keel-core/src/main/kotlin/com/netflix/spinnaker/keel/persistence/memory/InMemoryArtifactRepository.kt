@@ -391,6 +391,12 @@ class InMemoryArtifactRepository(
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
     val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    // update all previous deploying things to skipped
+    val deployingVersions = statuses.filterValues { it == DEPLOYING }
+    deployingVersions.keys.forEach {
+      log.error("Stuck deploying version $it for artifact '${artifact.reference}' in delivery config ${deliveryConfig.name} found when deploying version $version")
+      statuses[it] = SKIPPED
+    }
     statuses[version] = DEPLOYING
   }
 
