@@ -18,14 +18,14 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.OkHttpClient;
-import java.util.concurrent.TimeUnit;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -39,10 +39,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
-@Slf4j
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
@@ -59,28 +57,20 @@ public class FiatAuthenticationConfig {
   public FiatService fiatService(
       FiatClientConfigurationProperties fiatConfigurationProperties,
       SpinnakerRequestInterceptor interceptor,
-      OkHttpClientConfiguration okHttpClientConfiguration) {
+      OkHttpClientProvider okHttpClientProvider) {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    OkHttpClient okHttpClient = okHttpClientConfiguration.create();
-
-    if (fiatConfigurationProperties.getConnectTimeoutMs() != null) {
-      okHttpClient.setConnectTimeout(
-          fiatConfigurationProperties.getConnectTimeoutMs(), TimeUnit.MILLISECONDS);
-    }
-
-    if (fiatConfigurationProperties.getReadTimeoutMs() != null) {
-      okHttpClient.setConnectTimeout(
-          fiatConfigurationProperties.getReadTimeoutMs(), TimeUnit.MILLISECONDS);
-    }
+    OkHttpClient okHttpClient =
+        okHttpClientProvider.getClient(
+            new DefaultServiceEndpoint("fiat", fiatConfigurationProperties.getBaseUrl()));
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
         .setRequestInterceptor(interceptor)
-        .setClient(new OkClient(okHttpClient))
+        .setClient(new Ok3Client(okHttpClient))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(FiatService.class))
