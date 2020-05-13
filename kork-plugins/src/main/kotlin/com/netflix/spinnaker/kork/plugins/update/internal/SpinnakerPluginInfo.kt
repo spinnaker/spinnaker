@@ -31,5 +31,10 @@ class SpinnakerPluginInfo : PluginInfo() {
     releases = spinnakerReleases
   }
 
-  data class SpinnakerPluginRelease(val preferred: Boolean) : PluginRelease()
+  /**
+   * It is not guaranteed that the [org.pf4j.update.UpdateRepository] implementation returns a
+   * SpinnakerPluginInfo object.  Therefore, additional fields defined here must provide a default
+   * value.
+   */
+  data class SpinnakerPluginRelease(val preferred: Boolean = false) : PluginRelease()
 }

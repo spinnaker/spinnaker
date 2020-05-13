@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.update
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
@@ -50,13 +51,15 @@ class SpinnakerUpdateManager(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun getPlugins(): List<SpinnakerPluginInfo> {
-    val plugins: MutableCollection<SpinnakerPluginInfo> = mutableListOf()
+    val plugins: MutableList<SpinnakerPluginInfo> = mutableListOf()
+
     for (repository in getRepositories()) {
-      val pluginInfos = repository.plugins.values as MutableCollection<SpinnakerPluginInfo>
-      plugins.addAll(pluginInfos)
+      repository.plugins.values
+        .map { objectMapper.convertValue(it, SpinnakerPluginInfo::class.java) }
+        .toCollection(plugins)
     }
 
-    return plugins.toList()
+    return plugins
   }
 
   internal fun downloadPluginReleases(pluginInfoReleases: Set<PluginInfoRelease>): Set<Path> {
@@ -187,5 +190,9 @@ class SpinnakerUpdateManager(
    */
   override fun updatePlugin(id: String?, version: String?): Boolean {
     throw UnsupportedOperationException("UpdateManager updatePlugin is not supported")
+  }
+
+  companion object {
+    private val objectMapper = jacksonObjectMapper()
   }
 }
