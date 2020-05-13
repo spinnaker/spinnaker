@@ -74,7 +74,7 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.name)")
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.application)")
   fun diff(@RequestBody deliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> =
     adHocDiffer.calculate(deliveryConfig)
 
@@ -83,7 +83,7 @@ class DeliveryConfigController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.name)")
+  @PreAuthorize("@authorizationSupport.hasApplicationPermission('READ', 'DELIVERY_CONFIG', #deliveryConfig.application)")
   fun validate(@RequestBody deliveryConfig: SubmittedDeliveryConfig) =
   // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
     //  in [ExceptionHandler])
