@@ -4,6 +4,7 @@ import { CollapsibleSectionStateCache } from 'core/cache';
 
 export class InsightFilterStateModel {
   public filtersExpanded: boolean;
+  public filtersHidden: boolean;
 
   public constructor() {
     this.filtersExpanded =

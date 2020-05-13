@@ -6,7 +6,7 @@ import { ApplicationComponent } from './ApplicationComponent';
 import { ApplicationModelBuilder } from './applicationModel.builder';
 import { ApplicationReader } from './service/ApplicationReader';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
-import { NgReact } from 'core/reactShims';
+import { InsightLayout } from 'core/insight/InsightLayout';
 import { InferredApplicationWarningService } from './service/InferredApplicationWarningService';
 
 export class ApplicationStateProvider implements IServiceProvider {
@@ -18,9 +18,12 @@ export class ApplicationStateProvider implements IServiceProvider {
     abstract: true,
     views: {
       insight: {
-        component: NgReact.InsightLayout,
+        component: InsightLayout,
         $type: 'react',
       },
+    },
+    resolve: {
+      app: ['app', (app: Application) => app],
     },
     children: this.insightStates,
   };
