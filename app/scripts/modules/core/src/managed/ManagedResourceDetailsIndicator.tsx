@@ -47,7 +47,7 @@ export const ManagedResourceDetailsIndicator = ({
         <a
           target="_blank"
           onClick={() => logClick('Learn More', id)}
-          href="https://www.spinnaker.io/reference/managed-delivery"
+          href="https://www.spinnaker.io/guides/user/managed-delivery/"
         >
           Learn More
         </a>

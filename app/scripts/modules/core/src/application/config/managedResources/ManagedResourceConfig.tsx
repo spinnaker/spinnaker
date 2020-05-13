@@ -116,7 +116,7 @@ const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => 
         <a
           target="_blank"
           onClick={() => logClick('Documentation', application.name)}
-          href="https://www.spinnaker.io/reference/managed-delivery"
+          href="https://www.spinnaker.io/guides/user/managed-delivery"
         >
           Check out our documentation
         </a>
