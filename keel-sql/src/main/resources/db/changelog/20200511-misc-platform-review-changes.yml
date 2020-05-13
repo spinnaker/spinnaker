@@ -1,0 +1,60 @@
+databaseChangeLog:
+- changeSet:
+    id: add-missing-primary-keys
+    author: fletch
+    changes:
+    - dropUniqueConstraint:
+        tableName: artifact_last_checked
+        constraintName: artifact_uid
+        uniqueColumns: artifact_uid
+    - dropUniqueConstraint:
+        tableName: delivery_config_last_checked
+        constraintName: delivery_config_uid
+        uniqueColumns: delivery_config_uid
+    - dropUniqueConstraint:
+        tableName: resource_last_checked
+        constraintName: resource_uid
+        uniqueColumns: resource_uid
+    - addPrimaryKey:
+        tableName: artifact_last_checked
+        columnNames: artifact_uid
+    - addPrimaryKey:
+        tableName: delivery_config_last_checked
+        columnNames: delivery_config_uid
+    - addPrimaryKey:
+        tableName: resource_last_checked
+        columnNames: resource_uid
+- changeSet:
+    id: rename-confusing-column
+    author: fletch
+    changes:
+    - renameColumn:
+        tableName: event
+        oldColumnName: uid
+        newColumnName: ref
+        columnDataType: varchar(255)
+- changeSet:
+    id: drop-unnecessary-indices
+    author: fletch
+    changes:
+    - dropIndex:
+        tableName: artifact_versions
+        indexName: artifact_versions_artifact_idx
+    - dropIndex:
+        tableName: delivery_config_artifact
+        indexName: delivery_config_artifact_unique_idx
+    - dropIndex:
+        tableName: environment_resource
+        indexName: environment_resource_unique_idx
+    - dropIndex:
+        tableName: event
+        indexName: event_scope_uid_idx
+- changeSet:
+    id: reposition-large-columns
+    author: fletch
+    changes:
+    - sql:
+        comment: make JSON columns last in the table for performance
+        sql: |
+          alter table event modify column json json after scope;
+          alter table delivery_artifact modify column details json after reference;
