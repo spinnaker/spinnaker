@@ -9,7 +9,4 @@ export interface IStageConfigProps {
   stageFieldUpdated: () => void;
   updateStage: (changes: { [key: string]: any }) => void;
   updateStageField: (changes: { [key: string]: any }) => void;
-  // Added to enable inline artifact editing from React stages
-  // todo(mneterval): remove after pre-rewrite artifacts are deprecated
-  updatePipeline: (changes: { [key: string]: any }) => void;
 }

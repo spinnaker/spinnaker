@@ -7,7 +7,6 @@ import {
   IArtifact,
   IExpectedArtifact,
   IFormikStageConfigInjectedProps,
-  IPipeline,
   RadioButtonInput,
   StageArtifactSelectorDelegate,
   StageConfigField,
@@ -15,7 +14,7 @@ import {
   YamlEditor,
 } from '@spinnaker/core';
 
-import { ManifestBindArtifactsSelectorDelegate } from '../deployManifest/ManifestBindArtifactsSelectorDelegate';
+import { ManifestBindArtifactsSelector } from '../deployManifest/ManifestBindArtifactsSelector';
 import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
@@ -24,7 +23,6 @@ import { ManifestSource } from '../../../manifest/ManifestSource';
 
 interface IPatchManifestStageConfigFormProps {
   stageFieldUpdated: () => void;
-  updatePipeline: (pipeline: IPipeline) => void;
 }
 
 interface IPatchManifestStageConfigFormState {
@@ -60,10 +58,6 @@ export class PatchManifestStageForm extends React.Component<
   private onManifestArtifactEdited = (artifact: IArtifact) => {
     this.props.formik.setFieldValue('manifestArtifactId', null);
     this.props.formik.setFieldValue('manifestArtifact', artifact);
-  };
-
-  private onManifestArtifactAccountSelected = (accountName: string): void => {
-    this.props.formik.setFieldValue('manifestArtifactAccount', accountName);
   };
 
   private getRequiredArtifacts = (): IManifestBindArtifact[] => {
@@ -138,17 +132,12 @@ export class PatchManifestStageForm extends React.Component<
               onArtifactEdited={this.onManifestArtifactEdited}
               onExpectedArtifactSelected={(artifact: IExpectedArtifact) => this.onManifestArtifactSelected(artifact.id)}
               pipeline={this.props.pipeline}
-              selectedArtifactAccount={stage.manifestArtifactAccount}
-              selectedArtifactId={stage.manifestArtifactId}
-              setArtifactAccount={this.onManifestArtifactAccountSelected}
-              setArtifactId={this.onManifestArtifactSelected}
               stage={stage}
-              updatePipeline={this.props.updatePipeline}
             />
           </>
         )}
         <StageConfigField label="Required Artifacts to Bind" helpKey="kubernetes.manifest.requiredArtifactsToBind">
-          <ManifestBindArtifactsSelectorDelegate
+          <ManifestBindArtifactsSelector
             bindings={this.getRequiredArtifacts()}
             onChangeBindings={this.onRequiredArtifactsChanged}
             pipeline={this.props.pipeline}

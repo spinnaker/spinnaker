@@ -7,7 +7,6 @@ import { defaultsDeep, extend, omit } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
-import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { BASE_EXECUTION_DETAILS_CTRL } from './common/baseExecutionDetails.controller';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { STAGE_NAME } from './StageName';
@@ -133,9 +132,6 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
         });
       };
 
-      this.renderLegacyArtifactsUI = ArtifactsModeService.artifactsMode === ArtifactsMode.LEGACY;
-      this.renderStandardArtifactsUI = ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD;
-
       this.editStageJson = () => {
         const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
         ReactModal.show(EditStageJsonModal, { stage: $scope.stage }, modalProps)
@@ -230,11 +226,6 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
 
                 extend($scope.stage, allowedChanges);
                 $scope.stageFieldUpdated();
-              },
-              // Added to enable inline artifact editing from React stages
-              // todo(mneterval): remove after pre-rewrite artifacts are deprecated
-              updatePipeline: changes => {
-                extend($scope.$parent.pipeline, changes);
               },
               pipeline: $scope.pipeline,
               stage: $scope.stage,

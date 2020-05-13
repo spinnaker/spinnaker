@@ -45,7 +45,6 @@ import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSection
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
 import { STEP_EXECUTION_DETAILS_COMPONENT } from './details/stepExecutionDetails.component';
 import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
-import { PRODUCES_ARTIFACTS } from './config/stages/producesArtifacts/producesArtifacts.component';
 import { ARTIFACT_LIST } from './status/artifactList.component';
 import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
 import './config/stages/googleCloudBuild/googleCloudBuildStage';
@@ -109,7 +108,6 @@ module(PIPELINE_MODULE, [
   MANUAL_JUDGMENT_STAGE_MODULE,
   CORE_PIPELINE_CONFIG_STAGES_TAGIMAGE_TAGIMAGESTAGE_MODULE,
   CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE,
-  PRODUCES_ARTIFACTS,
   RESIZE_ASG_STAGE,
   CORE_PIPELINE_CONFIG_STAGES_RUNJOB_RUNJOBSTAGE_MODULE,
   SCALE_DOWN_CLUSTER_STAGE,

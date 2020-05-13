@@ -16,11 +16,6 @@ module(STAGE_ARTIFACT_SELECTOR_DELEGATE, []).component(
     'onArtifactEdited',
     'onExpectedArtifactSelected',
     'pipeline',
-    'selectedArtifactAccount',
-    'selectedArtifactId',
-    'setArtifactAccount',
-    'setArtifactId',
     'stage',
-    'updatePipeline',
   ]),
 );

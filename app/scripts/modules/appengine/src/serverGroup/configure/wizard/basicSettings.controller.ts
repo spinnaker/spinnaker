@@ -8,7 +8,6 @@ import {
   ExpectedArtifactSelectorViewController,
   IArtifact,
   IExpectedArtifact,
-  IPipeline,
   NgAppEngineDeployArtifactDelegate,
 } from '@spinnaker/core';
 
@@ -133,12 +132,6 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
   public onExpectedArtifactAccountSelected = (accountName: string): void => {
     this.$scope.$applyAsync(() => {
       this.$scope.command.storageAccountName = accountName;
-    });
-  };
-
-  public updatePipeline = (changes: Partial<IPipeline>): void => {
-    this.$scope.$applyAsync(() => {
-      extend(this.$scope.$parent.pipeline, changes);
     });
   };
 

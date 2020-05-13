@@ -1,4 +1,4 @@
-import { uniq, isNil, cloneDeep, intersection, memoize, defaults, fromPairs } from 'lodash';
+import { uniq, isNil, cloneDeep, intersection, memoize, fromPairs } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import {
@@ -160,15 +160,6 @@ export class PipelineRegistry {
   ): ComponentType<IArtifactEditorProps> | SFC<IArtifactEditorProps> {
     this.artifactKinds.push(artifactKindConfig);
     return artifactKindConfig.editCmp;
-  }
-
-  public mergeArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
-    const index = this.artifactKinds.findIndex(ak => ak.key === artifactKindConfig.key);
-    if (index === -1) {
-      throw new Error(`could not find existing artifact kind config for key ${artifactKindConfig.key}`);
-    }
-    const originalArtifactKind = this.artifactKinds[index];
-    defaults(originalArtifactKind, artifactKindConfig);
   }
 
   public getExecutionTransformers(): ITransformer[] {

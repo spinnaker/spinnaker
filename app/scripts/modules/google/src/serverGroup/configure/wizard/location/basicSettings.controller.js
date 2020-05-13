@@ -129,12 +129,6 @@ angular
         });
       };
 
-      this.updatePipeline = changes => {
-        $scope.$applyAsync(() => {
-          extend($scope.$parent.pipeline, changes);
-        });
-      };
-
       const gceImageDelegate = new NgGCEImageArtifactDelegate($scope);
       $scope.gceImageArtifact = {
         showCreateArtifactForm: false,

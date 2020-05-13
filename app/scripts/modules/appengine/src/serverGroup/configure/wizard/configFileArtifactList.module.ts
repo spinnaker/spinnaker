@@ -6,11 +6,5 @@ export const CONFIG_FILE_ARTIFACT_LIST = 'spinnaker.appengine.configFileArtifact
 
 module(CONFIG_FILE_ARTIFACT_LIST, []).component(
   'configFileArtifactList',
-  react2angular(ConfigFileArtifactList, [
-    'configArtifacts',
-    'pipeline',
-    'stage',
-    'updateConfigArtifacts',
-    'updatePipeline',
-  ]),
+  react2angular(ConfigFileArtifactList, ['configArtifacts', 'pipeline', 'stage', 'updateConfigArtifacts']),
 );

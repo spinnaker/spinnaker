@@ -9,7 +9,6 @@ import {
   IFormInputProps,
   IFormikStageConfigInjectedProps,
   IgorService,
-  IPipeline,
   MapEditorInput,
   ReactSelectInput,
   StageArtifactSelector,
@@ -21,11 +20,7 @@ import { CheckboxInput } from 'core/presentation';
 import { EXCLUDED_ARTIFACT_TYPES, SOURCE_TYPES, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
 import { AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
 
-interface IAwsCodeBuildStageFormProps {
-  updatePipeline: (pipeline: IPipeline) => void;
-}
-
-export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IFormikStageConfigInjectedProps) {
+export function AwsCodeBuildStageForm(props: IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;
 
   const { result: fetchAccountsResult, status: fetchAccountsStatus } = useData(

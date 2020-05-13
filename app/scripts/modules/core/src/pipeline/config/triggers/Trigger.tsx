@@ -5,7 +5,6 @@ import { isEqual, pick } from 'lodash';
 import { Option } from 'react-select';
 
 import { Application } from 'core/application';
-import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { SETTINGS } from 'core/config/settings';
 import { IExpectedArtifact, IPipeline, ITrigger, ITriggerTypeConfig } from 'core/domain';
 import { HelpField } from 'core/help/HelpField';
@@ -121,7 +120,6 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
   const fieldSetClassName = classNames({ 'templated-pipeline-item': trigger.inherited, Trigger: true });
 
   const availableExpectedArtifacts = pipeline.expectedArtifacts || [];
-  const expectedArtifactOptions = availableExpectedArtifacts.map(e => ({ label: e.displayName, value: e.id }));
   const availableExpectedArtifactIds = availableExpectedArtifacts.map(a => a.id);
 
   return (
@@ -163,32 +161,21 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
           />
         )}
 
-        {ArtifactsModeService.artifactsMode === ArtifactsMode.LEGACY && pipeline.expectedArtifacts?.length > 0 && (
-          <FormikFormField
-            name="expectedArtifactIds"
-            label="Artifact Constraints"
-            help={<HelpField id="pipeline.config.expectedArtifact" />}
-            input={props => <ReactSelectInput {...props} multi={true} options={expectedArtifactOptions} />}
-          />
-        )}
-
-        {ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD && (
-          <FormikFormField
-            name="expectedArtifactIds"
-            label="Artifact Constraints"
-            help={<HelpField id="pipeline.config.expectedArtifact" />}
-            input={props => (
-              <TriggerArtifactConstraintSelectorInput
-                {...props}
-                pipeline={pipeline}
-                triggerType={trigger.type}
-                addExpectedArtifact={addExpectedArtifact}
-                updateExpectedArtifact={updateExpectedArtifact}
-                removeExpectedArtifact={removeExpectedArtifact}
-              />
-            )}
-          />
-        )}
+        <FormikFormField
+          name="expectedArtifactIds"
+          label="Artifact Constraints"
+          help={<HelpField id="pipeline.config.expectedArtifact" />}
+          input={props => (
+            <TriggerArtifactConstraintSelectorInput
+              {...props}
+              pipeline={pipeline}
+              triggerType={trigger.type}
+              addExpectedArtifact={addExpectedArtifact}
+              updateExpectedArtifact={updateExpectedArtifact}
+              removeExpectedArtifact={removeExpectedArtifact}
+            />
+          )}
+        />
 
         {type && disableAutoTriggering.includes(type) && <AutoTriggeringDisabledMessage />}
 

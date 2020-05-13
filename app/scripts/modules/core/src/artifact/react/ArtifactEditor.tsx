@@ -3,7 +3,10 @@ import { cloneDeep, head } from 'lodash';
 import { IArtifactAccount } from 'core/account';
 import { ArtifactAccountSelector } from './ArtifactAccountSelector';
 import { IArtifact, IPipeline } from 'core/domain';
-import { TYPE as CUSTOM_TYPE, CUSTOM_ARTIFACT_ACCOUNT } from 'core/pipeline/config/triggers/artifacts/custom';
+import {
+  TYPE as CUSTOM_TYPE,
+  CUSTOM_ARTIFACT_ACCOUNT,
+} from 'core/pipeline/config/triggers/artifacts/custom/CustomArtifactEditor';
 import { StageConfigField } from 'core/pipeline/config/stages/common';
 import { Registry } from 'core/registry';
 import { UUIDGenerator } from 'core/utils';

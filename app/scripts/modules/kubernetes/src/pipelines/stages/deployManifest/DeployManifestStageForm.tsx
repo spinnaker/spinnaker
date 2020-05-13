@@ -10,7 +10,6 @@ import {
   IExpectedArtifact,
   IFormikStageConfigInjectedProps,
   IManifest,
-  IPipeline,
   RadioButtonInput,
   StageConfigField,
   StageArtifactSelectorDelegate,
@@ -22,13 +21,12 @@ import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 import { CopyFromTemplateButton } from './CopyFromTemplateButton';
 import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
 import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
-import { ManifestBindArtifactsSelectorDelegate } from './ManifestBindArtifactsSelectorDelegate';
+import { ManifestBindArtifactsSelector } from './ManifestBindArtifactsSelector';
 import { NamespaceSelector } from './NamespaceSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
 
 interface IDeployManifestStageConfigFormProps {
   accounts: IAccountDetails[];
-  updatePipeline: (pipeline: IPipeline) => void;
 }
 
 interface IDeployManifestStageConfigFormState {
@@ -87,10 +85,6 @@ export class DeployManifestStageForm extends React.Component<
   private onManifestArtifactEdited = (artifact: IArtifact) => {
     this.props.formik.setFieldValue('manifestArtifactId', null);
     this.props.formik.setFieldValue('manifestArtifact', artifact);
-  };
-
-  private onManifestArtifactAccountSelected = (accountName: string): void => {
-    this.props.formik.setFieldValue('manifestArtifactAccount', accountName);
   };
 
   private getRequiredArtifacts = (): IManifestBindArtifact[] => {
@@ -171,12 +165,7 @@ export class DeployManifestStageForm extends React.Component<
               onArtifactEdited={this.onManifestArtifactEdited}
               onExpectedArtifactSelected={(artifact: IExpectedArtifact) => this.onManifestArtifactSelected(artifact.id)}
               pipeline={this.props.pipeline}
-              selectedArtifactAccount={stage.manifestArtifactAccount}
-              selectedArtifactId={stage.manifestArtifactId}
-              setArtifactAccount={this.onManifestArtifactAccountSelected}
-              setArtifactId={this.onManifestArtifactSelected}
               stage={stage}
-              updatePipeline={this.props.updatePipeline}
             />
             <StageConfigField label="Expression Evaluation" helpKey="kubernetes.manifest.skipExpressionEvaluation">
               <CheckboxInput
@@ -188,7 +177,7 @@ export class DeployManifestStageForm extends React.Component<
           </>
         )}
         <StageConfigField label="Required Artifacts to Bind" helpKey="kubernetes.manifest.requiredArtifactsToBind">
-          <ManifestBindArtifactsSelectorDelegate
+          <ManifestBindArtifactsSelector
             bindings={this.getRequiredArtifacts()}
             onChangeBindings={this.onRequiredArtifactsChanged}
             pipeline={this.props.pipeline}

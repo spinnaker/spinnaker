@@ -8,7 +8,6 @@ interface IConfigFileArtifactListProps {
   pipeline: IPipeline;
   stage: IStage;
   updateConfigArtifacts: (configArtifacts: any[]) => void;
-  updatePipeline: (changes: Partial<IPipeline>) => void;
 }
 
 export const ConfigFileArtifactList = (props: IConfigFileArtifactListProps) => {
@@ -38,12 +37,6 @@ export const ConfigFileArtifactList = (props: IConfigFileArtifactListProps) => {
     props.updateConfigArtifacts(newConfigArtifacts);
   };
 
-  const onExpectedArtifactAccountSelected = (account: string, index: number): void => {
-    const newConfigArtifacts = [...props.configArtifacts];
-    newConfigArtifacts.splice(index, 1, { ...newConfigArtifacts[index], account });
-    props.updateConfigArtifacts(newConfigArtifacts);
-  };
-
   return (
     <>
       {props.configArtifacts.map((a, i) => {
@@ -68,16 +61,7 @@ export const ConfigFileArtifactList = (props: IConfigFileArtifactListProps) => {
                   onExpectedArtifactSelected(expectedArtifact, i);
                 }}
                 pipeline={props.pipeline}
-                selectedArtifactAccount={a.account}
-                selectedArtifactId={a.id}
-                setArtifactAccount={(account: string) => {
-                  onExpectedArtifactAccountSelected(account, i);
-                }}
-                setArtifactId={(artifactId: string) => {
-                  onChangeExpectedArtifactId(artifactId, i);
-                }}
                 stage={props.stage}
-                updatePipeline={props.updatePipeline}
               />
             </div>
             <div className="col-md-1">

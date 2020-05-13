@@ -10,7 +10,7 @@ import { IStageConfigProps } from '../common';
 import { BakeManifestStageForm, validateProducedArtifacts } from './BakeManifestStageForm';
 import { HELM_RENDERERS } from './ManifestRenderers';
 
-export function BakeManifestConfig({ application, pipeline, stage, updatePipeline, updateStage }: IStageConfigProps) {
+export function BakeManifestConfig({ application, pipeline, stage, updateStage }: IStageConfigProps) {
   const stageWithDefaults = React.useMemo(() => {
     return {
       inputArtifacts: [],
@@ -26,7 +26,7 @@ export function BakeManifestConfig({ application, pipeline, stage, updatePipelin
       pipeline={pipeline}
       stage={stageWithDefaults}
       validate={validateBakeManifestStage}
-      render={props => <BakeManifestStageForm {...props} updatePipeline={updatePipeline} />}
+      render={props => <BakeManifestStageForm {...props} />}
     />
   );
 }

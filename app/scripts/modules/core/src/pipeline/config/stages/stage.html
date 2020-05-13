@@ -122,17 +122,7 @@
       </notification-list>
     </page-section>
     <page-section key="producesArtifacts" label="Produces Artifacts" visible="stageProducesArtifacts()">
-      <produces-artifacts
-        ng-if="stageConfigCtrl.renderLegacyArtifactsUI"
-        stage="stage"
-        pipeline="pipeline"
-      ></produces-artifacts>
-      <produces-artifacts-react
-        ng-if="stageConfigCtrl.renderStandardArtifactsUI"
-        stage="stage"
-        pipeline="pipeline"
-        on-produces-changed="producesArtifactsChanged"
-      />
+      <produces-artifacts-react stage="stage" pipeline="pipeline" on-produces-changed="producesArtifactsChanged" />
     </page-section>
     <page-section key="comments" label="Comments" no-wrapper="true">
       <textarea

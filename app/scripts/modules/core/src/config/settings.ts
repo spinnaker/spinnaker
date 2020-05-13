@@ -33,8 +33,6 @@ export interface IFeatures {
   gceScaleDownControlsEnabled?: boolean;
   gceStatefulMigsEnabled?: boolean;
   iapRefresherEnabled?: boolean;
-  // todo(mneterval): remove prior to release 1.21
-  legacyArtifactsEnabled?: boolean;
   managedDelivery?: boolean;
   managedServiceAccounts?: boolean;
   managedResources?: boolean;

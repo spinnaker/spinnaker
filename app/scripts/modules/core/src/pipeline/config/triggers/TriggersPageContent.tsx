@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Application } from 'core/application';
-import { ArtifactReferenceService, ArtifactsMode, ArtifactsModeService } from 'core/artifact';
+import { ArtifactReferenceService } from 'core/artifact';
 import { IExpectedArtifact, IPipeline, ITrigger } from 'core/domain';
 import { HelpField } from 'core/help';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
@@ -65,7 +65,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
       triggers: updatedTriggers,
     };
 
-    if (ArtifactsModeService.artifactsMode !== ArtifactsMode.LEGACY && artifactIdsToRemove.length > 0) {
+    if (artifactIdsToRemove.length > 0) {
       const updatedExpectedArtifacts = expectedArtifacts.filter(({ id }) => !artifactIdsToRemove.includes(id));
       pipelineUpdate.expectedArtifacts = updatedExpectedArtifacts;
       ArtifactReferenceService.removeReferencesFromStages(artifactIdsToRemove, pipeline.stages);

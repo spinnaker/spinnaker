@@ -1,6 +1,5 @@
 export * from './artifactIconList';
 export * from './ArtifactIconService';
-export * from './ArtifactsModeService';
 export * from './ArtifactReferenceService';
 export * from './artifactTab';
 export * from './expectedArtifact.service';
@@ -22,5 +21,4 @@ export * from './react/ExpectedArtifactEditor';
 export * from './react/ExpectedArtifactSourceSelector';
 export * from './react/ExpectedArtifactModal';
 export * from './react/StageArtifactSelector';
-export * from './react/PreRewriteStageArtifactSelector';
 export * from './react/StageArtifactSelectorDelegate';

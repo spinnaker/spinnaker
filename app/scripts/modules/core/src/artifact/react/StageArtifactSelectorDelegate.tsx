@@ -3,8 +3,6 @@ import React from 'react';
 import { StageConfigField } from 'core/pipeline';
 
 import { IStageArtifactSelectorProps, StageArtifactSelector } from './StageArtifactSelector';
-import { IPreRewriteArtifactSelectorProps, PreRewriteStageArtifactSelector } from './PreRewriteStageArtifactSelector';
-import { ArtifactsMode, ArtifactsModeService } from '../ArtifactsModeService';
 
 interface IStageArtifactSelectorDelegateProps {
   helpKey?: string;
@@ -12,14 +10,13 @@ interface IStageArtifactSelectorDelegateProps {
   fieldColumns?: number;
 }
 
+/** @deprecated use StageArtifactSelector instead */
 export const StageArtifactSelectorDelegate = (
-  props: IStageArtifactSelectorProps & IPreRewriteArtifactSelectorProps & IStageArtifactSelectorDelegateProps,
+  props: IStageArtifactSelectorProps & IStageArtifactSelectorDelegateProps,
 ) => {
-  return ArtifactsModeService.artifactsMode === ArtifactsMode.STANDARD ? (
+  return (
     <StageConfigField label={props.label} helpKey={props.helpKey} fieldColumns={props.fieldColumns}>
       <StageArtifactSelector {...props} />
     </StageConfigField>
-  ) : (
-    <PreRewriteStageArtifactSelector {...props} />
   );
 };

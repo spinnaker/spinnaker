@@ -1,11 +1,9 @@
 import React from 'react';
 
 import { Application } from 'core/application';
-import { ArtifactsMode, ArtifactsModeService } from 'core/artifact';
 import { IPipeline } from 'core/domain';
 import { PageNavigator, PageSection } from 'core/presentation';
 import { ExecutionOptionsPageContent } from './ExecutionOptionsPageContent';
-import { ExpectedArtifactsPageContent } from './ExpectedArtifactsPageContent';
 import { TriggersPageContent } from './TriggersPageContent';
 import { ParametersPageContent } from './ParametersPageContent';
 import { NotificationsPageContent } from './NotificationsPageContent';
@@ -29,15 +27,6 @@ export function Triggers(props: ITriggersProps) {
     <PageNavigator scrollableContainer="[ui-view]">
       <PageSection pageKey="concurrent" label="Execution Options" visible={!pipeline.strategy}>
         <ExecutionOptionsPageContent {...props} />
-      </PageSection>
-      <PageSection
-        pageKey="artifacts"
-        label="Expected Artifacts"
-        badge={pipeline.expectedArtifacts ? pipeline.expectedArtifacts.length.toString() : '0'}
-        noWrapper={true}
-        visible={ArtifactsModeService.artifactsMode === ArtifactsMode.LEGACY}
-      >
-        <ExpectedArtifactsPageContent {...props} />
       </PageSection>
       <PageSection
         pageKey="triggers"

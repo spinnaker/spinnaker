@@ -1,6 +1,6 @@
 import React from 'react';
 import { module, IPromise } from 'angular';
-import { concat, uniq, uniqWith, isEqual } from 'lodash';
+import { uniqWith, isEqual } from 'lodash';
 import { react2angular } from 'react2angular';
 import { Alert } from 'react-bootstrap';
 import { Option } from 'react-select';
@@ -16,7 +16,6 @@ import {
   HelpField,
   IArtifact,
   IExpectedArtifact,
-  IPipeline,
   StageArtifactSelectorDelegate,
   TetheredSelect,
 } from '@spinnaker/core';
@@ -127,11 +126,6 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     this.setState({ taskDefArtifact: newArtifact });
   };
 
-  private setArtifactAccount = (accountName: string): void => {
-    this.props.notifyAngular('taskDefinitionArtifactAccount', accountName);
-    this.setState({ taskDefArtifactAccount: accountName });
-  };
-
   private pushMapping = () => {
     const conMaps = this.state.containerMappings;
     conMaps.push({ containerName: '', imageDescription: this.getEmptyImageDescription() });
@@ -202,15 +196,6 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     currentMappings.splice(index, 1);
     this.props.notifyAngular('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
-  };
-
-  private updatePipeline = (pipeline: IPipeline): void => {
-    if (pipeline.expectedArtifacts && pipeline.expectedArtifacts.length > 0) {
-      const oldArtifacts = this.props.command.viewState.pipeline.expectedArtifacts;
-      const updatedArtifacts = concat(pipeline.expectedArtifacts, oldArtifacts);
-      pipeline.expectedArtifacts = uniq(updatedArtifacts);
-      this.props.notifyAngular('pipeline', pipeline);
-    }
   };
 
   public render(): React.ReactElement<TaskDefinition> {
@@ -336,12 +321,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
               onExpectedArtifactSelected={(artifact: IExpectedArtifact) => this.onExpectedArtifactSelected(artifact.id)}
               onArtifactEdited={this.onArtifactEdited}
               pipeline={command.viewState.pipeline}
-              selectedArtifactId={this.state.taskDefArtifact.artifactId}
-              selectedArtifactAccount={this.state.taskDefArtifactAccount}
-              setArtifactAccount={this.setArtifactAccount}
-              setArtifactId={this.onExpectedArtifactSelected}
               stage={command.viewState.currentStage}
-              updatePipeline={this.updatePipeline}
             />
           </div>
         </div>

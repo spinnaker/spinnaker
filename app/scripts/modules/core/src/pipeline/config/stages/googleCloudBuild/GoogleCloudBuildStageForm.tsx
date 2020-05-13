@@ -12,7 +12,6 @@ import {
   IFormInputProps,
   IFormikStageConfigInjectedProps,
   IgorService,
-  IPipeline,
   RadioButtonInput,
   ReactSelectInput,
   SpelService,
@@ -24,10 +23,6 @@ import {
 } from 'core';
 
 import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
-
-interface IGoogleCloudBuildStageFormProps {
-  updatePipeline: (pipeline: IPipeline) => void;
-}
 
 const SOURCE_OPTIONS: Array<Option<string>> = [
   { value: BuildDefinitionSource.TEXT, label: 'Text' },
@@ -51,7 +46,7 @@ const EXCLUDED_ARTIFACT_TYPES: RegExp[] = excludeAllTypesExcept(
   ArtifactTypePatterns.S3_OBJECT,
 );
 
-export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps & IFormikStageConfigInjectedProps) {
+export function GoogleCloudBuildStageForm(props: IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;
 
   const [rawBuildDefinitionYaml, setRawBuildDefinitionYaml] = React.useState(() =>
@@ -89,10 +84,6 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
   const setArtifact = (artifact: IArtifact): void => {
     props.formik.setFieldValue('buildDefinitionArtifact.artifact', artifact);
     props.formik.setFieldValue('buildDefinitionArtifact.artifactId', null);
-  };
-
-  const setArtifactAccount = (accountName: string): void => {
-    props.formik.setFieldValue('buildDefinitionArtifact.artifactAccount', accountName);
   };
 
   // When build definition source changes, clear any no-longer-relevant fields.
@@ -174,12 +165,7 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
             onArtifactEdited={setArtifact}
             onExpectedArtifactSelected={(artifact: IExpectedArtifact) => setArtifactId(artifact.id)}
             pipeline={props.pipeline}
-            selectedArtifactAccount={get(stage, 'buildDefinitionArtifact.artifactAccount')}
-            selectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
-            setArtifactAccount={setArtifactAccount}
-            setArtifactId={setArtifactId}
             stage={stage}
-            updatePipeline={props.updatePipeline}
           />
         )}
         {stage.buildDefinitionSource === BuildDefinitionSource.TRIGGER && (

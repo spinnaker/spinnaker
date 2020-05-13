@@ -50,4 +50,3 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
 ];
 
 export * from './TriggerArtifactConstraintSelectorInput';
-export * from './ExpectedArtifact';

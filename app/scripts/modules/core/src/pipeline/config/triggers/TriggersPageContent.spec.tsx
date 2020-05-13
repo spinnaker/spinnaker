@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 
 import { ApplicationModelBuilder } from 'core/application';
-import { ArtifactReferenceService, ArtifactsMode, ArtifactsModeService } from 'core/artifact';
+import { ArtifactReferenceService } from 'core/artifact';
 import { IExpectedArtifact, ITrigger } from 'core/domain';
 import { Registry } from 'core/registry';
 
@@ -23,7 +23,6 @@ describe('<TriggersPageContent />', () => {
 
   beforeEach(() => {
     spyOn(Registry.pipeline, 'getTriggerTypes').and.returnValue([{ key: 'cron' }, { key: 'git' }]);
-    spyOn(ArtifactsModeService, 'artifactsMode').and.returnValue(ArtifactsMode.STANDARD);
 
     removeReferencesFromStagesSpy = spyOn(ArtifactReferenceService, 'removeReferencesFromStages');
     updatePipelineSpy = jasmine.createSpy('updatePipeline');

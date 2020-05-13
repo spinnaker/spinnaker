@@ -8,9 +8,9 @@ import { CopyToClipboard } from 'core/utils';
 import { SpelText } from 'core/widgets';
 
 import { singleFieldArtifactEditor } from '../singleFieldArtifactEditor';
-import './base64.artifact.less';
 
-const TYPE = 'embedded/base64';
+export const BASE_64_ARTIFACT_TYPE = 'embedded/base64';
+export const BASE_64_ARTIFACT_ACCOUNT = 'embedded-artifact';
 
 interface IDefaultBase64ArtifactEditorState {
   decoded: string;
@@ -24,9 +24,9 @@ class DefaultBase64ArtifactEditor extends React.Component<IArtifactEditorProps, 
 
   constructor(props: IArtifactEditorProps) {
     super(props);
-    if (props.artifact.type !== TYPE) {
+    if (props.artifact.type !== BASE_64_ARTIFACT_TYPE) {
       const clonedArtifact = cloneDeep(props.artifact);
-      clonedArtifact.type = TYPE;
+      clonedArtifact.type = BASE_64_ARTIFACT_TYPE;
       props.onChange(clonedArtifact);
     }
     const [decoded, encodeDecodeError] = this.convert(atob, props.artifact.reference);
@@ -112,18 +112,18 @@ class DefaultBase64ArtifactEditor extends React.Component<IArtifactEditorProps, 
 export const Base64Match: IArtifactKindConfig = {
   label: 'Base64',
   typePattern: ArtifactTypePatterns.EMBEDDED_BASE64,
-  type: TYPE,
+  type: BASE_64_ARTIFACT_TYPE,
   description: 'An artifact that includes its referenced resource as part of its payload.',
   key: 'base64',
   isDefault: false,
   isMatch: true,
-  editCmp: singleFieldArtifactEditor('name', TYPE, 'Name', 'base64-artifact', ''),
+  editCmp: singleFieldArtifactEditor('name', BASE_64_ARTIFACT_TYPE, 'Name', 'base64-artifact', ''),
 };
 
 export const Base64Default: IArtifactKindConfig = {
   label: 'Base64',
   typePattern: ArtifactTypePatterns.EMBEDDED_BASE64,
-  type: TYPE,
+  type: BASE_64_ARTIFACT_TYPE,
   description: 'An artifact that includes its referenced resource as part of its payload.',
   key: 'default.base64',
   isDefault: true,

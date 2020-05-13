@@ -3,15 +3,11 @@ import React from 'react';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
 import { CheckboxInput, TextInput } from 'core/presentation';
 import { MapEditor } from 'core/forms';
-import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
+import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { excludeAllTypesExcept, ArtifactTypePatterns, StageArtifactSelectorDelegate } from 'core/artifact';
 import { IFormikStageConfigInjectedProps } from '../../FormikStageConfig';
 
-interface IBakeHelmConfigFormProps {
-  updatePipeline: (pipeline: IPipeline) => void;
-}
-
-export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps & IFormikStageConfigInjectedProps> {
+export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInjectedProps> {
   private static readonly excludedArtifactTypes = excludeAllTypesExcept(
     ArtifactTypePatterns.BITBUCKET_FILE,
     ArtifactTypePatterns.CUSTOM_OBJECT,
@@ -45,10 +41,6 @@ export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps
   private onTemplateArtifactSelected = (id: string, index: number) => {
     this.props.formik.setFieldValue(`inputArtifacts[${index}].id`, id);
     this.props.formik.setFieldValue(`inputArtifacts[${index}].artifact`, null);
-  };
-
-  private onTemplateArtifactAccountSelected = (account: string, index: number) => {
-    this.props.formik.setFieldValue(`inputArtifacts[${index}].account`, account);
   };
 
   private addInputArtifact = () => {
@@ -142,12 +134,7 @@ export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps
           }}
           onExpectedArtifactSelected={(artifact: IExpectedArtifact) => this.onTemplateArtifactSelected(artifact.id, 0)}
           pipeline={this.props.pipeline}
-          selectedArtifactAccount={this.getInputArtifact(stage, 0).account}
-          selectedArtifactId={this.getInputArtifact(stage, 0).id}
-          setArtifactAccount={account => this.onTemplateArtifactAccountSelected(account, 0)}
-          setArtifactId={id => this.onTemplateArtifactSelected(id, 0)}
           stage={stage}
-          updatePipeline={this.props.updatePipeline}
         />
         <h4>Overrides</h4>
         {stage.inputArtifacts && stage.inputArtifacts.length > 1 && (
@@ -168,12 +155,7 @@ export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps
                         this.onTemplateArtifactSelected(artifact.id, index + 1)
                       }
                       pipeline={this.props.pipeline}
-                      selectedArtifactAccount={this.getInputArtifact(stage, index + 1).account}
-                      selectedArtifactId={this.getInputArtifact(stage, index + 1).id}
-                      setArtifactAccount={account => this.onTemplateArtifactAccountSelected(account, index + 1)}
-                      setArtifactId={id => this.onTemplateArtifactSelected(id, index + 1)}
                       stage={stage}
-                      updatePipeline={this.props.updatePipeline}
                     />
                   </div>
                   <div className="col-md-1">
