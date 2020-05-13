@@ -83,19 +83,16 @@ class ApplicationService(
         judgedBy = user))
   }
 
-  fun pin(application: String, pin: EnvironmentArtifactPin, user: String) {
+  fun pin(user: String, application: String, pin: EnvironmentArtifactPin) {
     val config = repository.getDeliveryConfigForApplication(application)
     repository.pinEnvironment(config, pin.copy(pinnedBy = user))
+    // TODO: publish ArtifactPinnedEvent
   }
 
-  fun deletePin(application: String, pin: EnvironmentArtifactPin) {
+  fun deletePin(user: String, application: String, targetEnvironment: String, reference: String? = null) {
     val config = repository.getDeliveryConfigForApplication(application)
-    repository.deletePin(config, pin.targetEnvironment, pin.reference)
-  }
-
-  fun deletePin(application: String, targetEnvironment: String) {
-    val config = repository.getDeliveryConfigForApplication(application)
-    repository.deletePin(config, targetEnvironment)
+    repository.deletePin(config, targetEnvironment, reference)
+    // TODO: publish ArtifactUnpinnedEvent
   }
 
   fun markAsVetoedIn(application: String, veto: EnvironmentArtifactVeto, force: Boolean) {

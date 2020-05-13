@@ -199,9 +199,7 @@ interface KeelRepository {
 
   fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment>
 
-  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String)
-
-  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String)
+  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String? = null)
 
   fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes>
 

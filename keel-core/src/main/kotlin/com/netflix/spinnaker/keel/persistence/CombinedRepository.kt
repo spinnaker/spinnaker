@@ -443,11 +443,12 @@ class CombinedRepository(
   override fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> =
     artifactRepository.getPinnedEnvironments(deliveryConfig)
 
-  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String) =
-    artifactRepository.deletePin(deliveryConfig, targetEnvironment)
-
-  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String) =
-    artifactRepository.deletePin(deliveryConfig, targetEnvironment, reference)
+  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String?) =
+    if (reference != null) {
+      artifactRepository.deletePin(deliveryConfig, targetEnvironment, reference)
+    } else {
+      artifactRepository.deletePin(deliveryConfig, targetEnvironment)
+    }
 
   override fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes> =
     artifactRepository.vetoedEnvironmentVersions(deliveryConfig)

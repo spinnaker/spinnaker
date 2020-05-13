@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
@@ -30,8 +31,11 @@ import com.netflix.spinnaker.keel.test.versionedArtifactResource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.Instant
 import java.time.ZoneId
 import strikt.api.Assertion
@@ -100,6 +104,8 @@ class ApplicationServiceTests : JUnit5Minutests {
     val version4 = "fnord-1.0.4-h4.e4e4e4e"
 
     val versions = listOf(version0, version1, version2, version3, version4)
+
+    val pin = EnvironmentArtifactPin("production", artifact.reference, version0, "keel@keel.io", "comment")
 
     val dependsOnEvaluator = mockk<ConstraintEvaluator<DependsOnConstraint>>() {
       every { isImplicit() } returns false
@@ -477,6 +483,51 @@ class ApplicationServiceTests : JUnit5Minutests {
                 }
             }
           }
+        }
+      }
+    }
+
+    context("pinning an artifact version in an environment") {
+      before {
+        every {
+          repository.pinEnvironment(deliveryConfig, pin)
+        } just Runs
+        applicationService.pin("keel@keel.io", application, pin)
+      }
+
+      test("causes the pin to be persisted") {
+        verify(exactly = 1) {
+          repository.pinEnvironment(deliveryConfig, pin)
+        }
+      }
+    }
+
+    context("unpinning a specific artifact in an environment") {
+      before {
+        every {
+          repository.deletePin(deliveryConfig, "production", artifact.reference)
+        } just Runs
+        applicationService.deletePin("keel@keel.io", application, "production", artifact.reference)
+      }
+
+      test("causes the pin to be deleted") {
+        verify(exactly = 1) {
+          repository.deletePin(deliveryConfig, "production", artifact.reference)
+        }
+      }
+    }
+
+    context("unpinning all artifacts in an environment") {
+      before {
+        every {
+          repository.deletePin(deliveryConfig, "production")
+        } just Runs
+        applicationService.deletePin("keel@keel.io", application, "production")
+      }
+
+      test("causes all pins in the environment to be deleted") {
+        verify(exactly = 1) {
+          repository.deletePin(deliveryConfig, "production")
         }
       }
     }
