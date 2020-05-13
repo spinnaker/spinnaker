@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.netflix.spinnaker.fiat.model.resources.ResourceType.SERVICE_ACCOUNT
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator.AuthorizationFailure
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
@@ -88,10 +89,10 @@ class ExceptionHandler(
   @ResponseStatus(FORBIDDEN)
   fun onAccessDenied(e: AccessDeniedException): ApiError {
     log.error(e.message)
-    val authFailure = FiatPermissionEvaluator.getAuthorizationFailure().get()
+    val authFailure: AuthorizationFailure? = FiatPermissionEvaluator.getAuthorizationFailure().orElse(null)
     val message = if (authFailure != null) {
       val user = "User ${AuthenticatedRequest.getSpinnakerUser().orElse("")}"
-      val permission = "${authFailure.authorization.let { if (it == null) "access" else "${it.name.toLowerCase()} permission" }}"
+      val permission = authFailure.authorization.let { if (it == null) "access" else "${it.name.toLowerCase()} permission" }
       val resourceType = authFailure.resourceType.name.toLowerCase().replace('_', ' ')
       "Access denied. $user does not have $permission to the ${authFailure.resourceName} $resourceType specified in the request. " +
         if (authFailure.resourceType == SERVICE_ACCOUNT) {

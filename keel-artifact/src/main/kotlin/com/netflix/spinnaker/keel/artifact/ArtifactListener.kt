@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.activation.ApplicationDown
+import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
@@ -18,6 +20,7 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -33,6 +36,19 @@ class ArtifactListener(
   private val clouddriverService: CloudDriverService,
   private val publisher: ApplicationEventPublisher
 ) {
+  private val enabled = AtomicBoolean(false)
+
+  @EventListener(ApplicationUp::class)
+  fun onApplicationUp() {
+    log.info("Application up, enabling scheduled artifact syncing")
+    enabled.set(true)
+  }
+
+  @EventListener(ApplicationDown::class)
+  fun onApplicationDown() {
+    log.info("Application down, disabling scheduled artifact syncing")
+    enabled.set(false)
+  }
 
   @EventListener(ArtifactEvent::class)
   fun onArtifactEvent(event: ArtifactEvent) {
@@ -92,37 +108,40 @@ class ArtifactListener(
    */
   // todo eb: should we fetch more than one version?
   @Scheduled(fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
-  fun syncArtifactVersions() =
-    runBlocking {
-      repository.getAllArtifacts().forEach { artifact ->
-        launch {
-          val lastRecordedVersion = getLatestStoredVersion(artifact)
-          val latestVersion = when (artifact) {
-            is DebianArtifact -> getLatestDeb(artifact)?.let { "${artifact.name}-$it" }
-            is DockerArtifact -> getLatestDockerTag(artifact)
-          }
-          if (latestVersion != null) {
-            val hasNew = when {
-              lastRecordedVersion == null -> true
-              latestVersion != lastRecordedVersion -> {
-                artifact.versioningStrategy.comparator.compare(lastRecordedVersion, latestVersion) > 0
-              }
-              else -> false
+  fun syncArtifactVersions() {
+    if (enabled.get()) {
+      runBlocking {
+        repository.getAllArtifacts().forEach { artifact ->
+          launch {
+            val lastRecordedVersion = getLatestStoredVersion(artifact)
+            val latestVersion = when (artifact) {
+              is DebianArtifact -> getLatestDeb(artifact)?.let { "${artifact.name}-$it" }
+              is DockerArtifact -> getLatestDockerTag(artifact)
             }
-
-            if (hasNew) {
-              log.debug("Artifact {} has a missing version {}, persisting..", artifact, latestVersion)
-              val status = when (artifact.type) {
-                deb -> debStatus(artifactService.getArtifact(artifact.name, latestVersion.removePrefix("${artifact.name}-")))
-                // todo eb: is there a better way to think of docker status?
-                docker -> null
+            if (latestVersion != null) {
+              val hasNew = when {
+                lastRecordedVersion == null -> true
+                latestVersion != lastRecordedVersion -> {
+                  artifact.versioningStrategy.comparator.compare(lastRecordedVersion, latestVersion) > 0
+                }
+                else -> false
               }
-              repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
+
+              if (hasNew) {
+                log.debug("Artifact {} has a missing version {}, persisting..", artifact, latestVersion)
+                val status = when (artifact.type) {
+                  deb -> debStatus(artifactService.getArtifact(artifact.name, latestVersion.removePrefix("${artifact.name}-")))
+                  // todo eb: is there a better way to think of docker status?
+                  docker -> null
+                }
+                repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
+              }
             }
           }
         }
       }
     }
+  }
 
   private fun getLatestStoredVersion(artifact: DeliveryArtifact): String? =
     repository.artifactVersions(artifact).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()

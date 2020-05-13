@@ -57,8 +57,7 @@ import strikt.jackson.isArray
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, MockTimeConfiguration::class],
-  webEnvironment = MOCK,
-  properties = ["eureka.default-to-up=false"]
+  webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
 internal class EventControllerTests : JUnit5Minutests {

@@ -235,6 +235,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     before {
       every { repository.getDeliveryConfig(any()) } returns deliveryConfig
+      listener.onApplicationUp()
     }
 
     context("we don't have any versions of an artifact") {

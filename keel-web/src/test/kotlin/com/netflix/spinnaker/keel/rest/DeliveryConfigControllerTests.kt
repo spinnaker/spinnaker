@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -18,8 +19,6 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -47,8 +46,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, DummyResourceConfiguration::class],
-  webEnvironment = MOCK,
-  properties = ["eureka.default-to-up=false"]
+  webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
 internal class DeliveryConfigControllerTests : JUnit5Minutests {
@@ -64,6 +62,9 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
   @Autowired
   lateinit var jsonMapper: ObjectMapper
+
+  @Autowired
+  lateinit var yamlMapper: YAMLMapper
 
   private val deliveryConfig = SubmittedDeliveryConfig(
     name = "keel-manifest",
@@ -173,8 +174,10 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |    environment: test
         |  - type: allowed-times
         |    windows:
-        |      - hours: 6-18
-        |        days: mon-fri
+        |    - hours: 6-18
+        |      days: Monday-Friday
+        |      tz: America/Los_Angeles
+        |  - type: manual-judgement
         |  resources:
         |  - kind: test/whatever@v1
         |    spec:
@@ -279,8 +282,8 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         derivedContext<ResultActions>("the submitted manifest is missing a required field") {
           fixture {
             val mapper = when (contentType) {
-              APPLICATION_YAML -> configuredYamlMapper()
-              else -> configuredObjectMapper()
+              APPLICATION_YAML -> yamlMapper
+              else -> jsonMapper
             }
             val invalidPayload = mapper
               .readValue<Map<String, Any?>>(payload)
