@@ -5,6 +5,7 @@ import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/n
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { Application } from 'core/application/application.model';
 import { filterModelConfig } from 'core/cluster/filter/ClusterFilterModel';
+import { ClusterFilters } from 'core/cluster/filter/ClusterFilters';
 
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 
@@ -17,9 +18,7 @@ module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER])
       name: 'clusters',
       url: `/clusters?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
       views: {
-        nav: {
-          template: '<cluster-filter app="$resolve.app"></cluster-filter>',
-        },
+        nav: { component: ClusterFilters, $type: 'react' },
         master: {
           templateUrl: require('../cluster/allClusters.html'),
           controller: 'AllClustersCtrl',
