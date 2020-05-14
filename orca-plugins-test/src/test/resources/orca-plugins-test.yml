@@ -32,3 +32,7 @@ spinnaker:
         enabled: false
       com.netflix.orca.version.not.supported.plugin:
         enabled: true
+
+services:
+  fiat:
+    baseUrl: https://fiat.net

@@ -21,3 +21,7 @@ executionRepository:
 spring:
   application:
     name: orcaTest
+
+services:
+  fiat:
+    baseUrl: https://fiat.net

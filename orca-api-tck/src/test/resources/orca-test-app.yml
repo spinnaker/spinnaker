@@ -29,3 +29,7 @@ redis:
 spring:
   application:
     name: orca
+
+services:
+  fiat:
+    baseUrl: https://fiat.net
