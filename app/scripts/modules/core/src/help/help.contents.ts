@@ -232,6 +232,10 @@ const helpContents: { [key: string]: string } = {
     '<p>(Optional) Configures the name to the Travis artifact file used to pass in properties to later stages in the Spinnaker pipeline. The contents of this file will now be available as a map under the trigger and accessible via <em>trigger.properties</em>. See <a target="_blank" href="https://www.spinnaker.io/guides/user/pipeline-expressions/">Pipeline Expressions docs</a> for more information.</p>',
   'pipeline.config.travis.propertyFile':
     '<p>(Optional) Configures the name to the Travis artifact file used to pass in properties to later stages in the Spinnaker pipeline. The contents of this file will now be available as a map under the stage context. See <a target="_blank" href="https://www.spinnaker.io/guides/user/pipeline-expressions/">Pipeline Expressions docs</a> for more information.</p>',
+  'pipeline.config.bake.skipRegionDetection': `
+        <p>By default, Spinnaker will detect regions to bake in from downstream deploy stages.</p>
+        <p>To prevent failed deploys from accidentally missed regions during the bake process.</p>
+        <p>This setting will disable this detection mechanism.</p>`,
   'pipeline.config.bake.package': `
       <p>The name of the package you want installed (without any version identifiers).</p>
       <p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>

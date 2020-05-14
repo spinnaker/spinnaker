@@ -6,6 +6,14 @@
     <stage-config-field label="Regions">
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </stage-config-field>
+    <stage-config-field label="Skip Region Detection" help-key="pipeline.config.bake.skipRegionDetection">
+      <div class="checkbox" style="margin-bottom: 0">
+        <label>
+          <input type="checkbox" ng-model="stage.skipRegionDetection" />
+          Only bake explicitly selected regions
+        </label>
+      </div>
+    </stage-config-field>
     <stage-config-field
       label="{{stage.storeType === 'docker' ? 'Repo Path' : 'Package'}}"
       help-key="pipeline.config.bake.package"
