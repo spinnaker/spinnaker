@@ -52,7 +52,6 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     private final DockerRegistryAccounts dockerRegistryAccounts
     private final Optional<EchoService> echoService
     private final Optional<KeelService> keelService
-    private final Optional<DockerRegistryCacheV2KeysMigration> keysMigration
     private final DockerRegistryProperties dockerRegistryProperties
 
     @Autowired
@@ -65,13 +64,11 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   DockerRegistryAccounts dockerRegistryAccounts,
                   Optional<EchoService> echoService,
                   Optional<KeelService> keelService,
-                  Optional<DockerRegistryCacheV2KeysMigration> keysMigration,
                   DockerRegistryProperties dockerRegistryProperties) {
         super(properties, registry, dynamicConfigService, discoveryClient, lockService)
         this.cache = cache
         this.dockerRegistryAccounts = dockerRegistryAccounts
         this.echoService = echoService
-        this.keysMigration = keysMigration
         this.dockerRegistryProperties = dockerRegistryProperties
         this.keelService = keelService
     }

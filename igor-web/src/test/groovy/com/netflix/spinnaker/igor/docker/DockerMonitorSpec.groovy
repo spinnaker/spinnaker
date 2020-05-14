@@ -42,7 +42,6 @@ class DockerMonitorSpec extends Specification {
     def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
     def echoService = Mock(EchoService)
     def keelService = Mock(KeelService)
-    Optional<DockerRegistryCacheV2KeysMigration> keysMigration = Optional.empty()
     def dockerRegistryProperties = new DockerRegistryProperties(enabled: true, itemUpperThreshold: 5)
 
     @Unroll
@@ -57,7 +56,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        new DockerMonitor(properties, registry, dynamicConfig, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), Optional.empty(), dockerRegistryProperties)
+        new DockerMonitor(properties, registry, dynamicConfig, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), dockerRegistryProperties)
             .postEvent(cachedImages, taggedImage, "imageId")
 
         then:
@@ -174,7 +173,7 @@ class DockerMonitorSpec extends Specification {
     }
 
     private DockerMonitor createSubject() {
-        return new DockerMonitor(properties, registry, dynamicConfig, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), keysMigration, dockerRegistryProperties)
+        return new DockerMonitor(properties, registry, dynamicConfig, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), dockerRegistryProperties)
     }
 
     private static String keyFromTaggedImage(TaggedImage taggedImage) {
