@@ -1,3 +1,5 @@
+import com.adarshr.gradle.testlogger.TestLoggerExtension
+import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -16,6 +18,7 @@ buildscript {
 plugins {
   id("nebula.kotlin") version "1.3.72" apply false
   id("org.jetbrains.kotlin.plugin.allopen") version "1.3.72" apply false
+  id("com.adarshr.test-logger") version "2.0.0" apply false
   id("com.github.ben-manes.versions") version "0.28.0" apply false
   jacoco
 }
@@ -88,6 +91,12 @@ subprojects {
         csv.isEnabled = false
         html.isEnabled = false
       }
+    }
+
+    apply(plugin = "com.adarshr.test-logger")
+    configure<TestLoggerExtension> {
+      theme = STANDARD_PARALLEL
+      showSimpleNames = true
     }
   }
 
