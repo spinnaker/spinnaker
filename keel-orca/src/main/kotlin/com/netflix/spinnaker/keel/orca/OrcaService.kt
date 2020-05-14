@@ -41,7 +41,7 @@ interface OrcaService {
   suspend fun triggerPipeline(
     @Header("X-SPINNAKER-USER") user: String,
     @Path("pipelineConfigId") pipelineConfigId: String,
-    @Body trigger: Map<String, Any>
+    @Body trigger: HashMap<String, Any>
   ): TaskRefResponse
 
   @GET("/pipelines/{id}")

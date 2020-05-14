@@ -68,7 +68,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
     )
     val executionId = randomUID().toString()
     val capturedId = slot<String>()
-    val capturedTrigger = slot<Map<String, Any>>()
+    val capturedTrigger = slot<HashMap<String, Any>>()
     val persistedState = slot<ConstraintState>()
     val subject = PipelineConstraintEvaluator(orcaService, repository, eventPublisher, clock)
 
@@ -122,7 +122,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
           expectThat(capturedTrigger)
             .captured
             .isEqualTo(
-              mapOf(
+              hashMapOf(
                 "parameters" to mapOf<String, Any?>("youSayManaged" to "weSayDelivery"),
                 "type" to "managed",
                 "user" to "keel"
