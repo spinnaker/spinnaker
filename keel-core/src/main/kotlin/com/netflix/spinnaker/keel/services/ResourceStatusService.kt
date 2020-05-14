@@ -1,20 +1,8 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Locatable
-import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
-import com.netflix.spinnaker.keel.core.api.ResourceSummary
-import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
-import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
-import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
@@ -22,13 +10,13 @@ import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceTaskFailed
 import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
-import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
@@ -47,22 +35,10 @@ import org.springframework.stereotype.Component
  * Service object that offers high-level APIs around resource (event) history and status.
  */
 @Component
-class ResourceHistoryService(
-  private val repository: KeelRepository,
+class ResourceStatusService(
+  private val resourceRepository: ResourceRepository,
   private val actuationPauser: ActuationPauser
 ) {
-
-  /**
-   * Returns the history of events associated with the specified resource from the database, plus any applicable
-   * application-level pause/resume events.
-   */
-  fun getEnrichedEventHistory(id: String, limit: Int = DEFAULT_MAX_EVENTS): List<PersistentEvent> {
-    val resource = repository.getResource(id)
-    return repository.resourceEventHistory(id, limit)
-      .let { events ->
-        actuationPauser.addApplicationActuationEvents(events, resource)
-      }
-  }
 
   /**
    * Returns the status of the specified resource by first checking whether or not it or the parent application are
@@ -77,7 +53,7 @@ class ResourceHistoryService(
       return PAUSED
     }
 
-    val history = getEnrichedEventHistory(id, 10)
+    val history = resourceRepository.eventHistory(id, 10)
     return when {
       history.isHappy() -> HAPPY
       history.isUnhappy() -> UNHAPPY
@@ -92,53 +68,44 @@ class ResourceHistoryService(
     }
   }
 
-  private fun List<PersistentEvent>.isHappy(): Boolean {
+  private fun List<ResourceHistoryEvent>.isHappy(): Boolean {
     return first() is ResourceValid || first() is ResourceDeltaResolved
   }
 
-  private fun List<PersistentEvent>.isActuating(): Boolean {
+  private fun List<ResourceHistoryEvent>.isActuating(): Boolean {
     return first() is ResourceActuationLaunched || first() is ResourceTaskSucceeded ||
       // we might want to move ResourceTaskFailed to isError later on
       first() is ResourceTaskFailed
   }
 
-  private fun List<PersistentEvent>.isError(): Boolean {
+  private fun List<ResourceHistoryEvent>.isError(): Boolean {
     return first() is ResourceCheckError
   }
 
-  private fun List<PersistentEvent>.isCreated(): Boolean {
+  private fun List<ResourceHistoryEvent>.isCreated(): Boolean {
     return first() is ResourceCreated
   }
 
-  private fun List<PersistentEvent>.isDiff(): Boolean {
+  private fun List<ResourceHistoryEvent>.isDiff(): Boolean {
     return first() is ResourceDeltaDetected || first() is ResourceMissing
   }
 
-  private fun List<PersistentEvent>.isPaused(): Boolean {
-    val appPaused = firstOrNull { it is ApplicationActuationPaused }?.timestamp
-    val appResumed = firstOrNull { it is ApplicationActuationResumed }?.timestamp
-
-    return first() is ResourceActuationPaused ||
-      // If the app was paused and has not yet resumed
-      (appPaused != null && (appResumed == null || appResumed.isBefore(appPaused)))
-  }
-
-  private fun List<PersistentEvent>.isVetoed(): Boolean {
+  private fun List<ResourceHistoryEvent>.isVetoed(): Boolean {
     return first() is ResourceActuationVetoed
   }
 
-  private fun List<PersistentEvent>.isResumed(): Boolean {
+  private fun List<ResourceHistoryEvent>.isResumed(): Boolean {
     return first() is ResourceActuationResumed || first() is ApplicationActuationResumed
   }
 
-  private fun List<PersistentEvent>.isCurrentlyUnresolvable(): Boolean {
+  private fun List<ResourceHistoryEvent>.isCurrentlyUnresolvable(): Boolean {
     return first() is ResourceCheckUnresolvable
   }
 
   /**
    * Checks last 10 events for flapping between only ResourceActuationLaunched and ResourceDeltaDetected
    */
-  private fun List<PersistentEvent>.isUnhappy(): Boolean {
+  private fun List<ResourceHistoryEvent>.isUnhappy(): Boolean {
     val recentSliceOfHistory = this.subList(0, Math.min(10, this.size))
     val filteredHistory = recentSliceOfHistory.filter { it is ResourceDeltaDetected || it is ResourceActuationLaunched }
     if (filteredHistory.size != recentSliceOfHistory.size) {
@@ -147,38 +114,4 @@ class ResourceHistoryService(
     }
     return true
   }
-
-  /**
-   * Returns a list of [ResourceSummary] for the specified application.
-   */
-  fun getResourceSummariesFor(deliveryConfig: DeliveryConfig): List<ResourceSummary> {
-    return deliveryConfig.resources.map { resource ->
-      resource.toResourceSummary(deliveryConfig)
-    }
-  }
-
-  private fun Resource<*>.toResourceSummary(deliveryConfig: DeliveryConfig) =
-    ResourceSummary(
-      resource = this,
-      status = getStatus(id),
-      moniker = if (spec is Monikered) {
-        (spec as Monikered).moniker
-      } else {
-        null
-      },
-      locations = if (spec is Locatable<*>) {
-        SimpleLocations(
-          account = (spec as Locatable<*>).locations.account,
-          vpc = (spec as Locatable<*>).locations.vpc,
-          regions = (spec as Locatable<*>).locations.regions.map { SimpleRegionSpec(it.name) }.toSet()
-        )
-      } else {
-        null
-      },
-      artifact = deliveryConfig.let {
-        findAssociatedArtifact(it)?.toResourceArtifactSummary()
-      }
-    )
-
-  private fun DeliveryArtifact.toResourceArtifactSummary() = ResourceArtifactSummary(name, type, reference)
 }

@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.diff.DiffResult
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
-import com.netflix.spinnaker.keel.services.ResourceHistoryService
+import com.netflix.spinnaker.keel.services.ResourceStatusService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -43,7 +43,7 @@ class ResourceController(
   private val repository: KeelRepository,
   private val actuationPauser: ActuationPauser,
   private val adHocDiffer: AdHocDiffer,
-  private val resourceHistoryService: ResourceHistoryService
+  private val resourceStatusService: ResourceStatusService
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -68,7 +68,7 @@ class ResourceController(
     and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
   )
   fun getStatus(@PathVariable("id") id: String): ResourceStatus =
-    resourceHistoryService.getStatus(id)
+    resourceStatusService.getStatus(id)
 
   @PostMapping(
     path = ["/{id}/pause"],

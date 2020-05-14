@@ -22,11 +22,8 @@ import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
-import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceCreated
-import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.pause.PauseScope.RESOURCE
 import com.netflix.spinnaker.keel.persistence.PausedRepository
@@ -92,44 +89,4 @@ class ActuationPauser(
 
   fun pausedApplications(): List<String> =
     pausedRepository.getPausedApplications()
-
-  /**
-   * Adds [ApplicationActuationPaused] and [ApplicationActuationResumed] events to the resource event history so that
-   * it reflects actuation pauses/resumes at the application level.
-   */
-  fun addApplicationActuationEvents(originalEvents: List<ResourceEvent>, resource: Resource<*>) =
-    mutableListOf<PersistentEvent>()
-      .let { events ->
-        events.addAll(originalEvents)
-
-        val oldestResourceEvent = events.last()
-
-        if (oldestResourceEvent is ResourceCreated) {
-          val appPause = pausedRepository.getPause(APPLICATION, resource.application)
-          val resourcePause = pausedRepository.getPause(RESOURCE, resource.id)
-
-          // If the app was paused before the resource was created, and hasn't yet been resumed,
-          // we add that event to the history so the resource event history makes sense against its status
-          if (appPause != null && appPause.pausedAt.isBefore(oldestResourceEvent.timestamp)) {
-            events.add(ApplicationActuationPaused(resource.application, appPause.pausedAt, appPause.pausedBy))
-          }
-
-          // Similarly, if the resource itself had been paused, then was deleted and recreated,
-          // we add a corresponding event to the history
-          if (resourcePause != null && resourcePause.pausedAt.isBefore(oldestResourceEvent.timestamp)) {
-            events.add(ResourceActuationPaused(resource, resourcePause.pausedAt, resourcePause.pausedBy))
-          }
-        }
-
-        // Add all other app paused/resumed events from after the oldest resource event
-        resourceRepository
-          .applicationEventHistory(resource.application, oldestResourceEvent.timestamp)
-          .filter { it is ApplicationActuationPaused || it is ApplicationActuationResumed }
-          .also { relevantAppEvents ->
-            events.addAll(relevantAppEvents)
-          }
-
-        // Always sort by timestamp to put events in the right positions
-        events.sortedByDescending { it.timestamp }
-      }
 }

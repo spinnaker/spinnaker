@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
@@ -333,7 +334,7 @@ class CombinedRepository(
   override fun allResources(callback: (ResourceHeader) -> Unit) =
     resourceRepository.allResources(callback)
 
-  override fun getResource(id: String): Resource<out ResourceSpec> =
+  override fun getResource(id: String): Resource<ResourceSpec> =
     resourceRepository.get(id)
 
   override fun hasManagedResources(application: String): Boolean =
@@ -357,10 +358,10 @@ class CombinedRepository(
   override fun applicationEventHistory(application: String, downTo: Instant): List<ApplicationEvent> =
     resourceRepository.applicationEventHistory(application, downTo)
 
-  override fun resourceEventHistory(id: String, limit: Int): List<ResourceEvent> =
+  override fun resourceEventHistory(id: String, limit: Int): List<ResourceHistoryEvent> =
     resourceRepository.eventHistory(id, limit)
 
-  override fun resourceLastEvent(id: String): ResourceEvent? =
+  override fun lastResourceHistoryEvent(id: String): ResourceHistoryEvent? =
     resourceRepository.lastEvent(id)
 
   override fun appendResourceHistory(event: ResourceEvent) =
@@ -369,7 +370,7 @@ class CombinedRepository(
   override fun appendApplicationHistory(event: ApplicationEvent) =
     resourceRepository.appendHistory(event)
 
-  override fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> =
+  override fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> =
     resourceRepository.itemsDueForCheck(minTimeSinceLastCheck, limit)
 
   override fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact> =

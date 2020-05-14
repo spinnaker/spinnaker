@@ -21,7 +21,9 @@ import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -127,7 +129,7 @@ interface KeelRepository {
   // START ResourceRepository methods
   fun allResources(callback: (ResourceHeader) -> Unit)
 
-  fun getResource(id: String): Resource<out ResourceSpec>
+  fun getResource(id: String): Resource<ResourceSpec>
 
   fun hasManagedResources(application: String): Boolean
 
@@ -139,19 +141,19 @@ interface KeelRepository {
 
   fun deleteResource(id: String)
 
-  fun applicationEventHistory(application: String, limit: Int): List<ApplicationEvent>
+  fun applicationEventHistory(application: String, limit: Int = DEFAULT_MAX_EVENTS): List<ApplicationEvent>
 
   fun applicationEventHistory(application: String, downTo: Instant): List<ApplicationEvent>
 
-  fun resourceEventHistory(id: String, limit: Int): List<ResourceEvent>
+  fun resourceEventHistory(id: String, limit: Int = DEFAULT_MAX_EVENTS): List<ResourceHistoryEvent>
 
-  fun resourceLastEvent(id: String): ResourceEvent?
+  fun lastResourceHistoryEvent(id: String): ResourceHistoryEvent?
 
   fun appendResourceHistory(event: ResourceEvent)
 
   fun appendApplicationHistory(event: ApplicationEvent)
 
-  fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>>
+  fun resourcesDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>>
 
   fun artifactsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryArtifact>
   // END ResourceRepository methods

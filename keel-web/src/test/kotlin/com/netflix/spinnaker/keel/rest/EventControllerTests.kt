@@ -12,11 +12,9 @@ import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
-import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
-import com.netflix.spinnaker.keel.pause.ActuationPauser
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -64,14 +62,8 @@ internal class EventControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc
 
-  @Autowired
-  lateinit var clock: MutableClock
-
   @MockkBean
-  lateinit var repository: KeelRepository
-
-  @MockkBean
-  lateinit var actuationPauser: ActuationPauser
+  lateinit var resourceRepository: ResourceRepository
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
@@ -90,14 +82,13 @@ internal class EventControllerTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
 
-    before {
-      every { repository.getResource(resource.id) } throws NoSuchResourceId(resource.id)
-    }
-
     context("no resource exists") {
-      before { authorizationSupport.allowAll() }
+      before {
+        authorizationSupport.allowAll()
+        every { resourceRepository.eventHistory(resource.id, any()) } throws NoSuchResourceId(resource.id)
+      }
 
-      test("event eventHistory endpoint responds with 404") {
+      test("event event history endpoint responds with 404") {
         val request = get("/resources/events/${resource.id}")
           .accept(APPLICATION_JSON)
         mvc
@@ -109,8 +100,8 @@ internal class EventControllerTests : JUnit5Minutests {
     context("a resource exists with events") {
       before {
         authorizationSupport.allowAll()
-        every { repository.getResource(resource.id) } returns resource
-        every { repository.resourceEventHistory(resource.id, any()) } answers {
+        every { resourceRepository.get(resource.id) } returns resource
+        every { resourceRepository.eventHistory(resource.id, any()) } answers {
           (listOf(ResourceCreated(resource, nextTick())) + (1..3).flatMap {
             listOf(
               ResourceUpdated(resource, emptyMap(), nextTick()),
@@ -122,7 +113,6 @@ internal class EventControllerTests : JUnit5Minutests {
             .sortedByDescending { it.timestamp }
             .take(secondArg())
         }
-        every { actuationPauser.addApplicationActuationEvents(any(), any()) } answers { firstArg<List<ResourceEvent>>() }
       }
 
       setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { accept ->

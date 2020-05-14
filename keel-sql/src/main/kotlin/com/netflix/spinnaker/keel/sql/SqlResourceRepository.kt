@@ -9,13 +9,17 @@ import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ApplicationEvent
+import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent.Scope
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
+import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
@@ -31,8 +35,8 @@ import java.time.Instant.EPOCH
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.select
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -42,6 +46,10 @@ open class SqlResourceRepository(
   private val objectMapper: ObjectMapper,
   private val sqlRetry: SqlRetry
 ) : ResourceRepository {
+
+  companion object {
+    val EVENT_JSON_APPLICATION: Field<String> = field("json->'$.application'")
+  }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     sqlRetry.withRetry(READ) {
@@ -183,28 +191,46 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun eventHistory(id: String, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(id: String, limit: Int): List<ResourceHistoryEvent> {
     require(limit > 0) { "limit must be a positive integer" }
+
+    val resource = get(id)
+
     return sqlRetry.withRetry(READ) {
       jooq
         .select(EVENT.JSON)
-        .from(EVENT, RESOURCE)
-        .where(EVENT.SCOPE.eq(Scope.RESOURCE.name))
-        .and(RESOURCE.ID.eq(id))
-        .and(RESOURCE.UID.eq(EVENT.REF))
+        .from(EVENT)
+        // look for resource events that match the resource...
+        .where(EVENT.SCOPE.eq(Scope.RESOURCE.name)
+          .and(EVENT.REF.eq(resource.uid))
+        )
+        // ...or application events that match the application as they apply to all resources
+        .or(EVENT.SCOPE.eq(Scope.APPLICATION.name)
+          .and(EVENT_JSON_APPLICATION.eq(resource.application))
+        )
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
         .fetch()
         .map { (json) ->
-          objectMapper.readValue<ResourceEvent>(json)
+          objectMapper.readValue<PersistentEvent>(json)
         }
-        .ifEmpty {
-          throw NoSuchResourceId(id)
-        }
+        // filter out application events that don't affect resource history
+        .filterIsInstance<ResourceHistoryEvent>()
     }
   }
 
+  // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
+  override fun appendHistory(event: ResourceEvent) {
+    // for historical reasons, we use the resource UID (not the ID) as an identifier in resource events
+    val uid = jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.uid)).fetchOne(RESOURCE.UID)
+    doAppendHistory(event, uid)
+  }
+
   override fun appendHistory(event: ApplicationEvent) {
+    doAppendHistory(event, event.application)
+  }
+
+  private fun doAppendHistory(event: PersistentEvent, ref: String) {
     jooq.transaction { config ->
       val txn = DSL.using(config)
 
@@ -212,13 +238,19 @@ open class SqlResourceRepository(
         val previousEvent = txn
           .select(EVENT.JSON)
           .from(EVENT)
-          .where(EVENT.SCOPE.eq(Scope.APPLICATION.name))
-          .and(EVENT.REF.eq(event.application))
+          // look for resource events that match the resource...
+          .where(EVENT.SCOPE.eq(Scope.RESOURCE.name)
+            .and(EVENT.REF.eq(ref))
+          )
+          // ...or application events that match the application as they apply to all resources
+          .or(EVENT.SCOPE.eq(Scope.APPLICATION.name)
+            .and(EVENT_JSON_APPLICATION.eq(event.application))
+          )
           .orderBy(EVENT.TIMESTAMP.desc())
           .limit(1)
           .fetchOne()
           ?.let { (json) ->
-            objectMapper.readValue<ApplicationEvent>(json)
+            objectMapper.readValue<PersistentEvent>(json) as? ResourceHistoryEvent
           }
 
         if (event.javaClass == previousEvent?.javaClass) return@transaction
@@ -226,40 +258,8 @@ open class SqlResourceRepository(
 
       txn
         .insertInto(EVENT)
-        .set(EVENT.SCOPE, Scope.APPLICATION.name)
-        .set(EVENT.REF, event.application)
-        .set(EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
-        .set(EVENT.JSON, objectMapper.writeValueAsString(event))
-        .execute()
-    }
-  }
-
-  // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
-  override fun appendHistory(event: ResourceEvent) {
-    jooq.transaction { config ->
-      val txn = DSL.using(config)
-
-      if (event.ignoreRepeatedInHistory) {
-        val previousEvent = txn
-          .select(EVENT.JSON)
-          .from(EVENT, RESOURCE)
-          .where(EVENT.SCOPE.eq(Scope.RESOURCE.name))
-          .and(RESOURCE.ID.eq(event.id))
-          .and(RESOURCE.UID.eq(EVENT.REF))
-          .orderBy(EVENT.TIMESTAMP.desc())
-          .limit(1)
-          .fetchOne()
-          ?.let { (json) ->
-            objectMapper.readValue<ResourceEvent>(json)
-          }
-
-        if (event.javaClass == previousEvent?.javaClass) return@transaction
-      }
-
-      txn
-        .insertInto(EVENT)
-        .set(EVENT.SCOPE, Scope.RESOURCE.name)
-        .set(EVENT.REF, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.id)))
+        .set(EVENT.SCOPE, event.scope.name)
+        .set(EVENT.REF, ref)
         .set(EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
         .set(EVENT.JSON, objectMapper.writeValueAsString(event))
         .execute()
@@ -267,6 +267,7 @@ open class SqlResourceRepository(
   }
 
   override fun delete(id: String) {
+    // TODO: these should be run inside a transaction
     val uid = sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.UID)
         .from(RESOURCE)
@@ -289,6 +290,12 @@ open class SqlResourceRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(DIFF_FINGERPRINT)
         .where(DIFF_FINGERPRINT.ENTITY_ID.eq(id))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(PAUSED)
+        .where(PAUSED.SCOPE.eq(PauseScope.RESOURCE.name))
+        .and(PAUSED.NAME.eq(id))
         .execute()
     }
   }
@@ -333,6 +340,9 @@ open class SqlResourceRepository(
         }
     }
   }
+
+  private val Resource<*>.uid: String
+    get() = jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(id)).fetchOne(RESOURCE.UID)
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

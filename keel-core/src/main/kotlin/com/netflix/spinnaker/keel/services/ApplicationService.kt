@@ -3,11 +3,17 @@ package com.netflix.spinnaker.keel.services
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus
@@ -28,6 +34,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.GitMetadata
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
+import com.netflix.spinnaker.keel.core.api.ResourceArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ResourceSummary
 import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
@@ -46,7 +53,7 @@ import org.springframework.stereotype.Component
 @Component
 class ApplicationService(
   private val repository: KeelRepository,
-  private val resourceHistoryService: ResourceHistoryService,
+  private val resourceStatusService: ResourceStatusService,
   constraintEvaluators: List<ConstraintEvaluator<*>>
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -126,11 +133,37 @@ class ApplicationService(
   fun getResourceSummariesFor(application: String): List<ResourceSummary> {
     return try {
       val deliveryConfig = repository.getDeliveryConfigForApplication(application)
-      resourceHistoryService.getResourceSummariesFor(deliveryConfig)
+      return deliveryConfig.resources.map { resource ->
+        resource.toResourceSummary(deliveryConfig)
+      }
     } catch (e: NoSuchDeliveryConfigException) {
       emptyList()
     }
   }
+
+  private fun Resource<*>.toResourceSummary(deliveryConfig: DeliveryConfig) =
+    ResourceSummary(
+      resource = this,
+      status = resourceStatusService.getStatus(id),
+      moniker = if (spec is Monikered) {
+        (spec as Monikered).moniker
+      } else {
+        null
+      },
+      locations = if (spec is Locatable<*>) {
+        SimpleLocations(
+          account = (spec as Locatable<*>).locations.account,
+          vpc = (spec as Locatable<*>).locations.vpc,
+          regions = (spec as Locatable<*>).locations.regions.map { SimpleRegionSpec(it.name) }.toSet()
+        )
+      } else {
+        null
+      },
+      artifact = findAssociatedArtifact(deliveryConfig)
+        ?.let {
+          ResourceArtifactSummary(it.name, it.type, it.reference)
+        }
+    )
 
   /**
    * Returns a list of [EnvironmentSummary] for the specific application.

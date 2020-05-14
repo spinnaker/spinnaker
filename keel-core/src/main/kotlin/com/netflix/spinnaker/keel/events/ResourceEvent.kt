@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory
 abstract class ResourceEvent(
   open val message: String? = null,
   override val triggeredBy: String? = null
-) : PersistentEvent() {
+) : PersistentEvent(), ResourceHistoryEvent {
   override val scope = Scope.RESOURCE
   abstract val kind: ResourceKind
   abstract val id: String

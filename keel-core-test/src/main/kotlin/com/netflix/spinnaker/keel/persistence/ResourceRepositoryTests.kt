@@ -17,7 +17,10 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
+import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
@@ -69,6 +72,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       application = "toast",
       serviceAccount = "keel@spinnaker"
     ),
+    val user: String = "keel@keel.io",
     val subject: T,
     val callback: (ResourceHeader) -> Unit = mockk(relaxed = true) // has to be relaxed due to https://github.com/mockk/mockk/issues/272
   )
@@ -177,63 +181,104 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
       }
 
-      context("updating the state of the resource") {
-        context("an event that should be persisted in history") {
+      context("updating the event history of the resource") {
+        context("appending a resource event") {
           before {
             tick()
-            // TODO: ensure persisting a map with actual data
-            subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
+            subject.appendHistory(ResourceUpdated(resource, mapOf("delta" to "some-difference"), clock))
           }
 
-          test("the event is included in the history") {
+          test("the event is included in the resource history") {
             expectThat(subject.eventHistory(resource.id))
               .hasSize(2)
               .first()
               .isA<ResourceUpdated>()
+              .get { delta }.isEqualTo(mapOf("delta" to "some-difference"))
+          }
+        }
+
+        context("appending an identical resource event with duplicates allowed") {
+          before {
+            tick()
+            subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
+            tick()
+            subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
           }
 
-          context("updating the state again") {
-            before {
-              tick()
-              subject.appendHistory(ResourceValid(resource, clock))
-            }
-
-            test("the event is included in the history") {
-              expectThat(subject.eventHistory(resource.id))
-                .hasSize(3)
-                .first()
-                .isA<ResourceValid>()
-            }
-
-            context("a subsequent identical event that should be ignored") {
-              before {
-                tick()
-                subject.appendHistory(ResourceValid(resource, clock))
+          test("the event is included in the resource history") {
+            expectThat(subject.eventHistory(resource.id))
+              .hasSize(3)
+              .and {
+                first().isA<ResourceUpdated>()
+                second().isA<ResourceUpdated>()
               }
+          }
+        }
 
-              test("the event is not included in the history") {
-                expectThat(subject.eventHistory(resource.id))
-                  .and {
-                    first().isA<ResourceValid>()
-                    second().not().isA<ResourceValid>()
-                  }
-              }
-            }
+        context("appending a resource event with duplicates disallowed the first time") {
+          before {
+            tick()
+            subject.appendHistory(ResourceValid(resource, clock))
           }
 
-          context("a subsequent identical event") {
-            before {
-              tick()
-              subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
-            }
+          test("the event is included in the resource history") {
+            expectThat(subject.eventHistory(resource.id))
+              .hasSize(2)
+              .first()
+              .isA<ResourceValid>()
+          }
+        }
 
-            test("the new state is included in the history") {
-              expectThat(subject.eventHistory(resource.id))
-                .hasSize(3)
-                .and {
-                  first().isA<ResourceUpdated>()
-                  second().isA<ResourceUpdated>()
-                }
+        context("appending an identical resource event with duplicates disallowed the second time") {
+          before {
+            tick()
+            subject.appendHistory(ResourceValid(resource, clock))
+            tick()
+            subject.appendHistory(ResourceValid(resource, clock))
+          }
+
+          test("the event is not included in the resource history") {
+            expectThat(subject.eventHistory(resource.id)) {
+              first().isA<ResourceValid>()
+              second().not().isA<ResourceValid>()
+            }
+          }
+        }
+
+        context("appending application events that affect resource history") {
+          before {
+            tick()
+            subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+            tick()
+            subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
+          }
+
+          test("the events are included in the resource history") {
+            expectThat(subject.eventHistory(resource.id)) {
+              first().isA<ApplicationActuationResumed>()
+              second().isA<ApplicationActuationPaused>()
+            }
+          }
+        }
+
+        context("appending a resource event identical to the last resource event, but with a relevant application events in between") {
+          before {
+            tick()
+            subject.appendHistory(ResourceValid(resource, clock))
+            tick()
+            subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+            tick()
+            subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
+            tick()
+            subject.appendHistory(ResourceValid(resource, clock))
+          }
+
+          test("the event is included in the resource history") {
+            expectThat(subject.eventHistory(resource.id)) {
+              first().isA<ResourceValid>()
+              second().isA<ApplicationActuationResumed>()
+              third().isA<ApplicationActuationPaused>()
+              fourth().isA<ResourceValid>()
             }
           }
         }
@@ -241,6 +286,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
+          subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+          subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
           subject.delete(resource.id)
         }
 
@@ -261,18 +308,27 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             subject.eventHistory(resource.id)
           }
         }
+
+        test("events for the resource's parent application remain") {
+          expectThat(
+            subject.applicationEventHistory(resource.application)
+          ).hasSize(2)
+        }
       }
 
       context("fetching event history for the resource") {
         before {
           repeat(3) {
-            clock.incrementBy(TEN_MINUTES)
+            tick()
             subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
             subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
             subject.appendHistory(ResourceActuationLaunched(resource, "whatever", emptyList(), clock))
             subject.appendHistory(ResourceDeltaResolved(resource, clock))
           }
-          clock.incrementBy(TEN_MINUTES)
+          tick()
+          subject.appendHistory(ApplicationActuationPaused(resource.application, user, clock))
+          tick()
+          subject.appendHistory(ApplicationActuationResumed(resource.application, user, clock))
         }
 
         test("default limit is 10 events") {
@@ -288,7 +344,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("the limit can be higher than the default") {
           expectThat(subject.eventHistory(resource.id, limit = 20))
-            .hasSize(13)
+            .hasSize(15)
         }
 
         test("zero limit is not allowed") {
@@ -302,17 +358,23 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             .isFailure()
             .isA<IllegalArgumentException>()
         }
+
+        test("event history includes relevant application events") {
+          expectThat(subject.eventHistory(resource.id)) {
+            first().isA<ApplicationActuationResumed>()
+            second().isA<ApplicationActuationPaused>()
+          }
+        }
       }
     }
   }
 
   private fun tick() {
-    clock.incrementBy(ONE_SECOND)
+    clock.incrementBy(ONE_MINUTE)
   }
 
   companion object {
-    val ONE_SECOND: Duration = Duration.ofSeconds(1)
-    val TEN_MINUTES: Duration = Duration.ofMinutes(10)
+    val ONE_MINUTE: Duration = Duration.ofMinutes(1)
   }
 
   fun <T : Iterable<E>, E : ResourceEvent> Assertion.Builder<T>.areNoOlderThan(age: Period): Assertion.Builder<T> =
@@ -332,6 +394,12 @@ fun <T : Any> Assertion.Builder<T>.isNotIn(expected: Collection<T>) =
 
 fun <T : List<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
   get("second element %s") { this[1] }
+
+fun <T : List<E>, E> Assertion.Builder<T>.third(): Assertion.Builder<E> =
+  get("third element %s") { this[2] }
+
+fun <T : List<E>, E> Assertion.Builder<T>.fourth(): Assertion.Builder<E> =
+  get("fourth element %s") { this[3] }
 
 fun randomString(length: Int = 8) =
   randomUUID()

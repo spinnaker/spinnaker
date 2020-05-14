@@ -13,8 +13,8 @@ import java.time.Instant
   include = JsonTypeInfo.As.PROPERTY
 )
 @JsonSubTypes(
-  JsonSubTypes.Type(value = ApplicationEvent::class, name = "application"),
-  JsonSubTypes.Type(value = ResourceEvent::class, name = "resource")
+  JsonSubTypes.Type(value = ApplicationEvent::class),
+  JsonSubTypes.Type(value = ResourceEvent::class)
 )
 abstract class PersistentEvent {
   abstract val scope: Scope
@@ -33,4 +33,25 @@ abstract class PersistentEvent {
     @JsonProperty("resource") RESOURCE,
     @JsonProperty("application") APPLICATION
   }
+}
+
+/**
+ * Common interface implemented by all [ResourceEvent]s and certain [ApplicationEvent]s that affect all the
+ * application's resources, such as pausing and resuming.
+ */
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type",
+  include = JsonTypeInfo.As.PROPERTY
+)
+@JsonSubTypes(
+  JsonSubTypes.Type(value = ResourceEvent::class),
+  JsonSubTypes.Type(value = ApplicationActuationPaused::class),
+  JsonSubTypes.Type(value = ApplicationActuationResumed::class)
+)
+interface ResourceHistoryEvent {
+  val scope: PersistentEvent.Scope
+  val uid: String // the resource ID or application name
+  val ignoreRepeatedInHistory: Boolean
+  val timestamp: Instant
 }

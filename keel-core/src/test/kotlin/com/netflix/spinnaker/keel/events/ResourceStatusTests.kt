@@ -33,7 +33,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryPausedRepository
-import com.netflix.spinnaker.keel.services.ResourceHistoryService
+import com.netflix.spinnaker.keel.services.ResourceStatusService
 import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
@@ -50,7 +50,7 @@ internal class ResourceStatusTests : JUnit5Minutests {
     val repository = combinedInMemoryRepository(clock)
     val pausedRepository = InMemoryPausedRepository()
     val actuationPauser = ActuationPauser(repository.resourceRepository, pausedRepository, repository.publisher, clock)
-    val resourceHistoryService = ResourceHistoryService(repository, actuationPauser)
+    val resourceHistoryService = ResourceStatusService(repository.resourceRepository, actuationPauser)
     val resource = resource()
     val createdEvent = ResourceCreated(resource)
     val missingEvent = ResourceMissing(resource)

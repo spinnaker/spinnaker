@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ApplicationEvent
 import com.netflix.spinnaker.keel.events.PersistentEvent
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -36,15 +37,13 @@ class InMemoryResourceRepository(
 ) : ResourceRepository {
 
   private val resources = mutableMapOf<String, Resource<*>>()
-  private val resourceEvents = mutableMapOf<String, MutableList<ResourceEvent>>()
-  private val applicationEvents = mutableMapOf<String, MutableList<ApplicationEvent>>()
+  private val events = mutableListOf<PersistentEvent>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
   private val resourceArtifacts = mutableMapOf<String, DeliveryArtifact>()
 
   fun dropAll() {
     resources.clear()
-    resourceEvents.clear()
-    applicationEvents.clear()
+    events.clear()
     lastCheckTimes.clear()
     resourceArtifacts.clear()
   }
@@ -86,7 +85,7 @@ class InMemoryResourceRepository(
       .singleOrNull()
       ?.also {
         resources.remove(it)
-        resourceEvents.remove(it)
+        events.removeIf { event -> event.uid == id }
         resourceArtifacts.remove(it)
       }
       ?: throw NoSuchResourceId(id)
@@ -94,49 +93,48 @@ class InMemoryResourceRepository(
 
   override fun applicationEventHistory(application: String, limit: Int): List<ApplicationEvent> {
     require(limit > 0) { "limit must be a positive integer" }
-    return applicationEvents[application]
-      ?.take(limit)
-      ?: emptyList()
+    return events
+      .filterIsInstance<ApplicationEvent>()
+      .filter { it.application == application }
+      .sortedByDescending { it.timestamp }
+      .take(limit)
   }
 
   override fun applicationEventHistory(application: String, after: Instant): List<ApplicationEvent> {
-    return applicationEvents[application]
-      ?.takeWhile { !it.timestamp.isBefore(after) }
-      ?: emptyList()
+    return events
+      .filterIsInstance<ApplicationEvent>()
+      .filter { it.application == application }
+      .sortedByDescending { it.timestamp }
+      .takeWhile { !it.timestamp.isBefore(after) }
   }
 
-  override fun eventHistory(id: String, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(id: String, limit: Int): List<ResourceHistoryEvent> {
     require(limit > 0) { "limit must be a positive integer" }
-    return resourceEvents[id]
-      ?.take(limit)
-      ?: throw NoSuchResourceId(id)
+    val resource = get(id)
+    return events
+      .filterIsInstance<ResourceHistoryEvent>()
+      .filter { it.uid == resource.id || it.uid == resource.application }
+      .sortedByDescending { it.timestamp }
+      .take(limit)
   }
 
   override fun appendHistory(event: ResourceEvent) {
-    appendHistory(resourceEvents, event)
+    doAppendHistory(event)
   }
 
   override fun appendHistory(event: ApplicationEvent) {
-    appendHistory(applicationEvents, event)
+    doAppendHistory(event)
   }
 
-  private fun <T : PersistentEvent> appendHistory(eventList: MutableMap<String, MutableList<T>>, event: T) {
-    eventList.computeIfAbsent(event.uid) {
-      mutableListOf()
+  private fun doAppendHistory(event: PersistentEvent) {
+    val mostRecentEvent = events.firstOrNull() // we get the first because the list is in descending order
+    if ((!event.ignoreRepeatedInHistory || event.javaClass != mostRecentEvent?.javaClass)) {
+      events.add(0, event)
     }
-      .let {
-        val mostRecentEvent = it.firstOrNull() // we get the first because the list is in descending order
-        if (!event.ignoreRepeatedInHistory || event.javaClass != mostRecentEvent?.javaClass) {
-          it.add(0, event)
-        }
-      }
   }
 
   fun clearResourceEvents(id: String) =
-    resourceEvents.remove(id)
-
-  fun clearApplicationEvents(application: String) =
-    applicationEvents.remove(application)
+    events.removeIf { it.uid == id }
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)

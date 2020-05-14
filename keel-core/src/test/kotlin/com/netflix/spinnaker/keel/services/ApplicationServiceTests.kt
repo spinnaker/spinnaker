@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.test.artifactReferenceResource
 import com.netflix.spinnaker.keel.test.versionedArtifactResource
 import com.netflix.spinnaker.time.MutableClock
@@ -54,7 +55,7 @@ class ApplicationServiceTests : JUnit5Minutests {
       ZoneId.of("UTC")
     )
     val repository: KeelRepository = mockk()
-    val resourceHistoryService: ResourceHistoryService = mockk()
+    val resourceStatusService: ResourceStatusService = mockk()
 
     val application = "fnord"
     val artifact = DebianArtifact(
@@ -113,7 +114,7 @@ class ApplicationServiceTests : JUnit5Minutests {
     }
 
     // subject
-    val applicationService = ApplicationService(repository, resourceHistoryService, listOf(dependsOnEvaluator))
+    val applicationService = ApplicationService(repository, resourceStatusService, listOf(dependsOnEvaluator))
   }
 
   fun applicationServiceTests() = rootContext<Fixture> {
@@ -484,6 +485,22 @@ class ApplicationServiceTests : JUnit5Minutests {
             }
           }
         }
+      }
+    }
+
+    context("resource summaries by application") {
+      before {
+        every { resourceStatusService.getStatus(any()) } returns CREATED
+      }
+
+      test("includes all resources within the delivery config") {
+        val summaries = applicationService.getResourceSummariesFor(application)
+        expectThat(summaries.size).isEqualTo(deliveryConfig.resources.size)
+      }
+
+      test("sets the resource status as returned by ResourceStatusService") {
+        val summaries = applicationService.getResourceSummariesFor(application)
+        expectThat(summaries.map { it.status }.all { it == CREATED }).isTrue()
       }
     }
 

@@ -33,7 +33,7 @@ data class ApplicationActuationPaused(
   override val application: String,
   override val timestamp: Instant,
   override val triggeredBy: String?
-) : ApplicationEvent() {
+) : ApplicationEvent(), ResourceHistoryEvent {
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
@@ -51,7 +51,7 @@ data class ApplicationActuationResumed(
   override val application: String,
   override val triggeredBy: String?,
   override val timestamp: Instant
-) : ApplicationEvent() {
+) : ApplicationEvent(), ResourceHistoryEvent {
   @JsonIgnore override val ignoreRepeatedInHistory = true
 
   constructor(application: String, triggeredBy: String, clock: Clock = Companion.clock) : this(
