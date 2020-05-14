@@ -28,7 +28,7 @@ public class AwsManagedAccount {
 
   private String bucket;
   private String region;
-  private String rootFolder;
+  private String rootFolder = "kayenta";
   private String profileName;
   private String endpoint;
   private String proxyHost;

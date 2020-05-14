@@ -35,7 +35,7 @@ public class GoogleManagedAccount {
 
   private String bucket;
   private String bucketLocation;
-  private String rootFolder;
+  private String rootFolder = "kayenta";
 
   private List<AccountCredentials.Type> supportedTypes;
 
