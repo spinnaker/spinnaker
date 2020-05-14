@@ -6,3 +6,6 @@ gcb:
     jsonKey: /path/to/some/file
 locking:
   enabled: true
+services:
+  fiat:
+    baseUrl: https://fiat.net
