@@ -100,7 +100,8 @@ class AuthorizationSupport(
     withAuthentication(target, identifier) { auth ->
       val application = when (target) {
         RESOURCE -> repository.getResource(identifier).application
-        APPLICATION, DELIVERY_CONFIG -> identifier
+        APPLICATION -> identifier
+        DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).application
         else -> throw InvalidRequestException("Invalid target type ${target.name} for application permission check")
       }
       AuthenticatedRequest.allowAnonymous {
