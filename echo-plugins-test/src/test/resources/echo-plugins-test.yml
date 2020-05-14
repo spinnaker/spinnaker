@@ -4,6 +4,10 @@ front50:
 orca:
   baseUrl: 'http://localhost:8083'
 
+services:
+  fiat:
+    baseUrl: http://fiat.net
+
 resilience4j.circuitbreaker:
   instances:
     telemetry:
