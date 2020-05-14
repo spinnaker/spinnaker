@@ -75,10 +75,6 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
     @Override
     void poll(boolean sendEvents) {
-        if (keysMigration.isPresent() && keysMigration.get().running) {
-            log.warn("Skipping poll cycle: Keys migration is in progress")
-            return
-        }
         dockerRegistryAccounts.updateAccounts()
         dockerRegistryAccounts.accounts.forEach({ account ->
             pollSingle(new PollContext((String) account.name, account, !sendEvents))
