@@ -1,10 +1,12 @@
 import React from 'react';
+
+import { FormikFormField } from 'core/presentation';
+import { ApplicationsPickerInput } from 'core/widgets';
 import { FormikErrors, getIn, FormikProps } from 'formik';
 import { isEqual } from 'lodash';
 
 import { IProject, IProjectPipeline } from 'core/domain';
 import { IWizardPageComponent } from 'core/modal';
-import { FormikApplicationsPicker } from './FormikApplicationsPicker';
 
 export interface IApplicationsProps {
   formik: FormikProps<IProject>;
@@ -42,13 +44,10 @@ export class Applications extends React.Component<IApplicationsProps> implements
   }
 
   public render() {
-    const { allApplications } = this.props;
-
     return (
-      <FormikApplicationsPicker
-        className="ConfigureProject-Applications"
+      <FormikFormField
         name="config.applications"
-        applications={allApplications}
+        input={props => <ApplicationsPickerInput multi={true} {...props} />}
       />
     );
   }

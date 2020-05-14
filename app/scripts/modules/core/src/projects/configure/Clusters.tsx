@@ -7,8 +7,6 @@ import { IWizardPageComponent } from 'core/modal';
 import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 
-import { FormikApplicationsPicker } from './FormikApplicationsPicker';
-
 export interface IClustersProps {
   accounts: IAccount[];
 }
@@ -122,7 +120,10 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
                           </label>
 
                           {!!cluster.applications && (
-                            <FormikApplicationsPicker name={applicationsPath} applications={applications} />
+                            <FormikFormField
+                              name={applicationsPath}
+                              input={props => <ReactSelectInput multi={true} stringOptions={applications} {...props} />}
+                            />
                           )}
                         </td>
 
