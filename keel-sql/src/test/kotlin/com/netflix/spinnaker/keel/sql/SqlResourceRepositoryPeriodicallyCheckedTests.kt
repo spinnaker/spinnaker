@@ -52,7 +52,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
     testDatabase.dataSource.close()
   }
 
-  fun parallelCheckingTests() = rootContext<Fixture<Resource<out ResourceSpec>, SqlResourceRepository>> {
+  fun parallelCheckingTests() = rootContext<Fixture<Resource<ResourceSpec>, SqlResourceRepository>> {
     fixture {
       Fixture(factory, createAndStore, updateOne)
     }
@@ -72,7 +72,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
       }
 
       test("each thread gets a unique set of resources") {
-        val results = mutableSetOf<Resource<out ResourceSpec>>()
+        val results = mutableSetOf<Resource<ResourceSpec>>()
         doInParallel(500) {
           nextResults().let(results::addAll)
         }
@@ -126,7 +126,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
       subject.itemsDueForCheck(Duration.ofMinutes(30), 2)
   }
 
-  fun unreadableResourceTests() = rootContext<Fixture<Resource<out ResourceSpec>, SqlResourceRepository>> {
+  fun unreadableResourceTests() = rootContext<Fixture<Resource<ResourceSpec>, SqlResourceRepository>> {
     fixture {
       Fixture(factory, { count ->
         listOf(

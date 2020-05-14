@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 class TagVersionStrategyPropertyCustomizer : PropertyCustomizer {
   override fun customize(property: Schema<*>?, type: AnnotatedType): Schema<*>? {
     if (type.rawClass == TagVersionStrategy::class.java) {
+      @Suppress("UNCHECKED_CAST")
       (property as? Schema<String>)?.enum = TagVersionStrategy.values().map { it.friendlyName }
     }
     return property

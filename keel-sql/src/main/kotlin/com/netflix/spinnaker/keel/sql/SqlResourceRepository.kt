@@ -64,7 +64,7 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun get(id: String): Resource<out ResourceSpec> {
+  override fun get(id: String): Resource<ResourceSpec> {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
@@ -300,7 +300,7 @@ open class SqlResourceRepository(
     }
   }
 
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
     return sqlRetry.withRetry(WRITE) {

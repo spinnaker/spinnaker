@@ -99,6 +99,7 @@ class ResourceActuator(
               val versionedArtifact = when (desired) {
                 is Map<*, *> -> {
                   if (desired.size > 0) {
+                    @Suppress("UNCHECKED_CAST")
                     (desired as Map<String, VersionedArtifactProvider>).values.first()
                   } else {
                     null
@@ -192,7 +193,7 @@ class ResourceActuator(
       else -> SystemException(this)
     } as SpinnakerException
 
-  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<out ResourceSpec>): Pair<T, T?> =
+  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<ResourceSpec>): Pair<T, T?> =
     supervisorScope {
       val desired = async {
         try {

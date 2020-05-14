@@ -22,8 +22,4 @@ import java.time.Clock
 
 class InMemoryUnhappyVetoRepositoryTests : UnhappyVetoRepositoryTests<InMemoryUnhappyVetoRepository>() {
   override fun factory(clock: Clock) = InMemoryUnhappyVetoRepository(clock)
-
-  override fun InMemoryUnhappyVetoRepository.flush() {
-    flush()
-  }
 }

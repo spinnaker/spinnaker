@@ -236,8 +236,8 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun versions(artifact: DeliveryArtifact): List<String> {
-    return if (isRegistered(artifact.name, artifact.type)) {
+  override fun versions(artifact: DeliveryArtifact): List<String> =
+    if (isRegistered(artifact.name, artifact.type)) {
       sqlRetry.withRetry(READ) {
         jooq
           .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
@@ -259,7 +259,6 @@ class SqlArtifactRepository(
     } else {
       throw NoSuchArtifactException(artifact)
     }
-  }
 
   /**
    * Given a docker artifact and a list of docker tags, filters out all tags that don't produce exactly one capture

@@ -48,7 +48,10 @@ data class RedBlack(
     fun fromOrcaStageContext(context: Map<String, Any?>) =
       RedBlack(
         rollbackOnFailure = context["rollback"]
-          ?.let { it as Map<String, Any> }
+          ?.let {
+            @Suppress("UNCHECKED_CAST")
+            it as Map<String, Any>
+          }
           ?.get("onFailure") as Boolean,
         resizePreviousToZero = context["scaleDown"] as Boolean,
         maxServerGroups = context["maxRemainingAsgs"].toString().toInt(),
@@ -69,7 +72,7 @@ data class RedBlack(
   )
 
   override val isStaggered: Boolean
-    get() = stagger.isNotEmpty() ?: false
+    get() = stagger.isNotEmpty()
 
   override fun withDefaultsOmitted() =
     RedBlack(

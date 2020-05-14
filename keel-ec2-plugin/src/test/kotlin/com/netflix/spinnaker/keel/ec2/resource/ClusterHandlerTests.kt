@@ -415,7 +415,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
-          get { get("availabilityZones") as Map<String, String> }.containsKey("us-west-2")
+          get { get("availabilityZones") }.isA<Map<String, String>>().containsKey("us-west-2")
         }
       }
     }

@@ -148,12 +148,9 @@ class ExceptionHandler(
             "array"
           } else if (ResourceSpec::class.java.isAssignableFrom(type)) {
             // for ResourceSpec sub-types, use the API version/kind instead of the class name
+            @Suppress("UNCHECKED_CAST")
             val handler = resourceHandlers.supporting(type as Class<ResourceSpec>)
-            if (handler != null) {
-              handler.supportedKind.kind
-            } else {
-              type.name
-            }
+            handler?.supportedKind?.kind ?: type.name
           } else {
             type.name
           },
@@ -173,7 +170,7 @@ class ExceptionHandler(
       return Pair(this, this.path)
     }
     var exception: Throwable = this
-    var paths: MutableList<JsonMappingException.Reference> = this.path.toMutableList()
+    val paths: MutableList<JsonMappingException.Reference> = this.path.toMutableList()
     while (exception.cause != null && exception.cause != exception) {
       exception = exception.cause!!
       if (exception is JsonMappingException) {

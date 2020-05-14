@@ -36,7 +36,7 @@ data class ResourceHeader(
   )
 }
 
-interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out ResourceSpec>> {
+interface ResourceRepository : PeriodicallyCheckedRepository<Resource<ResourceSpec>> {
   val clock: Clock
     get() = Clock.systemUTC()
 
@@ -51,7 +51,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    * @return The resource represented by [id] or `null` if [id] is unknown.
    * @throws NoSuchResourceException if [id] does not map to a resource in the repository.
    */
-  fun get(id: String): Resource<out ResourceSpec>
+  fun get(id: String): Resource<ResourceSpec>
 
   fun hasManagedResources(application: String): Boolean
 
@@ -127,7 +127,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    * This method is _not_ intended to be idempotent, subsequent calls are expected to return
    * different values.
    */
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>>
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>>
 
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10

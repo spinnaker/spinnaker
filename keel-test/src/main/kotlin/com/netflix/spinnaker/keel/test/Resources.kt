@@ -33,7 +33,6 @@ fun resource(
       resource(
         kind = kind,
         spec = spec,
-        id = spec.id,
         application = application
       )
     }
@@ -48,7 +47,6 @@ fun artifactVersionedResource(
       resource(
         kind = kind,
         spec = spec,
-        id = spec.id,
         application = application
       )
     }
@@ -80,7 +78,6 @@ fun locatableResource(
       resource(
         kind = kind,
         spec = spec,
-        id = spec.id,
         application = application
       )
     }
@@ -91,14 +88,12 @@ fun <T : Monikered> resource(
 ): Resource<T> = resource(
   kind = kind,
   spec = spec,
-  id = spec.moniker.toString(),
   application = spec.application
 )
 
 fun <T : ResourceSpec> resource(
   kind: ResourceKind = TEST_API_V1.qualify("whatever"),
   spec: T,
-  id: String = spec.id,
   application: String = "fnord"
 ): Resource<T> =
   Resource(
@@ -133,7 +128,6 @@ fun versionedArtifactResource(
       resource(
         kind = kind,
         spec = spec,
-        id = spec.id,
         application = application
       )
     }
@@ -148,7 +142,6 @@ fun artifactReferenceResource(
       resource(
         kind = kind,
         spec = spec,
-        id = spec.id,
         application = application
       )
     }

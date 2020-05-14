@@ -208,8 +208,6 @@ data class ResourceActuationLaunched(
 
 /**
  * Actuation on the managed resource has been paused.
- *
- * @property reason The reason why actuation was paused.
  */
 data class ResourceActuationPaused(
   override val kind: ResourceKind,
@@ -397,7 +395,7 @@ enum class ResourceCheckErrorOrigin {
   @JsonProperty("unknown") UNKNOWN;
 
   companion object {
-    val log: Logger by lazy { LoggerFactory.getLogger(ResourceCheckErrorOrigin.javaClass) }
+    val log: Logger by lazy { LoggerFactory.getLogger(ResourceCheckErrorOrigin::class.java) }
     fun fromException(exceptionType: Class<out SpinnakerException>) =
       when {
         UserException::class.java.isAssignableFrom(exceptionType) -> USER

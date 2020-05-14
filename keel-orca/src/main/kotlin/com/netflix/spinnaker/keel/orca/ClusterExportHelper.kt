@@ -108,6 +108,7 @@ class ClusterExportHelper(
     }
   }
 
+  @Suppress("UNCHECKED_CAST")
   private fun ExecutionDetailResponse.getDeployStageContext() =
     stages
       ?.find { stage -> stage["type"] == "deploy" }
@@ -117,6 +118,7 @@ class ClusterExportHelper(
         (context["clusters"] as? List<OrcaExecutionStage>)?.first()
       }
 
+  @Suppress("UNCHECKED_CAST")
   private fun ExecutionDetailResponse.getTaskContext(taskType: String) =
     execution.stages
       ?.find { stage -> stage["type"] == taskType }

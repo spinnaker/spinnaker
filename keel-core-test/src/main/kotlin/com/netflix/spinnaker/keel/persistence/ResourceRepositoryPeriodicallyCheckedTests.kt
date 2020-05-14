@@ -6,11 +6,11 @@ import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 
 abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository> :
-  PeriodicallyCheckedRepositoryTests<Resource<out ResourceSpec>, S>() {
+  PeriodicallyCheckedRepositoryTests<Resource<ResourceSpec>, S>() {
 
   override val descriptor = "resource"
 
-  override val createAndStore: Fixture<Resource<out ResourceSpec>, S>.(Int) -> Collection<Resource<out ResourceSpec>> =
+  override val createAndStore: Fixture<Resource<ResourceSpec>, S>.(Int) -> Collection<Resource<ResourceSpec>> =
     { count ->
       (1..count)
         .map { i ->
@@ -18,7 +18,7 @@ abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository
         }
     }
 
-  override val updateOne: Fixture<Resource<out ResourceSpec>, S>.() -> Resource<DummyResourceSpec> = {
+  override val updateOne: Fixture<Resource<ResourceSpec>, S>.() -> Resource<DummyResourceSpec> = {
     subject
       .get<DummyResourceSpec>("test:whatever:fnord-1")
       .let {

@@ -83,7 +83,7 @@ class AdHocDiffer(
       resource.kind
     ) as ResourceHandler<T, *>
 
-  private suspend fun ResourceHandler<*, *>.resolve(resource: Resource<out ResourceSpec>): Pair<Any, Any?> =
+  private suspend fun ResourceHandler<*, *>.resolve(resource: Resource<ResourceSpec>): Pair<Any, Any?> =
     coroutineScope {
       val desired = async {
         try {

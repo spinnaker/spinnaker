@@ -17,6 +17,7 @@ interface SpecMigrator<I : ResourceSpec, O : ResourceSpec> {
 /**
  * Recursively applies [SpecMigrator]s to bring a [spec] of [kind] up to the latest version.
  */
+@Suppress("UNCHECKED_CAST")
 fun <I : ResourceSpec> Collection<SpecMigrator<*, *>>.migrate(
   kind: ResourceKind,
   spec: I

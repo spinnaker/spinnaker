@@ -31,7 +31,7 @@ data class EnvironmentSummary(
     get() = environment.resources.map { it.id }.toSet()
 
   companion object {
-    val log = LoggerFactory.getLogger(javaClass)
+    val log = LoggerFactory.getLogger(EnvironmentSummary::class.java)
   }
 
   fun getArtifactPromotionStatus(artifact: DeliveryArtifact, version: String) =

@@ -125,14 +125,13 @@ class ExportController(
           .supporting(group, normalizedType)
           .map { h -> h.supportedKind.kind.version }
           .sortedWith(versionComparator)
-          .last()
+          .lastOrNull() ?: error("Unable to find version for group $group, $normalizedType")
       }
-
-      (version != null) || error("Unable to find version for group $group, $normalizedType")
 
       "$group/$normalizedType@v$version"
     }.let(ResourceKind.Companion::parseKind)
 
+  @Suppress("UNCHECKED_CAST")
   fun generateExportable(cloudProvider: String, type: String, account: String, user: String, name: String): Exportable {
     val kind = parseKind(cloudProvider, type)
     return Exportable(

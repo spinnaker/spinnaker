@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
@@ -73,12 +72,6 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
           name = "test",
           resources = setOf(resource),
           notifications = setOf(notification)
-        )
-        val deliveryConfig = DeliveryConfig(
-          name = "keel",
-          application = "keel",
-          serviceAccount = "keel@spinnaker",
-          environments = setOf(env)
         )
         every { combinedRepository.environmentFor(resource.id) } returns env
 

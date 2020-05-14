@@ -128,7 +128,7 @@ class TitusClusterHandler(
           val desired = diff.desired
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.upsertServerGroupJob(resource.serviceAccount) + resource.spec.deployWith.toOrcaJobProperties()
+            else -> diff.upsertServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
           }
 
           var tags: Set<String> = emptySet()
@@ -323,7 +323,7 @@ class TitusClusterHandler(
     )
   }
 
-  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(user: String): Map<String, Any?> =
+  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(): Map<String, Any?> =
     with(desired) {
       mapOf(
         "application" to moniker.app,

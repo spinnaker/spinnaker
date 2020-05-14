@@ -20,11 +20,5 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.persistence.PausedRepositoryTests
 
 class InMemoryPausedRepositoryTests : PausedRepositoryTests<InMemoryPausedRepository>() {
-  override fun factory(): InMemoryPausedRepository {
-    return InMemoryPausedRepository()
-  }
-
-  override fun InMemoryPausedRepository.flush() {
-    flush()
-  }
+  override fun factory() = InMemoryPausedRepository()
 }

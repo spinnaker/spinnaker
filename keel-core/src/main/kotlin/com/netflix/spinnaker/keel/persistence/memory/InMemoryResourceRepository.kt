@@ -55,7 +55,7 @@ class InMemoryResourceRepository(
   }
 
   @Suppress("UNCHECKED_CAST")
-  override fun get(id: String): Resource<out ResourceSpec> =
+  override fun get(id: String): Resource<ResourceSpec> =
     resources.values.find { it.id == id } ?: throw NoSuchResourceId(id)
 
   override fun hasManagedResources(application: String): Boolean =
@@ -136,7 +136,7 @@ class InMemoryResourceRepository(
   fun clearResourceEvents(id: String) =
     events.removeIf { it.uid == id }
 
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)
     return lastCheckTimes
       .filter { it.value <= cutoff }

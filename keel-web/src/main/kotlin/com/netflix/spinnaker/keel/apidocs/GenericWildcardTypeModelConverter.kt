@@ -42,7 +42,7 @@ class GenericWildcardTypeModelConverter : ModelConverter {
       }
     } else if (type is ParameterizedType) {
       val parameterizedType = type
-      val type = parameterizedType.actualTypeArguments[0]
+      type = parameterizedType.actualTypeArguments[0]
       if (type is WildcardType) {
         if (Any::class.java == type.upperBounds[0]) {
           return resolve(
