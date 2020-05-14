@@ -31,6 +31,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
@@ -40,6 +41,7 @@ class KeelRetrofitConfiguration {
   private val log = LoggerFactory.getLogger(javaClass)
 
   @Bean(name = ["retrofitClient", "okClient"])
+  @Primary // TODO: (SR) -- Refactor it to use the new client provider.
   fun retrofitClient(
     okHttpClientConfig: OkHttp3ClientConfiguration,
     okHttpClientProperties: OkHttpClientConfigurationProperties,
