@@ -22,7 +22,6 @@ import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.kork.annotations.Metered
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
@@ -103,7 +102,7 @@ class MetricInvocationAspect(
   private fun recordMetrics(result: Result, invocationState: MetricInvocationState) {
     if (invocationState.timingId != null) {
       val registry = registryProvider.getOrFallback(invocationState.extensionName)
-      PercentileTimer.get(registry, invocationState.timingId.withTag("result", result.toString()))
+      registry.timer(invocationState.timingId.withTag("result", result.toString()))
         .record(System.currentTimeMillis() - invocationState.startTimeMs, TimeUnit.MILLISECONDS)
     }
   }
