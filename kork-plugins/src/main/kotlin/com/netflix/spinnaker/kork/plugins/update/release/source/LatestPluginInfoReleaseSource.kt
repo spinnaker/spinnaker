@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release.source
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
@@ -44,7 +45,8 @@ class LatestPluginInfoReleaseSource(
 
     return if (latestRelease != null) {
       log.info("Latest release version '{}' for plugin '{}'", latestRelease.version, pluginInfo.id)
-      PluginInfoRelease(pluginInfo.id, latestRelease as SpinnakerPluginInfo.SpinnakerPluginRelease)
+      PluginInfoRelease(pluginInfo.id,
+        objectMapper.convertValue(latestRelease, SpinnakerPluginInfo.SpinnakerPluginRelease::class.java))
     } else {
       log.info("Latest release version not found for plugin '{}'", pluginInfo.id)
       null
@@ -56,4 +58,8 @@ class LatestPluginInfoReleaseSource(
    * [com.netflix.spinnaker.kork.plugins.update.release.provider.AggregatePluginInfoReleaseProvider]
    */
   override fun getOrder(): Int = HIGHEST_PRECEDENCE
+
+  companion object {
+    private val objectMapper = jacksonObjectMapper()
+  }
 }
