@@ -47,6 +47,8 @@ public class FiatServerConfigurationProperties {
 
   private WriteMode writeMode = new WriteMode();
 
+  private int maxExpandedServiceAccounts = 25;
+
   @NestedConfigurationProperty
   private ChaosMonkeyConfigurationProperties chaosMonkey = new ChaosMonkeyConfigurationProperties();
 

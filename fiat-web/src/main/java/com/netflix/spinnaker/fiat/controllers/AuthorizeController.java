@@ -27,6 +27,7 @@ import com.netflix.spinnaker.fiat.model.resources.*;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -138,6 +139,13 @@ public class AuthorizeController {
     Set<ServiceAccount.View> serviceAccounts = getUserPermissionView(userId).getServiceAccounts();
     if (!expand) {
       return serviceAccounts;
+    }
+
+    if (serviceAccounts.size() > configProps.getMaxExpandedServiceAccounts()) {
+      throw new InvalidRequestException(
+          String.format(
+              "Unable to expand service accounts for user %s. User has %s service accounts. Maximum expandable service accounts is %s.",
+              userId, serviceAccounts.size(), configProps.getMaxExpandedServiceAccounts()));
     }
 
     return serviceAccounts.stream()
