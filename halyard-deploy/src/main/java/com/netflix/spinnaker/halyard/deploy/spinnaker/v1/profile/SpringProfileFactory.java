@@ -58,8 +58,9 @@ public class SpringProfileFactory extends RegistryBackedProfileFactory {
     }
   }
 
-  protected Map<String, Object> getSpinnakerYaml(DeploymentConfiguration deploymentConfiguration) {
-    Map<String, Object> spinnakerYaml = new LinkedHashMap<>();
+  protected Map<String, Map<String, Object>> getSpinnakerYaml(
+      DeploymentConfiguration deploymentConfiguration) {
+    Map<String, Map<String, Object>> spinnakerYaml = new LinkedHashMap<>();
     Map<String, Object> extensibilityYaml = new LinkedHashMap<>();
     Map<String, Object> extensibilityContents =
         deploymentConfiguration.getSpinnaker().getExtensibility().toMap();
