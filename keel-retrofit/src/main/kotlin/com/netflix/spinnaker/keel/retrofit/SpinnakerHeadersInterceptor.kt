@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.retrofit
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Interceptor
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory
  * Okhttp3 interceptor that adds the X-SPINNAKER-* headers to enable authorization and tracing with downstream
  * Spinnaker services.
  */
-class SpinnakerHeadersInterceptor(private val fiatPermissionEvaluator: FiatPermissionEvaluator) : Interceptor {
+class SpinnakerHeadersInterceptor : Interceptor {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun intercept(chain: Chain): Response {
@@ -29,11 +28,15 @@ class SpinnakerHeadersInterceptor(private val fiatPermissionEvaluator: FiatPermi
 
     // add account information so that downstream services can use that as a fallback if fiat is down
     request.header(Header.USER.header)?.also { user ->
+      // TODO: move the call to fiat to retrieve account permission up in the stack to avoid circular dependency
+      //  with new OkHttpClient setup in kork.
+      /*
       AuthenticatedRequest.allowAnonymous {
         val accounts = fiatPermissionEvaluator.getPermission(user).accounts.joinToString(",") { it.name }
         log.trace("Adding X-SPINNAKER-ACCOUNTS: $accounts to ${request.method} ${request.url}")
         headers[Header.ACCOUNTS.header] = accounts
       }
+      */
     }
 
     request = request.newBuilder().let { builder ->
