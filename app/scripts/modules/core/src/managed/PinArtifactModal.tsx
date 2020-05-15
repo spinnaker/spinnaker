@@ -42,7 +42,7 @@ const EnvironmentOption = memo(
     return (
       <span>
         <span className="sp-margin-s-right" style={{ opacity: disabled ? 0.66 : 1 }}>
-          <EnvironmentBadge name={label} critical={isCritical} size="small" />
+          <EnvironmentBadge name={label} critical={isCritical} size="extraSmall" />
         </span>
         {disabled && (
           <span className="small" style={{ fontStyle: 'italic', color: '#666' }}>
@@ -102,7 +102,7 @@ export const PinArtifactModal = memo(
             return (
               <>
                 <ModalBody>
-                  <div className="sp-padding-xl-yaxis">
+                  <div className="flex-container-v middle sp-padding-xl-yaxis">
                     <div className="flex-container-h sp-margin-xl-bottom">
                       <span className="flex-container-h middle sp-margin-m-right">
                         <Icon name="pin" appearance="neutral" size="large" />

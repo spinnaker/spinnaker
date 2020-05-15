@@ -32,6 +32,7 @@ import { ReactComponent as placeholder } from './vectors/placeholder.svg';
 import { ReactComponent as securityGroup } from './vectors/securityGroup.svg';
 import { ReactComponent as servergroupAws } from './vectors/servergroupAws.svg';
 import { ReactComponent as spel } from './vectors/spel.svg';
+import { ReactComponent as unpin } from './vectors/unpin.svg';
 
 // Icons prefixed sp* are intended for use with the current Spinnaker UI design. They are visually heavier.
 import { ReactComponent as spCIBranch } from './vectors/spCIBranch.svg';
@@ -166,4 +167,5 @@ export const iconsByName = {
   templateFull,
   templateS,
   templateWorkflow,
+  unpin,
 } as const;

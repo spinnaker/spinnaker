@@ -11,6 +11,12 @@ export interface IPinArtifactVersionRequest {
   comment: string;
 }
 
+export interface IUnpinArtifactVersionRequest {
+  application: string;
+  environment: string;
+  reference: string;
+}
+
 export interface IUpdateConstraintStatusRequest {
   application: string;
   environment: string;
@@ -36,6 +42,19 @@ export class ManagedWriter {
         version,
         comment,
       });
+  }
+
+  public static unpinArtifactVersion({
+    application,
+    environment,
+    reference,
+  }: IUnpinArtifactVersionRequest): IPromise<void> {
+    return API.one('managed')
+      .one('application', application)
+      .one('pin')
+      .one(environment)
+      .withParams({ reference })
+      .remove();
   }
 
   public static updateConstraintStatus({
