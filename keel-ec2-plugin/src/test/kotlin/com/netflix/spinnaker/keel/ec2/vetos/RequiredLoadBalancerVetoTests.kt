@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroup
@@ -19,6 +20,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupMatcher
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel.ClassicLoadBalancerHealthCheck
+import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
@@ -42,14 +44,20 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
   data class Fixture<out SPEC : ResourceSpec>(
     val resourceKind: ResourceKind,
     val resourceSpec: SPEC,
-    val cloudDriver: CloudDriverService = mockk()
+    val cloudDriver: CloudDriverService = mockk(),
+    val cloudDriverCache: CloudDriverCache = mockk()
   ) {
     val resource: Resource<SPEC>
       get() = resource(resourceKind, resourceSpec)
 
-    val vpcId = "vpc-5318008"
+    val vpcIds = mapOf(
+      ("prod" to "ap-south-1") to "vpc-1111111",
+      ("prod" to "af-south-1") to "vpc-2222222",
+      ("test" to "ap-south-1") to "vpc-3333333",
+      ("test" to "af-south-1") to "vpc-4444444"
+    )
 
-    private val veto = RequiredLoadBalancerVeto(cloudDriver)
+    private val veto = RequiredLoadBalancerVeto(cloudDriver, cloudDriverCache)
 
     private lateinit var vetoResponse: VetoResponse
 
@@ -141,8 +149,18 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
                 )
               )
             ),
-            cloudDriver = cloudDriver
+            // mocks need to be copied over otherwise any stubbing is lost
+            cloudDriver = cloudDriver,
+            cloudDriverCache = cloudDriverCache
           )
+        }
+
+        before {
+          every { cloudDriverCache.networkBy(any()) } answers {
+            val vpcId = firstArg<String>()
+            val (account, region) = vpcIds.filterValues { it == vpcId }.keys.first()
+            Network("aws", vpcId, null, account, region)
+          }
         }
 
         context("the dependencies exist") {
@@ -178,10 +196,10 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
               .isNotNull()
               .and {
                 lbNames.forEach { lb ->
-                  contains("Load balancer $lb is not found in ${missingRegions.joinToString()}")
+                  contains("Load balancer $lb is not found in ${resourceSpec.locations.account} / ${missingRegions.joinToString()}")
                 }
                 tgNames.forEach { tg ->
-                  contains("Target group $tg is not found in ${missingRegions.joinToString()}")
+                  contains("Target group $tg is not found in ${resourceSpec.locations.account} / ${missingRegions.joinToString()}")
                 }
               }
           }
@@ -192,7 +210,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
             stubLoadBalancers(
               resourceSpec.allLoadBalancerNames,
               resourceSpec.allTargetGroupNames,
-              resourceSpec.locations.regions.take(1).map(SubnetAwareRegionSpec::name)
+              regions = resourceSpec.locations.regions.take(1).map(SubnetAwareRegionSpec::name)
             )
             check()
           }
@@ -213,10 +231,41 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
               .isNotNull()
               .and {
                 lbNames.forEach { lb ->
-                  contains("Load balancer $lb is not found in ${missingRegions.joinToString()}")
+                  contains("Load balancer $lb is not found in ${resourceSpec.locations.account} / ${missingRegions.joinToString()}")
                 }
                 tgNames.forEach { tg ->
-                  contains("Target group $tg is not found in ${missingRegions.joinToString()}")
+                  contains("Target group $tg is not found in ${resourceSpec.locations.account} / ${missingRegions.joinToString()}")
+                }
+              }
+          }
+        }
+
+        context("the dependencies exist but in a different account") {
+          before {
+            stubLoadBalancers(
+              resourceSpec.allLoadBalancerNames,
+              resourceSpec.allTargetGroupNames,
+              account = "test"
+            )
+            check()
+          }
+
+          test("the resource is vetoed") {
+            response.isDenied()
+          }
+
+          test("the veto message specifies the missing resources") {
+            val lbNames = resourceSpec.allLoadBalancerNames
+            val tgNames = resourceSpec.allTargetGroupNames
+            val allRegions = resourceSpec.locations.regions.map(SubnetAwareRegionSpec::name)
+            response.message
+              .isNotNull()
+              .and {
+                lbNames.forEach { lb ->
+                  contains("Load balancer $lb is not found in ${resourceSpec.locations.account} / ${allRegions.joinToString()}")
+                }
+                tgNames.forEach { tg ->
+                  contains("Target group $tg is not found in ${resourceSpec.locations.account} / ${allRegions.joinToString()}")
                 }
               }
           }
@@ -232,6 +281,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
   private fun Fixture<Locatable<SubnetAwareLocations>>.stubLoadBalancers(
     loadBalancerNames: Collection<String>,
     targetGroupNames: Collection<String>,
+    account: String = this.resourceSpec.locations.account,
     regions: Collection<String> = this.resourceSpec.locations.regions.map(SubnetAwareRegionSpec::name)
   ) {
     every {
@@ -246,7 +296,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
             moniker = Moniker("fnord", "elb"), // TODO: parse from name
             loadBalancerName = loadBalancerName,
             availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
-            vpcId = vpcId,
+            vpcId = vpcIds.getValue(account to region),
             subnets = setOf(),
             scheme = "internal",
             idleTimeout = 0,
@@ -281,12 +331,12 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
               healthCheckIntervalSeconds = 60,
               healthyThresholdCount = 10,
               unhealthyThresholdCount = 5,
-              vpcId = vpcId,
+              vpcId = vpcIds.getValue(account to region),
               attributes = TargetGroupAttributes()
             )
           },
           availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
-          vpcId = vpcId,
+          vpcId = vpcIds.getValue(account to region),
           subnets = emptySet(),
           scheme = "https",
           idleTimeout = 60,

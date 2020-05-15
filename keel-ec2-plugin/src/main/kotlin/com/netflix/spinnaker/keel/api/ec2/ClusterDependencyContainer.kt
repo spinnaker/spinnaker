@@ -28,6 +28,7 @@ interface ClusterDependencyContainer {
  */
 internal data class RegionalDependency(
   val name: String,
+  val account: String,
   val regions: Set<String>
 )
 
@@ -61,7 +62,7 @@ private fun OverrideableClusterDependencyContainer<*>.dependencyByRegion(fn: (Cl
   return listOf(defaults, overrides)
     .merge()
     .map { (k, v) ->
-      RegionalDependency(k, v)
+      RegionalDependency(k, locations.account, v)
     }
 }
 

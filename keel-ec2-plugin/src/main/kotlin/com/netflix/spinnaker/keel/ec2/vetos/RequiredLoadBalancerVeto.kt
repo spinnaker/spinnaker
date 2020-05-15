@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.OverrideableClusterDependencyContainer
 import com.netflix.spinnaker.keel.api.ec2.loadBalancersByRegion
 import com.netflix.spinnaker.keel.api.ec2.targetGroupsByRegion
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.AmazonLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class RequiredLoadBalancerVeto(
-  private val cloudDriver: CloudDriverService
+  private val cloudDriver: CloudDriverService,
+  private val cloudDriverCache: CloudDriverCache
 ) : Veto {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -57,24 +59,29 @@ class RequiredLoadBalancerVeto(
 
   private suspend fun List<AmazonLoadBalancer>.findMissingLoadBalancers(spec: OverrideableClusterDependencyContainer<*>): Collection<MissingDependency> {
     val missing = mutableListOf<MissingDependency>()
-    spec.loadBalancersByRegion.forEach { (name, regions) ->
+    spec.loadBalancersByRegion.forEach { (name, account, regions) ->
       val missingRegions = regions.filter { region ->
-        none { lb -> lb is ClassicLoadBalancerModel && lb.region == region && lb.loadBalancerName == name }
+        none { lb ->
+          lb is ClassicLoadBalancerModel && lb.account == account && lb.region == region && lb.loadBalancerName == name
+        }
       }
       if (missingRegions.isNotEmpty()) {
-        missing.add(MissingLoadBalancer(name, missingRegions.toSet()))
+        missing.add(MissingLoadBalancer(name, account, missingRegions.toSet()))
       }
     }
-    spec.targetGroupsByRegion.forEach { (name, regions) ->
+    spec.targetGroupsByRegion.forEach { (name, account, regions) ->
       val missingRegions = regions.filter { region ->
-        none { lb -> lb is ApplicationLoadBalancerModel && lb.region == region && lb.targetGroups.any { it.targetGroupName == name } }
+        none { lb -> lb is ApplicationLoadBalancerModel && lb.account == account && lb.region == region && lb.targetGroups.any { it.targetGroupName == name } }
       }
       if (missingRegions.isNotEmpty()) {
-        missing.add(MissingTargetGroup(name, missingRegions.toSet()))
+        missing.add(MissingTargetGroup(name, account, missingRegions.toSet()))
       }
     }
     return missing
   }
+
+  private val AmazonLoadBalancer.account: String
+    get() = cloudDriverCache.networkBy(vpcId).account
 
   /**
    * I'd like to add a `region` property to [AmazonLoadBalancer] but CloudDriver doesn't
@@ -86,17 +93,18 @@ class RequiredLoadBalancerVeto(
 
 sealed class MissingDependency(
   val name: String,
+  val account: String,
   val regions: Set<String>
 ) {
   abstract val message: String
 }
 
-class MissingLoadBalancer(name: String, regions: Set<String>) : MissingDependency(name, regions) {
+class MissingLoadBalancer(name: String, account: String, regions: Set<String>) : MissingDependency(name, account, regions) {
   override val message: String
-    get() = "Load balancer $name is not found in ${regions.joinToString()}"
+    get() = "Load balancer $name is not found in $account / ${regions.joinToString()}"
 }
 
-class MissingTargetGroup(name: String, regions: Set<String>) : MissingDependency(name, regions) {
+class MissingTargetGroup(name: String, account: String, regions: Set<String>) : MissingDependency(name, account, regions) {
   override val message: String
-    get() = "Target group $name is not found in ${regions.joinToString()}"
+    get() = "Target group $name is not found in $account / ${regions.joinToString()}"
 }

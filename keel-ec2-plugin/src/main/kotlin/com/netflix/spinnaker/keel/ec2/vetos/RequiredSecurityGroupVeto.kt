@@ -44,10 +44,10 @@ class RequiredSecurityGroupVeto(
     val jobs = mutableListOf<Job>()
     val securityGroupMissingRegions = mutableMapOf<String, MutableList<String>>()
     supervisorScope {
-      spec.securityGroupsInRegions.forEach { (securityGroupName, regions) ->
+      spec.securityGroupsInRegions.forEach { (securityGroupName, account, regions) ->
         regions.forEach { region ->
           launch {
-            if (!securityGroupExists(spec.account, spec.subnet, region, securityGroupName)) {
+            if (!securityGroupExists(account, spec.subnet, region, securityGroupName)) {
               with(securityGroupMissingRegions) {
                 putIfAbsent(securityGroupName, mutableListOf())
                 getValue(securityGroupName).add(region)
@@ -100,7 +100,7 @@ class RequiredSecurityGroupVeto(
       is LoadBalancerSpec ->
         SecurityGroupDependencies(
           securityGroupsInRegions = dependencies.securityGroupNames.map {
-            RegionalDependency(it, locations.regions.map(SubnetAwareRegionSpec::name).toSet())
+            RegionalDependency(it, locations.account, locations.regions.map(SubnetAwareRegionSpec::name).toSet())
           },
           account = locations.account,
           subnet = locations.subnet
