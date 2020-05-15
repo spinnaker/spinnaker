@@ -69,7 +69,7 @@ internal class ConstraintTests : JUnit5Minutests {
   data class Fixture(val json: String) {
     val mapper = configuredObjectMapper().apply {
       registerSubtypes(NamedType(DependsOnConstraint::class.java, "depends-on"))
-      registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgment"))
+      registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
     }
 
     inline fun <reified T> parse(): T = mapper.readValue<T>(json)

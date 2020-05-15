@@ -44,7 +44,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
       every { isImplicit() } returns false
     }
     val statefulEvaluator = mockk<StatefulConstraintEvaluator<*>>() {
-      every { supportedType } returns SupportedConstraintType<ManualJudgementConstraint>("manual-judgment")
+      every { supportedType } returns SupportedConstraintType<ManualJudgementConstraint>("manual-judegment")
       every { isImplicit() } returns false
     }
     val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator>() {
