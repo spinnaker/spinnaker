@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.filters
 
 import com.netflix.spinnaker.kork.common.Header
+import com.netflix.spinnaker.security.AllowedAccountsAuthorities
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.security.core.userdetails.UserDetails
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -78,9 +79,9 @@ class AuthenticatedRequestFilter implements Filter {
       }
 
       def principal = securityContext?.authentication?.principal
-      if (principal && principal instanceof User) {
+      if (principal && principal instanceof UserDetails) {
         spinnakerUser = principal.username
-        spinnakerAccounts = principal.allowedAccounts.join(",")
+        spinnakerAccounts = AllowedAccountsAuthorities.getAllowedAccounts(principal).join(",")
       }
     } catch (Exception e) {
       log.error("Unable to extract spinnaker user and account information", e)

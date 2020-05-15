@@ -29,7 +29,20 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
-/** User implements UserDetails in order to properly hook into the Spring Security framework. */
+/**
+ * A UserDetails implementation to hook into Spring Security framework.
+ *
+ * <p>User exists to propagate the allowedAccounts.
+ *
+ * <p>This class is deprecated in favor of encoding allowed accounts as granted authorities, and
+ * using the spring frameworks built in User object and preferring the UserDetails interface when
+ * interacting.
+ *
+ * @deprecated use org.springframework.security.core.userdetails.User and AllowedAccountsAuthorities
+ *     to encode allowed accounts callers should program against UserDetails interface use runAs on
+ *     AuthenticatedRequest to switch users rather than supplying a principal directly.
+ */
+@Deprecated
 public class User implements UserDetails {
 
   public static final long serialVersionUID = 7392392099262597885L;

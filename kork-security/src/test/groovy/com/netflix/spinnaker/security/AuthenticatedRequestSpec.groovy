@@ -29,6 +29,7 @@ class AuthenticatedRequestSpec extends Specification {
     then:
     AuthenticatedRequest.getSpinnakerUser().get() == "spinnaker-user"
     AuthenticatedRequest.getSpinnakerUser(new User([email: "spinnaker-other"])).get() == "spinnaker-other"
+    AuthenticatedRequest.getSpinnakerUser(new org.springframework.security.core.userdetails.User("spinnaker-other", "", [])).get() == "spinnaker-other"
   }
 
   void "should extract allowed account details by priority (Principal > MDC"() {
@@ -39,6 +40,11 @@ class AuthenticatedRequestSpec extends Specification {
     then:
     AuthenticatedRequest.getSpinnakerAccounts().get() == "account1,account2"
     AuthenticatedRequest.getSpinnakerAccounts(new User(allowedAccounts: ["account3", "account4"])).get() == "account3,account4"
+    AuthenticatedRequest.getSpinnakerAccounts(
+      new org.springframework.security.core.userdetails.User(
+        "username",
+        "",
+        AllowedAccountsAuthorities.buildAllowedAccounts(["account3", "account4"]))).get() == "account3,account4"
   }
 
   void "should have no user/allowed account details if no MDC or Principal available"() {

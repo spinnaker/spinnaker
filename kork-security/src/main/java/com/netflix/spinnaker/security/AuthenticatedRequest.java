@@ -20,18 +20,103 @@ import static java.lang.String.format;
 
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.kork.common.Header;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.CollectionUtils;
 
 public class AuthenticatedRequest {
+
+  private static final Logger log = LoggerFactory.getLogger(AuthenticatedRequest.class);
+
+  /**
+   * Determines the current user principal and how to interpret that principal to extract user
+   * identity and allowed accounts.
+   */
+  public interface PrincipalExtractor {
+    /** @return the user principal in the current security scope. */
+    default Object principal() {
+      return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+          .map(Authentication::getPrincipal)
+          .orElse(null);
+    }
+
+    /** @return The comma separated list of accounts for the current principal. */
+    default Optional<String> getSpinnakerAccounts() {
+      return getSpinnakerAccounts(principal());
+    }
+
+    /**
+     * @param principal the principal to inspect for accounts
+     * @return the comma separated list of accounts for the provided principal.
+     */
+    default Optional<String> getSpinnakerAccounts(Object principal) {
+      if (principal instanceof UserDetails) {
+        Collection<String> allowedAccounts =
+            AllowedAccountsAuthorities.getAllowedAccounts((UserDetails) principal);
+        if (!CollectionUtils.isEmpty(allowedAccounts)) {
+          return Optional.of(String.join(",", allowedAccounts));
+        }
+      }
+      return get(Header.ACCOUNTS);
+    }
+
+    /** @return the user id of the current user */
+    default Optional<String> getSpinnakerUser() {
+      return getSpinnakerUser(principal());
+    }
+
+    /**
+     * @param principal the principal from which to extract the userid
+     * @return the user id of the provided principal
+     */
+    default Optional<String> getSpinnakerUser(Object principal) {
+      return (principal instanceof UserDetails)
+          ? Optional.ofNullable(((UserDetails) principal).getUsername())
+          : get(Header.USER);
+    }
+  }
+
+  /** Internal singleton instance of PrincipalExtractor. */
+  private static class DefaultPrincipalExtractor implements PrincipalExtractor {
+    private static final DefaultPrincipalExtractor INSTANCE = new DefaultPrincipalExtractor();
+  }
+
+  /** A static singleton reference to the PrincipalExtractor for AuthenticatedRequest. */
+  private static final AtomicReference<PrincipalExtractor> PRINCIPAL_EXTRACTOR =
+      new AtomicReference<>(DefaultPrincipalExtractor.INSTANCE);
+
+  /**
+   * Replaces the PrincipalExtractor for ALL callers of AutheticatedRequest.
+   *
+   * <p>This is a gross and terrible thing, and exists because we made everything in
+   * AuthenticatedRequest static. This exists as a terrible DI mechanism to support supplying a
+   * different opinion on how to pull details from the current user principal, and should only be
+   * called at app initialization time to inject that opinion.
+   *
+   * @param principalExtractor the PrincipalExtractor to use for AuthenticatedRequest.
+   */
+  public static void setPrincipalExtractor(PrincipalExtractor principalExtractor) {
+    Objects.requireNonNull(principalExtractor, "PrincipalExtractor is required");
+    PRINCIPAL_EXTRACTOR.set(principalExtractor);
+    log.info(
+        "replaced AuthenticatedRequest PrincipalExtractor with {}",
+        principalExtractor.getClass().getSimpleName());
+  }
 
   /**
    * Allow a given HTTP call to be anonymous. Normally, all requests to Spinnaker services should be
@@ -55,20 +140,115 @@ public class AuthenticatedRequest {
     }
   }
 
+  /**
+   * Prepare an authentication context to run as the supplied user wrapping the supplied action
+   *
+   * <p>The original authentication context is restored after the action completes.
+   *
+   * @param username the username to run as
+   * @param closure the action to run as the user
+   * @param <V> the return type of the supplied action
+   * @return an action that will run the supplied action as the supplied user
+   */
+  public static <V> Callable<V> runAs(String username, Callable<V> closure) {
+    return runAs(username, Collections.emptySet(), closure);
+  }
+
+  /**
+   * Prepare an authentication context to run as the supplied user wrapping the supplied action
+   *
+   * @param username the username to run as
+   * @param restoreOriginalContext whether the original authentication context should be restored
+   *     after the action completes
+   * @param closure the action to run as the user
+   * @param <V> the return type of the supplied action
+   * @return an action that will run the supplied action as the supplied user
+   */
+  public static <V> Callable<V> runAs(
+      String username, boolean restoreOriginalContext, Callable<V> closure) {
+    return runAs(username, Collections.emptySet(), restoreOriginalContext, closure);
+  }
+
+  /**
+   * Prepare an authentication context to run as the supplied user wrapping the supplied action
+   *
+   * <p>The original authentication context is restored after the action completes.
+   *
+   * @param username the username to run as
+   * @param allowedAccounts the allowed accounts for the user as an authorization fallback
+   * @param closure the action to run as the user
+   * @param <V> the return type of the supplied action
+   * @return an action that will run the supplied action as the supplied user
+   */
+  public static <V> Callable<V> runAs(
+      String username, Collection<String> allowedAccounts, Callable<V> closure) {
+    return runAs(username, allowedAccounts, true, closure);
+  }
+
+  /**
+   * Prepare an authentication context to run as the supplied user wrapping the supplied action
+   *
+   * @param username the username to run as
+   * @param allowedAccounts the allowed accounts for the user as an authorization fallback
+   * @param restoreOriginalContext whether the original authentication context should be restored
+   *     after the action completes
+   * @param closure the action to run as the user
+   * @param <V> the return type of the supplied action
+   * @return an action that will run the supplied action as the supplied user
+   */
+  public static <V> Callable<V> runAs(
+      String username,
+      Collection<String> allowedAccounts,
+      boolean restoreOriginalContext,
+      Callable<V> closure) {
+    final UserDetails user =
+        User.withUsername(username)
+            .password("")
+            .authorities(AllowedAccountsAuthorities.buildAllowedAccounts(allowedAccounts))
+            .build();
+    return wrapCallableForPrincipal(closure, restoreOriginalContext, user);
+  }
+
+  /**
+   * Propagates the current users authentication context when for the supplied action
+   *
+   * <p>The original authentication context is restored after the action completes.
+   *
+   * @param closure the action to run
+   * @param <V> the return type of the supplied action
+   * @return an action that will run propagating the current users authentication context
+   */
   public static <V> Callable<V> propagate(Callable<V> closure) {
-    return propagate(closure, true, principal());
+    return wrapCallableForPrincipal(closure, true, principal());
   }
 
+  /**
+   * Propagates the current users authentication context when for the supplied action
+   *
+   * @param closure the action to run
+   * @param restoreOriginalContext whether the original authentication context should be restored
+   *     after the action completes
+   * @param <V> the return type of the supplied action
+   * @return an action that will run propagating the current users authentication context
+   */
   public static <V> Callable<V> propagate(Callable<V> closure, boolean restoreOriginalContext) {
-    return propagate(closure, restoreOriginalContext, principal());
+    return wrapCallableForPrincipal(closure, restoreOriginalContext, principal());
   }
 
+  /** @deprecated use runAs instead to switch to a different user */
+  @Deprecated
   public static <V> Callable<V> propagate(Callable<V> closure, Object principal) {
-    return propagate(closure, true, principal);
+    return wrapCallableForPrincipal(closure, true, principal);
   }
 
-  /** Ensure an appropriate MDC context is available when {@code closure} is executed. */
+  /** @deprecated use runAs instead to switch to a different user */
+  @Deprecated
   public static <V> Callable<V> propagate(
+      Callable<V> closure, boolean restoreOriginalContext, Object principal) {
+    return wrapCallableForPrincipal(closure, restoreOriginalContext, principal);
+  }
+
+  private static <V> Callable<V> wrapCallableForPrincipal(
       Callable<V> closure, boolean restoreOriginalContext, Object principal) {
     String spinnakerUser = getSpinnakerUser(principal).orElse(null);
     String userOrigin = getSpinnakerUserOrigin().orElse(null);
@@ -79,7 +259,7 @@ public class AuthenticatedRequest {
 
     return () -> {
       // Deal with (set/reset) known X-SPINNAKER headers, all others will just stick around
-      Map originalMdc = MDC.getCopyOfContextMap();
+      Map<String, String> originalMdc = MDC.getCopyOfContextMap();
 
       try {
         setOrRemoveMdc(Header.USER.getHeader(), spinnakerUser);
@@ -128,24 +308,19 @@ public class AuthenticatedRequest {
   }
 
   public static Optional<String> getSpinnakerUser() {
-    return getSpinnakerUser(principal());
+    return PRINCIPAL_EXTRACTOR.get().getSpinnakerUser();
   }
 
-  public static Optional<String> getSpinnakerUser(Object principal) {
-    return (principal instanceof User)
-        ? Optional.ofNullable(((User) principal).getUsername())
-        : get(Header.USER);
+  private static Optional<String> getSpinnakerUser(Object principal) {
+    return PRINCIPAL_EXTRACTOR.get().getSpinnakerUser(principal);
   }
 
   public static Optional<String> getSpinnakerAccounts() {
-    return getSpinnakerAccounts(principal());
+    return PRINCIPAL_EXTRACTOR.get().getSpinnakerAccounts();
   }
 
-  public static Optional<String> getSpinnakerAccounts(Object principal) {
-    return (principal instanceof User
-            && !CollectionUtils.isEmpty(((User) principal).allowedAccounts))
-        ? Optional.of(String.join(",", ((User) principal).getAllowedAccounts()))
-        : get(Header.ACCOUNTS);
+  private static Optional<String> getSpinnakerAccounts(Object principal) {
+    return PRINCIPAL_EXTRACTOR.get().getSpinnakerAccounts(principal);
   }
 
   /**
@@ -242,11 +417,8 @@ public class AuthenticatedRequest {
     }
   }
 
-  /** @return the Spring Security principal or null if there is no authority. */
   private static Object principal() {
-    return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-        .map(Authentication::getPrincipal)
-        .orElse(null);
+    return PRINCIPAL_EXTRACTOR.get().principal();
   }
 
   private static void setOrRemoveMdc(String key, String value) {
