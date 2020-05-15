@@ -32,12 +32,14 @@ import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.aws.ARN;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Supplier;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final PubsubMessageHandler.Factory pubsubMessageHandlerFactory;
   private final Registry registry;
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
+  private final DynamicConfigService dynamicConfigService;
 
   @Autowired
   SQSSubscriberProvider(
@@ -67,7 +70,8 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
       PubsubSubscribers pubsubSubscribers,
       PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
       Registry registry,
-      MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
+      MessageArtifactTranslator.Factory messageArtifactTranslatorFactory,
+      DynamicConfigService dynamicConfigService) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
@@ -75,6 +79,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
     this.pubsubMessageHandlerFactory = pubsubMessageHandlerFactory;
     this.registry = registry;
     this.messageArtifactTranslatorFactory = messageArtifactTranslatorFactory;
+    this.dynamicConfigService = dynamicConfigService;
   }
 
   @PostConstruct
@@ -125,7 +130,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
                           .withClientConfiguration(new ClientConfiguration())
                           .withRegion(queueArn.getRegion())
                           .build(),
-                      enabled::get,
+                      isEnabledSupplier(),
                       registry);
 
               try {
@@ -137,5 +142,9 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
               }
             });
     pubsubSubscribers.putAll(subscribers);
+  }
+
+  private Supplier<Boolean> isEnabledSupplier() {
+    return () -> enabled.get() && dynamicConfigService.isEnabled("pubsub.amazon", true);
   }
 }
