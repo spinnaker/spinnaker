@@ -113,6 +113,12 @@ var oracle = {
     region: '{%oracle.default.region%}',
   },
 };
+var tencentcloud = {
+  defaults: {
+    account: '{%tencentcloud.default.account%}',
+    region: '{%tencentcloud.default.region%}',
+  },
+};
 
 window.spinnakerSettings = {
   authEnabled: authEnabled,
@@ -149,6 +155,7 @@ window.spinnakerSettings = {
     'kubernetes',
     'oracle',
     'titus',
+    'tencentcloud',
   ],
   defaultTimeZone: timezone, // see http://momentjs.com/timezone/docs/#/data-utilities/
   feature: {
@@ -215,6 +222,7 @@ window.spinnakerSettings = {
         region: 'us-east-1',
       },
     },
+    tencentcloud: tencentcloud,
   },
   pubsubProviders: ['amazon', 'google'],
   triggerTypes: [
