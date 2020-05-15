@@ -35,13 +35,21 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
           <FilterCollapse />
         </div>
       )}
-      {!filtersHidden && <UIView name="nav" className="nav ng-scope" />}
+      {!filtersHidden && (
+        <div>
+          <UIView name="nav" className="nav ng-scope" />
+        </div>
+      )}
       {appIsReady && (
         <div>
           <UIView name="master" className="nav-content ng-scope" data-scroll-id="nav-content" />
         </div>
       )}
-      {appIsReady && <UIView name="detail" className="detail-content" />}
+      {appIsReady && (
+        <div>
+          <UIView name="detail" className="detail-content" />
+        </div>
+      )}
     </div>
   );
 };
