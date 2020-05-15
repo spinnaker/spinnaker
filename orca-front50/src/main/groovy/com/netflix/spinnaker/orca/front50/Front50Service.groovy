@@ -53,6 +53,9 @@ interface Front50Service {
   @POST("/pluginInfo")
   PluginInfo upsertPluginInfo(@Body PluginInfo pluginInfo)
 
+  @GET("/pluginInfo/{pluginId}")
+  PluginInfo getPluginInfo(@Path("pluginId") String pluginId);
+
   @DELETE("/pluginInfo/{pluginId}")
   Response deletePluginInfo(@Path("pluginId") String pluginId)
 
