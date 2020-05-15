@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.OkHttpClient
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -45,13 +45,13 @@ class ClouddriverConfiguration {
   fun clouddriverService(
     clouddriverEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient
+    clientProvider: OkHttpClientProvider
   ):
     CloudDriverService =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .baseUrl(clouddriverEndpoint)
-      .client(retrofitClient)
+      .client(clientProvider.getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString())))
       .build()
       .create(CloudDriverService::class.java)
 

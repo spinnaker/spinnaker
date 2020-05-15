@@ -23,7 +23,7 @@ dependencies {
   api("com.squareup.retrofit2:converter-jackson")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
-  implementation("com.netflix.spinnaker.kork:kork-web")
+  api("com.netflix.spinnaker.kork:kork-web")
   implementation("com.netflix.spinnaker.kork:kork-security")
   implementation("com.squareup.okhttp3:logging-interceptor")
   implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")

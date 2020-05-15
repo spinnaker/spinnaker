@@ -17,72 +17,22 @@ package com.netflix.spinnaker.keel.retrofit
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import okhttp3.ConnectionPool
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Lazy
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
 @EnableConfigurationProperties(OkHttpClientConfigurationProperties::class, KeelRetrofitProperties::class)
 class KeelRetrofitConfiguration {
-
-  private val log = LoggerFactory.getLogger(javaClass)
-
-  @Bean(name = ["retrofitClient", "okClient"])
-  @Primary // TODO: (SR) -- Refactor it to use the new client provider.
-  fun retrofitClient(
-    okHttpClientConfig: OkHttp3ClientConfiguration,
-    okHttpClientProperties: OkHttpClientConfigurationProperties,
-    retrofitProperties: KeelRetrofitProperties,
-    interceptors: Set<Interceptor>?
-  ): OkHttpClient {
-    val builder = okHttpClientConfig
-      .create()
-      .apply {
-        networkInterceptors()
-          .add(Interceptor { chain ->
-            chain.proceed(
-              chain.request().newBuilder()
-                .header("User-Agent", retrofitProperties.userAgent)
-                .build()
-            )
-          })
-        interceptors?.forEach {
-          log.info("Adding OkHttp Interceptor: ${it.javaClass.simpleName}")
-          addInterceptor(it)
-        }
-        connectionPool(ConnectionPool(
-          okHttpClientProperties.connectionPool.maxIdleConnections,
-          okHttpClientProperties.connectionPool.keepAliveDurationMs.toLong(),
-          MILLISECONDS
-        ))
-        retryOnConnectionFailure(okHttpClientProperties.isRetryOnConnectionFailure)
-      }
-
-    builder.interceptors().also {
-      // If the metrics interceptor (which complains about X-SPINNAKER-* auth headers missing in the request)
-      // is present, move it to the end of the list so that our interceptor that adds those headers comes first
-      val metricsInterceptor = it.find { interceptor -> interceptor is OkHttp3MetricsInterceptor }
-      if (metricsInterceptor != null) {
-        it.removeAll { interceptor -> interceptor == metricsInterceptor } // for some reason there are 2 copies, so remove both
-        it.add(metricsInterceptor)
-      }
-    }
-
-    return builder.build()
-  }
 
   @Bean
   fun retrofitLoggingInterceptor(@Value("\${retrofit2.log-level:BASIC}") retrofitLogLevel: String) =
@@ -90,8 +40,20 @@ class KeelRetrofitConfiguration {
       level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
     }
 
+  /**
+   * This bean gets highest precedence so that metrics interceptors can rely on the data supplied by this interceptor.
+   *
+   * Also, we wire up [FiatPermissionEvaluator] lazily to allow spring to wire up the OkHttpClient
+   * fully and avoid circular dependency problem.
+   */
   @Bean
   @ConditionalOnMissingBean
-  fun spinnakerHeadersInterceptor(fiatPermissionEvaluator: FiatPermissionEvaluator) =
+  @Order(Ordered.HIGHEST_PRECEDENCE)
+  fun spinnakerHeadersInterceptor(@Lazy fiatPermissionEvaluator: FiatPermissionEvaluator) =
     SpinnakerHeadersInterceptor(fiatPermissionEvaluator)
+
+  @Bean
+  @ConditionalOnMissingBean
+  fun userAgentInterceptor(keelRetrofitProperties: KeelRetrofitProperties) =
+    UserAgentInterceptor(keelRetrofitProperties)
 }

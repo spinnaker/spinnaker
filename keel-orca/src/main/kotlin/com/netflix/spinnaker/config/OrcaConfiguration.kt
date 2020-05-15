@@ -16,10 +16,10 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.keel.orca.OrcaService
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -41,11 +41,11 @@ class OrcaConfiguration {
   fun orcaService(
     orcaEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient
+    clientProvider: OkHttpClientProvider
   ): OrcaService =
     Retrofit.Builder()
       .baseUrl(orcaEndpoint)
-      .client(retrofitClient)
+      .client(clientProvider.getClient(DefaultServiceEndpoint("orca", orcaEndpoint.toString())))
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .build()
       .create(OrcaService::class.java)
