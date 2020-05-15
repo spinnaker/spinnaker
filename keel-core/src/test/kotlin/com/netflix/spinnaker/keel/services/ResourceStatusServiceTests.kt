@@ -79,7 +79,6 @@ class ResourceStatusServiceTests : JUnit5Minutests {
     context("a delivery config with a resource exists") {
       before {
         repository.upsertDeliveryConfig(deliveryConfig)
-        repository.appendResourceHistory(ResourceCreated(resource, clock))
       }
 
       context("resource status") {

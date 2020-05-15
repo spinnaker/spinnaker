@@ -37,6 +37,7 @@ import java.time.ZoneOffset
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.impl.DSL
+import org.slf4j.LoggerFactory
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -50,6 +51,8 @@ open class SqlResourceRepository(
   companion object {
     val EVENT_JSON_APPLICATION: Field<String> = field("json->'$.application'")
   }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     sqlRetry.withRetry(READ) {
@@ -231,6 +234,7 @@ open class SqlResourceRepository(
   }
 
   private fun doAppendHistory(event: PersistentEvent, ref: String) {
+    log.debug("Appending event: $event")
     jooq.transaction { config ->
       val txn = DSL.using(config)
 

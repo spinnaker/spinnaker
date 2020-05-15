@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
@@ -55,6 +54,7 @@ class ResourceStatusService(
 
     val history = resourceRepository.eventHistory(id, 10)
     return when {
+      history.isEmpty() -> UNKNOWN // shouldn't happen, but is a safeguard since events are persisted asynchronously
       history.isHappy() -> HAPPY
       history.isUnhappy() -> UNHAPPY
       history.isDiff() -> DIFF
