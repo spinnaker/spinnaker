@@ -7,4 +7,4 @@ implement the [PluginsTckFixture](/src/main/kotlin/com/netflix/spinnaker/kork/pl
 
 For example, see this implementation in Orca:
 
-https://github.com/spinnaker/orca/orca-plugins-test
+https://github.com/spinnaker/orca/tree/master/orca-plugins-test
