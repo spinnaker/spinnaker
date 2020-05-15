@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map> {
 
   private static final String BASE_PHASE = "DEPLOY_CLOUDFORMATION_STACK";
+  private static final String NO_CHANGE_STACK_ERROR_MESSAGE = "No updates";
 
   @Autowired AmazonClientProvider amazonClientProvider;
 
@@ -161,8 +162,13 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
       UpdateStackResult updateStackResult = amazonCloudFormation.updateStack(updateStackRequest);
       return updateStackResult.getStackId();
     } catch (AmazonCloudFormationException e) {
-      // No changes on the stack, ignore failure
-      return getStackId(amazonCloudFormation);
+
+      if (e.getMessage().contains(NO_CHANGE_STACK_ERROR_MESSAGE)) {
+        // No changes on the stack, ignore failure
+        return getStackId(amazonCloudFormation);
+      }
+      log.error("Error updating stack", e);
+      throw e;
     }
   }
 
