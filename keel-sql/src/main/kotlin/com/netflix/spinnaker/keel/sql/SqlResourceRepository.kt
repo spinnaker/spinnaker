@@ -225,7 +225,9 @@ open class SqlResourceRepository(
   // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
   override fun appendHistory(event: ResourceEvent) {
     // for historical reasons, we use the resource UID (not the ID) as an identifier in resource events
-    val uid = jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.uid)).fetchOne(RESOURCE.UID)
+    val uid = sqlRetry.withRetry(READ) {
+      jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.uid)).fetchOne(RESOURCE.UID)
+    }
     doAppendHistory(event, uid)
   }
 
@@ -346,7 +348,9 @@ open class SqlResourceRepository(
   }
 
   private val Resource<*>.uid: String
-    get() = jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(id)).fetchOne(RESOURCE.UID)
+    get() = sqlRetry.withRetry(READ) {
+      jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(id)).fetchOne(RESOURCE.UID)
+    }
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }
