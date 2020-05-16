@@ -123,7 +123,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
       ImmutableSet.of(
           AUTHORITATIVE.forType(SERVER_GROUPS.getNs()),
           AUTHORITATIVE.forType(APPLICATIONS.getNs()),
-          INFORMATIVE.forType(CLUSTERS.getNs()),
+          AUTHORITATIVE.forType(CLUSTERS.getNs()),
           INFORMATIVE.forType(LOAD_BALANCERS.getNs()));
 
   private static final String ON_DEMAND_TYPE =
