@@ -128,12 +128,11 @@ public interface KeelService {
   @POST("/application/{application}/pin")
   Response pin(@Path("application") String application, @Body EnvironmentArtifactPin pin);
 
-  @DELETE("/application/{application}/pin")
-  Response deletePin(@Path("application") String application, @Body EnvironmentArtifactPin pin);
-
   @DELETE("/application/{application}/pin/{targetEnvironment}")
   Response deletePinForEnvironment(
-      @Path("application") String application, @Path("targetEnvironment") String targetEnvironment);
+      @Path("application") String application,
+      @Path("targetEnvironment") String targetEnvironment,
+      @Query("reference") String reference);
 
   @POST("/application/{application}/veto")
   Response veto(@Path("application") String application, @Body EnvironmentArtifactVeto veto);
