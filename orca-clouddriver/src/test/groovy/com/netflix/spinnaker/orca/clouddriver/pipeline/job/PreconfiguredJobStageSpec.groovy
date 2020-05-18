@@ -43,7 +43,7 @@ class PreconfiguredJobStageSpec extends Specification {
     }
 
     when:
-    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), Optional.of(jobService))
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
     preconfiguredJobStage.buildTaskGraph(stage)
 
     then:
@@ -89,7 +89,7 @@ class PreconfiguredJobStageSpec extends Specification {
     }
 
     when:
-    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), Optional.of(jobService))
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
     preconfiguredJobStage.buildTaskGraph(stage)
 
     then:

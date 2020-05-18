@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.dcos.DcosServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus.TitusServerGroupCreator
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -37,7 +36,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
   def task = new DetermineHealthProvidersTask(
     new Optional<Front50Service>(front50Service),
     [],
-    [new AmazonServerGroupCreator(), new GoogleServerGroupCreator(), new TitusServerGroupCreator(), new DcosServerGroupCreator()]
+    [new AmazonServerGroupCreator(), new GoogleServerGroupCreator(), new DcosServerGroupCreator()]
   )
 
   @Unroll

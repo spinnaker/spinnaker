@@ -26,16 +26,12 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.MonitorJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -44,18 +40,20 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final DestroyJobTask destroyJobTask;
   private final ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
+  private final List<RunJobStageDecorator> runJobStageDecorators;
 
-  @Autowired
-  public RunJobStage(DestroyJobTask destroyJobTask) {
+  public RunJobStage(
+      DestroyJobTask destroyJobTask, List<RunJobStageDecorator> runJobStageDecorators) {
     this.destroyJobTask = destroyJobTask;
+    this.runJobStageDecorators =
+        Optional.ofNullable(runJobStageDecorators).orElse(Collections.emptyList());
   }
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("runJob", RunJobTask.class).withTask("monitorDeploy", MonitorJobTask.class);
 
-    // TODO(ethanfrogers): abstract this out into a provider specific job runner
-    injectManifestForceCacheRefresh(stage, builder);
+    getCloudProviderDecorator(stage).ifPresent(it -> it.afterRunJobTaskGraph(stage, builder));
 
     if (!stage
         .getContext()
@@ -78,19 +76,6 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
     }
   }
 
-  private void injectManifestForceCacheRefresh(StageExecution stage, TaskNode.Builder builder) {
-    Map<String, Object> context = stage.getContext();
-    String cloudProvider = (String) context.getOrDefault("cloudProvider", "");
-    boolean manifestBasedRunJob =
-        (cloudProvider.equalsIgnoreCase("kubernetes")
-            && (context.containsKey("source") || context.containsKey("manifest")));
-    if (manifestBasedRunJob) {
-      builder
-          .withTask("promoteOutputs", PromoteManifestKatoOutputsTask.class)
-          .withTask("forceCacheRefresh", ManifestForceCacheRefreshTask.class);
-    }
-  }
-
   @Override
   public Result cancel(StageExecution stage) {
     log.info(
@@ -102,17 +87,13 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
     try {
       RunJobStageContext context =
           objectMapper.convertValue(stage.getContext(), RunJobStageContext.class);
-      String jobId = context.getJobStatus().getId();
-
-      if (context.getCloudProvider().equalsIgnoreCase("titus")) {
-        destroyContext.put("jobId", jobId);
-      } else {
-        destroyContext.put("jobName", context.getJobStatus().getName());
-      }
-
+      destroyContext.put("jobName", context.getCloudProvider());
       destroyContext.put("cloudProvider", context.getCloudProvider());
       destroyContext.put("region", context.getJobStatus().getRegion());
       destroyContext.put("credentials", context.getCredentials());
+
+      getCloudProviderDecorator(stage)
+          .ifPresent(it -> it.modifyDestroyJobContext(context, destroyContext));
 
       stage.setContext(destroyContext);
 
@@ -149,5 +130,14 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
     context.remove("completionDetails");
     context.remove("propertyFileContents");
     context.remove("deploy.jobs");
+  }
+
+  private Optional<RunJobStageDecorator> getCloudProviderDecorator(StageExecution stage) {
+    return Optional.ofNullable((String) stage.getContext().get("cloudProvider"))
+        .flatMap(
+            cloudProvider ->
+                runJobStageDecorators.stream()
+                    .filter(it -> it.supports(cloudProvider))
+                    .findFirst());
   }
 }

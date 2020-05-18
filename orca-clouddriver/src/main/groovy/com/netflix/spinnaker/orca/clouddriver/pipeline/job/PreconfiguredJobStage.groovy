@@ -35,8 +35,8 @@ class PreconfiguredJobStage extends RunJobStage {
   private ObjectMapper objectMapper
 
   @Autowired
-  public PreconfiguredJobStage(DestroyJobTask destroyJobTask, Optional<JobService> optionalJobService) {
-    super(destroyJobTask)
+  PreconfiguredJobStage(DestroyJobTask destroyJobTask, List<RunJobStageDecorator> runJobStageDecorators, Optional<JobService> optionalJobService) {
+    super(destroyJobTask, runJobStageDecorators)
     this.jobService = optionalJobService.orElse(null)
     this.objectMapper = new ObjectMapper()
   }

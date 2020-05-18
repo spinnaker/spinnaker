@@ -109,6 +109,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
   private TaskId deploy(String cloudProvider, Map deployOperation) {
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
 
+    // TODO(rz): How to abstract this?
     if (cloudProvider != 'titus') {
       addAllNonEmpty(deployOperation.securityGroups, defaultSecurityGroups)
     }

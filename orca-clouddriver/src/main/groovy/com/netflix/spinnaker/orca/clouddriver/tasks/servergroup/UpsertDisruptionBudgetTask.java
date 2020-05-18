@@ -59,6 +59,8 @@ public class UpsertDisruptionBudgetTask extends AbstractCloudProviderAwareTask {
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "upsertDisruptionBudget");
     outputs.put("kato.last.task.id", taskId);
+
+    // TODO(rz): Why is titus namespacing these?
     outputs.put("titus.region", request.get("region"));
     outputs.put("titus.account.name", request.get("credentials"));
 

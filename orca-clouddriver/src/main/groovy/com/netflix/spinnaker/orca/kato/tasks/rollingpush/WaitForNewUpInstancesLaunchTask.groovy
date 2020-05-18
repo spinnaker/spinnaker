@@ -34,6 +34,7 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
 
   @Autowired OortService oortService
   @Autowired ObjectMapper objectMapper
+  @Autowired(required = false) List<ServerGroupInstanceIdCollector> serverGroupInstanceIdCollectors = []
 
   long getBackoffPeriod() { TimeUnit.SECONDS.toMillis(10) }
 
@@ -57,7 +58,9 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
 
     List<String> healthProviders = stage.context.interestingHealthProviderNames as List<String>
     Set<String> newUpInstanceIds = serverGroupInstances.findResults {
-      String id = stageData.cloudProvider == 'titus' ? it.id : it.instanceId
+      String id = getServerGroupInstanceIdCollector(stage)
+          .map { collector -> collector.one(it) }
+          .orElse((String) it.instanceId)
       !knownInstanceIds.contains(id) &&
         HealthHelper.someAreUpAndNoneAreDownOrStarting(it, healthProviders) ? id : null
     }
@@ -68,5 +71,11 @@ class WaitForNewUpInstancesLaunchTask implements OverridableTimeoutRetryableTask
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([knownInstanceIds: knownInstanceIds.toList()]).build()
     }
     return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+  }
+
+  private Optional<ServerGroupInstanceIdCollector> getServerGroupInstanceIdCollector(StageExecution stage) {
+    return Optional.ofNullable((String) stage.getContext().get("cloudProvider")).flatMap { cloudProvider ->
+      serverGroupInstanceIdCollectors.stream().filter { it.supports(cloudProvider) }.findFirst()
+    }
   }
 }

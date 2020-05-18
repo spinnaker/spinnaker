@@ -137,6 +137,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   protected Map<String, Object> clusterContext(StageExecution stage, Map defaultStageContext, Map cluster) {
     def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
 
+    // TODO(rz): How can this be abstracted so that cloud provider isn't checked?
     if (cluster.providerType && !(cluster.providerType in ['aws', 'titus'])) {
       type += "_$cluster.providerType"
     }

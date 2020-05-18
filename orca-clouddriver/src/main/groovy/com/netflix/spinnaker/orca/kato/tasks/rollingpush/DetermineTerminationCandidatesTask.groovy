@@ -35,6 +35,8 @@ class DetermineTerminationCandidatesTask implements Task {
   OortService oortService
   @Autowired
   ObjectMapper objectMapper
+  @Autowired(required = false)
+  List<ServerGroupInstanceIdCollector> serverGroupInstanceIdCollectors = []
 
   @Nonnull
   @Override
@@ -45,7 +47,9 @@ class DetermineTerminationCandidatesTask implements Task {
     boolean ascending = stage.context.termination?.order != 'newest'
     def serverGroupInstances = serverGroup.instances.sort { ascending ? it.launchTime : -it.launchTime }
     // need to use id instead of instanceIds for titus as the titus API doesn't yet support this yet.
-    def knownInstanceIds = stage.context.cloudProvider == 'titus' ? serverGroupInstances*.id : serverGroupInstances*.instanceId
+    def knownInstanceIds = getServerGroupInstanceIdCollector(stage)
+        .flatMap { it.collect(serverGroupInstances) }
+        .orElseGet { serverGroupInstances*.instanceId }
     def terminationInstancePool = knownInstanceIds
     if (stage.context.termination?.instances) {
       terminationInstancePool = knownInstanceIds.intersect(stage.context.termination?.instances)
@@ -64,5 +68,11 @@ class DetermineTerminationCandidatesTask implements Task {
     }
 
     return termination.totalRelaunches as Integer
+  }
+
+  private Optional<ServerGroupInstanceIdCollector> getServerGroupInstanceIdCollector(StageExecution stage) {
+    return Optional.ofNullable((String) stage.getContext().get("cloudProvider")).flatMap { cloudProvider ->
+      serverGroupInstanceIdCollectors.stream().filter { it.supports(cloudProvider) }.findFirst()
+    }
   }
 }
