@@ -40,7 +40,10 @@ public class OracleImageFinder implements ImageFinder {
 
   @Override
   public Collection<ImageDetails> byTags(
-      StageExecution stage, String packageName, Map<String, String> freeformTags) {
+      StageExecution stage,
+      String packageName,
+      Map<String, String> freeformTags,
+      List<String> warningsCollector) {
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 

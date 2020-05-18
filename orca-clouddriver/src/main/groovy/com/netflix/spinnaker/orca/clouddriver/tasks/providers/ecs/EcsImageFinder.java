@@ -41,7 +41,10 @@ public class EcsImageFinder implements ImageFinder {
 
   @Override
   public Collection<ImageDetails> byTags(
-      StageExecution stage, String packageName, Map<String, String> tags) {
+      StageExecution stage,
+      String packageName,
+      Map<String, String> tags,
+      List<String> warningsCollector) {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
     List<Map> result =

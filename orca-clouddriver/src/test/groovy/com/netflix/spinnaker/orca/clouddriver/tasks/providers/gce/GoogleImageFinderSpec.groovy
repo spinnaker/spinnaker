@@ -43,7 +43,7 @@ class GoogleImageFinderSpec extends Specification {
     ]
 
     when:
-    def imageDetails = googleImageFinder.byTags(null, "mypackage", ["engine": "spinnaker"])
+    def imageDetails = googleImageFinder.byTags(null, "mypackage", ["engine": "spinnaker"], [])
 
     then:
     1 * oortService.findImage("gce", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {

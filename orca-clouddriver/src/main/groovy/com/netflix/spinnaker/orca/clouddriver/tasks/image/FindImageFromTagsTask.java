@@ -63,8 +63,9 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
       stageData.tags = Collections.emptyMap();
     }
 
+    List<String> warnings = new ArrayList<>();
     Collection<ImageFinder.ImageDetails> imageDetails =
-        imageFinder.byTags(stage, stageData.packageName, stageData.tags);
+        imageFinder.byTags(stage, stageData.packageName, stageData.tags, warnings);
 
     if (imageDetails == null || imageDetails.isEmpty()) {
       throw new IllegalStateException(
@@ -81,6 +82,14 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
     Map<String, Object> stageOutputs = new HashMap<>();
     stageOutputs.put("amiDetails", imageDetails);
     stageOutputs.put("artifacts", artifacts);
+
+    if (!warnings.isEmpty()) {
+      Map<String, String[]> messages = new HashMap<>();
+      messages.put("errors", warnings.toArray(new String[0]));
+      Map<String, Object> details = new HashMap<>();
+      details.put("details", messages);
+      stageOutputs.put("exception", details);
+    }
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
         .context(stageOutputs)

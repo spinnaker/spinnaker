@@ -44,7 +44,10 @@ public class AliCloudImageFinder implements ImageFinder {
 
   @Override
   public Collection<ImageDetails> byTags(
-      StageExecution stage, String packageName, Map<String, String> tags) {
+      StageExecution stage,
+      String packageName,
+      Map<String, String> tags,
+      List<String> warningsCollector) {
     List<AliCloudImage> allMatchedImages =
         oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
             .stream()

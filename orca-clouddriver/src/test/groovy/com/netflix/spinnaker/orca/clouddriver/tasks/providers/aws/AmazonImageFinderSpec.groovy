@@ -53,7 +53,7 @@ class AmazonImageFinderSpec extends Specification {
     def noTags = [:]
 
     when:
-    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"])
+    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"], [])
 
     then:
     1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {
@@ -137,7 +137,7 @@ class AmazonImageFinderSpec extends Specification {
     ]
 
     when:
-    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"])
+    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"], [])
 
     then:
     1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {
@@ -196,7 +196,7 @@ class AmazonImageFinderSpec extends Specification {
     ]
 
     when:
-    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"])
+    def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"], [])
 
     then:
     1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {

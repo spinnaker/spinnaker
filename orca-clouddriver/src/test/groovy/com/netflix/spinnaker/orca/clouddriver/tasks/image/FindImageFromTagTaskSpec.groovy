@@ -34,7 +34,7 @@ class FindImageFromTagTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
 
     1 * imageFinder.getCloudProvider() >> 'aws'
-    1 * imageFinder.byTags(stage, stage.context.packageName, stage.context.tags) >> [imageDetails]
+    1 * imageFinder.byTags(stage, stage.context.packageName, stage.context.tags, []) >> [imageDetails]
     1 * imageDetails.getImageName() >> "somename"
     1 * imageDetails.getImageId() >> "someId"
     1 * imageDetails.getJenkins() >> new ImageFinder.JenkinsDetails("somehost", "somename", "42")
