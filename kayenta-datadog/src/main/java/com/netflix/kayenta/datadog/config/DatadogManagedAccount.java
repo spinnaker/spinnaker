@@ -18,6 +18,7 @@ package com.netflix.kayenta.datadog.config;
 
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
+import java.util.Collections;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
@@ -30,5 +31,6 @@ public class DatadogManagedAccount {
 
   @NotNull private RemoteService endpoint;
 
-  private List<AccountCredentials.Type> supportedTypes;
+  private List<AccountCredentials.Type> supportedTypes =
+      Collections.singletonList(AccountCredentials.Type.METRICS_STORE);
 }
