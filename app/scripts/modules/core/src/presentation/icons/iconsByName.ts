@@ -27,6 +27,8 @@ import { ReactComponent as loadBalancer } from './vectors/loadBalancer.svg';
 import { ReactComponent as manualJudgement } from './vectors/manualJudgement.svg';
 import { ReactComponent as manualJudgementApproved } from './vectors/manualJudgementApproved.svg';
 import { ReactComponent as manualJudgementRejected } from './vectors/manualJudgementRejected.svg';
+import { ReactComponent as menu } from './vectors/menu.svg';
+import { ReactComponent as menuClose } from './vectors/menuClose.svg';
 import { ReactComponent as pin } from './vectors/pin.svg';
 import { ReactComponent as placeholder } from './vectors/placeholder.svg';
 import { ReactComponent as securityGroup } from './vectors/securityGroup.svg';
@@ -140,6 +142,8 @@ export const iconsByName = {
   mdConstraintDependsOn,
   mdConstraintAllowedTimes,
   md,
+  menu,
+  menuClose,
   pin,
   placeholder,
   resourceT,
