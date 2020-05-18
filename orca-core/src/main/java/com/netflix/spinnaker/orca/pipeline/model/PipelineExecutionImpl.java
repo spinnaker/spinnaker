@@ -25,12 +25,24 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.orca.api.pipeline.models.*;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -150,12 +162,24 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
   }
 
   @JsonIgnore
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public @Nonnull Map<String, Object> getContext() {
     return StageExecutionImpl.topologicalSort(stages)
         .map(StageExecution::getOutputs)
         .map(Map::entrySet)
         .flatMap(Collection::stream)
-        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (o, o2) -> o2));
+        .collect(
+            toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (o, o2) -> {
+                  if (o instanceof Collection && o2 instanceof Collection) {
+                    return Stream.concat(((Collection) o).stream(), ((Collection) o2).stream())
+                        .distinct()
+                        .collect(Collectors.toList());
+                  }
+                  return o2;
+                }));
   }
 
   private final List<StageExecution> stages = new ArrayList<>();
