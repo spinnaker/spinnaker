@@ -100,6 +100,8 @@
     "webpack-dev-middleware": "^3.7.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
     "@spinnaker/eslint-plugin": "1.0.7",
     "@spinnaker/mocks": "1.0.6",
     "@svgr/webpack": "^5.2.0",
@@ -149,9 +151,7 @@
     "angulartics": "^1.1.2",
     "angulartics-google-analytics": "^0.2.0",
     "autoprefixer": "^7.1.2",
-    "babel-core": "^6.21.1",
-    "babel-loader": "^7.1.5",
-    "babel-preset-env": "^1.6.1",
+    "babel-loader": "^8.1.0",
     "cache-loader": "2.0.1",
     "copy-webpack-plugin": "4.6.0",
     "css-loader": "2.1.0",
