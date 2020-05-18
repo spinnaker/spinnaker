@@ -43,10 +43,10 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@spinnaker/core@0.0.474":
-  version "0.0.474"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.474.tgz#5090a38fe0789afab12ab7ae4a660d73c2c1dcdd"
-  integrity sha512-Yq1b/qCjcdbV58OYxsAqPZcccQ2GcJYsWVD/3eW8tB9ybNBbcsVWhY2lUblPETjDeMNP7joMTDglGEL/IJ7kcg==
+"@spinnaker/core@0.0.477":
+  version "0.0.477"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.477.tgz#ea7f6ebe4b473fc680450773221d10674bafbf31"
+  integrity sha512-S7BAdEcOrjVN2+PUXTLl1Baxx87OyYrkLow1ycfuFUGKoJimJS87Krc/A8uEjDOGX36oFAcAyqazRpluW39Zfw==
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
