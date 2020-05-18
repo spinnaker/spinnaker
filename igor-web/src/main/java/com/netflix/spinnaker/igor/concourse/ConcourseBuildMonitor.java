@@ -197,9 +197,7 @@ public class ConcourseBuildMonitor
     } else {
       log.warn("Cannot send build event notification: Echo is not configured");
       log.info("({}) unable to push event for :" + build.getFullDisplayName());
-      registry
-          .counter(missedNotificationId.withTag("monitor", getClass().getSimpleName()))
-          .increment();
+      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
     }
   }
 

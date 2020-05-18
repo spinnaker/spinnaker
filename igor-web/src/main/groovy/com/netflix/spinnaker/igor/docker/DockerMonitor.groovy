@@ -152,7 +152,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                 if (sendEvents && item.sendEvent) {
                     postEvent(delta.cachedImages, item.image, item.imageId)
                 } else {
-                    registry.counter(missedNotificationId.withTags("monitor", getClass().simpleName, "reason", "fastForward")).increment()
+                    registry.counter(missedNotificationId.withTags("monitor", getName(), "reason", "fastForward")).increment()
                 }
             }
         }
@@ -166,7 +166,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     void postEvent(Set<String> cachedImagesForAccount, TaggedImage image, String imageId) {
         if (!echoService.isPresent()) {
             log.warn("Cannot send tagged image notification: Echo is not enabled")
-            registry.counter(missedNotificationId.withTags("monitor", getClass().simpleName, "reason", "echoDisabled")).increment()
+            registry.counter(missedNotificationId.withTags("monitor", getName(), "reason", "echoDisabled")).increment()
             return
         }
         if (!cachedImagesForAccount) {

@@ -260,7 +260,7 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
     private boolean postEvent(GenericProject project, String master) {
         if (!echoService.isPresent()) {
             log.warn("Cannot send build notification: Echo is not configured")
-            registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
+            registry.counter(missedNotificationId.withTag("monitor", getName())).increment()
             return false
         }
         AuthenticatedRequest.allowAnonymous {

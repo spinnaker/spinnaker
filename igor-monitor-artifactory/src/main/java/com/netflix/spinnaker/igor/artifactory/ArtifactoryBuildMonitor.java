@@ -199,11 +199,7 @@ public class ArtifactoryBuildMonitor
   private void postEvent(Artifact artifact, String name) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
-      registry
-          .counter(
-              missedNotificationId.withTag(
-                  "monitor", ArtifactoryBuildMonitor.class.getSimpleName()))
-          .increment();
+      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
     } else {
       if (artifact != null) {
         AuthenticatedRequest.allowAnonymous(

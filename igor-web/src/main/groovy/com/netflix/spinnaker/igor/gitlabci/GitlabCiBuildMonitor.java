@@ -217,9 +217,7 @@ public class GitlabCiBuildMonitor
       String slug, Project project, Pipeline pipeline, String address, String master) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not enabled");
-      registry
-          .counter(missedNotificationId.withTag("monitor", getClass().getSimpleName()))
-          .increment();
+      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
       return;
     }
 

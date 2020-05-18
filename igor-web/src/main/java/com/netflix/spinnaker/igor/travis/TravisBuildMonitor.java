@@ -269,9 +269,7 @@ public class TravisBuildMonitor
                 + ":"
                 + buildDelta.getBuild().getNumber(),
             kv("master", master));
-        registry
-            .counter(missedNotificationId.withTag("monitor", getClass().getSimpleName()))
-            .increment();
+        registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
       }
     }
   }

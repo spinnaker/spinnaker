@@ -85,10 +85,7 @@ public class PluginsBuildMonitor
   private void postEvent(PluginRelease release) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send new plugin notification: Echo is not configured");
-      registry
-          .counter(
-              missedNotificationId.withTag("monitor", PluginsBuildMonitor.class.getSimpleName()))
-          .increment();
+      registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
     } else if (release != null) {
       AuthenticatedRequest.allowAnonymous(
           () -> echoService.get().postEvent(new PluginEvent(release)));
