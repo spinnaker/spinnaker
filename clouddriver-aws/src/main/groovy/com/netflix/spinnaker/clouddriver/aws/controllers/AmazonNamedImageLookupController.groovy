@@ -84,15 +84,16 @@ class AmazonNamedImageLookupController {
     Collection<String> namedImageIdentifiers = !isAmi ? cacheView.filterIdentifiers(NAMED_IMAGES.ns, namedImageSearch) : []
     Collection<String> imageIdentifiers = namedImageIdentifiers.isEmpty() ? cacheView.filterIdentifiers(IMAGES.ns, imageSearch) : []
 
-    namedImageIdentifiers = (namedImageIdentifiers as List).subList(0, Math.min(MAX_SEARCH_RESULTS, namedImageIdentifiers.size()))
     Collection<CacheData> matchesByName = cacheView.getAll(NAMED_IMAGES.ns, namedImageIdentifiers, RelationshipCacheFilter.include(IMAGES.ns))
 
     Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageIdentifiers)
 
-    return filter(
+    List<NamedImage> allFilteredImages = filter(
       render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region),
       extractTagFilters(request)
     )
+
+    return allFilteredImages.subList(0, Math.min(MAX_SEARCH_RESULTS, allFilteredImages.size()))
   }
 
   private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, String requestedName = null, String requiredRegion = null) {
