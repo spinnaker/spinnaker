@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import java.util.List;
 import lombok.Data;
 import lombok.Getter;
 
@@ -30,16 +31,20 @@ public class AwsCodeBuildExecution {
   private final Status status;
   private final AwsCodeBuildLogs logs;
   private final String buildUrl;
+  private final List<AwsCodeBuildEnvironmentVariable> exportedEnvironmentVariables;
 
   @JsonCreator
   public AwsCodeBuildExecution(
       @JsonProperty("arn") String arn,
       @JsonProperty("buildStatus") String buildStatus,
-      @JsonProperty("logs") AwsCodeBuildLogs logs) {
+      @JsonProperty("logs") AwsCodeBuildLogs logs,
+      @JsonProperty("exportedEnvironmentVariables")
+          List<AwsCodeBuildEnvironmentVariable> exportedEnvironmentVariables) {
     this.arn = arn;
     this.status = Status.fromString(buildStatus);
     this.buildUrl = getBuildUrl(arn);
     this.logs = logs;
+    this.exportedEnvironmentVariables = exportedEnvironmentVariables;
   }
 
   private String getBuildUrl(String arn) {
@@ -56,6 +61,12 @@ public class AwsCodeBuildExecution {
   private static class AwsCodeBuildLogs {
     private String deepLink;
     private String s3DeepLink;
+  }
+
+  @Data
+  private static class AwsCodeBuildEnvironmentVariable {
+    private String name;
+    private String value;
   }
 
   public enum Status {

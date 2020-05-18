@@ -41,7 +41,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
 
   @Subject
   StartAwsCodeBuildTask task = new StartAwsCodeBuildTask(igorService, artifactUtils)
-  def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
+  def igorResponse = new AwsCodeBuildExecution(ARN, null, null, null)
 
   def "should start a build"() {
     given:

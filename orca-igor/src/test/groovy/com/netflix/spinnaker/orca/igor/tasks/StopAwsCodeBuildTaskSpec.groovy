@@ -38,7 +38,7 @@ class StopAwsCodeBuildTaskSpec extends Specification {
 
   def "should stop a build"() {
     given:
-    def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
+    def igorResponse = new AwsCodeBuildExecution(ARN, null, null, null)
     def stage = new StageExecutionImpl(execution, "awsCodeBuild", [
         account: ACCOUNT,
         buildInfo: [
@@ -57,7 +57,7 @@ class StopAwsCodeBuildTaskSpec extends Specification {
 
   def "should do nothing if buildInfo doesn't exist"() {
     given:
-    def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
+    def igorResponse = new AwsCodeBuildExecution(ARN, null, null, null)
     def stage = new StageExecutionImpl(execution, "awsCodeBuild", [account: ACCOUNT, projectName: PROJECT_NAME])
 
     when:

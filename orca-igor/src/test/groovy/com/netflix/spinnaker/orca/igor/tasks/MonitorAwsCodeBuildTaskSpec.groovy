@@ -41,7 +41,7 @@ class MonitorAwsCodeBuildTaskSpec extends Specification {
   @Unroll
   def "task returns #executionStatus when build returns #buildStatus"() {
     given:
-    def igorResponse = new AwsCodeBuildExecution(ARN, buildStatus, null)
+    def igorResponse = new AwsCodeBuildExecution(ARN, buildStatus, null, null)
     def stage = new StageExecutionImpl(execution, "awsCodeBuild", [
       account: ACCOUNT,
       buildInfo: [
