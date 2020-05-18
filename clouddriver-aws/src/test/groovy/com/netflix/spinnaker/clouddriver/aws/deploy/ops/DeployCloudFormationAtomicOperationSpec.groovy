@@ -203,7 +203,6 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE.toString()
   }
 
-
   @Unroll
   void "should fail when AWS fails to update stack"() {
     given:
@@ -269,6 +268,37 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       new DescribeStacksResult().withStacks([new Stack().withStackId("stackId")] as Collection)
     }
     1 * amazonCloudFormation.updateStack(_) >> { throw new AmazonCloudFormationException("No updates are to be performed") }
+  }
+
+  @Unroll
+  void "should fail when invalid template"() {
+    given:
+    def amazonClientProvider = Mock(AmazonClientProvider)
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def op = new DeployCloudFormationAtomicOperation(
+      new DeployCloudFormationDescription(
+        [
+          stackName: "stackTest",
+          region: "eu-west-1",
+          templateBody: '{"key":"value"}',
+          roleARN: "arn:aws:iam:123456789012:role/test",
+          parameters: [ key: "value" ],
+          tags: [ key: "value" ],
+          capabilities: ["cap1", "cap2"],
+          credentials: TestCredential.named("test")
+        ]
+      )
+    )
+    op.amazonClientProvider = amazonClientProvider
+    op.objectMapper = new ObjectMapper()
+
+    when:
+    op.operate([])
+
+    then:
+    1 * amazonClientProvider.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.validateTemplate(_) >> { throw new AmazonCloudFormationException() }
+    thrown(AmazonCloudFormationException)
   }
 
 }
