@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.kork.plugins.api;
@@ -22,33 +23,31 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.annotation.Nonnull;
 
 /**
- * Denotes that a class provides extension configuration. For example:
- *
- * <pre>{@code
- * &#064;ExtensionConfiguration("my-extension")
- * public class MyExtensionConfiguration {
- *   private String someProperty;
- * }
- * }</pre>
+ * Denotes that a class provides plugin configuration. Classes annotated with [PluginConfiguration]
+ * can be injected via the Plugin constructor or the Extension Point constructor.
  */
 @Alpha
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Deprecated
-public @interface ExtensionConfiguration {
+public @interface PluginConfiguration {
 
   /**
-   * The property value of the extension configuration. For example, if set to `netflix.orca-stage`
-   * the corresponding config coordinates would be:
+   * The property value of the configuration.
    *
-   * <p>`spinnaker.extensibility.plugins.pluginId.extensions.netflix.orca-stage.config`
+   * <p>If the configuration is for an extension point and the config is `stage-extension`, the
+   * corresponding config coordinates would be:
+   *
+   * <p>`spinnaker.extensibility.plugins.pluginId.extensions.stage-extension.config`
+   *
+   * <p>If the configuration is for an plugin the config is `http-client`, the corresponding config
+   * coordinates would be:
+   *
+   * <p>`spinnaker.extensibility.plugins.pluginId.http-client.config`
    *
    * @return
    */
-  @Nonnull
-  String value();
+  String value() default "";
 }

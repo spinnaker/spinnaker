@@ -33,7 +33,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
-import strikt.assertions.succeeded
+import strikt.assertions.isSuccess
 
 class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
@@ -44,7 +44,7 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
     test("plugin config with shortened config path") {
       expectThat(subject.resolve(
-        PluginConfigCoordinates("netflix.sweet-plugin"),
+        PluginConfigCoordinates("netflix.sweet-plugin", "some-config"),
         TestPluginConfig::class.java
       ))
         .isA<TestPluginConfig>()
@@ -74,7 +74,7 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
           ExtensionConfigCoordinates("netflix.sweet-plugin", "config.nonexistent"),
           MissingNoArgConstructor::class.java
         )
-      }.succeeded()
+      }.isSuccess()
 
       expectThat(subject.resolve(
         ExtensionConfigCoordinates("netflix.sweet-plugin", "config.nonexistent"),
@@ -159,6 +159,7 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
   private val properties = mapOf<String, Any?>(
     "spinnaker.extensibility.plugins.netflix.sweet-plugin.enabled" to "true",
+    "spinnaker.extensibility.plugins.netflix.sweet-plugin.some-config.config.somestring" to "overridden default",
     "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somestring" to "overridden default",
     "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.someint" to 10,
     "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somelist[0].hello" to "Future Rob",

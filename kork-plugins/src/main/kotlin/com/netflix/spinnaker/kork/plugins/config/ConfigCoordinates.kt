@@ -26,32 +26,30 @@ sealed class ConfigCoordinates {
  */
 class ExtensionConfigCoordinates(
   val pluginId: String,
-  private val extensionConfigId: String
+  private val extensionConfigId: String,
+  private val extensionsNamespace: String = "extensions"
 ) : ConfigCoordinates() {
-  override fun toPointer(): String =
-    listOf(
-      pluginId,
-      "extensions",
-      extensionConfigId
-    ).let {
+  override fun toPointer(): String {
+    val coords = if (extensionConfigId.isEmpty()) listOf(pluginId, extensionsNamespace) else listOf(pluginId, extensionsNamespace, extensionConfigId)
+    return coords.let {
       "$ROOT_PATH/plugins/${it.joinToString("/").replace(".", "/")}/config"
     }
+  }
 }
 
 /**
  * Config coordinates for a plugin.
- *
- * TODO(jonsie): Currently unused, but perhaps could be used with a @PluginConfiguration annotation
  */
 class PluginConfigCoordinates(
-  val pluginId: String
+  val pluginId: String,
+  private val pluginConfigId: String
 ) : ConfigCoordinates() {
-  override fun toPointer(): String =
-    listOf(
-      pluginId
-    ).let {
+  override fun toPointer(): String {
+    val coords = if (pluginConfigId.isEmpty()) listOf(pluginId) else listOf(pluginId, pluginConfigId)
+    return coords.let {
       "$ROOT_PATH/plugins/${it.joinToString("/").replace(".", "/")}/config"
     }
+  }
 }
 
 /**

@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
+import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
@@ -128,8 +129,8 @@ class DependencyInjectionTest : JUnit5Minutests {
           javaClass.classLoader
         )
 
-        val config = TheConfig()
-        every { configResolver.resolve(any(), any<Class<TheConfig>>()) } returns config
+        val config = PluginConfig()
+        every { configResolver.resolve(any(), any<Class<PluginConfig>>()) } returns config
 
         expectThat(subject.create(pluginWrapper))
           .isA<PluginWithConfig>()
@@ -220,6 +221,9 @@ class DependencyInjectionTest : JUnit5Minutests {
   @ExtensionConfiguration("extension-point-configuration")
   class TheConfig
 
+  @PluginConfiguration
+  class PluginConfig
+
   private class ConfiguredSystemExtension(
     private val config: TheConfig
   ) : TheExtensionPoint
@@ -258,7 +262,7 @@ class DependencyInjectionTest : JUnit5Minutests {
 
 internal class PluginWithoutInjection(wrapper: PluginWrapper) : Plugin(wrapper)
 internal class PluginWithSdks(wrapper: PluginWrapper, val sdks: PluginSdks) : Plugin(wrapper)
-internal class PluginWithConfig(wrapper: PluginWrapper, val config: DependencyInjectionTest.TheConfig) : Plugin(wrapper)
+internal class PluginWithConfig(wrapper: PluginWrapper, val config: DependencyInjectionTest.PluginConfig) : Plugin(wrapper)
 internal class PluginWithUnsupportedArg(wrapper: PluginWrapper, val bad: String) : Plugin(wrapper)
 internal class PluginWithMultipleConstructors(wrapper: PluginWrapper) : Plugin(wrapper) {
   constructor(wrapper: PluginWrapper, sdks: PluginSdks) : this(wrapper)

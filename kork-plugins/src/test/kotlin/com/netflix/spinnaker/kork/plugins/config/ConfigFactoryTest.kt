@@ -36,7 +36,7 @@ class ConfigFactoryTest : JUnit5Minutests {
         configResolver.resolve(any<ExtensionConfigCoordinates>(), eq(MyExtensionConfig::class.java))
       } returns MyExtensionConfig("yes, hello")
 
-      expectThat(subject.createExtensionConfig(MyExtensionConfig::class.java, "my-sweet-extension", "my-plugin"))
+      expectThat(subject.createExtensionConfig(MyExtensionConfig::class.java, "my-plugin", "my-sweet-extension"))
         .isA<MyExtensionConfig>()
         .get { message }.isEqualTo("yes, hello")
     }
@@ -46,7 +46,7 @@ class ConfigFactoryTest : JUnit5Minutests {
         configResolver.resolve(any<PluginConfigCoordinates>(), eq(MyPluginConfig::class.java))
       } returns MyPluginConfig("yes, hello")
 
-      expectThat(subject.createPluginConfig(MyPluginConfig::class.java, "my-plugin"))
+      expectThat(subject.createPluginConfig(MyPluginConfig::class.java, "my-plugin", "plugin-config"))
         .isA<MyPluginConfig>()
         .get { message }.isEqualTo("yes, hello")
     }
