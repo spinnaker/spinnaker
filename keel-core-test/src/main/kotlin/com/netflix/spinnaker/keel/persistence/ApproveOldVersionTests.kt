@@ -132,7 +132,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
         repository.storeArtifact(artifact, version1, ArtifactStatus.RELEASE)
         repository.storeArtifact(artifact, version2, ArtifactStatus.RELEASE)
         repository.storeConstraintState(pendingManualJudgement1)
-        repository.storeConstraintState(pendingManualJudgement1)
+        repository.storeConstraintState(pendingManualJudgement2)
 
         every { statelessEvaluator.canPromote(artifact, version2, deliveryConfig, environment) } returns true
         every { statelessEvaluator.canPromote(artifact, version1, deliveryConfig, environment) } returns true
@@ -156,8 +156,12 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
             subject.checkEnvironments(deliveryConfig)
           }
 
-          // this is broken! ha! this is a bug.
-          // expectThat(repository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)).isEqualTo(version1)
+          expectThat(repository.getConstraintState(deliveryConfig.name, environment.name, version1, "manual-judgement")).get {
+            this?.status
+          }.isEqualTo(
+            passedManualJudgement1.status
+          )
+          expectThat(repository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)).isEqualTo(version1)
         }
       }
     }

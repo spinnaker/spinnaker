@@ -478,10 +478,13 @@ class SqlDeliveryConfigRepository(
               .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, MySQLDSL.values(CURRENT_CONSTRAINT.CONSTRAINT_UID))
               .execute()
 
-            val allStates = constraintStateFor(state.deliveryConfigName, state.environmentName, state.artifactVersion)
+            /**
+             * Passing the transaction here since [constraintStateForWithTransaction] is querying [ENVIRONMENT_ARTIFACT_CONSTRAINT]
+             * table, and we need to make sure the new state was persisted prior to checking all states for a given artifact version.
+             */
+            val allStates = constraintStateForWithTransaction(state.deliveryConfigName, state.environmentName, state.artifactVersion, txn)
             if (allStates.allPass && allStates.size >= environment.constraints.statefulCount) {
-              txn
-                .insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
+              txn.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, state.artifactVersion)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant().toEpochMilli())
@@ -489,9 +492,9 @@ class SqlDeliveryConfigRepository(
                 .execute()
             }
           }
+          // Store generated UID in constraint state object so it can be used by caller
+          state.uid = parseUID(uid)
         }
-        // Store generated UID in constraint state object so it can be used by caller
-        state.uid = parseUID(uid)
       }
   }
 
@@ -776,11 +779,20 @@ class SqlDeliveryConfigRepository(
     environmentName: String,
     artifactVersion: String
   ): List<ConstraintState> {
+    return constraintStateForWithTransaction(deliveryConfigName, environmentName, artifactVersion)
+  }
+
+  private fun constraintStateForWithTransaction(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String,
+    txn: DSLContext = jooq
+  ): List<ConstraintState> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
       ?: return emptyList()
 
     return sqlRetry.withRetry(READ) {
-      jooq
+      txn
         .select(
           inline(deliveryConfigName).`as`("deliveryConfigName"),
           inline(environmentName).`as`("environmentName"),

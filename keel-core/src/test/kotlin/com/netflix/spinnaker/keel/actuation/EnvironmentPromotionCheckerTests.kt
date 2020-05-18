@@ -256,6 +256,8 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every { statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment) } returns false
           every { statefulEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment) } returns true
 
+          every { repository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name) } returns "1.2"
+
           runBlocking {
             subject.checkEnvironments(deliveryConfig)
           }
@@ -275,7 +277,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           /**
            * Verify that stateful constraints are not checked if a stateless constraint blocks promotion
            */
-          verify(inverse = true) {
+          verify(exactly = 1) {
             statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment)
           }
         }
@@ -416,6 +418,8 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             repository.constraintStateFor("my-manifest", "staging", "2.0")
           } returns listOf(pendingManualJudgement)
+
+          every { repository.latestVersionApprovedIn(any(), any(), any()) } returns null
 
           runBlocking { subject.checkEnvironments(deliveryConfig) }
         }
