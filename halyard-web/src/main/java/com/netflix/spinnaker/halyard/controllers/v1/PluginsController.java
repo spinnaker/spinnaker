@@ -62,21 +62,6 @@ public class PluginsController {
         .execute(validationSettings);
   }
 
-  @RequestMapping(value = "/{pluginName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPlugin(
-      @PathVariable String deploymentName,
-      @PathVariable String pluginName,
-      @ModelAttribute ValidationSettings validationSettings,
-      @RequestBody Plugin plugin) {
-    return GenericUpdateRequest.<Plugin>builder(halconfigParser)
-        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
-        .updater(t -> pluginService.setPlugin(deploymentName, pluginName, t))
-        .validator(() -> pluginService.validatePlugin(deploymentName, pluginName))
-        .description("Edit the " + pluginName + " plugin")
-        .build()
-        .execute(validationSettings, plugin);
-  }
-
   @RequestMapping(value = "/", method = RequestMethod.POST)
   DaemonTask<Halconfig, Void> addPlugin(
       @PathVariable String deploymentName,

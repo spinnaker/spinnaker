@@ -1347,14 +1347,6 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Void> setPlugin(
-      String deploymentName, String pluginName, boolean validate, Plugin plugin) {
-    return () -> {
-      ResponseUnwrapper.get(getService().setPlugin(deploymentName, pluginName, validate, plugin));
-      return null;
-    };
-  }
-
   public static Supplier<Void> deletePlugin(
       String deploymentName, String pluginName, boolean validate) {
     return () -> {

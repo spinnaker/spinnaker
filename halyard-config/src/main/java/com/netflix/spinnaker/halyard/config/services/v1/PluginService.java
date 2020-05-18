@@ -54,17 +54,6 @@ public class PluginService {
     return plugin;
   }
 
-  public void setPlugin(String deploymentName, String pluginName, Plugin newPlugin) {
-    Map<String, Plugin> plugins = getPlugins(deploymentName);
-    if (plugins.get(pluginName) == null) {
-      throw new HalException(
-          new ConfigProblemBuilder(
-                  Problem.Severity.FATAL, "Plugin \"" + pluginName + "\" wasn't found")
-              .build());
-    }
-    plugins.put(pluginName, newPlugin);
-  }
-
   public void deletePlugin(String deploymentName, String pluginName) {
     Map<String, Plugin> plugins = getPlugins(deploymentName);
     Plugin plugin = plugins.remove(pluginName);
