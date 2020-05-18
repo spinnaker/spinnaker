@@ -78,6 +78,22 @@ describe('useSaveRestoreMutuallyExclusiveFields hook', () => {
     expect(formikRef.current.getFormikBag().values).toEqual({ pizzaOrSandwich: 'sandwich' });
   });
 
+  it(`clears out 'touched' status for 'pizza' fields when the user chooses 'sandwich'`, () => {
+    const formikRef = React.createRef<Formik>();
+    const wrapper = setupTest(formikRef);
+    formikRef.current.setFieldTouched('topping', true);
+    formikRef.current.setFieldTouched('crust', true);
+
+    expect(formikRef.current.getFormikBag().touched.topping).toBe(true);
+    expect(formikRef.current.getFormikBag().touched.crust).toBe(true);
+
+    formikRef.current.setFieldValue('pizzaOrSandwich', 'sandwich');
+    wrapper.setProps({});
+
+    expect(formikRef.current.getFormikBag().touched.topping).toBe(null);
+    expect(formikRef.current.getFormikBag().touched.crust).toBe(null);
+  });
+
   it(`restores previously saved 'pizza' fields when toggling back to 'pizza'`, () => {
     const formikRef = React.createRef<Formik>();
     const wrapper = setupTest(formikRef);
@@ -96,6 +112,24 @@ describe('useSaveRestoreMutuallyExclusiveFields hook', () => {
       sauce: 'red',
       cheese: 'cheddar',
     });
+  });
+
+  it(`restores previously saved touched statuses for 'pizza' fields when toggling back to 'pizza'`, () => {
+    const formikRef = React.createRef<Formik>();
+    const wrapper = setupTest(formikRef);
+    formikRef.current.setFieldTouched('topping', true);
+    formikRef.current.setFieldTouched('crust', true);
+
+    expect(formikRef.current.getFormikBag().touched.topping).toBe(true);
+    expect(formikRef.current.getFormikBag().touched.crust).toBe(true);
+
+    formikRef.current.setFieldValue('pizzaOrSandwich', 'sandwich');
+    wrapper.setProps({});
+    formikRef.current.setFieldValue('pizzaOrSandwich', 'pizza');
+    wrapper.setProps({});
+
+    expect(formikRef.current.getFormikBag().touched.topping).toBe(true);
+    expect(formikRef.current.getFormikBag().touched.crust).toBe(true);
   });
 
   it(`restores previously saved 'pizza' and 'sandwich' fields when toggling back and forth`, () => {

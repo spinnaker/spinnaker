@@ -57,27 +57,43 @@ export function useSaveRestoreMutuallyExclusiveFields(
   }
 
   const previousFieldSetKey = usePrevious(currentFieldSetKey);
-  const [savedData, setSavedData] = useState<SavedFieldsets>({});
+  const [savedValues, setSavedValues] = useState<SavedFieldsets>({});
+  const [savedTouched, setSavedTouched] = useState<SavedFieldsets>({});
 
   // Whenever the fieldset key changes, save and clear out the
   // previous fieldset's values and restore the current fieldset's values.
   useEffect(() => {
+    // Only run the effect if the the value is changing. Do not run on first render.
     if (!!previousFieldSetKey && currentFieldSetKey !== previousFieldSetKey) {
       const fieldsToSave = mutuallyExclusiveFieldSets[previousFieldSetKey] ?? [];
       const fieldsToRestore = mutuallyExclusiveFieldSets[currentFieldSetKey] ?? [];
 
-      const dataToSave = fieldsToSave.reduce((data, path) => {
+      const valuesToSave = fieldsToSave.reduce((data, path) => {
         data[path] = get(formik.values, path);
         return data;
       }, {} as FieldsetData);
-      setSavedData({ ...savedData, [previousFieldSetKey]: dataToSave });
+      setSavedValues({ ...savedValues, [previousFieldSetKey]: valuesToSave });
 
-      const dataToRestore = savedData[currentFieldSetKey] || {};
+      const touchedToSave = fieldsToSave.reduce((data, path) => {
+        data[path] = get(formik.touched, path);
+        return data;
+      }, {} as FieldsetData);
+      setSavedTouched({ ...savedTouched, [previousFieldSetKey]: touchedToSave });
 
-      fieldsToSave.forEach(field => formik.setFieldValue(field, undefined));
-      fieldsToRestore.forEach(path => {
-        if (dataToRestore.hasOwnProperty(path)) {
-          formik.setFieldValue(path, savedData[currentFieldSetKey][path]);
+      fieldsToSave.forEach(field => {
+        formik.setFieldValue(field, undefined);
+        formik.setFieldTouched(field, null);
+      });
+
+      // Restore the saved touched/values
+      const valuesToRestore = savedValues[currentFieldSetKey] || {};
+      const touchedToRestore = savedTouched[currentFieldSetKey] || {};
+      fieldsToRestore.forEach(field => {
+        if (valuesToRestore.hasOwnProperty(field)) {
+          formik.setFieldValue(field, savedValues[currentFieldSetKey][field]);
+        }
+        if (touchedToRestore.hasOwnProperty(field)) {
+          formik.setFieldTouched(field, savedTouched[currentFieldSetKey][field]);
         }
       });
     }
