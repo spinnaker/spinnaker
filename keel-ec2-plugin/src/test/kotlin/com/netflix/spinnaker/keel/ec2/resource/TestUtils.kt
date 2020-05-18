@@ -27,7 +27,8 @@ import org.apache.commons.lang3.RandomStringUtils
 fun ServerGroup.toCloudDriverResponse(
   vpc: Network,
   subnets: List<Subnet>,
-  securityGroups: List<SecurityGroupSummary>
+  securityGroups: List<SecurityGroupSummary>,
+  image: ActiveServerGroupImage? = null
 ): ActiveServerGroup =
   RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
     ActiveServerGroup(
@@ -40,7 +41,7 @@ fun ServerGroup.toCloudDriverResponse(
         baseImageVersion = launchConfiguration.baseImageVersion,
         name = "name",
         imageLocation = "location",
-        description = null
+        description = image?.description
       ),
       LaunchConfig(
         launchConfiguration.ramdiskId,

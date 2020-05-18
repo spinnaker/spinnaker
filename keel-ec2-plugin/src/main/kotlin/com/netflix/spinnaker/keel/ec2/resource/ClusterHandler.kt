@@ -430,21 +430,27 @@ class ClusterHandler(
   }
 
   /**
-   * This function attempts to use fields on an image to guess what OS the image is.
-   * If not found, it will default to "bionic".
+   * This function attempts to use image description to guess what OS the image is.
+   * If not found, it will throw an error.
    */
   fun guessBaseOsFrom(image: ActiveServerGroupImage): String =
-    when {
-      image.name.signalsBionic() || image.imageLocation.signalsBionic() || image.description?.signalsBionic() ?: false -> "bionic"
-      image.name.signalsXenial() || image.imageLocation.signalsXenial() || image.description?.signalsXenial() ?: false -> "xenial"
-      else -> {
-        log.error("Unable to determine OS from image $image, defaulting to bionic...")
-        "bionic"
-      }
-    }
+    parseBaseOsFrom(image.description)
+      ?: throw ExportError("Unable to determine the base image from image description: $image")
 
-  private fun String.signalsBionic(): Boolean = contains("bionic")
-  private fun String.signalsXenial(): Boolean = contains("xenial")
+  /**
+   * Parses the base os from the start of the ancestor name of a description like:
+   * "name=fiat, arch=x86_64, ancestor_name=bionic-classicbase-x86_64-202005072313-ebs,
+   *   ancestor_id=ami-1111, ancestor_version=nflx-base-5.540.0-h1708.eeeeeee"
+   */
+  private fun parseBaseOsFrom(description: String?): String? {
+    if (description == null) {
+      return null
+    }
+    val info: List<String> = description.split(",").map { it.trim() }
+    val ancestor = info.firstOrNull { it.startsWith("ancestor_name") } ?: return null
+    val ancestorValue = ancestor.split("=")[1]
+    return ancestorValue.substringBefore("base-x")
+  }
 
   override suspend fun actuationInProgress(resource: Resource<ClusterSpec>) =
     resource

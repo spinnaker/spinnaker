@@ -162,8 +162,8 @@ internal class ClusterExportTests : JUnit5Minutests {
     spec = spec
   )
 
-  val activeServerGroupResponseEast = serverGroupEast.toCloudDriverResponse(vpcEast, listOf(subnet1East, subnet2East, subnet3East), listOf(sg1East, sg2East))
-  val activeServerGroupResponseWest = serverGroupWest.toCloudDriverResponse(vpcWest, listOf(subnet1West, subnet2West, subnet3West), listOf(sg1West, sg2West))
+  val activeServerGroupResponseEast = serverGroupEast.toCloudDriverResponse(vpcEast, listOf(subnet1East, subnet2East, subnet3East), listOf(sg1East, sg2East), image)
+  val activeServerGroupResponseWest = serverGroupWest.toCloudDriverResponse(vpcWest, listOf(subnet1West, subnet2West, subnet3West), listOf(sg1West, sg2West), image)
 
   val exportable = Exportable(
     cloudProvider = "aws",
@@ -242,7 +242,7 @@ internal class ClusterExportTests : JUnit5Minutests {
           that(artifact.name).isEqualTo("keel")
           that(artifact)
             .isA<DebianArtifact>()
-            .get { vmOptions }.isEqualTo(VirtualMachineOptions(regions = setOf("us-east-1"), baseOs = "bionic"))
+            .get { vmOptions }.isEqualTo(VirtualMachineOptions(regions = setOf("us-east-1"), baseOs = "bionic-classic"))
         }
       }
     }
