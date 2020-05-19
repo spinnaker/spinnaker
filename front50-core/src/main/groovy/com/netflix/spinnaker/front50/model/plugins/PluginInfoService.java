@@ -58,13 +58,12 @@ public class PluginInfoService {
     validate(pluginInfo);
 
     try {
-      // Because we first validate the plugin info, we can assume there will be only one preferred
-      // release
-      Optional<PluginInfo.Release> preferredRelease =
-          pluginInfo.getReleases().stream().filter(PluginInfo.Release::isPreferred).findFirst();
-
       PluginInfo currentPluginInfo = repository.findById(pluginInfo.getId());
       List<PluginInfo.Release> newReleases = new ArrayList<>(pluginInfo.getReleases());
+
+      // upsert plugin info is not an authorized endpoint, so preferred release must be false.
+      newReleases.forEach(it -> it.setPreferred(false));
+
       List<PluginInfo.Release> oldReleases = new ArrayList<>(currentPluginInfo.getReleases());
       newReleases.forEach(
           release -> { // Raise an exception if old releases are being updated.
@@ -78,7 +77,6 @@ public class PluginInfoService {
       List<PluginInfo.Release> allReleases = new ArrayList<>();
       Stream.of(oldReleases, newReleases).forEach(allReleases::addAll);
       pluginInfo.setReleases(allReleases);
-      preferredRelease.ifPresent(release -> cleanupPreferredReleases(pluginInfo, release));
 
       repository.update(pluginInfo.getId(), pluginInfo);
       return pluginInfo;

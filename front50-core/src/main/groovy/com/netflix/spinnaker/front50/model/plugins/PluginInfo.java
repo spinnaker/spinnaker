@@ -77,7 +77,7 @@ public class PluginInfo implements Timestamped {
   /** A singular {@code PluginInfo} release. */
   @Data
   public static class Release {
-    public static final String VERSION_PATTERN = "^[1-9]\\d*\\.\\d+\\.\\d+(?:-[a-zA-Z0-9]+)?$";
+    public static final String VERSION_PATTERN = "^[0-9]\\d*\\.\\d+\\.\\d+(?:-[a-zA-Z0-9]+)?$";
     public static final Pattern SUPPORTS_PATTERN =
         Pattern.compile(
             "^(?<service>[\\w\\-]+)(?<operator>[><=]{1,2})(?<version>[0-9]+\\.[0-9]+\\.[0-9]+)$");
