@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.OkHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,28 +30,11 @@ import retrofit.Endpoint;
 import retrofit.Endpoints;
 import retrofit.RestAdapter.Builder;
 import retrofit.RestAdapter.LogLevel;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
 @Slf4j
 public class Front50Config {
-  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
-  private int maxIdleConnections;
-
-  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
-  private int keepAliveDurationMs;
-
-  @Value("${ok-http-client.retry-on-connection-failure:true}")
-  private boolean retryOnConnectionFailure;
-
-  @Bean
-  public OkHttpClient okHttpClient(OkHttpClientConfiguration okHttpClientConfig) {
-    OkHttpClient cli = okHttpClientConfig.create();
-    cli.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
-    cli.setRetryOnConnectionFailure(retryOnConnectionFailure);
-    return cli;
-  }
 
   @Bean
   public LogLevel retrofitLogLevel() {
@@ -66,7 +49,7 @@ public class Front50Config {
   @Bean
   public Front50Service front50Service(
       Endpoint front50Endpoint,
-      OkHttpClient okHttpClient,
+      OkHttpClientProvider clientProvider,
       LogLevel retrofitLogLevel,
       SpinnakerRequestInterceptor spinnakerRequestInterceptor) {
     log.info("front50 service loaded");
@@ -74,7 +57,10 @@ public class Front50Config {
     return new Builder()
         .setEndpoint(front50Endpoint)
         .setConverter(new JacksonConverter())
-        .setClient(new OkClient(okHttpClient))
+        .setClient(
+            new Ok3Client(
+                clientProvider.getClient(
+                    new DefaultServiceEndpoint("front50", front50Endpoint.getUrl()))))
         .setRequestInterceptor(spinnakerRequestInterceptor)
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(Front50Service.class))

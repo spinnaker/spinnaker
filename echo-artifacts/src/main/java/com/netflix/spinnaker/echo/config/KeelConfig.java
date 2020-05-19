@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.services.KeelService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.extern.slf4j.Slf4j;
@@ -30,11 +32,14 @@ public class KeelConfig {
 
   @Bean
   public KeelService keelService(
-      Endpoint keelEndpoint, Ok3Client ok3Client, LogLevel retrofitLogLevel) {
+      Endpoint keelEndpoint, OkHttpClientProvider clientProvider, LogLevel retrofitLogLevel) {
     return new RestAdapter.Builder()
         .setEndpoint(keelEndpoint)
         .setConverter(new JacksonConverter())
-        .setClient(ok3Client)
+        .setClient(
+            new Ok3Client(
+                clientProvider.getClient(
+                    new DefaultServiceEndpoint("keel", keelEndpoint.getUrl()))))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(KeelService.class))
         .build()
