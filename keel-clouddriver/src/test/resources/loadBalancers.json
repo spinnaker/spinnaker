@@ -308,6 +308,18 @@
               }
             },
             "targetGroupName": "keeldemo-prestaging"
+          },
+          {
+            "type": "redirect",
+            "order": 1,
+            "redirectConfig": {
+              "protocol": "HTTPS",
+              "port": "443",
+              "host": "#{host}",
+              "path": "/#{path}",
+              "query": "#{query}",
+              "statusCode": "HTTP_301"
+            }
           }
         ],
         "loadBalancerName": "keeldemo-prestaging-alb",

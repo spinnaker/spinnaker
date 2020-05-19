@@ -34,7 +34,7 @@ data class ApplicationLoadBalancerModel(
   data class Action(
     val type: String,
     val order: Int,
-    val targetGroupName: String,
+    val targetGroupName: String?,
     val redirectConfig: RedirectConfig?
   )
 
