@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
@@ -24,5 +23,5 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @ConditionalOnExpression("${redis.enabled:false}")
-@Import({JedisClientConfiguration.class, DynomiteClientConfiguration.class})
+@Import(JedisClientConfiguration.class)
 public class JedisConfig {}

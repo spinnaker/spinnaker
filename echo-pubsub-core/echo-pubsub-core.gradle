@@ -26,7 +26,6 @@ dependencies {
   implementation "com.hubspot.jinjava:jinjava"
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
-  implementation "com.netflix.spinnaker.kork:kork-dynomite"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 }
