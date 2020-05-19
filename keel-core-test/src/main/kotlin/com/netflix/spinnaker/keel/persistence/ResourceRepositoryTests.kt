@@ -60,7 +60,7 @@ import strikt.assertions.map
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
 
-  private val clock = MutableClock()
+  protected val clock = MutableClock()
 
   abstract fun factory(clock: Clock): T
 

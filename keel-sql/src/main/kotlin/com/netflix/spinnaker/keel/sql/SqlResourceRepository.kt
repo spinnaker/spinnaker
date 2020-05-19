@@ -345,7 +345,7 @@ open class SqlResourceRepository(
     }
   }
 
-  private fun getResourceUid(id: String) =
+  fun getResourceUid(id: String) =
     sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(id)).fetchOne(RESOURCE.UID)
         ?: throw IllegalStateException("Resource with id $id not found. Retrying.")
