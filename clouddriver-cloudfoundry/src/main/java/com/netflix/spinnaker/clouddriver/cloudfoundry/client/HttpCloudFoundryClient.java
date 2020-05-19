@@ -21,7 +21,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DopplerService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.TaskService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -100,10 +110,6 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     RetryableApiException(String message) {
       super(message);
     }
-
-    RetryableApiException(String message, Throwable cause) {
-      super(message, cause);
-    }
   }
 
   Response createRetryInterceptor(Interceptor.Chain chain) {
@@ -156,8 +162,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             return response;
           });
     } catch (SocketTimeoutException e) {
-      throw new RetryableApiException(
-          "Timeout " + callName + " " + chain.request().httpUrl() + ",  attempting retry", e);
+      throw new RuntimeException(e);
     } catch (Exception e) {
       final Response response = lastResponse.get();
       if (response == null) {
