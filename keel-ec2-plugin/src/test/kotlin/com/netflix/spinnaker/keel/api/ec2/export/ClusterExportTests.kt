@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -238,11 +239,11 @@ internal class ClusterExportTests : JUnit5Minutests {
           exportArtifact(exportable.copy(regions = setOf("us-east-1")))
         }
 
-        expect {
-          that(artifact.name).isEqualTo("keel")
-          that(artifact)
-            .isA<DebianArtifact>()
-            .get { vmOptions }.isEqualTo(VirtualMachineOptions(regions = setOf("us-east-1"), baseOs = "bionic-classic"))
+        expectThat(artifact) {
+          get { name }.isEqualTo("keel")
+          isA<DebianArtifact>()
+            .and { get { vmOptions }.isEqualTo(VirtualMachineOptions(regions = setOf("us-east-1"), baseOs = "bionic-classic")) }
+            .and { get { statuses }.isEqualTo(setOf(RELEASE)) }
         }
       }
     }

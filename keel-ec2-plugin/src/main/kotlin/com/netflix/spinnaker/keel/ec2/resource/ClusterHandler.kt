@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.rocket.api.artifact.internal.debian.DebianArtifactParser
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.UNKNOWN
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
@@ -92,6 +94,8 @@ class ClusterHandler(
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
 ) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
+
+  private val debianArtifactParser = DebianArtifactParser()
 
   private val mapper = configuredObjectMapper()
 
@@ -423,10 +427,16 @@ class ClusterHandler(
 
     val artifactName = AppVersion.parseName(base.launchConfiguration.appVersion).packageName
 
-    // todo: can we also discover status information?
+    val status = debianArtifactParser.parseStatus(base.launchConfiguration.appVersion?.substringAfter("$artifactName-"))
+    if (status == UNKNOWN) {
+      throw ExportError("Unable to determine release status from appVersion ${base.launchConfiguration.appVersion}, you'll have to configure this artifact manually.")
+    }
+
     return DebianArtifact(
       name = artifactName,
-      vmOptions = VirtualMachineOptions(regions = serverGroups.keys, baseOs = guessBaseOsFrom(base.image)))
+      vmOptions = VirtualMachineOptions(regions = serverGroups.keys, baseOs = guessBaseOsFrom(base.image)),
+      statuses = setOf(status)
+    )
   }
 
   /**
