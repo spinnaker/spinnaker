@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager;
 import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager;
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider;
 import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider;
+import com.netflix.spinnaker.kork.plugins.actuator.InstalledPluginsEndpoint;
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor;
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory;
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
@@ -35,7 +36,6 @@ import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.LogInvocationAspect;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.MetricInvocationAspect;
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory;
-import com.netflix.spinnaker.kork.plugins.spring.actuator.SpinnakerPluginEndpoint;
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager;
 import com.netflix.spinnaker.kork.plugins.update.downloader.CompositeFileDownloader;
 import com.netflix.spinnaker.kork.plugins.update.downloader.FileDownloaderProvider;
@@ -276,8 +276,8 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
-  public static SpinnakerPluginEndpoint spinnakerPluginEndPoint(
+  public static InstalledPluginsEndpoint installedPluginsEndpoint(
       SpinnakerPluginManager pluginManager) {
-    return new SpinnakerPluginEndpoint(pluginManager);
+    return new InstalledPluginsEndpoint(pluginManager);
   }
 }

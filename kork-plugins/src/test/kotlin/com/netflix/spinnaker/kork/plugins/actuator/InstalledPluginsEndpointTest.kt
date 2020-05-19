@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.kork.plugins.spring.actuator
+package com.netflix.spinnaker.kork.plugins.actuator
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
@@ -30,7 +31,7 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
-class SpinnakerPluginEndpointTest : JUnit5Minutests {
+class InstalledPluginsEndpointTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture {
@@ -60,7 +61,7 @@ class SpinnakerPluginEndpointTest : JUnit5Minutests {
 
   private inner class Fixture {
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
-    val subject = SpinnakerPluginEndpoint(pluginManager)
+    val subject = InstalledPluginsEndpoint(pluginManager)
 
     init {
       val pluginWrapper = PluginWrapper(pluginManager, SpinnakerPluginDescriptor("test", "", "", "", "", "", ""), null, this.javaClass.classLoader)
