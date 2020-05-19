@@ -5,7 +5,6 @@ import { module } from 'angular';
 import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvider';
 import { noop } from 'core/utils';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import { INSIGHT_FILTER_COMPONENT } from 'core/insight/insightFilter.component';
 import { ClusterState } from 'core/state';
 import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
@@ -23,7 +22,6 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   FILTER_TAGS_COMPONENT,
   CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE,
-  INSIGHT_FILTER_COMPONENT,
   ANGULAR_UI_BOOTSTRAP,
 ]).controller('AllClustersCtrl', [
   '$scope',

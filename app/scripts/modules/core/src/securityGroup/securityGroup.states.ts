@@ -15,6 +15,7 @@ import { SecurityGroupReader } from './securityGroupReader.service';
 import { filterModelConfig } from './filter/SecurityGroupFilterModel';
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 import { SecurityGroups } from './SecurityGroups';
+import { SecurityGroupFilters } from './filter/SecurityGroupFilters';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
@@ -68,9 +69,7 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
       url: `/firewalls?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
       name: 'firewalls',
       views: {
-        nav: {
-          template: '<security-group-filter app="$resolve.app"></security-group-filter>',
-        },
+        nav: { component: SecurityGroupFilters, $type: 'react' },
         master: {
           component: SecurityGroups,
           $type: 'react',
