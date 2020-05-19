@@ -11,8 +11,8 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.veto.Veto
-import com.netflix.spinnaker.keel.veto.VetoResponse
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -31,14 +31,18 @@ class RequiredSecurityGroupVeto(
     resource.spec.toSecurityGroupDependencies()
       ?.let {
         val missingSecurityGroupRegions = checkSecurityGroups(it)
-        VetoResponse(
-          allowed = missingSecurityGroupRegions.isEmpty(),
-          vetoName = name(),
-          message = missingSecurityGroupRegions.entries.joinToString(separator = "\n") { (securityGroup, missingRegions) ->
-            "Security group $securityGroup is not found in ${missingRegions.joinToString()}"
-          }
-        )
-      } ?: VetoResponse(true, name())
+        if (missingSecurityGroupRegions.isNotEmpty()) {
+          deniedResponse(
+            message = missingSecurityGroupRegions.entries.joinToString(separator = "\n") { (securityGroup, missingRegions) ->
+              "Security group $securityGroup is not found in ${missingRegions.joinToString()}"
+            },
+            suggestedStatus = MISSING_DEPENDENCY,
+            vetoArtifact = false
+          )
+        } else {
+          allowedResponse()
+        }
+      } ?: allowedResponse()
 
   private suspend fun checkSecurityGroups(spec: SecurityGroupDependencies): Map<String, List<String>> {
     val jobs = mutableListOf<Job>()

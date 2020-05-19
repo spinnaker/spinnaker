@@ -51,7 +51,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         mapOf("triggeredBy" to "keel@keel.io"),
       ResourceActuationResumed(resource, "keel@keel.io", clock) to
         emptyMap(), // with optional field omitted
-      ResourceActuationVetoed(resource, "vetoed", clock) to
+      ResourceActuationVetoed(resource = resource, reason = "vetoed", clock = clock) to
         mapOf("reason" to "vetoed"),
       ResourceTaskFailed(resource, "failed", emptyList(), clock) to
         mapOf("reason" to "failed"),

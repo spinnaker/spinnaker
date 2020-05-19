@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.veto
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.persistence.ResourceStatus
 
 /**
  * Implement this interface to create a veto that will be consulted
@@ -45,7 +46,9 @@ interface Veto {
   /**
    * Pass a message to a veto.
    */
-  fun passMessage(message: Map<String, Any>) { TODO("not implemented") }
+  fun passMessage(message: Map<String, Any>) {
+    TODO("not implemented")
+  }
 
   /**
    * What's currently being vetoed.
@@ -60,13 +63,14 @@ interface Veto {
   fun allowedResponse(): VetoResponse =
     VetoResponse(allowed = true, vetoName = name())
 
-  fun deniedResponse(message: String, vetoArtifact: Boolean = true): VetoResponse =
-    VetoResponse(allowed = false, vetoName = name(), vetoArtifact = vetoArtifact, message = message)
+  fun deniedResponse(message: String, vetoArtifact: Boolean = true, suggestedStatus: ResourceStatus? = null): VetoResponse =
+    VetoResponse(allowed = false, vetoName = name(), vetoArtifact = vetoArtifact, message = message, suggestedStatus = suggestedStatus)
 }
 
 data class VetoResponse(
   val allowed: Boolean,
   val vetoName: String,
   val vetoArtifact: Boolean = false,
-  val message: String? = null
+  val message: String? = null,
+  val suggestedStatus: ResourceStatus? = null
 )

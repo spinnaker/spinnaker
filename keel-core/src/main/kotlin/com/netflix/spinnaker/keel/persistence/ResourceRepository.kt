@@ -145,5 +145,15 @@ class NoSuchResourceId(id: String) :
   NoSuchResourceException("No resource with id $id exists in the database")
 
 enum class ResourceStatus {
-  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, CURRENTLY_UNRESOLVABLE, PAUSED, VETOED, RESUMED, UNKNOWN
+  CREATED,
+  DIFF,
+  ACTUATING,
+  HAPPY,
+  UNHAPPY,
+  MISSING_DEPENDENCY,
+  CURRENTLY_UNRESOLVABLE,
+  ERROR,
+  PAUSED,
+  RESUMED,
+  UNKNOWN
 }

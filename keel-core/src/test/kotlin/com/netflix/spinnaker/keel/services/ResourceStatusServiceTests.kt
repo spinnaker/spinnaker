@@ -26,10 +26,10 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVA
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.VETOED
 import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import com.netflix.spinnaker.keel.test.resource
@@ -192,13 +192,33 @@ class ResourceStatusServiceTests : JUnit5Minutests {
           }
         }
 
-        context("when last event is ResourceActuationVetoed") {
+        context("when last event is ResourceActuationVetoed with no status provided") {
           before {
-            repository.appendResourceHistory(ResourceActuationVetoed(resource, "vetoed", clock))
+            repository.appendResourceHistory(ResourceActuationVetoed(resource, "vetoed", "UnhappyVeto", null, clock))
           }
 
-          test("returns VETOED") {
-            expectThat(subject.getStatus(resource.id)).isEqualTo(VETOED)
+          test("returns UNHAPPY") {
+            expectThat(subject.getStatus(resource.id)).isEqualTo(UNHAPPY)
+          }
+        }
+
+        context("when last event is ResourceActuationVetoed due to a missing dependency") {
+          before {
+            repository.appendResourceHistory(ResourceActuationVetoed(resource, "vetoed", "RequiredBlahVeto", MISSING_DEPENDENCY, clock))
+          }
+
+          test("returns MISSING_DEPENDENCY") {
+            expectThat(subject.getStatus(resource.id)).isEqualTo(MISSING_DEPENDENCY)
+          }
+        }
+
+        context("when last event is ResourceActuationVetoed because missing dependency, but an older version of keel saved this event") {
+          before {
+            repository.appendResourceHistory(ResourceActuationVetoed(resource, "Load balancer blah is not found in test / us-west-2", "RequiredBlahVeto", null, clock))
+          }
+
+          test("returns MISSING_DEPENDENCY") {
+            expectThat(subject.getStatus(resource.id)).isEqualTo(MISSING_DEPENDENCY)
           }
         }
 

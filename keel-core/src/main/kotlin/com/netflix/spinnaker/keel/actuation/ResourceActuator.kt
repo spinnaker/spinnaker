@@ -94,6 +94,7 @@ class ResourceActuator(
            * containing [resource]. This ensures that the environment will be fully restored to
            * a prior good-state.
            */
+          // todo eb: limit this to not roll back forever
           if (response.vetoArtifact && resource.spec is VersionedArtifactProvider) {
             try {
               val versionedArtifact = when (desired) {
@@ -133,7 +134,15 @@ class ResourceActuator(
           }
           log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
           publisher.publishEvent(ResourceCheckSkipped(resource.kind, id, response.vetoName))
-          publishVetoedEvent(response, resource)
+          publisher.publishEvent(
+            ResourceActuationVetoed(
+              resource.kind,
+              resource.id,
+              resource.spec.application,
+              response.message,
+              response.vetoName,
+              response.suggestedStatus,
+              clock.instant()))
           return@withTracingContext
         }
 
@@ -217,24 +226,6 @@ class ResourceActuator(
       val d = desired.await()
       val c = current.await()
       d to c
-    }
-
-  /**
-   * We want a specific status for specific types of vetos. This function publishes the
-   * right event based on which veto said no.
-   */
-  private fun publishVetoedEvent(response: VetoResponse, resource: Resource<*>) =
-    when {
-      response.vetoName == "UnhappyVeto" -> {
-        // don't publish an event, we want the status to stay as "unhappy" for clarity
-      }
-      else -> publisher.publishEvent(
-        ResourceActuationVetoed(
-          resource.kind,
-          resource.id,
-          resource.spec.application,
-          response.message,
-          clock.instant()))
     }
 
   private fun DeliveryConfig.environmentFor(resource: Resource<*>): Environment? =

@@ -23,11 +23,11 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.CURRENTLY_UNRESOLVA
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.VETOED
 import org.springframework.stereotype.Component
 
 /**
@@ -56,12 +56,12 @@ class ResourceStatusService(
     return when {
       history.isEmpty() -> UNKNOWN // shouldn't happen, but is a safeguard since events are persisted asynchronously
       history.isHappy() -> HAPPY
-      history.isUnhappy() -> UNHAPPY
+      history.isMissingDependency() -> MISSING_DEPENDENCY
+      history.isUnhappy() -> UNHAPPY // order matters! must be after all other veto-related statuses
       history.isDiff() -> DIFF
       history.isActuating() -> ACTUATING
       history.isError() -> ERROR
       history.isCreated() -> CREATED
-      history.isVetoed() -> VETOED
       history.isResumed() -> RESUMED
       history.isCurrentlyUnresolvable() -> CURRENTLY_UNRESOLVABLE
       else -> UNKNOWN
@@ -90,10 +90,6 @@ class ResourceStatusService(
     return first() is ResourceDeltaDetected || first() is ResourceMissing
   }
 
-  private fun List<ResourceHistoryEvent>.isVetoed(): Boolean {
-    return first() is ResourceActuationVetoed
-  }
-
   private fun List<ResourceHistoryEvent>.isResumed(): Boolean {
     return first() is ResourceActuationResumed || first() is ApplicationActuationResumed
   }
@@ -103,15 +99,46 @@ class ResourceStatusService(
   }
 
   /**
-   * Checks last 10 events for flapping between only ResourceActuationLaunched and ResourceDeltaDetected
+   * Returns true if a resource has been vetoed by the unhappy veto,
+   * or if the last 10 events are only ResourceActuationLaunched or ResourceDeltaDetected events,
+   * or if the resource has been vetoed by an unspecified veto that we don't have an explicit status mapping for.
    */
   private fun List<ResourceHistoryEvent>.isUnhappy(): Boolean {
+    if (first() is ResourceActuationVetoed && (first() as ResourceActuationVetoed).getStatus() == UNHAPPY) {
+      return true
+    }
+
     val recentSliceOfHistory = this.subList(0, Math.min(10, this.size))
     val filteredHistory = recentSliceOfHistory.filter { it is ResourceDeltaDetected || it is ResourceActuationLaunched }
-    if (filteredHistory.size != recentSliceOfHistory.size) {
-      // there are other events, we're not thrashing.
-      return false
+    if (filteredHistory.size == recentSliceOfHistory.size) {
+      return true
     }
-    return true
+    return false
   }
+
+  /**
+   * Determines if last event was a veto because of a missing dependency
+   */
+  private fun List<ResourceHistoryEvent>.isMissingDependency(): Boolean =
+    first() is ResourceActuationVetoed && (first() as ResourceActuationVetoed).getStatus() == MISSING_DEPENDENCY
+
+  /**
+   * Determines the correct status to show for veto events
+   */
+  private fun ResourceActuationVetoed.getStatus(): ResourceStatus =
+    when {
+      // new style veto, gives us the status the resource should be
+      suggestedStatus != null -> suggestedStatus
+      // we can determine missing dependency by parsing the message
+      isMissingDependency() -> MISSING_DEPENDENCY
+      // all vetos get unhappy status if not specified
+      else -> UNHAPPY
+    }
+
+  /**
+   * Looks at the veto event and determines if it was vetoed by any of the [Required*Veto]s, which indicate a
+   * missing dependency. Parses this information from the [reason]. This is used for backwards compatibility.
+   */
+  private fun ResourceActuationVetoed.isMissingDependency(): Boolean =
+    reason?.contains("is not found in", true) ?: false
 }

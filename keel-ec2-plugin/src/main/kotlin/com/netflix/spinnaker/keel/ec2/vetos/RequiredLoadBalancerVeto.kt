@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.AmazonLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.MISSING_DEPENDENCY
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import kotlinx.coroutines.Dispatchers.IO
@@ -41,7 +42,8 @@ class RequiredLoadBalancerVeto(
     } else {
       deniedResponse(
         message = missingLoadBalancers.joinToString(separator = "\n", transform = MissingDependency::message),
-        vetoArtifact = false
+        vetoArtifact = false,
+        suggestedStatus = MISSING_DEPENDENCY
       )
     }
   }
