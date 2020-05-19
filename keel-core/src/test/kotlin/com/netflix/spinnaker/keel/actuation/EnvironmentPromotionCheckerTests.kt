@@ -277,7 +277,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           /**
            * Verify that stateful constraints are not checked if a stateless constraint blocks promotion
            */
-          verify(exactly = 1) {
+          verify(inverse = true) {
             statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment)
           }
         }

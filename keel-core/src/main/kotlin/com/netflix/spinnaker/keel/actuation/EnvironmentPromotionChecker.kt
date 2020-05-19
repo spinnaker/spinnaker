@@ -97,17 +97,9 @@ class EnvironmentPromotionChecker(
                        * want to request judgement or deploy a canary for artifacts that aren't
                        * deployed to a required environment or outside of an allowed time.
                        */
-
-                      val passesStatelessConstraints = checkStatelessConstraints(artifact, deliveryConfig, v, environment)
-                      val passesStatefulConstraints = checkStatefulConstraints(artifact, deliveryConfig, v, environment)
-
-                      log.debug("Version $v of artifact ${artifact.name}: " +
-                        "passes stateless constraints: $passesStatelessConstraints, " +
-                        "passes stateful constraints: $passesStatefulConstraints " +
-                        "in environment ${environment.name}")
-
                       val passesConstraints =
-                        passesStatelessConstraints && passesStatefulConstraints
+                        checkStatelessConstraints(artifact, deliveryConfig, v, environment) &&
+                          checkStatefulConstraints(artifact, deliveryConfig, v, environment)
                       versionIsPending = when (environment.constraints.anyStateful) {
                         true -> repository
                           .constraintStateFor(deliveryConfig.name, environment.name, v)
@@ -132,17 +124,9 @@ class EnvironmentPromotionChecker(
               pendingVersionsToCheck
                 .sortedWith(artifact.versioningStrategy.comparator.reversed()) // oldest first
                 .forEach {
-
-                  val passesStatelessConstraints = checkStatelessConstraints(artifact, deliveryConfig, it, environment)
-                  val passesStatefulConstraints = checkStatefulConstraints(artifact, deliveryConfig, it, environment)
-
-                  log.debug("Version $it of artifact ${artifact.name}: " +
-                    "passes stateless constraints: $passesStatelessConstraints, " +
-                    "passes stateful constraints: $passesStatefulConstraints " +
-                    "in environment ${environment.name}")
-
                   val passesConstraints =
-                    passesStatelessConstraints && passesStatefulConstraints
+                    checkStatelessConstraints(artifact, deliveryConfig, it, environment) &&
+                      checkStatefulConstraints(artifact, deliveryConfig, it, environment)
 
                   if (passesConstraints) {
                     approveVersion(deliveryConfig, artifact, it, environment.name)
