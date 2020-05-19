@@ -41,12 +41,7 @@ public class PluginInfo {
     private String requires;
     private String url;
     private String sha512sum;
-    private State state;
+    private boolean preferred;
     private String lastModifiedBy;
-
-    public enum State {
-      CANDIDATE,
-      RELEASE
-    }
   }
 }
