@@ -155,12 +155,14 @@ class PipelineConstraintEvaluator(
     constraint: PipelineConstraint,
     serviceAccount: String
   ): String {
+    log.info("Triggering pipeline ${constraint.pipelineId} for environment ${environment.name}")
 
     // using java.util.HashMap over kotlin.collections for retrofit2 compatibility
     val trigger = HashMap<String, Any>()
     trigger["type"] = "managed"
     trigger["user"] = "keel"
     trigger["parameters"] = constraint.parameters
+    trigger["linkText"] = "Env ${environment.name}"
 
     if (environment.notifications.isNotEmpty() && !trigger.containsKey("notifications")) {
       trigger["notifications"] = environment.notifications

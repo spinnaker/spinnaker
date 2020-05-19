@@ -125,7 +125,8 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
               hashMapOf(
                 "parameters" to mapOf<String, Any?>("youSayManaged" to "weSayDelivery"),
                 "type" to "managed",
-                "user" to "keel"
+                "user" to "keel",
+                "linkText" to "Env prod"
               )
             )
         }
