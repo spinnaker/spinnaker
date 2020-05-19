@@ -91,17 +91,20 @@ class SpinnakerUserInfoTokenServicesSpec extends Specification {
     tokenServices.getRoles(details) == expectedRoles
 
     where:
-    rolesValue        || expectedRoles
-    null              || []
-    ""                || []
-    ["foo", "bar"]    || ["foo", "bar"]
-    "foo,bar"         || ["foo", "bar"]
-    "foo bar"         || ["foo", "bar"]
-    "foo"             || ["foo"]
-    "foo   bar"       || ["foo", "bar"]
-    "foo,,,bar"       || ["foo", "bar"]
-    "foo, bar"        || ["foo", "bar"]
-    1                 || []
-    [blergh: "blarg"] || []
+    rolesValue                || expectedRoles
+    null                      || []
+    ""                        || []
+    ["foo", "bar"]            || ["foo", "bar"]
+    "foo,bar"                 || ["foo", "bar"]
+    "foo bar"                 || ["foo", "bar"]
+    "foo"                     || ["foo"]
+    "foo   bar"               || ["foo", "bar"]
+    "foo,,,bar"               || ["foo", "bar"]
+    "foo, bar"                || ["foo", "bar"]
+    ["[]"]                    || []
+    ["[\"foo\"]"]             || ["foo"]
+    ["[\"foo\", \"bar\"]"]    || ["foo", "bar"]
+    1                         || []
+    [blergh: "blarg"]         || []
   }
 }

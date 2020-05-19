@@ -25,6 +25,7 @@ import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.security.User
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
@@ -237,6 +238,11 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     }
     def roles = details[userInfoMapping.roles] ?: []
     if (roles instanceof Collection) {
+      // Some providers (Azure AD) return roles in this format: ["[\"role-1\", \"role-2\"]"]
+      if (roles[0] instanceof String && roles[0][0] == '[') {
+        def js = new JsonSlurper()
+        return js.parseText(roles).flatten() as List<String>
+      }
       return roles as List<String>
     }
     if (roles instanceof String) {
