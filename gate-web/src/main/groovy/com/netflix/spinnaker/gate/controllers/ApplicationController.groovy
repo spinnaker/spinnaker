@@ -145,9 +145,14 @@ class ApplicationController {
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
     @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
-    applicationService.getPipelineConfigsForApplication(application).find {
+    def config = applicationService.getPipelineConfigsForApplication(application).find {
       it.name == pipelineName
     }
+    if (!config) {
+      log.warn("Pipeline config {} not found for application {}", value("pipeline", pipelineName), value('application', application))
+      throw new NotFoundException("Pipeline config (id: ${pipelineName}) not found for Application (id: ${application})")
+    }
+    config
   }
 
   @ApiOperation(value = "Retrieve a list of an application's pipeline strategy configurations", response = List.class)
@@ -160,9 +165,14 @@ class ApplicationController {
   @RequestMapping(value = "/{application}/strategyConfigs/{strategyName}", method = RequestMethod.GET)
   Map getStrategyConfig(@PathVariable("application") String application,
                         @PathVariable("strategyName") String strategyName) {
-    applicationService.getStrategyConfigsForApplication(application).find {
+    def config = applicationService.getStrategyConfigsForApplication(application).find {
       it.name == strategyName
     }
+    if (!config) {
+      log.warn("Strategy config {} not found for application {}", value("strategy", strategyName), value('application', application))
+      throw new NotFoundException("Strategy config (id: ${strategyName}) not found for Application (id: ${application})")
+    }
+    config
   }
 
   /**
