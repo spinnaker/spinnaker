@@ -540,16 +540,19 @@ class TitusClusterHandler(
       containerAttributes = containerAttributes,
       iamProfile = iamProfile,
       migrationPolicy = migrationPolicy,
-      resources = resources.exportSpec(),
+      resources = resources.toSpec(),
       tags = tags
     )
 
     return checkNotNull(buildSpecFromDiff(defaults, thisSpec))
   }
 
-  private fun Resources.exportSpec(): ResourcesSpec? {
-    val defaults = Resources()
-    val thisSpec: ResourcesSpec = mapper.convertValue(this)
-    return buildSpecFromDiff(defaults, thisSpec)
-  }
+  private fun Resources.toSpec(): ResourcesSpec =
+    ResourcesSpec(
+      cpu = cpu,
+      disk = disk,
+      gpu = gpu,
+      memory = memory,
+      networkMbps = networkMbps
+    )
 }

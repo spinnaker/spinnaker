@@ -6,12 +6,13 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
+import com.netflix.spinnaker.keel.api.titus.cluster.ResourcesSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroupSpec
@@ -19,6 +20,7 @@ import com.netflix.spinnaker.keel.api.titus.cluster.resolve
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
+import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.Capacity
@@ -229,7 +231,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
             }
             expectThat(artifact)
               .isA<DockerArtifact>()
-              .get { tagVersionStrategy }.isEqualTo(INCREASING_TAG)
+              .get { tagVersionStrategy }.isEqualTo(TagVersionStrategy.INCREASING_TAG)
           }
         }
         context("tags are branch-job.sha") {
@@ -267,6 +269,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
           activeServerGroupResponseEast
             .withDifferentEnv()
             .withDifferentEntryPoint()
+            .withDifferentResources()
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns
           activeServerGroupResponseWest
             .withDoubleCapacity()
@@ -289,6 +292,13 @@ internal class TitusClusterExportTests : JUnit5Minutests {
               that(override).isNotNull().get { entryPoint }.isNotNull()
               that(override).isNotNull().get { capacity }.isNotNull()
               that(override).isNotNull().get { env }.isNotNull()
+              that(override).isNotNull().get { resources }.isEqualTo(ResourcesSpec(
+                cpu = 4,
+                disk = 81920,
+                gpu = 0,
+                memory = 16384,
+                networkMbps = 700
+              ))
 
               that(locations.regions).hasSize(2)
             }
@@ -306,7 +316,6 @@ internal class TitusClusterExportTests : JUnit5Minutests {
             expectThat(override) {
               get { constraints }.isNull()
               get { migrationPolicy }.isNull()
-              get { resources }.isNull()
               get { iamProfile }.isNull()
               get { capacityGroup }.isNull()
               get { containerAttributes }.isNull()
@@ -341,4 +350,13 @@ internal class TitusClusterExportTests : JUnit5Minutests {
 
   private fun TitusActiveServerGroup.withDifferentEntryPoint(): TitusActiveServerGroup =
     copy(entryPoint = "/bin/blah")
+
+  private fun TitusActiveServerGroup.withDifferentResources(): TitusActiveServerGroup =
+    copy(resources = Resources(
+      cpu = 4,
+      disk = 81920,
+      gpu = 0,
+      memory = 16384,
+      networkMbps = 700
+    ))
 }
