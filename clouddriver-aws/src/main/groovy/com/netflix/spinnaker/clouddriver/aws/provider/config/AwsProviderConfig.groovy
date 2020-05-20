@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonAuthoritativeClustersAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCloudFormationCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLaunchTemplateCachingAgent
@@ -125,6 +126,12 @@ class AwsProviderConfig {
 
     //only index public images once per region
     Set<String> publicRegions = []
+
+    // If there is an agent scheduler, then this provider has been through the AgentController in the past.
+    //  We only need to add the AmazonAuthoritativeClustersAgent once.
+    if (!awsProvider.agentScheduler) {
+      newlyAddedAgents << new AmazonAuthoritativeClustersAgent();
+    }
 
     //sort the accounts in case of a reconfigure, we are more likely to re-index the public images in the same caching agent
     //TODO(cfieber)-rework this is after rework of AWS Image/NamedImage keys

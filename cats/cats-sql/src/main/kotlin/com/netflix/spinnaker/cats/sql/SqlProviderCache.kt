@@ -7,8 +7,6 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import kotlin.contracts.ExperimentalContracts
 import org.slf4j.LoggerFactory
@@ -164,28 +162,6 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   ) {
     try {
       MDC.put("agentClass", "$source putCacheResult")
-
-      // TODO every source type should have an authoritative agent and every agent should be authoritative for something
-      // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
-      // TODO same with namedImages - fix in AWS ImageCachingAgent
-      if (
-        source.contains("clustercaching", ignoreCase = true) &&
-        !authoritativeTypes.contains(CLUSTERS.ns) &&
-        cacheResult.cacheResults
-          .any {
-            it.key.startsWith(CLUSTERS.ns)
-          }
-      ) {
-        authoritativeTypes.add(CLUSTERS.ns)
-      } else if (
-        source.contains("imagecaching", ignoreCase = true) &&
-        cacheResult.cacheResults
-          .any {
-            it.key.startsWith(NAMED_IMAGES.ns)
-          }
-      ) {
-        authoritativeTypes.add(NAMED_IMAGES.ns)
-      }
 
       cacheResult.cacheResults
         .filter {
