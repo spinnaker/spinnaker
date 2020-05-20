@@ -28,7 +28,6 @@ import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.kork.telemetry.caffeine.CaffeineStatsCounter;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,6 +49,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
@@ -358,8 +358,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
         && authentication.isAuthenticated()
         && authentication.getPrincipal() != null) {
       Object principal = authentication.getPrincipal();
-      if (principal instanceof User) {
-        username = ((User) principal).getUsername();
+      if (principal instanceof UserDetails) {
+        username = ((UserDetails) principal).getUsername();
       } else if (StringUtils.isNotEmpty(principal.toString())) {
         username = principal.toString();
       }

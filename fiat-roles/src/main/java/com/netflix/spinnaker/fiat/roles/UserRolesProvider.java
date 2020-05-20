@@ -30,21 +30,22 @@ public interface UserRolesProvider {
   }
 
   /**
-   * Load the roles assigned to the {@link com.netflix.spinnaker.security.User User}.
+   * Load the roles assigned to the {@link com.netflix.spinnaker.fiat.permissions.ExternalUser
+   * user}.
    *
    * @param user to load roles for
-   * @return Roles assigned to the {@link com.netflix.spinnaker.security.User User} with the given
-   *     userEmail.
+   * @return Roles assigned to the {@link com.netflix.spinnaker.fiat.permissions.ExternalUser user}
+   *     with the given id.
    */
   List<Role> loadRoles(ExternalUser user);
 
   /**
-   * Load the roles assigned to each {@link com.netflix.spinnaker.security.User User's} email in
-   * userEmails.
+   * Load the roles assigned to each {@link com.netflix.spinnaker.fiat.permissions.ExternalUser
+   * user's} id in users.
    *
    * @param users to load roles for
-   * @return Map whose keys are the {@link com.netflix.spinnaker.security.User User's} email and
-   *     values are their assigned roles.
+   * @return Map whose keys are the {@link com.netflix.spinnaker.fiat.permissions.ExternalUser
+   *     user's} id and values are their assigned roles.
    */
   Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users);
 }
