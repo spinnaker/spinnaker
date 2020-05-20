@@ -18,11 +18,13 @@ package com.netflix.spinnaker.echo.config;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.notification.DryRunNotificationAgent;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.OkHttpClient;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +35,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoint;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
@@ -50,7 +51,7 @@ public class DryRunConfig {
   @Bean
   DryRunNotificationAgent dryRunNotificationAgent(
       Front50Service front50,
-      OkHttpClient okHttpClient,
+      OkHttpClientProvider clientProvider,
       RestAdapter.LogLevel retrofitLogLevel,
       Endpoint dryRunEndpoint,
       DryRunProperties properties) {
@@ -59,7 +60,10 @@ public class DryRunConfig {
         new RestAdapter.Builder()
             .setEndpoint(dryRunEndpoint)
             .setConverter(new JacksonConverter())
-            .setClient(new OkClient(okHttpClient))
+            .setClient(
+                new Ok3Client(
+                    clientProvider.getClient(
+                        new DefaultServiceEndpoint("orca", dryRunEndpoint.getUrl()))))
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(OrcaService.class))
             .build()
