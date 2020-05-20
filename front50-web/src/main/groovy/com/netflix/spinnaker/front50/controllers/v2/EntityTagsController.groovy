@@ -87,7 +87,7 @@ class EntityTagsController {
     }
 
     taggedEntityDAO.bulkImport(tags)
-    return findAllByIds(tags.findResults { it.id })
+    return tags;
   }
 
   @RequestMapping(value = "/batchDelete", method = RequestMethod.POST)
@@ -106,13 +106,5 @@ class EntityTagsController {
 
     taggedEntityDAO.delete(tagId)
     response.setStatus(HttpStatus.NO_CONTENT.value())
-  }
-
-  private Set<EntityTags> findAllByIds(Collection<String> ids) {
-    return ids.findResults {
-      try {
-        taggedEntityDAO.findById(it)
-      } catch (ignored) {}
-    }
   }
 }

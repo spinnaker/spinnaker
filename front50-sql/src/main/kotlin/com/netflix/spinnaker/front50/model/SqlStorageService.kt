@@ -60,7 +60,7 @@ class SqlStorageService(
   private val sqlRetryProperties: SqlRetryProperties,
   private val chunkSize: Int,
   private val poolName: String
-) : StorageService, AdminOperations {
+) : StorageService, BulkStorageService, AdminOperations {
 
   companion object {
     private val log = LoggerFactory.getLogger(SqlStorageService::class.java)
@@ -165,6 +165,65 @@ class SqlStorageService(
     }
   }
 
+  override fun <T : Timestamped> storeObjects(objectType: ObjectType, allItems: Collection<T>) {
+    // using a lower `chunkSize` to avoid exceeding default packet size limits.
+    allItems.chunked(100).forEach { items ->
+      try {
+        jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+          try {
+            ctx.batch(
+              items.map { item ->
+                val insertPairs = definitionsByType[objectType]!!.getInsertPairs(
+                  objectMapper, item.id.toLowerCase(), item
+                )
+                val updatePairs = definitionsByType[objectType]!!.getUpdatePairs(insertPairs)
+
+                ctx.insertInto(
+                  table(definitionsByType[objectType]!!.tableName),
+                  *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
+                )
+                  .values(insertPairs.values)
+                  .onDuplicateKeyUpdate()
+                  .set(updatePairs.mapKeys { DSL.field(it.key) })
+              }
+            ).execute()
+          } catch (e: SQLDialectNotSupportedException) {
+            for (item in items) {
+              storeSingleObject(objectType, item.id.toLowerCase(), item)
+            }
+          }
+
+          if (definitionsByType[objectType]!!.supportsHistory) {
+            try {
+              ctx.batch(
+                items.map { item ->
+                  val historyPairs = definitionsByType[objectType]!!.getHistoryPairs(
+                    objectMapper, clock, item.id.toLowerCase(), item
+                  )
+
+                  ctx
+                    .insertInto(
+                      table(definitionsByType[objectType]!!.historyTableName),
+                      *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
+                    )
+                    .values(historyPairs.values)
+                    .onDuplicateKeyIgnore()
+                }
+              ).execute()
+            } catch (e: SQLDialectNotSupportedException) {
+              for (item in items) {
+                storeSingleObjectHistory(objectType, item.id.toLowerCase(), item)
+              }
+            }
+          }
+        }
+      } catch (e: Exception) {
+        log.error("Unable to store objects (objectType: {}, objectKeys: {})", objectType, items.map { it.id })
+        throw e
+      }
+    }
+  }
+
   override fun <T : Timestamped> storeObject(objectType: ObjectType, objectKey: String, item: T) {
     item.lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
 
@@ -186,38 +245,7 @@ class SqlStorageService(
               .set(updatePairs.mapKeys { DSL.field(it.key) })
               .execute()
           } catch (e: SQLDialectNotSupportedException) {
-            val exists = jooq.withRetry(sqlRetryProperties.reads) {
-              jooq.fetchExists(
-                jooq.select()
-                  .from(definitionsByType[objectType]!!.tableName)
-                  .where(field("id").eq(objectKey).and(field("is_deleted").eq(false)))
-                  .forUpdate()
-              )
-            }
-
-            if (exists) {
-              jooq.withRetry(sqlRetryProperties.transactions) {
-                jooq
-                  .update(table(definitionsByType[objectType]!!.tableName)).apply {
-                    updatePairs.forEach { k, v ->
-                      set(field(k), v)
-                    }
-                  }
-                  .set(field("id"), objectKey) // satisfy jooq fluent interface
-                  .where(field("id").eq(objectKey))
-                  .execute()
-              }
-            } else {
-              jooq.withRetry(sqlRetryProperties.transactions) {
-                jooq
-                  .insertInto(
-                    table(definitionsByType[objectType]!!.tableName),
-                    *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
-                  )
-                  .values(insertPairs.values)
-                  .execute()
-              }
-            }
+            storeSingleObject(objectType, objectKey, item)
           }
 
           if (definitionsByType[objectType]!!.supportsHistory) {
@@ -233,26 +261,7 @@ class SqlStorageService(
                 .onDuplicateKeyIgnore()
                 .execute()
             } catch (e: SQLDialectNotSupportedException) {
-              val exists = jooq.withRetry(sqlRetryProperties.reads) {
-                jooq.fetchExists(
-                  jooq.select()
-                    .from(definitionsByType[objectType]!!.historyTableName)
-                    .where(field("id").eq(objectKey).and(field("body_sig").eq(historyPairs.getValue("body_sig"))))
-                    .forUpdate()
-                )
-              }
-
-              if (!exists) {
-                jooq.withRetry(sqlRetryProperties.transactions) {
-                  jooq
-                    .insertInto(
-                      table(definitionsByType[objectType]!!.historyTableName),
-                      *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
-                    )
-                    .values(historyPairs.values)
-                    .execute()
-                }
-              }
+              storeSingleObjectHistory(objectType, objectKey, item)
             }
           }
         }
@@ -369,5 +378,68 @@ class SqlStorageService(
       }
     }
     log.info("Object ${operation.objectType}:${operation.objectId} was recovered")
+  }
+
+  private fun storeSingleObject(objectType: ObjectType, objectKey: String, item: Timestamped) {
+    val insertPairs = definitionsByType[objectType]!!.getInsertPairs(objectMapper, objectKey, item)
+    val updatePairs = definitionsByType[objectType]!!.getUpdatePairs(insertPairs)
+
+    val exists = jooq.withRetry(sqlRetryProperties.reads) {
+      jooq.fetchExists(
+        jooq.select()
+          .from(definitionsByType[objectType]!!.tableName)
+          .where(field("id").eq(objectKey).and(field("is_deleted").eq(false)))
+          .forUpdate()
+      )
+    }
+
+    if (exists) {
+      jooq.withRetry(sqlRetryProperties.transactions) {
+        jooq
+          .update(table(definitionsByType[objectType]!!.tableName)).apply {
+            updatePairs.forEach { k, v ->
+              set(field(k), v)
+            }
+          }
+          .set(field("id"), objectKey) // satisfy jooq fluent interface
+          .where(field("id").eq(objectKey))
+          .execute()
+      }
+    } else {
+      jooq.withRetry(sqlRetryProperties.transactions) {
+        jooq
+          .insertInto(
+            table(definitionsByType[objectType]!!.tableName),
+            *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
+          )
+          .values(insertPairs.values)
+          .execute()
+      }
+    }
+  }
+
+  private fun storeSingleObjectHistory(objectType: ObjectType, objectKey: String, item: Timestamped) {
+    val historyPairs = definitionsByType[objectType]!!.getHistoryPairs(objectMapper, clock, objectKey, item)
+
+    val exists = jooq.withRetry(sqlRetryProperties.reads) {
+      jooq.fetchExists(
+        jooq.select()
+          .from(definitionsByType[objectType]!!.historyTableName)
+          .where(field("id").eq(objectKey).and(field("body_sig").eq(historyPairs.getValue("body_sig"))))
+          .forUpdate()
+      )
+    }
+
+    if (!exists) {
+      jooq.withRetry(sqlRetryProperties.transactions) {
+        jooq
+          .insertInto(
+            table(definitionsByType[objectType]!!.historyTableName),
+            *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
+          )
+          .values(historyPairs.values)
+          .execute()
+      }
+    }
   }
 }

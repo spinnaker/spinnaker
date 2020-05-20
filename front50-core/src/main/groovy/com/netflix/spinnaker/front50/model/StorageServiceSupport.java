@@ -244,6 +244,20 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     User authenticatedUser = new User();
     authenticatedUser.setUsername(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
+    if (service instanceof BulkStorageService) {
+      String lastModifiedBy = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+      Long lastModified = System.currentTimeMillis();
+
+      items.forEach(
+          item -> {
+            item.setLastModifiedBy(lastModifiedBy);
+            item.setLastModified(lastModified);
+          });
+
+      ((BulkStorageService) service).storeObjects(objectType, items);
+      return;
+    }
+
     Observable.from(items)
         .buffer(10)
         .flatMap(
