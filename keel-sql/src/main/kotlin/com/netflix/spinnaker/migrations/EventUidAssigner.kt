@@ -55,7 +55,6 @@ class EventUidAssigner(private val jooq: DSLContext) : CoroutineScope {
       .from(EVENT)
       .where(EVENT.UID.isNull)
       .limit(batchSize)
-      .forShare()
       .fetch()
 
   private fun DSLContext.assignUID(timestamp: LocalDateTime): Int =
