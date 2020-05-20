@@ -26,43 +26,41 @@ class EventUidAssigner(
 
   @EventListener(ApplicationReadyEvent::class)
   fun onApplicationReady() {
-    val lock = agentLockRepository.tryAcquireLock(
-      javaClass.simpleName,
-      Duration.ofHours(24).seconds
-    )
-    if (!lock) {
-      log.info("Did not acquire lock for assigning uids to events")
-      return
-    }
-    log.warn("Acquired lock for assigning uids to events...")
-
     launch {
       var done = false
       while (!done) {
-        var count = 0
-        runCatching {
-          jooq.fetchEventBatch()
-            .also {
-              done = it.isEmpty()
-            }
-            .forEach { (ts) ->
-              runCatching { jooq.assignUID(ts) }
-                .onSuccess { count += it }
-                .onFailure { ex ->
-                  log.error("Error assigning uid to event with timestamp $ts", ex)
-                }
-            }
-        }
-          .onFailure { ex ->
-            log.error("Error selecting event batch to assign uids", ex)
+        if (acquireLock()) {
+          var count = 0
+          runCatching {
+            jooq.fetchEventBatch()
+              .also {
+                done = it.isEmpty()
+              }
+              .forEach { (ts) ->
+                runCatching { jooq.assignUID(ts) }
+                  .onSuccess { count += it }
+                  .onFailure { ex ->
+                    log.error("Error assigning uid to event with timestamp $ts", ex)
+                  }
+              }
           }
-        log.info("Assigned uids to $count events...")
+            .onFailure { ex ->
+              log.error("Error selecting event batch to assign uids", ex)
+            }
+          log.info("Assigned uids to $count events...")
+        }
       }
       log.info("All events have uids assigned")
     }
   }
 
-  private fun DSLContext.fetchEventBatch(batchSize: Int = 10): Result<Record1<LocalDateTime>> =
+  private fun acquireLock(): Boolean =
+    agentLockRepository.tryAcquireLock(
+      javaClass.simpleName,
+      Duration.ofMinutes(5).seconds
+    )
+
+  private fun DSLContext.fetchEventBatch(batchSize: Int = 1000): Result<Record1<LocalDateTime>> =
     select(EVENT.TIMESTAMP)
       .from(EVENT)
       .where(EVENT.UID.isNull)
