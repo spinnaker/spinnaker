@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.migrations
 
+import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import de.huxhorn.sulky.ulid.ULID
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 import kotlinx.coroutines.CoroutineScope
@@ -14,13 +16,26 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 
-class EventUidAssigner(private val jooq: DSLContext) : CoroutineScope {
+class EventUidAssigner(
+  private val jooq: DSLContext,
+  private val agentLockRepository: AgentLockRepository
+) : CoroutineScope {
 
   private val idGenerator = ULID()
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @EventListener(ApplicationReadyEvent::class)
   fun onApplicationReady() {
+    val lock = agentLockRepository.tryAcquireLock(
+      javaClass.simpleName,
+      Duration.ofHours(24).seconds
+    )
+    if (!lock) {
+      log.info("Did not acquire lock for assigning uids to events")
+      return
+    }
+    log.warn("Acquired lock for assigning uids to events...")
+
     launch {
       var done = false
       while (!done) {
