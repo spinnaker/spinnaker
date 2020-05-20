@@ -140,7 +140,7 @@ export function Environments({ app }: IEnvironmentsProps) {
   return (
     <div className={styles.mainContent}>
       <div className={styles.artifactsColumn}>
-        <ColumnHeader text="Artifacts" icon="artifact" />
+        <ColumnHeader text="Versions" icon="artifact" />
         <ArtifactsList
           artifacts={artifacts}
           selectedVersion={selectedVersion}
