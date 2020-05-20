@@ -39,11 +39,15 @@ public class KubernetesRunJobOperation
   private static final String OP_NAME = "RUN_KUBERNETES_JOB";
   private final KubernetesRunJobOperationDescription description;
   private final ArtifactProvider provider;
+  private final boolean appendSuffix;
 
   public KubernetesRunJobOperation(
-      KubernetesRunJobOperationDescription description, ArtifactProvider provider) {
+      KubernetesRunJobOperationDescription description,
+      ArtifactProvider provider,
+      boolean appendSuffix) {
     this.description = description;
     this.provider = provider;
+    this.appendSuffix = appendSuffix;
   }
 
   private static Task getTask() {
@@ -65,13 +69,25 @@ public class KubernetesRunJobOperation
       jobSpec.setNamespace(this.description.getNamespace());
     }
 
-    // We require that the recreate strategy be used; this is because jobs are immutable and trying
-    // to re-run a job with apply will either:
-    // (1) succeed and leave the job unchanged (but will not trigger a re-run)
-    // (2) fail if we try to change anything
-    // As the purpose of a run job stage is to ensure that each execution causes a job to run, we'll
-    // force a new job to be created each time.
-    KubernetesManifestAnnotater.setDeploymentStrategy(jobSpec, DeployStrategy.RECREATE);
+    if (appendSuffix && !jobSpec.hasGenerateName()) {
+      log.warn(
+          "Appending a random suffix to job with name {} before deploying. In Spinnaker 1.22, this suffix"
+              + " will no longer be added. To continue having a random suffix added, please update the job"
+              + " to specify a metadata.generateName. To immediately disable this suffix, set"
+              + " kubernetes.jobs.addSuffix to false in your clouddriver config.",
+          jobSpec.getName());
+      String currentName = jobSpec.getName();
+      String postfix = Long.toHexString(Double.doubleToLongBits(Math.random()));
+      jobSpec.setName(currentName + "-" + postfix);
+    } else {
+      // We require that the recreate strategy be used; this is because jobs are immutable and
+      // trying to re-run a job with apply will either:
+      // (1) succeed and leave the job unchanged (but will not trigger a re-run)
+      // (2) fail if we try to change anything
+      // As the purpose of a run job stage is to ensure that each execution causes a job to run,
+      // we'll force a new job to be created each time.
+      KubernetesManifestAnnotater.setDeploymentStrategy(jobSpec, DeployStrategy.RECREATE);
+    }
 
     KubernetesDeployManifestDescription deployManifestDescription =
         new KubernetesDeployManifestDescription();
