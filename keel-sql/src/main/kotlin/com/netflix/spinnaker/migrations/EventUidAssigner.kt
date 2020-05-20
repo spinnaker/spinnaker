@@ -26,19 +26,24 @@ class EventUidAssigner(private val jooq: DSLContext) : CoroutineScope {
       var done = false
       while (!done) {
         var count = 0
-        jooq.inTransaction {
-          fetchEventBatch()
-            .also {
-              done = it.isEmpty()
-            }
-            .forEach { (ts) ->
-              runCatching { assignUID(ts) }
-                .onSuccess { count += it }
-                .onFailure { ex ->
-                  log.error("Error assigning uid to event with timestamp $ts", ex)
-                }
-            }
+        runCatching {
+          jooq.inTransaction {
+            fetchEventBatch()
+              .also {
+                done = it.isEmpty()
+              }
+              .forEach { (ts) ->
+                runCatching { assignUID(ts) }
+                  .onSuccess { count += it }
+                  .onFailure { ex ->
+                    log.error("Error assigning uid to event with timestamp $ts", ex)
+                  }
+              }
+          }
         }
+          .onFailure { ex ->
+            log.error("Error selecting event batch to assign uids", ex)
+          }
         log.info("Assigned uids to $count events...")
       }
       log.info("All events have uids assigned")
