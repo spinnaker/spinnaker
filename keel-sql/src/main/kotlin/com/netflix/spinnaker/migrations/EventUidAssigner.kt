@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.migrations
 
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
-import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CLUSTER_LOCK
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import de.huxhorn.sulky.ulid.ULID
@@ -23,7 +22,6 @@ import org.springframework.context.event.EventListener
 
 class EventUidAssigner(
   private val jooq: DSLContext,
-  private val agentLockRepository: AgentLockRepository,
   instanceIdSupplier: InstanceIdSupplier,
   private val clock: Clock = Clock.systemUTC()
 ) : CoroutineScope {
