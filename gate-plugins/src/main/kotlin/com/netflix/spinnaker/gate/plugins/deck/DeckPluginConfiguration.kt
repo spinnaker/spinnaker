@@ -34,10 +34,10 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @ConditionalOnProperty("spinnaker.extensibility.deck-proxy.enabled", matchIfMissing = true)
 @ComponentScan("com.netflix.spinnaker.gate.plugins.deck")
 @EnableScheduling
-open class DeckPluginConfiguration {
+class DeckPluginConfiguration {
 
   @Bean
-  open fun deckPluginCache(
+  fun deckPluginCache(
     updateManager: SpinnakerUpdateManager,
     registry: Registry,
     springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider,
@@ -60,12 +60,8 @@ open class DeckPluginConfiguration {
   }
 
   @Bean
-  open fun deckPluginService(
+  fun deckPluginService(
     pluginCache: DeckPluginCache,
     registry: Registry
   ): DeckPluginService = DeckPluginService(pluginCache, registry)
-
-  @Bean
-  open fun deckPluginsController(pluginService: DeckPluginService): DeckPluginsController =
-      DeckPluginsController(pluginService)
 }
