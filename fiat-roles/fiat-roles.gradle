@@ -28,7 +28,6 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-aop"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
-  implementation "com.netflix.spinnaker.kork:kork-dynomite"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "redis.clients:jedis"

@@ -6,13 +6,13 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
 import java.net.URI;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 import redis.clients.jedis.*;
 
 @Slf4j
@@ -52,7 +52,7 @@ public class RedisConfig {
 
     String path = redisConnection.getPath();
     if (StringUtils.isEmpty(path)) {
-      path = "/" + String.valueOf(Protocol.DEFAULT_DATABASE);
+      path = "/" + Protocol.DEFAULT_DATABASE;
     }
     int database = Integer.parseInt(path.split("/", 2)[1]);
 
