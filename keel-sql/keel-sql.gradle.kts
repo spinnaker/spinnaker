@@ -70,11 +70,8 @@ dependencies {
   jooqModelatorRuntime(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
   jooqModelatorRuntime("mysql:mysql-connector-java")
 
-  liquibaseRuntime("org.liquibase:liquibase-core:3.8.5")
-  liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:2.0.1")
-  liquibaseRuntime("org.yaml:snakeyaml:1.25")
-  liquibaseRuntime("mysql:mysql-connector-java:8.0.16")
-  liquibaseRuntime(sourceSets.main.get().output)
+  liquibaseRuntime(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
+  liquibaseRuntime("mysql:mysql-connector-java")
 }
 
 jooqModelator {

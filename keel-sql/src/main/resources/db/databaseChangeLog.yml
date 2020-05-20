@@ -134,3 +134,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200511-misc-platform-review-changes.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200515-add-unique-id-to-event.yml
+      relativeToChangelogFile: true

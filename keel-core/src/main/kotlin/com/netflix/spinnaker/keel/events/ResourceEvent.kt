@@ -73,7 +73,7 @@ abstract class ResourceEvent(
   abstract val kind: ResourceKind
   abstract val id: String
 
-  override val uid: String
+  override val ref: String
     get() = id
 }
 

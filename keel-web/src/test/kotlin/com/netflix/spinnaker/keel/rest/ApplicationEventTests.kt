@@ -3,7 +3,8 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.KeelApplication
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeoutException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,7 +53,7 @@ internal class TestEvent(source: Any) : ApplicationEvent(source)
 internal class ThreadCapturingEventListener : ApplicationListener<TestEvent> {
 
   private val latch = CountDownLatch(1)
-  lateinit var invokedThread: Thread
+  private var invokedThread: Thread? = null
 
   override fun onApplicationEvent(event: TestEvent) {
     invokedThread = Thread.currentThread()
@@ -60,7 +61,9 @@ internal class ThreadCapturingEventListener : ApplicationListener<TestEvent> {
   }
 
   fun awaitInvoked(duration: Duration): Thread {
-    latch.await(duration.toMillis(), TimeUnit.MILLISECONDS)
-    return invokedThread
+    if (!latch.await(duration.toMillis(), MILLISECONDS)) {
+      throw TimeoutException("No value was set within $duration")
+    }
+    return invokedThread ?: error("Value was set but is null")
   }
 }

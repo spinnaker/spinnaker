@@ -85,7 +85,7 @@ class InMemoryResourceRepository(
       .singleOrNull()
       ?.also {
         resources.remove(it)
-        events.removeIf { event -> event.uid == id }
+        events.removeIf { event -> event.ref == id }
         resourceArtifacts.remove(it)
       }
       ?: throw NoSuchResourceId(id)
@@ -113,7 +113,7 @@ class InMemoryResourceRepository(
     val resource = get(id)
     return events
       .filterIsInstance<ResourceHistoryEvent>()
-      .filter { it.uid == resource.id || it.uid == resource.application }
+      .filter { it.ref == resource.id || it.ref == resource.application }
       .sortedByDescending { it.timestamp }
       .take(limit)
   }
@@ -134,7 +134,7 @@ class InMemoryResourceRepository(
   }
 
   fun clearResourceEvents(id: String) =
-    events.removeIf { it.uid == id }
+    events.removeIf { it.ref == id }
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)

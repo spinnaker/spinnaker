@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.migrations.EventUidAssigner
 import java.time.Clock
 import javax.annotation.PostConstruct
 import org.jooq.DSLContext
@@ -100,4 +101,7 @@ class SqlConfiguration {
     properties: SqlProperties,
     agents: List<ScheduledAgent>
   ) = SqlAgentLockRepository(jooq, clock, agents, SqlRetry(sqlRetryProperties))
+
+  @Bean
+  fun eventUidAssigner(jooq: DSLContext) = EventUidAssigner(jooq)
 }

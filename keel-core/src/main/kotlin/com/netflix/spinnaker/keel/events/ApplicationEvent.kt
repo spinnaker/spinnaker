@@ -20,7 +20,7 @@ abstract class ApplicationEvent(
 ) : PersistentEvent() {
   override val scope = Scope.APPLICATION
 
-  override val uid: String
+  override val ref: String
     get() = application
 }
 

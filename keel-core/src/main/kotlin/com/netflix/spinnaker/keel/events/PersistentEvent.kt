@@ -19,7 +19,7 @@ import java.time.Instant
 abstract class PersistentEvent {
   abstract val scope: Scope
   abstract val application: String
-  abstract val uid: String // The unique ID of the thing associated with the scope. Defined in sub-classes.
+  abstract val ref: String // The unique ID of the thing associated with the scope. Defined in sub-classes.
   abstract val timestamp: Instant
   abstract val triggeredBy: String?
   @JsonIgnore
@@ -51,7 +51,7 @@ abstract class PersistentEvent {
 )
 interface ResourceHistoryEvent {
   val scope: PersistentEvent.Scope
-  val uid: String // the resource ID or application name
+  val ref: String // the resource ID or application name
   val ignoreRepeatedInHistory: Boolean
   val timestamp: Instant
 }
