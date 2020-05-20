@@ -137,3 +137,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200515-add-unique-id-to-event.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200520-add-cluster-lock-table.yml
+      relativeToChangelogFile: true

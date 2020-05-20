@@ -1,13 +1,18 @@
 package com.netflix.spinnaker.migrations
 
+import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CLUSTER_LOCK
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import de.huxhorn.sulky.ulid.ULID
+import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
+import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jooq.DSLContext
 import org.jooq.Record1
@@ -18,10 +23,13 @@ import org.springframework.context.event.EventListener
 
 class EventUidAssigner(
   private val jooq: DSLContext,
-  private val agentLockRepository: AgentLockRepository
+  private val agentLockRepository: AgentLockRepository,
+  instanceIdSupplier: InstanceIdSupplier,
+  private val clock: Clock = Clock.systemUTC()
 ) : CoroutineScope {
 
   private val idGenerator = ULID()
+  private val instanceId = instanceIdSupplier.get()
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @EventListener(ApplicationReadyEvent::class)
@@ -29,7 +37,7 @@ class EventUidAssigner(
     launch {
       var done = false
       while (!done) {
-        if (acquireLock()) {
+        withLock {
           var count = 0
           runCatching {
             jooq.fetchEventBatch()
@@ -54,13 +62,42 @@ class EventUidAssigner(
     }
   }
 
-  private fun acquireLock(): Boolean =
-    agentLockRepository.tryAcquireLock(
-      javaClass.simpleName,
-      Duration.ofMinutes(5).seconds
-    )
+  private suspend fun withLock(block: () -> Unit) {
+    if (acquireLock()) {
+      block()
+    } else {
+      delay(Duration.ofSeconds(Random.nextLong(30, 90)).toMillis())
+    }
+  }
 
-  private fun DSLContext.fetchEventBatch(batchSize: Int = 1000): Result<Record1<LocalDateTime>> =
+  private fun acquireLock(duration: Duration = Duration.ofMinutes(1)): Boolean {
+    val lockId = javaClass.name
+    val now = clock.instant()
+    var acquired = jooq.insertInto(CLUSTER_LOCK)
+      .set(CLUSTER_LOCK.ID, lockId)
+      .set(CLUSTER_LOCK.HELD_BY, instanceId)
+      .set(CLUSTER_LOCK.EXPIRES_AT, now.plus(duration).toEpochMilli())
+      .onDuplicateKeyIgnore()
+      .execute() == 1
+
+    if (!acquired) {
+      acquired = jooq.update(CLUSTER_LOCK)
+        .set(CLUSTER_LOCK.HELD_BY, instanceId)
+        .set(CLUSTER_LOCK.EXPIRES_AT, now.plus(duration).toEpochMilli())
+        .where(CLUSTER_LOCK.HELD_BY.eq(instanceId).or(CLUSTER_LOCK.EXPIRES_AT.lt(now.toEpochMilli())))
+        .and(CLUSTER_LOCK.ID.eq(lockId))
+        .execute() == 1
+    }
+
+    if (acquired) {
+      log.debug("Acquired lock for assigning event uids")
+    } else {
+      log.debug("Did not acquire lock for assigning event uids")
+    }
+    return acquired
+  }
+
+  private fun DSLContext.fetchEventBatch(batchSize: Int = 10): Result<Record1<LocalDateTime>> =
     select(EVENT.TIMESTAMP)
       .from(EVENT)
       .where(EVENT.UID.isNull)

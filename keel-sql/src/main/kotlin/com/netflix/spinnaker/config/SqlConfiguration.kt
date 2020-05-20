@@ -2,6 +2,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.events.PersistentEvent.Companion.clock
+import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
@@ -106,6 +107,8 @@ class SqlConfiguration {
   @Bean
   fun eventUidAssigner(
     jooq: DSLContext,
-    agentLockRepository: AgentLockRepository
-  ) = EventUidAssigner(jooq, agentLockRepository)
+    agentLockRepository: AgentLockRepository,
+    instanceIdSupplier: InstanceIdSupplier,
+    clock: Clock
+  ) = EventUidAssigner(jooq, agentLockRepository, instanceIdSupplier, clock)
 }
