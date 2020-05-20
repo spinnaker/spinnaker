@@ -246,7 +246,10 @@ class ApplicationLoadBalancerHandler(
                       port = tg.port,
                       healthCheckEnabled = tg.healthCheckEnabled,
                       healthCheckTimeoutSeconds = Duration.ofSeconds(tg.healthCheckTimeoutSeconds.toLong()),
-                      healthCheckPort = tg.healthCheckPort,
+                      healthCheckPort = when (tg.healthCheckPort) {
+                        "traffic-port" -> tg.port
+                        else -> tg.healthCheckPort.toInt()
+                      },
                       healthCheckProtocol = tg.healthCheckProtocol,
                       healthCheckHttpCode = tg.matcher.httpCode,
                       healthCheckPath = tg.healthCheckPath,

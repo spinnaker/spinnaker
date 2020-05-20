@@ -1039,7 +1039,7 @@
         ],
         "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:999999999999:targetgroup/keeldemo-test/abababababababab",
         "healthCheckTimeoutSeconds": 5,
-        "healthCheckPort": "8080",
+        "healthCheckPort": "traffic-port",
         "targetType": "instance",
         "matcher": {
           "httpCode": "200-299"

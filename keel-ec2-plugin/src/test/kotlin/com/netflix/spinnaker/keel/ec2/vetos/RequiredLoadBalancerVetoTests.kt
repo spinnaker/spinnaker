@@ -325,7 +325,7 @@ internal class RequiredLoadBalancerVetoTests : JUnit5Minutests {
               port = 8080,
               healthCheckEnabled = true,
               healthCheckTimeoutSeconds = 30,
-              healthCheckPort = 8080,
+              healthCheckPort = "8080",
               healthCheckProtocol = "https",
               healthCheckPath = "/healthcheck",
               healthCheckIntervalSeconds = 60,

@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -44,7 +43,9 @@ import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
+import strikt.assertions.first
 import strikt.assertions.get
+import strikt.assertions.getValue
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -55,7 +56,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
   private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-  val repository = mockk<KeelRepository>() {
+  private val repository = mockk<KeelRepository> {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
@@ -65,7 +66,6 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     repository,
     publisher
   )
-  private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
   private val normalizers: List<Resolver<*>> = listOf(
@@ -106,7 +106,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
   private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")
 
-  private val model = ApplicationLoadBalancerModel(
+  private fun model(port: Int = 7001, healthCheckPort: String = "7001") = ApplicationLoadBalancerModel(
     moniker = null,
     loadBalancerName = "testapp-managedogge-wow",
     availabilityZones = setOf("us-east-1c", "us-east-1d"),
@@ -137,11 +137,11 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         loadBalancerNames = listOf("testapp-managedogge-wow"),
         targetType = "instance",
         matcher = TargetGroupMatcher(httpCode = "200-299"),
-        port = 7001,
+        port = port,
         protocol = "HTTP",
         healthCheckEnabled = true,
         healthCheckTimeoutSeconds = 5,
-        healthCheckPort = 7001,
+        healthCheckPort = healthCheckPort,
         healthCheckProtocol = "HTTP",
         healthCheckPath = "/healthcheck",
         healthCheckIntervalSeconds = 10,
@@ -211,14 +211,14 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         val listeners = slot.captured.job.first()["listeners"] as Set<ApplicationLoadBalancerSpec.Listener>
 
         expectThat(listeners.first()) {
-          get { defaultActions.first() }.isEqualTo(model.listeners.first().defaultActions.first())
+          get { defaultActions.first() }.isEqualTo(model().listeners.first().defaultActions.first())
         }
       }
     }
 
     context("the ALB has been created") {
       before {
-        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model())
       }
 
       test("the diff is clean") {
@@ -260,9 +260,47 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       }
     }
 
+    context("the ALB has a traffic port different from health check port") {
+      before {
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model(port = 8080, healthCheckPort = "8081"))
+      }
+
+      test("the ports match as expected") {
+        val current: Map<String, ApplicationLoadBalancer> = runBlocking {
+          current(resource)
+        }
+
+        expectThat(current)
+          .getValue("us-east-1")
+          .get { targetGroups }
+          .first()
+          .and { get { port }.isEqualTo(8080) }
+          .and { get { healthCheckPort }.isEqualTo(8081) }
+      }
+    }
+
+    context("The ALB's health check port is specified as 'traffic-port'") {
+      before {
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model(port = 8080, healthCheckPort = "traffic-port"))
+      }
+
+      test("the health check port is set to the same value as the traffic port") {
+        val current: Map<String, ApplicationLoadBalancer> = runBlocking {
+          current(resource)
+        }
+
+        expectThat(current)
+          .getValue("us-east-1")
+          .get { targetGroups }
+          .first()
+          .and { get { port }.isEqualTo(8080) }
+          .and { get { healthCheckPort }.isEqualTo(8080) }
+      }
+    }
+
     context("the ALB spec has been updated") {
       before {
-        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model)
+        coEvery { cloudDriverService.getApplicationLoadBalancer(any(), any(), any(), any(), any()) } returns listOf(model())
       }
 
       test("the diff reflects the new spec and is upserted") {

@@ -68,7 +68,7 @@ data class ApplicationLoadBalancerModel(
     val port: Int,
     val healthCheckEnabled: Boolean,
     val healthCheckTimeoutSeconds: Int,
-    val healthCheckPort: Int,
+    val healthCheckPort: String, // quoted number (e.g., "8080") or "traffic-port"
     val healthCheckProtocol: String,
     val healthCheckPath: String,
     val healthCheckIntervalSeconds: Int,
