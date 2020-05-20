@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.migrations
 
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
-import com.netflix.spinnaker.keel.sql.inTransaction
 import de.huxhorn.sulky.ulid.ULID
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
@@ -27,19 +26,17 @@ class EventUidAssigner(private val jooq: DSLContext) : CoroutineScope {
       while (!done) {
         var count = 0
         runCatching {
-          jooq.inTransaction {
-            fetchEventBatch()
-              .also {
-                done = it.isEmpty()
-              }
-              .forEach { (ts) ->
-                runCatching { assignUID(ts) }
-                  .onSuccess { count += it }
-                  .onFailure { ex ->
-                    log.error("Error assigning uid to event with timestamp $ts", ex)
-                  }
-              }
-          }
+          jooq.fetchEventBatch()
+            .also {
+              done = it.isEmpty()
+            }
+            .forEach { (ts) ->
+              runCatching { jooq.assignUID(ts) }
+                .onSuccess { count += it }
+                .onFailure { ex ->
+                  log.error("Error assigning uid to event with timestamp $ts", ex)
+                }
+            }
         }
           .onFailure { ex ->
             log.error("Error selecting event batch to assign uids", ex)
@@ -50,7 +47,7 @@ class EventUidAssigner(private val jooq: DSLContext) : CoroutineScope {
     }
   }
 
-  private fun DSLContext.fetchEventBatch(batchSize: Int = 100): Result<Record1<LocalDateTime>> =
+  private fun DSLContext.fetchEventBatch(batchSize: Int = 10): Result<Record1<LocalDateTime>> =
     select(EVENT.TIMESTAMP)
       .from(EVENT)
       .where(EVENT.UID.isNull)
