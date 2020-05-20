@@ -276,4 +276,9 @@ public class ManagedController {
       @PathVariable("version") String version) {
     keelService.deleteVeto(application, targetEnvironment, reference, version);
   }
+
+  @GetMapping(path = "/api-docs")
+  Map<String, Object> getApiDocs() {
+    return keelService.getApiDocs();
+  }
 }

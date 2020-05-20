@@ -143,4 +143,7 @@ public interface KeelService {
       @Path("targetEnvironment") String targetEnvironment,
       @Path("reference") String reference,
       @Path("version") String version);
+
+  @GET("/v3/api-docs")
+  Map<String, Object> getApiDocs();
 }
