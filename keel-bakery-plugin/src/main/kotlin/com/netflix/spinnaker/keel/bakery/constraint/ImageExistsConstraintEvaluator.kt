@@ -16,6 +16,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.stereotype.Component
 
 /**
  * This is an implicit constraint that is used to prevent promotion of a Debian artifact version to
@@ -23,6 +24,7 @@ import org.springframework.context.ApplicationEventPublisher
  * clusters in the environment will error on their resource checks because they will be unable to
  * find the AMI.
  */
+@Component
 class ImageExistsConstraintEvaluator(
   private val imageService: ImageService,
   private val dynamicConfigService: DynamicConfigService,
