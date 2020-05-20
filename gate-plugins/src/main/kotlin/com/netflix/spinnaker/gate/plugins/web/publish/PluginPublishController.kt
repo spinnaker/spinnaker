@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.plugins.publish
+package com.netflix.spinnaker.gate.plugins.web.publish
 
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.plugins.web.PluginService
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import io.swagger.annotations.ApiOperation
 import java.lang.String.format
@@ -27,32 +29,42 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 
 @RestController
-@RequestMapping("/plugins/upload")
-class PluginBinaryController(
+@RequestMapping("/plugins/publish")
+class PluginPublishController(
+  private val pluginService: PluginService,
   private val okHttpClient: OkHttpClient,
-  private val serviceConfiguration: ServiceConfiguration
+  serviceConfiguration: ServiceConfiguration
 ) {
 
+  private val front50Url = serviceConfiguration.getServiceEndpoint("front50").url
+
   @SneakyThrows
-  @ApiOperation(value = "Upload a plugin binary")
-  @PostMapping("/{pluginId}/{pluginVersion}")
-  fun publishBinary(
-    @RequestParam("plugin") body: MultipartFile,
+  @ApiOperation(value = "Publish a plugin binary and the plugin info metadata.")
+  @PostMapping("/{pluginId}/{pluginVersion}", consumes = [MULTIPART_FORM_DATA_VALUE])
+  fun publishPlugin(
+    @RequestPart("plugin") body: MultipartFile,
+    @RequestPart("pluginInfo") pluginInfo: SpinnakerPluginInfo,
     @PathVariable pluginId: String,
-    @PathVariable pluginVersion: String,
-    @RequestParam sha512sum: String
+    @PathVariable pluginVersion: String
   ) {
+    pluginService.verifyPluginInfo(pluginInfo, pluginId)
     val bytes = body.bytes
-    verifyChecksum(bytes, sha512sum)
-    uploadToFront50(pluginId, pluginVersion, sha512sum, bytes)
+    val release = pluginService.getReleaseByVersion(pluginInfo, pluginVersion)
+
+    verifyChecksum(bytes, release.sha512sum)
+    uploadToFront50(pluginId, pluginVersion, release.sha512sum, bytes)
+
+    release.url = "$front50Url/pluginBinaries/$pluginId/$pluginVersion"
+    pluginService.upsertPluginInfo(pluginInfo)
   }
 
   /**
@@ -64,7 +76,7 @@ class PluginBinaryController(
   private fun uploadToFront50(pluginId: String, pluginVersion: String, checksum: String, body: ByteArray) {
     AuthenticatedRequest.propagate {
       val request = Request.Builder()
-        .url(serviceConfiguration.getServiceEndpoint("front50").url + "/pluginBinaries/$pluginId/$pluginVersion?sha512sum=$checksum")
+        .url("$front50Url/pluginBinaries/$pluginId/$pluginVersion?sha512sum=$checksum")
         .post(MultipartBody.Builder()
           .addFormDataPart(
             "plugin",

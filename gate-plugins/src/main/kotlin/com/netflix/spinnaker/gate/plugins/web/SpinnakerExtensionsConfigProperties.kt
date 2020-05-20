@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.plugins.publish
+package com.netflix.spinnaker.gate.plugins.web
 
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import lombok.Data
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
-@Configuration
-@ComponentScan("com.netflix.spinnaker.gate.plugins.publish")
-open class PluginPublishConfiguration
+@Data
+@Component
+@ConfigurationProperties("spinnaker.extensions")
+class SpinnakerExtensionsConfigProperties {
+
+  /**
+   * Application to which the user should have write permissions to upsert or delete plugin info and
+   * also used to tie all orca tasks to.
+   */
+  var applicationName: String = "spinnakerplugins"
+}

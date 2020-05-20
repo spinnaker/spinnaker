@@ -38,3 +38,10 @@ dependencies {
   implementation "com.netflix.hystrix:hystrix-core"
   implementation "org.apache.commons:commons-lang3"
 }
+
+sourceSets {
+  main {
+    java { srcDirs = [] }
+    groovy { srcDirs += ['src/main/java'] }
+  }
+}

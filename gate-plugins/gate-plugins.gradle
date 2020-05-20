@@ -21,10 +21,17 @@ dependencies {
   implementation project(":gate-api")
   implementation project(":gate-core")
 
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+
   implementation "com.netflix.spinnaker.kork:kork-plugins"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
 
   implementation "org.springframework:spring-web"
   implementation "org.pf4j:pf4j-update"
+}
+
+test {
+  useJUnitPlatform()
 }

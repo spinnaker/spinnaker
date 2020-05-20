@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.controllers
+package com.netflix.spinnaker.gate.plugins.web.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.gate.config.SpinnakerExtensionsConfigProperties
+import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
+import com.netflix.spinnaker.gate.plugins.web.SpinnakerExtensionsConfigProperties
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -37,12 +39,12 @@ import static org.mockito.ArgumentMatchers.any
 import static org.mockito.Mockito.when
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@WebMvcTest(controllers = [PluginController])
+@WebMvcTest(controllers = [PluginInfoController])
 @AutoConfigureMockMvc(addFilters = false)
-@ContextConfiguration(classes = [PluginController, GenericExceptionHandlers, SpinnakerExtensionsConfigProperties])
+@ContextConfiguration(classes = [PluginInfoController, GenericExceptionHandlers, SpinnakerExtensionsConfigProperties, PluginWebConfiguration, ServiceConfiguration])
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml"])
-class PluginControllerSpec extends Specification {
+class PluginInfoControllerSpec extends Specification {
 
   @Autowired
   private MockMvc mockMvc
@@ -59,6 +61,9 @@ class PluginControllerSpec extends Specification {
   @MockBean
   private Front50Service front50Service
 
+  @MockBean
+  private OkHttpClient okHttpClient
+
   private Map requestContent = ['name': 'test plugin', provider: 'Test Co']
 
   def 'should load configuration bean with expected values'() {
@@ -68,12 +73,12 @@ class PluginControllerSpec extends Specification {
 
   def 'upsert api should fail when sent no content-type'() {
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.post("/pluginInfo")).andExpect(status().isUnsupportedMediaType())
+    this.mockMvc.perform(MockMvcRequestBuilders.post("/plugins/info")).andExpect(status().isUnsupportedMediaType())
   }
 
   def 'upsert api should fail when sent no content'() {
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.post("/pluginInfo")
+    this.mockMvc.perform(MockMvcRequestBuilders.post("/plugins/info")
                 .header('Content-Type', "application/json"))
                 .andExpect(status().isBadRequest())
   }
@@ -83,7 +88,7 @@ class PluginControllerSpec extends Specification {
     when(taskService.create(any())).thenReturn(['ref': 'tasks/ref/1'])
 
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.post("/pluginInfo")
+    this.mockMvc.perform(MockMvcRequestBuilders.post("/plugins/info")
                 .header('Content-Type', "application/json")
                 .content(objectMapper.writeValueAsString(requestContent)))
                 .andExpect(status().isAccepted())
@@ -94,7 +99,7 @@ class PluginControllerSpec extends Specification {
     when(taskService.create(any())).thenReturn(['ref': 'tasks/ref/2'])
 
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.put("/pluginInfo")
+    this.mockMvc.perform(MockMvcRequestBuilders.put("/plugins/info")
       .header('Content-Type', "application/json")
       .content(objectMapper.writeValueAsString(requestContent)))
       .andExpect(status().isAccepted())
@@ -109,7 +114,7 @@ class PluginControllerSpec extends Specification {
     }
 
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.delete("/pluginInfo/test.plugin.id")
+    this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugins/info/test.plugin.id")
       .header('Content-Type', "application/json"))
       .andExpect(status().isAccepted())
   }
@@ -119,7 +124,7 @@ class PluginControllerSpec extends Specification {
     when(front50Service.getPluginInfo(any())).thenReturn([['Id': 'test-plugin-id']])
 
     expect:
-    this.mockMvc.perform(MockMvcRequestBuilders.get("/pluginInfo")
+    this.mockMvc.perform(MockMvcRequestBuilders.get("/plugins/info")
       .header('Content-Type', "application/json"))
       .andExpect(status().isOk())
   }
