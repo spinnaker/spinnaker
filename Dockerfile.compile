@@ -8,4 +8,8 @@ ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 ENV JDK_18 /usr/lib/jvm/java-8-openjdk-amd64
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx4g
-CMD ./gradlew --no-daemon -PenableCrossCompilerPlugin=true halyard-web:installDist -x test
+ARG VERSION
+# You can't use an ARG in a CMD (because it isn't available anymore when you run
+# the container) so we have to store it in an ENV.
+ENV VERSIONARG="-Pversion=$VERSION"
+CMD ./gradlew --no-daemon $VERSIONARG -PenableCrossCompilerPlugin=true halyard-web:installDist -x test
