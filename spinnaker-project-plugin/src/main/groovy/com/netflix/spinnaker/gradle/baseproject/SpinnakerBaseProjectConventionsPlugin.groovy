@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gradle.baseproject
 
-import com.netflix.spinnaker.gradle.Flags
+
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -37,7 +37,7 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
       // Nebula insists on building Javadoc, but we don't do anything with it
       // and it seems to cause lots of errors.
       project.tasks.withType(Javadoc) { (it as Javadoc).setFailOnError(false) }
-      project.tasks.withType(Jar) { setImplementationOssVersion((it as Jar), project) }
+      project.tasks.withType(Jar) { setImplementationVersion((it as Jar), project) }
 
       project.plugins.withType(BasePlugin) {
         Delete clean = project.getTasks().getByName(BasePlugin.CLEAN_TASK_NAME) as Delete
@@ -45,19 +45,12 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
       }
     }
 
-  /**
-   * If the property "ossVersion" exists the MANIFEST.MF "Implementation-Version" attribute
-   * will be set to the corresponding property. This can be used to support use cases where services
-   * are being extended and rebuilt.  Unless you're re-building services, this is likely unnecessary
-   * and the default value of the attribute "Implementation-Version" will suffice for determining
-   * the service version.
-   */
-    private static void setImplementationOssVersion(Jar jar, Project project) {
-      String ossVersionProperty = "ossVersion"
-      if (project.hasProperty(ossVersionProperty)) {
-        jar.manifest {
-          (it as Manifest).attributes(["Implementation-Version": project.property(ossVersionProperty)])
-        }
+  private static void setImplementationVersion(Jar jar, Project project) {
+    def version = project.findProperty("ossVersion") ?: project.getVersion()
+    if (version != Project.DEFAULT_VERSION) {
+      jar.manifest {
+        (it as Manifest).attributes(["Implementation-Version": version.toString()])
       }
     }
+  }
 }

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtensio
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import groovy.json.JsonOutput
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -80,7 +81,7 @@ open class CreatePluginInfoTask : DefaultTask() {
   }
 
   private fun isVersionSpecified(version: String): Boolean {
-    return version.isNotBlank() && version.isNotEmpty() && version != "unspecified"
+    return version.isNotBlank() && version != Project.DEFAULT_VERSION
   }
 
   private fun getChecksum(): String {
