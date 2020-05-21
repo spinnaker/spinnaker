@@ -56,7 +56,9 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
             .version(event.getContent().getVersion())
             .releaseDate(event.getContent().getReleaseDate())
             .requires(event.getContent().getRequires())
+            .parsedRequires(event.getContent().getParsedRequires())
             .binaryUrl(event.getContent().getBinaryUrl())
+            .sha512sum(event.getContent().getSha512sum())
             .build();
   }
 

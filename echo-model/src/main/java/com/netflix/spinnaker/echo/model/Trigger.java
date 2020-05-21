@@ -162,8 +162,10 @@ public class Trigger {
   String pluginId;
   String version;
   String releaseDate;
-  List<Map<String, String>> requires;
+  String requires;
+  List<Map<String, String>> parsedRequires;
   String binaryUrl;
+  String sha512sum;
   boolean preferred;
 
   /** Field to use for custom triggers involving artifacts */

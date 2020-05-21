@@ -35,8 +35,10 @@ public class PluginEvent extends TriggerEvent {
     private String pluginId;
     private String version;
     private String releaseDate;
-    private List<Map<String, String>> requires;
+    private String requires;
+    private List<Map<String, String>> parsedRequires;
     private String binaryUrl;
+    private String sha512sum;
     private boolean preferred;
     private String lastModified;
   }
