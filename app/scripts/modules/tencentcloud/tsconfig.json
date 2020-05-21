@@ -9,7 +9,9 @@
     "typeRoots": ["../../../../node_modules/@types"],
     "paths": {
       "@spinnaker/core": ["../../core/lib"],
-      "core/*": ["../../core/lib/*"]
+      "core/*": ["../../core/lib/*"],
+      "tencentcloud/*": ["./*"],
+      "tencentcloud": ["."]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
