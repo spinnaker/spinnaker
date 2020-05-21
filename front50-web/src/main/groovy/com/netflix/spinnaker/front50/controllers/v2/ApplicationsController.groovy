@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.front50.controllers.v2
 
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.front50.ServiceAccountsService
+import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
@@ -67,6 +69,12 @@ public class ApplicationsController {
   @Autowired
   Optional<ServiceAccountsService> serviceAccountsService;
 
+  @Autowired
+  FiatConfigurationProperties fiatConfigurationProperties;
+
+  @Autowired
+  FiatStatus fiatStatus;
+
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @ApiOperation(value = "", notes = """Fetch all applications.
@@ -107,10 +115,12 @@ public class ApplicationsController {
   @RequestMapping(method = RequestMethod.POST)
   Application create(@RequestBody final Application app) {
     Application createdApplication = getApplication().initialize(app).withName(app.getName()).save()
-    try {
-      fiatService.ifPresent { it.sync() }
-    } catch (Exception ignored) {
-      log.warn("failed to trigger fiat permission sync", ignored)
+    if (fiatStatus.isEnabled() && fiatConfigurationProperties.getRoleSync().isEnabled() && fiatService.isPresent()) {
+      try {
+        fiatService.get().sync()
+      } catch (Exception ignored) {
+        log.warn("failed to trigger fiat permission sync", ignored)
+      }
     }
     return createdApplication
   }
