@@ -140,3 +140,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200520-add-cluster-lock-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200521-event-uid-timestamp-index.yml
+      relativeToChangelogFile: true
