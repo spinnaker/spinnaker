@@ -143,3 +143,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200521-event-uid-timestamp-index.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200521-add-event-pk.yml
+      relativeToChangelogFile: true
