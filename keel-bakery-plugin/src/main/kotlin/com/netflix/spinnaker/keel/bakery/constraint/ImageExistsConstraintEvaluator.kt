@@ -50,7 +50,7 @@ class ImageExistsConstraintEvaluator(
   }
 
   private fun findMatchingImage(version: String, vmOptions: VirtualMachineOptions): NamedImage? {
-    log.debug("Searching for baked image for %s in %s", version, vmOptions.regions.joinToString())
+    log.debug("Searching for baked image for {} in {}", version, vmOptions.regions.joinToString())
     return runBlocking {
       imageService.getLatestNamedImageWithAllRegionsForAppVersion(
         AppVersion.parseName(version),
