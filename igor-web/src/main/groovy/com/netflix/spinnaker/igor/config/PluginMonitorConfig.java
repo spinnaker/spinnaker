@@ -16,9 +16,11 @@
  */
 package com.netflix.spinnaker.igor.config;
 
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.plugins.PluginCache;
@@ -30,14 +32,12 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.OkHttpClient;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 
 @Configuration
 @ConditionalOnProperty("services.front50.base-url")
@@ -51,15 +51,15 @@ public class PluginMonitorConfig {
 
   @Bean
   public PluginReleaseService pluginReleaseService(
-      OkHttpClientConfiguration okHttpClientConfiguration, IgorConfigurationProperties properties) {
+      OkHttpClientProvider clientProvider, IgorConfigurationProperties properties) {
     String address = properties.getServices().getFront50().getBaseUrl();
-
-    OkHttpClient client = okHttpClientConfiguration.create();
 
     Front50Service front50Service =
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setClient(new OkClient(client))
+            .setClient(
+                new Ok3Client(
+                    clientProvider.getClient(new DefaultServiceEndpoint("front50", address))))
             .setLogLevel(RestAdapter.LogLevel.BASIC)
             .setLog(new Slf4jRetrofitLogger(Front50Service.class))
             .build()
