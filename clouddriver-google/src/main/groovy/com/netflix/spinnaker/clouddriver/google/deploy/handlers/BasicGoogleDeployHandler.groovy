@@ -171,7 +171,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
     def machineTypeName
-    if (description.instanceType.startsWith('custom')) {
+    if (description.instanceType.contains('custom-')) {
       machineTypeName = description.instanceType
     } else {
       machineTypeName = GCEUtil.queryMachineType(description.instanceType, location, credentials, task, BASE_PHASE)
