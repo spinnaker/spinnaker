@@ -16,48 +16,33 @@
  */
 package com.netflix.spinnaker.igor.plugins;
 
-import com.netflix.spinnaker.igor.IgorConfigurationProperties;
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.time.Instant;
-import jline.internal.Nullable;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-/** TODO(rz): Currently only supports front50 as a repository. */
-public class PluginCache {
+/** Responsible for tracking seen plugin releases. */
+public interface PluginCache {
 
-  private static final String ID = "plugins";
-  private static final String FRONT50_REPOSITORY = "front50";
+  /**
+   * Sets the last time the poller updated for the provided pluginId.
+   *
+   * <p>This should only be called when a new plugin release has been discovered, using the release
+   * date of the plugin release as the timestamp.
+   */
+  void setLastPollCycle(@Nonnull String pluginId, @Nonnull Instant timestamp);
 
-  private final RedisClientDelegate redisClientDelegate;
-  private final IgorConfigurationProperties igorConfigurationProperties;
-
-  public PluginCache(
-      RedisClientDelegate redisClientDelegate,
-      IgorConfigurationProperties igorConfigurationProperties) {
-    this.redisClientDelegate = redisClientDelegate;
-    this.igorConfigurationProperties = igorConfigurationProperties;
-  }
-
-  public void setLastPollCycleTimestamp(Instant timestamp) {
-    redisClientDelegate.withCommandsClient(
-        c -> {
-          c.hset(key(), FRONT50_REPOSITORY, String.valueOf(timestamp.toEpochMilli()));
-        });
-  }
-
+  /**
+   * Get the last time the poller indexed the given pluginId. It will return null if no cache record
+   * exists.
+   *
+   * @param pluginId
+   * @return
+   */
   @Nullable
-  public Instant getLastPollCycleTimestamp() {
-    return redisClientDelegate.withCommandsClient(
-        c -> {
-          String timestamp = c.hget(key(), FRONT50_REPOSITORY);
-          if (timestamp == null) {
-            return null;
-          } else {
-            return Instant.ofEpochMilli(Long.parseLong(timestamp));
-          }
-        });
-  }
+  Instant getLastPollCycle(@Nonnull String pluginId);
 
-  private String key() {
-    return igorConfigurationProperties.getSpinnaker().getJedis().getPrefix() + ":" + ID;
-  }
+  /** List all latest poll cycle timestamps, indexed by plugin ID. */
+  @Nonnull
+  Map<String, Instant> listLastPollCycles();
 }

@@ -42,20 +42,29 @@ class PluginReleaseServiceSpec extends Specification {
       release("1.0.0", clock.instant()),
       release("1.0.1", clock.instant().plus(1, ChronoUnit.DAYS))
     ])
+    PluginInfo plugin2 = new PluginInfo("plugin2", [
+      release("2.0.0", clock.instant().plus(2, ChronoUnit.DAYS))
+    ])
+
+    and:
+    def lastPollTimestamps = [
+      plugin1: timestamp,
+      plugin2: timestamp
+    ]
 
     when:
-    def result = subject.getPluginReleasesSince(timestamp)
+    def result = subject.getPluginReleasesSinceTimestamps(lastPollTimestamps)
 
     then:
     result*.version == expectedVersions
-    1 * front50Service.listPluginInfo() >> [plugin1]
+    1 * front50Service.listPluginInfo() >> [plugin1, plugin2]
 
     where:
     timestamp                                  || expectedVersions
-    null                                       || ["1.0.0", "1.0.1"]
-    clock.instant().minus(1, ChronoUnit.HOURS) || ["1.0.0", "1.0.1"]
-    clock.instant()                            || ["1.0.1"]
-    clock.instant().plus(1, ChronoUnit.HOURS)  || ["1.0.1"]
+    null                                       || ["1.0.0", "1.0.1", "2.0.0"]
+    clock.instant().minus(1, ChronoUnit.HOURS) || ["1.0.0", "1.0.1", "2.0.0"]
+    clock.instant()                            || ["1.0.1", "2.0.0"]
+    clock.instant().plus(1, ChronoUnit.HOURS)  || ["1.0.1", "2.0.0"]
     clock.instant().plus(2, ChronoUnit.DAYS)   || []
   }
 
@@ -65,6 +74,7 @@ class PluginReleaseServiceSpec extends Specification {
       releaseDate.toString(),
       "orca>=0.0.0",
       "http://example.com/file.zip",
+      "sha512",
       true,
       clock.instant().toString(),
     )

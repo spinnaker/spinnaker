@@ -59,7 +59,7 @@ public class PluginsBuildMonitor
   @Override
   protected PluginPollingDelta generateDelta(PollContext ctx) {
     return new PluginPollingDelta(
-        pluginInfoService.getPluginReleasesSince(cache.getLastPollCycleTimestamp()).stream()
+        pluginInfoService.getPluginReleasesSinceTimestamps(cache.listLastPollCycles()).stream()
             .map(PluginDelta::new)
             .collect(Collectors.toList()));
   }
@@ -67,19 +67,31 @@ public class PluginsBuildMonitor
   @Override
   protected void commitDelta(PluginPollingDelta delta, boolean sendEvents) {
     log.info("Found {} new plugin releases", delta.items.size());
-    delta.items.forEach(
-        item -> {
-          if (sendEvents) {
-            postEvent(item.pluginRelease);
-          } else {
-            log.debug("{} processed, but not sending event", item.pluginRelease);
-          }
-        });
 
+    // Group the items by their plugin ID, submitting each release (even if there are more than one
+    // per plugin ID).
+    // After submitting the events, the most recent plugin release date for each plugin ID is then
+    // used to update the
+    // cache's last poll cycle value.
     delta.items.stream()
-        .map(it -> Instant.parse(it.pluginRelease.getReleaseDate()))
-        .max(Comparator.naturalOrder())
-        .ifPresent(cache::setLastPollCycleTimestamp);
+        .collect(Collectors.groupingBy(d -> d.pluginRelease.getPluginId()))
+        .forEach(
+            (pluginId, pluginDeltas) -> {
+              pluginDeltas.forEach(
+                  item -> {
+                    if (sendEvents) {
+                      postEvent(item.pluginRelease);
+                    } else {
+                      log.debug("{} processed, but not sending event", item.pluginRelease);
+                    }
+                  });
+
+              pluginDeltas.stream()
+                  // Already validated this release is going to be valid, so not error checking.
+                  .map(it -> Instant.parse(it.pluginRelease.getReleaseDate()))
+                  .max(Comparator.naturalOrder())
+                  .ifPresent(ts -> cache.setLastPollCycle(pluginId, ts));
+            });
   }
 
   private void postEvent(PluginRelease release) {

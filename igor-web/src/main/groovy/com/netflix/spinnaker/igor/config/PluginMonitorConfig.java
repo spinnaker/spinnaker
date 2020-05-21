@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.plugins.PluginCache;
 import com.netflix.spinnaker.igor.plugins.PluginsBuildMonitor;
+import com.netflix.spinnaker.igor.plugins.RedisPluginCache;
 import com.netflix.spinnaker.igor.plugins.front50.Front50Service;
 import com.netflix.spinnaker.igor.plugins.front50.PluginReleaseService;
 import com.netflix.spinnaker.igor.polling.LockService;
@@ -45,7 +46,7 @@ public class PluginMonitorConfig {
   @Bean
   public PluginCache pluginCache(
       RedisClientDelegate redisClientDelegate, IgorConfigurationProperties properties) {
-    return new PluginCache(redisClientDelegate, properties);
+    return new RedisPluginCache(redisClientDelegate, properties);
   }
 
   @Bean

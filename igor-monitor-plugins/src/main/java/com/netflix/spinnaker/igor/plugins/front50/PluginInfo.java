@@ -33,6 +33,7 @@ public class PluginInfo {
     final String date;
     final String requires;
     final String url;
+    final String sha512sum;
     final boolean preferred;
     final String lastModified;
 
@@ -41,12 +42,14 @@ public class PluginInfo {
         String date,
         String requires,
         String url,
+        String sha512sum,
         boolean preferred,
         String lastModified) {
       this.version = version;
       this.date = date;
       this.requires = requires;
       this.url = url;
+      this.sha512sum = sha512sum;
       this.preferred = preferred;
       this.lastModified = lastModified;
     }
