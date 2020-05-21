@@ -57,10 +57,9 @@ import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 import io.mockk.confirmVerified
-import io.mockk.every
 import io.mockk.mockk
 import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
@@ -383,15 +382,15 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       setupVpc()
     }
 
-    sequenceOf(
+    mapOf(
       "create" to SecurityGroupHandler::create,
       "update" to SecurityGroupHandler::update
     )
-      .forEach { (methodName, handlerMethod) ->
+      .forEach { methodName, handlerMethod ->
         context("$methodName a security group with no ingress rules") {
           before {
             clearMocks(orcaService)
-            coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+            every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
               TaskRefResponse("/tasks/${randomUUID()}")
             }
 
@@ -409,7 +408,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           test("it upserts the security group via Orca") {
             val tasks = mutableListOf<OrchestrationRequest>()
-            coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+            verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
 
             // Expect 2 tasks covering both regions in SecurityGroupSpec
             expectThat(tasks).hasSize(2)
@@ -460,7 +459,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             }
 
             clearMocks(orcaService)
-            coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+            every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
               TaskRefResponse("/tasks/${randomUUID()}")
             }
 
@@ -478,7 +477,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           test("it upserts the security group via Orca") {
             val tasks = mutableListOf<OrchestrationRequest>()
-            coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+            verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
 
             // task per region
             expectThat(tasks)
@@ -524,7 +523,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           before {
             clearMocks(orcaService)
-            coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+            every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
               TaskRefResponse("/tasks/${randomUUID()}")
             }
 
@@ -542,7 +541,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           test("it upserts the security group via Orca") {
             val tasks = mutableListOf<OrchestrationRequest>()
-            coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+            verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
 
             expectThat(tasks)
               .hasSize(2)
@@ -587,7 +586,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       before {
         clearMocks(orcaService)
-        coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+        every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
@@ -602,7 +601,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it does not try to create the self-referencing rule") {
         val tasks = mutableListOf<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
         expectThat(tasks)
           .hasSize(2)
         expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
@@ -636,7 +635,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       before {
         clearMocks(orcaService)
-        coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+        every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
@@ -657,7 +656,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it includes self-referencing rule in the Orca task") {
         val tasks = mutableListOf<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
         expectThat(tasks)
           .hasSize(2)
         expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
@@ -694,7 +693,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       before {
         clearMocks(orcaService)
-        coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+        every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
@@ -722,7 +721,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it only creates a task for the missing region, us-west-3") {
         val tasks = mutableListOf<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
         expectThat(tasks)
           .hasSize(1)
         expectThat(tasks[0].job)
@@ -763,7 +762,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       before {
         clearMocks(orcaService)
-        coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+        every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
@@ -785,7 +784,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it only creates a task for the newly overridden region") {
         val tasks = mutableListOf<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
         expectThat(tasks)
           .hasSize(1)
         expectThat(tasks[0].job)
@@ -810,19 +809,19 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private fun CurrentFixture.cloudDriverSecurityGroupReturns() {
     for (response in listOf(cloudDriverResponse1, cloudDriverResponse2)) {
       with(response) {
-        coEvery {
+        every {
           cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
         } returns this
       }
     }
 
     with(cloudDriverSummaryResponseWest) {
-      coEvery {
+      every {
         cloudDriverCache.securityGroupByName("prod", "us-west-3", name)
       } returns this
     }
     with(cloudDriverSummaryResponseEast) {
-      coEvery {
+      every {
         cloudDriverCache.securityGroupByName("prod", "us-east-17", name)
       } returns this
     }
@@ -831,7 +830,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private fun CurrentFixture.cloudDriverSecurityGroupNotFound() {
     for (response in listOf(cloudDriverResponse1, cloudDriverResponse2)) {
       with(response) {
-        coEvery {
+        every {
           cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
         } throws RETROFIT_NOT_FOUND
       }
