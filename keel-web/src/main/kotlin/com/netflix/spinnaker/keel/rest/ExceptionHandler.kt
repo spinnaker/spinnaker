@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.exceptions.ValidationException
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -64,7 +65,14 @@ class ExceptionHandler(
     return ApiError(UNPROCESSABLE_ENTITY, e)
   }
 
-  @ExceptionHandler(NoSuchArtifactException::class, ResourceNotFound::class, NoSuchResourceException::class, InvalidConstraintException::class, NoSuchDeliveryConfigException::class)
+  @ExceptionHandler(
+    NoSuchArtifactException::class,
+    ResourceNotFound::class,
+    NoSuchResourceException::class,
+    InvalidConstraintException::class,
+    NoSuchDeliveryConfigException::class,
+    NoSuchEnvironmentException::class
+  )
   @ResponseStatus(NOT_FOUND)
   fun onNotFound(e: Exception): ApiError {
     log.error(e.message)
