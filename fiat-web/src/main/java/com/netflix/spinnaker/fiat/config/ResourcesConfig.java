@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.providers.internal.*;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
@@ -32,7 +35,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
@@ -43,7 +45,7 @@ public class ResourcesConfig {
 
   @Autowired @Setter private ObjectMapper objectMapper;
 
-  @Autowired @Setter private OkClient okClient;
+  @Autowired @Setter private OkHttpClientProvider clientProvider;
 
   @Value("${services.front50.base-url}")
   @Setter
@@ -61,7 +63,9 @@ public class ResourcesConfig {
   Front50Api front50Api() {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(front50Endpoint))
-        .setClient(okClient)
+        .setClient(
+            new Ok3Client(
+                clientProvider.getClient(new DefaultServiceEndpoint("front50", front50Endpoint))))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(Front50Api.class))
@@ -92,7 +96,10 @@ public class ResourcesConfig {
   ClouddriverApi clouddriverApi() {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(clouddriverEndpoint))
-        .setClient(okClient)
+        .setClient(
+            new Ok3Client(
+                clientProvider.getClient(
+                    new DefaultServiceEndpoint("clouddriver", clouddriverEndpoint))))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(ClouddriverApi.class))
@@ -124,7 +131,9 @@ public class ResourcesConfig {
   IgorApi igorApi(@Value("${services.igor.base-url}") String igorEndpoint) {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(igorEndpoint))
-        .setClient(okClient)
+        .setClient(
+            new Ok3Client(
+                clientProvider.getClient(new DefaultServiceEndpoint("igor", igorEndpoint))))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(IgorApi.class))

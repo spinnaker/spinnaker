@@ -7,4 +7,6 @@ dependencies {
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
+  implementation "com.netflix.spinnaker.kork:kork-web"
 }

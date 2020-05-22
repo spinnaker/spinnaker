@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.fiat.config;
 
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
 import lombok.Setter;
@@ -13,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoints;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 /**
@@ -25,21 +27,22 @@ import retrofit.converter.JacksonConverter;
 @Slf4j
 public class GitHubConfig {
 
-  @Autowired @Setter private OkClient okClient;
-
   @Autowired @Setter private RestAdapter.LogLevel retrofitLogLevel;
 
   @Autowired @Setter private GitHubProperties gitHubProperties;
 
   @Bean
-  public GitHubClient gitHubClient() {
+  public GitHubClient gitHubClient(OkHttpClientProvider clientProvider) {
     BasicAuthRequestInterceptor interceptor =
         new BasicAuthRequestInterceptor().setAccessToken(gitHubProperties.getAccessToken());
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(gitHubProperties.getBaseUrl()))
         .setRequestInterceptor(interceptor)
-        .setClient(okClient)
+        .setClient(
+            new Ok3Client(
+                clientProvider.getClient(
+                    new DefaultServiceEndpoint("github", gitHubProperties.getBaseUrl()))))
         .setConverter(new JacksonConverter())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(GitHubClient.class))

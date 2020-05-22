@@ -21,30 +21,23 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
-import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 
 /** This package is placed in fiat-core in order to be shared by fiat-web and fiat-shared. */
 @Configuration
@@ -83,17 +76,8 @@ public class RetrofitConfig {
   }
 
   @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient(
-      Registry registry,
-      @Value("${ok-http-client.interceptor.skip-header-check:false}") boolean skipHeaderChecks) {
-    val client = okHttpClientConfig.create();
-    client.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
-    client.setRetryOnConnectionFailure(retryOnConnectionFailure);
-    client.interceptors().add(new RetryingInterceptor(maxElapsedBackoffMs));
-    client.interceptors().add(new OkHttpMetricsInterceptor(() -> registry, skipHeaderChecks));
-
-    return new OkClient(client);
+  RetryingInterceptor retryingInterceptor() {
+    return new RetryingInterceptor(maxElapsedBackoffMs);
   }
 
   @Slf4j
@@ -125,10 +109,12 @@ public class RetrofitConfig {
         try {
           waitTime = backOffExec.nextBackOff();
           if (waitTime != BackOffExecution.STOP) {
-            response.body().close();
+            if (response.body() != null) {
+              response.body().close();
+            }
             log.warn(
                 "Request for "
-                    + request.urlString()
+                    + request.url().toString()
                     + " failed. Backing off for "
                     + waitTime
                     + "ms");

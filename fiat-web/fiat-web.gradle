@@ -22,6 +22,7 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-urlconnection"
   implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
 
   implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
