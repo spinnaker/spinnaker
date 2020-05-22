@@ -11,6 +11,7 @@ require (
 	github.com/mitchellh/cli v1.0.0
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/pkg/errors v0.9.1
 	github.com/posener/complete v1.2.1 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/cobra v0.0.5
