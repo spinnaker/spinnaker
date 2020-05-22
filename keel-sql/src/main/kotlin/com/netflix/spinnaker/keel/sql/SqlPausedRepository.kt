@@ -26,7 +26,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
-import java.time.Instant
 import java.time.ZoneOffset
 import org.jooq.DSLContext
 
@@ -83,7 +82,7 @@ class SqlPausedRepository(
         .insertInto(PAUSED)
         .set(PAUSED.SCOPE, scope.name)
         .set(PAUSED.NAME, name)
-        .set(PAUSED.PAUSED_AT, clock.instant().toLocal())
+        .set(PAUSED.PAUSED_AT, clock.instant().toTimestamp())
         .set(PAUSED.PAUSED_BY, user)
         .onDuplicateKeyIgnore()
         .execute()
@@ -119,6 +118,4 @@ class SqlPausedRepository(
         .where(PAUSED.SCOPE.eq(scope.name))
         .fetch(PAUSED.NAME)
     }
-
-  private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

@@ -36,9 +36,9 @@ class SqlUnhappyVetoRepository(
       jooq.insertInto(UNHAPPY_VETO)
         .set(UNHAPPY_VETO.RESOURCE_ID, resourceId)
         .set(UNHAPPY_VETO.APPLICATION, application)
-        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime(wait).toEpochMilli())
+        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime(wait).toTimestamp())
         .onDuplicateKeyUpdate()
-        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime(wait).toEpochMilli())
+        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime(wait).toTimestamp())
         .execute()
     }
   }
@@ -61,8 +61,8 @@ class SqlUnhappyVetoRepository(
     }
       ?.let { (recheckTime) ->
         return UnhappyVetoStatus(
-          shouldSkip = recheckTime > clock.instant().toEpochMilli(),
-          shouldRecheck = recheckTime < clock.instant().toEpochMilli()
+          shouldSkip = recheckTime > clock.timestamp(),
+          shouldRecheck = recheckTime < clock.timestamp()
         )
       }
 
@@ -71,7 +71,7 @@ class SqlUnhappyVetoRepository(
   }
 
   override fun getAll(): Set<String> {
-    val now = clock.instant().toEpochMilli()
+    val now = clock.timestamp()
     return sqlRetry.withRetry(READ) {
       jooq.select(UNHAPPY_VETO.RESOURCE_ID)
         .from(UNHAPPY_VETO)
@@ -82,7 +82,7 @@ class SqlUnhappyVetoRepository(
   }
 
   override fun getAllForApp(application: String): Set<String> {
-    val now = clock.instant().toEpochMilli()
+    val now = clock.timestamp()
     return sqlRetry.withRetry(READ) {
       jooq.select(UNHAPPY_VETO.RESOURCE_ID)
         .from(UNHAPPY_VETO)

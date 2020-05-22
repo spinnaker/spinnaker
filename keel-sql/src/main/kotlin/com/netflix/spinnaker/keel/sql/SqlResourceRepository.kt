@@ -154,9 +154,9 @@ open class SqlResourceRepository(
       .execute()
     jooq.insertInto(RESOURCE_LAST_CHECKED)
       .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
-      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
       .onDuplicateKeyUpdate()
-      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+      .set(RESOURCE_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
       .set(RESOURCE_LAST_CHECKED.IGNORE, false)
       .execute()
   }
@@ -265,7 +265,7 @@ open class SqlResourceRepository(
         .set(EVENT.UID, ULID().nextULID(event.timestamp.toEpochMilli()))
         .set(EVENT.SCOPE, event.scope.name)
         .set(EVENT.REF, ref)
-        .set(EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
+        .set(EVENT.TIMESTAMP, event.timestamp.toTimestamp())
         .set(EVENT.JSON, objectMapper.writeValueAsString(event))
         .execute()
     }
@@ -307,7 +307,7 @@ open class SqlResourceRepository(
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<ResourceSpec>> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
+    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(RESOURCE.UID, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
@@ -323,9 +323,9 @@ open class SqlResourceRepository(
             it.forEach { (uid, _, _, _) ->
               insertInto(RESOURCE_LAST_CHECKED)
                 .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
-                .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
+                .set(RESOURCE_LAST_CHECKED.AT, now.toTimestamp())
                 .onDuplicateKeyUpdate()
-                .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
+                .set(RESOURCE_LAST_CHECKED.AT, now.toTimestamp())
                 .execute()
             }
           }
@@ -358,6 +358,4 @@ open class SqlResourceRepository(
 
   private val Resource<*>.uid: String
     get() = getResourceUid(this.id)
-
-  private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

@@ -42,7 +42,7 @@ class SqlDiffFingerprintRepository(
     }
     record?.let { (count, firstDetectionTime, existingHash) ->
       var newCount = 1
-      var newTime = clock.instant().toEpochMilli()
+      var newTime = clock.timestamp()
       if (hash == existingHash) {
         newCount = count + 1
         newTime = firstDetectionTime
@@ -65,7 +65,7 @@ class SqlDiffFingerprintRepository(
         .set(DIFF_FINGERPRINT.ENTITY_ID, entityId)
         .set(DIFF_FINGERPRINT.HASH, hash)
         .set(DIFF_FINGERPRINT.COUNT, 1)
-        .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.instant().toEpochMilli())
+        .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.timestamp())
         .execute()
     }
   }

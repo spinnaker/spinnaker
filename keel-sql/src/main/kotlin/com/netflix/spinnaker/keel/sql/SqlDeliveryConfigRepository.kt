@@ -39,7 +39,6 @@ import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
 import java.time.Duration
-import java.time.Instant
 import java.time.Instant.EPOCH
 import java.time.ZoneOffset
 import org.jooq.DSLContext
@@ -327,9 +326,9 @@ class SqlDeliveryConfigRepository(
       }
       jooq.insertInto(DELIVERY_CONFIG_LAST_CHECKED)
         .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, uid)
-        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
         .onDuplicateKeyUpdate()
-        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toLocal())
+        .set(DELIVERY_CONFIG_LAST_CHECKED.AT, EPOCH.plusSeconds(1).toTimestamp())
         .execute()
     }
   }
@@ -454,10 +453,10 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID, envUid)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION, state.artifactVersion)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE, state.type)
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt.toLocal())
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt.toTimestamp())
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status.toString())
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, state.judgedBy)
-              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt?.toLocal())
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt?.toTimestamp())
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, state.comment)
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, mapper.writeValueAsString(state.attributes))
               .onDuplicateKeyUpdate()
@@ -487,7 +486,7 @@ class SqlDeliveryConfigRepository(
               txn.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, state.artifactVersion)
-                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant().toEpochMilli())
+                .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.timestamp())
                 .onDuplicateKeyIgnore()
                 .execute()
             }
@@ -878,7 +877,7 @@ class SqlDeliveryConfigRepository(
           jooq.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
             .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, artifactVersion)
-            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.instant().toEpochMilli())
+            .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.QUEUED_AT, clock.timestamp())
             .onDuplicateKeyIgnore()
             .execute()
         }
@@ -925,7 +924,7 @@ class SqlDeliveryConfigRepository(
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> {
     val now = clock.instant()
-    val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
+    val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
         select(DELIVERY_CONFIG.UID, DELIVERY_CONFIG.NAME)
@@ -940,9 +939,9 @@ class SqlDeliveryConfigRepository(
             it.forEach { (uid, _) ->
               insertInto(DELIVERY_CONFIG_LAST_CHECKED)
                 .set(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID, uid)
-                .set(DELIVERY_CONFIG_LAST_CHECKED.AT, now.toLocal())
+                .set(DELIVERY_CONFIG_LAST_CHECKED.AT, now.toTimestamp())
                 .onDuplicateKeyUpdate()
-                .set(DELIVERY_CONFIG_LAST_CHECKED.AT, now.toLocal())
+                .set(DELIVERY_CONFIG_LAST_CHECKED.AT, now.toTimestamp())
                 .execute()
             }
           }
@@ -1012,8 +1011,6 @@ class SqlDeliveryConfigRepository(
           ApplicationSummary(deliveryConfigName = name, application = application, serviceAccount = serviceAccount, apiVersion = apiVersion, isPaused = paused != null)
         }
     }
-
-  private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 
   companion object {
     private const val DELETE_CHUNK_SIZE = 20

@@ -1,0 +1,48 @@
+databaseChangeLog:
+- changeSet:
+    id: event-uid-timestamp-index
+    author: fletch
+    changes:
+    - sql:
+        sql: |
+          alter table agent_lock change column expiry old bigint(13);
+          alter table agent_lock add column expiry timestamp(3) not null;
+          update agent_lock set expiry = from_unixtime(old / 1000);
+          alter table agent_lock drop column old;
+
+          alter table diff_fingerprint change column first_detection_time old bigint(13);
+          alter table diff_fingerprint add column first_detection_time timestamp(3) not null;
+          update diff_fingerprint set first_detection_time = from_unixtime(old / 1000);
+          alter table diff_fingerprint drop column old;
+
+          alter table environment_artifact_pin change column pinned_at old bigint(13);
+          alter table environment_artifact_pin add column pinned_at timestamp(3) not null;
+          update environment_artifact_pin set pinned_at = from_unixtime(old / 1000);
+          alter table environment_artifact_pin drop column old;
+
+          alter table environment_artifact_queued_approval change column queued_at old bigint(13);
+          alter table environment_artifact_queued_approval add column queued_at timestamp(3) not null;
+          update environment_artifact_queued_approval set queued_at = from_unixtime(old / 1000);
+          alter table environment_artifact_queued_approval drop column old;
+
+          alter table task_tracking change column timestamp old bigint(13);
+          alter table task_tracking add column timestamp timestamp(3) not null;
+          update task_tracking set timestamp = from_unixtime(old / 1000);
+          alter table task_tracking drop column old;
+
+          alter table unhappy_veto change column recheck_time old bigint(13);
+          alter table unhappy_veto add column recheck_time timestamp(3) not null;
+          update unhappy_veto set recheck_time = from_unixtime(old / 1000);
+          alter table unhappy_veto drop column old;
+    - sql:
+        sql: |
+          alter table artifact_last_checked modify at timestamp(3) not null;
+          alter table delivery_config_last_checked modify at timestamp(3) not null;
+          alter table environment_artifact_constraint modify created_at timestamp(3) not null;
+          alter table environment_artifact_constraint modify judged_at timestamp(3) null;
+          alter table environment_artifact_versions modify approved_at timestamp(3) null;
+          alter table environment_artifact_versions modify deployed_at timestamp(3) null;
+          alter table environment_artifact_versions modify replaced_at timestamp(3) null;
+          alter table event modify timestamp timestamp(3) not null;
+          alter table paused modify paused_at timestamp(3) null;
+          alter table resource_last_checked modify at timestamp(3) not null;

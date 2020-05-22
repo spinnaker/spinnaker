@@ -18,7 +18,7 @@ class SqlTaskTrackingRepository(
         .set(TASK_TRACKING.SUBJECT, task.subject)
         .set(TASK_TRACKING.TASK_ID, task.id)
         .set(TASK_TRACKING.TASK_NAME, task.name)
-        .set(TASK_TRACKING.TIMESTAMP, clock.instant().toEpochMilli())
+        .set(TASK_TRACKING.TIMESTAMP, clock.timestamp())
         .onDuplicateKeyIgnore()
         .execute()
     }
