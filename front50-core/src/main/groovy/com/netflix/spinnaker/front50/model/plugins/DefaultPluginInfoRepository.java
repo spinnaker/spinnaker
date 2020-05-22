@@ -21,6 +21,9 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+import com.netflix.spinnaker.kork.exceptions.UserException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -70,5 +73,24 @@ public class DefaultPluginInfoRepository extends StorageServiceSupport<PluginInf
 
     update(id, item);
     return findById(id);
+  }
+
+  @Override
+  public void update(String id, PluginInfo item) {
+    item.getReleases().forEach(release -> release.setDate(releaseDateInstant(release.getDate())));
+    super.update(id, item);
+  }
+
+  // The plugin info model is defined in various places, and the release date field can be
+  // serialized as either a unix timestamp or an ISO-8601 instant.  We store it as an instant.
+  private String releaseDateInstant(String releaseDate) {
+    try {
+      long timestamp = Long.parseLong(releaseDate);
+      return Instant.ofEpochMilli(timestamp).toString();
+    } catch (NumberFormatException nfe) {
+      return Instant.parse(releaseDate).toString();
+    } catch (DateTimeParseException dtpe) {
+      throw new UserException("Unable to parse plugin info release date " + releaseDate, dtpe);
+    }
   }
 }
