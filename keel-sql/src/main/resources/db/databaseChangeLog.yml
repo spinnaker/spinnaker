@@ -146,3 +146,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200521-add-event-pk.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200521-drop-cluster-lock-table.yml
+      relativeToChangelogFile: true
