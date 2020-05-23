@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,19 +38,8 @@ import retrofit.RetrofitError;
 public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRetryableTask {
 
   public static final String TASK_NAME = "waitForCloudFormationCompletion";
-
-  private enum CloudFormationStates {
-    NOT_YET_READY,
-    CREATE_COMPLETE,
-    UPDATE_COMPLETE,
-    IN_PROGRESS,
-    ROLLBACK_COMPLETE,
-    FAILED
-  }
-
   private final long backoffPeriod = TimeUnit.SECONDS.toMillis(10);
   private final long timeout = TimeUnit.HOURS.toMillis(2);
-
   @Autowired private OortService oortService;
 
   @Nonnull
@@ -66,8 +56,7 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
               + " with status "
               + stack.get("stackStatus"));
 
-      boolean isChangeSet =
-          (boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false);
+      boolean isChangeSet = isChangeSetStage(stage);
       boolean isChangeSetExecution =
           (boolean)
               Optional.ofNullable(stage.getContext().get("isChangeSetExecution")).orElse(false);
@@ -83,20 +72,20 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
 
       if (isComplete(status)) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(stack).build();
-      } else if (isEmptyChangeSet(stage, stack)) {
+      }
+      if (isEmptyChangeSet(stage, stack)) {
         String changeSetName = (String) result.get("changeSetName");
         log.info("CloudFormation ChangeSet {} empty. Requesting to be deleted.", changeSetName);
         return TaskResult.builder(ExecutionStatus.SUCCEEDED)
             .context("deleteChangeSet", true)
             .outputs(stack)
             .build();
-      } else if (isInProgress(status)) {
+      }
+      if (isInProgress(status)) {
         return TaskResult.RUNNING;
-      } else if (isFailed(status)) {
-        String statusReason =
-            isChangeSet
-                ? getChangeSetInfo(stack, stage.getContext(), "statusReason")
-                : getStackInfo(stack, "stackStatusReason");
+      }
+      if (isFailed(status)) {
+        String statusReason = getFailureReason(stack, stage);
         log.info("Cloud formation stack failed to completed. Status: " + statusReason);
         throw new RuntimeException(statusReason);
       }
@@ -112,6 +101,10 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
     }
   }
 
+  private boolean isChangeSetStage(StageExecution stage) {
+    return (boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false);
+  }
+
   @Override
   public long getBackoffPeriod() {
     return backoffPeriod;
@@ -120,6 +113,22 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
   @Override
   public long getTimeout() {
     return timeout;
+  }
+
+  private String getFailureReason(Map stack, StageExecution stage) {
+    List unrecoverableStatuses =
+        Arrays.asList(
+            CloudFormationStates.ROLLBACK_COMPLETE.name(),
+            CloudFormationStates.ROLLBACK_FAILED.name(),
+            CloudFormationStates.DELETE_FAILED.name(),
+            CloudFormationStates.UPDATE_ROLLBACK_FAILED.name());
+    if (unrecoverableStatuses.contains(stack.get("stackStatus"))) {
+      return "Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: "
+          + getStackInfo(stack, "stackStatusReason");
+    }
+    return isChangeSetStage(stage)
+        ? getChangeSetInfo(stack, stage.getContext(), "statusReason")
+        : getStackInfo(stack, "stackStatusReason");
   }
 
   private String getStackInfo(Map stack, String field) {
@@ -173,5 +182,17 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
     } else {
       return false;
     }
+  }
+
+  private enum CloudFormationStates {
+    NOT_YET_READY,
+    CREATE_COMPLETE,
+    UPDATE_COMPLETE,
+    IN_PROGRESS,
+    ROLLBACK_COMPLETE,
+    DELETE_FAILED,
+    ROLLBACK_FAILED,
+    UPDATE_ROLLBACK_FAILED,
+    FAILED;
   }
 }

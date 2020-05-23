@@ -157,10 +157,10 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     where:
     isChangeSet | status              || expectedMessage
     false       | 'UNKNOWN'           || 'Unexpected stack status'
-    false       | 'ROLLBACK_COMPLETE' || 'Stack failed'
+    false       | 'ROLLBACK_COMPLETE' || 'Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: Stack failed'
     false       | 'CREATE_FAILED'     || 'Stack failed'
     true        | 'UNKNOWN'           || 'Unexpected stack status'
-    true        | 'ROLLBACK_COMPLETE' || 'Change set failed'
+    true        | 'ROLLBACK_COMPLETE' || 'Irrecoverable stack status - Review the error, make changes in template and delete the stack to re-run the pipeline successfully; Reason: Stack failed'
     true        | 'FAILED'            || 'Change set failed'
   }
 
