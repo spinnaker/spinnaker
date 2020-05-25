@@ -7,7 +7,6 @@ import * as propTypes from 'prop-types';
 import * as react from 'react';
 import * as reactDOM from 'react-dom';
 import * as rxjs from 'rxjs';
-import * as tslib from 'tslib';
 
 export const sharedLibraries = {
   // This is the global (window) variable that the shared libs will be exposed on
@@ -40,7 +39,6 @@ export const sharedLibraries = {
       exposeSharedLibrary('react-dom', reactDOM);
       exposeSharedLibrary('rxjs', rxjs);
       exposeSharedLibrary('rxjs/Observable', { Observable: rxjs.Observable });
-      exposeSharedLibrary('tslib', tslib);
     }
   },
 };
