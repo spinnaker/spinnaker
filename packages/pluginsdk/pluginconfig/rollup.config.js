@@ -31,7 +31,6 @@ function spinnakerSharedLibraries() {
     'react-dom',
     'rxjs',
     'rxjs/Observable',
-    'tslib',
   ];
 
   function getGlobalVariable(libraryName) {
