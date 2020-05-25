@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector
@@ -35,10 +38,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.Client
 import retrofit.converter.JacksonConverter
-
-import java.util.regex.Pattern
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -65,28 +65,28 @@ class CloudDriverConfiguration {
 
   @Bean
   ClouddriverRetrofitBuilder clouddriverRetrofitBuilder(ObjectMapper objectMapper,
-                                                        Client retrofitClient,
+                                                        OkHttpClientProvider clientProvider,
                                                         RestAdapter.LogLevel retrofitLogLevel,
                                                         RequestInterceptor spinnakerRequestInterceptor,
                                                         CloudDriverConfigurationProperties cloudDriverConfigurationProperties) {
-    return new ClouddriverRetrofitBuilder(objectMapper, retrofitClient, retrofitLogLevel, spinnakerRequestInterceptor, cloudDriverConfigurationProperties)
+    return new ClouddriverRetrofitBuilder(objectMapper, clientProvider, retrofitLogLevel, spinnakerRequestInterceptor, cloudDriverConfigurationProperties)
   }
 
 
   static class ClouddriverRetrofitBuilder {
     ObjectMapper objectMapper
-    Client retrofitClient
+    OkHttpClientProvider clientProvider
     RestAdapter.LogLevel retrofitLogLevel
     RequestInterceptor spinnakerRequestInterceptor
     CloudDriverConfigurationProperties cloudDriverConfigurationProperties
 
     ClouddriverRetrofitBuilder(ObjectMapper objectMapper,
-                               Client retrofitClient,
+                               OkHttpClientProvider clientProvider,
                                RestAdapter.LogLevel retrofitLogLevel,
                                RequestInterceptor spinnakerRequestInterceptor,
                                CloudDriverConfigurationProperties cloudDriverConfigurationProperties) {
       this.objectMapper = objectMapper
-      this.retrofitClient = retrofitClient
+      this.clientProvider = clientProvider
       this.retrofitLogLevel = retrofitLogLevel
       this.spinnakerRequestInterceptor = spinnakerRequestInterceptor
       this.cloudDriverConfigurationProperties = cloudDriverConfigurationProperties
@@ -100,7 +100,7 @@ class CloudDriverConfiguration {
       new RestAdapter.Builder()
           .setRequestInterceptor(spinnakerRequestInterceptor)
           .setEndpoint(newFixedEndpoint(url))
-          .setClient(retrofitClient)
+          .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", url))))
           .setLogLevel(retrofitLogLevel)
           .setLog(new RetrofitSlf4jLog(type))
           .setConverter(new JacksonConverter(objectMapper))

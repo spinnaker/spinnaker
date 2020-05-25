@@ -25,3 +25,8 @@ spring:
 services:
   fiat:
     baseUrl: https://fiat.net
+
+clouddriver:
+    baseUrl: https://clouddriver.net
+    readOnly:
+      baseUrl: https://clouddriver-readonly.net

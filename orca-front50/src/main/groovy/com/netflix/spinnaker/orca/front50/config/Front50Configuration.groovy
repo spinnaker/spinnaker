@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.front50.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.orca.events.ExecutionEvent
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -36,7 +39,6 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 import static retrofit.Endpoints.newFixedEndpoint
@@ -53,7 +55,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 class Front50Configuration {
 
   @Autowired
-  Client retrofitClient
+  OkHttpClientProvider clientProvider
 
   @Autowired
   RestAdapter.LogLevel retrofitLogLevel
@@ -72,7 +74,7 @@ class Front50Configuration {
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(front50Endpoint)
-      .setClient(retrofitClient)
+      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("front50", front50Endpoint.getUrl()))))
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(Front50Service))
       .setConverter(new JacksonConverter(mapper))

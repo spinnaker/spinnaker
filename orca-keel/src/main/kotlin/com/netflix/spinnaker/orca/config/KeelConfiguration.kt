@@ -19,6 +19,9 @@ package com.netflix.spinnaker.orca.config
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import org.springframework.beans.factory.annotation.Value
@@ -29,7 +32,6 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.Endpoints
 import retrofit.RestAdapter
-import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
@@ -48,12 +50,12 @@ class KeelConfiguration {
   @Bean fun keelService(
     keelEndpoint: Endpoint,
     keelObjectMapper: ObjectMapper,
-    retrofitClient: Client,
+    clientProvider: OkHttpClientProvider,
     retrofitLogLevel: RestAdapter.LogLevel
   ) =
     RestAdapter.Builder()
       .setEndpoint(keelEndpoint)
-      .setClient(retrofitClient)
+      .setClient(Ok3Client(clientProvider.getClient(DefaultServiceEndpoint("keel", keelEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
       .setConverter(JacksonConverter(keelObjectMapper))
       .build()

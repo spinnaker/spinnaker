@@ -17,9 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.netflix.spinnaker.config.ServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import okhttp3.OkHttpClient
 import org.junit.Rule
 import retrofit.RequestInterceptor
 import retrofit.client.OkClient
@@ -57,7 +61,16 @@ class KatoRestServiceSpec extends Specification {
     def cfg = new CloudDriverConfiguration()
     def builder = cfg.clouddriverRetrofitBuilder(
       mapper,
-      new OkClient(),
+      new OkHttpClientProvider([new OkHttpClientBuilderProvider() {
+        @Override
+        Boolean supports(ServiceEndpoint service) {
+          return true
+        }
+        @Override
+        OkHttpClient.Builder get(ServiceEndpoint service) {
+          return new OkHttpClient().newBuilder()
+        }
+      }]),
       FULL,
       noopInterceptor,
       new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockRule.url("/"))))

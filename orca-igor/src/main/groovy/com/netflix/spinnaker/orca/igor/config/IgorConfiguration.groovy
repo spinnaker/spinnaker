@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
@@ -42,7 +45,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @ComponentScan("com.netflix.spinnaker.orca.igor")
 class IgorConfiguration {
 
-  @Autowired Client retrofitClient
+  @Autowired OkHttpClientProvider clientProvider
   @Autowired RestAdapter.LogLevel retrofitLogLevel
   @Autowired ObjectMapper objectMapper
 
@@ -56,7 +59,7 @@ class IgorConfiguration {
   IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper, RequestInterceptor spinnakerRequestInterceptor) {
     new RestAdapter.Builder()
       .setEndpoint(igorEndpoint)
-      .setClient(retrofitClient)
+      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("keel", igorEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setLog(new RetrofitSlf4jLog(IgorService))

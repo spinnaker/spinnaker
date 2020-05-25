@@ -20,12 +20,13 @@ dependencies {
   api("com.squareup.retrofit:retrofit")
   api("com.squareup.retrofit:converter-jackson")
   api("org.codehaus.groovy:groovy")
+  api("com.netflix.spinnaker.kork:kork-web")
+  api("com.jakewharton.retrofit:retrofit1-okhttp3-client")
 
   implementation(project(":orca-core"))
   implementation("com.squareup.okhttp:okhttp")
   implementation("com.squareup.okhttp:okhttp-urlconnection")
   implementation("com.squareup.okhttp:okhttp-apache")
-  implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("io.reactivex:rxjava")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
 
