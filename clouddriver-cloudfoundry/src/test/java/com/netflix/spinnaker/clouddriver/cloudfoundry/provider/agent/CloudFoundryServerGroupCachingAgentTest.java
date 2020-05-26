@@ -9,6 +9,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -65,6 +66,60 @@ class CloudFoundryServerGroupCachingAgentTest {
   void before() {
     when(credentials.getClient()).thenReturn(cloudFoundryClient);
     when(credentials.getName()).thenReturn(accountName);
+  }
+
+  @Test
+  void buildOnDemandCacheDataShouldIncludeServerGroupAttributes() throws JsonProcessingException {
+
+    CloudFoundryInstance cloudFoundryInstance =
+        CloudFoundryInstance.builder().appGuid("instance-guid-1").key("instance-key").build();
+
+    CloudFoundryServerGroup onDemandCloudFoundryServerGroup =
+        CloudFoundryServerGroup.builder()
+            .name("serverGroupName")
+            .id("sg-guid-1")
+            .account(accountName)
+            .space(cloudFoundrySpace)
+            .diskQuota(1024)
+            .instances(singleton(cloudFoundryInstance))
+            .build();
+
+    Map<String, Collection<String>> serverGroupRelationships =
+        HashMap.<String, Collection<String>>of(
+                INSTANCES.getNs(),
+                singleton(Keys.getInstanceKey(accountName, cloudFoundryInstance.getName())),
+                LOAD_BALANCERS.getNs(),
+                emptyList())
+            .toJavaMap();
+
+    ResourceCacheData onDemandCacheResults =
+        new ResourceCacheData(
+            Keys.getServerGroupKey(
+                accountName,
+                onDemandCloudFoundryServerGroup.getName(),
+                onDemandCloudFoundryServerGroup.getRegion()),
+            cacheView(onDemandCloudFoundryServerGroup),
+            serverGroupRelationships);
+
+    CacheData cacheData =
+        cloudFoundryServerGroupCachingAgent.buildOnDemandCacheData(
+            Keys.getServerGroupKey(
+                accountName,
+                onDemandCloudFoundryServerGroup.getName(),
+                onDemandCloudFoundryServerGroup.getRegion()),
+            Collections.singletonMap(
+                SERVER_GROUPS.getNs(), Collections.singleton(onDemandCacheResults)));
+
+    ResourceCacheData result =
+        objectMapper
+            .readValue(
+                cacheData.getAttributes().get("cacheResults").toString(),
+                new TypeReference<Map<String, Collection<ResourceCacheData>>>() {})
+            .get("serverGroups").stream()
+            .findFirst()
+            .get();
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(onDemandCacheResults);
   }
 
   @Test
