@@ -7,6 +7,57 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.kork.exceptions.SystemException
 
+data class ServerGroupCollection(
+  val accountName: String,
+  val serverGroups: Set<ServerGroup>
+)
+
+/**
+ * Objects that are returned when querying for all of the server groups associated with a cluster.
+ *
+ * Two differences from [ActiveServerGroup]:
+ *   - disabled flag
+ *   - no accountName field (since this is defined on the parent [ServerGroupCollection] object
+ */
+data class ServerGroup(
+  val name: String,
+  val region: String,
+  val zones: Set<String>,
+  val image: ActiveServerGroupImage,
+  val launchConfig: LaunchConfig,
+  val asg: AutoScalingGroup,
+  val scalingPolicies: List<ScalingPolicy>,
+  val vpcId: String,
+  val targetGroups: Set<String>,
+  val loadBalancers: Set<String>,
+  val capacity: Capacity,
+  val cloudProvider: String,
+  val securityGroups: Set<String>,
+  val moniker: Moniker,
+  val buildInfo: BuildInfo? = null,
+  val disabled: Boolean
+)
+
+fun ServerGroup.toActive(accountName: String) =
+  ActiveServerGroup(
+    name,
+    region,
+    zones,
+    image,
+    launchConfig,
+    asg,
+    scalingPolicies,
+    vpcId,
+    targetGroups,
+    loadBalancers,
+    capacity,
+    cloudProvider,
+    securityGroups,
+    accountName,
+    moniker,
+    buildInfo
+  )
+
 // todo eb: this should be more general so that it works for all server groups, not just ec2
 data class ActiveServerGroup(
   val name: String,

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
@@ -103,6 +104,16 @@ interface CloudDriverService {
     @Path("region") region: String,
     @Path("name") name: String
   ): List<ApplicationLoadBalancerModel>
+
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
+  suspend fun listServerGroups(
+    @Header("X-SPINNAKER-USER") user: String,
+    @Path("app") app: String,
+    @Path("account") account: String,
+    @Path("cluster") cluster: String,
+    @Path("cloudProvider") cloudProvider: String,
+    @Query("region") region: String
+  ): ServerGroupCollection
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun activeServerGroup(
