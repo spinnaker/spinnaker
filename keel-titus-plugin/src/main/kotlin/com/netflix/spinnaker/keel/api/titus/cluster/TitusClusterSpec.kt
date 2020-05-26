@@ -65,7 +65,7 @@ data class TitusClusterSpec(
   override val maxDiffCount: Int? = 2,
   @JsonIgnore
   // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = Duration.ZERO
+  override val unhappyWaitTime: Duration? = null
 ) : ComputeResourceSpec, Monikered, Locatable<SimpleLocations>, UnhappyControl {
 
   @JsonIgnore

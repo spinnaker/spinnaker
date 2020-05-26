@@ -28,7 +28,7 @@ class InMemoryUnhappyVetoRepository(
 
   private val resources: MutableMap<String, Record> = mutableMapOf()
 
-  override fun markUnhappyForWaitingTime(resourceId: String, application: String, wait: Duration) {
+  override fun markUnhappyForWaitingTime(resourceId: String, application: String, wait: Duration?) {
     resources[resourceId] = Record(application, calculateExpirationTime(wait))
   }
 
@@ -36,27 +36,27 @@ class InMemoryUnhappyVetoRepository(
     resources.remove(resourceId)
   }
 
-  override fun getOrCreateVetoStatus(resourceId: String, application: String, wait: Duration): UnhappyVetoStatus {
+  override fun getOrCreateVetoStatus(resourceId: String, application: String, wait: Duration?): UnhappyVetoStatus {
     val record = resources[resourceId]
     if (record == null) {
       resources[resourceId] = Record(application, calculateExpirationTime(wait))
       return UnhappyVetoStatus(shouldSkip = true, shouldRecheck = false)
     }
     return UnhappyVetoStatus(
-      shouldSkip = record.recheckTime > clock.instant(),
-      shouldRecheck = record.recheckTime < clock.instant()
+      shouldSkip = record.recheckTime.shouldSkip(),
+      shouldRecheck = record.recheckTime.shouldRecheck()
     )
   }
 
   override fun getAll(): Set<String> {
     val now = clock.instant()
-    return resources.filter { it.value.recheckTime > now }.keys.toSet()
+    return resources.filter { it.value.recheckTime.shouldSkip(now) }.keys.toSet()
   }
 
   override fun getAllForApp(application: String): Set<String> {
     val now = clock.instant()
     return resources.filter { (_, record) ->
-      record.recheckTime > now && record.application == application
+      record.recheckTime.shouldSkip(now) && record.application == application
     }.keys.toSet()
   }
 
@@ -64,6 +64,9 @@ class InMemoryUnhappyVetoRepository(
 
   private data class Record(
     val application: String,
-    val recheckTime: Instant
+    val recheckTime: Instant?
   )
+
+  private fun Instant?.shouldSkip(now: Instant = clock.instant()) = this == null || this > now
+  private fun Instant?.shouldRecheck(now: Instant = clock.instant()) = this != null && this < now
 }

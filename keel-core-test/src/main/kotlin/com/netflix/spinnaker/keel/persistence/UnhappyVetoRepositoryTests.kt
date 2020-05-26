@@ -17,11 +17,14 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository.UnhappyVetoStatus
 import com.netflix.spinnaker.time.MutableClock
+import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.time.Clock
 import java.time.Duration
+import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
@@ -78,8 +81,8 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
       test("should skip right after we mark unhappy") {
         val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
         expect {
-          that(vetoStatus.shouldSkip).isEqualTo(true)
-          that(vetoStatus.shouldRecheck).isEqualTo(false)
+          that(vetoStatus).shouldSkip.isEqualTo(true)
+          that(vetoStatus).shouldRecheck.isEqualTo(false)
         }
       }
 
@@ -87,8 +90,8 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
         clock.incrementBy(Duration.ofMinutes(9))
         val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
         expect {
-          that(vetoStatus.shouldSkip).isEqualTo(true)
-          that(vetoStatus.shouldRecheck).isEqualTo(false)
+          that(vetoStatus).shouldSkip.isEqualTo(true)
+          that(vetoStatus).shouldRecheck.isEqualTo(false)
         }
       }
 
@@ -96,8 +99,31 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
         clock.incrementBy(Duration.ofMinutes(11))
         val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, waitDuration)
         expect {
-          that(vetoStatus.shouldSkip).isEqualTo(false)
-          that(vetoStatus.shouldRecheck).isEqualTo(true)
+          that(vetoStatus).shouldSkip.isEqualTo(false)
+          that(vetoStatus).shouldRecheck.isEqualTo(true)
+        }
+      }
+    }
+
+    context("setting a null expiry time") {
+      before {
+        subject.markUnhappyForWaitingTime(resourceId, application, null)
+      }
+
+      test("should skip right after we mark unhappy with no timeout") {
+        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, null)
+        expect {
+          that(vetoStatus).shouldSkip.isEqualTo(true)
+          that(vetoStatus).shouldRecheck.isEqualTo(false)
+        }
+      }
+
+      test("should still skip after a long time when we mark unhappy with no timeout") {
+        clock.incrementBy(Duration.ofDays(1000))
+        val vetoStatus = subject.getOrCreateVetoStatus(resourceId, application, null)
+        expect {
+          that(vetoStatus).shouldSkip.isEqualTo(true)
+          that(vetoStatus).shouldRecheck.isEqualTo(false)
         }
       }
     }
@@ -132,3 +158,9 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
     }
   }
 }
+
+private val Assertion.Builder<UnhappyVetoStatus>.shouldSkip: Assertion.Builder<Boolean>
+  get() = get("should skip") { shouldSkip }
+
+private val Assertion.Builder<UnhappyVetoStatus>.shouldRecheck: Assertion.Builder<Boolean>
+  get() = get("should recheck") { shouldRecheck }

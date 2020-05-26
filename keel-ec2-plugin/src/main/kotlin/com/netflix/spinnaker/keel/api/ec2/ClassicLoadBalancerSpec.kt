@@ -32,7 +32,7 @@ data class ClassicLoadBalancerSpec(
 
   @JsonIgnore
   // Once load balancers go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = Duration.ZERO
+  override val unhappyWaitTime: Duration? = null
 
   @JsonIgnore
   override val loadBalancerType: LoadBalancerType = CLASSIC

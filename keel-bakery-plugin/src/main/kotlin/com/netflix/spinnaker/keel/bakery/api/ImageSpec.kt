@@ -24,5 +24,5 @@ data class ImageSpec(
   override val maxDiffCount = 2
 
   @JsonIgnore
-  override val unhappyWaitTime = Duration.ZERO
+  override val unhappyWaitTime: Duration? = null
 }
