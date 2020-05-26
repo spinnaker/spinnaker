@@ -60,9 +60,10 @@ module(MANAGED_RESOURCES_DATA_SOURCE, []).run([
       category: DELIVERY_KEY,
       optional: true,
       optIn: true,
-      hidden: true,
+      label: 'Environments',
       icon: 'fa fa-fw fa-xs fa-code-branch',
       iconName: 'spCIBranch',
+      description: '[beta] Artifacts and environments managed by Spinnaker',
       loader: loadEnvironments,
       onLoad: addEnvironments,
       defaultData: {
