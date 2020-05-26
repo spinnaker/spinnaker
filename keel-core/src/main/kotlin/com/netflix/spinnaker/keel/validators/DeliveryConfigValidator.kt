@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.validators
 
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.core.api.id
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
@@ -38,7 +39,7 @@ class DeliveryConfigValidator {
     /**
      * check: resources have unique ids
      */
-    val resources = config.environments.map { it.resources }.flatten().map { it.spec.id }
+    val resources = config.environments.map { it.resources }.flatten().map { it.id }
     val duplicateResources = duplicates(resources)
 
     if (duplicateResources.isNotEmpty()) {
