@@ -13,7 +13,7 @@ describe('Controller: PipelineConfigCtrl', function() {
     }),
   );
 
-  it('should initialize immediately if pipeline configs are already present', function() {
+  it('should reload pipeline configs even if are already loaded before initializing', function() {
     const application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'pipelineConfigs',
       lazy: true,
@@ -29,6 +29,11 @@ describe('Controller: PipelineConfigCtrl', function() {
       },
       app: application,
     });
+    application.pipelineConfigs.activate();
+    application.pipelineConfigs.refresh();
+    application.pipelineConfigs.data.push({ id: 'a' });
+    application.pipelineConfigs.dataUpdated();
+
     scope.$digest();
     expect(vm.state.pipelinesLoaded).toBe(true);
   });

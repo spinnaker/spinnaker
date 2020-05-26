@@ -74,7 +74,7 @@ module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER, [UIROUTER_ANGULARJS]).con
     if (!app.notFound && !app.hasError) {
       app.pipelineConfigs.activate();
       app.pipelineConfigs
-        .ready()
+        .refresh()
         .then(this.initialize)
         .then(() => (this.state.pipelinesLoaded = true));
     }
