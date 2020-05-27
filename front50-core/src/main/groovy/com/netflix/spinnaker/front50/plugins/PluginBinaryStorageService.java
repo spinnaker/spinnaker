@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.front50.plugins;
 
+import static java.lang.String.format;
+
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,4 +57,15 @@ public interface PluginBinaryStorageService {
    */
   @Nullable
   byte[] load(@Nonnull String key);
+
+  /**
+   * Create a binary key.
+   *
+   * @param pluginId The plugin ID.
+   * @param version The plugin version.
+   * @return The plugin version binary storage key.
+   */
+  default String getKey(String pluginId, String version) {
+    return format("%s/%s.zip", pluginId, version);
+  }
 }

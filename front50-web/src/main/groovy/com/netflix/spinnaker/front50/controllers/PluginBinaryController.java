@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
-import static java.lang.String.format;
-
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
@@ -47,18 +45,14 @@ public class PluginBinaryController {
       @RequestParam("plugin") MultipartFile body) {
     byte[] bytes = body.getBytes();
     verifyChecksum(bytes, sha512sum);
-    storageService().store(getKey(id, version), bytes);
+    storageService().store(storageService().getKey(id, version), bytes);
   }
 
   @GetMapping("/{id}/{version}")
   ResponseEntity<byte[]> getBinary(@PathVariable String id, @PathVariable String version) {
     return ResponseEntity.ok()
         .header("Content-Type", "application/octet-stream")
-        .body(storageService().load(getKey(id, version)));
-  }
-
-  private static String getKey(String id, String version) {
-    return format("%s/%s.zip", id, version);
+        .body(storageService().load(storageService().getKey(id, version)));
   }
 
   private void verifyChecksum(byte[] body, String sha512sum) {

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.front50.model.plugins;
 
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
 import com.netflix.spinnaker.front50.validator.PluginInfoValidator;
 import com.netflix.spinnaker.kork.exceptions.UserException;
@@ -35,10 +36,15 @@ import org.springframework.validation.Errors;
 public class PluginInfoService {
 
   private final PluginInfoRepository repository;
+  private final Optional<PluginBinaryStorageService> storageService;
   private final List<PluginInfoValidator> validators;
 
-  public PluginInfoService(PluginInfoRepository repository, List<PluginInfoValidator> validators) {
+  public PluginInfoService(
+      PluginInfoRepository repository,
+      Optional<PluginBinaryStorageService> storageService,
+      List<PluginInfoValidator> validators) {
     this.repository = repository;
+    this.storageService = storageService;
     this.validators = validators;
   }
 
@@ -86,6 +92,17 @@ public class PluginInfoService {
   }
 
   public void delete(@Nonnull String id) {
+    PluginInfo pluginInfo;
+    try {
+      pluginInfo = findById(id);
+    } catch (NotFoundException e) {
+      // Do nothing.
+      return;
+    }
+
+    // Delete each release individually, so that the release binaries are also cleaned up.
+    pluginInfo.getReleases().forEach(r -> deleteRelease(id, r.getVersion()));
+
     repository.delete(id);
   }
 
@@ -113,6 +130,7 @@ public class PluginInfoService {
               }
             });
     repository.update(pluginInfo.getId(), pluginInfo);
+    storageService.ifPresent(it -> it.delete(it.getKey(id, releaseVersion)));
     return pluginInfo;
   }
 

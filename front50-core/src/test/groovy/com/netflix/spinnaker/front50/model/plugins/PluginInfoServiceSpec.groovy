@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.front50.model.plugins
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService
 import com.netflix.spinnaker.front50.validator.PluginInfoValidator
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import spock.lang.Specification
@@ -25,9 +26,10 @@ class PluginInfoServiceSpec extends Specification {
 
   PluginInfoRepository repository = Mock()
   PluginInfoValidator validator = Mock()
+  PluginBinaryStorageService storageService = Mock()
 
   @Subject
-  PluginInfoService subject = new PluginInfoService(repository, [validator])
+  PluginInfoService subject = new PluginInfoService(repository, Optional.of(storageService), [validator])
 
   def "upsert conditionally creates or updates"() {
     given:
@@ -129,5 +131,23 @@ class PluginInfoServiceSpec extends Specification {
     result.preferred
     !pluginInfo.getReleaseByVersion("1.0.0").get().preferred
     0 * _
+  }
+
+  def "delete release info also deletes binary"() {
+    given:
+    PluginInfo pluginInfo = new PluginInfo(id: "foo.bar")
+    pluginInfo.releases.add(new PluginInfo.Release(version: "1.0.0", preferred: true))
+    pluginInfo.releases.add(new PluginInfo.Release(version: "2.0.0"))
+
+    when:
+    def result = subject.deleteRelease("foo.bar", "2.0.0")
+
+    then:
+    1 * repository.findById("foo.bar") >> pluginInfo
+    1 * repository.update("foo.bar", pluginInfo)
+    1 * storageService.getKey("foo.bar", "2.0.0") >> "foo.bar/2.0.0.zip"
+    1 * storageService.delete("foo.bar/2.0.0.zip")
+    0 * _
+    !result.getReleaseByVersion("2.0.0").isPresent()
   }
 }
