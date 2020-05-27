@@ -23,8 +23,7 @@ import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.support.ClosureHelper;
-import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
+import com.netflix.spinnaker.hystrix.SimpleJava8HystrixCommand;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import java.util.*;
@@ -204,21 +203,19 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
   public T findById(String id) throws NotFoundException {
     try {
-      return new SimpleHystrixCommand<T>(
+      return new SimpleJava8HystrixCommand<T>(
               getClass().getSimpleName(),
               getClass().getSimpleName() + "-findById",
-              ClosureHelper.toClosure(args -> service.loadObject(objectType, buildObjectKey(id))),
-              ClosureHelper.toClosure(
-                  args ->
-                      allItemsCache.get().stream()
-                          .filter(item -> item.getId().equalsIgnoreCase(id))
-                          .findFirst()
-                          .orElseThrow(
-                              () ->
-                                  new NotFoundException(
-                                      String.format(
-                                          "No item found in cache with id of %s",
-                                          id.toLowerCase())))))
+              () -> service.loadObject(objectType, buildObjectKey(id)),
+              throwable ->
+                  allItemsCache.get().stream()
+                      .filter(item -> item.getId().equalsIgnoreCase(id))
+                      .findFirst()
+                      .orElseThrow(
+                          () ->
+                              new NotFoundException(
+                                  String.format(
+                                      "No item found in cache with id of %s", id.toLowerCase()))))
           .execute();
     } catch (HystrixRuntimeException e) {
       // This handles the case where the hystrix command times out.
