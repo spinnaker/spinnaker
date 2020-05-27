@@ -48,7 +48,7 @@ dependencies {
   implementation("com.netflix.spinnaker.kork:kork-sql")
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")
-  implementation("org.jooq:jooq:3.11.11")
+  implementation("org.jooq:jooq")
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
   implementation("com.netflix.spinnaker.kork:kork-sql")
