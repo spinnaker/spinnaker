@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd">
   <jdbc>
     <driver>com.mysql.cj.jdbc.Driver</driver>
     <url>jdbc:mysql://127.0.0.1:6603/keel?useLegacyDatetimeCode=false&amp;serverTimezone=UTC</url>
@@ -28,6 +28,15 @@
     </target>
     <generate>
       <javaTimeTypes>true</javaTimeTypes>
+
+      <generatedAnnotation>true</generatedAnnotation>
+      <generatedAnnotationType>DETECT_FROM_JDK</generatedAnnotationType>
+
+      <nullableAnnotation>true</nullableAnnotation>
+      <nullableAnnotationType>javax.annotation.Nullable</nullableAnnotationType>
+      <nonnullAnnotation>true</nonnullAnnotation>
+      <nonnullAnnotationType>javax.annotation.Nonnull</nonnullAnnotationType>
+
     </generate>
   </generator>
 </configuration>

@@ -75,7 +75,7 @@ dependencies {
 }
 
 jooqModelator {
-  jooqVersion = "3.12.3"
+  jooqVersion = "3.13.2"
   jooqEdition = "OSS"
   jooqConfigPath = "$projectDir/src/main/resources/jooqConfig.xml"
   jooqOutputPath = "$projectDir/src/generated/java"
