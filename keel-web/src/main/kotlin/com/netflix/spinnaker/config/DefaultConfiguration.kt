@@ -6,20 +6,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
-import com.netflix.spinnaker.keel.persistence.AgentLockRepository
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
-import com.netflix.spinnaker.keel.persistence.PausedRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryAgentLockRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryPausedRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryTaskTrackingRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -85,39 +71,8 @@ class DefaultConfiguration(
   fun yamlMapper(): YAMLMapper = configuredYamlMapper()
 
   @Bean
-  @ConditionalOnMissingBean
-  fun resourceRepository(clock: Clock): ResourceRepository = InMemoryResourceRepository(clock)
-
-  @Bean
-  @ConditionalOnMissingBean
-  fun artifactRepository(clock: Clock): ArtifactRepository = InMemoryArtifactRepository(clock)
-
-  @Bean
-  @ConditionalOnMissingBean
-  fun deliveryConfigRepository(
-    artifactRepository: ArtifactRepository
-  ): DeliveryConfigRepository =
-    InMemoryDeliveryConfigRepository()
-
-  @Bean
-  @ConditionalOnMissingBean
-  fun diffFingerprintRepository(clock: Clock): DiffFingerprintRepository = InMemoryDiffFingerprintRepository(clock)
-
-  @Bean
-  @ConditionalOnMissingBean
-  fun pausedRepository(): PausedRepository = InMemoryPausedRepository()
-
-  @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)
   fun noResourcePlugins(): List<ResourceHandler<*, *>> = emptyList()
-
-  @Bean
-  @ConditionalOnMissingBean
-  fun taskTrackingRepository(): TaskTrackingRepository = InMemoryTaskTrackingRepository()
-
-  @Bean
-  @ConditionalOnMissingBean
-  fun agentLockRepository(): AgentLockRepository = InMemoryAgentLockRepository(emptyList())
 
   @Bean
   fun authenticatedRequestFilter(): FilterRegistrationBean<AuthenticatedRequestFilter> =

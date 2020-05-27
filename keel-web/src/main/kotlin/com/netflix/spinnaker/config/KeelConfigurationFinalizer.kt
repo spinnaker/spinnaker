@@ -8,9 +8,6 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -20,9 +17,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class KeelConfigurationFinalizer(
-  private val artifactRepository: ArtifactRepository,
-  private val resourceRepository: ResourceRepository,
-  private val deliveryConfigRepository: DeliveryConfigRepository,
   private val baseImageCache: BaseImageCache? = null,
   private val instanceIdSupplier: InstanceIdSupplier,
   private val kinds: List<SupportedKind<*>> = emptyList(),
@@ -59,9 +53,6 @@ class KeelConfigurationFinalizer(
   @PostConstruct
   fun initialStatus() {
     sequenceOf(
-        ArtifactRepository::class to artifactRepository.javaClass,
-        ResourceRepository::class to resourceRepository.javaClass,
-        DeliveryConfigRepository::class to deliveryConfigRepository.javaClass,
         BaseImageCache::class to baseImageCache?.javaClass,
         InstanceIdSupplier::class to instanceIdSupplier.javaClass
     )
