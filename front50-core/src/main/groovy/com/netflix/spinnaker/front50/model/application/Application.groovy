@@ -388,6 +388,19 @@ class Application implements Timestamped {
     return source ? new Application(source.getPersistedProperties()) : null
   }
 
+  @Override
+  String toString() {
+    return "Application{" +
+      "name='" + name + '\'' +
+      ", description='" + description + '\'' +
+      ", email='" + email + '\'' +
+      ", updateTs='" + updateTs + '\'' +
+      ", createTs='" + createTs + '\'' +
+      ", lastModifiedBy='" + lastModifiedBy + '\'' +
+      ", cloudProviders=" + cloudProviders +
+      '}';
+  }
+
   @Canonical
   static class ValidationException extends RuntimeException {
     Errors errors
@@ -438,4 +451,6 @@ class Application implements Timestamped {
     String location
     Boolean enabled = true
   }
+
+
 }

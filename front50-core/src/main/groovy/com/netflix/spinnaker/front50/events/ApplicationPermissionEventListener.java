@@ -23,11 +23,13 @@ public interface ApplicationPermissionEventListener {
 
   boolean supports(Type type);
 
+  /** TODO(rz): Add Type to signature */
   @Nullable
   Application.Permission call(
       @Nullable Application.Permission originalPermission,
       @Nullable Application.Permission updatedPermission);
 
+  /** TODO(rz): Add type to signature */
   void rollback(@Nonnull Application.Permission originalPermission);
 
   enum Type {
