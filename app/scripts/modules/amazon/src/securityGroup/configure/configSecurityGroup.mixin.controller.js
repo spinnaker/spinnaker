@@ -39,6 +39,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     const ctrl = this;
     $scope.self = $scope;
     $scope.application = application;
+    $scope.customComponentIsvalid = true;
 
     $scope.state = {
       submitting: false,
