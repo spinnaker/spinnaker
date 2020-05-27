@@ -2,10 +2,13 @@ server:
   port: 8087
 
 rosco:
-  configDir: /some/path/to/config/packer
+  configDir: /opt/rosco/config/packer
   jobs:
     local:
       timeoutMinutes: 30
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
 
 spectator:
   applicationName: ${spring.application.name}
