@@ -8,7 +8,7 @@ ext {
   versions = [
     aws            : "1.11.764",
     bouncycastle   : "1.61",
-    groovy         : "2.5.10", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
+    groovy         : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     hystrix        : "1.4.21",
     jsch           : "0.1.54",
     jschAgentProxy : "0.0.9",
@@ -20,7 +20,7 @@ ext {
     retrofit2      : "2.8.1",
     spectator      : "0.103.0",
     spek           : "1.2.1",
-    springBoot     : "2.2.4.RELEASE",
+    springBoot     : "2.2.7.RELEASE",
     springCloud    : "Greenwich.SR2",
     swagger        : "2.9.2"
   ]
@@ -138,7 +138,7 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.jooq:jooq:3.12.3")
+    api("org.jooq:jooq:3.13.2")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.2.0")
     api("org.pf4j:pf4j-update:2.3.0")

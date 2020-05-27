@@ -28,7 +28,7 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jooq.DSLContext
-import org.jooq.DeleteWhereStep
+import org.jooq.DeleteUsingStep
 import org.jooq.Table
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -38,7 +38,7 @@ internal object SqlHealthProviderSpec : Spek({
   describe("healthchecking sql") {
 
     val dslContext = mock<DSLContext>()
-    val query = mock<DeleteWhereStep<*>>()
+    val query = mock<DeleteUsingStep<*>>()
 
     given("a healthy current state") {
       val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, unhealthyThreshold = 1).apply {
