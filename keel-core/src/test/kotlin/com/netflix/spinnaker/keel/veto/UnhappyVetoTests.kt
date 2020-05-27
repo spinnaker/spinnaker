@@ -17,9 +17,11 @@
  */
 package com.netflix.spinnaker.keel.veto
 
+import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryUnhappyVetoRepository
+import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
+import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository.UnhappyVetoStatus
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.unhappy.UnhappyVeto
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -28,19 +30,18 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.Duration
 import kotlinx.coroutines.runBlocking
-import strikt.api.expect
+import strikt.api.Assertion
 import strikt.api.expectThat
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
+import strikt.assertions.isNotNull
 
 class UnhappyVetoTests : JUnit5Minutests {
 
   internal class Fixture {
     val clock = MutableClock()
-    val unhappyRepository = InMemoryUnhappyVetoRepository(clock)
+    val unhappyRepository: UnhappyVetoRepository = mockk(relaxUnitFun = true)
     val diffFingerprintRepository: DiffFingerprintRepository = mockk()
     private val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
       every {
@@ -53,23 +54,27 @@ class UnhappyVetoTests : JUnit5Minutests {
     val subject = UnhappyVeto(diffFingerprintRepository, unhappyRepository, dynamicConfigService, "PT10M")
 
     val r = resource()
-    fun check() = runBlocking { subject.check(r) }
+    var result: VetoResponse? = null
+    fun check() {
+      result = runBlocking { subject.check(r) }
+    }
   }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
-    after {
-      unhappyRepository.flush()
-    }
-
     context("happy diffCount") {
       before {
         every { diffFingerprintRepository.diffCount(r.id) } returns 1
+        check()
       }
 
       test("happy resources aren't vetoed") {
-        expectThat(check().allowed).isEqualTo(true)
+        expectThat(result).isNotNull().isAllowed()
+      }
+
+      test("veto status is cleared") {
+        verify { unhappyRepository.delete(r.id) }
       }
     }
 
@@ -77,38 +82,37 @@ class UnhappyVetoTests : JUnit5Minutests {
       context("diff has been seen more than 10 times") {
         before {
           every { diffFingerprintRepository.diffCount(r.id) } returns 11
+          every { unhappyRepository.getOrCreateVetoStatus(r.id, r.application, any()) } returns UnhappyVetoStatus(shouldSkip = true)
+          check()
         }
 
         test("unhappy resources are vetoed") {
-          expectThat(check().allowed).isEqualTo(false)
+          expectThat(result).isNotNull().isNotAllowed()
         }
 
-        test("resources are checked once every wait time") {
-          unhappyRepository.markUnhappyForWaitingTime(r.id, r.spec.application)
+        test("veto status is not cleared") {
+          verify(exactly = 0) { unhappyRepository.delete(r.id) }
+        }
 
-          val response1 = check()
-          clock.incrementBy(Duration.ofMinutes(11))
-          val response2 = check()
-          clock.incrementBy(Duration.ofMinutes(3))
-          val response3 = check()
-
-          expect {
-            that(response1.allowed).isFalse()
-            that(response2.allowed).isTrue()
-            that(response3.allowed).isFalse()
-          }
+        test("resource will be re-checked after wait time") {
+          verify { unhappyRepository.getOrCreateVetoStatus(r.id, r.application, Duration.ofMinutes(10)) }
         }
       }
 
       context("diff has been seen less than 10 times") {
         before {
           every { diffFingerprintRepository.diffCount(r.id) } returns 4
+
+          check()
         }
 
         test("resource not skipped") {
-          expectThat(check().allowed).isEqualTo(true)
+          expectThat(result).isNotNull().isAllowed()
         }
       }
     }
   }
+
+  fun Assertion.Builder<VetoResponse>.isAllowed() = assertThat("is allowed") { it.allowed }
+  fun Assertion.Builder<VetoResponse>.isNotAllowed() = assertThat("is not allowed") { !it.allowed }
 }

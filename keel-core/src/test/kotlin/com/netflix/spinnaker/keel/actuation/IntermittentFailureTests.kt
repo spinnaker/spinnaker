@@ -3,19 +3,20 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
-import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryUnhappyVetoRepository
+import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
+import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository.UnhappyVetoStatus
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
@@ -24,9 +25,8 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 import io.mockk.mockk
 import java.time.Clock
 import kotlinx.coroutines.runBlocking
@@ -44,13 +44,13 @@ import org.springframework.context.ApplicationEventPublisher
 class IntermittentFailureTests : JUnit5Minutests {
 
   class Fixture {
-    val resourceRepository = InMemoryResourceRepository()
+    val resourceRepository = mockk<ResourceRepository>()
     val artifactRepository = mockk<ArtifactRepository>()
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>()
-    val diffFingerprintRepository = InMemoryDiffFingerprintRepository()
+    val diffFingerprintRepository = mockk<DiffFingerprintRepository>(relaxUnitFun = true)
     val actuationPauser: ActuationPauser = mockk() {
-      coEvery { isPaused(any<String>()) } returns false
-      coEvery { isPaused(any<Resource<*>>()) } returns false
+      every { isPaused(any<String>()) } returns false
+      every { isPaused(any<Resource<*>>()) } returns false
     }
     val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResourceSpec>>(relaxUnitFun = true) {
       every { name } returns "plugin1"
@@ -62,7 +62,7 @@ class IntermittentFailureTests : JUnit5Minutests {
     }
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val clock = MutableClock()
-    val vetoRepository = InMemoryUnhappyVetoRepository(clock)
+    val vetoRepository = mockk<UnhappyVetoRepository>(relaxUnitFun = true)
 
     val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
       every {
@@ -101,63 +101,70 @@ class IntermittentFailureTests : JUnit5Minutests {
 
     fixture { Fixture() }
 
-    after {
-      resourceRepository.dropAll()
-    }
-
     context("resource has a diff") {
       val resource: Resource<DummyResourceSpec> = resource(
         kind = parseKind("plugin1/foo@v1")
       )
 
       before {
-        resourceRepository.store(resource)
-        resourceRepository.appendHistory(ResourceCreated(resource))
-        resourceRepository.appendHistory(ResourceValid(resource))
-        coEvery { plugin1.actuationInProgress(resource) } returns false
-        // diff has happened once
-        diffFingerprintRepository.store(resource.id, diff)
+        every { resourceRepository.get(resource.id) } returns resource
+        every { resourceRepository.lastEvent(resource.id) } returns ResourceValid(resource)
+
+        every { plugin1.actuationInProgress(resource) } returns false
 
         // current state is diff
-        coEvery { plugin1.desired(resource) } returns desired
-        coEvery { plugin1.current(resource) } returns current
-        coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
+        every { plugin1.desired(resource) } returns desired
+        every { plugin1.current(resource) } returns current
+        every { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
       }
-      test("diff seen second time, so update happens") {
-        runBlocking { subject.checkResource(resource) }
-        coVerify { plugin1.update(resource, any()) }
+
+      context("diff seen a second time") {
+        before {
+          // diff has happened twice
+          every { diffFingerprintRepository.diffCount(resource.id) } returns 2
+
+          runBlocking { subject.checkResource(resource) }
+        }
+
+        test("update happens") {
+          verify { plugin1.update(resource, any()) }
+        }
       }
 
       context("diff seen third time") {
         before {
-          // diff has happened twice
-          diffFingerprintRepository.store(resource.id, diff)
+          // diff has happened thrice
+          every { diffFingerprintRepository.diffCount(resource.id) } returns 3
         }
-        test("vetoed because diff seen 3 times, so no actuation") {
-          runBlocking { subject.checkResource(resource) }
-          coVerify(exactly = 0) { plugin1.update(resource, any()) }
+
+        context("resource is still in a diff state") {
+          before {
+            every { vetoRepository.getOrCreateVetoStatus(resource.id, resource.application, any()) } returns UnhappyVetoStatus(shouldSkip = true)
+
+            runBlocking { subject.checkResource(resource) }
+          }
+
+          test("vetoed because diff seen 3 times, so no actuation") {
+            verify(exactly = 0) { plugin1.update(resource, any()) }
+          }
         }
 
         context("then, resource is briefly in no diff state") {
           before {
-            coEvery { plugin1.desired(resource) } returns desired
-            coEvery { plugin1.current(resource) } returns desired
+            every { vetoRepository.getOrCreateVetoStatus(resource.id, resource.application, any()) } returns UnhappyVetoStatus(shouldRecheck = true)
+
+            every { plugin1.desired(resource) } returns desired
+            every { plugin1.current(resource) } returns desired
+
             runBlocking { subject.checkResource(resource) }
           }
 
           test("no diff means nothing happens") {
-            coVerify(exactly = 0) { plugin1.update(resource, any()) }
+            verify(exactly = 0) { plugin1.update(resource, any()) }
           }
 
-          context("then it gets the same diff again") {
-            before {
-              coEvery { plugin1.desired(resource) } returns desired
-              coEvery { plugin1.current(resource) } returns current
-            }
-            test("update is launched") {
-              runBlocking { subject.checkResource(resource) }
-              coVerify { plugin1.update(resource, any()) }
-            }
+          test("diff state is cleared") {
+            verify { diffFingerprintRepository.clear(resource.id) }
           }
         }
       }
