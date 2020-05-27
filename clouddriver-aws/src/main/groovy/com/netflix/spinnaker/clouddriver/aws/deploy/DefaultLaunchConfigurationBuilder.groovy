@@ -133,11 +133,65 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
    */
   @Override
   String buildLaunchConfiguration(String application, String subnetType, LaunchConfigurationSettings settings, Boolean legacyUdf) {
+    settings = setAppSecurityGroup(application, subnetType, deployDefaults, securityGroupService, settings)
+
+    String name = createName(settings)
+    String userData = getUserData(name, settings, legacyUdf)
+    createLaunchConfiguration(name, userData, settings)
+  }
+
+  private static String createDefaultSuffix() {
+    new LocalDateTime().toString("MMddYYYYHHmmss")
+  }
+
+  static String createName(LaunchConfigurationSettings settings) {
+    createName0(settings.baseName, settings.suffix)
+  }
+
+  private static String createName0(String baseName, String suffix) {
+    StringBuilder name = new StringBuilder(baseName)
+    if (suffix) {
+      name.append('-').append(suffix)
+    }
+    name.toString()
+  }
+
+  private static List<String> resolveSecurityGroupIds(SecurityGroupService securityGroupService, List<String> securityGroupNamesAndIds, String subnetType) {
+    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
+      securityGroupService.getSecurityGroupIdsWithSubnetPurpose(names, subnetType)
+    }
+  }
+
+  private static List<String> resolveSecurityGroupIdsInVpc(SecurityGroupService securityGroupService, List<String> securityGroupNamesAndIds, String vpcId) {
+    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
+      securityGroupService.getSecurityGroupIds(names, vpcId)
+    }
+  }
+
+  private String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf) {
+    String data = userDataProviders?.collect { udp ->
+      udp.getUserData(launchConfigName, settings, legacyUdf)
+    }?.join("\n")
+    String userDataDecoded = new String((settings.base64UserData ?: '').decodeBase64(), Charset.forName("UTF-8"))
+    data = [data, userDataDecoded].findResults { it }.join("\n")
+    if (data && data.startsWith("\n")) {
+      data = data.trim()
+    }
+    data ? new String(Base64.encodeBase64(data.bytes),  Charset.forName("UTF-8")) : null
+  }
+
+  static LaunchConfigurationSettings setAppSecurityGroup(
+    String application,
+    String subnetType,
+    DeployDefaults deployDefaults,
+    SecurityGroupService securityGroupService,
+    LaunchConfigurationSettings settings
+  ) {
     if (settings.suffix == null) {
       settings = settings.copyWith(suffix: createDefaultSuffix())
     }
 
-    Set<String> securityGroupIds = resolveSecurityGroupIds(settings.securityGroups, subnetType).toSet()
+    Set<String> securityGroupIds = resolveSecurityGroupIds(securityGroupService, settings.securityGroups, subnetType).toSet()
     if (!securityGroupIds || (deployDefaults.addAppGroupToServerGroup && securityGroupIds.size() < deployDefaults.maxSecurityGroups)) {
       def names = securityGroupService.getSecurityGroupNamesFromIds(securityGroupIds)
 
@@ -159,53 +213,11 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       if (!settings.classicLinkVpcId) {
         throw new IllegalStateException("Can't provide classic link security groups without classiclink vpc Id")
       }
-      List<String> classicLinkIds = resolveSecurityGroupIdsInVpc(settings.classicLinkVpcSecurityGroups, settings.classicLinkVpcId)
+      List<String> classicLinkIds = resolveSecurityGroupIdsInVpc(securityGroupService, settings.classicLinkVpcSecurityGroups, settings.classicLinkVpcId)
       settings = settings.copyWith(classicLinkVpcSecurityGroups: classicLinkIds)
     }
 
-    String name = createName(settings)
-    String userData = getUserData(name, settings, legacyUdf)
-    createLaunchConfiguration(name, userData, settings)
-  }
-
-  private String createDefaultSuffix() {
-    new LocalDateTime().toString("MMddYYYYHHmmss")
-  }
-
-  private String createName(LaunchConfigurationSettings settings) {
-    createName(settings.baseName, settings.suffix)
-  }
-
-  private String createName(String baseName, String suffix) {
-    StringBuilder name = new StringBuilder(baseName)
-    if (suffix) {
-      name.append('-').append(suffix)
-    }
-    name.toString()
-  }
-
-  private List<String> resolveSecurityGroupIds(List<String> securityGroupNamesAndIds, String subnetType) {
-    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
-      securityGroupService.getSecurityGroupIdsWithSubnetPurpose(names, subnetType)
-    }
-  }
-
-  private List<String> resolveSecurityGroupIdsInVpc(List<String> securityGroupNamesAndIds, String vpcId) {
-    return securityGroupService.resolveSecurityGroupIdsByStrategy(securityGroupNamesAndIds) { List<String> names ->
-      securityGroupService.getSecurityGroupIds(names, vpcId)
-    }
-  }
-
-  private String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf) {
-    String data = userDataProviders?.collect { udp ->
-      udp.getUserData(launchConfigName, settings, legacyUdf)
-    }?.join("\n")
-    String userDataDecoded = new String((settings.base64UserData ?: '').decodeBase64(), Charset.forName("UTF-8"))
-    data = [data, userDataDecoded].findResults { it }.join("\n")
-    if (data && data.startsWith("\n")) {
-      data = data.trim()
-    }
-    data ? new String(Base64.encodeBase64(data.bytes),  Charset.forName("UTF-8")) : null
+    return settings
   }
 
   private String createLaunchConfiguration(String name, String userData, LaunchConfigurationSettings settings) {

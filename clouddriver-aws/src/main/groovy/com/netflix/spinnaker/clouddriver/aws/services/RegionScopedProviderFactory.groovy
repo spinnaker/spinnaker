@@ -114,6 +114,14 @@ class RegionScopedProviderFactory {
       new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders, localFileUserDataProperties, deployDefaults)
     }
 
+    LaunchTemplateService getLaunchTemplateService() {
+      return new LaunchTemplateService(amazonEC2)
+    }
+
+    AwsConfiguration.DeployDefaults getDeploymentDefaults() {
+      return deployDefaults
+    }
+
     Eureka getEureka() {
       if (!amazonCredentials.discoveryEnabled) {
         throw new IllegalStateException('discovery not enabled')

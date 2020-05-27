@@ -23,10 +23,12 @@ import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.EnableMetricsCollectionRequest
+import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.amazonaws.services.autoscaling.model.Tag
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
+import com.amazonaws.services.ec2.model.LaunchTemplate
 import com.amazonaws.services.ec2.model.Subnet
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -38,6 +40,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.util.logging.Slf4j
 
@@ -97,11 +100,14 @@ class AutoScalingWorker {
   private List<AmazonBlockDevice> blockDevices
   private Map<String, String> tags
   private List<AmazonAsgLifecycleHook> lifecycleHooks
+  private Boolean setLaunchTemplate
+  private Boolean requireIMDSv2
 
   private int minInstances
   private int maxInstances
   private int desiredInstances
 
+  private DeployDefaults deployDefaults
   private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
 
   AutoScalingWorker() {
@@ -160,11 +166,28 @@ class AutoScalingWorker {
       blockDevices: blockDevices,
       securityGroups: securityGroups)
 
-    String launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings, legacyUdf)
+    LaunchTemplateSpecification launchTemplateSpecification = null
+    String launchConfigName = null
+    if (setLaunchTemplate != null && setLaunchTemplate) {
+      settings = DefaultLaunchConfigurationBuilder.setAppSecurityGroup(
+        subnetType,
+        application,
+        regionScopedProvider.getDeploymentDefaults(),
+        regionScopedProvider.securityGroupService,
+        settings
+      )
+
+      final LaunchTemplate launchTemplate = regionScopedProvider
+        .getLaunchTemplateService()
+        .createLaunchTemplate(settings, DefaultLaunchConfigurationBuilder.createName(settings), requireIMDSv2)
+      launchTemplateSpecification = new LaunchTemplateSpecification(
+        launchTemplateId: launchTemplate.launchTemplateId, version: launchTemplate.latestVersionNumber)
+    } else {
+      launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings, legacyUdf)
+    }
 
     task.updateStatus AWS_PHASE, "Deploying ASG: $asgName"
-
-    createAutoScalingGroup(asgName, launchConfigName)
+    createAutoScalingGroup(asgName, launchConfigName, launchTemplateSpecification)
   }
 
   /**
@@ -215,12 +238,12 @@ class AutoScalingWorker {
    *
    * @param asgName
    * @param launchConfigurationName
+   * @param launchTemplateSpecification when defined, the server group is created with the provided launch template specification
    * @return
    */
-  String createAutoScalingGroup(String asgName, String launchConfigurationName) {
+  String createAutoScalingGroup(String asgName, String launchConfigurationName, LaunchTemplateSpecification launchTemplateSpecification = null) {
     CreateAutoScalingGroupRequest request = new CreateAutoScalingGroupRequest()
       .withAutoScalingGroupName(asgName)
-      .withLaunchConfigurationName(launchConfigurationName)
       .withMinSize(0)
       .withMaxSize(0)
       .withDesiredCapacity(0)
@@ -230,6 +253,12 @@ class AutoScalingWorker {
       .withHealthCheckGracePeriod(healthCheckGracePeriod)
       .withHealthCheckType(healthCheckType)
       .withTerminationPolicies(terminationPolicies)
+
+    if (launchTemplateSpecification != null) {
+      request.withLaunchTemplate(launchTemplateSpecification)
+    } else {
+      request.withLaunchConfigurationName(launchConfigurationName)
+    }
 
     tags?.each { key, value ->
       request.withTags(new Tag()
@@ -274,7 +303,7 @@ class AutoScalingWorker {
         task.updateStatus AWS_PHASE, "Creating lifecycle hooks for: $asgName"
         regionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, asgName)
       }, 10, 1000, false)
-      
+
       if (e != null) {
         task.updateStatus AWS_PHASE, "Unable to attach lifecycle hooks to ASG ($asgName): ${e.message}"
       }
@@ -326,6 +355,7 @@ class AutoScalingWorker {
 
     Set<String> failedPredicates = [
       "launch configuration": { return existingAsg.launchConfigurationName == request.launchConfigurationName },
+      "launch template": { return existingAsg.launchTemplate == request.launchTemplate },
       "availability zones": { return existingAsg.availabilityZones.sort() == request.availabilityZones.sort() },
       "subnets": { return existingAsg.getVPCZoneIdentifier()?.split(",")?.sort()?.toList() == request.getVPCZoneIdentifier()?.split(",")?.sort()?.toList() },
       "load balancers": { return existingAsg.loadBalancerNames.sort() == request.loadBalancerNames.sort() },

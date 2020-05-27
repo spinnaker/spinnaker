@@ -21,10 +21,12 @@ import com.amazonaws.services.autoscaling.model.AlreadyExistsException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.LaunchTemplate
 import com.amazonaws.services.ec2.model.Subnet
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
+import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -86,7 +88,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> launchConfigName
-    1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, launchConfigName) >> {}
+    1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, launchConfigName, null) >> {}
     (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
     0 * clusterProvider._
 
@@ -97,6 +99,76 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1        || "myasg-stack-details-v001"
     11       || "myasg-stack-details-v011"
     111      || "myasg-stack-details-v111"
+  }
+
+  @Unroll
+  void "deploy workflow is create launch template if enabled then create asg"() {
+    setup:
+    def mockAutoScalingWorker = Spy(AutoScalingWorker)
+    mockAutoScalingWorker.application = "myasg"
+    mockAutoScalingWorker.stack = "stack"
+    mockAutoScalingWorker.freeFormDetails = "details"
+    mockAutoScalingWorker.credentials = credential
+    mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
+    mockAutoScalingWorker.sequence = sequence
+
+    and:
+    mockAutoScalingWorker.setLaunchTemplate = true
+    regionScopedProvider.getLaunchTemplateService() >> Mock(LaunchTemplateService) {
+      createLaunchTemplate(_,_,_) >> new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
+    }
+
+    when:
+    mockAutoScalingWorker.deploy()
+
+    then:
+    1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, null, { it.launchTemplateId == "id" }) >> {}
+    (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
+    0 * clusterProvider._
+
+    where:
+    sequence || expectedAsgName
+    null     || "myasg-stack-details-v000"
+    0        || "myasg-stack-details-v000"
+    1        || "myasg-stack-details-v001"
+    11       || "myasg-stack-details-v011"
+    111      || "myasg-stack-details-v111"
+  }
+
+  void "deploy derives name from ancestor using launch templates and set ancestor name in the task result"() {
+    setup:
+    def launchTemplateService = Mock(LaunchTemplateService)
+    def autoScalingWorker = new AutoScalingWorker(
+      regionScopedProvider: regionScopedProvider,
+      credentials: credential,
+      application: "myasg",
+      region: "us-east-1",
+      setLaunchTemplate: true
+    )
+
+    and:
+    regionScopedProvider.getLaunchTemplateService() >> launchTemplateService
+
+    when:
+    String asgName = autoScalingWorker.deploy()
+
+    then:
+    1 * launchTemplateService.createLaunchTemplate(_,_,_) >>
+      new LaunchTemplate(launchTemplateId: "id", latestVersionNumber: 0, launchTemplateName: "lt")
+    1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
+      new Cluster.SimpleCluster(type: 'aws', serverGroups: [
+        sG('myasg-v011', 0, 'us-east-1'), sG('myasg-v099', 1, 'us-west-1')
+      ])
+    }
+    1 * asgService.getAutoScalingGroup('myasg-v011') >> { new AutoScalingGroup() }
+    1 * asgService.getAutoScalingGroup('myasg-v012') >> { new AutoScalingGroup() }
+    1 * asgService.getAutoScalingGroup('myasg-v013') >> { null }
+    1 * autoScaling.createAutoScalingGroup(_)
+    1 * autoScaling.updateAutoScalingGroup(_)
+    0 * _
+
+    asgName == 'myasg-v013'
+    awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v011"
   }
 
   void "deploy derives name from ancestor asg and sets the ancestor asg name in the task result"() {

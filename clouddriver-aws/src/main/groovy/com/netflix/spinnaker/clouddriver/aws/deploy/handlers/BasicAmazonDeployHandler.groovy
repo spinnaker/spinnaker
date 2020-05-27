@@ -20,6 +20,8 @@ import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
+import com.amazonaws.services.ec2.model.LaunchTemplateBlockDeviceMapping
+import com.amazonaws.services.ec2.model.LaunchTemplateVersion
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -299,7 +301,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
         tags: applyAppStackDetailTags(deployDefaults, description).tags,
-        lifecycleHooks: getLifecycleHooks(account, description)
+        lifecycleHooks: getLifecycleHooks(account, description),
+        setLaunchTemplate: description.setLaunchTemplate,
+        requireIMDSv2: description.requireIMDSv2
       )
 
       def asgName = autoScalingWorker.deploy()
@@ -405,7 +409,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     ).autoScalingGroups
     def sourceAsg = ancestorAsgs.getAt(0)
 
-    if (!sourceAsg?.launchConfigurationName) {
+    if (!sourceAsg?.launchConfigurationName && sourceAsg?.launchTemplate == null) {
       if (useSourceCapacity) {
         throw new IllegalStateException("useSourceCapacity requested, but no source ASG found")
       }
@@ -423,12 +427,23 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       return description
     }
 
-    def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
-      sourceAsg.launchConfigurationName
-    )
-
     if (description.copySourceCustomBlockDeviceMappings) {
-      description.blockDevices = buildBlockDeviceMappings(description, sourceLaunchConfiguration)
+      if (sourceAsg.launchTemplate != null) {
+        LaunchTemplateVersion launchTemplateVersion = sourceRegionScopedProvider
+          .getLaunchTemplateService()
+          .getLaunchTemplateVersion(sourceAsg.launchTemplate)
+          .orElseThrow {
+            new IllegalStateException("Launch template $sourceAsg.launchTemplate.version was requested but was not found for $sourceAsg")
+          }
+
+        description.blockDevices = buildBlockDeviceMappings(description, new LaunchSetting(launchTemplateVersion: launchTemplateVersion))
+      } else {
+        def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
+          sourceAsg.launchConfigurationName
+        )
+
+        description.blockDevices = buildBlockDeviceMappings(description, new LaunchSetting(launchConfiguration: sourceLaunchConfiguration))
+      }
     }
 
     return description
@@ -492,6 +507,27 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
   }
 
+  @VisibleForTesting
+  @PackageScope
+  static List<AmazonBlockDevice> convertLaunchTemplateBlockDevices(List<LaunchTemplateBlockDeviceMapping> launchTemplateBlockDeviceMappings) {
+    return launchTemplateBlockDeviceMappings.collect {
+      def device = new AmazonBlockDevice(deviceName: it.deviceName, virtualName: it.virtualName)
+      it.ebs?.with {
+        device.iops = iops
+        device.deleteOnTermination = deleteOnTermination
+        device.size = volumeSize
+        device.volumeType = volumeType
+        device.snapshotId = snapshotId
+        if (snapshotId == null) {
+          // only set encryption if snapshotId isn't provided. AWS will error out otherwise
+          device.encrypted = encrypted
+        }
+      }
+
+      return device
+    }
+  }
+
   static String iamRole(BasicAmazonDeployDescription description, DeployDefaults deployDefaults) {
     def iamRole = description.iamRole ?: deployDefaults.iamRole
     return description.application ? iamRole.replaceAll(Pattern.quote('{{application}}'), description.application) : iamRole
@@ -538,7 +574,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
    * Determine block devices
    *
    * If:
-   * - The source launch configuration is using default block device mappings
+   * - The source launch configuration or template is using default block device mappings
    * - The instance type has changed
    *
    * Then:
@@ -551,20 +587,21 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   @PackageScope
   Collection<AmazonBlockDevice> buildBlockDeviceMappings(
     BasicAmazonDeployDescription description,
-    LaunchConfiguration sourceLaunchConfiguration
+    LaunchSetting sourceLaunchSetting
   ) {
     if (description.blockDevices != null) {
       // block device mappings have been explicitly specified and should be used regardless of instance type
       return description.blockDevices
     }
 
-    if (sourceLaunchConfiguration.instanceType != description.instanceType) {
+    String instanceType = sourceLaunchSetting.instanceType
+    if (instanceType != description.instanceType) {
       // instance type has changed, verify that the block device mappings are still legitimate (ebs vs. ephemeral)
-      def blockDevicesForSourceAsg = sourceLaunchConfiguration.blockDeviceMappings.collect {
+      def blockDevicesForSourceAsg = sourceLaunchSetting.blockDeviceMappings.collect {
         [deviceName: it.deviceName, virtualName: it.virtualName, size: it.ebs?.volumeSize]
       }.sort { it.deviceName }
       def blockDevicesForSourceInstanceType = blockDeviceConfig.getBlockDevicesForInstanceType(
-        sourceLaunchConfiguration.instanceType
+        instanceType
       ).collect {
         [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
       }.sort { it.deviceName }
@@ -575,7 +612,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
     }
 
-    return convertBlockDevices(sourceLaunchConfiguration.blockDeviceMappings)
+    if (sourceLaunchSetting.launchTemplateVersion != null) {
+      return convertLaunchTemplateBlockDevices(sourceLaunchSetting.getLaunchTemplateBlockDeviceMapping())
+    }
+
+    return convertBlockDevices(sourceLaunchSetting.getBlockDeviceMapping())
   }
 
   @VisibleForTesting
@@ -618,5 +659,34 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     return description
+  }
+
+  static class LaunchSetting {
+    LaunchConfiguration launchConfiguration
+    LaunchTemplateVersion launchTemplateVersion
+
+    String getInstanceType() {
+      if (launchConfiguration != null) {
+        return launchConfiguration.instanceType
+      }
+
+      return launchTemplateVersion?.launchTemplateData?.instanceType
+    }
+
+    List getBlockDeviceMappings() {
+      if (launchConfiguration != null) {
+        return getBlockDeviceMapping()
+      }
+
+      return getLaunchTemplateBlockDeviceMapping()
+    }
+
+    List<LaunchTemplateBlockDeviceMapping> getLaunchTemplateBlockDeviceMapping() {
+      return launchTemplateVersion?.launchTemplateData?.blockDeviceMappings
+    }
+
+    List<BlockDeviceMapping> getBlockDeviceMapping() {
+      return launchConfiguration?.blockDeviceMappings
+    }
   }
 }

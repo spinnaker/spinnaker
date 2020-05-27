@@ -53,6 +53,18 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String base64UserData
   Boolean legacyUdf
 
+  /**
+   * When set to true, the created server group will use a launch template instead of a launch configuration.
+   */
+  Boolean setLaunchTemplate = false
+
+  /**
+   * When set to true, the created server group will be configured with IMDSv2.
+   * This is a Launch Template only feature
+   * * https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
+   */
+  Boolean requireIMDSv2 = false
+
   Collection<OperationEvent> events = []
 
 
