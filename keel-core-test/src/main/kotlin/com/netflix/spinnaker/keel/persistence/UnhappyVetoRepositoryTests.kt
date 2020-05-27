@@ -26,10 +26,12 @@ import java.time.Clock
 import java.time.Duration
 import strikt.api.Assertion
 import strikt.api.expect
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.isSuccess
 
 abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
@@ -55,6 +57,13 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
     context("nothing currently vetoed") {
       test("no applications returned") {
         expectThat(subject.getAll()).hasSize(0)
+      }
+
+      test("can create an unhappy status") {
+        expectCatching {
+          subject.getOrCreateVetoStatus(resourceId, application)
+        }
+          .isSuccess()
       }
     }
 

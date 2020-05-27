@@ -67,7 +67,7 @@ class SqlUnhappyVetoRepository(
         .from(UNHAPPY_VETO)
         .where(UNHAPPY_VETO.RESOURCE_ID.eq(resourceId))
         .fetchOne()
-        .value1()
+        ?.value1()
     }
 
     return if (recheckTime == null || recheckTime > clock.timestamp()) {
