@@ -54,6 +54,8 @@ public class DefaultApplicationDAO extends StorageServiceSupport<Application>
   public Application create(String id, Application application) {
     if (application.getCreateTs() == null) {
       application.setCreateTs(String.valueOf(System.currentTimeMillis()));
+    } else {
+      application.setUpdateTs(String.valueOf(System.currentTimeMillis()));
     }
 
     update(id, application);

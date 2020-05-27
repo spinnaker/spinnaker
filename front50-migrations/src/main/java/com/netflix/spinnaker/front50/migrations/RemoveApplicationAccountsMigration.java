@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.migrations;
 
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
+import com.netflix.spinnaker.front50.model.application.ApplicationService;
 import java.time.Clock;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -42,6 +43,8 @@ public class RemoveApplicationAccountsMigration implements Migration {
 
   @Autowired private ApplicationDAO applicationDAO;
 
+  @Autowired private ApplicationService applicationService;
+
   private Clock clock = Clock.systemDefaultZone();
 
   @Override
@@ -62,7 +65,6 @@ public class RemoveApplicationAccountsMigration implements Migration {
   private void migrate(Application application) {
     log.info("Removing accounts field from application {}", application.getName());
     application.details().remove("accounts");
-    application.dao = applicationDAO;
-    application.update(application);
+    applicationService.save(application);
   }
 }

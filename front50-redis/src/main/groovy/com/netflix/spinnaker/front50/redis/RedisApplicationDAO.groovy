@@ -16,13 +16,9 @@
 
 package com.netflix.spinnaker.front50.redis
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.Cursor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ScanOptions
@@ -31,9 +27,6 @@ import org.springframework.data.redis.core.ScanOptions
  * heavy lifting.
  */
 class RedisApplicationDAO implements ApplicationDAO {
-  private static final Logger log = LoggerFactory.getLogger(this)
-  ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
   static final String BOOK_KEEPING_KEY = 'com.netflix.spinnaker:front50:applications'
 
   RedisTemplate<String, Application> redisTemplate

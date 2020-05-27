@@ -90,7 +90,7 @@ class ChaosMonkeyApplicationEventListenerSpec extends Specification {
     applicationPermissionsService.updateApplicationPermission(application.name, _ as Application.Permission, true) >> updatedPermissions
 
     when:
-    subject.call(application, application)
+    subject.accept(new ApplicationEventListener.ApplicationModelEvent(ApplicationEventListener.Type.PRE_UPDATE, application, application))
 
     then:
     permission.getPermissions() == updatedPermissions.getPermissions()

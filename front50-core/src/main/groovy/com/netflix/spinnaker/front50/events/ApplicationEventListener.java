@@ -1,17 +1,15 @@
 package com.netflix.spinnaker.front50.events;
 
 import com.netflix.spinnaker.front50.model.application.Application;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /** Allows mutating an {@link Application} at different {@link Type} hooks. */
-public interface ApplicationEventListener {
+public interface ApplicationEventListener
+    extends Consumer<ApplicationEventListener.ApplicationModelEvent> {
   /** @return Whether the listener supports {@code type}. */
   boolean supports(Type type);
-
-  /** TODO(rz): Should include Type as part of the signature. */
-  Application call(Application originalApplication, Application updatedApplication);
-
-  /** TODO(rz): Should include Type as part of the signature. */
-  void rollback(Application originalApplication);
 
   enum Type {
     PRE_UPDATE,
@@ -20,5 +18,28 @@ public interface ApplicationEventListener {
     POST_CREATE,
     PRE_DELETE,
     POST_DELETE;
+  }
+
+  @NonnullByDefault
+  class ApplicationModelEvent {
+    /** The {@link Type} of application event. */
+    public final Type type;
+
+    /** The original {@link Application} state before modifications. */
+    @Nullable public final Application original;
+
+    /** The updated {@link Application} state during modification. */
+    public final Application updated;
+
+    public ApplicationModelEvent(Type type, @Nullable Application original, Application updated) {
+      this.type = type;
+      this.original = original;
+      this.updated = updated;
+    }
+
+    /** Returns the {@code updated} {@link Application}, which is often the one you want. */
+    public Application getApplication() {
+      return updated;
+    }
   }
 }

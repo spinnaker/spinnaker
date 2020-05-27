@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.migrations
 
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.application.ApplicationService
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -29,23 +30,28 @@ import java.time.ZoneId
 
 class CloudProvidersStringMigrationSpec extends Specification {
 
-  ApplicationDAO applicationDAO = Mock(ApplicationDAO)
+  ApplicationDAO applicationDAO = Mock()
+  ApplicationService applicationService = Mock()
   Clock clock = Mock(Clock)
 
   @Subject
-  CloudProvidersStringMigration migration = new CloudProvidersStringMigration(clock: clock, applicationDAO: applicationDAO)
+  CloudProvidersStringMigration migration = new CloudProvidersStringMigration(
+    clock: clock,
+    applicationDAO: applicationDAO,
+    applicationService: applicationService
+  )
 
   @Unroll
   def "should set cloudProviders to a comma-separated string if it is a list"() {
     given:
-    Application application = new Application(name: "foo", details: [cloudProviders: original], dao: applicationDAO)
+    Application application = new Application(name: "foo", details: [cloudProviders: original])
 
     when:
     migration.run()
 
     then:
     _ * applicationDAO.all() >> [application]
-    1 * applicationDAO.update('FOO', { it.details().cloudProviders == expected })
+    1 * applicationService.save({ it.details().cloudProviders == expected })
     _ * clock.instant() >> { Instant.ofEpochMilli(Date.parse("yyyy-MM-dd", "2019-01-24").getTime()) }
 
     where:
@@ -57,14 +63,14 @@ class CloudProvidersStringMigrationSpec extends Specification {
   @Unroll
   def "should not try to update cloudProviders if not a list"() {
     given:
-    Application application = new Application(name: "foo", details: [cloudProviders: original], dao: applicationDAO)
+    Application application = new Application(name: "foo", details: [cloudProviders: original])
 
     when:
     migration.run()
 
     then:
     _ * applicationDAO.all() >> [application]
-    0 * applicationDAO.update(_, _)
+    0 * applicationService.save(_)
     _ * clock.instant() >> { LocalDate.parse("2019-01-24").atStartOfDay(ZoneId.of("America/Los_Angeles")).toInstant() }
 
     where:

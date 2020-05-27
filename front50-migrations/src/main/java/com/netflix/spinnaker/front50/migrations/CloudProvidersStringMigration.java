@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.migrations;
 
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
+import com.netflix.spinnaker.front50.model.application.ApplicationService;
 import java.time.Clock;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -35,6 +36,8 @@ public class CloudProvidersStringMigration implements Migration {
   private static final Date VALID_UNTIL = new GregorianCalendar(2020, 6, 1).getTime();
 
   @Autowired private ApplicationDAO applicationDAO;
+
+  @Autowired private ApplicationService applicationService;
 
   private Clock clock = Clock.systemDefaultZone();
 
@@ -61,7 +64,7 @@ public class CloudProvidersStringMigration implements Migration {
     application.set(
         "cloudProviders",
         String.join(",", (List<String>) application.details().get("cloudProviders")));
-    application.dao = applicationDAO;
-    application.update(application);
+
+    applicationService.save(application);
   }
 }

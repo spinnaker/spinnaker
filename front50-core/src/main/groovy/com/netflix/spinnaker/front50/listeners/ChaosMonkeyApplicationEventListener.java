@@ -52,30 +52,23 @@ public class ChaosMonkeyApplicationEventListener extends ChaosMonkeyEventListene
   }
 
   @Override
-  public Application call(Application originalApplication, Application updatedApplication) {
+  public void accept(ApplicationModelEvent event) {
     Application.Permission permission =
-        applicationPermissionsService.getApplicationPermission(updatedApplication.getName());
+        applicationPermissionsService.getApplicationPermission(event.getApplication().getName());
 
     if (!permission.getPermissions().isRestricted()) {
-      return updatedApplication;
+      return;
     }
 
-    applyNewPermissions(permission, isChaosMonkeyEnabled(updatedApplication));
+    applyNewPermissions(permission, isChaosMonkeyEnabled(event.getApplication()));
 
     Application.Permission updatedPermission =
         applicationPermissionsService.updateApplicationPermission(
-            updatedApplication.getName(), permission, true);
+            event.getApplication().getName(), permission, true);
 
     log.debug(
         "Updated application `{}` with permissions `{}`",
-        updatedApplication.getName(),
+        event.getApplication().getName(),
         updatedPermission.getPermissions().toString());
-
-    return updatedApplication;
-  }
-
-  @Override
-  public void rollback(Application originalApplication) {
-    // Do nothing.
   }
 }

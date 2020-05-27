@@ -192,16 +192,13 @@ class RedisApplicationDAOSpec extends Specification {
 
     then:
     apps.size() == 1
-    apps[0].applicationEventListeners == null
     apps[0].createTs == application.createTs
-    apps[0].dao == application.dao
     apps[0].description == application.description
     apps[0].details == application.details
     apps[0].email == application.email
     apps[0].log == application.log
     apps[0].name == application.name
     apps[0].updateTs == application.updateTs
-    apps[0].validators == null
   }
 
   void "should support find by name"() {
@@ -212,16 +209,13 @@ class RedisApplicationDAOSpec extends Specification {
     def foundApp = redisApplicationDAO.findByName("app1")
 
     then:
-    foundApp.applicationEventListeners == null
     foundApp.createTs == application.createTs
-    foundApp.dao == application.dao
     foundApp.description == application.description
     foundApp.details == application.details
     foundApp.email == application.email
     foundApp.log == application.log
     foundApp.name == application.name
     foundApp.updateTs == application.updateTs
-    foundApp.validators == null
   }
 
   void "should support update"() {

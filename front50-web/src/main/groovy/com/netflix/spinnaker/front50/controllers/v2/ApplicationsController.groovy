@@ -6,10 +6,13 @@ import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
+import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.exception.ValidationException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
+import com.netflix.spinnaker.front50.model.application.ApplicationService
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
@@ -75,6 +78,9 @@ public class ApplicationsController {
   @Autowired
   FiatStatus fiatStatus;
 
+  @Autowired
+  ApplicationService applicationService;
+
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @ApiOperation(value = "", notes = """Fetch all applications.
@@ -114,7 +120,11 @@ public class ApplicationsController {
   @ApiOperation(value = "", notes = "Create an application")
   @RequestMapping(method = RequestMethod.POST)
   Application create(@RequestBody final Application app) {
-    Application createdApplication = getApplication().initialize(app).withName(app.getName()).save()
+    if (applicationService.findByName(app.getName()) != null) {
+      throw new ApplicationAlreadyExistsException();
+    }
+
+    Application createdApplication = applicationService.save(app);
     if (fiatStatus.isEnabled() && fiatConfigurationProperties.getRoleSync().isEnabled() && fiatService.isPresent()) {
       try {
         fiatService.get().sync()
@@ -129,7 +139,7 @@ public class ApplicationsController {
   @ApiOperation(value = "", notes = "Delete an application")
   @RequestMapping(method = RequestMethod.DELETE, value = "/{applicationName:.+}")
   void delete(@PathVariable String applicationName, HttpServletResponse response) {
-    getApplication().initialize(new Application().withName(applicationName)).delete()
+    applicationService.delete(applicationName)
     response.setStatus(HttpStatus.NO_CONTENT.value())
   }
 
@@ -140,11 +150,7 @@ public class ApplicationsController {
     if (!applicationName.trim().equalsIgnoreCase(app.getName())) {
       throw new InvalidApplicationRequestException("Application name '${app.getName()}' does not match path parameter '${applicationName}'")
     }
-
-    def application = getApplication()
-    Application existingApplication = application.findByName(app.getName())
-    application.initialize(existingApplication).withName(app.getName()).update(app, true)
-    return app
+    return applicationService.save(app)
   }
 
   @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'WRITE')")
@@ -155,10 +161,7 @@ public class ApplicationsController {
       throw new InvalidApplicationRequestException("Application name '${app.getName()}' does not match path parameter '${applicationName}'")
     }
 
-    def application = getApplication()
-    Application existingApplication = application.findByName(app.getName())
-    application.initialize(existingApplication).withName(app.getName()).update(app, false)
-    return app
+    return applicationService.replace(app);
   }
 
   // This method uses @PostAuthorize in order to throw 404s if the application doesn't exist,
@@ -194,9 +197,9 @@ public class ApplicationsController {
     applicationDAO.bulkImport(applications)
   }
 
-  @ExceptionHandler(Application.ValidationException)
+  @ExceptionHandler(ValidationException)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map handleValidationException(Application.ValidationException ex) {
+  Map handleValidationException(ValidationException ex) {
     def locale = LocaleContextHolder.locale
     def errorStrings = []
     ex.errors.each { Errors errors ->
@@ -206,18 +209,5 @@ public class ApplicationsController {
       }
     }
     return [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
-  }
-
-  private Application getApplication() {
-    return new Application(
-      dao: applicationDAO,
-      projectDao: projectDAO,
-      notificationDao: notificationDAO,
-      pipelineDao: pipelineDAO,
-      pipelineStrategyDao: pipelineStrategyDAO,
-      validators: applicationValidators,
-      applicationEventListeners: applicationEventListeners,
-      serviceAccountsService: serviceAccountsService
-    )
   }
 }
