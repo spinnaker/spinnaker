@@ -21,4 +21,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class OkHttpMetricsInterceptorProperties {
 
   public boolean skipHeaderCheck = false;
+
+  public boolean isSkipHeaderCheck() {
+    return skipHeaderCheck;
+  }
+
+  public void setSkipHeaderCheck(boolean skipHeaderCheck) {
+    this.skipHeaderCheck = skipHeaderCheck;
+  }
 }

@@ -56,9 +56,15 @@ public class HttpClientSdkConfiguration {
             .bind("ok-http-client", Bindable.of(OkHttpClientConfigurationProperties.class))
             .orElse(new OkHttpClientConfigurationProperties());
 
+    OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties =
+        Binder.get(environment)
+            .bind(
+                "ok-http-client.interceptor", Bindable.of(OkHttpMetricsInterceptorProperties.class))
+            .orElse(new OkHttpMetricsInterceptorProperties());
+
     List<OkHttp3ClientFactory> factories = new ArrayList<>(okHttpClientFactories);
     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor =
-        new OkHttp3MetricsInterceptor(registry, false);
+        new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties.skipHeaderCheck);
     factories.add(new DefaultOkHttp3ClientFactory(okHttp3MetricsInterceptor));
 
     OkHttp3ClientConfiguration config =
