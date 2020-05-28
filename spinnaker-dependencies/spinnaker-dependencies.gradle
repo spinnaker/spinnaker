@@ -20,7 +20,7 @@ ext {
     retrofit2      : "2.8.1",
     spectator      : "0.103.0",
     spek           : "1.2.1",
-    springBoot     : "2.2.7.RELEASE",
+    springBoot     : "2.2.5.RELEASE",
     springCloud    : "Greenwich.SR2",
     swagger        : "2.9.2"
   ]
