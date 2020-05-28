@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.model.AdminOperations;
-import groovy.util.logging.Slf4j;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.Collection;
@@ -27,11 +26,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequestMapping("/admin")
 @Api(value = "admin", description = "Various administrative operations")
 public class AdminController {
+
   private final Collection<AdminOperations> adminOperations;
 
   @Autowired

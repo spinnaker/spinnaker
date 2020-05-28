@@ -22,12 +22,12 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-public class AuthorizationSupportSpec extends Specification {
+class AuthorizationSupportSpec extends Specification {
 
   FiatPermissionEvaluator evaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  AuthorizationSupport authorizationSupport = new AuthorizationSupport(permissionEvaluator: evaluator)
+  AuthorizationSupport authorizationSupport = new AuthorizationSupport(evaluator)
 
   @Unroll
   def "should validate run as user access"() {

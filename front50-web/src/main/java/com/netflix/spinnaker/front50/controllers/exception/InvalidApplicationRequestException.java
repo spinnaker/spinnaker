@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.front50.controllers.exception;
 
-
-package com.netflix.spinnaker.front50.controllers.exception
-
-import com.netflix.hystrix.exception.HystrixBadRequestException
-import groovy.transform.InheritConstructors
-import org.springframework.http.HttpStatus
+import com.netflix.hystrix.exception.HystrixBadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@InheritConstructors
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidApplicationRequestException extends HystrixBadRequestException {}
+public class InvalidApplicationRequestException extends HystrixBadRequestException {
+  public InvalidApplicationRequestException(String message) {
+    super(message);
+  }
+
+  public InvalidApplicationRequestException(String message, Throwable cause) {
+    super(message, cause);
+  }
+}

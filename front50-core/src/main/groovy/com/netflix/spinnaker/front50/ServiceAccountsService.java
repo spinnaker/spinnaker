@@ -58,11 +58,11 @@ public class ServiceAccountsService {
     this.fiatPermissionEvaluator = fiatPermissionEvaluator;
   }
 
-  Collection<ServiceAccount> getAllServiceAccounts() {
+  public Collection<ServiceAccount> getAllServiceAccounts() {
     return serviceAccountDAO.all();
   }
 
-  ServiceAccount createServiceAccount(ServiceAccount serviceAccount) {
+  public ServiceAccount createServiceAccount(ServiceAccount serviceAccount) {
     ServiceAccount acct = serviceAccountDAO.create(serviceAccount.getId(), serviceAccount);
     syncUsers(Arrays.asList(acct));
     return acct;

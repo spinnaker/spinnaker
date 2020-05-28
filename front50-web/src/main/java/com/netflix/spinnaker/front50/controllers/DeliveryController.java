@@ -4,7 +4,6 @@ import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
-import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
 @RestController
 @ConditionalOnExpression("${spinnaker.delivery.enabled:false}")
 public class DeliveryController {
