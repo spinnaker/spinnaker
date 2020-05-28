@@ -41,6 +41,10 @@ export interface IAWSProviderSettings extends IProviderSettings {
     customNamespaces?: string[];
   };
   minRootVolumeSize?: number;
+  serverGroups?: {
+    enableIPv6?: boolean;
+    enableIMDSv2?: boolean;
+  };
   useAmiBlockDeviceMappings?: boolean;
 }
 
