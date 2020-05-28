@@ -4,10 +4,8 @@ import static java.lang.String.format;
 
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
-import com.netflix.spinnaker.front50.ServiceAccountsService;
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties;
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException;
-import com.netflix.spinnaker.front50.events.ApplicationEventListener;
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exception.ValidationException;
@@ -15,11 +13,6 @@ import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationService;
-import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
-import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
-import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
-import com.netflix.spinnaker.front50.model.project.ProjectDAO;
-import com.netflix.spinnaker.front50.validator.ApplicationValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.*;
@@ -42,20 +35,30 @@ public class ApplicationsController {
 
   private static final Logger log = LoggerFactory.getLogger(ApplicationsController.class);
 
-  private MessageSource messageSource;
-  private ApplicationDAO applicationDAO;
-  private Optional<ApplicationPermissionDAO> applicationPermissionDAO;
-  private ProjectDAO projectDAO;
-  private NotificationDAO notificationDAO;
-  private PipelineDAO pipelineDAO;
-  private PipelineStrategyDAO pipelineStrategyDAO;
-  private List<ApplicationValidator> applicationValidators;
-  private List<ApplicationEventListener> applicationEventListeners;
-  private Optional<FiatService> fiatService;
-  private Optional<ServiceAccountsService> serviceAccountsService;
-  private FiatConfigurationProperties fiatConfigurationProperties;
-  private FiatStatus fiatStatus;
-  private ApplicationService applicationService;
+  private final MessageSource messageSource;
+  private final ApplicationDAO applicationDAO;
+  private final Optional<ApplicationPermissionDAO> applicationPermissionDAO;
+  private final Optional<FiatService> fiatService;
+  private final FiatConfigurationProperties fiatConfigurationProperties;
+  private final FiatStatus fiatStatus;
+  private final ApplicationService applicationService;
+
+  public ApplicationsController(
+      MessageSource messageSource,
+      ApplicationDAO applicationDAO,
+      Optional<ApplicationPermissionDAO> applicationPermissionDAO,
+      Optional<FiatService> fiatService,
+      FiatConfigurationProperties fiatConfigurationProperties,
+      FiatStatus fiatStatus,
+      ApplicationService applicationService) {
+    this.messageSource = messageSource;
+    this.applicationDAO = applicationDAO;
+    this.applicationPermissionDAO = applicationPermissionDAO;
+    this.fiatService = fiatService;
+    this.fiatConfigurationProperties = fiatConfigurationProperties;
+    this.fiatStatus = fiatStatus;
+    this.applicationService = applicationService;
+  }
 
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")

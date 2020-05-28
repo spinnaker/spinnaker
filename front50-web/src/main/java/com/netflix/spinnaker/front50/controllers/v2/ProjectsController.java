@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.UntypedUtils;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
@@ -33,7 +32,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -45,9 +43,11 @@ public class ProjectsController {
 
   private static final Splitter COMMA_SPLITTER = Splitter.on(',');
 
-  private MessageSource messageSource;
-  private ProjectDAO projectDAO;
-  private Registry registry;
+  private final ProjectDAO projectDAO;
+
+  public ProjectsController(ProjectDAO projectDAO) {
+    this.projectDAO = projectDAO;
+  }
 
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   @ApiOperation(
