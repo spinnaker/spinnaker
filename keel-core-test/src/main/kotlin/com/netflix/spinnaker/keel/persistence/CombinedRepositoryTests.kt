@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -50,6 +51,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   open fun flush() {}
 
   val configName = "my-config"
+  val secondConfigName = "my-config-2"
   val artifact = DockerArtifact(name = "org/image", deliveryConfigName = configName)
   val newArtifact = artifact.copy(reference = "myart")
   val firstResource = resource()
@@ -59,6 +61,13 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   val deliveryConfig = DeliveryConfig(
     name = configName,
     application = "fnord",
+    serviceAccount = "keel@spinnaker",
+    artifacts = setOf(artifact),
+    environments = setOf(firstEnv)
+  )
+  val secondDeliveryConfig = DeliveryConfig(
+    name = secondConfigName,
+    application = "fnord-2",
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(firstEnv)
@@ -218,7 +227,10 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
         context("creation") {
           before {
-            subject.upsert(resource)
+            val updatedConfig = deliveryConfig.copy(
+              environments = setOf(firstEnv.copy(resources = setOf(resource)))
+            )
+            subject.upsertDeliveryConfig(updatedConfig)
           }
 
           test("stores the resource") {
@@ -246,7 +258,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           context("after an update") {
             before {
               resourcesDueForCheck()
-              subject.upsert(resource.copy(spec = DummyResourceSpec(id = resource.spec.id, data = "kthxbye")))
+              subject.upsertResource(resource.copy(spec = DummyResourceSpec(id = resource.spec.id, data = "kthxbye")), deliveryConfig.name)
             }
 
             test("stores the updated resource") {
@@ -274,7 +286,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
           context("after a no-op update") {
             before {
               resourcesDueForCheck()
-              subject.upsert(resource)
+              subject.upsertResource(resource, deliveryConfig.name)
             }
 
             test("does not record that the resource was updated") {
@@ -293,6 +305,17 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
     }
 
     context("persisting delivery config manifests") {
+    }
+
+    context("don't allow resources to be managed by more than 1 config") {
+      before {
+        subject.upsertDeliveryConfig(deliveryConfig)
+      }
+      test("trying to persist another config with the same resource") {
+        expectThrows<DuplicateManagedResourceException> { subject.upsertDeliveryConfig(secondDeliveryConfig) }
+        expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.get(secondConfigName) }
+        expectCatching { resourceRepository.get(firstResource.id) }.isSuccess()
+      }
     }
   }
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceHistoryEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.DuplicateManagedResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import java.time.Clock
 import java.time.Duration
@@ -46,13 +47,20 @@ interface KeelRepository {
   @Transactional(propagation = Propagation.REQUIRED)
   fun upsertDeliveryConfig(deliveryConfig: DeliveryConfig): DeliveryConfig
 
-  fun <T : ResourceSpec> upsert(resource: Resource<T>) {
+  fun <T : ResourceSpec> upsertResource(resource: Resource<T>, deliveryConfigName: String) {
     val existingResource = try {
       getResource(resource.id)
     } catch (e: NoSuchResourceException) {
       null
     }
     if (existingResource != null) {
+      // we allow resources to be managed in a single delivery config file
+      val existingConfig = deliveryConfigFor(existingResource.id)
+      if (existingConfig.name != deliveryConfigName) {
+        log.debug("resource $resource is being managed already by delivery config named ${existingConfig.name}")
+        throw DuplicateManagedResourceException(resource.id, existingConfig.name, deliveryConfigName)
+      }
+
       val diff = DefaultResourceDiff(resource.spec, existingResource.spec)
       if (diff.hasChanges()) {
         log.debug("Updating ${resource.id}")
