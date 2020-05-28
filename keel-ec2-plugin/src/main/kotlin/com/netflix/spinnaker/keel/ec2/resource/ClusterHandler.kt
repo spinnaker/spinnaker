@@ -537,15 +537,6 @@ class ClusterHandler(
           0 -> emptyList()
           else -> listOf(startingRefId.toString())
         },
-        // the 2hr default timeout sort-of? makes sense in an imperative
-        // pipeline world where maybe within 2 hours the environment around
-        // the instances will fix itself and the stage will succeed. Since
-        // we are telling the red/black strategy to roll back on failure,
-        // this will leave us in a position where we will instead keep
-        // reattempting to clone the server group because the rollback
-        // on failure of instances to come up will leave us in a non
-        // converged state...
-        "stageTimeoutMs" to Duration.ofMinutes(30).toMillis(),
         "capacity" to mapOf(
           "min" to capacity.min,
           "max" to capacity.max,

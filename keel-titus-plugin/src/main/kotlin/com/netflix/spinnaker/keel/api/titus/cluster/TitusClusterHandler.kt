@@ -68,7 +68,6 @@ import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
-import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -330,8 +329,6 @@ class TitusClusterHandler(
         "credentials" to location.account,
         "region" to location.region,
         "network" to "default",
-        // todo: does 30 minutes then rollback make sense?
-        "stageTimeoutMs" to Duration.ofMinutes(30).toMillis(),
         "inService" to true,
         "capacity" to mapOf(
           "min" to capacity.min,
