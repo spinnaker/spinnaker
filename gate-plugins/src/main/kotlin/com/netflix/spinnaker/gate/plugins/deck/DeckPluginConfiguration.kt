@@ -56,7 +56,8 @@ class DeckPluginConfiguration {
       PluginBundleExtractor(springStrictPluginLoaderStatusProvider),
       springPluginStatusProvider,
       AggregatePluginInfoReleaseProvider(sources, springStrictPluginLoaderStatusProvider),
-      registry)
+      registry,
+      springStrictPluginLoaderStatusProvider)
   }
 
   @Bean
