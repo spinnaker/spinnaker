@@ -114,7 +114,7 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     }
     List<Artifact> resolvedArtifacts = eventHandler.resolveArtifacts(triggerArtifacts)
     Map<String, Object> firstArtifact = objectMapper.convertValue(resolvedArtifacts.first(), Map.class)
-    firstArtifact = firstArtifact.findAll { key, value -> value != null && key != "customKind"}
+    firstArtifact = firstArtifact.findAll { key, value -> value && key != "customKind"}
 
     then:
     resolvedArtifacts.size() == 1
