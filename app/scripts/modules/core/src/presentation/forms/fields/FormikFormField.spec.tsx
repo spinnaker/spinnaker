@@ -5,13 +5,80 @@ import { mount } from 'enzyme';
 import {
   FormikFormField,
   FormikSpelContextProvider,
+  IFormInputProps,
   ReactSelectInput,
   SpelToggle,
   SpinFormik,
   TextAreaInput,
+  TextInput,
 } from 'core/presentation';
 
+const makeSpy = () => {
+  const renderSpy = jasmine.createSpy('render');
+  const inputProps = () => renderSpy.calls.mostRecent().args[0] as IFormInputProps;
+  const InputSpy = (props: any) => {
+    renderSpy(props);
+    return <TextInput {...props} />;
+  };
+  return { inputProps, renderSpy, InputSpy };
+};
+
+const asyncTick = () => new Promise(resolve => setTimeout(resolve));
+
 describe('<FormikFormField/>', () => {
+  it(`renders the input`, () => {
+    const { renderSpy, InputSpy } = makeSpy();
+    mount(<Test initialValues={{}} render={() => <FormikFormField name="name" input={InputSpy} />} />);
+    expect(renderSpy).toHaveBeenCalled();
+  });
+
+  it(`passes the field name to the input`, () => {
+    const { inputProps, InputSpy } = makeSpy();
+    mount(<Test initialValues={{}} render={() => <FormikFormField name="foo.bar" input={InputSpy} />} />);
+    expect(inputProps().name).toBe('foo.bar');
+  });
+
+  it(`passes the field value to the input using the 'name' as an identifier`, () => {
+    const { inputProps, InputSpy } = makeSpy();
+    const initialValues = { foo: { bar: 'abc123' } };
+    mount(<Test initialValues={initialValues} render={() => <FormikFormField name="foo.bar" input={InputSpy} />} />);
+    expect(inputProps().value).toBe('abc123');
+  });
+
+  it(`passes validation information to the input`, async () => {
+    const { inputProps, InputSpy } = makeSpy();
+    const initialValues = { foo: { bar: 'abc123' } };
+    const validate = () => ({ foo: { bar: 'bad' } });
+    mount(
+      <Test
+        validate={validate}
+        initialValues={initialValues}
+        render={() => <FormikFormField name="foo.bar" input={InputSpy} />}
+      />,
+    );
+    await asyncTick();
+    expect(inputProps().validation.messageNode).toBe('bad');
+    expect(inputProps().validation.category).toBe('error');
+  });
+
+  it(`does not index into strings for errors`, async () => {
+    const { inputProps, InputSpy } = makeSpy();
+    const initialValues = { foo: { bar: ['abc'] } };
+    const validate = () => ({ foo: { bar: 'bad' } });
+    mount(
+      <Test
+        validate={validate}
+        initialValues={initialValues}
+        render={() => <FormikFormField name="foo.bar[0]" input={InputSpy} />}
+      />,
+    );
+    await asyncTick();
+    expect(inputProps().value).toBe('abc');
+    // in errors, foo.bar[0] error should be null, not 'b'
+    expect(inputProps().validation.messageNode).toBe(null);
+    expect(inputProps().validation.category).toBe(null);
+  });
+
   describe('SpEL-awareness', () => {
     const AccountField = (props: { propsSpelAware?: boolean }) => (
       <FormikFormField
