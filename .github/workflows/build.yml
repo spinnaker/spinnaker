@@ -26,7 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build jacocoAggregateReport --stacktrace
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
         if: github.ref == 'refs/heads/master'
