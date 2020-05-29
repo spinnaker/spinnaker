@@ -118,6 +118,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                   try {
                     it.handle(event)
                   } catch (e) {
+                    log.warn("Error handling event (${event}): ${atomicOperation.class.simpleName}", e)
                     task.updateStatus TASK_PHASE, "Error handling event (${event}): ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${e.message}]"
                   }
                 }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
     EntityTags currentTags;
     try {
       currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
-    } catch (RetrofitError e) {
+    } catch (RetrofitError | NotFoundException e) {
       getTask()
           .updateStatus(
               BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
