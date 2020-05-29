@@ -27,10 +27,7 @@ jacoco {
   toolVersion = "0.8.5"
 }
 
-subprojects {
-  apply(plugin = "io.spinnaker.project")
-  apply(plugin = "com.github.ben-manes.versions")
-
+allprojects {
   repositories {
     jcenter() {
       metadataSources {
@@ -43,6 +40,11 @@ subprojects {
       mavenLocal()
     }
   }
+}
+
+subprojects {
+  apply(plugin = "io.spinnaker.project")
+  apply(plugin = "com.github.ben-manes.versions")
 
   group = "com.netflix.spinnaker.keel"
 
