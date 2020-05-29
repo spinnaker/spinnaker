@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("/v1/data")
@@ -36,30 +36,22 @@ class DataController {
   DataService dataService
 
   @RequestMapping(value = "/static/{id}", method = RequestMethod.GET)
-  StreamingResponseBody getStaticData(@PathVariable("id") String id,
-                                      @RequestParam Map<String, String> filters) {
-    return new StreamingResponseBody() {
-      @Override
-      void writeTo (OutputStream outputStream) throws IOException {
-        dataService.getStaticData(id, filters, outputStream)
-        outputStream.flush()
-      }
-    }
+  @ResponseBody byte[] getStaticData(@PathVariable("id") String id,
+                                     @RequestParam Map<String, String> filters) {
+    def outputStream = new ByteArrayOutputStream()
+    dataService.getStaticData(id, filters, outputStream)
+    return outputStream.toByteArray()
   }
 
   @RequestMapping(value = "/adhoc/{groupId}/{bucketId}/**")
-  StreamingResponseBody getAdhocData(@PathVariable("groupId") String groupId,
-                                     @PathVariable("bucketId") String bucketId,
-                                     HttpServletRequest httpServletRequest) {
+  @ResponseBody byte[] getAdhocData(@PathVariable("groupId") String groupId,
+                                    @PathVariable("bucketId") String bucketId,
+                                    HttpServletRequest httpServletRequest) {
     String pattern = (String) httpServletRequest.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE)
     String objectId = new AntPathMatcher().extractPathWithinPattern(pattern, httpServletRequest.getServletPath())
 
-    return new StreamingResponseBody() {
-      @Override
-      void writeTo (OutputStream outputStream) throws IOException {
-        dataService.getAdhocData(groupId, bucketId, objectId, outputStream)
-        outputStream.flush()
-      }
-    }
+    def outputStream = new ByteArrayOutputStream()
+    dataService.getAdhocData(groupId, bucketId, objectId, outputStream)
+    return outputStream.toByteArray()
   }
 }
