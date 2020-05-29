@@ -305,6 +305,7 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
         orDefault(description.getRuntimeLimitSecs(), sourceJob.getRuntimeLimitSecs()));
     description.setEfs(orDefault(description.getEfs(), sourceJob.getEfs()));
     description.setEntryPoint(orDefault(description.getEntryPoint(), sourceJob.getEntryPoint()));
+    description.setCmd(orDefault(description.getCmd(), sourceJob.getCmd()));
     description.setIamProfile(orDefault(description.getIamProfile(), sourceJob.getIamProfile()));
     description.setCapacityGroup(
         orDefault(description.getCapacityGroup(), sourceJob.getCapacityGroup()));

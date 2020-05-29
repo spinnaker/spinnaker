@@ -59,6 +59,7 @@ public class JobDescription {
   private Boolean inService;
 
   private String entryPoint;
+  private String cmd;
   private String iamProfile;
   private String capacityGroup;
   private Efs efs;
@@ -112,6 +113,7 @@ public class JobDescription {
             ? request.getContainerAttributes()
             : new HashMap<>();
     entryPoint = request.getEntryPoint();
+    cmd = request.getCmd();
     iamProfile = request.getIamProfile();
     capacityGroup = request.getCapacityGroup();
     securityGroups = request.getSecurityGroups();
@@ -356,6 +358,14 @@ public class JobDescription {
     this.entryPoint = entryPoint;
   }
 
+  public String getCmd() {
+    return cmd;
+  }
+
+  public void setCmd(String cmd) {
+    this.cmd = cmd;
+  }
+
   public String getIamProfile() {
     return iamProfile;
   }
@@ -538,6 +548,10 @@ public class JobDescription {
 
     if (entryPoint != null) {
       containerBuilder.addEntryPoint(entryPoint);
+    }
+
+    if (cmd != null) {
+      containerBuilder.addCommand(cmd);
     }
 
     if (!containerAttributes.isEmpty()) {
