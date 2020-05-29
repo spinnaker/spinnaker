@@ -16,22 +16,26 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException;
 import com.netflix.spinnaker.front50.model.snapshot.Snapshot;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import java.util.Collection;
 import java.util.Objects;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/snapshots")
-@ConditionalOnExpression(
-    "${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false} || ${spinnaker.oracle.enabled:false}")
+@ConditionalOnAnyProviderExceptRedisIsEnabled
 public class SnapshotsController {
 
   private final SnapshotDAO snapshotDAO;

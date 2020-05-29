@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.model.plugins;
 
+import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
+@ConditionalOnAnyProviderExceptRedisIsEnabled
 public class PluginInfoService {
 
   private final PluginInfoRepository repository;

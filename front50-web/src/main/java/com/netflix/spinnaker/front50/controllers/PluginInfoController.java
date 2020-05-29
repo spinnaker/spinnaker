@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
+import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfoService;
 import java.util.Collection;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/pluginInfo")
 @Validated
+@ConditionalOnAnyProviderExceptRedisIsEnabled
 public class PluginInfoController {
 
   private final PluginInfoService pluginInfoService;

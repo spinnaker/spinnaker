@@ -16,43 +16,39 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.ServiceAccountsService;
+import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
-import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/serviceAccounts")
+@ConditionalOnAnyProviderExceptRedisIsEnabled
 public class ServiceAccountsController {
 
-  private final Optional<ServiceAccountsService> serviceAccountService;
+  private final ServiceAccountsService serviceAccountService;
 
-  public ServiceAccountsController(Optional<ServiceAccountsService> serviceAccountService) {
+  public ServiceAccountsController(ServiceAccountsService serviceAccountService) {
     this.serviceAccountService = serviceAccountService;
   }
 
   @RequestMapping(method = RequestMethod.GET)
   public Set<ServiceAccount> getAllServiceAccounts() {
-    return new HashSet<>(serviceAccountService().getAllServiceAccounts());
+    return new HashSet<>(serviceAccountService.getAllServiceAccounts());
   }
 
   @RequestMapping(method = RequestMethod.POST)
   public ServiceAccount createServiceAccount(@RequestBody ServiceAccount serviceAccount) {
-    return serviceAccountService().createServiceAccount(serviceAccount);
+    return serviceAccountService.createServiceAccount(serviceAccount);
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/{serviceAccountId:.+}")
   public void deleteServiceAccount(@PathVariable String serviceAccountId) {
-    serviceAccountService().deleteServiceAccount(serviceAccountId);
-  }
-
-  private ServiceAccountsService serviceAccountService() {
-    if (!serviceAccountService.isPresent()) {
-      throw new SystemException(
-          "Configured storage service does not support service account permissions");
-    }
-    return serviceAccountService.get();
+    serviceAccountService.deleteServiceAccount(serviceAccountId);
   }
 }
