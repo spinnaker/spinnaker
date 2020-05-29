@@ -1,3 +1,4 @@
+import { FormikProps } from 'formik/dist/types';
 import React from 'react';
 import { mount } from 'enzyme';
 
@@ -12,8 +13,17 @@ import {
 
 describe('<FormikFormField/>', () => {
   describe('SpEL-awareness', () => {
+    const AccountField = (props: { propsSpelAware?: boolean }) => (
+      <FormikFormField
+        name="account"
+        label="Account"
+        input={props => <ReactSelectInput {...props} />}
+        spelAware={props.propsSpelAware}
+      />
+    );
+
     it('Renders a SpelToggle action button when appropriate based on context and props', () => {
-      const contextAndPropConfigs: Array<ITestFormProps & { renderSpelToggle: number }> = [
+      const contextAndPropConfigs: Array<Partial<ITestFormWrapperProps> & { renderSpelToggle: number }> = [
         {
           propsSpelAware: false,
           renderSpelToggle: 0,
@@ -43,24 +53,37 @@ describe('<FormikFormField/>', () => {
       ];
       contextAndPropConfigs.forEach(config => {
         const component = mount(
-          <TestForm contextSpelAware={config.contextSpelAware} propsSpelAware={config.propsSpelAware} />,
+          <Test
+            contextSpelAware={config.contextSpelAware}
+            propsSpelAware={config.propsSpelAware}
+            render={() => <AccountField propsSpelAware={config.propsSpelAware} />}
+          />,
         );
         expect(component.find(SpelToggle).length).toEqual(config.renderSpelToggle);
       });
     });
+
     it('renders a freeform input by default if the field value is SpEL and freeform SpEL inputs are enabled', () => {
-      const component = mount(<TestForm initialValue="${spel_account}" propsSpelAware={true} />);
+      const component = mount(
+        <Test initialValues={{ account: '${spel_account}' }} render={() => <AccountField propsSpelAware={true} />} />,
+      );
       expect(component.find(TextAreaInput).length).toEqual(1);
       expect(component.find(ReactSelectInput).length).toEqual(0);
     });
+
     it('renders the default input if the field value is not SpEL', () => {
-      const component = mount(<TestForm propsSpelAware={true} />);
+      const component = mount(
+        <Test initialValues={{ account: 'account' }} render={() => <AccountField propsSpelAware={true} />} />,
+      );
       component.setProps({});
       expect(component.find(ReactSelectInput).length).toEqual(1);
       expect(component.find(TextAreaInput).length).toEqual(0);
     });
+
     it('clicking the SpelToggle switches the input type from default to freeform and clears the field value', () => {
-      const component = mount(<TestForm propsSpelAware={true} />);
+      const component = mount(
+        <Test initialValues={{ account: 'my-account' }} render={() => <AccountField propsSpelAware={true} />} />,
+      );
       expect(component.find(ReactSelectInput).length).toEqual(1);
       expect(component.find(TextAreaInput).length).toEqual(0);
       expect(component.find(ReactSelectInput).prop('value')).toEqual('my-account');
@@ -69,8 +92,11 @@ describe('<FormikFormField/>', () => {
       expect(component.find(TextAreaInput).length).toEqual(1);
       expect(component.find(TextAreaInput).prop('value')).toEqual(null);
     });
+
     it('clicking the SpelToggle switches the input type from freeform to default and clears the field value', () => {
-      const component = mount(<TestForm initialValue="${spel_account}" propsSpelAware={true} />);
+      const component = mount(
+        <Test initialValues={{ account: '${spel_account}' }} render={() => <AccountField propsSpelAware={true} />} />,
+      );
       expect(component.find(ReactSelectInput).length).toEqual(0);
       expect(component.find(TextAreaInput).length).toEqual(1);
       expect(component.find(TextAreaInput).prop('value')).toEqual('${spel_account}');
@@ -82,28 +108,22 @@ describe('<FormikFormField/>', () => {
   });
 });
 
-interface ITestFormProps {
+interface ITestFormWrapperProps {
+  render: (props: FormikProps<any>) => React.ReactNode;
+  validate?: (form: any) => any;
+  initialValues?: any;
   contextSpelAware?: boolean;
-  initialValue?: string;
   propsSpelAware?: boolean;
 }
 
-function TestForm(props: ITestFormProps) {
+function Test(props: ITestFormWrapperProps) {
   return (
     <FormikSpelContextProvider value={props.contextSpelAware}>
       <SpinFormik
-        initialValues={{
-          account: props.initialValue || 'my-account',
-        }}
+        initialValues={props.initialValues || {}}
+        validate={props.validate || (() => ({}))}
         onSubmit={() => {}}
-        render={() => (
-          <FormikFormField
-            name="account"
-            label="Account"
-            input={props => <ReactSelectInput {...props} />}
-            spelAware={props.propsSpelAware}
-          />
-        )}
+        render={props.render}
       />
     </FormikSpelContextProvider>
   );
