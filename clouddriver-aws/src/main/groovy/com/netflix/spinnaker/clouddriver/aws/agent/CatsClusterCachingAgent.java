@@ -29,8 +29,9 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
   private final Function<String, Map<String, String>> keyParser;
   private final Function<Map<String, String>, String> clusterKeyBuilder;
   private final String clusterNameAttribute;
+  private final String clusterApplicationAttribute;
 
   /**
    * @param serverGroupsGlob The search glob to look up all server groups for the provider (e.g.
@@ -60,7 +62,7 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
       String serverGroupsGlob,
       Function<String, Map<String, String>> keyParser,
       Function<Map<String, String>, String> clusterKeyBuilder) {
-    this(serverGroupsGlob, keyParser, clusterKeyBuilder, "cluster");
+    this(serverGroupsGlob, keyParser, clusterKeyBuilder, "cluster", "application");
   }
 
   /**
@@ -71,16 +73,20 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
    *     cluster key
    * @param clusterNameAttribute The attribute name in the parsed cluster key that represents the
    *     cluster's name
+   * @param clusterApplicationAttribute The attribute name in the parsed cluster key that represents
+   *     the cluster's application
    */
   public CatsClusterCachingAgent(
       String serverGroupsGlob,
       Function<String, Map<String, String>> keyParser,
       Function<Map<String, String>, String> clusterKeyBuilder,
-      String clusterNameAttribute) {
+      String clusterNameAttribute,
+      String clusterApplicationAttribute) {
     this.serverGroupsGlob = serverGroupsGlob;
     this.keyParser = keyParser;
     this.clusterKeyBuilder = clusterKeyBuilder;
     this.clusterNameAttribute = clusterNameAttribute;
+    this.clusterApplicationAttribute = clusterApplicationAttribute;
   }
 
   @Override
@@ -93,25 +99,30 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
     Collection<String> serverGroups =
         providerCache.filterIdentifiers(SERVER_GROUPS.ns, serverGroupsGlob);
     Collection<String> existing = providerCache.existingIdentifiers(SERVER_GROUPS.ns, serverGroups);
-    Set<String> clusterKeys =
-        existing.stream()
-            .map(keyParser)
-            .filter(Objects::nonNull)
-            .map(clusterKeyBuilder)
-            .collect(Collectors.toSet());
+    Map<String, Set<String>> clusterData = new HashMap<>();
+    for (String serverGroupKey : existing) {
+      Map<String, String> serverGroupData = keyParser.apply(serverGroupKey);
+      if (serverGroupData != null) {
+        String clusterKey = clusterKeyBuilder.apply(serverGroupData);
+        clusterData.computeIfAbsent(clusterKey, k -> new HashSet<>()).add(serverGroupKey);
+      }
+    }
 
-    Collection<CacheData> clusterData =
-        clusterKeys.stream()
+    Collection<CacheData> cacheData =
+        clusterData.entrySet().stream()
             .map(
-                s -> {
-                  Map<String, String> clusterAttributes = keyParser.apply(s);
-                  return new DefaultCacheData(
-                      s,
-                      Collections.singletonMap("name", clusterAttributes.get(clusterNameAttribute)),
-                      Collections.emptyMap());
+                entry -> {
+                  Map<String, String> clusterAttributes = keyParser.apply(entry.getKey());
+                  Map<String, Object> cacheAttributes = new HashMap<>();
+                  cacheAttributes.put("name", clusterAttributes.get(clusterNameAttribute));
+                  cacheAttributes.put(
+                      "application", clusterAttributes.get(clusterApplicationAttribute));
+                  Map<String, Collection<String>> relationships = new HashMap<>();
+                  relationships.put(SERVER_GROUPS.ns, entry.getValue());
+                  return new DefaultCacheData(entry.getKey(), cacheAttributes, relationships);
                 })
             .collect(Collectors.toList());
 
-    return new DefaultCacheResult(Collections.singletonMap(CLUSTERS.ns, clusterData));
+    return new DefaultCacheResult(Collections.singletonMap(CLUSTERS.ns, cacheData));
   }
 }
