@@ -40,11 +40,9 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
           <UIView name="nav" className="nav ng-scope" />
         </div>
       )}
-      {appIsReady && (
-        <div>
-          <UIView name="master" className="nav-content ng-scope" data-scroll-id="nav-content" />
-        </div>
-      )}
+      <div>
+        <UIView name="master" className="nav-content ng-scope" data-scroll-id="nav-content" />
+      </div>
       {appIsReady && (
         <div>
           <UIView name="detail" className="detail-content" />
