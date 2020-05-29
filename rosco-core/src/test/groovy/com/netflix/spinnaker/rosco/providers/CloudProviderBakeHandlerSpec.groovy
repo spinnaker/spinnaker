@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers
 
+import com.google.common.base.Strings
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Specification
@@ -55,16 +56,16 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
       @Subject
       CloudProviderBakeHandler bakeHandler = Spy(CloudProviderBakeHandler)
       def decoratedArtifact = bakeHandler.produceArtifactDecorationFrom(bakeRequest, bakeRecipe, SOME_BAKE_DETAILS, SOME_CLOUD_PROVIDER, SOME_REGION)
-      decoratedArtifact.name == expectedName
-      decoratedArtifact.version == expectedVersion
+      Strings.emptyToNull(decoratedArtifact.name) == expectedName
+      Strings.emptyToNull(decoratedArtifact.version) == expectedVersion
       decoratedArtifact.reference == expectedReference
       decoratedArtifact.metadata == expectedMetadata
 
     where:
       bakeRequest       | bakeRecipe       | expectedName          | expectedVersion      | expectedReference | expectedMetadata
-      null              | null             | ""                    | ""                   | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | ""                   | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | ""                   | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
+      null              | null             | null                  | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
+      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
+      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
 
   }
 
