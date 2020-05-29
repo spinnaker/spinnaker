@@ -21,6 +21,8 @@ configurations.all {
 dependencies {
   implementation project(":front50-core")
 
+  implementation("org.codehaus.groovy:groovy-all")
+
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
@@ -32,3 +34,5 @@ dependencies {
   testImplementation project(":front50-test")
   testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 }
+
+tasks.compileGroovy.enabled = true

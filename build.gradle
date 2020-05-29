@@ -33,6 +33,8 @@ subprojects { project ->
     apply plugin: 'java-library'
     apply plugin: 'groovy'
 
+    tasks.compileGroovy.enabled = false
+
     test {
       testLogging {
         exceptionFormat = 'full'
@@ -51,13 +53,13 @@ subprojects { project ->
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
       testAnnotationProcessor(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
 
-      implementation("org.codehaus.groovy:groovy-all")
       implementation("net.logstash.logback:logstash-logback-encoder")
 
       compileOnly("org.projectlombok:lombok")
       annotationProcessor("org.projectlombok:lombok")
       testAnnotationProcessor("org.projectlombok:lombok")
 
+      testImplementation("org.codehaus.groovy:groovy-all")
       testImplementation("org.spockframework:spock-core")
       testImplementation("org.springframework.boot:spring-boot-starter-test")
       testImplementation("org.spockframework:spock-spring")
