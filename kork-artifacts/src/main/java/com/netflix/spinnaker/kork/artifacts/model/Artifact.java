@@ -20,11 +20,11 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.google.common.base.Strings;
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -34,7 +34,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @EqualsAndHashCode
-@NonnullByDefault
+@NullableByDefault
 @JsonDeserialize(builder = Artifact.ArtifactBuilder.class)
 public final class Artifact {
   private String type;
@@ -43,7 +43,7 @@ public final class Artifact {
   private String version;
   private String location;
   private String reference;
-  private Map<String, Object> metadata;
+  @Nonnull private Map<String, Object> metadata;
   private String artifactAccount;
   private String provenance;
   private String uuid;
@@ -61,16 +61,16 @@ public final class Artifact {
       String artifactAccount,
       String provenance,
       String uuid) {
-    this.type = Strings.nullToEmpty(type);
+    this.type = type;
     this.customKind = customKind;
-    this.name = Strings.nullToEmpty(name);
-    this.version = Strings.nullToEmpty(version);
-    this.location = Strings.nullToEmpty(location);
-    this.reference = Strings.nullToEmpty(reference);
+    this.name = name;
+    this.version = version;
+    this.location = location;
+    this.reference = reference;
     this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
-    this.artifactAccount = Strings.nullToEmpty(artifactAccount);
-    this.provenance = Strings.nullToEmpty(provenance);
-    this.uuid = Strings.nullToEmpty(uuid);
+    this.artifactAccount = artifactAccount;
+    this.provenance = provenance;
+    this.uuid = uuid;
   }
 
   // All setters for this class are deprecated. In general, artifacts are passed around the pipeline
@@ -83,9 +83,8 @@ public final class Artifact {
   // Artifact newArtifact = artifact.toBuilder().artifactAccount("my-account").build()
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setType(String type) {
-    this.type = Strings.nullToEmpty(type);
+    this.type = type;
   }
 
   @Deprecated
@@ -94,57 +93,49 @@ public final class Artifact {
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setName(String name) {
-    this.name = Strings.nullToEmpty(name);
+    this.name = name;
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setVersion(String version) {
-    this.version = Strings.nullToEmpty(version);
+    this.version = version;
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setLocation(String location) {
-    this.location = Strings.nullToEmpty(location);
+    this.location = location;
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setReference(String reference) {
-    this.reference = Strings.nullToEmpty(reference);
+    this.reference = reference;
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setMetadata(Map<String, Object> metadata) {
     this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setArtifactAccount(String artifactAccount) {
-    this.artifactAccount = Strings.nullToEmpty(artifactAccount);
+    this.artifactAccount = artifactAccount;
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setProvenance(String provenance) {
-    this.provenance = Strings.nullToEmpty(provenance);
+    this.provenance = provenance;
   }
 
   @Deprecated
-  @ParametersAreNullableByDefault
   public void setUuid(String uuid) {
-    this.uuid = Strings.nullToEmpty(uuid);
+    this.uuid = uuid;
   }
 
   @JsonIgnoreProperties("kind")
   @JsonPOJOBuilder(withPrefix = "")
   public static class ArtifactBuilder {
-    private Map<String, Object> metadata = new HashMap<>();
+    @Nonnull private Map<String, Object> metadata = new HashMap<>();
 
     // Add extra, unknown data to the metadata map:
     @JsonAnySetter
