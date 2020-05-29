@@ -18,40 +18,43 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.DataService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.util.AntPathMatcher
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @RestController
-@RequestMapping("/v1/data")
+@RequestMapping(value = "/v1/data")
 class DataController {
   @Autowired
   DataService dataService
 
   @RequestMapping(value = "/static/{id}", method = RequestMethod.GET)
-  @ResponseBody byte[] getStaticData(@PathVariable("id") String id,
-                                     @RequestParam Map<String, String> filters) {
-    def outputStream = new ByteArrayOutputStream()
-    dataService.getStaticData(id, filters, outputStream)
-    return outputStream.toByteArray()
+  void getStaticData(@PathVariable("id") String id,
+                     @RequestParam Map<String, String> filters,
+                     @RequestParam(name = "expectedContentType", required = false, defaultValue = MediaType.APPLICATION_JSON_VALUE) String expectedContentType,
+                     HttpServletResponse httpServletResponse) {
+    httpServletResponse.setContentType(expectedContentType)
+    dataService.getStaticData(id, filters, httpServletResponse.getOutputStream())
   }
 
   @RequestMapping(value = "/adhoc/{groupId}/{bucketId}/**")
-  @ResponseBody byte[] getAdhocData(@PathVariable("groupId") String groupId,
-                                    @PathVariable("bucketId") String bucketId,
-                                    HttpServletRequest httpServletRequest) {
+  void getAdhocData(@PathVariable("groupId") String groupId,
+                    @PathVariable("bucketId") String bucketId,
+                    @RequestParam(name = "expectedContentType", required = false, defaultValue = MediaType.APPLICATION_JSON_VALUE) String expectedContentType,
+                    HttpServletRequest httpServletRequest,
+                    HttpServletResponse httpServletResponse) {
     String pattern = (String) httpServletRequest.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE)
     String objectId = new AntPathMatcher().extractPathWithinPattern(pattern, httpServletRequest.getServletPath())
 
-    def outputStream = new ByteArrayOutputStream()
-    dataService.getAdhocData(groupId, bucketId, objectId, outputStream)
-    return outputStream.toByteArray()
+    httpServletResponse.setContentType(expectedContentType)
+    dataService.getAdhocData(groupId, bucketId, objectId, httpServletResponse.getOutputStream())
   }
 }
