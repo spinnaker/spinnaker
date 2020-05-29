@@ -210,7 +210,7 @@ public class PipelineController {
     }
 
     // Check if pipeline type is templated
-    if (pipeline.getType().equals(TYPE_TEMPLATED)) {
+    if (TYPE_TEMPLATED.equals(pipeline.getType())) {
       PipelineTemplateDAO templateDAO = getTemplateDAO();
 
       // Check templated pipelines to ensure template is valid
