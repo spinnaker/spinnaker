@@ -224,11 +224,17 @@ public class ProjectsController {
                 fuzzySearch.key,
                 fuzzySearch.value);
         if (!matches) {
-          return fuzzySearch.project.getConfig().getClusters().stream()
-              .anyMatch(
-                  it ->
-                      SearchUtils.matchesIgnoreCase(
-                          UntypedUtils.getProperties(it), fuzzySearch.key, fuzzySearch.value));
+          return Optional.ofNullable(fuzzySearch.project.getConfig().getClusters())
+              .map(
+                  c ->
+                      c.stream()
+                          .anyMatch(
+                              it ->
+                                  SearchUtils.matchesIgnoreCase(
+                                      UntypedUtils.getProperties(it),
+                                      fuzzySearch.key,
+                                      fuzzySearch.value)))
+              .orElse(false);
         }
         return true;
       };
