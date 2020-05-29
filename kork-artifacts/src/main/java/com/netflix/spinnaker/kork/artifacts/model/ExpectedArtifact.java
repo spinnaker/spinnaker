@@ -18,17 +18,15 @@ package com.netflix.spinnaker.kork.artifacts.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
-import org.apache.commons.lang3.StringUtils;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder(toBuilder = true)
 @JsonDeserialize(builder = ExpectedArtifact.ExpectedArtifactBuilder.class)
 @NonnullByDefault
 @Value
@@ -39,6 +37,24 @@ public final class ExpectedArtifact {
   @Nullable private final Artifact defaultArtifact;
   private final String id; // UUID to use this ExpectedArtifact by reference in Pipelines.
   @Nullable private final Artifact boundArtifact;
+
+  @Builder(toBuilder = true)
+  @ParametersAreNullableByDefault
+  private ExpectedArtifact(
+      Artifact matchArtifact,
+      boolean usePriorArtifact,
+      boolean useDefaultArtifact,
+      Artifact defaultArtifact,
+      String id,
+      Artifact boundArtifact) {
+    this.matchArtifact =
+        Optional.ofNullable(matchArtifact).orElseGet(() -> Artifact.builder().build());
+    this.usePriorArtifact = usePriorArtifact;
+    this.useDefaultArtifact = useDefaultArtifact;
+    this.defaultArtifact = defaultArtifact;
+    this.id = Strings.nullToEmpty(id);
+    this.boundArtifact = boundArtifact;
+  }
 
   /**
    * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified in the
@@ -83,8 +99,8 @@ public final class ExpectedArtifact {
     return true;
   }
 
-  private boolean matches(@Nullable String us, @Nullable String other) {
-    return StringUtils.isEmpty(us) || (other != null && patternMatches(us, other));
+  private boolean matches(String us, String other) {
+    return us.isEmpty() || patternMatches(us, other);
   }
 
   private boolean patternMatches(String us, String other) {
