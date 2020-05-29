@@ -62,9 +62,9 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
 
     where:
       bakeRequest       | bakeRecipe       | expectedName          | expectedVersion      | expectedReference | expectedMetadata
-      null              | null             | null                  | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
+      null              | null             | ""                    | ""                   | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
+      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | ""                   | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
+      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | ""                   | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
 
   }
 

@@ -173,7 +173,7 @@ public class KustomizeTemplateUtils {
 
   protected void downloadArtifactToTmpFileStructure(
       BakeManifestEnvironment env, Artifact artifact, String referenceBaseURL) throws IOException {
-    if (artifact.getReference() == null) {
+    if (artifact.getReference() == null || artifact.getReference().isEmpty()) {
       throw new InvalidRequestException("Input artifact has an empty 'reference' field.");
     }
     Path artifactFileName = Paths.get(extractArtifactName(artifact, referenceBaseURL));

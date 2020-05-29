@@ -151,7 +151,7 @@ class HelmTemplateUtilsSpec extends Specification {
         def helmProperties = Mock(RoscoHelmConfigurationProperties)
         def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader, helmProperties)
         def request = new HelmBakeManifestRequest()
-        def artifact = Mock(Artifact)
+        def artifact = Artifact.builder().build()
         request.inputArtifacts = [artifact]
         request.namespace = "default"
         request.overrides = [:]
