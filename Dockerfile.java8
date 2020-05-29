@@ -2,7 +2,7 @@ FROM alpine:3.11
 MAINTAINER sig-platform@spinnaker.io
 COPY clouddriver-web/build/install/clouddriver /opt/clouddriver
 
-ENV KUBECTL_VERSION v1.16.9
+ENV KUBECTL_VERSION v1.17.6
 
 RUN apk --no-cache add --update bash wget unzip openjdk8 'python2>2.7.9' && \
   wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
