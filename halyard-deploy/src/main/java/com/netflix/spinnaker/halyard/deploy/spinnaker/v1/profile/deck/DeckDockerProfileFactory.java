@@ -87,12 +87,5 @@ public class DeckDockerProfileFactory extends DeckProfileFactory {
             "PASSPHRASE", secretSessionManager.decrypt(apacheSsl.getSslCertificatePassphrase()));
       }
     }
-
-    env.put(
-        "AUTH_ENABLED",
-        Boolean.toString(deploymentConfiguration.getSecurity().getAuthn().isEnabled()));
-    env.put(
-        "FIAT_ENABLED",
-        Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
   }
 }
