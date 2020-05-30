@@ -550,7 +550,7 @@ public class JobDescription {
       containerBuilder.addEntryPoint(entryPoint);
     }
 
-    if (cmd != null || !cmd.isEmpty()) {
+    if (cmd != null && !cmd.isEmpty()) {
       containerBuilder.addCommand(cmd);
     }
 

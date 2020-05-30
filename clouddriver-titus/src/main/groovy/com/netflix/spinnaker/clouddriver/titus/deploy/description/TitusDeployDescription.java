@@ -126,7 +126,6 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
             .stack(stack)
             .detail(freeFormDetails)
             .entryPoint(entryPoint)
-            .cmd(cmd)
             .iamProfile(iamProfile)
             .capacityGroup(capacityGroup)
             .labels(labels)
@@ -137,6 +136,10 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
             .disruptionBudget(disruptionBudget)
             .signedAddressAllocations(resources.getSignedAddressAllocations())
             .serviceJobProcesses(serviceJobProcesses);
+
+    if (cmd != null && !cmd.isEmpty()) {
+      submitJobRequest.cmd(cmd);
+    }
 
     if (!securityGroups.isEmpty()) {
       submitJobRequest.securityGroups(securityGroups);
