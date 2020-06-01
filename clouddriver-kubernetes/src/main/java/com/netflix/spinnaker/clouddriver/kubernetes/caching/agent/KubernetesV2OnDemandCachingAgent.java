@@ -338,11 +338,10 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
   @Override
   public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    if (!handleReadRequests()) {
+    if (!handlePendingOnDemandRequests()) {
       return ImmutableList.of();
     }
 
-    List<KubernetesKind> primaryKinds = primaryKinds();
     List<String> matchingKeys =
         providerCache.getIdentifiers(ON_DEMAND_TYPE).stream()
             .map(Keys::parseKey)
@@ -350,10 +349,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
             .map(Optional::get)
             .filter(k -> k instanceof Keys.InfrastructureCacheKey)
             .map(i -> (Keys.InfrastructureCacheKey) i)
-            .filter(
-                i ->
-                    i.getAccount().equals(getAccountName())
-                        && primaryKinds.contains(i.getKubernetesKind()))
+            .filter(i -> i.getAccount().equals(getAccountName()))
             .map(Keys.InfrastructureCacheKey::toString)
             .collect(Collectors.toList());
 
@@ -384,13 +380,25 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   }
 
   /**
-   * When fetching on-demand requests, we delegate to single caching agent, as the read request from
-   * the cache will return results for all namespaces anyway. This way we avoid having all agents
-   * perform the same query and filter to their namespaces, only to then re-combine all the results
-   * in the end.
+   * When fetching on-demand requests, we delegate to single caching agent per account to avoid
+   * duplicate work. During caching cycles, when we make calls to kubernetes to fetch data about the
+   * cluster and write this data to the cache, there is often a performance benefit to sharding work
+   * among multiple agents so that it can happen in parallel.
+   *
+   * <p>When fetching on-demand requests, however, the current API is to return all on-demand
+   * requests without any filtering. As the cache is not designed for a caching agent to be able to
+   * query only its own on-demand requests, our options are: (1) Fan out to all the caching agents.
+   * Each agent fetches all on-demand requests, then filters down to the ones that it owns. Then
+   * combine these results to get the full set of on-demand requests. (2) Just pick a single caching
+   * agent and have it get all the on-demand requests and return them.
+   *
+   * <p>For performance reasons, we'll go with option (2) and delegate a single caching agent to
+   * return all on-demand cache requests for the account. As every account will have a
+   * KubernetesCoreCachingAgent, we'll have that agent handle on-demand requests (by overriding this
+   * function) while every other agent will ignore these.
    */
-  private boolean handleReadRequests() {
-    return agentIndex == 0;
+  protected boolean handlePendingOnDemandRequests() {
+    return false;
   }
 
   private boolean handleNamespace(String namespace) {
