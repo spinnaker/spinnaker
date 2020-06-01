@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
-import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -238,7 +237,7 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(bakeStage)
 
     then:
-    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Observable.from(runningStatus)
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> runningStatus
   }
 
   def "should surface error message (if available) on a 404"() {
@@ -276,7 +275,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        Observable.from(runningStatus)
+        runningStatus
       }
     }
 
@@ -323,7 +322,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        Observable.from(runningStatus)
+        runningStatus
       }
     }
 
@@ -447,7 +446,7 @@ class CreateBakeTaskSpec extends Specification {
   def "outputs the status of the bake"() {
     given:
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -477,7 +476,7 @@ class CreateBakeTaskSpec extends Specification {
   def "outputs the packageName of the bake"() {
     given:
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -517,7 +516,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -568,7 +567,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -617,7 +616,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -666,7 +665,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -715,7 +714,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(runningStatus)
+      createBake(*_) >> runningStatus
     }
 
     and:
@@ -796,7 +795,7 @@ class CreateBakeTaskSpec extends Specification {
           it.buildNumber == "69"
         it.commitHash == null
       },
-      null) >> Observable.from(runningStatus)
+      null) >> runningStatus
 
     where:
     triggerInfo      | contextInfo
@@ -850,7 +849,7 @@ class CreateBakeTaskSpec extends Specification {
           it.buildNumber == null &&
           it.commitHash == null
       },
-      null) >> Observable.from(runningStatus)
+      null) >> runningStatus
 
     where:
     triggerInfo      | contextInfo
@@ -904,7 +903,7 @@ class CreateBakeTaskSpec extends Specification {
           it.buildNumber == null &&
           it.commitHash == null
       },
-      null) >> Observable.from(runningStatus)
+      null) >> runningStatus
 
     where:
     triggerInfo | contextInfo
@@ -924,7 +923,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        Observable.from(runningStatus)
+        runningStatus
       }
     }
 
@@ -957,7 +956,7 @@ class CreateBakeTaskSpec extends Specification {
   def "sets previouslyBaked flag to #previouslyBaked when status is #status.state"() {
     given:
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> Observable.from(status)
+      createBake(*_) >> status
     }
 
     and:
@@ -1018,7 +1017,7 @@ class CreateBakeTaskSpec extends Specification {
           it.baseLabel == "release" &&
           it.baseOs == "ubuntu"
       } as BakeRequest,
-      "1") >> Observable.from(runningStatus)
+      "1") >> runningStatus
     0 * _
   }
 
@@ -1057,7 +1056,7 @@ class CreateBakeTaskSpec extends Specification {
           it.baseLabel == "release" &&
           it.baseOs == "ubuntu"
       } as BakeRequest,
-      queryParameter) >> Observable.from(runningStatus)
+      queryParameter) >> runningStatus
     0 * _
 
     when:
@@ -1075,7 +1074,7 @@ class CreateBakeTaskSpec extends Specification {
           it.baseLabel == "release" &&
           it.baseOs == "ubuntu"
       } as BakeRequest,
-      null) >> Observable.from(runningStatus)
+      null) >> runningStatus
     0 * _
 
     where:

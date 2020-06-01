@@ -54,7 +54,7 @@ class MonitorBakeTask implements OverridableTimeoutRetryableTask {
 
     try {
       def bakery = bakerySelector.select(stage)
-      def newStatus = bakery.service.lookupStatus(region, previousStatus.id).toBlocking().single()
+      def newStatus = bakery.service.lookupStatus(region, previousStatus.id)
       if (isCanceled(newStatus.state) && previousStatus.state == BakeStatus.State.PENDING) {
         log.info("Original bake was 'canceled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
         def rebakeResult = createBakeTask.execute(stage)

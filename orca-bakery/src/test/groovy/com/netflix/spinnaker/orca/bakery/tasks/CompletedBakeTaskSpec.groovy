@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
-import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -50,7 +49,7 @@ class CompletedBakeTaskSpec extends Specification {
   def "finds the AMI and artifact created by a bake"() {
     given:
     def bakery = Stub(BakeryService) {
-      lookupBake(region, bakeId) >> Observable.from(new Bake(id: bakeId, ami: ami, artifact: artifact))
+      lookupBake(region, bakeId) >> new Bake(id: bakeId, ami: ami, artifact: artifact)
     }
 
     task.bakerySelector = Mock(BakerySelector)

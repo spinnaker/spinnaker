@@ -40,7 +40,7 @@ class CompletedBakeTask implements Task {
   TaskResult execute(@Nonnull StageExecution stage) {
     def bakery = bakerySelector.select(stage)
     def bakeStatus = stage.context.status as BakeStatus
-    def bake = bakery.service.lookupBake(stage.context.region as String, bakeStatus.resourceId).toBlocking().first()
+    def bake = bakery.service.lookupBake(stage.context.region as String, bakeStatus.resourceId)
     // This treatment of ami allows both the aws and gce bake results to be propagated.
     def results = [
       ami: bake.ami ?: bake.imageName,

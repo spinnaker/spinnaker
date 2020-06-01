@@ -88,7 +88,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect:
-    with(bakery.lookupStatus(region, statusId).toBlocking().first()) {
+    with(bakery.lookupStatus(region, statusId)) {
       id == statusId
       state == BakeStatus.State.COMPLETED
       resourceId == bakeId
@@ -106,7 +106,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     when:
-    bakery.lookupStatus(region, statusId).toBlocking().first()
+    bakery.lookupStatus(region, statusId)
 
     then:
     def ex = thrown(RetrofitError)
@@ -136,7 +136,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake, null).toBlocking().first()) {
+    with(bakery.createBake(region, bake, null)) {
       id == statusId
       state == BakeStatus.State.PENDING
       resourceId == bakeId
@@ -175,7 +175,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake, null).toBlocking().first()) {
+    with(bakery.createBake(region, bake, null)) {
       id == statusId
       state == BakeStatus.State.RUNNING
       resourceId == bakeId
@@ -202,7 +202,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect:
-    with(bakery.lookupBake(region, bakeId).toBlocking().first()) {
+    with(bakery.lookupBake(region, bakeId)) {
       id == bakeId
       ami == "ami"
     }

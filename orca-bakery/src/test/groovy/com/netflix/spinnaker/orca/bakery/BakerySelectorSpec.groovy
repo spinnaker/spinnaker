@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
 import retrofit.http.Body
 import retrofit.http.Path
 import retrofit.http.Query
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -132,22 +131,22 @@ class BakerySelectorSpec extends Specification {
     }
 
     @Override
-    Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake) {
+    BakeStatus createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake) {
       return null
     }
 
     @Override
-    Observable<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId) {
+    BakeStatus lookupStatus(@Path("region") String region, @Path("statusId") String statusId) {
       return null
     }
 
     @Override
-    Observable<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId) {
+    Bake lookupBake(@Path("region") String region, @Path("bakeId") String bakeId) {
       return null
     }
 
     @Override
-    Observable<BaseImage> getBaseImage(@Path("cloudProvider") String cloudProvider, @Path("imageId") String imageId) {
+    BaseImage getBaseImage(@Path("cloudProvider") String cloudProvider, @Path("imageId") String imageId) {
       return null
     }
   }

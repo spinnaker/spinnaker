@@ -94,7 +94,7 @@ class CreateBakeTask implements RetryableTask {
       // throw a Retrofit exception (HTTP 404 Not Found)
       def bake = bakeFromContext(stage, bakery)
       String rebake = shouldRebake(stage) ? "1" : null
-      def bakeStatus = bakery.service.createBake(stage.context.region as String, bake, rebake).toBlocking().single()
+      def bakeStatus = bakery.service.createBake(stage.context.region as String, bake, rebake)
 
       def stageOutputs = [
         status         : bakeStatus,

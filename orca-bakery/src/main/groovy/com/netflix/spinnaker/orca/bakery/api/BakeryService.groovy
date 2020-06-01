@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.bakery.api
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import retrofit.http.*
-import rx.Observable
 
 
 /**
@@ -31,13 +30,13 @@ interface BakeryService {
   Artifact bakeManifest(@Path("type") String type, @Body BakeManifestRequest bake)
 
   @POST("/api/v1/{region}/bake")
-  Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
+  BakeStatus createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
 
   @GET("/api/v1/{region}/status/{statusId}")
-  Observable<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId)
+  BakeStatus lookupStatus(@Path("region") String region, @Path("statusId") String statusId)
 
   @GET("/api/v1/{region}/bake/{bakeId}")
-  Observable<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
+  Bake lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
 
   //
   // Methods below this line are not supported by the Netflix Bakery, and are only available
@@ -45,6 +44,6 @@ interface BakeryService {
   //
 
   @GET("/bakeOptions/{cloudProvider}/baseImages/{imageId}")
-  Observable<BaseImage> getBaseImage(@Path("cloudProvider") String cloudProvider,
+  BaseImage getBaseImage(@Path("cloudProvider") String cloudProvider,
                                      @Path("imageId") String imageId)
 }
