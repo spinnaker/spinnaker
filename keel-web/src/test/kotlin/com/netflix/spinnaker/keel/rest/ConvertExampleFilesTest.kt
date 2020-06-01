@@ -25,8 +25,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
-import com.netflix.spinnaker.keel.bakery.BAKERY_API_V1
-import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -43,7 +41,6 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     before {
       mapper.registerSubtypes(NamedType(ClusterSpec::class.java, SPINNAKER_EC2_API_V1.qualify("cluster").toString()))
       mapper.registerSubtypes(NamedType(SecurityGroupSpec::class.java, SPINNAKER_EC2_API_V1.qualify("security-group").toString()))
-      mapper.registerSubtypes(NamedType(ImageSpec::class.java, BAKERY_API_V1.qualify("image").toString()))
       mapper.registerSubtypes(NamedType(ClassicLoadBalancerSpec::class.java, SPINNAKER_EC2_API_V1.qualify("classic-load-balancer").toString()))
       mapper.registerSubtypes(NamedType(ApplicationLoadBalancerSpec::class.java, SPINNAKER_EC2_API_V1.qualify("application-load-balancer").toString()))
       mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, SPINNAKER_TITUS_API_V1.qualify("cluster").toString()))
