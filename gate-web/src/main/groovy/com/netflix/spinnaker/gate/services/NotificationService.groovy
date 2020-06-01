@@ -34,6 +34,10 @@ import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import retrofit.Endpoint
+import retrofit.RetrofitError
+
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import static retrofit.RetrofitError.Kind.HTTP
 
 @CompileStatic
 @Component
@@ -75,23 +79,33 @@ class NotificationService {
     // the original body unmodified along to echo.
     Endpoint echoEndpoint = serviceConfiguration.getServiceEndpoint("echo")
 
+    log.debug("Building echo request with URL ${echoEndpoint.url + request.url.path}, Content-Type: $contentType")
     Request.Builder builder = new Request.Builder()
       .url(echoEndpoint.url + request.url.path)
       .post(RequestBody.create(mediaType, request.body))
 
     request.getHeaders().each { String name, List values ->
       values.each { value ->
+        log.debug("Relaying request header $name: $value")
         builder.addHeader(name, value.toString())
       }
     }
 
     Request echoRequest = builder.build();
-    Response response = okHttpClient.newCall(echoRequest).execute()
-
-    // convert retrofit response to Spring format
-    String body = response.body().contentLength() > 0 ? response.body().string() : null
-    HttpHeaders headers = new HttpHeaders()
-    headers.putAll(response.headers().toMultimap())
-    return new ResponseEntity(body, headers, HttpStatus.valueOf(response.code()))
+    try {
+      Response response = okHttpClient.newCall(echoRequest).execute()
+      // convert retrofit response to Spring format
+      String body = response.body().contentLength() > 0 ? response.body().string() : null
+      HttpHeaders headers = new HttpHeaders()
+      headers.putAll(response.headers().toMultimap())
+      return new ResponseEntity(body, headers, HttpStatus.valueOf(response.code()))
+    } catch (RetrofitError error) {
+      log.error("Error proxying notification callback to echo: $error")
+      if (error.getKind() == HTTP) {
+        throw error
+      } else {
+        return new ResponseEntity(INTERNAL_SERVER_ERROR)
+      }
+    }
   }
 }
