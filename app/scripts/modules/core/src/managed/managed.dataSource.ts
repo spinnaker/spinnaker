@@ -62,7 +62,7 @@ module(MANAGED_RESOURCES_DATA_SOURCE, []).run([
       optIn: true,
       label: 'Environments',
       icon: 'fa fa-fw fa-xs fa-code-branch',
-      iconName: 'spCIBranch',
+      iconName: 'spEnvironments',
       description: '[beta] Artifacts and environments managed by Spinnaker',
       loader: loadEnvironments,
       onLoad: addEnvironments,
