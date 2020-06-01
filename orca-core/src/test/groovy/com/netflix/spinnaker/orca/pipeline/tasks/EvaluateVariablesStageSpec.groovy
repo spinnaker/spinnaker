@@ -61,4 +61,24 @@ class EvaluateVariablesStageSpec extends Specification {
     summary.totalEvaluated == 5
     summary.failureCount == 1
   }
+
+  void "Should eval non-variable part of context"() {
+    setup:
+    def summary = new ExpressionEvaluationSummary()
+
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["notifications"] = [
+          [address: '${"someone" + "@somewhere.com"}']
+          ]
+    }
+
+    when:
+    def shouldContinue = evaluateVariablesStage.processExpressions(stage, contextParameterProcessor, summary)
+
+    then:
+    shouldContinue == false
+    stage.context.notifications[0].address == "someone@somewhere.com"
+  }
 }

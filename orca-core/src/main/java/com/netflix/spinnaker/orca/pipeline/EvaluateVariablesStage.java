@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EvaluateVariablesStage implements ExpressionAwareStageDefinitionBuilder {
+public class EvaluateVariablesStage extends ExpressionAwareStageDefinitionBuilder {
   public static String STAGE_TYPE = "evaluateVariables";
 
   private ObjectMapper mapper;
@@ -55,6 +55,9 @@ public class EvaluateVariablesStage implements ExpressionAwareStageDefinitionBui
       @Nonnull ContextParameterProcessor contextParameterProcessor,
       @Nonnull ExpressionEvaluationSummary summary) {
 
+    processDefaultEntries(
+        stage, contextParameterProcessor, summary, Collections.singletonList("variables"));
+
     EvaluateVariablesStageContext context = stage.mapTo(EvaluateVariablesStageContext.class);
     StageContext augmentedContext = contextParameterProcessor.buildExecutionContext(stage);
     Map<String, Object> varSourceToEval = new HashMap<>();
@@ -73,10 +76,10 @@ public class EvaluateVariablesStage implements ExpressionAwareStageDefinitionBui
             contextParameterProcessor.process(varSourceToEval, augmentedContext, true, summary);
 
         // Since we process one variable at a time, the way we know if the current variable was
-        // evaluated properly is by
-        // checking if the total number of failures has changed since last evaluation. We can make
-        // this nicer, but that
-        // will involve a decent refactor of ExpressionEvaluationSummary
+        // evaluated properly is by checking if the total number of failures has changed since
+        // last evaluation.
+        // We can make this nicer, but that will involve a decent refactor of
+        // ExpressionEvaluationSummary
         boolean evaluationSucceeded = summary.getFailureCount() == lastFailedCount;
         if (evaluationSucceeded) {
           var.setValue(evaluatedVar.get("var"));
