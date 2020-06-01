@@ -87,8 +87,25 @@ export const viewConfigurationByStatus: { [status in ManagedResourceStatus]: IVi
           <b>Waiting for a temporary issue to pass.</b>
         </p>
         <p>
-          Something required for management is not ready yet or temporarily experiencing issues. Automatic action can't
-          be taken right now, but will likely resume soon. Check the History for details.{' '}
+          Something required for management is temporarily experiencing issues. Automatic action can't be taken right
+          now, but will likely resume soon. Check the History for details.{' '}
+          <LearnMoreLink resourceSummary={resourceSummary} />
+        </p>
+      </>
+    ),
+  },
+  MISSING_DEPENDENCY: {
+    appearance: 'warning',
+    // Needs its own icon
+    iconName: 'mdError',
+    popoverContents: (resourceSummary: IManagedResourceSummary) => (
+      <>
+        <p>
+          <b>Waiting for a missing dependency to become available.</b>
+        </p>
+        <p>
+          Something required for management isn't ready yet. Automatic action can't be taken right now, but will resume
+          once the necessary dependencies exist. Check the History for details.{' '}
           <LearnMoreLink resourceSummary={resourceSummary} />
         </p>
       </>
