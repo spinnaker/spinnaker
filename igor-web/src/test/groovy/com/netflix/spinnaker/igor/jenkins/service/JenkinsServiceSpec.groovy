@@ -723,7 +723,7 @@ class JenkinsServiceSpec extends Specification {
     }
 
     @Unroll
-    def "getBuildProperties do not retry on 404"() {
+    def "getBuildProperties retries on 404"() {
       given:
       def jobName = "job1"
       def buildNumber = 10
@@ -741,13 +741,44 @@ class JenkinsServiceSpec extends Specification {
         null,
         null
       )
+      def propertyFile = new Response("http://my.jenkins.net", 200, "", [], new TypedString("a=b"))
 
       when:
       def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
 
       then:
       1 * client.getBuild(jobName, buildNumber) >> build
-      1 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw notFoundError }
+      2 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw notFoundError } >> propertyFile
+
+      properties == [a: "b"]
+    }
+
+    @Unroll
+    def "getBuildProperties does not retry on 400"() {
+      given:
+      def jobName = "job1"
+      def buildNumber = 10
+      def artifact = new BuildArtifact()
+      artifact.displayPath = "test.properties"
+      artifact.relativePath = "test.properties"
+      artifact.fileName = "test.properties"
+      def build = new Build()
+      build.number = buildNumber
+      build.duration = 0L
+      build.artifacts = [artifact]
+      def badRequestError = RetrofitError.httpError(
+        "http://my.jenkins.net",
+        new Response("http://my.jenkins.net", 400, "bad request", [], null),
+        null,
+        null
+      )
+
+      when:
+      def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
+
+      then:
+      1 * client.getBuild(jobName, buildNumber) >> build
+      1 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw badRequestError }
 
       properties == [:]
     }

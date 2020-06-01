@@ -314,14 +314,16 @@ public class JenkinsService implements BuildOperations, BuildProperties {
           try {
             return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName);
           } catch (RetrofitError e) {
-            // do not retry on client/deserialization error
-            if (e.getKind() == RetrofitError.Kind.CONVERSION
-                || (e.getResponse().getStatus() >= 400 && e.getResponse().getStatus() < 500)) {
-              SpinnakerException ex = new SpinnakerException(e);
-              ex.setRetryable(false);
-              throw ex;
+            // retry on network issue, 404 and 5XX
+            if (e.getKind() == RetrofitError.Kind.NETWORK
+                || (e.getKind() == RetrofitError.Kind.HTTP
+                    && (e.getResponse().getStatus() == 404
+                        || e.getResponse().getStatus() >= 500))) {
+              throw e;
             }
-            throw e;
+            SpinnakerException ex = new SpinnakerException(e);
+            ex.setRetryable(false);
+            throw ex;
           }
         },
         5,
