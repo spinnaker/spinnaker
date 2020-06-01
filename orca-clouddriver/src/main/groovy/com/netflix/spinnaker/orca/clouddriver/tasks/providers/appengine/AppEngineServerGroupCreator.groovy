@@ -76,8 +76,7 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
       if (configArtifacts != null && configArtifacts.size() > 0) {
         operation.configArtifacts = configArtifacts.collect { artifactAccountPair ->
           def artifact = artifactUtils.getBoundArtifactForStage(stage, artifactAccountPair.id, artifactAccountPair.artifact)
-          artifact.artifactAccount = artifactAccountPair.account
-          return artifact
+          return ArtifactUtils.withAccount(artifact, artifactAccountPair.account)
         }
       }
     }

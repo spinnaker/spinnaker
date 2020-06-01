@@ -81,7 +81,7 @@ public class StartGoogleCloudBuildTask implements Task {
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).build();
   }
 
-  private Map<String, Object> getBuildDefinitionFromArtifact(
+  private Artifact getBuildDefinitionArtifact(
       @Nonnull StageExecution stage, GoogleCloudBuildStageDefinition stageDefinition) {
     Artifact buildDefinitionArtifact =
         artifactUtils.getBoundArtifactForStage(
@@ -93,15 +93,19 @@ public class StartGoogleCloudBuildTask implements Task {
       throw new IllegalArgumentException("No manifest artifact was specified.");
     }
 
-    if (stageDefinition.getBuildDefinitionArtifact().getArtifactAccount() != null) {
-      buildDefinitionArtifact.setArtifactAccount(
-          stageDefinition.getBuildDefinitionArtifact().getArtifactAccount());
-    }
-
+    buildDefinitionArtifact =
+        ArtifactUtils.withAccount(
+            buildDefinitionArtifact,
+            stageDefinition.getBuildDefinitionArtifact().getArtifactAccount());
     if (buildDefinitionArtifact.getArtifactAccount() == null) {
       throw new IllegalArgumentException("No manifest artifact account was specified.");
     }
+    return buildDefinitionArtifact;
+  }
 
+  private Map<String, Object> getBuildDefinitionFromArtifact(
+      @Nonnull StageExecution stage, GoogleCloudBuildStageDefinition stageDefinition) {
+    final Artifact buildDefinitionArtifact = getBuildDefinitionArtifact(stage, stageDefinition);
     Map<String, Object> buildDefinition =
         retrySupport.retry(
             () -> {

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
@@ -55,12 +56,13 @@ public class ConsumeArtifactTask implements Task {
     Map<String, Object> task = stage.getContext();
     String artifactId = (String) task.get("consumeArtifactId");
 
-    Artifact artifact = artifactUtils.getBoundArtifactForId(stage, artifactId);
-    if (artifact == null) {
-      throw new IllegalArgumentException("No artifact could be bound to '" + artifactId + "'");
-    }
-
-    artifact.setArtifactAccount((String) task.get("consumeArtifactAccount"));
+    Artifact artifact =
+        Optional.ofNullable(artifactUtils.getBoundArtifactForId(stage, artifactId))
+            .map(a -> ArtifactUtils.withAccount(a, (String) task.get("consumeArtifactAccount")))
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "No artifact could be bound to '" + artifactId + "'"));
 
     InputStream fetchedArtifact =
         retrySupport.retry(

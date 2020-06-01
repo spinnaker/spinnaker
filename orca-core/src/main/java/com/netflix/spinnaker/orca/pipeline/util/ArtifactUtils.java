@@ -22,6 +22,7 @@ import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
@@ -38,6 +39,8 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -146,33 +149,37 @@ public class ArtifactUtils {
       return null;
     }
 
-    Optional<ExpectedArtifact> expectedArtifactOptional =
-        Optional.ofNullable(
-                (List<?>) ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts"))
-            .map(Collection::stream)
-            .orElse(Stream.empty())
-            .filter(Objects::nonNull)
-            .flatMap(it -> ((List<?>) it).stream())
-            .map(
-                a ->
-                    a instanceof Map
-                        ? objectMapper.convertValue(a, ExpectedArtifact.class)
-                        : (ExpectedArtifact) a)
-            .filter(e -> e.getId().equals(id))
-            .findFirst();
+    return Optional.ofNullable(
+            (List<?>) ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts"))
+        .map(Collection::stream)
+        .orElse(Stream.empty())
+        .filter(Objects::nonNull)
+        .flatMap(it -> ((List<?>) it).stream())
+        .map(
+            a ->
+                a instanceof Map
+                    ? objectMapper.convertValue(a, ExpectedArtifact.class)
+                    : (ExpectedArtifact) a)
+        .filter(e -> e.getId().equals(id))
+        .findFirst()
+        .flatMap(this::getBoundArtifact)
+        .orElse(null);
+  }
 
-    expectedArtifactOptional.ifPresent(
-        expectedArtifact -> {
-          Artifact boundArtifact = expectedArtifact.getBoundArtifact();
-          Artifact matchArtifact = expectedArtifact.getMatchArtifact();
-          if (boundArtifact != null
-              && matchArtifact != null
-              && boundArtifact.getArtifactAccount() == null) {
-            boundArtifact.setArtifactAccount(matchArtifact.getArtifactAccount());
-          }
-        });
-
-    return expectedArtifactOptional.map(ExpectedArtifact::getBoundArtifact).orElse(null);
+  private Optional<Artifact> getBoundArtifact(@Nonnull ExpectedArtifact expectedArtifact) {
+    String matchAccount =
+        Optional.ofNullable(expectedArtifact.getMatchArtifact())
+            .map(Artifact::getArtifactAccount)
+            .orElse(null);
+    return Optional.ofNullable(expectedArtifact.getBoundArtifact())
+        .map(
+            boundArtifact -> {
+              if (Strings.isNullOrEmpty(boundArtifact.getArtifactAccount())) {
+                return boundArtifact.toBuilder().artifactAccount(matchAccount).build();
+              } else {
+                return boundArtifact;
+              }
+            });
   }
 
   public List<Artifact> getArtifactsForPipelineId(String pipelineId, ExecutionCriteria criteria) {
@@ -239,6 +246,32 @@ public class ArtifactUtils {
       throw new ArtifactResolutionException(
           "Failed to store artifacts in trigger: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * If the input account is non-null and non-empty, returns a copy of the input artifact with its
+   * account set to the input account. Otherwise, returns the input artifact unmodified.
+   *
+   * <p>This function never mutates the input artifact.
+   *
+   * <p>A number of stages expect an artifact's account to be defined somewhere outside the artifact
+   * (such as a field on the stage context). These stages need to take the resolved artifact and
+   * augment it with an account at some point after it has been resolved.
+   *
+   * <p>This pattern is not encouraged, an in general the account should be specified on the
+   * expected artifact in the stage. To simplify the code in these legacy stages, this function will
+   * augment the supplied artifact with the supplied account (if non-empty and non-null).
+   *
+   * @param artifact The artifact to augment with an account
+   * @param account The account to add to the artifact
+   * @return The augmented artifact
+   */
+  @CheckReturnValue
+  public static Artifact withAccount(@Nonnull Artifact artifact, @Nullable String account) {
+    if (Strings.isNullOrEmpty(account)) {
+      return artifact;
+    }
+    return artifact.toBuilder().artifactAccount(account).build();
   }
 
   private List<Artifact> getPriorArtifacts(Map<String, Object> pipeline) {

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
-import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
@@ -99,10 +98,7 @@ public class CreateBakeManifestTask implements RetryableTask {
                             "Input artifact (id: %s, account: %s) could not be found in execution (id: %s).",
                             p.getId(), p.getAccount(), stage.getExecution().getId()));
                   }
-                  if (!Strings.isNullOrEmpty(p.getAccount())) {
-                    a.setArtifactAccount(p.getAccount());
-                  }
-                  return a;
+                  return ArtifactUtils.withAccount(a, p.getAccount());
                 })
             .collect(Collectors.toList());
 

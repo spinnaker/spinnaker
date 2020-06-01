@@ -171,13 +171,12 @@ public class ManifestEvaluator implements CloudProviderAware {
         Optional.ofNullable(
                 artifactUtils.getBoundArtifactForStage(
                     stage, context.getManifestArtifactId(), context.getManifestArtifact()))
+            // Once the legacy artifacts feature is removed, all trigger expected artifacts will be
+            // required to define an account up front.
+            .map(
+                artifact ->
+                    ArtifactUtils.withAccount(artifact, context.getManifestArtifactAccount()))
             .orElseThrow(() -> new IllegalArgumentException("No manifest artifact was specified."));
-
-    // Once the legacy artifacts feature is removed, all trigger expected artifacts will be
-    // required to define an account up front.
-    if (context.getManifestArtifactAccount() != null) {
-      manifestArtifact.setArtifactAccount(context.getManifestArtifactAccount());
-    }
 
     checkArgument(
         manifestArtifact.getArtifactAccount() != null,
