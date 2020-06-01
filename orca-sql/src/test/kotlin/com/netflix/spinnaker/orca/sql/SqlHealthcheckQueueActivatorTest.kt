@@ -25,7 +25,7 @@ import com.nhaarman.mockito_kotlin.whenever
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.jooq.DSLContext
-import org.jooq.DeleteWhereStep
+import org.jooq.DeleteUsingStep
 import org.jooq.Table
 import strikt.api.expectThat
 import strikt.assertions.isFalse
@@ -36,7 +36,7 @@ class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
   fun tests() = rootContext<Unit> {
 
     val dslContext = mock<DSLContext>()
-    val query = mock<DeleteWhereStep<*>>()
+    val query = mock<DeleteUsingStep<*>>()
 
     after {
       reset(dslContext, query)
