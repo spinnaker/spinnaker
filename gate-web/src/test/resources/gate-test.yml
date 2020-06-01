@@ -11,6 +11,8 @@ services:
 
   fiat.enabled: false
 
+  fiat.baseUrl: "http://localhost:8082"
+
   front50.baseUrl: "http://localhost:8080"
 
   igor.enabled: false
@@ -24,6 +26,9 @@ services:
   mine.enabled: false
 
   swabbie.enabled: false
+
+slack:
+  baseUrl: "https://slack.com"
 
 ---
 
