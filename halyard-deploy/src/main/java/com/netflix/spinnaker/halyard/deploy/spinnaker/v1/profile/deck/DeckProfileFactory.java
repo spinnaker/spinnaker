@@ -157,8 +157,6 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure Appengine
     AppengineProvider appengineProvider = deploymentConfiguration.getProviders().getAppengine();
     bindings.put("appengine.default.account", appengineProvider.getPrimaryAccount());
-    bindings.put(
-        "appengine.enabled", Boolean.toString(appengineProvider.getPrimaryAccount() != null));
 
     // Configure DC/OS
     final DCOSProvider dcosProvider = deploymentConfiguration.getProviders().getDcos();
