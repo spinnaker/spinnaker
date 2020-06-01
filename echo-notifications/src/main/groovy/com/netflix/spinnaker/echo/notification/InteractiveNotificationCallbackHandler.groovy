@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.echo.notification;
 
-import com.jakewharton.retrofit.Ok3Client;
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.api.Notification;
 import com.netflix.spinnaker.echo.api.Notification.InteractiveActionCallback;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -29,7 +31,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component
+import retrofit.Endpoint;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.client.Response;
@@ -45,18 +48,18 @@ import retrofit.http.POST;
 class InteractiveNotificationCallbackHandler {
   private final Logger log = LoggerFactory.getLogger(InteractiveNotificationCallbackHandler.class);
 
-  private Ok3Client spinnakerServiceClient;
+  private OkHttpClientProvider clientProvider;
   private List<InteractiveNotificationService> notificationServices;
   private Environment environment;
   private Map<String, SpinnakerService> spinnakerServices = new HashMap<>();
 
   @Autowired
   InteractiveNotificationCallbackHandler(
-      Ok3Client spinnakerServiceClient,
+      OkHttpClientProvider clientProvider,
       List<InteractiveNotificationService> notificationServices,
       Environment environment
   ) {
-    this.spinnakerServiceClient = spinnakerServiceClient;
+    this.clientProvider = clientProvider;
     this.notificationServices = notificationServices;
     this.environment = environment;
   }
@@ -122,11 +125,19 @@ class InteractiveNotificationCallbackHandler {
             "Base URL for service " + serviceId + " not found in the configuration.");
       }
 
+      Endpoint endpoint = Endpoints.newFixedEndpoint(baseUrl)
+
       spinnakerServices.put(
         serviceId,
         new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(baseUrl))
-            .setClient(spinnakerServiceClient)
+            .setEndpoint(endpoint)
+            .setClient(
+              new Ok3Client(
+                clientProvider.getClient(
+                  new DefaultServiceEndpoint(serviceId, endpoint.getUrl())
+                )
+              )
+            )
             .setLogLevel(RestAdapter.LogLevel.BASIC)
             .setLog(new Slf4jRetrofitLogger(SpinnakerService.class))
             .setConverter(new JacksonConverter())
@@ -138,7 +149,7 @@ class InteractiveNotificationCallbackHandler {
     return spinnakerServices.get(serviceId);
   }
 
-  public interface SpinnakerService {
+  interface SpinnakerService {
     @POST("/notifications/callback")
     Response notificationCallback(
         @Body InteractiveActionCallback callback, @Header("X-SPINNAKER-USER") String user);
