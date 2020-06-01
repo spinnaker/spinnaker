@@ -72,7 +72,7 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Overri
       log.info("Canary $stage.id unhealthy, disabling")
       def operations = DeployedClustersUtil.toKatoAsgOperations('disableServerGroup', stage.context)
       log.info "Disabling canary $stage.id with ${operations}"
-      katoService.requestOperations(getCloudProvider(operations, stage), operations).toBlocking().first()
+      katoService.requestOperations(getCloudProvider(operations, stage), operations)
       outputs.disableRequested = true
     } else {
       outputs.disableRequested = false
@@ -85,7 +85,7 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Overri
         def resizeCapacity = [min: capacity, max: capacity, desired: capacity]
         def resizeOps = DeployedClustersUtil.toKatoAsgOperations('resizeServerGroup', stage.context).collect { it.resizeServerGroup.capacity = resizeCapacity; it  }
         outputs.scaleUp = scaleUp
-        outputs.scaleUp.katoId = katoService.requestOperations(getCloudProvider(resizeOps, stage), resizeOps).toBlocking().first().id
+        outputs.scaleUp.katoId = katoService.requestOperations(getCloudProvider(resizeOps, stage), resizeOps).id
         outputs.scaleUp.complete = true
         log.info("Canary $stage.id scale up requested")
       }

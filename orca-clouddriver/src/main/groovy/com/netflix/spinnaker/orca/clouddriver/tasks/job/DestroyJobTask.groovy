@@ -39,8 +39,7 @@ class DestroyJobTask extends AbstractCloudProviderAwareTask implements Task {
     String account = getCredentials(stage)
 
     def taskId = kato.requestOperations(cloudProvider, [[destroyJob: stage.context]])
-                     .toBlocking()
-                     .first()
+
     Map outputs = [
         "notification.type"  : "destroyjob",
         "kato.last.task.id"  : taskId,

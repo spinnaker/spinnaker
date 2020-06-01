@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce.StatefullyUpdateBootImageStage.StageData;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
@@ -35,7 +34,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 
 @Component
 public final class StatefullyUpdateBootImageTask extends AbstractCloudProviderAwareTask {
@@ -79,9 +77,7 @@ public final class StatefullyUpdateBootImageTask extends AbstractCloudProviderAw
             "bootImage", data.bootImage);
 
     Map<String, Map> operation = ImmutableMap.of(KATO_OP_NAME, opData);
-    Observable<TaskId> observable =
-        katoService.requestOperations(getCloudProvider(stage), ImmutableList.of(operation));
-    observable.toBlocking().first();
+    katoService.requestOperations(getCloudProvider(stage), ImmutableList.of(operation));
 
     ImmutableMap<String, ImmutableList<String>> modifiedServerGroups =
         ImmutableMap.of(data.getRegion(), ImmutableList.of(serverGroup.getName()));

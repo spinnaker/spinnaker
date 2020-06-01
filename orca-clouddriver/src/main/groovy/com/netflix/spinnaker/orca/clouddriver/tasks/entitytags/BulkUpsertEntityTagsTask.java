@@ -42,14 +42,12 @@ public class BulkUpsertEntityTagsTask implements RetryableTask {
   public TaskResult execute(StageExecution stage) {
     TaskId taskId =
         kato.requestOperations(
-                Collections.singletonList(
-                    new HashMap<String, Map>() {
-                      {
-                        put("bulkUpsertEntityTagsDescription", stage.getContext());
-                      }
-                    }))
-            .toBlocking()
-            .first();
+            Collections.singletonList(
+                new HashMap<String, Map>() {
+                  {
+                    put("bulkUpsertEntityTagsDescription", stage.getContext());
+                  }
+                }));
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
         .context(

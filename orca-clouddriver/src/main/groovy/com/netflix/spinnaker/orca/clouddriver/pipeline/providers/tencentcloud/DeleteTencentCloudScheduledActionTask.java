@@ -40,7 +40,7 @@ public class DeleteTencentCloudScheduledActionTask implements Task {
     map.put("deleteTencentCloudScheduledActionDescription", stage.getContext());
     Collection<Map<String, Map>> ops = new ArrayList<>();
     ops.add(map);
-    TaskId taskId = kato.requestOperations(ops).toBlocking().first();
+    TaskId taskId = kato.requestOperations(ops);
 
     Map<Object, Object> deployServerGroups =
         AsgDescriptionSupport.convertAsgsToDeploymentTargets(

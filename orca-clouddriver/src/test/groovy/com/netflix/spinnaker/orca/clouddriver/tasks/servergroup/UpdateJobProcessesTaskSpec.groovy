@@ -45,7 +45,7 @@ class UpdateJobProcessesTaskSpec extends Specification {
     def katoService = Mock(KatoService) {
       1 * requestOperations("titus", _) >> {
         operations = it[1]
-        rx.Observable.from(new TaskId(UUID.randomUUID().toString()))
+        new TaskId(UUID.randomUUID().toString())
       }
     }
     def task = new UpdateJobProcessesTask(katoService)

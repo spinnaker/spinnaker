@@ -42,8 +42,6 @@ class RebootInstancesTask extends AbstractCloudProviderAwareTask implements Task
     String account = getCredentials(stage)
 
     def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
-                     .toBlocking()
-                     .first()
 
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"           : "rebootinstances",

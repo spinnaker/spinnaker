@@ -50,7 +50,7 @@ class CreateServerGroupTask extends AbstractCloudProviderAwareTask implements Re
     }
 
     def ops = creator.getOperations(stage)
-    def taskId = kato.requestOperations(cloudProvider, ops).toBlocking().first()
+    def taskId = kato.requestOperations(cloudProvider, ops)
 
     Map outputs = [
         "notification.type"   : "createdeploy",

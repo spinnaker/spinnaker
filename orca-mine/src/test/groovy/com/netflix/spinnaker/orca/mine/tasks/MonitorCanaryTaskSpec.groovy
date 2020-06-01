@@ -185,7 +185,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ops.find(containsFirstServerGroup) &&
       ops.find(containsSecondServerGroup) &&
       ops.every(hasValidCapacity)
-      }) >> rx.Observable.just(new TaskId('blah'))
+      }) >> new TaskId('blah')
   }
 
   def 'should disable unhealthy canary'() {
@@ -252,7 +252,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ops.size() == 2 &&
       ops.find(containsFirstServerGroup)
       ops.find(containsSecondServerGroup)
-    }) >> rx.Observable.just(new TaskId('blah'))
+    }) >> new TaskId('blah')
   }
 
 }

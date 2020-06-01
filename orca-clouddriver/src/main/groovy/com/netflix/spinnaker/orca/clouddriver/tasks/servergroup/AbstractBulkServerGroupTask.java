@@ -119,8 +119,7 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
           operations.add(tmp);
         });
 
-    TaskId taskId =
-        katoService.requestOperations(request.cloudProvider, operations).toBlocking().first();
+    TaskId taskId = katoService.requestOperations(request.cloudProvider, operations);
 
     Map<String, Object> result = new HashMap<>();
     result.put("deploy.account.name", request.getCredentials());

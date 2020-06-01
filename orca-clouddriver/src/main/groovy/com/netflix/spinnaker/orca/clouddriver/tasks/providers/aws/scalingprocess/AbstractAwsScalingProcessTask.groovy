@@ -86,8 +86,6 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
     ]
     if (stageContext.processes) {
       def taskId = katoService.requestOperations(getCloudProvider(stage), [[(getType()): stageContext]])
-                              .toBlocking()
-                              .first()
 
       stageOutputs."kato.last.task.id" = taskId
     }

@@ -43,14 +43,12 @@ public class UpsertEntityTagsTask extends AbstractCloudProviderAwareTask impleme
   public TaskResult execute(StageExecution stage) {
     TaskId taskId =
         kato.requestOperations(
-                Collections.singletonList(
-                    new HashMap<String, Map>() {
-                      {
-                        put("upsertEntityTags", stage.getContext());
-                      }
-                    }))
-            .toBlocking()
-            .first();
+            Collections.singletonList(
+                new HashMap<String, Map>() {
+                  {
+                    put("upsertEntityTags", stage.getContext());
+                  }
+                }));
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
         .context(

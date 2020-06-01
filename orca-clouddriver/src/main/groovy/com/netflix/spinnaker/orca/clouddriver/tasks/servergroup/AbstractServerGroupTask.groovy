@@ -79,8 +79,6 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
     }
 
     def taskId = kato.requestOperations(cloudProvider, [[(serverGroupAction): operation]])
-        .toBlocking()
-        .first()
 
     def stageOutputs = [
         "notification.type"   : serverGroupAction.toLowerCase(),

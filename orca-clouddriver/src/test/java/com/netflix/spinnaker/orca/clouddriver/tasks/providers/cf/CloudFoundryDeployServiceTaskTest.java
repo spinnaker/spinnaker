@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import rx.Observable;
 
 class CloudFoundryDeployServiceTaskTest {
   @Test
@@ -58,8 +57,7 @@ class CloudFoundryDeployServiceTaskTest {
         new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     KatoService katoService = mock(KatoService.class);
-    when(katoService.requestOperations(any(), any()))
-        .thenReturn(Observable.just(new TaskId("taskid")));
+    when(katoService.requestOperations(any(), any())).thenReturn(new TaskId("taskid"));
 
     ManifestEvaluator manifestEvaluator = mock(ManifestEvaluator.class);
     ImmutableList<Map<Object, Object>> returnedManifests =

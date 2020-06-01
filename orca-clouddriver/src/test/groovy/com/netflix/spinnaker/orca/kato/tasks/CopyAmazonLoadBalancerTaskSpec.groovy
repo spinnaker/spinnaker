@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -77,7 +78,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     task.katoService = Mock(KatoService) {
       1 * requestOperations(_) >> { List params ->
         assert (params[0] as List).size() == targets.size()
-        rx.Observable.from(taskId)
+        taskId
       }
     }
 
@@ -99,7 +100,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     } as List<Map>
 
     where:
-    taskId = 1L
+    taskId = new TaskId("1")
     currentLoadBalancer = [
       loadBalancerName   : "example-frontend",
       healthCheck        : [:],

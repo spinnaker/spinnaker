@@ -46,10 +46,7 @@ public abstract class GenericUpdateManifestTask extends AbstractCloudProviderAwa
     Map<String, Map> operation =
         new ImmutableMap.Builder<String, Map>().put(taskName(), stage.getContext()).build();
 
-    TaskId taskId =
-        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
-            .toBlocking()
-            .first();
+    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation));
 
     Map<String, Object> outputs =
         new ImmutableMap.Builder<String, Object>()

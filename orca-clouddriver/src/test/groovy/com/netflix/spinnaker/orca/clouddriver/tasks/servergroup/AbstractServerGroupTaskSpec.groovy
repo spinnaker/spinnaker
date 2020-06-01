@@ -61,7 +61,7 @@ class AbstractServerGroupTaskSpec extends Specification {
       task.kato = Mock(KatoService) {
         1 * requestOperations(*_) >> {
           operations = it[1]
-          rx.Observable.from(taskId)
+          taskId
         }
       }
 
@@ -82,7 +82,7 @@ class AbstractServerGroupTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
       task.kato = Stub(KatoService) {
-        requestOperations(*_) >> rx.Observable.from(taskId)
+        requestOperations(*_) >> taskId
       }
 
     when:
@@ -98,7 +98,7 @@ class AbstractServerGroupTaskSpec extends Specification {
     setup:
       stage.context.target = TargetServerGroup.Params.Target.ancestor_asg_dynamic
       task.kato = Stub(KatoService) {
-        requestOperations(*_) >> rx.Observable.from(taskId)
+        requestOperations(*_) >> taskId
       }
       GroovyMock(TargetServerGroupResolver, global: true)
 

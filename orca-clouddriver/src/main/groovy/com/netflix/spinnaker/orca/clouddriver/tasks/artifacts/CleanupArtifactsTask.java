@@ -56,10 +56,7 @@ public class CleanupArtifactsTask extends AbstractCloudProviderAwareTask impleme
     Map<String, Map> operation =
         new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();
 
-    TaskId taskId =
-        kato.requestOperations(cloudProvider, Collections.singletonList(operation))
-            .toBlocking()
-            .first();
+    TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation));
 
     Map<String, Object> outputs =
         new ImmutableMap.Builder<String, Object>()

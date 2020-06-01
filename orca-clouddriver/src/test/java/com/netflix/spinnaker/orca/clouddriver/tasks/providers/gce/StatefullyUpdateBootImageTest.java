@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import rx.Observable;
 
 @ExtendWith(MockitoExtension.class)
 final class StatefullyUpdateBootImageTest {
@@ -54,8 +53,7 @@ final class StatefullyUpdateBootImageTest {
     when(resolver.resolve(any()))
         .thenReturn(
             ImmutableList.of(new TargetServerGroup(ImmutableMap.of("name", "testapp-v000"))));
-    when(katoService.requestOperations(any(), any()))
-        .thenReturn(Observable.just(new TaskId("10111")));
+    when(katoService.requestOperations(any(), any())).thenReturn(new TaskId("10111"));
 
     StageExecutionImpl stage = new StageExecutionImpl();
     stage.getContext().put("cloudProvider", "gce");

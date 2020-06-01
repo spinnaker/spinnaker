@@ -47,7 +47,7 @@ class DeleteLoadBalancerTaskSpec extends Specification {
     task.kato = Mock(KatoService) {
       1 * requestOperations(this.deleteLoadBalancerConfig.cloudProvider, _) >> {
         operations = it[1]
-        rx.Observable.from(taskId)
+        taskId
       }
     }
 
@@ -67,7 +67,7 @@ class DeleteLoadBalancerTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {
-      requestOperations(this.deleteLoadBalancerConfig.cloudProvider, _) >> rx.Observable.from(taskId)
+      requestOperations(this.deleteLoadBalancerConfig.cloudProvider, _) >> taskId
     }
 
     when:

@@ -28,7 +28,7 @@ import spock.lang.Unroll
 class AbstractAwsScalingProcessTaskSpec extends Specification {
   def katoService = Mock(KatoService) {
     _ * requestOperations(_, _) >> {
-      return rx.Observable.from([new TaskId(id: "1")])
+      return new TaskId(id: "1")
     }
   }
 
@@ -124,7 +124,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
       TargetServerGroup.isDynamicallyBound(stage) >> true
       TargetServerGroupResolver.fromPreviousStage(stage) >> tsg
       katoService.requestOperations("abc", { Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg" }) >> {
-        return rx.Observable.from([new TaskId(id: "1")])
+        return new TaskId(id: "1")
       }
       0 * katoService.requestOperations(_, _)
   }

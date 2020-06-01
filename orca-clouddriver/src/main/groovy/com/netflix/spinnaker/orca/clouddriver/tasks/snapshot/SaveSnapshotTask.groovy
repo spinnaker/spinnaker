@@ -39,8 +39,7 @@ class SaveSnapshotTask extends AbstractCloudProviderAwareTask implements Task {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
     def taskId = kato.requestOperations(cloudProvider, [[saveSnapshot: stage.context]])
-      .toBlocking()
-      .first()
+
     Map outputs = [
       "notification.type"     : "savesnapshot",
       "kato.last.task.id"     : taskId,

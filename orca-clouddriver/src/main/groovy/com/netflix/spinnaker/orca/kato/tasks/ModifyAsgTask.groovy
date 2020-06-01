@@ -36,8 +36,6 @@ class ModifyAsgTask implements Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def taskId = kato.requestOperations([[modifyAsgDescription: stage.context]])
-        .toBlocking()
-        .first()
 
     def deployServerGroups = AsgDescriptionSupport.convertAsgsToDeploymentTargets(stage.context.asgs)
 

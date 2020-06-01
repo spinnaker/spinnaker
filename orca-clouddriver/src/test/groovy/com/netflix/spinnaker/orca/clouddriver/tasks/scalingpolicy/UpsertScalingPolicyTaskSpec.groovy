@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-import rx.Observable
 
 class UpsertScalingPolicyTaskSpec extends Specification {
 
@@ -70,7 +69,7 @@ class UpsertScalingPolicyTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * katoService.requestOperations(_, _) >> { Observable.from(taskId) }
+    1 * katoService.requestOperations(_, _) >> { taskId }
     result.status.toString() == "SUCCEEDED"
   }
 }

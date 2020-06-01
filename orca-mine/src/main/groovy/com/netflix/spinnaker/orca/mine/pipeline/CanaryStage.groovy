@@ -130,7 +130,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
         katoService.requestOperations(
           disableContexts.first().disableServerGroup.cloudProvider,
           disableContexts
-        ).toBlocking().first()
+        )
         Thread.sleep(TimeUnit.SECONDS.toMillis(
           stage.context.clusterDisableWaitTime != null ? stage.context.clusterDisableWaitTime : DEFAULT_CLUSTER_DISABLE_WAIT_TIME)
         )

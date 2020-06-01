@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -75,7 +74,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
     def expected = Maps.newHashMap(deployConfig)
@@ -102,7 +101,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
 
@@ -130,7 +129,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
 
@@ -150,7 +149,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
     def expected = [:]
@@ -187,7 +186,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
     stage.context.deploymentDetails = [
@@ -215,7 +214,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
     stage.context.deploymentDetails = [
@@ -238,7 +237,7 @@ class CreateDeployTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> Observable.from(taskId)
+      requestOperations(*_) >> taskId
     }
 
     when:
@@ -256,7 +255,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
     stage.context.deploymentDetails = [
@@ -315,7 +314,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
 
@@ -364,7 +363,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
-        Observable.from(taskId)
+        taskId
       }
     }
 

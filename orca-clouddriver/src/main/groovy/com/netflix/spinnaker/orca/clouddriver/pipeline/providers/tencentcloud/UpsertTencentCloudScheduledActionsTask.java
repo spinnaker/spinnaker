@@ -43,7 +43,7 @@ public class UpsertTencentCloudScheduledActionsTask implements Task {
     map.put("upsertTencentCloudScheduledActionsDescription", stage.getContext());
     Collection<Map<String, Map>> ops = new ArrayList<>();
     ops.add(map);
-    TaskId taskId = kato.requestOperations(ops).toBlocking().first();
+    TaskId taskId = kato.requestOperations(ops);
 
     Map deployServerGroups =
         AsgDescriptionSupport.convertAsgsToDeploymentTargets(

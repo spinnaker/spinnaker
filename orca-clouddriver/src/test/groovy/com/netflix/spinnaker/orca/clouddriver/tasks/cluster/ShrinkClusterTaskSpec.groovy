@@ -67,7 +67,7 @@ class ShrinkClusterTaskSpec extends Specification {
       expected.each { expect ->
         assert ops.find { it.destroyServerGroup.serverGroupName == expect.name && it.destroyServerGroup.region == expect.region }
       }
-      rx.Observable.just(new TaskId('1'))
+      new TaskId('1')
     }
 
     where:

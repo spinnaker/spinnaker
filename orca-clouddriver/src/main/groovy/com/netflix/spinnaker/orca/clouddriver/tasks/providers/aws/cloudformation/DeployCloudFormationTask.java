@@ -139,10 +139,7 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
         new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();
 
     TaskId taskId =
-        katoService
-            .requestOperations(cloudProvider, Collections.singletonList(operation))
-            .toBlocking()
-            .first();
+        katoService.requestOperations(cloudProvider, Collections.singletonList(operation));
 
     Map<String, Object> context =
         new ImmutableMap.Builder<String, Object>()

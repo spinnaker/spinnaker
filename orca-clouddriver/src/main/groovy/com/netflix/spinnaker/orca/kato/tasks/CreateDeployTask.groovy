@@ -128,7 +128,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
     }
 
     descriptions.add([createServerGroup: deployOperation])
-    def result = kato.requestOperations(cloudProvider, descriptions).toBlocking().first()
+    def result = kato.requestOperations(cloudProvider, descriptions)
     result
   }
 

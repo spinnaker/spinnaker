@@ -48,7 +48,7 @@ class AbstractLoadBalancerRegistrationTaskSpec extends Specification {
       task.kato = Stub(KatoService) {
         requestOperations(*_) >> {
           operations = it[1]
-          rx.Observable.from(taskId)
+          taskId
         }
       }
       task.tsgResolver = Stub(TargetServerGroupResolver) {
@@ -76,7 +76,7 @@ class AbstractLoadBalancerRegistrationTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
       task.kato = Stub(KatoService) {
-        requestOperations(*_) >> rx.Observable.from(taskId)
+        requestOperations(*_) >> taskId
       }
       task.tsgResolver = Stub(TargetServerGroupResolver) {
         resolve() >> {

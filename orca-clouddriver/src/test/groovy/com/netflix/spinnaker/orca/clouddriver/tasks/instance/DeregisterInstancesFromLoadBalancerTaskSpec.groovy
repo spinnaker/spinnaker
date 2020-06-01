@@ -48,7 +48,7 @@ class DeregisterInstancesFromLoadBalancerTaskSpec extends Specification {
     task.kato = Mock(KatoService) {
       1 * requestOperations("abc", _) >> {
         operations = it[1]
-        rx.Observable.from(taskId)
+        taskId
       }
     }
 
@@ -72,7 +72,7 @@ class DeregisterInstancesFromLoadBalancerTaskSpec extends Specification {
     given:
     task.trafficGuard = Mock(TrafficGuard)
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
+      requestOperations(*_) >> taskId
     }
 
     when:

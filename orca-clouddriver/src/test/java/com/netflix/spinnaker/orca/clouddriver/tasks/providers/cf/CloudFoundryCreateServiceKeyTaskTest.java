@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import rx.Observable;
 
 class CloudFoundryCreateServiceKeyTaskTest {
   @Test
@@ -54,7 +53,7 @@ class CloudFoundryCreateServiceKeyTaskTest {
     when(kato.requestOperations(
             matches(cloudProvider),
             eq(Collections.singletonList(Collections.singletonMap(type, context)))))
-        .thenReturn(Observable.from(new TaskId[] {taskId}));
+        .thenReturn(taskId);
     CloudFoundryCreateServiceKeyTask task = new CloudFoundryCreateServiceKeyTask(kato);
 
     Map<String, Object> expectedContext =

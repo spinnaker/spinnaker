@@ -94,7 +94,7 @@ class CopyAmazonLoadBalancerTask implements Task {
       ]
     }
 
-    def taskId = katoService.requestOperations(operations).toBlocking().first()
+    def taskId = katoService.requestOperations(operations)
 
     Map outputs = [
       "notification.type": "upsertamazonloadbalancer",

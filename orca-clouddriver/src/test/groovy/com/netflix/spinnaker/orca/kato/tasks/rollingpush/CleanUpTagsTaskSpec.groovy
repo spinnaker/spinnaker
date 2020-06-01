@@ -102,7 +102,7 @@ class CleanUpTagsTaskSpec extends Specification {
     task.katoService = Mock(KatoService) {
       1 * requestOperations('aws', _) >> {
         operations += it[1]
-        rx.Observable.from(new TaskId(UUID.randomUUID().toString()))
+        new TaskId(UUID.randomUUID().toString())
       }
     }
 

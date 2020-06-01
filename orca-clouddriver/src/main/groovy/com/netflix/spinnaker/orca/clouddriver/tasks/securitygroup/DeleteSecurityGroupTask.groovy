@@ -41,8 +41,7 @@ class DeleteSecurityGroupTask extends AbstractCloudProviderAwareTask implements 
     String account = getCredentials(stage)
 
     def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
-                     .toBlocking()
-                     .first()
+
     Map outputs = [
         "notification.type"  : CLOUD_OPERATION_TYPE.toLowerCase(),
         "kato.last.task.id"  : taskId,

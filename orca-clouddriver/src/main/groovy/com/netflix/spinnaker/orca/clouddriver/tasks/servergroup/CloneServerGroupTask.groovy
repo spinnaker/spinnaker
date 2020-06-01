@@ -64,7 +64,7 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     }
 
     String credentials = getCredentials(stage)
-    def taskId = kato.requestOperations(cloudProvider, getDescriptions(stage, operation)).toBlocking().first()
+    def taskId = kato.requestOperations(cloudProvider, getDescriptions(stage, operation))
 
     def outputs = [
       "notification.type"   : "createcopylastasg",

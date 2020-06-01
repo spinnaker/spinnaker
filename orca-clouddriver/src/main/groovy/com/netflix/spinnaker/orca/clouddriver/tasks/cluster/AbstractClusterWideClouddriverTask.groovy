@@ -132,7 +132,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       [(region): serverGroup.collect { it.name }]
     }
 
-    def taskId = katoService.requestOperations(clusterSelection.cloudProvider, katoOps).toBlocking().first()
+    def taskId = katoService.requestOperations(clusterSelection.cloudProvider, katoOps)
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"   : getNotificationType(),
       "deploy.account.name" : clusterSelection.credentials,

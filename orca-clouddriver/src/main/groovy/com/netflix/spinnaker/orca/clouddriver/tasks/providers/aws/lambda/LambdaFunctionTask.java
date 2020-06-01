@@ -62,10 +62,7 @@ public class LambdaFunctionTask extends AbstractCloudProviderAwareTask implement
         new ImmutableMap.Builder<String, Map>().put(operationName, task).build();
 
     TaskId taskId =
-        katoService
-            .requestOperations(cloudProvider, Collections.singletonList(operation))
-            .toBlocking()
-            .first();
+        katoService.requestOperations(cloudProvider, Collections.singletonList(operation));
 
     Map<String, Object> context =
         new ImmutableMap.Builder<String, Object>()

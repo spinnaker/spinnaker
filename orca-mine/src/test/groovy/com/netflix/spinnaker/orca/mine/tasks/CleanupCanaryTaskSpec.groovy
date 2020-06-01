@@ -50,7 +50,7 @@ class CleanupCanaryTaskSpec extends Specification {
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
     katoInvocations * katoService.requestOperations(_, _) >> {
-      rx.Observable.from(new TaskId("TaskId"))
+      new TaskId("TaskId")
     }
 
     where:

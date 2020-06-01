@@ -42,8 +42,7 @@ class DeleteLoadBalancerTask extends AbstractCloudProviderAwareTask implements T
     String account = getCredentials(stage)
 
     def taskId = kato.requestOperations(cloudProvider, [[deleteLoadBalancer: stage.context]])
-                     .toBlocking()
-                     .first()
+
     Map outputs = [
         "notification.type"  : "deleteloadbalancer",
         "kato.last.task.id"  : taskId,

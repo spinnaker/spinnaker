@@ -51,7 +51,7 @@ class UpsertSecurityGroupTask extends AbstractCloudProviderAwareTask {
     }
 
     SecurityGroupUpserter.OperationContext result = upserter.getOperationContext(stage)
-    def taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first()
+    def taskId = kato.requestOperations(cloudProvider, result.operations)
 
     Map outputs = [
         "notification.type"   : "upsertsecuritygroup",

@@ -37,8 +37,6 @@ class DeleteScalingPolicyTask extends AbstractCloudProviderAwareTask implements 
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def taskId = kato.requestOperations(getCloudProvider(stage), [[deleteScalingPolicy: stage.context]])
-        .toBlocking()
-        .first()
 
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "deploy.account.name" : stage.context.credentials,

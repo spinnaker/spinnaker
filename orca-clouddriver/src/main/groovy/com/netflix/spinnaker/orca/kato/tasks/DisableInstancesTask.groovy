@@ -59,8 +59,7 @@ class DisableInstancesTask implements CloudProviderAware, Task {
 
     def actions = [[disableInstancesInDiscovery: stage.context], [deregisterInstancesFromLoadBalancer: stage.context]]
     def taskId = katoService.requestOperations(actions)
-      .toBlocking()
-      .first()
+
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"           : 'disableinstances',
       "kato.last.task.id"           : taskId,

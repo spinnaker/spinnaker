@@ -36,8 +36,7 @@ class TerminateInstanceAndDecrementAsgTask implements Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def taskId = kato.requestOperations([[terminateInstanceAndDecrementAsgDescription: stage.context]])
-      .toBlocking()
-      .first()
+
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"     : "terminateinstanceanddecrementasg",
       "terminate.account.name": stage.context.credentials,

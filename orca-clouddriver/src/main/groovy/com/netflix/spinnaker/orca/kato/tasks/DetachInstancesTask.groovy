@@ -58,8 +58,6 @@ class DetachInstancesTask implements RetryableTask, CloudProviderAware {
       "Terminating the requested instances in ")
 
     def taskId = kato.requestOperations(cloudProvider, [[detachInstances: stage.context]])
-      .toBlocking()
-      .first()
 
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"     : "detachinstances",

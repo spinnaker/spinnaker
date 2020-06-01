@@ -82,7 +82,6 @@ abstract class AbstractScalingProcessTask implements Task {
     ]
     if (stageContext.processes) {
       def taskId = katoService.requestOperations([[(getType()): stageContext]])
-        .toBlocking().first()
 
       stageOutputs."kato.last.task.id" = taskId
     }

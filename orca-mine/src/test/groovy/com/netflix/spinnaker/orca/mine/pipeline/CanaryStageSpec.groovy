@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGro
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -92,7 +91,7 @@ class CanaryStageSpec extends Specification {
       serverGroups: [[region: "us-east-1", createdTime: createdTime, name: "app-stack1-canary-v003"]]
     ]
 
-    disableOps * katoService.requestOperations("aws", disableOperation) >> { Observable.from(taskId) }
+    disableOps * katoService.requestOperations("aws", disableOperation) >> { taskId }
 
     where:
     createdTime | disableOps | destroyedServerGroups

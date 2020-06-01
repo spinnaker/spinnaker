@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import rx.Observable;
 
 class CloudFoundryDeleteServiceKeyTaskTest {
   @Test
@@ -56,7 +55,7 @@ class CloudFoundryDeleteServiceKeyTaskTest {
     when(kato.requestOperations(
             matches(cloudProvider),
             eq(Collections.singletonList(Collections.singletonMap(type, context)))))
-        .thenReturn(Observable.from(new TaskId[] {taskId}));
+        .thenReturn(taskId);
     CloudFoundryDeleteServiceKeyTask task = new CloudFoundryDeleteServiceKeyTask(kato);
 
     Map<String, Object> expectedContext =

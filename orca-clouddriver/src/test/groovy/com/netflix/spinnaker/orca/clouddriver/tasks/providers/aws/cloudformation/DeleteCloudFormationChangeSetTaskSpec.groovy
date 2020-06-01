@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -60,7 +59,7 @@ class DeleteCloudFormationChangeSetTaskSpec extends Specification {
       task.get("changeSetName").equals(context.get("changeSetName"))
       task.get("region").equals(context.get("regions")[0])
       task.get("credentials").equals(context.get("credentials"))
-    }) >> Observable.just(taskId)
+    }) >> taskId
     result.getStatus() == ExecutionStatus.SUCCEEDED
 
   }

@@ -43,7 +43,7 @@ public class ModifyScalingGroupTask implements Task {
     Map<String, Object> context = stage.getContext();
     objectMap.put("modifyScalingGroupDescription", context);
     list.add(objectMap);
-    Object taskId = kato.requestOperations(list).toBlocking().first();
+    Object taskId = kato.requestOperations(list);
     List<Map<String, String>> scalingGroups = (List) context.get("scalingGroups");
     Map deployServerGroups =
         ScalingGroupDescriptionSupport.convertScalingGroupToDeploymentTargets(scalingGroups);

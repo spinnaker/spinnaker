@@ -112,8 +112,8 @@ class UpsertLoadBalancersTaskSpec extends Specification {
 
     task.kato = Mock(KatoService) {
       1 * requestOperations(this.insertLoadBalancerConfig.cloudProvider, _) >> {
-          operations = it[1]
-          rx.Observable.from(taskId)
+        operations = it[1]
+        taskId
       }
     }
 

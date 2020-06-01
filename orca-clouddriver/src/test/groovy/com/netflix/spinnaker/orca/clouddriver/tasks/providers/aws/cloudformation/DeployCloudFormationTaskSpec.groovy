@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import retrofit.client.Response
 import retrofit.mime.TypedString
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -58,7 +57,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     then:
     1 * katoService.requestOperations("aws", {
       it.get(0).get("deployCloudFormation").get("templateBody").trim() == '{key: value}'
-    }) >> Observable.just(taskId)
+    }) >> taskId
     result.context.'kato.result.expected' == true
     result.context.'kato.last.task.id' == taskId
   }
@@ -81,7 +80,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     then:
     1 * katoService.requestOperations("aws", {
       it.get(0).get("deployCloudFormation").get("templateBody").trim() == 'key: "value"'
-    }) >> Observable.just(taskId)
+    }) >> taskId
     result.context.'kato.result.expected' == true
     result.context.'kato.last.task.id' == taskId
   }
@@ -145,7 +144,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     1 * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), new TypedString(template))
     1 * katoService.requestOperations("aws", {
       it.get(0).get("deployCloudFormation").containsKey("templateBody")
-    }) >> Observable.just(taskId)
+    }) >> taskId
     result.context.'kato.result.expected' == true
     result.context.'kato.last.task.id' == taskId
 

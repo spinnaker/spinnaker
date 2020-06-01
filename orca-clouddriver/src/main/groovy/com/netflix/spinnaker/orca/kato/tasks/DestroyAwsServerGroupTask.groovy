@@ -54,8 +54,7 @@ class DestroyAwsServerGroupTask extends AbstractCloudProviderAwareTask implement
     Map context = convert(stage)
     String cloudProvider = getCloudProvider(stage)
     TaskId taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: context]])
-                     .toBlocking()
-                     .first()
+
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "notification.type"   : "destroyservergroup",
         "deploy.account.name" : context.credentials,

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -44,8 +43,6 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
 
   @Autowired List<ImageTagger> imageTaggers;
 
-  @Autowired RetrySupport retrySupport;
-
   @Value("${tasks.upsert-image-tags-timeout-millis:600000}")
   private Long upsertImageTagsTimeoutMillis;
 
@@ -68,12 +65,7 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
       ImageTagger.OperationContext result = tagger.getOperationContext(stage);
       operations.addAll(result.operations);
 
-      TaskId taskId =
-          retrySupport.retry(
-              () -> kato.requestOperations(cloudProvider, result.operations).toBlocking().first(),
-              10,
-              5,
-              false);
+      TaskId taskId = kato.requestOperations(cloudProvider, result.operations);
 
       return TaskResult.builder(ExecutionStatus.SUCCEEDED)
           .context(

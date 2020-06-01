@@ -56,7 +56,7 @@ class DestroyServerGroupTaskSpec extends Specification {
       task.kato = Mock(KatoService) {
         1 * requestOperations('aws', _) >> {
           operations = it[1]
-          rx.Observable.from(taskId)
+          taskId
         }
       }
 
@@ -76,7 +76,7 @@ class DestroyServerGroupTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
       task.kato = Stub(KatoService) {
-        requestOperations('aws', _) >> rx.Observable.from(taskId)
+        requestOperations('aws', _) >> taskId
       }
 
     when:
@@ -92,7 +92,7 @@ class DestroyServerGroupTaskSpec extends Specification {
     setup:
       stage.context.target = TargetServerGroup.Params.Target.ancestor_asg_dynamic
       task.kato = Stub(KatoService) {
-        requestOperations('aws', _) >> rx.Observable.from(taskId)
+        requestOperations('aws', _) >> taskId
       }
       GroovyMock(TargetServerGroupResolver, global: true)
       TargetServerGroupResolver.fromPreviousStage(_) >> new TargetServerGroup(region: "us-west-1", name: "foo-v001")
@@ -117,7 +117,7 @@ class DestroyServerGroupTaskSpec extends Specification {
         credentials    : "test"
       ]
       task.kato = Stub(KatoService) {
-        requestOperations('aws', _) >> rx.Observable.from(taskId)
+        requestOperations('aws', _) >> taskId
       }
 
     when:

@@ -49,7 +49,7 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
       if (!tagOperations) {
         return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
       }
-      TaskId taskId = kato.requestOperations(tagOperations).toBlocking().first()
+      TaskId taskId = kato.requestOperations(tagOperations)
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {
         {
           put("notification.type", "upsertentitytags")

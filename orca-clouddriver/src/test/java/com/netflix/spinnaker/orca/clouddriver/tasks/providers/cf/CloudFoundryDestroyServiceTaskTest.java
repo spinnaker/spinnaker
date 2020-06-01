@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import rx.Observable;
 
 class CloudFoundryDestroyServiceTaskTest {
   @Test
@@ -49,7 +48,7 @@ class CloudFoundryDestroyServiceTaskTest {
     when(kato.requestOperations(
             matches(cloudProvider),
             eq(Collections.singletonList(Collections.singletonMap("destroyService", context)))))
-        .thenReturn(Observable.from(new TaskId[] {taskId}));
+        .thenReturn(taskId);
     CloudFoundryDestroyServiceTask task = new CloudFoundryDestroyServiceTask(kato);
 
     String type = "destroyService";

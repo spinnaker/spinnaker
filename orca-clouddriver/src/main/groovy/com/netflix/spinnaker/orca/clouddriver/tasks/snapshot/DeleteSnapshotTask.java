@@ -62,10 +62,7 @@ public class DeleteSnapshotTask extends AbstractCloudProviderAwareTask implement
             .collect(toList());
 
     TaskId taskId =
-        katoService
-            .requestOperations(deleteSnapshotRequest.getCloudProvider(), operations)
-            .toBlocking()
-            .first();
+        katoService.requestOperations(deleteSnapshotRequest.getCloudProvider(), operations);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deleteSnapshot");

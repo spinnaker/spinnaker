@@ -91,10 +91,7 @@ public class UpsertGceAutoscalingPolicyTask extends AbstractCloudProviderAwareTa
     op.put(getType(), stageContext);
 
     TaskId taskId =
-        katoService
-            .requestOperations(getCloudProvider(stage), Collections.singletonList(op))
-            .toBlocking()
-            .first();
+        katoService.requestOperations(getCloudProvider(stage), Collections.singletonList(op));
     stageOutputs.put("kato.last.task.id", taskId);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).build();

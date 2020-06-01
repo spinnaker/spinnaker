@@ -99,10 +99,7 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
       String entityId = (String) tags.get(0).get("id");
 
       TaskId taskId =
-          katoService
-              .requestOperations(cloudProvider, operations(entityId, tagsToDelete))
-              .toBlocking()
-              .first();
+          katoService.requestOperations(cloudProvider, operations(entityId, tagsToDelete));
 
       return TaskResult.builder(SUCCEEDED)
           .context(

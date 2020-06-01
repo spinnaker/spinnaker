@@ -74,8 +74,7 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
               "Terminating the requested instances in")
       Map<String, Object> opCtx = stage.context + [instanceIds: instanceIds]
       TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: opCtx]])
-              .toBlocking()
-              .first()
+
       ctx["kato.last.task.id"] = taskId
       ctx["kato.task.id"] = taskId // TODO retire this.
     }

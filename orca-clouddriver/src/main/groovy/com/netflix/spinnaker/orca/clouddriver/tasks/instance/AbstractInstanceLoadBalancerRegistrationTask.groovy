@@ -39,8 +39,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationTask extends AbstractClou
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def taskId = kato.requestOperations(getCloudProvider(stage), [[(getAction()): stage.context]])
-        .toBlocking()
-        .first()
+
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "notification.type"           : getAction().toLowerCase(),
         "kato.last.task.id"           : taskId,

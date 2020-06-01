@@ -65,7 +65,7 @@ class DisableCanaryTask extends AbstractCloudProviderAwareTask implements Task {
 
     log.info "Disabling ${selector} in ${stage.id} with ${ops}"
     String cloudProvider = ops && !ops.empty ? ops.first()?.values().first()?.cloudProvider : getCloudProvider(stage) ?: 'aws'
-    def taskId = katoService.requestOperations(cloudProvider, ops).toBlocking().first()
+    def taskId = katoService.requestOperations(cloudProvider, ops)
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       'kato.last.task.id'    : taskId,

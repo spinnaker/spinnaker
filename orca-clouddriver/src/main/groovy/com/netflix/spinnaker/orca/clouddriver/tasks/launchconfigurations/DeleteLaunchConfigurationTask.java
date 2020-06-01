@@ -65,8 +65,7 @@ public class DeleteLaunchConfigurationTask extends AbstractCloudProviderAwareTas
                 })
             .collect(toList());
 
-    final TaskId taskId =
-        katoService.requestOperations(cloudProvider, operations).toBlocking().first();
+    final TaskId taskId = katoService.requestOperations(cloudProvider, operations);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deleteLaunchConfiguration");

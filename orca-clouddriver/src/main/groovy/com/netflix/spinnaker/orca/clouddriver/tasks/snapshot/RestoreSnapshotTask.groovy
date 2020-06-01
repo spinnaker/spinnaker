@@ -40,8 +40,7 @@ class RestoreSnapshotTask extends AbstractCloudProviderAwareTask implements Task
     String account = getCredentials(stage)
     //TODO(nwwebb) emit events to echo for every resource that is being restored or destroyed
     def taskId = kato.requestOperations(cloudProvider, [[restoreSnapshot: stage.context]])
-      .toBlocking()
-      .first()
+
     Map outputs = [
       "notification.type"       : "restoresnapshot",
       "kato.last.task.id"       : taskId,

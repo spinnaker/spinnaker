@@ -47,8 +47,7 @@ abstract class AbstractAsgTask implements Task {
   TaskResult execute(@Nonnull StageExecution stage) {
     def operation = convert(stage)
     def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]])
-                     .toBlocking()
-                     .first()
+
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"                             : getAsgAction().toLowerCase(),
       "kato.last.task.id"                             : taskId,

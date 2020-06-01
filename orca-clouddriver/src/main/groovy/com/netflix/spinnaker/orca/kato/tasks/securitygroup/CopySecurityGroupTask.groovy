@@ -63,7 +63,7 @@ class CopySecurityGroupTask implements Task {
       ]
     }
 
-    def taskId = kato.requestOperations(operations).toBlocking().first()
+    def taskId = kato.requestOperations(operations)
     Map outputs = [
       "notification.type"   : "upsertsecuritygroup",
       "kato.last.task.id"   : taskId,

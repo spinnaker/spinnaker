@@ -70,7 +70,7 @@ class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask
     }
 
     def ops = creator.getOperations(stage)
-    def taskId = kato.requestOperations(cloudProvider, ops).toBlocking().first()
+    def taskId = kato.requestOperations(cloudProvider, ops)
 
     Map<String, Object> outputs = [
         "notification.type"   : "runjob",

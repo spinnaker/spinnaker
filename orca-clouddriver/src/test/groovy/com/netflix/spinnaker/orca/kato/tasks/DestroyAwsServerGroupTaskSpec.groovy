@@ -54,7 +54,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     task.kato = Mock(KatoService) {
       1 * requestOperations('aws', _) >> {
         operations = it[1]
-        rx.Observable.from(taskId)
+        taskId
       }
     }
 
@@ -74,7 +74,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {
-      requestOperations('aws', _) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> taskId
     }
 
     when:
@@ -93,7 +93,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
       [asgName: "bar", regions: ["us"], credentials: account]
     ]
     task.kato = Stub(KatoService) {
-      requestOperations('aws', _) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> taskId
     }
 
     when:
@@ -111,7 +111,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     setup:
     stage.context.target = TargetReferenceConfiguration.Target.ancestor_asg_dynamic
     task.kato = Stub(KatoService) {
-      requestOperations('aws', _) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> taskId
     }
 
     when:
@@ -137,7 +137,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
       credentials     : "test"
     ]
     task.kato = Stub(KatoService) {
-      requestOperations('aws', _) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> taskId
     }
 
     when:

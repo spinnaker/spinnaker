@@ -75,8 +75,7 @@ class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProvider
               cloudProvider,
               "Terminating the requested instance in ")
       def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
-              .toBlocking()
-              .first()
+
       ctx['kato.last.task.id'] = taskId
     }
 

@@ -84,10 +84,7 @@ public final class PatchManifestTask extends AbstractCloudProviderAwareTask impl
   }
 
   private TaskId executeOperation(StageExecution stage, ImmutableMap<String, Map> operation) {
-    return katoService
-        .requestOperations(getCloudProvider(stage), ImmutableList.of(operation))
-        .toBlocking()
-        .first();
+    return katoService.requestOperations(getCloudProvider(stage), ImmutableList.of(operation));
   }
 
   private ImmutableMap<String, Object> getOutputs(StageExecution stage, TaskId taskId) {

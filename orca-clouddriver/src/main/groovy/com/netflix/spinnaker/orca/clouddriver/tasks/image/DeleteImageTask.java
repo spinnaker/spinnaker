@@ -66,10 +66,7 @@ public class DeleteImageTask extends AbstractCloudProviderAwareTask implements R
             .collect(toList());
 
     TaskId taskId =
-        katoService
-            .requestOperations(deleteImageRequest.getCloudProvider(), operations)
-            .toBlocking()
-            .first();
+        katoService.requestOperations(deleteImageRequest.getCloudProvider(), operations);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deleteImage");

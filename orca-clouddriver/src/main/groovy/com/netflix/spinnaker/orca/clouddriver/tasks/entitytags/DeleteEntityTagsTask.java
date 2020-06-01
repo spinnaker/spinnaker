@@ -43,14 +43,12 @@ public class DeleteEntityTagsTask extends AbstractCloudProviderAwareTask impleme
   public TaskResult execute(StageExecution stage) {
     TaskId taskId =
         kato.requestOperations(
-                Collections.singletonList(
-                    new HashMap<String, Map>() {
-                      {
-                        put("deleteEntityTags", stage.getContext());
-                      }
-                    }))
-            .toBlocking()
-            .first();
+            Collections.singletonList(
+                new HashMap<String, Map>() {
+                  {
+                    put("deleteEntityTags", stage.getContext());
+                  }
+                }));
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED)
         .context(

@@ -57,7 +57,7 @@ class UpsertAmazonDNSTask implements Task {
       operation.target = stage.context.target
     }
 
-    def taskId = kato.requestOperations([[upsertAmazonDNSDescription: operation]]).toBlocking().first()
+    def taskId = kato.requestOperations([[upsertAmazonDNSDescription: operation]])
 
     Map outputs = [
       "notification.type": "upsertamazondns",

@@ -37,8 +37,6 @@ class UpsertServerGroupTagsTask extends AbstractCloudProviderAwareTask implement
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def taskId = kato.requestOperations(getCloudProvider(stage), [[upsertServerGroupTags: stage.context]])
-        .toBlocking()
-        .first()
 
     def deployServerGroups = []
     if (stage.context.regions && (stage.context.serverGroupName || stage.context.asgName)) {

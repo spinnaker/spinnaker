@@ -56,8 +56,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
     }
 
     def taskId = kato.requestOperations(cloudProvider, ops)
-        .toBlocking()
-        .first()
+
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
         "notification.type"                        : "modifyasglaunchconfiguration",
         "modifyasglaunchconfiguration.account.name": getCredentials(stage),

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -46,7 +45,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
       def result = task.execute(stage)
 
     then:
-      1 * katoService.requestOperations("aws", _) >> rx.Observable.just(new TaskId("blerg"))
+      1 * katoService.requestOperations("aws", _) >> new TaskId("blerg")
     result.context."deploy.server.groups" == [(region): [asgName]]
 
     where:
@@ -77,7 +76,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
         def opConfig = ops.last().updateLaunchConfig
 
         assert opConfig.amiName == expectedAmi
-        rx.Observable.just(new TaskId("blerg"))
+        new TaskId("blerg")
       }
 
     where:
@@ -115,7 +114,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
         def taskId = new TaskId(UUID.randomUUID().toString())
         katoService.requestOperations(*_) >> { cloudProvider, ops ->
           operations.addAll(ops.flatten())
-          Observable.from(taskId)
+          taskId
         }
       }
 
@@ -190,7 +189,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           assert allowLaunch.region == region
           assert allowLaunch.amiName == "ami-abcdef"
         }
-        rx.Observable.just(new TaskId("blerg"))
+        new TaskId("blerg")
       }
 
     where:
@@ -222,7 +221,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
         ops.find {
           it.containsKey("updateLaunchConfig")
         }.updateLaunchConfig == taskConfig
-        rx.Observable.just(new TaskId("blerg"))
+        new TaskId("blerg")
       }
   }
 }

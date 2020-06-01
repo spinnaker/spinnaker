@@ -72,8 +72,6 @@ class UpsertAppEngineLoadBalancersTask extends AbstractCloudProviderAwareTask im
     }
 
     def taskId = kato.requestOperations(CLOUD_PROVIDER, operations)
-      .toBlocking()
-      .first()
 
     def outputs = [
       "notification.type"   : CLOUD_OPERATION_TYPE.toLowerCase(),

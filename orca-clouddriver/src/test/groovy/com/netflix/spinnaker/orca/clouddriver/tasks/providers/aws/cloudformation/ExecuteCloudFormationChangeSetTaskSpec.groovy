@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -70,7 +69,7 @@ class ExecuteCloudFormationChangeSetTaskSpec extends Specification {
     then:
     1 * katoService.requestOperations("aws", {
       it.get(0).get("executeCloudFormationChangeSet")
-    }) >> Observable.just(taskId)
+    }) >> taskId
     result.context.'kato.result.expected' == true
     result.context.'kato.last.task.id' == taskId
 
