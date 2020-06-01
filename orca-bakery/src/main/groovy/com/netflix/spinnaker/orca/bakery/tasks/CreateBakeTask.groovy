@@ -144,13 +144,12 @@ class CreateBakeTask implements RetryableTask {
     return stage.execution.trigger?.rebake
   }
 
-  @CompileDynamic
   private BakeRequest bakeFromContext(StageExecution stage, SelectedService<BakeryService> bakery) {
     PackageType packageType
     if (bakery.config.roscoApisEnabled) {
       def baseImage = bakery.service.getBaseImage(stage.context.cloudProviderType as String,
-        stage.context.baseOs as String).toBlocking().single()
-      packageType = baseImage.packageType as PackageType
+        stage.context.baseOs as String)
+      packageType = baseImage.packageType
     } else {
       packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()
     }

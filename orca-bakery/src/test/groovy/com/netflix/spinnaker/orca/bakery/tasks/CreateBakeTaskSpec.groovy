@@ -23,9 +23,11 @@ import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.bakery.api.BaseImage
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
+import com.netflix.spinnaker.orca.pipeline.util.PackageType
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -226,6 +228,36 @@ class CreateBakeTaskSpec extends Specification {
         extractBuildDetails: false,
         allowMissingPackageInstallation: false,
         roscoApisEnabled: false
+      ]
+    }
+
+    task.bakerySelector = Mock(BakerySelector) {
+      select(_) >> selectedBakeryService
+    }
+
+    when:
+    task.execute(bakeStage)
+
+    then:
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> runningStatus
+  }
+
+  def "creates a bake for the correct region with rosco"() {
+    given:
+    def bakery = Mock(BakeryService) {
+      getBaseImage(*_) >> new BaseImage().with {
+        packageType = PackageType.DEB
+        it
+      }
+    }
+
+    and:
+    def selectedBakeryService = Stub(SelectableService.SelectedService) {
+      getService() >> bakery
+      getConfig() >> [
+          extractBuildDetails: false,
+          allowMissingPackageInstallation: false,
+          roscoApisEnabled: true
       ]
     }
 
