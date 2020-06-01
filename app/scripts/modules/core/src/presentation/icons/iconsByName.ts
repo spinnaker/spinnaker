@@ -7,6 +7,8 @@ import { ReactComponent as artifactApproved } from './vectors/artifactApproved.s
 import { ReactComponent as artifactPending } from './vectors/artifactPending.svg';
 import { ReactComponent as artifactSkipped } from './vectors/artifactSkipped.svg';
 import { ReactComponent as build } from './vectors/build.svg';
+import { ReactComponent as buildFail } from './vectors/buildFail.svg';
+import { ReactComponent as buildSuccess } from './vectors/buildSuccess.svg';
 import { ReactComponent as caretRight } from './vectors/caretRight.svg';
 import { ReactComponent as checkBadge } from './vectors/checkBadge.svg';
 import { ReactComponent as checkboxIndeterminate } from './vectors/checkboxIndeterminate.svg';
@@ -51,6 +53,7 @@ import { ReactComponent as spCIMaster } from './vectors/spCIMaster.svg';
 import { ReactComponent as spCIMerged } from './vectors/spCIMerged.svg';
 import { ReactComponent as spCIPullRequest } from './vectors/spCIPullRequest.svg';
 import { ReactComponent as spCIPullRequestClosed } from './vectors/spCIPullRequestClosed.svg';
+import { ReactComponent as spEnvironments } from './vectors/spEnvironments.svg';
 import { ReactComponent as spMenuCanaryConfig } from './vectors/spMenuCanaryConfig.svg';
 import { ReactComponent as spMenuCanaryReport } from './vectors/spMenuCanaryReport.svg';
 import { ReactComponent as spMenuClusters } from './vectors/spMenuClusters.svg';
@@ -76,6 +79,7 @@ import { ReactComponent as mdActuationLaunched } from './vectors/mdActuationLaun
 import { ReactComponent as mdCreated } from './vectors/mdCreated.svg';
 import { ReactComponent as mdDeltaDetected } from './vectors/mdDeltaDetected.svg';
 import { ReactComponent as mdDeltaResolved } from './vectors/mdDeltaResolved.svg';
+import { ReactComponent as mdDelay } from './vectors/mdDelay.svg';
 import { ReactComponent as mdDiff } from './vectors/mdDiff.svg';
 import { ReactComponent as mdError } from './vectors/mdError.svg';
 import { ReactComponent as mdUnhappy } from './vectors/mdUnhappy.svg';
@@ -116,6 +120,8 @@ export const iconsByName = {
   artifactPending,
   artifactSkipped,
   build,
+  buildFail,
+  buildSuccess,
   canaryConfig,
   canaryFail,
   canaryRunning,
@@ -160,6 +166,7 @@ export const iconsByName = {
   mdActuating,
   mdActuationLaunched,
   mdCreated,
+  mdDelay,
   mdDeltaDetected,
   mdDeltaResolved,
   mdDiff,
@@ -186,6 +193,7 @@ export const iconsByName = {
   spCIMerged,
   spCIPullRequest,
   spCIPullRequestClosed,
+  spEnvironments,
   spMenuCanaryConfig,
   spMenuCanaryReport,
   spMenuClusters,
