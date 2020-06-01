@@ -7,17 +7,30 @@ dependencies {
   implementation project(":clouddriver-security")
 
   compileOnly "org.projectlombok:lombok"
+  testCompile "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  implementation "com.google.guava:guava"
   implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.moniker:moniker"
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.google.guava:guava"
+  implementation "com.tencentcloudapi:tencentcloud-sdk-java:3.1.51"
 
+  testImplementation "cglib:cglib-nodep"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

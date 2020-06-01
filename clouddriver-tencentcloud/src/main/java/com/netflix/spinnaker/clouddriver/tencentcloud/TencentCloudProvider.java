@@ -25,18 +25,22 @@ public class TencentCloudProvider implements CloudProvider {
 
   public static final String ID = "tencentcloud";
 
+  final String id = ID;
+  final String displayName = "TencentCloud";
+  final Class<? extends Annotation> operationAnnotationType = TencentCloudOperation.class;
+
   @Override
   public String getId() {
-    return ID;
+    return id;
   }
 
   @Override
   public String getDisplayName() {
-    return "TencentCloud";
+    return displayName;
   }
 
   @Override
   public Class<? extends Annotation> getOperationAnnotationType() {
-    return TencentCloudOperation.class;
+    return operationAnnotationType;
   }
 }
