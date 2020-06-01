@@ -11,7 +11,7 @@ export interface IScheduler {
 }
 
 export class SchedulerFactory {
-  public static createScheduler(pollSchedule = SETTINGS.pollSchedule): IScheduler {
+  public static createScheduler(pollSchedule = SETTINGS.pollSchedule || 30000): IScheduler {
     let scheduler = new Subject();
 
     let lastRunTimestamp = new Date().getTime();

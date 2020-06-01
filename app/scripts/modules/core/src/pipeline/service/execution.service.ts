@@ -548,7 +548,7 @@ export class ExecutionService {
       method: 'PATCH',
       url: targetUrl,
       data,
-      timeout: SETTINGS.pollSchedule * 2 + 5000,
+      timeout: (SETTINGS.pollSchedule || 30000) * 2 + 5000,
     };
     return this.$http(request).then(resp => resp.data);
   }

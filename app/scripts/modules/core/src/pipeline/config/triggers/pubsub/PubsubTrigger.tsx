@@ -18,7 +18,7 @@ export interface IPubsubTriggerProps {
 export function PubsubTrigger(pubsubTriggerProps: IPubsubTriggerProps) {
   const { formik } = pubsubTriggerProps;
   const trigger = formik.values;
-  const pubsubSystems = SETTINGS.pubsubProviders || ['google']; // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
+  const pubsubSystems = SETTINGS.pubsubProviders || ['amazon', 'google'];
 
   const fetchSubscriptions = useLatestPromise(() => PubsubSubscriptionReader.getPubsubSubscriptions(), []);
   const pubsubSubscriptions = fetchSubscriptions.result || [];

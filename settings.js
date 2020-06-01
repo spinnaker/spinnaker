@@ -174,7 +174,6 @@ window.spinnakerSettings = {
       defaultSecurityGroups: [],
     },
     gce: {
-      associatePublicIpAddress: true,
       defaults: {
         account: 'my-google-account',
         instanceTypeStorage: {
@@ -203,11 +202,7 @@ window.spinnakerSettings = {
     kubernetes: {
       defaults: {
         account: 'my-kubernetes-account',
-        apiPrefix: 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#',
-        instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
-        internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
         namespace: 'default',
-        proxy: 'localhost:8001',
       },
     },
     oracle: {
@@ -237,7 +232,7 @@ window.spinnakerSettings = {
   slack: {
     baseUrl: 'https://slack.com',
   },
-  pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
+  pubsubProviders: ['amazon', 'google'],
   plugins: [],
   searchVersion: 1,
   triggerTypes: [

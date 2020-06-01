@@ -29,7 +29,7 @@ export class InvalidAPIResponse extends Error {
 
 export class API {
   private static defaultParams = {
-    timeout: SETTINGS.pollSchedule * 2 + 5000,
+    timeout: (SETTINGS.pollSchedule || 30000) * 2 + 5000,
     headers: {
       'X-RateLimit-App': 'deck',
     },

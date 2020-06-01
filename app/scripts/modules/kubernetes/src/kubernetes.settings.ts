@@ -4,11 +4,6 @@ export interface IKubernetesProviderSettings extends IProviderSettings {
   defaults: {
     account?: string;
     namespace?: string;
-    proxy?: string;
-    internalDNSNameTemplate?: string;
-    instanceLinkTemplate?: string;
-    rrb?: boolean;
-    apiPrefix?: string;
   };
 }
 
