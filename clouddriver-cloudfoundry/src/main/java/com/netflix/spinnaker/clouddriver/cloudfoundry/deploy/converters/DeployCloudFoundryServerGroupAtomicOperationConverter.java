@@ -95,8 +95,9 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     String artifactAccount = artifact.getArtifactAccount();
     if (CloudFoundryArtifactCredentials.TYPE.equals(artifact.getType())) {
       CloudFoundryCredentials credentials = getCredentialsObject(artifactAccount);
-      artifact.setUuid(
-          getServerGroupId(artifact.getName(), artifact.getLocation(), credentials.getClient()));
+      String uuid =
+          getServerGroupId(artifact.getName(), artifact.getLocation(), credentials.getClient());
+      converted.setApplicationArtifact(artifact.toBuilder().uuid(uuid).build());
       return new CloudFoundryArtifactCredentials(credentials.getClient());
     }
 

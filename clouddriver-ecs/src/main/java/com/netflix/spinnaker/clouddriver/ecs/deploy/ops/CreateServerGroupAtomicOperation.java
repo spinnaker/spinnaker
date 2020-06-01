@@ -409,7 +409,11 @@ public class CreateServerGroupAtomicOperation
         || taskDefArtifact.getArtifactAccount().isEmpty()
             && description.getTaskDefinitionArtifactAccount() != null
             && !description.getTaskDefinitionArtifactAccount().isEmpty()) {
-      taskDefArtifact.setArtifactAccount(description.getTaskDefinitionArtifactAccount());
+      taskDefArtifact =
+          taskDefArtifact
+              .toBuilder()
+              .artifactAccount(description.getTaskDefinitionArtifactAccount())
+              .build();
     }
     try {
       InputStream artifactInput = artifactDownloader.download(taskDefArtifact);

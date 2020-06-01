@@ -78,9 +78,6 @@ public class KubernetesCacheDataConverter {
     try {
       KubernetesManifest lastAppliedConfiguration =
           KubernetesManifestAnnotater.getLastAppliedConfiguration(manifest);
-      if (artifact.getMetadata() == null) {
-        artifact.setMetadata(new HashMap<>());
-      }
       artifact.getMetadata().put("lastAppliedConfiguration", lastAppliedConfiguration);
       artifact.getMetadata().put("account", account);
     } catch (Exception e) {
