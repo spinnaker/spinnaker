@@ -83,13 +83,28 @@ public class ApplicationService {
     return saveInternal(app, false);
   }
 
-  private Application saveInternal(Application app, boolean mergeDetails) {
-    validate(app);
-
+  private Application saveInternal(Application app, boolean merge) {
+    // When merge==true, the application that is passed in is likely incomplete, so the existing
+    // application record must be loaded and applied to the partial Application. This must be
+    // done prior to validation.
     Application existing = getApplication(app.getName());
-    if (mergeDetails && existing != null) {
+    if (merge && existing != null) {
+      app.setName(existing.getName());
+      app.setCreateTs(existing.getCreateTs());
+      if (app.getDescription() == null) {
+        app.setDescription(existing.getDescription());
+      }
+      if (app.getEmail() == null) {
+        app.setEmail(existing.getEmail());
+      }
+      if (app.getCloudProviders() == null) {
+        app.setCloudProviders(existing.getCloudProviders());
+      }
+
       mergeDetails(app, existing);
     }
+
+    validate(app);
 
     if (existing == null) {
       listenersFor(PRE_CREATE)
@@ -222,9 +237,9 @@ public class ApplicationService {
   }
 
   @Nullable
-  private Application getApplication(String name) {
+  private Application getApplication(@Nullable String name) {
     try {
-      return dao.findByName(name.toUpperCase());
+      return dao.findByName(Optional.ofNullable(name).map(String::toUpperCase).orElse(null));
     } catch (NotFoundException e) {
       // Exceptions for flow control == sad.
       return null;

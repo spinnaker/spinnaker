@@ -64,6 +64,19 @@ class ApplicationServiceSpec extends Specification {
     1 * applicationDAO.update("OK", _)
   }
 
+  def "save should merge properties from existing record"() {
+    when:
+    Application result = subject.save(new Application(name: "foo"))
+
+    then:
+    1 * applicationDAO.findByName("FOO") >> new Application(
+      name: "foo",
+      email: "foo@example.com"
+    )
+    1 * applicationDAO.update("FOO", _)
+    result.email == "foo@example.com"
+  }
+
   def "save should merge details from existing record"() {
     when:
     Application result = subject.save(new Application(name: "foo", details: [one: "new"]))
