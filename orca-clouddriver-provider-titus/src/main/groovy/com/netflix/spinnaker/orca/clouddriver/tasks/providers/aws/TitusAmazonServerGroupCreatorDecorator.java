@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger;
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,10 @@ public class TitusAmazonServerGroupCreatorDecorator implements AmazonServerGroup
     String imageId = null;
     if (trigger.getParameters().containsKey("imageName")) {
       imageId = (String) trigger.getParameters().get("imageName");
+    }
+    if (Strings.isNullOrEmpty(imageId) && trigger instanceof JenkinsTrigger) {
+      JenkinsTrigger t = (JenkinsTrigger) trigger;
+      imageId = (String) t.getProperties().getOrDefault("imageName", null);
     }
     if (Strings.isNullOrEmpty(imageId)) {
       imageId = (String) trigger.getOther().get("imageName");
