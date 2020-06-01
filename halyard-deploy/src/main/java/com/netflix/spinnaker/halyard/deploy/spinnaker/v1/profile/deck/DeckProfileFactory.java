@@ -221,8 +221,6 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     }
 
     // Configure notifications
-    bindings.put("notifications.enabled", notifications.isEnabled() + "");
-
     SlackNotification slackNotification = notifications.getSlack();
     bindings.put("notifications.slack.enabled", slackNotification.isEnabled() + "");
     bindings.put("notifications.slack.botName", slackNotification.getBotName());
