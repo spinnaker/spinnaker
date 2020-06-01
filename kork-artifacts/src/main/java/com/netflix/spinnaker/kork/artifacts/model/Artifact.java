@@ -20,12 +20,13 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.netflix.spinnaker.kork.annotations.FieldsAreNullableByDefault;
 import com.netflix.spinnaker.kork.annotations.MethodsReturnNonnullByDefault;
-import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -34,7 +35,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @EqualsAndHashCode
-@NullableByDefault
+@FieldsAreNullableByDefault
 @JsonDeserialize(builder = Artifact.ArtifactBuilder.class)
 public final class Artifact {
   private String type;
@@ -114,6 +115,25 @@ public final class Artifact {
   @Deprecated
   public void setMetadata(Map<String, Object> metadata) {
     this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
+  }
+
+  /**
+   * This function is deprecated in favor of using {@link Artifact#getMetadata(String)} to get the
+   * particular key of interest.
+   *
+   * <p>The reason is that we would like the metadata to be (at least shallowly) immutable, and it
+   * is much easier to safely enforce that by avoiding giving callers access to the raw map in the
+   * first place.
+   */
+  @Deprecated
+  @Nonnull
+  public Map<String, Object> getMetadata() {
+    return metadata;
+  }
+
+  @Nullable
+  public Object getMetadata(String key) {
+    return metadata.get(key);
   }
 
   @Deprecated

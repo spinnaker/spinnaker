@@ -21,9 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
@@ -57,7 +54,7 @@ final class ArtifactTest {
         ImmutableMap.<String, String>builder().put("id", "123").put("name", "my-artifact").build();
 
     Artifact deserializedArtifact = objectMapper.convertValue(originalArtifact, Artifact.class);
-    assertThat(deserializedArtifact.getMetadata()).containsEntry("id", "123");
+    assertThat(deserializedArtifact.getMetadata("id")).isEqualTo("123");
   }
 
   @Test
@@ -69,8 +66,6 @@ final class ArtifactTest {
             .build();
 
     Artifact deserializedArtifact = objectMapper.convertValue(originalArtifact, Artifact.class);
-    Map<String, Object> metadata =
-        Optional.ofNullable(deserializedArtifact.getMetadata()).orElseGet(HashMap::new);
-    assertThat(metadata).doesNotContainKey("kind");
+    assertThat(deserializedArtifact.getMetadata("kind")).isNull();
   }
 }
