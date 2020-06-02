@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.clouddriver.model.HealthState.*;
 
 import com.netflix.spinnaker.clouddriver.model.Health;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
-import com.netflix.spinnaker.clouddriver.tencentcloud.model.TencentCloudTargetHealth.LBHealthSummary.ServiceStatus;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -60,11 +59,11 @@ public class TencentCloudTargetHealth implements Health {
     HEALTHY,
     UNKNOWN;
 
-    public ServiceStatus toServiceStatus() {
+    public LBHealthSummary.ServiceStatus toServiceStatus() {
       if (this == TargetHealthStatus.HEALTHY) {
-        return ServiceStatus.InService;
+        return LBHealthSummary.ServiceStatus.InService;
       }
-      return ServiceStatus.OutOfService;
+      return LBHealthSummary.ServiceStatus.OutOfService;
     }
   }
 
