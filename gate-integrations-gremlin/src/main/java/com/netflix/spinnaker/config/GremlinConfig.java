@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.gate.config.Service;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.gate.services.EurekaLookupService;
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
 import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +46,7 @@ import retrofit.converter.JacksonConverter;
 class GremlinConfig {
   @Bean
   GremlinService gremlinService(
-      OkHttpClientProvider clientProvider,
+      OkHttpClient okHttpClient,
       ServiceConfiguration serviceConfiguration,
       Registry registry,
       EurekaLookupService eurekaLookupService,
@@ -55,7 +55,7 @@ class GremlinConfig {
     return createClient(
         "gremlin",
         GremlinService.class,
-        clientProvider,
+        okHttpClient,
         serviceConfiguration,
         registry,
         eurekaLookupService,
@@ -66,7 +66,7 @@ class GremlinConfig {
   private <T> T createClient(
       String serviceName,
       Class<T> type,
-      OkHttpClientProvider clientProvider,
+      OkHttpClient okHttpClient,
       ServiceConfiguration serviceConfiguration,
       Registry registry,
       EurekaLookupService eurekaLookupService,
@@ -84,11 +84,11 @@ class GremlinConfig {
 
     Endpoint endpoint = newFixedEndpoint(service.getBaseUrl());
     return buildService(
-        clientProvider, type, endpoint, spinnakerRequestInterceptor, retrofitLogLevel);
+        okHttpClient, type, endpoint, spinnakerRequestInterceptor, retrofitLogLevel);
   }
 
   private <T> T buildService(
-      OkHttpClientProvider clientProvider,
+      OkHttpClient client,
       Class<T> type,
       Endpoint endpoint,
       RequestInterceptor spinnakerRequestInterceptor,
@@ -101,9 +101,7 @@ class GremlinConfig {
     return new RestAdapter.Builder()
         .setRequestInterceptor(spinnakerRequestInterceptor)
         .setEndpoint(endpoint)
-        .setClient(
-            new Ok3Client(
-                clientProvider.getClient(new DefaultServiceEndpoint("gremlin", endpoint.getUrl()))))
+        .setClient(new Ok3Client(client))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
         .setLog(new Slf4jRetrofitLogger(type))
