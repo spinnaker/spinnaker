@@ -20,7 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("pollers.peering")
 class PeeringAgentConfigurationProperties {
-  var enabled: Boolean = true
+  var enabled: Boolean = false
   var intervalMs: Long = 5000
   var poolName: String? = null
   var peerId: String? = null
