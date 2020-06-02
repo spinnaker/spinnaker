@@ -7,76 +7,105 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.kork.exceptions.SystemException
 
-data class ServerGroupCollection(
+data class ServerGroupCollection<T : BaseServerGroup> (
   val accountName: String,
-  val serverGroups: Set<ServerGroup>
+  val serverGroups: Set<T>
 )
 
 /**
- * Objects that are returned when querying for all of the server groups associated with a cluster.
+ * Fields common to all of the different kinds of server groups (EC2, Titus)
+ */
+interface BaseServerGroup {
+  val name: String
+  val region: String
+  val targetGroups: Set<String>
+  val loadBalancers: Set<String>
+  val capacity: Capacity
+  val cloudProvider: String
+  val securityGroups: Set<String>
+  val moniker: Moniker
+  val disabled: Boolean
+    get() = false
+}
+
+/**
+ * Fields common to classes that model EC2 server groups
+ */
+interface BaseEc2ServerGroup : BaseServerGroup {
+  val zones: Set<String>
+  val image: ActiveServerGroupImage
+  val launchConfig: LaunchConfig
+  val asg: AutoScalingGroup
+  val scalingPolicies: List<ScalingPolicy>
+  val vpcId: String
+  val buildInfo: BuildInfo?
+}
+
+/**
+ * Objects that are returned when querying for all of the ec2 server groups associated with a cluster.
  *
  * Two differences from [ActiveServerGroup]:
  *   - disabled flag
  *   - no accountName field (since this is defined on the parent [ServerGroupCollection] object
  */
 data class ServerGroup(
-  val name: String,
-  val region: String,
-  val zones: Set<String>,
-  val image: ActiveServerGroupImage,
-  val launchConfig: LaunchConfig,
-  val asg: AutoScalingGroup,
-  val scalingPolicies: List<ScalingPolicy>,
-  val vpcId: String,
-  val targetGroups: Set<String>,
-  val loadBalancers: Set<String>,
-  val capacity: Capacity,
-  val cloudProvider: String,
-  val securityGroups: Set<String>,
-  val moniker: Moniker,
-  val buildInfo: BuildInfo? = null,
-  val disabled: Boolean
-)
+  override val name: String,
+  override val region: String,
+  override val zones: Set<String>,
+  override val image: ActiveServerGroupImage,
+  override val launchConfig: LaunchConfig,
+  override val asg: AutoScalingGroup,
+  override val scalingPolicies: List<ScalingPolicy>,
+  override val vpcId: String,
+  override val targetGroups: Set<String>,
+  override val loadBalancers: Set<String>,
+  override val capacity: Capacity,
+  override val cloudProvider: String,
+  override val securityGroups: Set<String>,
+  override val moniker: Moniker,
+  override val buildInfo: BuildInfo? = null,
+  override val disabled: Boolean
+) : BaseEc2ServerGroup
 
 fun ServerGroup.toActive(accountName: String) =
   ActiveServerGroup(
-    name,
-    region,
-    zones,
-    image,
-    launchConfig,
-    asg,
-    scalingPolicies,
-    vpcId,
-    targetGroups,
-    loadBalancers,
-    capacity,
-    cloudProvider,
-    securityGroups,
-    accountName,
-    moniker,
-    buildInfo
+    name = name,
+    region = region,
+    zones = zones,
+    image = image,
+    launchConfig = launchConfig,
+    asg = asg,
+    scalingPolicies = scalingPolicies,
+    vpcId = vpcId,
+    targetGroups = targetGroups,
+    loadBalancers = loadBalancers,
+    capacity = capacity,
+    cloudProvider = cloudProvider,
+    securityGroups = securityGroups,
+    accountName = accountName,
+    moniker = moniker,
+    buildInfo = buildInfo
   )
 
 // todo eb: this should be more general so that it works for all server groups, not just ec2
 data class ActiveServerGroup(
-  val name: String,
-  val region: String,
-  val zones: Set<String>,
-  val image: ActiveServerGroupImage,
-  val launchConfig: LaunchConfig,
-  val asg: AutoScalingGroup,
-  val scalingPolicies: List<ScalingPolicy>,
-  val vpcId: String,
-  val targetGroups: Set<String>,
-  val loadBalancers: Set<String>,
-  val capacity: Capacity,
-  val cloudProvider: String,
-  val securityGroups: Set<String>,
+  override val name: String,
+  override val region: String,
+  override val zones: Set<String>,
+  override val image: ActiveServerGroupImage,
+  override val launchConfig: LaunchConfig,
+  override val asg: AutoScalingGroup,
+  override val scalingPolicies: List<ScalingPolicy>,
+  override val vpcId: String,
+  override val targetGroups: Set<String>,
+  override val loadBalancers: Set<String>,
+  override val capacity: Capacity,
+  override val cloudProvider: String,
+  override val securityGroups: Set<String>,
   val accountName: String,
-  val moniker: Moniker,
-  val buildInfo: BuildInfo? = null
-)
+  override val moniker: Moniker,
+  override val buildInfo: BuildInfo? = null
+) : BaseEc2ServerGroup
 
 fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =
   asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->

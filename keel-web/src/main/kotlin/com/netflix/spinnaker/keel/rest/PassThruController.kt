@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.BaseServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.toActive
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
+import com.netflix.spinnaker.kork.exceptions.UserException
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.GetMapping
@@ -32,14 +33,30 @@ class PassThruController(
     @PathVariable("cluster") cluster: String,
     @PathVariable("cloudProvider") cloudProvider: String,
     @PathVariable("region") region: String
-  ): List<ActiveServerGroup> =
+  ): List<BaseServerGroup> =
     runBlocking {
-      cloudDriverService
-        .listServerGroups(DEFAULT_SERVICE_ACCOUNT, app, account, cluster, cloudProvider, region)
-        .let { c ->
-          c.serverGroups
-            .filterNot { it.disabled }
-            .map { it.toActive(c.accountName) }
-        }
+      when (cloudProvider) {
+        "aws" -> getActiveAwsServerGroups(app, account, cluster, region)
+        "titus" -> getActiveTitusServerGroups(app, account, cluster, region)
+        else -> throw UserException("Unknown cloud provider: $cloudProvider")
+      }
     }
+
+  suspend fun getActiveAwsServerGroups(app: String, account: String, cluster: String, region: String) =
+    cloudDriverService
+      .listServerGroups(DEFAULT_SERVICE_ACCOUNT, app, account, cluster, "aws", region)
+      .let { c ->
+        c.serverGroups
+          .filterNot { it.disabled }
+          .map { it.toActive(c.accountName) }
+      }
+
+  suspend fun getActiveTitusServerGroups(app: String, account: String, cluster: String, region: String) =
+    cloudDriverService
+      .listTitusServerGroups(DEFAULT_SERVICE_ACCOUNT, app, account, cluster, "titus", region)
+      .let { c ->
+        c.serverGroups
+          .filterNot { it.disabled }
+          .map { it.toActive() }
+      }
 }

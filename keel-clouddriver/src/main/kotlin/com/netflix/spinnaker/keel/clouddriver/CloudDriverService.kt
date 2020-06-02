@@ -25,9 +25,11 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.TitusServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
@@ -113,7 +115,17 @@ interface CloudDriverService {
     @Path("cluster") cluster: String,
     @Path("cloudProvider") cloudProvider: String,
     @Query("region") region: String
-  ): ServerGroupCollection
+  ): ServerGroupCollection<ServerGroup>
+
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
+  suspend fun listTitusServerGroups(
+    @Header("X-SPINNAKER-USER") user: String,
+    @Path("app") app: String,
+    @Path("account") account: String,
+    @Path("cluster") cluster: String,
+    @Path("cloudProvider") cloudProvider: String,
+    @Query("region") region: String
+  ): ServerGroupCollection<TitusServerGroup>
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun activeServerGroup(
