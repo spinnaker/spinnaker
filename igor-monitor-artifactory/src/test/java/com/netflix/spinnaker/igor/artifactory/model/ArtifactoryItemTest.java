@@ -102,6 +102,6 @@ class ArtifactoryItemTest {
 
     Artifact matchableArtifact =
         artifact.toMatchableArtifact(ArtifactoryRepositoryType.MAVEN, null);
-    assertThat(matchableArtifact.getMetadata().get("build")).isEqualTo(expectedBuild);
+    assertThat(matchableArtifact.getMetadata("build")).isEqualTo(expectedBuild);
   }
 }
