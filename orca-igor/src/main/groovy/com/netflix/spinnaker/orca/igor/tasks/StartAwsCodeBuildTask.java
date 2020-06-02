@@ -194,7 +194,7 @@ public class StartAwsCodeBuildTask implements Task {
       throw new IllegalArgumentException("No artifact account was specified.");
     }
 
-    if (matchArtifact.getMetadata() != null && matchArtifact.getMetadata().containsKey("subPath")) {
+    if (matchArtifact.getMetadata("subPath") != null) {
       throw new IllegalArgumentException("Subpath is not supported by AWS CodeBuild stage");
     }
     return matchArtifact;
