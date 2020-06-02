@@ -199,12 +199,6 @@ window.spinnakerSettings = {
         region: 'cn-north-1',
       },
     },
-    kubernetes: {
-      defaults: {
-        account: 'my-kubernetes-account',
-        namespace: 'default',
-      },
-    },
     oracle: {
       defaults: {
         account: 'DEFAULT',
