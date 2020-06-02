@@ -19,7 +19,6 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Moniker
-import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
@@ -29,7 +28,6 @@ import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.parseMoniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
-import java.time.Duration
 
 data class ServerGroup(
   /**
@@ -63,12 +61,8 @@ data class ServerGroup(
   override val artifactType: ArtifactType? = ArtifactType.deb,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
-  override val artifactVersion: String? = null,
-  @get:ObjectDiffProperty(inclusion = EXCLUDED)
-  override val maxDiffCount: Int? = null,
-  @get:ObjectDiffProperty(inclusion = EXCLUDED)
-  override val unhappyWaitTime: Duration? = null
-) : VersionedArtifactProvider, UnhappyControl {
+  override val artifactVersion: String? = null
+) : VersionedArtifactProvider {
   init {
     require(
       capacity.desired != null && !scaling.hasScalingPolicies() ||

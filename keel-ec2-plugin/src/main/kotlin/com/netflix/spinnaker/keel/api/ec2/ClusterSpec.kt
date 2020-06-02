@@ -42,9 +42,7 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
       scaling = resolveScaling(it.name),
       tags = defaults.tags + overrides[it.name]?.tags,
       artifactName = artifactName,
-      artifactVersion = artifactVersion,
-      maxDiffCount = maxDiffCount,
-      unhappyWaitTime = unhappyWaitTime
+      artifactVersion = artifactVersion
     )
   }
     .toSet()
