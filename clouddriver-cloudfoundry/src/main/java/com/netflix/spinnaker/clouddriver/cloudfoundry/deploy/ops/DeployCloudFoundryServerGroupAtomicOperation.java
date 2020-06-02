@@ -287,10 +287,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     Map<String, Object> buildInfo = null;
     final Artifact applicationArtifact = description.getApplicationArtifact();
     if (applicationArtifact != null) {
-      final Map<String, Object> metadata = applicationArtifact.getMetadata();
-      if (metadata != null) {
-        buildInfo = (Map<String, Object>) applicationArtifact.getMetadata().get("build");
-      }
+      buildInfo = (Map<String, Object>) applicationArtifact.getMetadata("build");
     }
     if (buildInfo == null) {
       final Map<String, Object> trigger = description.getTrigger();

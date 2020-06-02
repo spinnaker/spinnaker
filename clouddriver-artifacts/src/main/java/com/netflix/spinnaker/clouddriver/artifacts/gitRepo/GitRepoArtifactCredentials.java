@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -153,13 +152,7 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
   }
 
   private String artifactSubPath(Artifact artifact) {
-    String target = "";
-    Map<String, Object> metadata = artifact.getMetadata();
-    if (metadata != null) {
-      target = (String) metadata.getOrDefault("subPath", "");
-    }
-
-    return target;
+    return Strings.nullToEmpty((String) artifact.getMetadata("subPath"));
   }
 
   private String artifactVersion(Artifact artifact) {

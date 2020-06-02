@@ -130,11 +130,7 @@ final class KubernetesVersionedArtifactConverter extends KubernetesArtifactConve
   }
 
   private Optional<KubernetesManifest> getLastAppliedConfiguration(Artifact artifact) {
-    if (artifact.getMetadata() == null) {
-      return Optional.empty();
-    }
-
-    Object rawLastAppliedConfiguration = artifact.getMetadata().get("lastAppliedConfiguration");
+    Object rawLastAppliedConfiguration = artifact.getMetadata("lastAppliedConfiguration");
 
     if (rawLastAppliedConfiguration == null) {
       return Optional.empty();

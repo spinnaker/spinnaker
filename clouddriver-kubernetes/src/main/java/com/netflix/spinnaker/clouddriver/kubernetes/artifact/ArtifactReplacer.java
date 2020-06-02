@@ -35,7 +35,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
@@ -95,12 +94,7 @@ public class ArtifactReplacer {
   }
 
   private static String getAccount(Artifact artifact) {
-    String account = "";
-    Map<String, Object> metadata = artifact.getMetadata();
-    if (metadata != null) {
-      account = (String) metadata.getOrDefault("account", "");
-    }
-    return account;
+    return Strings.nullToEmpty((String) artifact.getMetadata("account"));
   }
 
   @Nonnull

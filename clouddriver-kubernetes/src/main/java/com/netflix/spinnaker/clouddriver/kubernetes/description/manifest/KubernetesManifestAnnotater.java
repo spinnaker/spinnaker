@@ -176,12 +176,15 @@ public class KubernetesManifestAnnotater {
     storeAnnotation(annotations, VERSION, artifact.getVersion());
   }
 
-  public static Optional<Artifact> getArtifact(KubernetesManifest manifest) {
+  public static Optional<Artifact> getArtifact(KubernetesManifest manifest, String account) {
     Map<String, String> annotations = manifest.getAnnotations();
     String type = getAnnotation(annotations, TYPE, new TypeReference<String>() {});
     if (Strings.isNullOrEmpty(type)) {
       return Optional.empty();
     }
+
+    KubernetesManifest lastAppliedConfiguration =
+        KubernetesManifestAnnotater.getLastAppliedConfiguration(manifest);
 
     return Optional.of(
         Artifact.builder()
@@ -189,6 +192,8 @@ public class KubernetesManifestAnnotater {
             .name(getAnnotation(annotations, NAME, new TypeReference<String>() {}))
             .location(getAnnotation(annotations, LOCATION, new TypeReference<String>() {}))
             .version(getAnnotation(annotations, VERSION, new TypeReference<String>() {}))
+            .putMetadata("lastAppliedConfiguration", lastAppliedConfiguration)
+            .putMetadata("account", account)
             .build());
   }
 

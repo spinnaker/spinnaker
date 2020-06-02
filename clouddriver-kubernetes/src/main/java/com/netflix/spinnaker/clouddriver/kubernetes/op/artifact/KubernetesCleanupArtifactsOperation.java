@@ -104,7 +104,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
     }
 
     int maxVersionHistory = optionalMaxVersionHistory.getAsInt();
-    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
+    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest, accountName);
     if (!optional.isPresent()) {
       return new ArrayList<>();
     }
@@ -114,8 +114,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
     List<Artifact> artifacts =
         artifactProvider
             .getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation()).stream()
-            .filter(
-                a -> a.getMetadata() != null && accountName.equals(a.getMetadata().get("account")))
+            .filter(a -> accountName.equals(a.getMetadata("account")))
             .collect(Collectors.toList());
 
     if (maxVersionHistory >= artifacts.size()) {

@@ -68,21 +68,12 @@ public class KubernetesCacheDataConverter {
   private static Optional<Keys.CacheKey> convertAsArtifact(
       KubernetesCacheData kubernetesCacheData, String account, KubernetesManifest manifest) {
     String namespace = manifest.getNamespace();
-    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
+    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest, account);
     if (!optional.isPresent()) {
       return Optional.empty();
     }
 
     Artifact artifact = optional.get();
-
-    try {
-      KubernetesManifest lastAppliedConfiguration =
-          KubernetesManifestAnnotater.getLastAppliedConfiguration(manifest);
-      artifact.getMetadata().put("lastAppliedConfiguration", lastAppliedConfiguration);
-      artifact.getMetadata().put("account", account);
-    } catch (Exception e) {
-      log.warn("Unable to get last applied configuration from {}: ", manifest, e);
-    }
 
     if (artifact.getType() == null) {
       log.debug(
