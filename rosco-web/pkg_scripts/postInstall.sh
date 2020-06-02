@@ -32,6 +32,15 @@ install_helm() {
   rm get
 }
 
+install_helm3() {
+  wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get-helm-3
+  chmod +x get-helm-3
+  ./get-helm-3
+  rm get-helm-3
+  mv /usr/local/bin/helm /usr/local/bin/helm3
+}
+
 install_packer
+install_helm3
 install_helm
 install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/rosco
