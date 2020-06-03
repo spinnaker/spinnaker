@@ -8,14 +8,16 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.plugins.kind
+import com.netflix.spinnaker.keel.api.support.ConstraintRepositoryBridge
+import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.constraints.ArtifactUsedConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.ConstraintState
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.constraints.ManualJudgementConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
@@ -64,7 +66,11 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
       every { isImplicit() } returns false
     }
-    val statefulEvaluator = ManualJudgementConstraintEvaluator(repository, MutableClock(), publisher)
+    val statefulEvaluator = ManualJudgementConstraintEvaluator(
+      ConstraintRepositoryBridge(repository),
+      MutableClock(),
+      SpringEventPublisherBridge(publisher)
+    )
 
     val implicitStatelessEvaluator = mockk<ArtifactUsedConstraintEvaluator>() {
       every { supportedType } returns SupportedConstraintType<ArtifactUsedConstraint>("artifact-type")

@@ -4,12 +4,12 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.constraints.ArtifactUsedConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.ConstraintState
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint

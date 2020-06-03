@@ -4,9 +4,9 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.anyStateful
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
-import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.comparator

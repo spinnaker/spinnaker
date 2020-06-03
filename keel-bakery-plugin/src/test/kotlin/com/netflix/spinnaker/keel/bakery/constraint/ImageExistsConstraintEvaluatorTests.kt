@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -22,7 +23,6 @@ import io.mockk.Called
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -56,7 +56,7 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
       )
     )
   ) {
-    val eventPublisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+    val eventPublisher = mockk<EventPublisher>(relaxUnitFun = true)
     val imageService = mockk<ImageService>(relaxUnitFun = true)
     val evaluator = ImageExistsConstraintEvaluator(
       imageService,

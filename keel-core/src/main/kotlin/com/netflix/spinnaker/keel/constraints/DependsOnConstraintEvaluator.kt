@@ -3,16 +3,18 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class DependsOnConstraintEvaluator(
   private val artifactRepository: ArtifactRepository,
-  override val eventPublisher: ApplicationEventPublisher
+  override val eventPublisher: EventPublisher
 ) : ConstraintEvaluator<DependsOnConstraint> {
 
   override val supportedType = SupportedConstraintType<DependsOnConstraint>("depends-on")

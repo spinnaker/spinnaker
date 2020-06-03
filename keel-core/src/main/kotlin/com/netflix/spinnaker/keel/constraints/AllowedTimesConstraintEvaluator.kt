@@ -3,7 +3,10 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -14,7 +17,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Component
  *
  * Example env constraint:
  *
+ * ```
  * constraints:
  *  - type: allowed-times
  *    windows:
@@ -38,12 +41,13 @@ import org.springframework.stereotype.Component
  *      - days: Wed
  *        hours: 12-14
  *    tz: America/Los_Angeles
+ * ```
  */
 @Component
 class AllowedTimesConstraintEvaluator(
   private val clock: Clock,
   private val dynamicConfigService: DynamicConfigService,
-  override val eventPublisher: ApplicationEventPublisher
+  override val eventPublisher: EventPublisher
 ) : ConstraintEvaluator<TimeWindowConstraint> {
   companion object {
     const val CONSTRAINT_NAME = "allowed-times"

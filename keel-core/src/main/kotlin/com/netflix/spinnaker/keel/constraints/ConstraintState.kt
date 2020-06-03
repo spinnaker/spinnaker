@@ -1,67 +1,10 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.netflix.spinnaker.keel.core.api.UID
-import java.time.Duration
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import java.time.Instant
 
-data class ConstraintState(
-  val deliveryConfigName: String,
-  val environmentName: String,
-  val artifactVersion: String,
-  val type: String,
-  val status: ConstraintStatus,
-  val createdAt: Instant = Instant.now(),
-  val judgedBy: String? = null,
-  val judgedAt: Instant? = null,
-  val comment: String? = null,
-  val attributes: ConstraintStateAttributes? = null,
-  @JsonIgnore
-  var uid: UID? = null
-) {
-  fun passed() = status.passes()
-
-  fun failed() = status.failed()
-
-  fun timedOut(timeout: Duration, now: Instant) =
-    createdAt.plus(timeout).isBefore(now)
-}
-
-val List<ConstraintState>.allPass: Boolean
-  get() = all { it.status.passes() }
-
-enum class ConstraintStatus(private val passed: Boolean, private val failed: Boolean) {
-  NOT_EVALUATED(false, false),
-  PENDING(false, false),
-  PASS(true, false),
-  FAIL(false, true),
-  OVERRIDE_PASS(true, false),
-  OVERRIDE_FAIL(false, true);
-
-  fun passes() = passed
-  fun failed() = failed
-}
-
-data class UpdatedConstraintStatus(
-  val type: String,
-  val artifactVersion: String,
-  val status: ConstraintStatus,
-  val comment: String? = null
-)
-
-@JsonTypeInfo(
-  include = JsonTypeInfo.As.EXISTING_PROPERTY,
-  use = JsonTypeInfo.Id.NAME,
-  property = "type")
-@JsonSubTypes(
-  Type(value = PipelineConstraintStateAttributes::class, name = "pipeline"),
-  Type(value = CanaryConstraintAttributes::class, name = "canary")
-)
-abstract class ConstraintStateAttributes(val type: String)
-
+@JsonTypeName("pipeline")
 data class PipelineConstraintStateAttributes(
   val executionId: String? = null,
   val attempt: Int,
@@ -69,6 +12,7 @@ data class PipelineConstraintStateAttributes(
   val lastExecutionStatus: String? = null
 ) : ConstraintStateAttributes("pipeline")
 
+@JsonTypeName("canary")
 data class CanaryConstraintAttributes(
   val executions: Set<RegionalExecutionId> = emptySet(),
   val startAttempt: Int = 0,

@@ -3,10 +3,10 @@ package com.netflix.spinnaker.keel.echo
 import com.netflix.spinnaker.config.ManualJudgementNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
-import com.netflix.spinnaker.keel.events.ConstraintStateChanged
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties

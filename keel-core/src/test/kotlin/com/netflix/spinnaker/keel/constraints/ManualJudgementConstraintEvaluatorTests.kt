@@ -4,8 +4,11 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
@@ -14,15 +17,14 @@ import dev.minutest.rootContext
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.Duration
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 
 internal class ManualJudgementConstraintEvaluatorTests : JUnit5Minutests {
   object Fixture {
     val clock = MutableClock()
-    val repository = mockk<KeelRepository>(relaxUnitFun = true)
-    val publisher: ApplicationEventPublisher = mockk()
+    val repository = mockk<ConstraintRepository>(relaxUnitFun = true)
+    val publisher: EventPublisher = mockk()
     val subject = ManualJudgementConstraintEvaluator(repository, clock, publisher)
 
     val configName = "my-config"

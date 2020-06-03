@@ -6,16 +6,16 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.bakery.api.ImageExistsConstraint
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
-import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.getConfig
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component
 class ImageExistsConstraintEvaluator(
   private val imageService: ImageService,
   private val dynamicConfigService: DynamicConfigService,
-  override val eventPublisher: ApplicationEventPublisher
+  override val eventPublisher: EventPublisher
 ) : ConstraintEvaluator<ImageExistsConstraint> {
 
   override fun isImplicit(): Boolean = true

@@ -26,7 +26,6 @@ dependencies {
   api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   api("com.fasterxml.jackson.module:jackson-module-kotlin")
   api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
   api("com.netflix.spinnaker.kork:kork-artifacts")
   api("de.danielbechler:java-object-diff")
   api("org.springframework:spring-context")

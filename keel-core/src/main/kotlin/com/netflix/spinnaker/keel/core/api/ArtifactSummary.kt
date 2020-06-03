@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.constraints.ConstraintStateAttributes
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import java.time.Instant
 
 /**

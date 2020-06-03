@@ -3,18 +3,21 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import java.time.Clock
 import java.util.HashMap
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory.getLogger
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -37,8 +40,8 @@ import org.springframework.stereotype.Component
 @Component
 class PipelineConstraintEvaluator(
   private val orcaService: OrcaService,
-  repository: KeelRepository,
-  override val eventPublisher: ApplicationEventPublisher,
+  repository: ConstraintRepository,
+  override val eventPublisher: EventPublisher,
   private val clock: Clock
 ) : StatefulConstraintEvaluator<PipelineConstraint>(repository) {
   override val supportedType = SupportedConstraintType<PipelineConstraint>("pipeline")

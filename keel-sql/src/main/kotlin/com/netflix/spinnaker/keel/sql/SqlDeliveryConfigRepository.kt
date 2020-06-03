@@ -7,12 +7,11 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.allPass
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.statefulCount
-import com.netflix.spinnaker.keel.constraints.ConstraintState
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
-import com.netflix.spinnaker.keel.constraints.allPass
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
@@ -848,7 +847,7 @@ class SqlDeliveryConfigRepository(
         .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
-          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS.eq(PENDING.toString()))
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS.eq(ConstraintStatus.PENDING.toString()))
         .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION)
     }
   }

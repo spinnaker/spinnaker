@@ -9,8 +9,13 @@ import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.events.ConstraintStateChanged
-import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -21,7 +26,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import java.time.Instant
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
@@ -29,15 +33,15 @@ import strikt.assertions.isTrue
 internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
 
   class Fixture {
-    val repository: KeelRepository = mockk(relaxUnitFun = true)
-    val eventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
+    val repository: ConstraintRepository = mockk(relaxUnitFun = true)
+    val eventPublisher: EventPublisher = mockk(relaxed = true)
     val fakeStatefulConstraintEvaluatorDelegate: StatefulConstraintEvaluator<FakeConstraint> = mockk(relaxed = true)
 
     class FakeConstraint : StatefulConstraint("fake")
 
     class FakeStatefulConstraintEvaluator(
-      repository: KeelRepository,
-      override val eventPublisher: ApplicationEventPublisher,
+      repository: ConstraintRepository,
+      override val eventPublisher: EventPublisher,
       val delegate: StatefulConstraintEvaluator<FakeConstraint>
     ) : StatefulConstraintEvaluator<FakeConstraint>(repository) {
       override fun canPromote(

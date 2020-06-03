@@ -4,10 +4,14 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.NOT_EVALUATED
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
@@ -17,7 +21,6 @@ import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.TERMINAL
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.MockKAnswerScope
@@ -28,7 +31,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import java.time.Clock
 import java.time.Instant
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -44,8 +46,8 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
     val constraint: PipelineConstraint
   ) {
     val clock: Clock = Clock.systemUTC()
-    val repository: KeelRepository = mockk()
-    val eventPublisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val repository: ConstraintRepository = mockk()
+    val eventPublisher: EventPublisher = mockk(relaxUnitFun = true)
 
     val type = "pipeline"
     val orcaService: OrcaService = mockk()

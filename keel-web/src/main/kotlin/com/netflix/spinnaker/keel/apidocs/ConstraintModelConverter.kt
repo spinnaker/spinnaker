@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.apidocs
 
 import com.netflix.spinnaker.keel.api.Constraint
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
 import io.swagger.v3.oas.models.media.Schema
 import org.springframework.stereotype.Component
 

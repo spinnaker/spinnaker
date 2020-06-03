@@ -3,20 +3,23 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.KeelRepository
 import java.time.Clock
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -60,9 +63,9 @@ import org.springframework.stereotype.Component
 class CanaryConstraintEvaluator(
   private val handlers: List<CanaryConstraintDeployHandler>,
   private val orcaService: OrcaService,
-  repository: KeelRepository,
+  repository: ConstraintRepository,
   private val clock: Clock,
-  override val eventPublisher: ApplicationEventPublisher
+  override val eventPublisher: EventPublisher
 ) : StatefulConstraintEvaluator<CanaryConstraint>(repository) {
   override val supportedType = SupportedConstraintType<CanaryConstraint>("canary")
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

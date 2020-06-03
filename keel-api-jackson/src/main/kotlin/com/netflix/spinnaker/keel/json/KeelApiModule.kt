@@ -31,6 +31,9 @@ import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DockerVersioningStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
+import com.netflix.spinnaker.keel.api.constraints.ConstraintState
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
+import com.netflix.spinnaker.keel.json.mixins.ConstraintStateMixin
 import com.netflix.spinnaker.keel.json.mixins.DeliveryArtifactMixin
 import com.netflix.spinnaker.keel.json.mixins.LocatableMixin
 import com.netflix.spinnaker.keel.json.mixins.MonikeredMixin
@@ -51,6 +54,7 @@ object KeelApiModule : SimpleModule("Keel API") {
       setMixInAnnotations<Locatable<*>, LocatableMixin<*>>()
       setMixInAnnotations<Monikered, MonikeredMixin>()
       setMixInAnnotations<SubnetAwareRegionSpec, SubnetAwareRegionSpecMixin>()
+      setMixInAnnotations<ConstraintState, ConstraintStateMixin>()
 
       registerSubtypes(
         NamedType<DebianArtifact>(ArtifactType.deb.name),
@@ -81,6 +85,7 @@ object KeelApiModule : SimpleModule("Keel API") {
 internal object KeelApiAnnotationIntrospector : NopAnnotationIntrospector() {
   private val types = setOf(
     Constraint::class.java,
+    ConstraintStateAttributes::class.java,
     DeliveryArtifact::class.java
   )
 

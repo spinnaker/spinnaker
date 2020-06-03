@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
-import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_PASS
+import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
