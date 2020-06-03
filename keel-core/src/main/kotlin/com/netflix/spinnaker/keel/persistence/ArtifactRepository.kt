@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
@@ -161,9 +162,7 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
    */
   fun markAsVetoedIn(
     deliveryConfig: DeliveryConfig,
-    artifact: DeliveryArtifact,
-    version: String,
-    targetEnvironment: String,
+    veto: EnvironmentArtifactVeto,
     force: Boolean = false
   ): Boolean
 

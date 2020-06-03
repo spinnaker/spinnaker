@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
@@ -384,12 +385,10 @@ class CombinedRepository(
 
   override fun markAsVetoedIn(
     deliveryConfig: DeliveryConfig,
-    artifact: DeliveryArtifact,
-    version: String,
-    targetEnvironment: String,
+    veto: EnvironmentArtifactVeto,
     force: Boolean
   ): Boolean =
-    artifactRepository.markAsVetoedIn(deliveryConfig, artifact, version, targetEnvironment, force)
+    artifactRepository.markAsVetoedIn(deliveryConfig, veto, force)
 
   override fun deleteVeto(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.deleteVeto(deliveryConfig, artifact, version, targetEnvironment)

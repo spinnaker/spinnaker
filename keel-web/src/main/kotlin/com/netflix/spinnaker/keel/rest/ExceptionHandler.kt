@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
 import com.netflix.spinnaker.keel.exceptions.NoSuchEnvironmentException
 import com.netflix.spinnaker.keel.exceptions.ValidationException
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
@@ -86,9 +87,9 @@ class ExceptionHandler(
     return ApiError(CONFLICT, e)
   }
 
-  @ExceptionHandler(ValidationException::class)
+  @ExceptionHandler(ValidationException::class, InvalidVetoException::class)
   @ResponseStatus(BAD_REQUEST)
-  fun onInvalidDeliveryConfig(e: ValidationException): ApiError {
+  fun onInvalidDeliveryConfig(e: Exception): ApiError {
     log.error(e.message)
     return ApiError(BAD_REQUEST, e)
   }

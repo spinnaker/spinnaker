@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.core.api.StatefulConstraintSummary
 import com.netflix.spinnaker.keel.core.api.StatelessConstraintSummary
 import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.exceptions.InvalidVetoException
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
@@ -102,18 +103,17 @@ class ApplicationService(
     // TODO: publish ArtifactUnpinnedEvent
   }
 
-  fun markAsVetoedIn(application: String, veto: EnvironmentArtifactVeto, force: Boolean) {
+  fun markAsVetoedIn(user: String, application: String, veto: EnvironmentArtifactVeto, force: Boolean) {
     val config = repository.getDeliveryConfigForApplication(application)
-    val artifact = config.matchingArtifactByReference(veto.reference)
-      ?: throw ArtifactNotFoundException(veto.reference, config.name)
-
-    repository.markAsVetoedIn(
+    val succeeded = repository.markAsVetoedIn(
       deliveryConfig = config,
-      artifact = artifact,
-      version = veto.version,
-      targetEnvironment = veto.targetEnvironment,
+      veto = veto.copy(vetoedBy = user),
       force = force
     )
+    if (!succeeded) {
+      throw InvalidVetoException(application, veto.targetEnvironment, veto.reference, veto.version)
+    }
+    // TODO: publish ArtifactVetoedEvent
   }
 
   fun deleteVeto(application: String, targetEnvironment: String, reference: String, version: String) {

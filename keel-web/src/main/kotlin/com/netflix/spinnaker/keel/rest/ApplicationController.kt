@@ -198,8 +198,7 @@ class ApplicationController(
     @PathVariable("application") application: String,
     @RequestBody veto: EnvironmentArtifactVeto
   ) {
-
-    applicationService.markAsVetoedIn(application, veto, true)
+    applicationService.markAsVetoedIn(user, application, veto, true)
   }
 
   @DeleteMapping(

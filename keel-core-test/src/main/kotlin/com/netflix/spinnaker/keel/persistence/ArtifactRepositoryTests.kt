@@ -13,10 +13,11 @@ import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.core.api.ActionMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
-import com.netflix.spinnaker.keel.core.api.Pinned
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -560,7 +561,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           }
 
           test("pinned version cannot be vetoed") {
-            expectThat(subject.markAsVetoedIn(manifest, artifact2, pin1.version, pin1.targetEnvironment))
+            expectThat(subject.markAsVetoedIn(manifest, EnvironmentArtifactVeto(pin1.targetEnvironment, artifact2.reference, pin1.version, "sheepy", "this pin is baaaaaad")))
               .isFalse()
           }
 
@@ -589,7 +590,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             expect {
               that(envArtifactSummary).isNotNull()
               that(envArtifactSummary?.isPinned).isTrue()
-              that(envArtifactSummary?.pinned).isEqualTo(Pinned(by = pin1.pinnedBy, at = clock.instant(), comment = pin1.comment))
+              that(envArtifactSummary?.pinned).isEqualTo(ActionMetadata(by = pin1.pinnedBy, at = clock.instant(), comment = pin1.comment))
             }
           }
         }
@@ -635,7 +636,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         persist()
         subject.approveVersionFor(manifest, artifact2, version4, environment2.name)
         subject.approveVersionFor(manifest, artifact2, version5, environment2.name)
-        subject.markAsVetoedIn(manifest, artifact2, version5, environment2.name)
+        subject.markAsVetoedIn(manifest, EnvironmentArtifactVeto(environment2.name, artifact2.reference, version5, "tester", "you bad"))
       }
 
       test("latestVersionApprovedIn reflects the veto") {
@@ -664,14 +665,40 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
       }
 
+      test("get env artifact version shows that artifact is vetoed") {
+        val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
+          deliveryConfig = manifest,
+          environmentName = environment2.name,
+          artifactReference = artifact2.reference,
+          version = version5
+        )
+        expect {
+          that(envArtifactSummary).isNotNull()
+          that(envArtifactSummary?.isVetoed).isTrue()
+          that(envArtifactSummary?.vetoed).isEqualTo(ActionMetadata(by = "tester", at = clock.instant(), comment = "you bad"))
+        }
+      }
+
       test("unveto the vetoed version") {
         subject.deleteVeto(manifest, artifact2, version5, environment2.name)
+
+        val envArtifactSummary = subject.getArtifactSummaryInEnvironment(
+          deliveryConfig = manifest,
+          environmentName = environment2.name,
+          artifactReference = artifact2.reference,
+          version = version5
+        )
 
         expectThat(subject.latestVersionApprovedIn(manifest, artifact2, environment2.name))
           .isEqualTo(version5)
         expectThat(versionsIn(environment2, artifact2)) {
           get(ArtifactVersionStatus::vetoed).isEmpty()
           get(ArtifactVersionStatus::approved).containsExactlyInAnyOrder(version4, version5)
+        }
+        expect {
+          that(envArtifactSummary).isNotNull()
+          that(envArtifactSummary?.isVetoed).isFalse()
+          that(envArtifactSummary?.vetoed).isNull()
         }
       }
     }

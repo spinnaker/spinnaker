@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
@@ -336,9 +337,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 val event = slot<ResourceCheckResult>()
                 verify { publisher.publishEvent(capture(event)) }
                 expectThat(event.captured)
-                    .isA<ResourceCheckError>()
-                    .get { exceptionType }
-                    .isEqualTo(UserException::class.java)
+                  .isA<ResourceCheckError>()
+                  .get { exceptionType }
+                  .isEqualTo(UserException::class.java)
               }
             }
 
@@ -356,9 +357,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 val event = slot<ResourceCheckResult>()
                 verify { publisher.publishEvent(capture(event)) }
                 expectThat(event.captured)
-                    .isA<ResourceCheckError>()
-                    .get { exceptionType }
-                    .isEqualTo(SystemException::class.java)
+                  .isA<ResourceCheckError>()
+                  .get { exceptionType }
+                  .isEqualTo(SystemException::class.java)
               }
             }
           }
@@ -471,7 +472,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the desired artifact version is vetoed from the target environment") {
-          verify { artifactRepository.markAsVetoedIn(any(), any(), "fnord-42.0", "staging", false) }
+          verify { artifactRepository.markAsVetoedIn(any(), EnvironmentArtifactVeto("staging", "fnord", "fnord-42.0", "Spinnaker", "Automatically vetoed because multiple deployments of this version failed."), false) }
           verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
         }
       }

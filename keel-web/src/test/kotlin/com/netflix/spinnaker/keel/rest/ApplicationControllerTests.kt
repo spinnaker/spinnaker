@@ -278,8 +278,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
-                UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
-              )
+              UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
+            )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
 
@@ -293,8 +293,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
-                UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
-              )
+              UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
+            )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
 
@@ -353,8 +353,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/pin").addData(jsonMapper,
-                EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null)
-              )
+              EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null)
+            )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
 
@@ -368,8 +368,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/pin").addData(jsonMapper,
-                EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null)
-              )
+              EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null)
+            )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
 
@@ -414,8 +414,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/veto").addData(jsonMapper,
-                EnvironmentArtifactVeto("test", "ref", "0.0.1")
-              )
+              EnvironmentArtifactVeto("test", "ref", "0.0.1", "me", "oopsie")
+            )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
 
@@ -429,8 +429,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/veto").addData(jsonMapper,
-                EnvironmentArtifactVeto("test", "ref", "0.0.1")
-              )
+              EnvironmentArtifactVeto("test", "ref", "0.0.1", "me", "oopsie")
+            )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
 

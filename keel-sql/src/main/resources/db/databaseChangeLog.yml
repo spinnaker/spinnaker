@@ -152,3 +152,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200522-standardize-timestamps.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200528-add-veto-info.yml
+      relativeToChangelogFile: true

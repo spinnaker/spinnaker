@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
@@ -94,7 +95,6 @@ class ResourceActuator(
            * containing [resource]. This ensures that the environment will be fully restored to
            * a prior good-state.
            */
-          // todo eb: limit this to not roll back forever
           if (response.vetoArtifact && resource.spec is VersionedArtifactProvider) {
             try {
               val versionedArtifact = when (desired) {
@@ -121,9 +121,14 @@ class ResourceActuator(
 
                   artifactRepository.markAsVetoedIn(
                     deliveryConfig = deliveryConfig,
-                    artifact = artifact,
-                    version = artifactVersion,
-                    targetEnvironment = environment)
+                    veto = EnvironmentArtifactVeto(
+                      reference = artifact.reference,
+                      version = artifactVersion,
+                      targetEnvironment = environment,
+                      vetoedBy = "Spinnaker",
+                      comment = "Automatically vetoed because multiple deployments of this version failed."
+                    )
+                  )
                   // TODO: emit event + metric
                 }
               }
