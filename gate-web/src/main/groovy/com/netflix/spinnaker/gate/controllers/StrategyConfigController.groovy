@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -33,23 +32,18 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/strategyConfigs")
 class StrategyConfigController {
-  private static final String HYSTRIX_GROUP = "strategyConfigs";
 
   @Autowired
   Front50Service front50Service
 
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllStrategyConfigs() {
-    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getAllStrategyConfigs") {
-      front50Service.getAllStrategyConfigs()
-    }.execute()
+    return front50Service.getAllStrategyConfigs()
   }
 
   @RequestMapping(value = "/{strategyConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("strategyConfigId") String strategyConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {
-    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getStrategyConfigHistory") {
-      front50Service.getStrategyConfigHistory(strategyConfigId, limit)
-    }.execute()
+    return front50Service.getStrategyConfigHistory(strategyConfigId, limit)
   }
 }

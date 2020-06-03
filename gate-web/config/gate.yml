@@ -102,15 +102,6 @@ integrations:
     enabled: false
     baseUrl: https://api.gremlin.com/v1
 
-hystrix:
-  command:
-## Hystrix Global Defaults
-    default:
-      execution.isolation.thread.timeoutInMilliseconds: 60000
-## Command-specific overrides
-    fetchGlobalAccounts:
-      execution.isolation.thread.timeoutInMilliseconds: 2000
-
 spring:
   jackson:
     mapper:

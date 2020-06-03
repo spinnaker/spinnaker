@@ -24,9 +24,6 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
 import com.netflix.spinnaker.gate.services.*
-import com.netflix.spinnaker.gate.services.commands.ServerErrorException
-import com.netflix.spinnaker.gate.services.commands.ServiceUnavailableException
-import com.netflix.spinnaker.gate.services.commands.ThrottledRequestException
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
@@ -38,7 +35,6 @@ import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
-import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import retrofit.RestAdapter
@@ -146,49 +142,6 @@ class FunctionalSpec extends Specification {
       name = "foo"
   }
 
-  void "should 429 if ThrottledRequestException is raised"() {
-    when:
-      api.getApplication(name)
-
-    then:
-      1 * applicationService.getApplication(name, true) >> { throw new ThrottledRequestException("throttled!") }
-
-      RetrofitError exception = thrown()
-      exception.response.status == 429
-      toMap(exception.response.body).message == "throttled!"
-
-    where:
-      name = "foo"
-  }
-
-  void "should 503 on ServiceUnavailableException"() {
-    when:
-    api.getApplication(name)
-
-    then:
-    1 * applicationService.getApplication(name, true) >> { throw new ServiceUnavailableException() }
-    RetrofitError exception = thrown()
-    exception.response.status == 503
-    toMap(exception.response.body).message == HttpStatus.SERVICE_UNAVAILABLE.reasonPhrase
-
-    where:
-    name = "foo"
-  }
-
-  void "should 500 on ServerErrorException"() {
-    when:
-    api.getApplication(name)
-
-    then:
-    1 * applicationService.getApplication(name, true) >> { throw new ServerErrorException() }
-    RetrofitError exception = thrown()
-    exception.response.status == 500
-    toMap(exception.response.body).message == HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase
-
-    where:
-    name = "foo"
-  }
-
   void "should call ApplicationService for an application's tasks"() {
     when:
       api.getTasks(name, null, null, "RUNNING,TERMINAL")
@@ -211,32 +164,6 @@ class FunctionalSpec extends Specification {
     where:
       name = "foo"
       task = [type: "deploy"]
-  }
-
-  void "should throw ServerErrorException(500) on a random thrown exception"() {
-    when:
-    def tasks = executionHistoryService.getTasks("app", null, 5, null)
-
-    then:
-    1 * orcaServiceSelector.select() >> { orcaService }
-    1 * orcaService.getTasks("app", null, 5, null) >> { return ["1"] }
-    tasks == ["1"]
-
-    when:
-      executionHistoryService.getTasks("app", null, 10, "RUNNING")
-
-    then:
-    1 * orcaServiceSelector.select() >> { orcaService }
-    1 * orcaService.getTasks("app", null, 10, "RUNNING") >> { throw new IllegalStateException() }
-      thrown(ServerErrorException)
-
-    when:
-    executionHistoryService.getPipelines("app", 5, "TERMINAL", false)
-
-    then:
-    1 * orcaServiceSelector.select() >> { orcaService }
-    1 * orcaService.getPipelines("app", 5, "TERMINAL", false) >> { throw new IllegalStateException() }
-    thrown(ServerErrorException)
   }
 
   Map toMap(TypedInput typedInput) {

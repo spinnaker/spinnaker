@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services;
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
 import java.util.List;
 import java.util.Optional;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CiService {
-
-  private static final String GROUP = "ci";
 
   private Optional<IgorService> igorService;
 
@@ -40,10 +37,6 @@ public class CiService {
       throw new UnsupportedOperationException(
           "Operation not supported because igor service is not configured");
     }
-    return HystrixFactory.newListCommand(
-            GROUP,
-            "getBuilds",
-            () -> igorService.get().getBuilds(projectKey, repoSlug, completionStatus))
-        .execute();
+    return igorService.get().getBuilds(projectKey, repoSlug, completionStatus);
   }
 }

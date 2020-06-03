@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.gate.services
 
-
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -31,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 @Slf4j
 class ProjectService {
-  private static final String GROUP = "projects"
 
   @Autowired
   Front50Service front50Service
@@ -43,26 +39,18 @@ class ProjectService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> getAll() {
-    HystrixFactory.newListCommand(GROUP, "getAll") {
-      return front50Service.getAllProjects() ?: []
-    } execute()
+    return front50Service.getAllProjects() ?: []
   }
 
   Map get(String id) {
-    HystrixFactory.newMapCommand(GROUP, "get") {
-      front50Service.getProject(id)
-    } execute()
+    front50Service.getProject(id)
   }
 
   List<Map> getAllPipelines(String projectId, int limit, String statuses) {
-    HystrixFactory.newListCommand(GROUP, "getAllPipelines") {
-      return orcaServiceSelector.select().getPipelinesForProject(projectId, limit, statuses)
-    } execute()
+    return orcaServiceSelector.select().getPipelinesForProject(projectId, limit, statuses)
   }
 
   List getClusters(String projectId, String selectorKey) {
-    HystrixFactory.newListCommand(GROUP, "getClusters") {
-      return clouddriverServiceSelector.select().getProjectClusters(projectId)
-    } execute()
+    return clouddriverServiceSelector.select().getProjectClusters(projectId)
   }
 }

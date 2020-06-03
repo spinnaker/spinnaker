@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services;
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 public class TaskService {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private static final String GROUP = "tasks";
 
   private OrcaServiceSelector orcaServiceSelector;
   private ClouddriverServiceSelector clouddriverServiceSelector;
@@ -64,47 +62,30 @@ public class TaskService {
   }
 
   public Map getTask(final String id) {
-    return (Map)
-        HystrixFactory.newMapCommand(
-                GROUP, "getTask", () -> getOrcaServiceSelector().select().getTask(id))
-            .execute();
+    return getOrcaServiceSelector().select().getTask(id);
   }
 
   public Map deleteTask(final String id) {
     setApplicationForTask(id);
-    return (Map)
-        HystrixFactory.newMapCommand(
-                GROUP, "deleteTask", () -> getOrcaServiceSelector().select().deleteTask(id))
-            .execute();
+    return getOrcaServiceSelector().select().deleteTask(id);
   }
 
   public Map getTaskDetails(final String taskDetailsId, String selectorKey) {
-    return (Map)
-        HystrixFactory.newMapCommand(
-                GROUP,
-                "getTaskDetails",
-                () -> getClouddriverServiceSelector().select().getTaskDetails(taskDetailsId))
-            .execute();
+    return getClouddriverServiceSelector().select().getTaskDetails(taskDetailsId);
   }
 
   public Map cancelTask(final String id) {
     setApplicationForTask(id);
-    return (Map)
-        HystrixFactory.newMapCommand(
-                GROUP, "cancelTask", () -> getOrcaServiceSelector().select().cancelTask(id, ""))
-            .execute();
+    return getOrcaServiceSelector().select().cancelTask(id, "");
   }
 
   public Map cancelTasks(final List<String> taskIds) {
     setApplicationForTask(taskIds.get(0));
-    return (Map)
-        HystrixFactory.newMapCommand(
-                GROUP, "cancelTasks", () -> getOrcaServiceSelector().select().cancelTasks(taskIds))
-            .execute();
+    return getOrcaServiceSelector().select().cancelTasks(taskIds);
   }
 
   public Map createAndWaitForCompletion(Map body, int maxPolls, int intervalMs) {
-    log.info("Creating and waiting for completion: " + String.valueOf(body));
+    log.info("Creating and waiting for completion: " + body);
 
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString());
@@ -112,9 +93,7 @@ public class TaskService {
 
     Map createResult = create(body);
     if (createResult.get("ref") == null) {
-      log.warn(
-          "No ref field found in create result, returning entire result: "
-              + String.valueOf(createResult));
+      log.warn("No ref field found in create result, returning entire result: " + createResult);
       return createResult;
     }
 
@@ -133,7 +112,7 @@ public class TaskService {
       }
 
       task = getTask(taskId);
-      if (new ArrayList<String>(Arrays.asList("SUCCEEDED", "TERMINAL"))
+      if (new ArrayList<>(Arrays.asList("SUCCEEDED", "TERMINAL"))
           .contains((String) task.get("status"))) {
         return task;
       }
@@ -153,12 +132,7 @@ public class TaskService {
   /** @deprecated This pipeline operation does not belong here. */
   @Deprecated
   public Map cancelPipeline(final String id, final String reason) {
-    return (Map)
-        HystrixFactory.newMapCommand(
-                GROUP,
-                "cancelPipeline",
-                () -> getOrcaServiceSelector().select().cancelPipeline(id, reason, false, ""))
-            .execute();
+    return getOrcaServiceSelector().select().cancelPipeline(id, reason, false, "");
   }
 
   /**

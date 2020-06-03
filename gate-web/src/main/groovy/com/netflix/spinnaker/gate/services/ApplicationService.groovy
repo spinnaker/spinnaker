@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -42,7 +41,6 @@ import java.util.concurrent.atomic.AtomicReference
 @Component
 @Slf4j
 class ApplicationService {
-  private static final String GROUP = "applications"
 
   @Autowired
   ServiceConfiguration serviceConfiguration
@@ -119,27 +117,20 @@ class ApplicationService {
   }
 
   List<Map> getApplicationHistory(String name, int maxResults) {
-    return HystrixFactory.newListCommand(GROUP, "getApplicationHistory") {
-      front50Service.getApplicationHistory(name, maxResults)
-    }.execute()
+    return front50Service.getApplicationHistory(name, maxResults)
   }
 
   List<Map> getPipelineConfigsForApplication(String app) {
-    HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication") {
-      front50Service.getPipelineConfigsForApplication(app, true)
-    } execute()
+    return front50Service.getPipelineConfigsForApplication(app, true)
   }
 
   Map getPipelineConfigForApplication(String app, String pipelineNameOrId) {
-    HystrixFactory.newMapCommand(GROUP, "getPipelineConfig") {
-      front50Service.getPipelineConfigsForApplication(app, true).find { it.name == pipelineNameOrId || it.id == pipelineNameOrId }
-    } execute()
+    return front50Service.getPipelineConfigsForApplication(app, true)
+      .find { it.name == pipelineNameOrId || it.id == pipelineNameOrId }
   }
 
   List<Map> getStrategyConfigsForApplication(String app) {
-    HystrixFactory.newListCommand(GROUP, "getStrategyConfigsForApplication") {
-      front50Service.getStrategyConfigs(app)
-    } execute()
+    return front50Service.getStrategyConfigs(app)
   }
 
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers(boolean expandClusterNames) {
@@ -250,7 +241,7 @@ class ApplicationService {
 
     @Override
     List<Map> call() throws Exception {
-      HystrixFactory.newListCommand(GROUP, "getApplicationsFromFront50", {
+      try {
         AuthenticatedRequest.propagate({
           try {
             return AuthenticatedRequest.allowAnonymous { front50.getAllApplicationsUnrestricted() }
@@ -262,9 +253,10 @@ class ApplicationService {
             }
           }
         }, false, principal).call() as List<Map>
-      }, {
+      } catch (Exception e) {
+        log.error("Falling back to application cache", e)
         return allApplicationsCache.get()
-      }).execute()
+      }
     }
   }
 
@@ -285,7 +277,7 @@ class ApplicationService {
 
     @Override
     Map call() throws Exception {
-      HystrixFactory.newMapCommand(GROUP, "getApplicationFromFront50", {
+      try {
         AuthenticatedRequest.propagate({
           try {
             def metadata = front50.getApplication(name)
@@ -300,9 +292,10 @@ class ApplicationService {
             }
           }
         }, false, principal).call() as Map
-      }, {
-        allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String) }
-      }).execute()
+      } catch (Exception e) {
+        log.error("Falling back to application cache", e)
+        return allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String) }
+      }
     }
   }
 
@@ -323,7 +316,7 @@ class ApplicationService {
 
     @Override
     List<Map> call() throws Exception {
-      HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
+      try {
         AuthenticatedRequest.propagate({
           try {
             return AuthenticatedRequest.allowAnonymous { clouddriver.getAllApplicationsUnrestricted(expandClusterNames) }
@@ -335,7 +328,10 @@ class ApplicationService {
             }
           }
         }, false, principal).call() as List<Map>
-      }, { return allApplicationsCache.get() }).execute()
+      } catch (Exception e) {
+        log.error("Falling back to application cache", e)
+        return allApplicationsCache.get()
+      }
     }
   }
 
@@ -353,7 +349,7 @@ class ApplicationService {
 
     @Override
     Map call() throws Exception {
-      HystrixFactory.newMapCommand(GROUP, "getApplicationFromCloudDriver", {
+      try {
         AuthenticatedRequest.propagate({
           try {
             return clouddriver.getApplication(name)
@@ -365,7 +361,10 @@ class ApplicationService {
             }
           }
         }, false, principal).call() as Map
-      }, { [:] }).execute()
+      } catch (Exception e) {
+        log.error("Falling back to empty map", e)
+        return [:]
+      }
     }
   }
 }

@@ -119,7 +119,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       Object handler,
       ModelAndView modelAndView)
       throws Exception {
-    // Hystrix et-al can return 429's, which we'll want to intercept to provide a reset header
+    // Downstreams can return 429's, which we'll want to intercept to provide a reset header
     if (response.getStatus() == 429 && !response.getHeaderNames().contains(Rate.RESET_HEADER)) {
       response.setIntHeader(Rate.CAPACITY_HEADER, -1);
       response.setIntHeader(Rate.REMAINING_HEADER, 0);

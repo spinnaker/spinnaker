@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.jakewharton.retrofit.Ok3Client
-import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
@@ -429,19 +428,5 @@ class GateConfig extends RedisHttpSessionConfiguration {
                                                   FiatService fiatService,
                                                   FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)
-  }
-
-  @Component
-  static class HystrixFilter implements Filter {
-    @Override
-    void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
-      HystrixRequestContext.initializeContext()
-      chain.doFilter(request, response)
-    }
-
-    void init(FilterConfig filterConfig) throws ServletException {}
-
-    void destroy() {}
   }
 }

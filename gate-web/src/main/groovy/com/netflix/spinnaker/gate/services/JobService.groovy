@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
@@ -28,7 +27,6 @@ import retrofit.RetrofitError
 @CompileStatic
 @Component
 class JobService {
-  private static final String GROUP = "jobs"
 
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
@@ -44,25 +42,21 @@ class JobService {
   ProviderLookupService providerLookupService
 
   List getPreconfiguredJobs() {
-    HystrixFactory.newListCommand(GROUP, "getPreconfiguredJobs") {
-        orcaServiceSelector.select().getPreconfiguredJobs()
-    } execute()
+    orcaServiceSelector.select().getPreconfiguredJobs()
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String name, String selectorKey) {
-    HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}", {
-      try {
-        def context = getContext(applicationName, account, region, name)
-        return clouddriverServiceSelector.select().getJobDetails(applicationName, account, region, name, "") + [
-            "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
-        ]
-      } catch (RetrofitError e) {
-        if (e.response?.status == 404) {
-          return [:]
-        }
-        throw e
+    try {
+      def context = getContext(applicationName, account, region, name)
+      return clouddriverServiceSelector.select().getJobDetails(applicationName, account, region, name, "") + [
+          "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
+      ]
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        return [:]
       }
-    }) execute()
+      throw e
+    }
   }
 
   static Map<String, String> getContext(String application, String account, String region, String jobName) {

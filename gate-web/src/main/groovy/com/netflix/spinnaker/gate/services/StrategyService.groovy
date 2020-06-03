@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.ResponseStatus
 
 @CompileStatic
 @Component
 @Slf4j
 class StrategyService {
-  private static final String GROUP = "strategies"
 
   @Autowired(required = false)
   Front50Service front50Service
@@ -48,9 +42,7 @@ class StrategyService {
   }
 
   Map update(String strategyId, Map strategy) {
-    HystrixFactory.newMapCommand(GROUP, "updateStrategy") {
-      front50Service.updateStrategy(strategyId, strategy)
-    } execute()
+    front50Service.updateStrategy(strategyId, strategy)
   }
 
   void move(Map moveCommand) {

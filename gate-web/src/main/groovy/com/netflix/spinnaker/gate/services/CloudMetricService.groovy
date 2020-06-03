@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,21 +25,15 @@ import org.springframework.stereotype.Component
 @Component
 class CloudMetricService {
 
-  private static final String GROUP = "cloudMetrics"
-
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> findAll(String cloudProvider, String account, String region, Map<String, String> filters, String selectorKey) {
-    HystrixFactory.newListCommand(GROUP, "$GROUP:$account:$region:findAll") {
-      clouddriverServiceSelector.select().findAllCloudMetrics(cloudProvider, account, region, filters)
-    } execute()
+    clouddriverServiceSelector.select().findAllCloudMetrics(cloudProvider, account, region, filters)
   }
 
   Map getStatistics(String cloudProvider, String account, String region, String metricName,
                     Long startTime, Long endTime, Map<String, String> filters, String selectorKey) {
-    HystrixFactory.newMapCommand(GROUP, "$GROUP:$account:$region:getStatistics") {
-      clouddriverServiceSelector.select().getCloudMetricStatistics(cloudProvider, account, region, metricName, startTime, endTime, filters)
-    } execute()
+    clouddriverServiceSelector.select().getCloudMetricStatistics(cloudProvider, account, region, metricName, startTime, endTime, filters)
   }
 }

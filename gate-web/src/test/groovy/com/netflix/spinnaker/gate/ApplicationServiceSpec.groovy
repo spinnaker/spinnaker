@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate
 
-import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.ApplicationService
@@ -31,8 +30,6 @@ class ApplicationServiceSpec extends Specification {
 
   void "should properly aggregate application data from Front50 and Clouddriver"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -67,8 +64,6 @@ class ApplicationServiceSpec extends Specification {
 
   void "should ignore accounts from front50 and only include those from clouddriver clusters"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -106,8 +101,6 @@ class ApplicationServiceSpec extends Specification {
   @Unroll
   void "should return null when application account does not match includedAccounts"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -144,8 +137,6 @@ class ApplicationServiceSpec extends Specification {
 
   void "should return null when no application attributes are available"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -172,8 +163,6 @@ class ApplicationServiceSpec extends Specification {
 
   void "should properly merge retrieved apps from clouddriver and front50"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -209,8 +198,6 @@ class ApplicationServiceSpec extends Specification {
 
   void "should properly merge accounts for retrieved apps with clusterNames"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -262,8 +249,6 @@ class ApplicationServiceSpec extends Specification {
   @Unroll
   void "should return pipeline config based on name or id"() {
     given:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)
@@ -291,8 +276,6 @@ class ApplicationServiceSpec extends Specification {
 
   void "should skip clouddriver call if expand set to false"() {
     setup:
-    HystrixRequestContext.initializeContext()
-
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
     def clouddriver = Mock(ClouddriverService)

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.gate.services;
 
-import com.netflix.hystrix.HystrixCommand;
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
 import groovy.transform.CompileStatic;
@@ -25,7 +23,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Callable;
+import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +32,6 @@ import retrofit.client.Response;
 @CompileStatic
 @Component
 public class ArtifactService {
-  private static final String GROUP = "artifacts";
 
   private ClouddriverServiceSelector clouddriverServiceSelector;
   private Optional<IgorService> igorService;
@@ -46,59 +43,24 @@ public class ArtifactService {
     this.igorService = igorService;
   }
 
-  private static HystrixCommand<List<Map>> mapListCommand(String type, Callable<List<Map>> work) {
-    return HystrixFactory.newListCommand(GROUP, type, work);
-  }
-
-  private static HystrixCommand<List<String>> stringListCommand(
-      String type, Callable<List<String>> work) {
-    return HystrixFactory.newListCommand(GROUP, type, work);
-  }
-
-  private static HystrixCommand<Void> voidCommand(String type, Callable<Void> work) {
-    return HystrixFactory.newVoidCommand(GROUP, type, work);
-  }
-
-  private static HystrixCommand<Map<String, Object>> mapCommand(
-      String type, Callable<Map<String, Object>> work) {
-    return HystrixFactory.newMapCommand(GROUP, type, work);
-  }
-
   public List<Map> getArtifactCredentials(String selectorKey) {
-    return mapListCommand(
-            "artifactCredentials", clouddriverServiceSelector.select()::getArtifactCredentials)
-        .execute();
+    return clouddriverServiceSelector.select().getArtifactCredentials();
   }
 
   public List<String> getArtifactNames(String selectorKey, String accountName, String type) {
-    return stringListCommand(
-            "artifactNames",
-            () -> clouddriverServiceSelector.select().getArtifactNames(accountName, type))
-        .execute();
+    return clouddriverServiceSelector.select().getArtifactNames(accountName, type);
   }
 
   public List<String> getArtifactVersions(
       String selectorKey, String accountName, String type, String artifactName) {
-    return stringListCommand(
-            "artifactVersions",
-            () ->
-                clouddriverServiceSelector
-                    .select()
-                    .getArtifactVersions(accountName, type, artifactName))
-        .execute();
+    return clouddriverServiceSelector.select().getArtifactVersions(accountName, type, artifactName);
   }
 
-  public Void getArtifactContents(
+  @SneakyThrows
+  public void getArtifactContents(
       String selectorKey, Map<String, String> artifact, OutputStream outputStream) {
-    return voidCommand(
-            "artifactContents",
-            () -> {
-              Response contentResponse =
-                  clouddriverServiceSelector.select().getArtifactContent(artifact);
-              IOUtils.copy(contentResponse.getBody().in(), outputStream);
-              return null;
-            })
-        .execute();
+    Response contentResponse = clouddriverServiceSelector.select().getArtifactContent(artifact);
+    IOUtils.copy(contentResponse.getBody().in(), outputStream);
   }
 
   public List<String> getVersionsOfArtifactForProvider(
@@ -108,10 +70,7 @@ public class ArtifactService {
           "Cannot fetch artifact versions because Igor is not enabled.");
     }
 
-    return stringListCommand(
-            "artifactVersionsByProvider",
-            () -> igorService.get().getArtifactVersions(provider, packageName, releaseStatus))
-        .execute();
+    return igorService.get().getArtifactVersions(provider, packageName, releaseStatus);
   }
 
   public Map<String, Object> getArtifactByVersion(
@@ -121,9 +80,6 @@ public class ArtifactService {
           "Cannot fetch artifact versions because Igor is not enabled.");
     }
 
-    return mapCommand(
-            "artifactFromVersion",
-            () -> igorService.get().getArtifactByVersion(provider, packageName, version))
-        .execute();
+    return igorService.get().getArtifactByVersion(provider, packageName, version);
   }
 }

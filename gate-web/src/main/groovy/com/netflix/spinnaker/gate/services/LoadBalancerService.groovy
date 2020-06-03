@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,56 +39,44 @@ class LoadBalancerService {
   ObjectMapper objectMapper
 
   List getAll(String provider = "aws", String selectorKey) {
-    HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider-$provider") {
-      clouddriverServiceSelector.select().getLoadBalancers(provider)
-    } execute()
+    clouddriverServiceSelector.select().getLoadBalancers(provider)
   }
 
   Map get(String name, String selectorKey, String provider = "aws") {
-    HystrixFactory.newMapCommand(GROUP, "getLoadBalancer-$provider") {
-      clouddriverServiceSelector.select().getLoadBalancer(provider, name)
-    } execute()
+    clouddriverServiceSelector.select().getLoadBalancer(provider, name)
   }
 
   List getDetailsForAccountAndRegion(String account, String region, String name, String selectorKey, String provider = "aws") {
-    HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails-$provider") {
-      try {
-        def service = clouddriverServiceSelector.select()
-        def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
-        def loadBalancerDetails = service.getLoadBalancerDetails(provider, account, region, name)
+    try {
+      def service = clouddriverServiceSelector.select()
+      def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
+      def loadBalancerDetails = service.getLoadBalancerDetails(provider, account, region, name)
 
-        loadBalancerDetails = loadBalancerDetails.collect { loadBalancerDetail ->
-          def loadBalancerContext = loadBalancerDetail.collectEntries {
-            return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
-          } as Map<String, String>
+      loadBalancerDetails = loadBalancerDetails.collect { loadBalancerDetail ->
+        def loadBalancerContext = loadBalancerDetail.collectEntries {
+          return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
+        } as Map<String, String>
 
-          def context = [ "account": account, "region": region ] + loadBalancerContext + accountDetails
-          def foo = loadBalancerDetail + [
-            "insightActions": insightConfiguration.loadBalancer.findResults { it.applyContext(context) }
-          ]
-          return foo
-        }
-        return loadBalancerDetails
-      } catch (RetrofitError e) {
-        if (e.response?.status == 404) {
-          return [:]
-        }
-        throw e
+        def context = [ "account": account, "region": region ] + loadBalancerContext + accountDetails
+        def foo = loadBalancerDetail + [
+          "insightActions": insightConfiguration.loadBalancer.findResults { it.applyContext(context) }
+        ]
+        return foo
       }
-    } execute()
+      return loadBalancerDetails
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        return []
+      }
+      throw e
+    }
   }
 
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName, String selectorKey) {
-    HystrixFactory.newListCommand(GROUP,
-        "getClusterLoadBalancers-$provider") {
-      clouddriverServiceSelector.select().getClusterLoadBalancers(appName, account, clusterName, provider)
-    } execute()
+    clouddriverServiceSelector.select().getClusterLoadBalancers(appName, account, clusterName, provider)
   }
 
   List getApplicationLoadBalancers(String appName, String selectorKey) {
-    HystrixFactory.newListCommand(GROUP,
-      "getApplicationLoadBalancers") {
-      clouddriverServiceSelector.select().getApplicationLoadBalancers(appName)
-    } execute()
+    clouddriverServiceSelector.select().getApplicationLoadBalancers(appName)
   }
 }

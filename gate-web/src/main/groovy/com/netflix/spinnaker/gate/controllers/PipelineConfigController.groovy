@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.gate.controllers
 
-
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -33,8 +30,6 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/pipelineConfigs")
 class PipelineConfigController {
-  private static final String HYSTRIX_GROUP = "pipelineConfigs"
-
   @Autowired
   Front50Service front50Service
 
@@ -44,26 +39,20 @@ class PipelineConfigController {
   @ApiOperation(value = "Get all pipeline configs.", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
-    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getAllPipelineConfigs") {
-      front50Service.getAllPipelineConfigs()
-    }.execute()
+    return front50Service.getAllPipelineConfigs()
   }
 
   @ApiOperation(value = "Get pipeline config history.", response = List.class)
   @RequestMapping(value = "/{pipelineConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("pipelineConfigId") String pipelineConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {
-    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getPipelineConfigHistory") {
-      front50Service.getPipelineConfigHistory(pipelineConfigId, limit)
-    }.execute()
+    return front50Service.getPipelineConfigHistory(pipelineConfigId, limit)
   }
 
   @ApiOperation(value = "Convert a pipeline config to a pipeline template.", response = String.class)
   @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
   String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
-    Map pipelineConfig = HystrixFactory.newMapCommand(HYSTRIX_GROUP, "getPipelineConfig") {
-      front50Service.getAllPipelineConfigs().find { (pipelineConfigId == it.get("id")) }
-    }.execute()
+    Map pipelineConfig = front50Service.getAllPipelineConfigs().find { (pipelineConfigId == it.get("id")) }
     if (pipelineConfig == null) {
       throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
     }

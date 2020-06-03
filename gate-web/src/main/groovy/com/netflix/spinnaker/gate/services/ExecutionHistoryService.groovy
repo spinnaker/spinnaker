@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.gate.services
 
 import com.google.common.base.Preconditions
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -35,17 +34,11 @@ class ExecutionHistoryService {
   List getTasks(String app, Integer page, Integer limit, String statuses) {
     Preconditions.checkNotNull(app)
 
-    def command = HystrixFactory.newListCommand("taskExecutionHistory", "getTasksForApp") {
-      orcaServiceSelector.select().getTasks(app, page, limit, statuses)
-    }
-    return command.execute()
+    orcaServiceSelector.select().getTasks(app, page, limit, statuses)
   }
 
   List getPipelines(String app, Integer limit, String statuses, Boolean expand) {
     Preconditions.checkNotNull(app)
-    def command = HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp-$app") {
-      orcaServiceSelector.select().getPipelines(app, limit, statuses, expand)
-    }
-    return command.execute()
+    orcaServiceSelector.select().getPipelines(app, limit, statuses, expand)
   }
 }
