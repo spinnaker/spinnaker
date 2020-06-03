@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +47,7 @@ public class DescriptionAuthorizer<T> {
   private final ObjectMapper objectMapper;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
   private final SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps;
+  private final DynamicConfigService dynamicConfigService;
 
   private final Id skipAuthorizationId;
   private final Id missingApplicationId;
@@ -55,11 +57,13 @@ public class DescriptionAuthorizer<T> {
       Registry registry,
       ObjectMapper objectMapper,
       Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-      SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+      SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
+      DynamicConfigService dynamicConfigService) {
     this.registry = registry;
     this.objectMapper = objectMapper;
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
     this.opsSecurityConfigProps = opsSecurityConfigProps;
+    this.dynamicConfigService = dynamicConfigService;
 
     this.skipAuthorizationId = registry.createId("authorization.skipped");
     this.missingApplicationId = registry.createId("authorization.missingApplication");
@@ -110,7 +114,8 @@ public class DescriptionAuthorizer<T> {
     if (description instanceof ResourcesNameable) {
       ResourcesNameable resourcesNameable = (ResourcesNameable) description;
 
-      if (!resourcesNameable.requiresAuthorization()) {
+      if (!resourcesNameable.requiresAuthorization()
+          || dynamicConfigService.isEnabled("aws.fiat.authorize.resources-nameable", false)) {
         registry
             .counter(
                 skipAuthorizationId.withTag(

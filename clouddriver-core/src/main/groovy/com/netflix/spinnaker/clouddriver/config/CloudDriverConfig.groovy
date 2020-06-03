@@ -348,12 +348,14 @@ class CloudDriverConfig {
   DescriptionAuthorizer descriptionAuthorizer(Registry registry,
                                               ObjectMapper objectMapper,
                                               Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-                                              SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+                                              SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
+                                              DynamicConfigService dynamicConfigService) {
     return new DescriptionAuthorizer(
       registry,
       objectMapper,
       fiatPermissionEvaluator,
-      opsSecurityConfigProps
+      opsSecurityConfigProps,
+      dynamicConfigService
     )
   }
 
