@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
@@ -37,11 +38,35 @@ final class ArtifactTest {
     objectMapper.setSerializationInclusion(Include.NON_NULL);
   }
 
+  // In some cases (particularly BakeRequest preparation), orca uses an ObjectMapper configured
+  // to use snake_case. Ideally all code consuming serialized data with such an ObjectMapper would
+  // also use an ObjectMapper configured to use snake_case, but this is not currently the case.
+  // In order to avoid breaking those workflows, we need to ensure that the serialization and
+  // deserialization of artifacts is consistent, regardless of the naming strategy.
+  // If at some point we are sure that a consistently-configured ObjectMapper is used for all
+  // serialization-deserialization paths, these tests can be removed.
+  private static final ObjectMapper snakeObjectMapper = new ObjectMapper();
+
+  static {
+    // This avoids needing to write out all null values in our expected JSON and is how the
+    // objectMapper in orca/clouddriver are configured.
+    snakeObjectMapper.setSerializationInclusion(Include.NON_NULL);
+    snakeObjectMapper.setPropertyNamingStrategy(new PropertyNamingStrategy.SnakeCaseStrategy());
+  }
+
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
 
   @Test
   void deserializeAllFields() throws IOException {
     Artifact result = objectMapper.readValue(fullArtifactJson(), Artifact.class);
+    Artifact expected = fullArtifact();
+
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void deserializeAllFieldsSnake() throws IOException {
+    Artifact result = snakeObjectMapper.readValue(fullArtifactJson(), Artifact.class);
     Artifact expected = fullArtifact();
 
     assertThat(result).isEqualTo(expected);
@@ -58,9 +83,27 @@ final class ArtifactTest {
   }
 
   @Test
+  void serializeAllFieldsSnake() throws IOException {
+    String result = snakeObjectMapper.writeValueAsString(fullArtifact());
+    String expected = fullArtifactJson();
+
+    // Compare the parsed trees of the two results, which is agnostic to key order
+    AssertionsForClassTypes.assertThat(objectMapper.readTree(result))
+        .isEqualTo(objectMapper.readTree(expected));
+  }
+
+  @Test
   void roundTripSerialization() throws IOException {
     Artifact artifact = fullArtifact();
     String json = objectMapper.writeValueAsString(artifact);
+    Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
+    assertThat(deserializedArtifact).isEqualTo(artifact);
+  }
+
+  @Test
+  void roundTripSnake() throws IOException {
+    Artifact artifact = fullArtifact();
+    String json = snakeObjectMapper.writeValueAsString(artifact);
     Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
     assertThat(deserializedArtifact).isEqualTo(artifact);
   }
