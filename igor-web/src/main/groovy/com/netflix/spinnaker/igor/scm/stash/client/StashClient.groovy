@@ -44,13 +44,14 @@ interface StashClient {
     @Query('at') String at
   )
 
-  // TODO: pagination support
   @GET('/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{filePath}')
   TextLinesResponse getTextFileContents(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
     @Path(value = 'filePath', encode = false) String filePath,
-    @Query('at') String at
+    @Query('at') String at,
+    @Query('limit') int limit,
+    @Query('start') int start
   )
 }
 

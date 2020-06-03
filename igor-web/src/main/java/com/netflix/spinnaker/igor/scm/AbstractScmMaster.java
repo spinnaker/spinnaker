@@ -20,12 +20,12 @@ import java.util.List;
 
 public class AbstractScmMaster implements ScmMaster {
   public List<String> listDirectory(
-      String projectKey, String repositorySlug, String path, String at) {
+      String projectKey, String repositorySlug, String path, String ref) {
     throw new UnsupportedOperationException("Not implemented");
   }
 
   public String getTextFileContents(
-      String projectKey, String repositorySlug, String path, String at) {
+      String projectKey, String repositorySlug, String path, String ref) {
     throw new UnsupportedOperationException("Not implemented");
   }
 

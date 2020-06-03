@@ -22,7 +22,7 @@ import java.util.List;
 public interface ScmMaster {
   String DEFAULT_GIT_REF = "refs/heads/master";
 
-  List<String> listDirectory(String projectKey, String repositorySlug, String path, String at);
+  List<String> listDirectory(String projectKey, String repositorySlug, String path, String ref);
 
-  String getTextFileContents(String projectKey, String repositorySlug, String path, String at);
+  String getTextFileContents(String projectKey, String repositorySlug, String path, String ref);
 }

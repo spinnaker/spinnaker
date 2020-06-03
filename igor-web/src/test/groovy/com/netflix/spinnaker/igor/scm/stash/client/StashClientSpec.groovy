@@ -25,6 +25,7 @@ import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Tests that Stash stashClient correctly binds to underlying model as expected
@@ -125,21 +126,28 @@ class StashClientSpec extends Specification {
     dirListResponse.children.values[1].size == 5998
   }
 
+  @Unroll
   void 'getTextFileContents'() {
     given:
-    setResponse('application/json', textFileContentsResponse)
+    setResponse('application/json', contents)
 
     when:
-    TextLinesResponse textFileContentsResponse = client.getTextFileContents('foo', 'repo', 'bananas.txt', ScmMaster.DEFAULT_GIT_REF)
+    TextLinesResponse response = client.getTextFileContents('foo', 'repo', 'bananas.txt', ScmMaster.DEFAULT_GIT_REF, 1, start)
 
     then:
-    textFileContentsResponse.size == 1
-    textFileContentsResponse.isLastPage == true
-    textFileContentsResponse.start == 0
-    textFileContentsResponse.lines[0].text == "bananas!"
+    response.size == size
+    response.isLastPage == isLastPage
+    response.start == start
+    response.size == response.lines.size()
+    response.lines[0].text == "bananas!"
+
+    where:
+    contents                      | start | size | isLastPage
+    firstTextFileContentsResponse | 0     | 1    | false
+    lastTextFileContentsResponse  | 1     | 1    | true
   }
 
-  final String compareCommitsResponse = """
+  static final String compareCommitsResponse = """
     {
       "values":[
         {
@@ -197,7 +205,7 @@ class StashClientSpec extends Specification {
     }
     """
 
-  final String listDirectoryResponse = """
+  static final String listDirectoryResponse = """
     {
       "path": {
         "components": [
@@ -248,7 +256,7 @@ class StashClientSpec extends Specification {
     }
     """.stripIndent()
 
-  final String textFileContentsResponse = """
+  static final String firstTextFileContentsResponse = """
     {
       "lines": [
         {
@@ -257,7 +265,21 @@ class StashClientSpec extends Specification {
       ],
       "start": 0,
       "size": 1,
+      "isLastPage": false
+    }
+    """.stripIndent()
+
+  static final String lastTextFileContentsResponse = """
+    {
+      "lines": [
+        {
+          "text": "bananas!"
+        }
+      ],
+      "start": 1,
+      "size": 1,
       "isLastPage": true
     }
     """.stripIndent()
+
 }

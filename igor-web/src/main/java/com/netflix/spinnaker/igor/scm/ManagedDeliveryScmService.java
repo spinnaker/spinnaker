@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.igor.scm;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.igor.config.ManagedDeliveryConfigProperties;
@@ -53,8 +52,7 @@ public class ManagedDeliveryScmService {
       Optional<StashMaster> stashMaster,
       Optional<GitHubMaster> gitHubMaster,
       Optional<GitLabMaster> gitLabMaster,
-      Optional<BitBucketMaster> bitBucketMaster,
-      ObjectMapper jsonMapper) {
+      Optional<BitBucketMaster> bitBucketMaster) {
     this.configProperties =
         configProperties.isPresent()
             ? configProperties.get()
@@ -63,10 +61,8 @@ public class ManagedDeliveryScmService {
     this.gitHubMaster = gitHubMaster;
     this.gitLabMaster = gitLabMaster;
     this.bitBucketMaster = bitBucketMaster;
-    this.jsonMapper = jsonMapper;
-    this.yamlMapper =
-        new ObjectMapper(new YAMLFactory())
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    this.jsonMapper = new ObjectMapper();
+    this.yamlMapper = new ObjectMapper(new YAMLFactory());
   }
 
   /**

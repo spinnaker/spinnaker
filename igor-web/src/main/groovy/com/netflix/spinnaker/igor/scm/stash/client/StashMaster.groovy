@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.scm.stash.client
 
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
+import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
@@ -26,12 +27,14 @@ import retrofit.RetrofitError
  */
 @Slf4j
 class StashMaster extends AbstractScmMaster {
-    StashClient stashClient
-    String baseUrl
+  public static final int DEFAULT_PAGED_RESPONSE_LIMIT = 500
 
-  List<String> listDirectory(String projectKey, String repositorySlug, String path, String at) {
+  StashClient stashClient
+  String baseUrl
+
+  List<String> listDirectory(String projectKey, String repositorySlug, String path, String ref) {
     try {
-      return stashClient.listDirectory(projectKey, repositorySlug, path, at).toChildFilenames()
+      return stashClient.listDirectory(projectKey, repositorySlug, path, ref).toChildFilenames()
     } catch (RetrofitError e) {
       if (e.getKind() == RetrofitError.Kind.NETWORK) {
         throw new NotFoundException("Could not find the server ${baseUrl}")
@@ -44,9 +47,20 @@ class StashMaster extends AbstractScmMaster {
     }
   }
 
-  String getTextFileContents(String projectKey, String repositorySlug, String path, String at) {
+  String getTextFileContents(String projectKey, String repositorySlug, String path, String ref) {
     try {
-      return stashClient.getTextFileContents(projectKey, repositorySlug, path, at).toTextContents()
+      String contents = ""
+      boolean lastPage = false
+      int start = 0
+      while (!lastPage) {
+        log.debug("Retrieving text file contents from project: $projectKey, repo: $repositorySlug, path: $path, ref: $ref, start: $start")
+        TextLinesResponse response = stashClient.getTextFileContents(
+          projectKey, repositorySlug, path, ref, DEFAULT_PAGED_RESPONSE_LIMIT, start)
+        lastPage = response.isLastPage
+        start = response.start + response.size
+        contents += response.toTextContents() + "\n"
+      }
+      return contents
     } catch (RetrofitError e) {
       if (e.getKind() == RetrofitError.Kind.NETWORK) {
         throw new NotFoundException("Could not find the server ${baseUrl}")

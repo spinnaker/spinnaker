@@ -26,10 +26,10 @@ import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryChildren
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.PathDetails
 import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.igor.scm.stash.client.StashMaster.DEFAULT_PAGED_RESPONSE_LIMIT
 
 class ManagedDeliveryScmServiceSpec extends Specification {
   @Subject
@@ -47,8 +47,8 @@ class ManagedDeliveryScmServiceSpec extends Specification {
         Optional.of(new StashMaster(stashClient: client, baseUrl : STASH_ADDRESS)),
         Optional.empty(),
         Optional.empty(),
-        Optional.empty(),
-        jsonMapper)
+        Optional.empty()
+      )
   }
 
   void 'list delivery config manifests'() {
@@ -77,7 +77,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
 
   void 'get delivery config manifest that is in yaml format'() {
     given:
-    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.yml", ref) >> expectedResponse
+    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.yml", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
 
     when:
     Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref)
@@ -98,13 +98,15 @@ class ManagedDeliveryScmServiceSpec extends Specification {
         [ text: "kind: Foo"],
         [ text: "metadata: {}"],
         [ text: "spec: {}"]
-      ]
+      ],
+      size: 4,
+      isLastPage: true
     )
   }
 
   void 'get delivery config manifest that is in json format'() {
     given:
-    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref) >> expectedResponse
+    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
 
     when:
     Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref)
@@ -122,7 +124,9 @@ class ManagedDeliveryScmServiceSpec extends Specification {
     expectedResponse = new TextLinesResponse(
       lines: [
         [ text: '{ "apiVersion": "foo", "kind": "Foo", "metadata": {}, "spec": {} }']
-      ]
+      ],
+      size: 1,
+      isLastPage: true
     )
   }
 }
