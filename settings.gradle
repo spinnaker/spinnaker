@@ -32,7 +32,6 @@ include(
   "kork-config",
   "kork-core",
   "kork-core-tck",
-  "kork-dynomite",
   "kork-exceptions",
   "kork-expressions",
   "kork-hystrix",
