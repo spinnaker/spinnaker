@@ -17,7 +17,7 @@ interface IApplicationsPickerInputProps extends IFormInputProps {
 
 /** This input supports single or multiple selection of applications */
 export function ApplicationsPickerInput(props: IApplicationsPickerInputProps) {
-  const getAppNames = () => ApplicationReader.listApplications().then(apps => apps.map(app => app.name));
+  const getAppNames = () => ApplicationReader.listApplications().then(apps => apps.map(app => app.name).sort());
   const { result: apps, status } = useData(getAppNames, [], []);
   const options = useMemo(() => apps.map(app => ({ label: app, value: app })), [apps]);
 
