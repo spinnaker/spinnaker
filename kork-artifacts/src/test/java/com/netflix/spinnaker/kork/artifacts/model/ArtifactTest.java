@@ -18,54 +18,176 @@ package com.netflix.spinnaker.kork.artifacts.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnitPlatform.class)
 final class ArtifactTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  @Test
-  public void deserialize() throws IOException {
-    Artifact originalArtifact =
-        Artifact.builder()
-            .type("gcs/object")
-            .customKind(false)
-            .uuid("6b9a5d0b-5706-41da-b379-234c27971482")
-            .name("my-artifact")
-            .version("3")
-            .metadata(ImmutableMap.<String, Object>builder().put("test", "123").build())
-            .location("somewhere")
-            .provenance("history")
-            .build();
+  static {
+    // This avoids needing to write out all null values in our expected JSON and is how the
+    // objectMapper in orca/clouddriver are configured.
+    objectMapper.setSerializationInclusion(Include.NON_NULL);
+  }
 
-    String json = objectMapper.writeValueAsString(originalArtifact);
-    Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
-    assertThat(originalArtifact).isEqualTo(deserializedArtifact);
+  private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;
+
+  @Test
+  void deserializeAllFields() throws IOException {
+    Artifact result = objectMapper.readValue(fullArtifactJson(), Artifact.class);
+    Artifact expected = fullArtifact();
+
+    assertThat(result).isEqualTo(expected);
   }
 
   @Test
-  public void unknownKeysInMetadata() {
-    ImmutableMap<String, String> originalArtifact =
-        ImmutableMap.<String, String>builder().put("id", "123").put("name", "my-artifact").build();
+  void serializeAllFields() throws IOException {
+    String result = objectMapper.writeValueAsString(fullArtifact());
+    String expected = fullArtifactJson();
 
-    Artifact deserializedArtifact = objectMapper.convertValue(originalArtifact, Artifact.class);
+    // Compare the parsed trees of the two results, which is agnostic to key order
+    AssertionsForClassTypes.assertThat(objectMapper.readTree(result))
+        .isEqualTo(objectMapper.readTree(expected));
+  }
+
+  @Test
+  void roundTripSerialization() throws IOException {
+    Artifact artifact = fullArtifact();
+    String json = objectMapper.writeValueAsString(artifact);
+    Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
+    assertThat(deserializedArtifact).isEqualTo(artifact);
+  }
+
+  @Test
+  void unknownKeysInMetadata() throws IOException {
+    String json = jsonFactory.objectNode().put("name", "my-artifact").put("id", "123").toString();
+    Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
+
+    assertThat(deserializedArtifact.getName()).isEqualTo("my-artifact");
     assertThat(deserializedArtifact.getMetadata("id")).isEqualTo("123");
   }
 
   @Test
-  public void kindIsIgnored() {
-    ImmutableMap<String, String> originalArtifact =
-        ImmutableMap.<String, String>builder()
-            .put("kind", "test")
-            .put("name", "my-artifact")
-            .build();
+  void kindIsIgnored() throws IOException {
+    String json =
+        jsonFactory.objectNode().put("kind", "test").put("name", "my-artifact").toString();
 
-    Artifact deserializedArtifact = objectMapper.convertValue(originalArtifact, Artifact.class);
+    Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
     assertThat(deserializedArtifact.getMetadata("kind")).isNull();
+  }
+
+  @Test
+  void toBuilderCopiesFields() {
+    Artifact originalArtifact = Artifact.builder().name("my-artifact").type("my-type").build();
+
+    Artifact newArtifact = originalArtifact.toBuilder().build();
+    assertThat(newArtifact.getName()).isEqualTo("my-artifact");
+    assertThat(newArtifact.getType()).isEqualTo("my-type");
+  }
+
+  @Test
+  void toBuilderCopiesMetadata() {
+    Artifact originalArtifact =
+        Artifact.builder().putMetadata("abc", "def").putMetadata("mykey", "myval").build();
+
+    Artifact newArtifact = originalArtifact.toBuilder().build();
+    assertThat(newArtifact.getMetadata("abc")).isEqualTo("def");
+    assertThat(newArtifact.getMetadata("mykey")).isEqualTo("myval");
+  }
+
+  @Test
+  void equalIfMetadataEqual() {
+    Artifact first = Artifact.builder().putMetadata("abc", "123").build();
+    Artifact second = Artifact.builder().putMetadata("abc", "123").build();
+
+    assertThat(first).isEqualTo(second);
+  }
+
+  @Test
+  void notEqualIfMetadataNotEqual() {
+    Artifact first = Artifact.builder().putMetadata("abc", "123").build();
+    Artifact second = Artifact.builder().putMetadata("abc", "456").build();
+
+    assertThat(first).isNotEqualTo(second);
+  }
+
+  @Test
+  void notEqualIfMetadataMissing() {
+    Artifact first = Artifact.builder().putMetadata("abc", "123").build();
+    Artifact second = Artifact.builder().build();
+
+    assertThat(first).isNotEqualTo(second);
+  }
+
+  @Test
+  void notEqualIfExtraMetadata() {
+    Artifact first = Artifact.builder().putMetadata("abc", "123").build();
+    Artifact second =
+        Artifact.builder().putMetadata("abc", "123").putMetadata("def", "456").build();
+
+    assertThat(first).isNotEqualTo(second);
+  }
+
+  @Test
+  void serializeComplexMetadata() throws IOException {
+    Artifact artifact =
+        Artifact.builder().putMetadata("test", ImmutableMap.of("nested", "abc")).build();
+    JsonNode expectedNode =
+        jsonFactory.objectNode().set("test", jsonFactory.objectNode().put("nested", "abc"));
+
+    String result = objectMapper.writeValueAsString(artifact);
+    JsonNode resultNode = objectMapper.readTree(result).at("/metadata");
+    AssertionsForClassTypes.assertThat(resultNode).isEqualTo(expectedNode);
+  }
+
+  @Test
+  void deserializeComplexMetatdata() throws IOException {
+    String json =
+        jsonFactory
+            .objectNode()
+            .set("test", jsonFactory.objectNode().put("nested", "abc"))
+            .toString();
+
+    Artifact artifact = objectMapper.readValue(json, Artifact.class);
+    Object testData = artifact.getMetadata("test");
+    assertThat(testData).isEqualTo(ImmutableMap.of("nested", "abc"));
+  }
+
+  private String fullArtifactJson() {
+    return jsonFactory
+        .objectNode()
+        .put("type", "gcs/object")
+        .put("customKind", true)
+        .put("name", "my-artifact")
+        .put("version", "3")
+        .put("location", "somewhere")
+        .put("reference", "https://artifact.test/my-artifact")
+        .put("artifactAccount", "my-account")
+        .put("provenance", "history")
+        .put("uuid", "6b9a5d0b-5706-41da-b379-234c27971482")
+        .<ObjectNode>set("metadata", jsonFactory.objectNode().put("test", "123"))
+        .toString();
+  }
+
+  private Artifact fullArtifact() {
+    return Artifact.builder()
+        .type("gcs/object")
+        .customKind(true)
+        .name("my-artifact")
+        .version("3")
+        .location("somewhere")
+        .reference("https://artifact.test/my-artifact")
+        .artifactAccount("my-account")
+        .provenance("history")
+        .uuid("6b9a5d0b-5706-41da-b379-234c27971482")
+        .putMetadata("test", "123")
+        .build();
   }
 }
