@@ -16,13 +16,12 @@ import org.jooq.impl.DSL.table
 
 /**
  * Provides raw access to various tables in the orca SQL
- * TODO(mvulfson): Need an extension point to deal with cases such as OCA
  */
 open class MySqlRawAccess(
-  private val jooq: DSLContext,
-  private val poolName: String,
+  jooq: DSLContext,
+  poolName: String,
   chunkSize: Int
-) : SqlRawAccess(chunkSize) {
+) : SqlRawAccess(jooq, poolName, chunkSize) {
 
   private var maxPacketSize: Long = 0
 
@@ -180,7 +179,7 @@ open class MySqlRawAccess(
           }
 
           // Dump it to the DB
-          batchQuery
+          persisted += batchQuery
             .onDuplicateKeyUpdate()
             .set(updateSet)
             .execute()
@@ -195,13 +194,12 @@ open class MySqlRawAccess(
             .values(values)
         }
 
-        persisted++
         cumulativeSize += totalRecordSize
       }
 
       if (cumulativeSize > 0) {
         // Dump the last bit to the DB
-        batchQuery
+        persisted += batchQuery
           .onDuplicateKeyUpdate()
           .set(updateSet)
           .execute()

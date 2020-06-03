@@ -31,6 +31,7 @@ open class PeeringMetrics(
   private val peeringNumDeletedId = registry.createId("pollers.peering.numDeleted").withTag("peerId", peeredId)
   private val peeringNumStagesDeletedId = registry.createId("pollers.peering.numStagesDeleted").withTag("peerId", peeredId)
   private val peeringNumErrorsId = registry.createId("pollers.peering.numErrors").withTag("peerId", peeredId)
+  private val peeringCustomPeererNumErrorsId = registry.createId("pollers.peering.customPeerer.numErrors").withTag("peerId", peeredId)
 
   open fun recordOverallLag(block: () -> Unit) {
     registry
@@ -68,6 +69,12 @@ open class PeeringMetrics(
     registry
       .counter(peeringNumStagesDeletedId.tag(executionType))
       .increment(count.toLong())
+  }
+
+  open fun incrementCustomPeererError(peererName: String, exception: Exception) {
+    registry
+      .counter(peeringCustomPeererNumErrorsId.withTags("peerer", peererName, "exception", exception.javaClass.simpleName))
+      .increment()
   }
 }
 

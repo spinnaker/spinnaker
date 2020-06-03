@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
+import com.netflix.spinnaker.orca.peering.CustomPeerer
 import com.netflix.spinnaker.orca.peering.ExecutionCopier
 import com.netflix.spinnaker.orca.peering.MySqlRawAccess
 import com.netflix.spinnaker.orca.peering.PeeringAgent
@@ -47,7 +48,8 @@ class PeeringAgentConfiguration {
     clusterLock: NotificationClusterLock,
     dynamicConfigService: DynamicConfigService,
     registry: Registry,
-    properties: PeeringAgentConfigurationProperties
+    properties: PeeringAgentConfigurationProperties,
+    customPeerer: CustomPeerer?
   ): PeeringAgent {
     if (properties.peerId == null || properties.poolName == null) {
       throw ConfigurationException("pollers.peering.id and pollers.peering.poolName must be specified for peering")
@@ -81,6 +83,7 @@ class PeeringAgentConfiguration {
       dynamicConfigService,
       metrics,
       copier,
+      customPeerer,
       clusterLock)
   }
 }

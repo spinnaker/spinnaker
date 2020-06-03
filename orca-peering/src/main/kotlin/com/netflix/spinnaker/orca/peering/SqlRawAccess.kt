@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.orca.peering
 
+import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Result
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 abstract class SqlRawAccess(
+  val jooq: DSLContext,
+  val poolName: String,
   val chunkSize: Int
 ) {
   val log: Logger = LoggerFactory.getLogger(this.javaClass)
@@ -74,6 +78,16 @@ abstract class SqlRawAccess(
    * Load given records into the specified table using jooq loader api
    */
   abstract fun loadRecords(tableName: String, records: Result<Record>): Int
+
+  /**
+   * Essentially an accessor for our DSL context.
+   * Used by derived classes (for custom peering agent extensions)
+   */
+  public fun <T> runQuery(callback: (DSLContext) -> T): T {
+    return withPool(poolName) {
+      callback(jooq)
+    }
+  }
 
   data class ExecutionDiffKey(
     val id: String,

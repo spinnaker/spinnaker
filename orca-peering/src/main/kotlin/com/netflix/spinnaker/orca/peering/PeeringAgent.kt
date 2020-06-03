@@ -64,13 +64,33 @@ class PeeringAgent(
 
   private val executionCopier: ExecutionCopier,
 
+  customPeerer: CustomPeerer?,
+
   clusterLock: NotificationClusterLock
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val customPeerer: CustomPeerer?
+
   private var completedPipelinesMostRecentUpdatedTime = 0L
   private var completedOrchestrationsMostRecentUpdatedTime = 0L
   private var deletedExecutionCursor = 0
+
+  init {
+    var initSuccess = false
+
+    if (customPeerer != null) {
+      try {
+        customPeerer.init(srcDB, destDB, peeredId)
+        initSuccess = true
+      } catch (e: Exception) {
+        peeringMetrics.incrementCustomPeererError(customPeerer.javaClass.simpleName, e)
+        log.error("Failed to initialize custom peerer '${customPeerer.javaClass.simpleName}' - this peerer will not be called", e)
+      }
+    }
+
+    this.customPeerer = if (initSuccess) customPeerer else null
+  }
 
   override fun tick() {
     if (dynamicConfigService.isEnabled("pollers.peering", true) &&
@@ -79,6 +99,7 @@ class PeeringAgent(
         peerExecutions(ExecutionType.PIPELINE)
         peerExecutions(ExecutionType.ORCHESTRATION)
         peerDeletedExecutions()
+        invokeCustomPeerer()
       }
     }
   }
@@ -186,6 +207,28 @@ class PeeringAgent(
       log.error("Failed to delete some executions", e)
       peeringMetrics.incrementNumErrors(ExecutionType.ORCHESTRATION)
       peeringMetrics.incrementNumErrors(ExecutionType.PIPELINE)
+    }
+  }
+
+  /**
+   * If we have a custom peerer, invoke it
+   */
+  private fun invokeCustomPeerer() {
+    if (customPeerer != null) {
+      val peererName = customPeerer.javaClass.simpleName
+
+      try {
+        log.info("Starting peering with custom peerer '$peererName'")
+        val peeringSuccess = customPeerer.doPeer()
+        if (peeringSuccess) {
+          log.info("Completed peering with custom peerer '$peererName'")
+        } else {
+          log.error("Completed peering with custom peerer '$peererName' with errors")
+        }
+      } catch (e: Exception) {
+        peeringMetrics.incrementCustomPeererError(peererName, e)
+        log.error("Custom peerer '$peererName' failed", e)
+      }
     }
   }
 
