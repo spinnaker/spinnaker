@@ -11,12 +11,16 @@ import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import groovy.util.logging.Slf4j;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import io.swagger.annotations.ApiOperation;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,19 +45,38 @@ import retrofit.RetrofitError;
 @ConditionalOnProperty("services.keel.enabled")
 public class ManagedController {
 
-  private final HttpHeaders yamlResponseHeaders;
   private static final Logger log = LoggerFactory.getLogger(ManagedController.class);
+  private static final String APPLICATION_YAML_VALUE = "application/x-yaml";
+
+  private final HttpHeaders yamlResponseHeaders;
   private final KeelService keelService;
   private final ObjectMapper objectMapper;
-  private final String APPLICATION_YAML_VALUE = "application/x-yaml";
+  private final RetryRegistry retryRegistry;
 
   @Autowired
-  public ManagedController(KeelService keelService, ObjectMapper objectMapper) {
+  public ManagedController(
+      KeelService keelService, ObjectMapper objectMapper, RetryRegistry retryRegistry) {
     this.keelService = keelService;
     this.objectMapper = objectMapper;
     this.yamlResponseHeaders = new HttpHeaders();
+    this.retryRegistry = retryRegistry;
     yamlResponseHeaders.setContentType(
         new MediaType("application", "x-yaml", StandardCharsets.UTF_8));
+
+    configureRetry();
+  }
+
+  private void configureRetry() {
+    // TODO(rz): Wire up kork to look in `classpath*:resilience4j-defaults.yml` for service-defined
+    //  defaults rather than doing in-code configuration which is less flexible for end-users.
+    //  These will probably be fine, though.
+    retryRegistry.addConfiguration(
+        "managed-write",
+        RetryConfig.custom()
+            .maxAttempts(5)
+            .waitDuration(Duration.ofSeconds(30))
+            .retryExceptions(RetrofitError.class)
+            .build());
   }
 
   @ApiOperation(value = "Get a resource", response = Resource.class)
@@ -132,6 +155,7 @@ public class ManagedController {
     return keelService.getManifestArtifacts(name);
   }
 
+  @SneakyThrows
   @ApiOperation(
       value = "Create or update a delivery config manifest",
       response = DeliveryConfig.class)
@@ -140,7 +164,9 @@ public class ManagedController {
       consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
       produces = {APPLICATION_JSON_VALUE})
   DeliveryConfig upsertManifest(@RequestBody DeliveryConfig manifest) {
-    return keelService.upsertManifest(manifest);
+    return retryRegistry
+        .retry("managed-write")
+        .executeCallable(() -> keelService.upsertManifest(manifest));
   }
 
   @ApiOperation(value = "Delete a delivery config manifest", response = DeliveryConfig.class)

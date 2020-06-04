@@ -53,6 +53,9 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
 
   implementation "org.springframework:spring-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-aop"
+  implementation "io.github.resilience4j:resilience4j-spring-boot2"
 
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
