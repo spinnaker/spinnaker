@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import okhttp3.Call
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -36,17 +39,25 @@ import spock.lang.Specification
 import static retrofit.Endpoints.newFixedEndpoint
 
 class NotificationServiceSpec extends Specification {
+  OkHttpClientProvider clientProvider = Mock()
   OkHttpClient okHttpClient = Mock()
   ServiceConfiguration serviceConfiguration = Mock()
+  Front50Service front50Service = Mock()
   Call echoCall = Mock()
 
   @Subject NotificationService notificationService
 
   void setup() {
+    serviceConfiguration.getServiceEndpoint("echo") >> newFixedEndpoint("https://echo")
+    clientProvider.getClient(_) >> { DefaultServiceEndpoint serviceEndpoint ->
+      serviceEndpoint.name == 'echo'
+      serviceEndpoint.baseUrl == 'https://echo'
+      okHttpClient
+    }
     notificationService = new NotificationService(
-      front50Service: null,
-      okHttpClient: okHttpClient,
-      serviceConfiguration: serviceConfiguration,
+      front50Service,
+      clientProvider,
+      serviceConfiguration,
     )
   }
 
@@ -75,10 +86,7 @@ class NotificationServiceSpec extends Specification {
     when: "a request is received for processing"
     ResponseEntity<String> response = notificationService.processNotificationCallback("someSource", incomingRequest)
 
-    then: "obtains echo endpoint from configuration"
-    1 * serviceConfiguration.getServiceEndpoint("echo") >> newFixedEndpoint("https://echo")
-
-    and: "calls echo with an equivalent request"
+    then: "calls the configured client"
     1 * okHttpClient.newCall(_) >> { arguments ->
       Request echoRequest = arguments[0]
       echoRequest.url() == expectedEchoRequest.url()
