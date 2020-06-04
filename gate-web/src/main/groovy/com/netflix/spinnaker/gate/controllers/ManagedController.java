@@ -163,7 +163,7 @@ public class ManagedController {
           return ResponseEntity.badRequest()
               .body(objectMapper.readValue(e.getResponse().getBody().in(), Map.class));
         } catch (Exception ex) {
-          log.error("Error parsing error response from keel: {}", ex.getMessage(), ex);
+          log.error("Error parsing error response from keel", ex);
           return ResponseEntity.badRequest().body(Collections.emptyMap());
         }
       } else {

@@ -122,9 +122,7 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
       session.setAttribute(SIGNATURE_ATTRIBUTE, jwt.getSignature());
 
     } catch (Exception e) {
-      if (log.isDebugEnabled()) {
-        log.info("Could not verify JWT Token for request: " + request.getPathInfo(), e);
-      }
+      log.error("Could not verify JWT Token for request {}", request.getPathInfo(), e);
     }
     chain.doFilter(request, response);
   }

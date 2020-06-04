@@ -85,7 +85,7 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
       anonymousAllowedAccounts.removeAll(toRemove)
       anonymousAllowedAccounts.addAll(toAdd)
     } catch (Exception e) {
-      log.warn(ExceptionUtils.getStackTrace(e))
+      log.warn("Error while updating anonymous accounts", e)
     }
   }
 }

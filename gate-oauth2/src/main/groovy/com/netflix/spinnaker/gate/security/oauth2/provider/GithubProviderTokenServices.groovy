@@ -58,40 +58,34 @@ class GithubProviderTokenServices implements SpinnakerProviderTokenServices {
 
   boolean checkOrganization(String accessToken, String organizationsUrl, String organization) {
     try {
-      log.debug("Getting user organizations from: " + organizationsUrl)
-      OAuth2RestOperations restTemplate = this.restTemplate;
+      log.debug("Getting user organizations from URL {}", organizationsUrl)
+      OAuth2RestOperations restTemplate = this.restTemplate
       if (restTemplate == null) {
-        BaseOAuth2ProtectedResourceDetails resource = new BaseOAuth2ProtectedResourceDetails();
+        BaseOAuth2ProtectedResourceDetails resource = new BaseOAuth2ProtectedResourceDetails()
         resource.setClientId(sso.clientId)
         restTemplate = new OAuth2RestTemplate(resource)
       }
-      OAuth2AccessToken existingToken = restTemplate.getOAuth2ClientContext()
-        .getAccessToken()
+      OAuth2AccessToken existingToken = restTemplate.getOAuth2ClientContext().getAccessToken()
       if (existingToken == null || !accessToken.equals(existingToken.getValue())) {
-        DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(
-          accessToken)
+        DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(accessToken)
         token.setTokenType(this.tokenType)
         restTemplate.getOAuth2ClientContext().setAccessToken(token)
       }
-      List<Map<String, String>> organizations = restTemplate
-        .getForEntity(organizationsUrl, List.class).getBody()
+      List<Map<String, String>> organizations = restTemplate.getForEntity(organizationsUrl, List.class).getBody()
       return githubOrganizationMember(organization, organizations)
     }
-    catch (Exception ex) {
-      log.warn("Could not fetch user organizations: " + ex.getClass() + ", "
-        + ex.getMessage())
-      return Collections.<String, Object>singletonMap("error",
-        "Could not fetch user organizations")
+    catch (Exception e) {
+      log.warn("Could not fetch user organizations", e)
+      return Collections.<String, Object>singletonMap("error", "Could not fetch user organizations")
     }
   }
 
   boolean hasAllProviderRequirements(String token, Map details) {
     boolean hasRequirements = true
     if (requirements.organization != null && details.containsKey("organizations_url")) {
-      boolean orgMatch = checkOrganization(token, details['organizations_url'],
-        requirements.organization)
+      boolean orgMatch = checkOrganization(token, details['organizations_url'], requirements.organization)
       if (!orgMatch) {
-        log.debug("User does not include required organization: " + requirements.organization)
+        log.debug("User does not include required organization {}", requirements.organization)
         hasRequirements = false
       }
     }

@@ -129,8 +129,8 @@ class AuthController {
     URL toURL
     try {
       toURL = new URL(to)
-    } catch (MalformedURLException malEx) {
-      log.warn "Malformed redirect URL: $to\n${ExceptionUtils.getStackTrace(malEx)}"
+    } catch (MalformedURLException e) {
+      log.warn("Malformed redirect URL {}", to, e)
       return false
     }
 
