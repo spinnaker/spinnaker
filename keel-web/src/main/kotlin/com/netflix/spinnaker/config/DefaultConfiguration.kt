@@ -11,7 +11,6 @@ import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import de.huxhorn.sulky.ulid.ULID
 import java.time.Clock
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -61,13 +60,11 @@ class DefaultConfiguration(
   @Bean
   fun idGenerator(): ULID = ULID()
 
-  @Bean
+  @Bean(name = ["jsonMapper", "objectMapper"])
   @Primary
-  @Qualifier("jsonMapper")
   fun objectMapper(): ObjectMapper = configuredObjectMapper()
 
-  @Bean
-  @Qualifier("yamlMapper")
+  @Bean(name = ["yamlMapper"])
   fun yamlMapper(): YAMLMapper = configuredYamlMapper()
 
   @Bean

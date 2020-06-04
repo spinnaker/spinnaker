@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-delivery-config-metadata
+      author: lpollo
+      changes:
+        - addColumn:
+            tableName: delivery_config
+            columns:
+              - name: metadata
+                type: json
+                constraints:
+                  nullable: true

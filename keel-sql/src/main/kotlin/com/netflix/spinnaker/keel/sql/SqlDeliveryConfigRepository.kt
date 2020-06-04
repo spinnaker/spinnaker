@@ -278,7 +278,9 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.NAME, name)
         .set(DELIVERY_CONFIG.APPLICATION, application)
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
-        .onDuplicateKeyIgnore()
+        .set(DELIVERY_CONFIG.METADATA, mapper.writeValueAsString(metadata))
+        .onDuplicateKeyUpdate()
+        .set(DELIVERY_CONFIG.METADATA, mapper.writeValueAsString(metadata))
         .execute()
       artifacts.forEach { artifact ->
         jooq.insertInto(DELIVERY_CONFIG_ARTIFACT)
@@ -339,12 +341,18 @@ class SqlDeliveryConfigRepository(
           DELIVERY_CONFIG.UID,
           DELIVERY_CONFIG.NAME,
           DELIVERY_CONFIG.APPLICATION,
-          DELIVERY_CONFIG.SERVICE_ACCOUNT
+          DELIVERY_CONFIG.SERVICE_ACCOUNT,
+          DELIVERY_CONFIG.METADATA
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.NAME.eq(name))
-        .fetchOne { (uid, name, application, serviceAccount) ->
-          uid to DeliveryConfig(name = name, application = application, serviceAccount = serviceAccount)
+        .fetchOne { (uid, name, application, serviceAccount, metadata) ->
+          uid to DeliveryConfig(
+            name = name,
+            application = application,
+            serviceAccount = serviceAccount,
+            metadata = metadata?.let { mapper.readValue<Map<String, Any?>>(metadata) } ?: emptyMap()
+          )
         }
     }
       ?.let { (uid, deliveryConfig) ->

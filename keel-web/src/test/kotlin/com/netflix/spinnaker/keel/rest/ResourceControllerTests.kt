@@ -20,6 +20,7 @@ import dev.minutest.rootContext
 import io.mockk.every
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -31,7 +32,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import strikt.api.Assertion
+import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
 import strikt.assertions.isNotNull
@@ -52,6 +53,7 @@ internal class ResourceControllerTests : JUnit5Minutests {
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
 
+  @Qualifier("jsonMapper")
   @Autowired
   lateinit var jsonMapper: ObjectMapper
 
@@ -228,11 +230,11 @@ internal class ResourceControllerTests : JUnit5Minutests {
   }
 }
 
-private val Assertion.Builder<MockHttpServletResponse>.contentType: DescribeableBuilder<MediaType?>
+private val Builder<MockHttpServletResponse>.contentType: DescribeableBuilder<MediaType?>
   get() = get { contentType?.let(MediaType::parseMediaType) }
 
 @Suppress("UNCHECKED_CAST")
-private fun <T : MediaType?> Assertion.Builder<T>.isCompatibleWith(expected: MediaType): Assertion.Builder<MediaType> =
+private fun <T : MediaType?> Builder<T>.isCompatibleWith(expected: MediaType): Builder<MediaType> =
   assertThat("is compatible with $expected") {
     it?.isCompatibleWith(expected) ?: false
-  } as Assertion.Builder<MediaType>
+  } as Builder<MediaType>

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.READ
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.DELIVERY_CONFIG
+import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
@@ -42,6 +43,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import retrofit.RetrofitError
+import retrofit.client.Response
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
@@ -59,6 +62,9 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
+
+  @MockkBean
+  lateinit var importer: DeliveryConfigImporter
 
   @Autowired
   lateinit var jsonMapper: ObjectMapper
@@ -327,6 +333,56 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
       }
     }
 
+    context("importing a delivery config from source control") {
+      before {
+        every {
+          repository.upsertDeliveryConfig(any<SubmittedDeliveryConfig>())
+        } returns deliveryConfig.toDeliveryConfig()
+      }
+
+      context("when manifest retried successfully") {
+        before {
+          every {
+            importer.import("stash", "proj", "repo", "spinnaker.yml", "refs/heads/master")
+          } returns deliveryConfig
+        }
+
+        test("the request is successful and the manifest persisted") {
+          val request = post("/delivery-configs/import?repoType=stash&projectKey=proj&repoSlug=repo&manifestPath=spinnaker.yml")
+            .accept(APPLICATION_YAML)
+            .contentType(APPLICATION_YAML)
+
+          val response = mvc.perform(request)
+          response.andExpect(status().isOk)
+
+          verify(exactly = 1) {
+            repository.upsertDeliveryConfig(deliveryConfig)
+          }
+        }
+      }
+
+      context("when manifest retrieval fails") {
+        val retrofitError = RetrofitError.httpError("http://igor",
+          Response("http://igor", 404, "not found", emptyList(), null),
+          null, null)
+
+        before {
+          every {
+            importer.import("stash", "proj", "repo", "spinnaker.yml", "refs/heads/master")
+          } throws retrofitError
+        }
+
+        test("the error from the dowstream service is returned") {
+          val request = post("/delivery-configs/import?repoType=stash&projectKey=proj&repoSlug=repo&manifestPath=spinnaker.yml")
+            .accept(APPLICATION_YAML)
+            .contentType(APPLICATION_YAML)
+
+          val response = mvc.perform(request)
+          response.andExpect(status().isNotFound)
+        }
+      }
+    }
+
     context("API permission checks") {
       context("GET /delivery-configs") {
         context("with no READ access to application") {
@@ -377,6 +433,40 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/delivery-configs").addData(jsonMapper, deliveryConfig)
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+      }
+
+      context("POST /delivery-configs/import") {
+        before {
+          every {
+            importer.import("stash", "proj", "repo", "spinnaker.yml", "refs/heads/master")
+          } returns deliveryConfig
+        }
+        context("with no WRITE access to application") {
+          before {
+            authorizationSupport.denyApplicationAccess(WRITE, APPLICATION)
+            authorizationSupport.allowServiceAccountAccess()
+          }
+          test("request is forbidden") {
+            val request = post("/delivery-configs/import?repoType=stash&projectKey=proj&repoSlug=repo&manifestPath=spinnaker.yml")
+              .accept(MediaType.APPLICATION_JSON_VALUE)
+              .header("X-SPINNAKER-USER", "keel@keel.io")
+
+            mvc.perform(request).andExpect(status().isForbidden)
+          }
+        }
+        context("with no access to service account") {
+          before {
+            authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
+            authorizationSupport.denyServiceAccountAccess()
+          }
+          test("request is forbidden") {
+            val request = post("/delivery-configs/import?repoType=stash&projectKey=proj&repoSlug=repo&manifestPath=spinnaker.yml")
               .accept(MediaType.APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", "keel@keel.io")
 

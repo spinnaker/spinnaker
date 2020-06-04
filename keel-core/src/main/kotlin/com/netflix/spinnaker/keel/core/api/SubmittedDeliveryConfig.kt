@@ -18,7 +18,8 @@ data class SubmittedDeliveryConfig(
   @Description("The service account Spinnaker will authenticate with when making changes.")
   val serviceAccount: String,
   val artifacts: Set<DeliveryArtifact> = emptySet(),
-  val environments: Set<SubmittedEnvironment> = emptySet()
+  val environments: Set<SubmittedEnvironment> = emptySet(),
+  val metadata: Map<String, Any?>? = emptyMap()
 ) {
   val safeName: String
     @JsonIgnore get() = name ?: "$application-manifest"

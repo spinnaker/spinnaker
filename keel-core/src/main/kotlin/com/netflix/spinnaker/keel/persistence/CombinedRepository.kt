@@ -73,7 +73,8 @@ class CombinedRepository(
           constraints = env.constraints,
           notifications = env.notifications
         )
-      }
+      },
+      metadata = submittedDeliveryConfig.metadata ?: emptyMap()
     )
     return upsertDeliveryConfig(new)
   }

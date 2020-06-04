@@ -5,6 +5,10 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.EnvironmentDiff
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
+import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
+import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import io.swagger.v3.oas.annotations.Operation
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -27,8 +32,12 @@ import org.springframework.web.bind.annotation.RestController
 class DeliveryConfigController(
   private val repository: KeelRepository,
   private val adHocDiffer: AdHocDiffer,
-  private val validator: DeliveryConfigValidator
+  private val validator: DeliveryConfigValidator,
+  private val importer: DeliveryConfigImporter,
+  private val authorizationSupport: AuthorizationSupport
 ) {
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   @Operation(
     description = "Registers or updates a delivery config manifest."
   )
@@ -47,6 +56,7 @@ class DeliveryConfigController(
     deliveryConfig: SubmittedDeliveryConfig
   ): DeliveryConfig {
     validator.validate(deliveryConfig)
+    log.debug("Upserting delivery config '${deliveryConfig.name}' for app '${deliveryConfig.application}'")
     return repository.upsertDeliveryConfig(deliveryConfig)
   }
 
@@ -97,5 +107,26 @@ class DeliveryConfigController(
     validator.validate(deliveryConfig)
   }
 
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+  @Operation(
+    description = "Imports a delivery config manifest from source control."
+  )
+  @PostMapping(
+    path = ["/import"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun import(
+    @RequestParam repoType: String,
+    @RequestParam projectKey: String,
+    @RequestParam repoSlug: String,
+    @RequestParam manifestPath: String,
+    @RequestParam ref: String?
+  ): DeliveryConfig {
+    val deliveryConfig =
+      importer.import(repoType, projectKey, repoSlug, manifestPath, ref ?: "refs/heads/master")
+
+    authorizationSupport.checkApplicationPermission(WRITE, APPLICATION, deliveryConfig.application)
+    authorizationSupport.checkServiceAccountAccess(SERVICE_ACCOUNT, deliveryConfig.serviceAccount)
+
+    return upsert(deliveryConfig)
+  }
 }

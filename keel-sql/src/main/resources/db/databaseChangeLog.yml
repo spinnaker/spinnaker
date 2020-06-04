@@ -155,3 +155,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200528-add-veto-info.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200603-add-delivery-config-metadata.yml
+      relativeToChangelogFile: true

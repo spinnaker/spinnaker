@@ -38,7 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 /**
- * Support for authorization of REST API calls.
+ * Support for authorization of API calls.
  *
  * @see https://github.com/spinnaker/keel/blob/master/docs/authorization.md
  */

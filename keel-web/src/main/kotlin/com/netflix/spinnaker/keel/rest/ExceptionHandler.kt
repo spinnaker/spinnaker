@@ -47,15 +47,17 @@ class ExceptionHandler(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @ExceptionHandler(HttpMessageConversionException::class, HttpMessageNotReadableException::class)
+  @ExceptionHandler(HttpMessageConversionException::class, HttpMessageNotReadableException::class, JsonMappingException::class)
   @ResponseStatus(BAD_REQUEST)
   fun onParseFailure(e: Exception): ApiError {
     log.error(e.message)
-    return when (e.cause) {
-      null -> ApiError(BAD_REQUEST, e)
-      is JsonMappingException ->
+    return when {
+      e is JsonMappingException ->
+        ApiError(BAD_REQUEST, e, e.toDetails())
+      e.cause is JsonMappingException ->
         ApiError(BAD_REQUEST, e, (e.cause as JsonMappingException).toDetails())
-      else -> ApiError(BAD_REQUEST, e)
+      else ->
+        ApiError(BAD_REQUEST, e)
     }
   }
 
