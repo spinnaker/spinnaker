@@ -57,6 +57,10 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-aop"
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
 
+  implementation "com.graphql-java-kickstart:graphql-spring-boot-starter:7.0.1"
+  implementation "com.graphql-java-kickstart:graphql-java-tools:6.0.2"
+  testImplementation "com.graphql-java-kickstart:graphql-spring-boot-starter-test:7.0.1"
+
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
   testImplementation "com.squareup.okhttp:mockwebserver"
