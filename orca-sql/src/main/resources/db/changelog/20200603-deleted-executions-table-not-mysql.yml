@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-deleted-executions-table-for-not-mysql
+      author: robzienert
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: deleted_executions
+      changes:
+        - createTable:
+            tableName: deleted_executions
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: execution_id
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: execution_type
+                  type: varchar(15)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+        - addAutoIncrement:
+            tableName: deleted_executions
+            columnName: id
+            columnDataType: int
+
+      rollback:
+        - dropTable:
+            tableName: deleted_executions
+  - changeSet:
+      id: create-deleted-executions-index-for-not-mysql
+      author: robzienert
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          indexExists:
+            indexName: deleted_at_idx
+      changes:
+        - createIndex:
+            indexName: deleted_at_idx
+            tableName: deleted_executions
+            columns:
+              - column:
+                  name: deleted_at
+    rollback:
+      - dropIndex:
+          indexName: deleted_at_idx
+          tableName: deleted_executions

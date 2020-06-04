@@ -4,6 +4,7 @@ databaseChangeLog:
       author: mvulfson
       changes:
         - createIndex:
+            dbms: mysql
             indexName: deleted_at_idx
             tableName: deleted_executions
             columns:
