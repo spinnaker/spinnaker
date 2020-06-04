@@ -26,7 +26,6 @@ import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
 import io.github.resilience4j.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration;
 import io.github.resilience4j.ratelimiter.autoconfigure.RateLimitersHealthIndicatorAutoConfiguration;
-import io.github.resilience4j.retry.RetryRegistry;
 import java.util.List;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -64,11 +63,5 @@ public class PlatformComponents {
   @ConditionalOnMissingBean(SpringPackageVersionResolver.class)
   VersionResolver springPackageVersionResolver(ApplicationContext applicationContext) {
     return new SpringPackageVersionResolver(applicationContext);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(RetryRegistry.class)
-  RetryRegistry retryRegistry() {
-    return RetryRegistry.ofDefaults();
   }
 }
