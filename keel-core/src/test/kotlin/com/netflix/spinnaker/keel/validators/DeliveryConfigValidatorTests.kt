@@ -7,7 +7,9 @@ import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
+import com.netflix.spinnaker.keel.exceptions.InvalidArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
+import com.netflix.spinnaker.keel.test.DummyArtifactReferenceResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
 import dev.minutest.junit.JUnit5Minutests
@@ -125,6 +127,35 @@ internal class DeliveryConfigValidatorTests : JUnit5Minutests {
           subject.validate(submittedConfig)
         }.isFailure()
           .isA<MissingEnvironmentReferenceException>()
+      }
+    }
+
+    context("delivery config with reference to non-existent artifact") {
+
+      val submittedConfig = SubmittedDeliveryConfig(
+        name = configName,
+        application = "keel",
+        serviceAccount = "keel@spinnaker",
+        artifacts = setOf(DockerArtifact(name = "org/thing-1", deliveryConfigName = configName, reference = "thing")),
+        environments = setOf(
+          SubmittedEnvironment(
+            name = "test",
+            resources = setOf(
+              SubmittedResource(
+                kind = TEST_API_V1.qualify("whatever"),
+                spec = DummyArtifactReferenceResourceSpec(artifactReference = "does-not-exist")
+              )
+
+            ),
+            constraints = emptySet()
+          ))
+      )
+      test("an error is thrown") {
+
+        expectCatching {
+          subject.validate(submittedConfig)
+        }.isFailure()
+          .isA<InvalidArtifactReferenceException>()
       }
     }
   }

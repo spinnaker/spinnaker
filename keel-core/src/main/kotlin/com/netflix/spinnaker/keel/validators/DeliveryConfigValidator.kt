@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.keel.validators
 
+import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.id
 import com.netflix.spinnaker.keel.exceptions.DuplicateArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
+import com.netflix.spinnaker.keel.exceptions.InvalidArtifactReferenceException
 import com.netflix.spinnaker.keel.exceptions.MissingEnvironmentReferenceException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -23,6 +25,7 @@ class DeliveryConfigValidator {
    * - resources have unique ids
    * - artifacts have unique references
    * - depends on environments are unique
+   * - references to artifacts are valid
    *
    * Throws an exception if config fails any checks
    */
@@ -81,6 +84,21 @@ class DeliveryConfigValidator {
             it.name == constraint.environment
           } ?: throw MissingEnvironmentReferenceException(constraint.environment)
         }
+      }
+    }
+
+    /**
+     * check: all referenced artifacts exist
+     */
+    config.environments.forEach { environment ->
+      environment.resources.forEach { resource ->
+        (resource.spec as? ArtifactReferenceProvider)
+          ?.artifactReference
+          ?.also {
+            if (!refs.contains(it)) {
+              throw InvalidArtifactReferenceException(it, refs)
+            }
+          }
       }
     }
   }
