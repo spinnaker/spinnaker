@@ -19,28 +19,40 @@ package com.netflix.spinnaker.gate
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.util.concurrent.Executors
 
 class ApplicationServiceSpec extends Specification {
+  def clouddriver = Mock(ClouddriverService)
+  def front50 = Mock(Front50Service)
+  def clouddriverSelector = Mock(ClouddriverServiceSelector) {
+    select() >> clouddriver
+  }
 
-  void "should properly aggregate application data from Front50 and Clouddriver"() {
-    setup:
+  @Subject
+  def service = applicationService()
+
+  private applicationService() {
     def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
-    service.clouddriverService = clouddriver
+    service.clouddriverServiceSelector = clouddriverSelector
     service.executorService = Executors.newFixedThreadPool(1)
 
-    and:
+    return service
+  }
+
+  void "should properly aggregate application data from Front50 and Clouddriver"() {
+    given:
     def clouddriverApp = [name: name, attributes: [clouddriverName: name, name: "bad"], clusters: [(account): [cluster]]]
     def front50App = [name: name, email: email, owner: owner, accounts: account]
 
@@ -63,18 +75,7 @@ class ApplicationServiceSpec extends Specification {
   }
 
   void "should ignore accounts from front50 and only include those from clouddriver clusters"() {
-    setup:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
-    def config = new ServiceConfiguration(services: [front50: new Service()])
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
-
-    and:
+    given:
     def clouddriverApp = [name: name, attributes: [clouddriverName: name, name: "bad"], clusters: [(clouddriverAccount): [cluster]]]
     def front50App = [name: name, email: email, owner: owner, accounts: front50Account]
 
@@ -95,24 +96,17 @@ class ApplicationServiceSpec extends Specification {
     clouddriverAccount = "test"
     front50Account = "prod"
     providerType = "aws"
-
   }
 
   @Unroll
   void "should return null when application account does not match includedAccounts"() {
     setup:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
+    def serviceWithDifferentConfig = applicationService()
     def config = new ServiceConfiguration(services: [front50: new Service(config: [includedAccounts: includedAccount])])
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
+    serviceWithDifferentConfig.serviceConfiguration = config
 
     when:
-    def app = service.getApplication(name, true)
+    def app = serviceWithDifferentConfig.getApplication(name, true)
 
     then:
     1 * clouddriver.getApplication(name) >> null
@@ -136,17 +130,6 @@ class ApplicationServiceSpec extends Specification {
 
 
   void "should return null when no application attributes are available"() {
-    setup:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
-    def config = new ServiceConfiguration(services: [front50: new Service()])
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
-
     when:
     def app = service.getApplication(name, true)
 
@@ -162,18 +145,7 @@ class ApplicationServiceSpec extends Specification {
   }
 
   void "should properly merge retrieved apps from clouddriver and front50"() {
-    setup:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
-    def config = new ServiceConfiguration(services: [front50: new Service()])
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
-
-    and:
+    given:
     def clouddriverApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
     def front50App = [name: name.toLowerCase(), email: email]
 
@@ -197,18 +169,7 @@ class ApplicationServiceSpec extends Specification {
   }
 
   void "should properly merge accounts for retrieved apps with clusterNames"() {
-    setup:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
-    def config = new ServiceConfiguration(services: [front50: new Service()])
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
-
-    and:
+    given:
     def clouddriverApp1 = [name: name.toUpperCase(), attributes: [name: name], clusterNames: [prod: ["cluster-prod"]]]
     def clouddriverApp2 = [name: name.toUpperCase(), attributes: [name: name], clusterNames: [dev: ["cluster-dev"]]]
     def front50App = [name: name.toLowerCase(), email: email, accounts: "test"]
@@ -248,18 +209,6 @@ class ApplicationServiceSpec extends Specification {
 
   @Unroll
   void "should return pipeline config based on name or id"() {
-    given:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
-    def config = new ServiceConfiguration(services: [front50: new Service()])
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
-    def app = "theApp"
-
     when:
     def result = service.getPipelineConfigForApplication(app, nameOrId) != null
 
@@ -268,6 +217,8 @@ class ApplicationServiceSpec extends Specification {
     1 * front50.getPipelineConfigsForApplication(app, true) >> [ [ id: "by-id", name: "by-name" ] ]
 
     where:
+    app = "theApp"
+
     nameOrId  || expected
     "by-id"   || true
     "by-name" || true
@@ -275,24 +226,15 @@ class ApplicationServiceSpec extends Specification {
   }
 
   void "should skip clouddriver call if expand set to false"() {
-    setup:
-    def service = new ApplicationService()
-    def front50 = Mock(Front50Service)
-    def clouddriver = Mock(ClouddriverService)
-    def config = new ServiceConfiguration(services: [front50: new Service()])
+    given:
     def name = 'myApp'
-
-    service.serviceConfiguration = config
-    service.front50Service = front50
-    service.clouddriverService = clouddriver
-    service.executorService = Executors.newFixedThreadPool(1)
-    service.allApplicationsCache.set([
+    def serviceWithApplicationsCache = applicationService()
+    serviceWithApplicationsCache.allApplicationsCache.set([
         [name: name, email: "cached@email.com"]
     ])
 
     when:
-    def app = service.getApplication(name, false)
-
+    def app = serviceWithApplicationsCache.getApplication(name, false)
 
     then:
     0 * clouddriver.getApplication(name)

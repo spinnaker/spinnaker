@@ -67,7 +67,7 @@ class ApplicationController {
   List<HashMap<String, Object>> getAllApplications(
     @ApiParam(name = "account", required = false, value = "filters results to only include applications deployed in the specified account")
     @RequestParam(value = "account", required = false) String account,
-    @ApiParam(name = "owner", required = false, value = "filteres results to only include applications owned by the specified email")
+    @ApiParam(name = "owner", required = false, value = "filters results to only include applications owned by the specified email")
     @RequestParam(value = "owner", required = false) String owner) {
     return applicationService.getAllApplications()
       .findAll {

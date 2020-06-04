@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
@@ -46,7 +47,7 @@ class ApplicationService {
   ServiceConfiguration serviceConfiguration
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
   Front50Service front50Service
@@ -59,11 +60,10 @@ class ApplicationService {
   @Scheduled(fixedDelayString = '${services.front50.applicationRefreshIntervalMs:5000}')
   void refreshApplicationsCache() {
     try {
-      log.debug("Refreshing Application List")
       allApplicationsCache.set(tick(true))
       log.debug("Refreshed Application List (applications: {})", allApplicationsCache.get().size())
     } catch (e) {
-      log.error("Unable to refresh application list, reason: ${e.message}")
+      log.error("Unable to refresh application list", e)
     }
   }
 
@@ -136,7 +136,7 @@ class ApplicationService {
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers(boolean expandClusterNames) {
     return [
         new Front50ApplicationListRetriever(front50Service, allApplicationsCache),
-        new ClouddriverApplicationListRetriever(clouddriverService, allApplicationsCache, expandClusterNames
+        new ClouddriverApplicationListRetriever(clouddriverServiceSelector.select(), allApplicationsCache, expandClusterNames
     )] as Collection<Callable<List<Map>>>
   }
 
@@ -145,7 +145,7 @@ class ApplicationService {
       new Front50ApplicationRetriever(applicationName, front50Service, allApplicationsCache) as Callable<Map>
     ]
     if (expand) {
-      retrievers.add(new ClouddriverApplicationRetriever(applicationName, clouddriverService) as Callable<Map>)
+      retrievers.add(new ClouddriverApplicationRetriever(applicationName, clouddriverServiceSelector.select()) as Callable<Map>)
     }
     return retrievers
   }
