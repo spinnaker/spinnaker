@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DestroyCloudFoundryServerGroupAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.Map;
@@ -37,6 +38,8 @@ public class DestroyCloudFoundryServerGroupAtomicOperationConverter
   public DestroyCloudFoundryServerGroupDescription convertDescription(Map input) {
     DestroyCloudFoundryServerGroupDescription converted =
         getObjectMapper().convertValue(input, DestroyCloudFoundryServerGroupDescription.class);
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
     converted.setClient(getClient(input));
     converted.setServerGroupId(
         getServerGroupId(

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -76,6 +77,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   private CacheRepository cacheRepository;
 
+  private Permissions permissions;
+
   public CloudFoundryCredentials(
       String name,
       String appsManagerUri,
@@ -87,7 +90,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
       boolean skipSslValidation,
       Integer resultsPerPage,
       Integer maxCapiConnectionsForCache,
-      CacheRepository cacheRepository) {
+      CacheRepository cacheRepository,
+      Permissions permissions) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -99,6 +103,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
     this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(100);
     this.maxCapiConnectionsForCache = Optional.ofNullable(maxCapiConnectionsForCache).orElse(16);
     this.cacheRepository = cacheRepository;
+    this.permissions = permissions == null ? Permissions.EMPTY : permissions;
   }
 
   public CloudFoundryClient getCredentials() {

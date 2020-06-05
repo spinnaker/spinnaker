@@ -121,7 +121,8 @@ class CacheRepositoryTest {
         false,
         null,
         16,
-        repo);
+        repo,
+        null);
   }
 
   @Test

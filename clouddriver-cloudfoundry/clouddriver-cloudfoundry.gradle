@@ -36,6 +36,7 @@ dependencies {
 
   implementation "org.codehaus.groovy:groovy-all"
 
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "org.apache.commons:commons-lang3"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"

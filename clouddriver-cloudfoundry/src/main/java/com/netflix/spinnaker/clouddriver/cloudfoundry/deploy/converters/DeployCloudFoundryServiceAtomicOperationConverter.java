@@ -26,6 +26,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.io.IOException;
@@ -57,6 +58,8 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   public DeployCloudFoundryServiceDescription convertDescription(Map input) {
     DeployCloudFoundryServiceDescription converted =
         getObjectMapper().convertValue(input, DeployCloudFoundryServiceDescription.class);
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
     converted.setClient(getClient(input));
     converted.setSpace(
         findSpace(converted.getRegion(), converted.getClient())

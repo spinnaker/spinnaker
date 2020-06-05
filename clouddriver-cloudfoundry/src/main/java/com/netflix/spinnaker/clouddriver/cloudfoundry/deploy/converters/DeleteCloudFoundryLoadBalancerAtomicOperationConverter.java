@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeleteCloudFoundryLoadBalancerAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.Collection;
@@ -45,6 +46,8 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperationConverter
     DeleteCloudFoundryLoadBalancerDescription converted =
         getObjectMapper().convertValue(input, DeleteCloudFoundryLoadBalancerDescription.class);
     converted.setClient(getClient(input));
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
 
     CloudFoundryClient client = converted.getClient();
     return ((Collection<String>) input.get("regions"))

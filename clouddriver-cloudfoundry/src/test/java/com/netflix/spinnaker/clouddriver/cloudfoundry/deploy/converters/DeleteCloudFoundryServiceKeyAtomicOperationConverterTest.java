@@ -61,7 +61,7 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
-          "my-account", "", "", "", "", "", "", false, 500, 16, cacheRepository) {
+          "my-account", "", "", "", "", "", "", false, 500, 16, cacheRepository, null) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }
@@ -103,7 +103,8 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
                 .setServiceInstanceName(serviceInstanceName)
                 .setSpace(cloudFoundrySpace)
                 .setRegion(region)
-                .setClient(cloudFoundryClient);
+                .setClient(cloudFoundryClient)
+                .setCredentials(cloudFoundryCredentials);
 
     DeleteCloudFoundryServiceKeyDescription result = converter.convertDescription(input);
 

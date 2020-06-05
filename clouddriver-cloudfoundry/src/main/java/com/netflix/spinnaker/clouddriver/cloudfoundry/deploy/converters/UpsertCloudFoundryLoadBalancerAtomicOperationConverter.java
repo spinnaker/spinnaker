@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UpsertCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.UpsertCloudFoundryLoadBalancerAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.Map;
@@ -38,6 +39,8 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperationConverter
   public UpsertCloudFoundryLoadBalancerDescription convertDescription(Map input) {
     UpsertCloudFoundryLoadBalancerDescription converted =
         getObjectMapper().convertValue(input, UpsertCloudFoundryLoadBalancerDescription.class);
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
     CloudFoundryClient client = getClient(input);
     converted.setClient(client);
     findSpace(converted.getRegion(), client)

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -62,5 +63,6 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
     private boolean skipSslValidation;
     private Integer resultsPerPage;
     private Integer maxCapiConnectionsForCache;
+    private Permissions.Builder permissions = new Permissions.Builder();
   }
 }

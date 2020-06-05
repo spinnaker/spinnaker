@@ -162,7 +162,8 @@ class CloudFoundryCredentialsSynchronizerTest {
         false,
         null,
         16,
-        cacheRepository);
+        cacheRepository,
+        null);
   }
 
   private void loadProviderFromRepository() {

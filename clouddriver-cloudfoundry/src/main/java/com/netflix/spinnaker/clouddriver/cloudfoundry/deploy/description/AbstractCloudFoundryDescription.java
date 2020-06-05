@@ -18,11 +18,23 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
+import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import lombok.Data;
 
 @Data
-public abstract class AbstractCloudFoundryDescription {
+public abstract class AbstractCloudFoundryDescription implements AccountNameable {
   @JsonIgnore private CloudFoundryClient client;
 
   private String region;
+
+  @JsonIgnore private CloudFoundryCredentials credentials;
+
+  @Override
+  public String getAccount() {
+    if (credentials != null) {
+      return credentials.getName();
+    }
+    throw new IllegalStateException("Credentials must not be null");
+  }
 }

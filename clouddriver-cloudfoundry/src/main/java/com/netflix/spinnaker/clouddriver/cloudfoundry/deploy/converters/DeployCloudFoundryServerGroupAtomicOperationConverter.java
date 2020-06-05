@@ -68,6 +68,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     DeployCloudFoundryServerGroupDescription converted =
         getObjectMapper().convertValue(input, DeployCloudFoundryServerGroupDescription.class);
     CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
     converted.setClient(credentials.getClient());
     converted.setAccountName(credentials.getName());
 
@@ -82,7 +83,6 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     // fail early if we're not going to be able to locate credentials to download the artifact in
     // the deploy operation.
     converted.setArtifactCredentials(getArtifactCredentials(converted));
-
     converted.setApplicationAttributes(
         convertManifest(
             converted.getManifest().stream().findFirst().orElse(Collections.emptyMap())));

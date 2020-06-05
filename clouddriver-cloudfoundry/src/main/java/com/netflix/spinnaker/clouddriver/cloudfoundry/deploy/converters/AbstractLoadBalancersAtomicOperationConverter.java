@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,8 @@ abstract class AbstractLoadBalancersAtomicOperationConverter
 
     LoadBalancersDescription converted =
         getObjectMapper().convertValue(input, LoadBalancersDescription.class);
-
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
     converted.setClient(getClient(input));
     converted.setServerGroupId(
         getServerGroupId(

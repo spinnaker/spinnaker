@@ -79,7 +79,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     }
 
     return new CloudFoundryCredentials(
-        name, "", "", "", "", "", "", false, 500, 16, cacheRepository) {
+        name, "", "", "", "", "", "", false, 500, 16, cacheRepository, null) {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }
