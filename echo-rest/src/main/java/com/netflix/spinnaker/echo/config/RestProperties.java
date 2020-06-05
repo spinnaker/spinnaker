@@ -46,5 +46,6 @@ public class RestProperties {
     Map<String, String> headers;
     String headersFile;
     Boolean flatten = false;
+    int retryCount = 1;
   }
 }
