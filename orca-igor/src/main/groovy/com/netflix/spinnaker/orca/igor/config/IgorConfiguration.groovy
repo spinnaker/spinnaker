@@ -59,7 +59,7 @@ class IgorConfiguration {
   IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper, RequestInterceptor spinnakerRequestInterceptor) {
     new RestAdapter.Builder()
       .setEndpoint(igorEndpoint)
-      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("keel", igorEndpoint.url))))
+      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("igor", igorEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setLog(new RetrofitSlf4jLog(IgorService))
