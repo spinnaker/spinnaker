@@ -259,6 +259,22 @@ class AmazonImageFinderSpec extends Specification {
     [bCD("2016"), bCD("2014"), null, bCD("2012"), bCD("2015")] || [bCD("2016"), bCD("2015"), bCD("2014"), bCD("2012"), null]
   }
 
+  def 'passes imageOwnerAccount to oortService.findImage'() {
+    given: 'an imageOwnerAccount property in the stage'
+    String myAccount = 'my-account'
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
+      imageOwnerAccount: myAccount,
+      regions: ["us-west-1"]
+    ])
+
+    when:
+    amazonImageFinder.byTags(stage, 'mypackage', [:], [])
+
+    then:
+    1 * oortService.findImage('aws', 'mypackage', myAccount, null, _) >> {[]}
+    0 * _
+  }
+
   String bCD(String year) {
     return "${year}-07-28T20:07:21.000Z"
   }
