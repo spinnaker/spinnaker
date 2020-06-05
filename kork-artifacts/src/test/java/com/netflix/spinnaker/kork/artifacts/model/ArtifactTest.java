@@ -203,6 +203,15 @@ final class ArtifactTest {
     assertThat(testData).isEqualTo(ImmutableMap.of("nested", "abc"));
   }
 
+  @Test
+  void deserializeNullMetadata() throws IOException {
+    String json = jsonFactory.objectNode().set("metadata", jsonFactory.nullNode()).toString();
+
+    // Ensure that there is no exception reading an artifact with null metadata.
+    Artifact artifact = objectMapper.readValue(json, Artifact.class);
+    assertThat(artifact.getMetadata("abc")).isNull();
+  }
+
   private String fullArtifactJson() {
     return jsonFactory
         .objectNode()

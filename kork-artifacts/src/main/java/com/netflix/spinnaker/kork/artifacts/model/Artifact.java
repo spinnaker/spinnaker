@@ -161,6 +161,11 @@ public final class Artifact {
   public static class ArtifactBuilder {
     @Nonnull private Map<String, Object> metadata = new HashMap<>();
 
+    public Artifact.ArtifactBuilder metadata(@Nullable Map<String, Object> metadata) {
+      this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
+      return this;
+    }
+
     // Add extra, unknown data to the metadata map:
     @JsonAnySetter
     public ArtifactBuilder putMetadata(String key, Object value) {
