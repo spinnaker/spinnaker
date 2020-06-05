@@ -34,14 +34,13 @@ class DescriptionAuthorizerSpec extends Specification {
   def registry = new NoopRegistry()
   def evaluator = Mock(FiatPermissionEvaluator)
   def opsSecurityConfigProps
-  def dynamicConfigService = Mock(DynamicConfigService)
 
   @Subject
   DescriptionAuthorizer authorizer
 
   def setup() {
     opsSecurityConfigProps = new SecurityConfig.OperationsSecurityConfigurationProperties()
-    authorizer = new DescriptionAuthorizer(registry, new ObjectMapper(), Optional.of(evaluator), opsSecurityConfigProps, dynamicConfigService)
+    authorizer = new DescriptionAuthorizer(registry, Optional.of(evaluator), opsSecurityConfigProps)
   }
 
   def "should authorize passed description"() {

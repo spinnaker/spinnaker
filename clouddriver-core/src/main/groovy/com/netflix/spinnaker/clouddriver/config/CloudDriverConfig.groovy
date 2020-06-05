@@ -346,16 +346,12 @@ class CloudDriverConfig {
 
   @Bean
   DescriptionAuthorizer descriptionAuthorizer(Registry registry,
-                                              ObjectMapper objectMapper,
                                               Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-                                              SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
-                                              DynamicConfigService dynamicConfigService) {
+                                              SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
     return new DescriptionAuthorizer(
       registry,
-      objectMapper,
       fiatPermissionEvaluator,
-      opsSecurityConfigProps,
-      dynamicConfigService
+      opsSecurityConfigProps
     )
   }
 

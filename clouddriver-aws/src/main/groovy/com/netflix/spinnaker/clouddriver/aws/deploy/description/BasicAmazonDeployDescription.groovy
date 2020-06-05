@@ -21,14 +21,13 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
-import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
 class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription implements
-  DeployDescription, ApplicationNameable, ResourcesNameable {
+  DeployDescription, ApplicationNameable {
   String application
   String amiName
   String stack
@@ -115,16 +114,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   @Override
   Collection<String> getApplications() {
     return [application]
-  }
-
-  @Override
-  Collection<String> getNames() {
-    return securityGroupNames ?: []
-  }
-
-  @Override
-  boolean requiresAuthorization() {
-    return false
   }
 
   @Canonical

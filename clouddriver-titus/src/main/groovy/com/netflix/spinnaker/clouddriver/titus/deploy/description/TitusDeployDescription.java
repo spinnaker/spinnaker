@@ -30,6 +30,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   private String subnet;
   private List<String> zones = new ArrayList<>();
   private List<String> securityGroups = new ArrayList<>();
+  private List<String> securityGroupNames = new ArrayList<>();
   private List<String> targetGroups = new ArrayList<>();
   private List<String> softConstraints;
   private List<String> hardConstraints;
@@ -237,6 +238,14 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
 
   public void setSecurityGroups(List<String> securityGroups) {
     this.securityGroups = securityGroups;
+  }
+
+  public List<String> getSecurityGroupNames() {
+    return securityGroupNames;
+  }
+
+  public void setSecurityGroupNames(List<String> securityGroupNames) {
+    this.securityGroupNames = securityGroupNames;
   }
 
   public List<String> getTargetGroups() {

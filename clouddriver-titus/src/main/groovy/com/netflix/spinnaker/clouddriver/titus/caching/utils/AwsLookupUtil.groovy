@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonSecurityGroupPr
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
@@ -72,6 +73,26 @@ class AwsLookupUtil {
       it.titusAccount == account && it.region == region
     }
     awsSecurityGroupProvider.getIdByName(awsDetails.awsAccount, region, providedSecurityGroup, awsDetails.vpcId)
+  }
+
+  /**
+   * Converts security groups to security group names.  This handles the case wherein the list of
+   * security groups may include both IDs and names.
+   */
+  List<String> convertSecurityGroupsToNames(String account, String region, List<String> securityGroups) {
+    Map awsDetails = awsAccountLookup.find {
+      it.titusAccount == account && it.region == region
+    }
+
+    RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider = regionScopedProviderFactory.forRegion(accountCredentialsProvider.all.find {
+      it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
+    }, region)
+
+    SecurityGroupService securityGroupService = regionScopedProvider.getSecurityGroupService()
+
+    return securityGroupService.resolveSecurityGroupNamesByStrategy(securityGroups) { List<String> ids ->
+      securityGroupService.getSecurityGroupNamesFromIds(ids)
+    }
   }
 
   String createSecurityGroupForApplication(account, region, application) {
