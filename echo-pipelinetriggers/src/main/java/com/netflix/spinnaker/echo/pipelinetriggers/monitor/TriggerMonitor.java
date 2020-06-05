@@ -80,7 +80,7 @@ public class TriggerMonitor<T extends TriggerEvent> implements EventListener {
           .forEach(
               p -> {
                 recordMatchingPipeline(p);
-                pipelineInitiator.startPipeline(p, PipelineInitiator.TriggerSource.EVENT);
+                pipelineInitiator.startPipeline(p, PipelineInitiator.TriggerSource.EXTERNAL_EVENT);
               });
 
       matchingPipelines.stream()

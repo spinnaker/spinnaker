@@ -84,7 +84,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(30).time)
       ]
     }
-    1 * pipelineInitiator.startPipeline((Pipeline) pipelines[0].withTrigger(theTriggeringTrigger), PipelineInitiator.TriggerSource.MISSEDSCHEDULER)
+    1 * pipelineInitiator.startPipeline((Pipeline) pipelines[0].withTrigger(theTriggeringTrigger), PipelineInitiator.TriggerSource.COMPENSATION_SCHEDULER)
     0 * orcaService._
     0 * pipelineInitiator._
   }

@@ -56,7 +56,7 @@ class PipelineInitiatorSpec extends Specification {
   }
 
   @Unroll
-  def "calls orca #expectedTriggerCalls times when enabled=#enabled flag"() {
+  def "calls orca #expectedTriggerCalls times when enabled=#enabled and suppress=#suppress"() {
     given:
     def dynamicConfigService = Mock(DynamicConfigService)
     def pipelineInitiator = new PipelineInitiator(
@@ -75,9 +75,10 @@ class PipelineInitiatorSpec extends Specification {
         .build()
 
     when:
-    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
+    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
 
     then:
+    1 * dynamicConfigService.isEnabled('scheduler.suppress-triggers', false) >> { return suppress }
     _ * dynamicConfigService.isEnabled("orca", true) >> { return enabled }
     _ * fiatStatus.isEnabled() >> { return enabled }
     _ * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }
@@ -95,12 +96,13 @@ class PipelineInitiatorSpec extends Specification {
     capturedSpinnakerAccounts.orElse(null)?.split(",") as Set<String> == expectedSpinnakerAccounts?.split(",") as Set<String>
 
     where:
-    user            | enabled | legacyFallbackEnabled || expectedTriggerCalls || expectedSpinnakerUser || expectedSpinnakerAccounts
-    "anonymous"     | false   | false                 || 0                    || null                  || null                          // fiat is not enabled
-    "anonymous"     | true    | false                 || 1                    || "anonymous"           || null                          // fallback disabled (no accounts)
-    "anonymous"     | true    | true                  || 1                    || "anonymous"           || "account2,account3"           // fallback enabled (all WRITE accounts)
-    "not-anonymous" | true    | true                  || 1                    || "not-anonymous"       || "account1,account2,account3"  // fallback enabled (all WRITE accounts)
-    null            | true    | true                  || 1                    || "anonymous"           || "account2,account3"           // null trigger user should default to 'anonymous'
+    user            | enabled | suppress | legacyFallbackEnabled || expectedTriggerCalls || expectedSpinnakerUser || expectedSpinnakerAccounts
+    "anonymous"     | false   | false    | false                 || 0                    || null                  || null                          // orca not enabled
+    null            | true    | true     | false                 || 0                    || null                  || null                          // cron triggers enabled but suppressed
+    "anonymous"     | true    | false    | false                 || 1                    || "anonymous"           || null                          // fallback disabled (no accounts)
+    "anonymous"     | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // fallback enabled (all WRITE accounts)
+    "not-anonymous" | true    | false    | true                  || 1                    || "not-anonymous"       || "account1,account2,account3"  // fallback enabled (all WRITE accounts)
+    null            | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // null trigger user should default to 'anonymous'
   }
 
   def "propages auth headers to orca calls without runAs"() {
@@ -128,7 +130,7 @@ class PipelineInitiatorSpec extends Specification {
     when:
     context.setUser(user)
     context.setAccounts(account)
-    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
+    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
     context.clear()
 
     // Wait for the trigger to actually be invoked (happens on separate thread)
@@ -165,7 +167,7 @@ class PipelineInitiatorSpec extends Specification {
     def pipelineMap = pipeline as Map
 
     when:
-    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
+    pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
 
     then:
     1 * fiatStatus.isEnabled() >> { return true }

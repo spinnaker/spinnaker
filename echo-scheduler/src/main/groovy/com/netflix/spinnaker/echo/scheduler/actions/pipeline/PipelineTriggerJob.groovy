@@ -52,7 +52,7 @@ class PipelineTriggerJob implements Job {
       def eventId = pipeline.trigger.eventId ? pipeline.trigger.eventId : "not set"
 
       LOGGER.info("Executing PipelineTriggerJob for '${pipeline}', eventId='${eventId}', triggerId='${context.trigger.key.name}'")
-      pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
+      pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
     } catch (Exception e) {
       LOGGER.error("Exception occurred while executing PipelineTriggerJob for ${pipeline}", e)
       throw new JobExecutionException(e)

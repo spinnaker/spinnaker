@@ -93,15 +93,20 @@ public class PipelineInitiator {
 
   @PostConstruct
   public void initialize() {
-    if (!isEnabled()) {
+    if (!isEnabled(TriggerSource.EXTERNAL_EVENT)) {
       log.warn("Orca triggering is disabled");
     }
   }
 
   public enum TriggerSource {
-    SCHEDULER,
-    MISSEDSCHEDULER,
-    EVENT
+    /** Triggered by CRON scheduler */
+    CRON_SCHEDULER,
+
+    /** Triggered by compensation job scheduler (aka missed scheduler) */
+    COMPENSATION_SCHEDULER,
+
+    /** Triggered by external event (manual, igor, etc) */
+    EXTERNAL_EVENT
   }
 
   public void recordPipelineFailure(Pipeline pipeline) {
@@ -109,7 +114,7 @@ public class PipelineInitiator {
   }
 
   public void startPipeline(Pipeline pipeline, TriggerSource triggerSource) {
-    if (isEnabled()) {
+    if (isEnabled(triggerSource)) {
       try {
         long now = System.currentTimeMillis();
         boolean inQuietPeriod = quietPeriodIndicator.inQuietPeriod(now);
@@ -379,8 +384,23 @@ public class PipelineInitiator {
     return "N/A";
   }
 
-  private boolean isEnabled() {
-    return dynamicConfigService.isEnabled("orca", true);
+  /**
+   * Checks if the specified trigger type is enabled
+   *
+   * @param triggerSource trigger type/source
+   * @return true if enabled, false otherwise
+   */
+  private boolean isEnabled(TriggerSource triggerSource) {
+    boolean triggerEnabled = true;
+
+    if (triggerSource == TriggerSource.COMPENSATION_SCHEDULER) {
+      triggerEnabled =
+          !dynamicConfigService.isEnabled("scheduler.compensation-job.suppress-triggers", false);
+    } else if (triggerSource == TriggerSource.CRON_SCHEDULER) {
+      triggerEnabled = !dynamicConfigService.isEnabled("scheduler.suppress-triggers", false);
+    }
+
+    return triggerEnabled && dynamicConfigService.isEnabled("orca", true);
   }
 
   private static boolean isRetryableError(Throwable error) {
