@@ -59,7 +59,7 @@ class ApplicationService(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val statelessEvaluators: List<ConstraintEvaluator<*>> =
-    constraintEvaluators.filter { !it.isImplicit() && it !is StatefulConstraintEvaluator }
+    constraintEvaluators.filter { !it.isImplicit() && it !is StatefulConstraintEvaluator<*, *> }
 
   fun hasManagedResources(application: String) = repository.hasManagedResources(application)
 

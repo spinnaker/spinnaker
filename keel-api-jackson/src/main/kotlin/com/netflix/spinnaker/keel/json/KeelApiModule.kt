@@ -80,7 +80,7 @@ object KeelApiModule : SimpleModule("Keel API") {
  * can instead be added to this and not need to use the annotation.
  *
  * Sub-types need to be registered with Jackson (see how `ResourceSpec` implementations are
- * registered, for example).
+ * registered in [KeelConfigurationFinalizer] for example).
  */
 internal object KeelApiAnnotationIntrospector : NopAnnotationIntrospector() {
   private val types = setOf(

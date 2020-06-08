@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.PipelineConstraint
@@ -43,8 +44,10 @@ class PipelineConstraintEvaluator(
   repository: ConstraintRepository,
   override val eventPublisher: EventPublisher,
   private val clock: Clock
-) : StatefulConstraintEvaluator<PipelineConstraint>(repository) {
+) : StatefulConstraintEvaluator<PipelineConstraint, PipelineConstraintStateAttributes>(repository) {
   override val supportedType = SupportedConstraintType<PipelineConstraint>("pipeline")
+  override val attributeType = SupportedConstraintAttributesType<PipelineConstraintStateAttributes>("pipeline")
+
   private val log by lazy { getLogger(javaClass) }
 
   override fun canPromote(

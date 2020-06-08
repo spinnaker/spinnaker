@@ -27,12 +27,12 @@ class EnvironmentPromotionChecker(
 
   // constraints that are only run if they are defined in a delivery config
   private val statefulEvaluators: List<ConstraintEvaluator<*>> = explicitConstraints
-    .filterIsInstance<StatefulConstraintEvaluator<*>>()
+    .filterIsInstance<StatefulConstraintEvaluator<*, *>>()
   private val statelessEvaluators = explicitConstraints - statefulEvaluators
 
   // constraints that run for every environment in a delivery config but aren't shown to the user.
   private val implicitStatefulEvaluators: List<ConstraintEvaluator<*>> = implicitConstraints
-    .filterIsInstance<StatefulConstraintEvaluator<*>>()
+    .filterIsInstance<StatefulConstraintEvaluator<*, *>>()
   private val implicitStatelessEvaluators: List<ConstraintEvaluator<*>> = implicitConstraints - implicitStatefulEvaluators
 
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {

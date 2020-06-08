@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
@@ -51,14 +52,26 @@ class KeelConfigurationFinalizer(
   }
 
   @PostConstruct
+  fun resisterStatefulConstraintAttributeSubtypes() {
+    constraintEvaluators
+      .filterIsInstance<StatefulConstraintEvaluator<*, *>>()
+      .map { it.attributeType }
+      .forEach { attributeType ->
+        log.info("Registering Constraint Attributes sub-type {}: {}", attributeType.name, attributeType.type.simpleName)
+        val namedType = NamedType(attributeType.type, attributeType.name)
+        objectMappers.forEach { it.registerSubtypes(namedType) }
+      }
+  }
+
+  @PostConstruct
   fun initialStatus() {
     sequenceOf(
-        BaseImageCache::class to baseImageCache?.javaClass,
-        InstanceIdSupplier::class to instanceIdSupplier.javaClass
+      BaseImageCache::class to baseImageCache?.javaClass,
+      InstanceIdSupplier::class to instanceIdSupplier.javaClass
     )
-        .forEach { (type, implementation) ->
-          log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
-        }
+      .forEach { (type, implementation) ->
+        log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
+      }
 
     log.info("Supporting resource kinds: {}", kinds.joinToString { it.kind.toString() })
     log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })

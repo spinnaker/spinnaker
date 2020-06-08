@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.FAIL
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -66,10 +67,11 @@ class CanaryConstraintEvaluator(
   repository: ConstraintRepository,
   private val clock: Clock,
   override val eventPublisher: EventPublisher
-) : StatefulConstraintEvaluator<CanaryConstraint>(repository) {
+) : StatefulConstraintEvaluator<CanaryConstraint, CanaryConstraintAttributes>(repository) {
   override val supportedType = SupportedConstraintType<CanaryConstraint>("canary")
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val correlatedMessagePrefix = "Correlated canary tasks found"
+  override val attributeType = SupportedConstraintAttributesType<CanaryConstraintAttributes>("canary")
 
   override fun canPromote(
     artifact: DeliveryArtifact,
@@ -125,8 +127,8 @@ class CanaryConstraintEvaluator(
       constraint.regionsWithCorrelatedExecutions(judge)
     }
     val unknownExecutions = regionsWithCorrelatedExecutions.filter {
-        regionsToTrigger.contains(it.key)
-      }
+      regionsToTrigger.contains(it.key)
+    }
       .toSortedMap()
 
     if (unknownExecutions.isNotEmpty() && attributes.executions.isEmpty()) {
@@ -171,8 +173,8 @@ class CanaryConstraintEvaluator(
 
     attributes = attributes.copy(
       executions = tasks.map { (region, task) ->
-          RegionalExecutionId(region, task.id)
-        }
+        RegionalExecutionId(region, task.id)
+      }
         .toSet())
 
     repository.storeConstraintState(
@@ -262,10 +264,10 @@ class CanaryConstraintEvaluator(
   suspend fun CanaryConstraint.regionsWithCorrelatedExecutions(prefix: String): Map<String, String> =
     coroutineScope {
       regions.associateWith { region ->
-          async {
-            orcaService.getCorrelatedExecutions("$prefix:$region")
-          }
+        async {
+          orcaService.getCorrelatedExecutions("$prefix:$region")
         }
+      }
         .mapValues { it.value.await() }
         .filter { it.value.isNotEmpty() }
         .mapValues { it.value.first() }

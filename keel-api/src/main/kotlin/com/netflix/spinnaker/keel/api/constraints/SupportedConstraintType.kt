@@ -18,7 +18,7 @@ package com.netflix.spinnaker.keel.api.constraints
 import com.netflix.spinnaker.keel.api.Constraint
 
 /**
- * TODO: Docs
+ * Used to register subtypes of constraints for serialization
  */
 data class SupportedConstraintType<T : Constraint>(
   val name: String,

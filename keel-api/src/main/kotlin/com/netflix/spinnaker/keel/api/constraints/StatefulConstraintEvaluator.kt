@@ -24,9 +24,15 @@ import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 /**
  * TODO: Docs.
  */
-abstract class StatefulConstraintEvaluator<T : Constraint>(
+abstract class StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAttributes>(
   protected val repository: ConstraintRepository
 ) : ConstraintEvaluator<T> {
+
+  /**
+   * The type of the metadata saved about the constraint, surfaced here to automatically register it
+   * for serialization
+   */
+  abstract val attributeType: SupportedConstraintAttributesType<A>
 
   override fun canPromote(
     artifact: DeliveryArtifact,

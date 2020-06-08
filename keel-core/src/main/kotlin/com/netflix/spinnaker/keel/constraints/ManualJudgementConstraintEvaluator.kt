@@ -6,7 +6,9 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.DefaultConstraintAttributes
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
@@ -18,9 +20,10 @@ class ManualJudgementConstraintEvaluator(
   repository: ConstraintRepository,
   private val clock: Clock,
   override val eventPublisher: EventPublisher
-) : StatefulConstraintEvaluator<ManualJudgementConstraint>(repository) {
+) : StatefulConstraintEvaluator<ManualJudgementConstraint, DefaultConstraintAttributes>(repository) {
 
   override val supportedType = SupportedConstraintType<ManualJudgementConstraint>("manual-judgement")
+  override val attributeType = SupportedConstraintAttributesType<DefaultConstraintAttributes>("manual-judgement")
 
   override fun canPromote(
     artifact: DeliveryArtifact,

@@ -12,7 +12,9 @@ import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.constraints.ConstraintRepository
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.DefaultConstraintAttributes
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintAttributesType
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.api.support.EventPublisher
@@ -35,15 +37,15 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
   class Fixture {
     val repository: ConstraintRepository = mockk(relaxUnitFun = true)
     val eventPublisher: EventPublisher = mockk(relaxed = true)
-    val fakeStatefulConstraintEvaluatorDelegate: StatefulConstraintEvaluator<FakeConstraint> = mockk(relaxed = true)
+    val fakeStatefulConstraintEvaluatorDelegate: StatefulConstraintEvaluator<FakeConstraint, DefaultConstraintAttributes> = mockk(relaxed = true)
 
     class FakeConstraint : StatefulConstraint("fake")
 
     class FakeStatefulConstraintEvaluator(
       repository: ConstraintRepository,
       override val eventPublisher: EventPublisher,
-      val delegate: StatefulConstraintEvaluator<FakeConstraint>
-    ) : StatefulConstraintEvaluator<FakeConstraint>(repository) {
+      val delegate: StatefulConstraintEvaluator<FakeConstraint, DefaultConstraintAttributes>
+    ) : StatefulConstraintEvaluator<FakeConstraint, DefaultConstraintAttributes>(repository) {
       override fun canPromote(
         artifact: DeliveryArtifact,
         version: String,
@@ -55,6 +57,7 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
         delegate.canPromote(artifact, version, deliveryConfig, targetEnvironment, constraint, state)
 
       override val supportedType = SupportedConstraintType<FakeConstraint>("fake")
+      override val attributeType = SupportedConstraintAttributesType<DefaultConstraintAttributes>("fake")
     }
 
     val artifact = DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
