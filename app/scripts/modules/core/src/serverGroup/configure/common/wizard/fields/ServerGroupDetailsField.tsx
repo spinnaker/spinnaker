@@ -12,8 +12,8 @@ export interface DetailsFieldProps<T extends IServerGroupCommand> {
 export class ServerGroupDetailsField<T extends IServerGroupCommand> extends React.Component<DetailsFieldProps<T>> {
   private freeFormDetailsChanged = (freeFormDetails: string) => {
     const { setFieldValue, values } = this.props.formik;
-    values.freeFormDetails = freeFormDetails.toLowerCase(); // have to do it here to make sure it's done before calling values.clusterChanged
-    setFieldValue('freeFormDetails', freeFormDetails.toLowerCase());
+    values.freeFormDetails = freeFormDetails; // have to do it here to make sure it's done before calling values.clusterChanged
+    setFieldValue('freeFormDetails', freeFormDetails);
     values.clusterChanged(values);
   };
 

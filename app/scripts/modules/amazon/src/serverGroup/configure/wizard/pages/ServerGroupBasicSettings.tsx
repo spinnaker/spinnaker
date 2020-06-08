@@ -166,8 +166,8 @@ export class ServerGroupBasicSettings
 
   private stackChanged = (stack: string) => {
     const { setFieldValue, values } = this.props.formik;
-    values.stack = stack.toLowerCase(); // have to do it here to make sure it's done before calling values.clusterChanged
-    setFieldValue('stack', stack.toLowerCase());
+    values.stack = stack; // have to do it here to make sure it's done before calling values.clusterChanged
+    setFieldValue('stack', stack);
     values.clusterChanged(values);
   };
 

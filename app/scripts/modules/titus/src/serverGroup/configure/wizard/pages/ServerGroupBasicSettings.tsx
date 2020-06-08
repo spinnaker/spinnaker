@@ -146,7 +146,7 @@ export class ServerGroupBasicSettings
 
   private stackChanged = (stack: string) => {
     const { formik } = this.props;
-    formik.setFieldValue('stack', stack.toLowerCase());
+    formik.setFieldValue('stack', stack);
     formik.values.clusterChanged(formik.values);
   };
 
