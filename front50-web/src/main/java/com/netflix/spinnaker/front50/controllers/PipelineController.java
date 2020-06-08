@@ -27,11 +27,20 @@ import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
-import com.netflix.spinnaker.front50.model.pipeline.*;
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
+import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
+import com.netflix.spinnaker.front50.model.pipeline.V2TemplateConfiguration;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
 import com.netflix.spinnaker.front50.validator.PipelineValidator;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +48,12 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /** Controller for presets */
 @RestController
@@ -137,8 +151,7 @@ public class PipelineController {
     pipeline = ensureCronTriggersHaveIdentifier(pipeline);
 
     if (Strings.isNullOrEmpty(pipeline.getId())
-        || Boolean.parseBoolean(
-            (String) pipeline.getOrDefault("regenerateCronTriggerIds", "false"))) {
+        || (boolean) pipeline.getOrDefault("regenerateCronTriggerIds", false)) {
       // ensure that cron triggers are assigned a unique identifier for new pipelines
       pipeline.getTriggers().stream()
           .filter(it -> "cron".equals(it.getType()))
