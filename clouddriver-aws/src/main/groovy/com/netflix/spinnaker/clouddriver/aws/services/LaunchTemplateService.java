@@ -96,8 +96,7 @@ public class LaunchTemplateService {
                     .withName(settings.getIamRole()))
             .withMonitoring(
                 new LaunchTemplatesMonitoringRequest()
-                    .withEnabled(settings.getInstanceMonitoring()))
-            .withSecurityGroupIds(settings.getSecurityGroups());
+                    .withEnabled(settings.getInstanceMonitoring()));
 
     if (settings.getBase64UserData() != null) {
       request.setUserData(settings.getBase64UserData().trim());
@@ -135,7 +134,9 @@ public class LaunchTemplateService {
     // network interfaces
     request.withNetworkInterfaces(
         new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest()
-            .withAssociatePublicIpAddress(settings.getAssociatePublicIpAddress()));
+            .withAssociatePublicIpAddress(settings.getAssociatePublicIpAddress())
+            .withGroups(settings.getSecurityGroups())
+            .withDeviceIndex(0));
 
     return retrySupport.retry(
         () -> {
