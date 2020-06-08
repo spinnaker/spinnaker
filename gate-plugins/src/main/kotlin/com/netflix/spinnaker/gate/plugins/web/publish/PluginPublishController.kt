@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.gate.plugins.web.publish
 
 import com.google.common.hash.Hashing
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginService
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -41,11 +43,12 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/plugins/publish")
 class PluginPublishController(
   private val pluginService: PluginService,
-  private val okHttpClient: OkHttpClient,
+  okHttpClientProvider: OkHttpClientProvider,
   serviceConfiguration: ServiceConfiguration
 ) {
 
   private val front50Url = serviceConfiguration.getServiceEndpoint("front50").url
+  private val okHttpClient: OkHttpClient = okHttpClientProvider.getClient(DefaultServiceEndpoint("front50", front50Url))
 
   @SneakyThrows
   @ApiOperation(value = "Publish a plugin binary and the plugin info metadata.")

@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.gate.plugins.web.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.plugins.web.SpinnakerExtensionsConfigProperties
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -55,14 +55,14 @@ class PluginInfoControllerSpec extends Specification {
   @Autowired
   SpinnakerExtensionsConfigProperties spinnakerExtensionsConfigProperties
 
+  @Autowired
+  OkHttpClientProvider okHttpClientProvider
+
   @MockBean
   private TaskService taskService
 
   @MockBean
   private Front50Service front50Service
-
-  @MockBean
-  private OkHttpClient okHttpClient
 
   private Map requestContent = ['name': 'test plugin', provider: 'Test Co']
 
