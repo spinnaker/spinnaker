@@ -148,7 +148,7 @@ class AutoScalingWorker {
       environment: credentials.environment,
       accountType: credentials.accountType,
       region: region,
-      baseName: asgName.toLowerCase(),
+      baseName: asgName,
       suffix: null,
       ami: ami,
       iamRole: iamRole,
