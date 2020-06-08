@@ -17,35 +17,34 @@
 package com.netflix.kayenta.controllers;
 
 import com.netflix.kayenta.metrics.MetricSetPair;
-import com.netflix.kayenta.security.AccountCredentials;
-import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.storage.ObjectType;
-import com.netflix.kayenta.storage.StorageService;
-import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.kayenta.service.MetricSetPairListService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
-import java.util.*;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/metricSetPairList")
 @Slf4j
 public class MetricSetPairListController {
 
-  private final AccountCredentialsRepository accountCredentialsRepository;
-  private final StorageServiceRepository storageServiceRepository;
+  private final MetricSetPairListService metricSetPairListService;
 
   @Autowired
-  public MetricSetPairListController(
-      AccountCredentialsRepository accountCredentialsRepository,
-      StorageServiceRepository storageServiceRepository) {
-    this.accountCredentialsRepository = accountCredentialsRepository;
-    this.storageServiceRepository = storageServiceRepository;
+  public MetricSetPairListController(MetricSetPairListService metricSetPairListService) {
+    this.metricSetPairListService = metricSetPairListService;
   }
 
   @ApiOperation(value = "Retrieve a metric set pair list from object storage")
@@ -53,14 +52,7 @@ public class MetricSetPairListController {
   public List<MetricSetPair> loadMetricSetPairList(
       @RequestParam(required = false) final String accountName,
       @PathVariable final String metricSetPairListId) {
-    String resolvedAccountName =
-        accountCredentialsRepository
-            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
-            .getName();
-    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
-
-    return storageService.loadObject(
-        resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    return metricSetPairListService.loadMetricSetPairList(accountName, metricSetPairListId);
   }
 
   @ApiOperation(
@@ -72,20 +64,8 @@ public class MetricSetPairListController {
       @RequestParam(required = false) final String accountName,
       @PathVariable final String metricSetPairListId,
       @PathVariable final String metricSetPairId) {
-    String resolvedAccountName =
-        accountCredentialsRepository
-            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
-            .getName();
-    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
-
-    List<MetricSetPair> metricSetPairList =
-        storageService.loadObject(
-            resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
-    Optional<MetricSetPair> foundPair =
-        metricSetPairList.stream()
-            .filter(metricSetPair -> metricSetPair.getId().equals(metricSetPairId))
-            .findFirst();
-    return foundPair
+    return metricSetPairListService
+        .loadMetricSetPair(accountName, metricSetPairListId, metricSetPairId)
         .map(metricSetPair -> new ResponseEntity<>(metricSetPair, HttpStatus.OK))
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
@@ -96,50 +76,25 @@ public class MetricSetPairListController {
       @RequestParam(required = false) final String accountName,
       @RequestBody final List<MetricSetPair> metricSetPairList)
       throws IOException {
-    String resolvedAccountName =
-        accountCredentialsRepository
-            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
-            .getName();
-    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
-    String metricSetPairListId = UUID.randomUUID() + "";
-
-    storageService.storeObject(
-        resolvedAccountName,
-        ObjectType.METRIC_SET_PAIR_LIST,
-        metricSetPairListId,
-        metricSetPairList);
+    String metricSetPairListId =
+        metricSetPairListService.storeMetricSetPairList(accountName, metricSetPairList);
 
     return Collections.singletonMap("metricSetPairListId", metricSetPairListId);
   }
 
   @ApiOperation(value = "Delete a metric set pair list")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.DELETE)
   public void deleteMetricSetPairList(
       @RequestParam(required = false) final String accountName,
-      @PathVariable final String metricSetPairListId,
-      HttpServletResponse response) {
-    String resolvedAccountName =
-        accountCredentialsRepository
-            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
-            .getName();
-    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
-
-    storageService.deleteObject(
-        resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
-
-    response.setStatus(HttpStatus.NO_CONTENT.value());
+      @PathVariable final String metricSetPairListId) {
+    metricSetPairListService.deleteMetricSetPairList(accountName, metricSetPairListId);
   }
 
   @ApiOperation(value = "Retrieve a list of metric set pair list ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map<String, Object>> listAllMetricSetPairLists(
       @RequestParam(required = false) final String accountName) {
-    String resolvedAccountName =
-        accountCredentialsRepository
-            .getRequiredOneBy(accountName, AccountCredentials.Type.OBJECT_STORE)
-            .getName();
-    StorageService storageService = storageServiceRepository.getRequiredOne(resolvedAccountName);
-
-    return storageService.listObjectKeys(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST);
+    return metricSetPairListService.listAllMetricSetPairLists(accountName);
   }
 }

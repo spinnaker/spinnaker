@@ -30,6 +30,7 @@ import com.netflix.kayenta.metrics.MetricsRetryConfigurationProperties;
 import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
+import com.netflix.kayenta.service.MetricSetPairListService;
 import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -84,6 +85,14 @@ public class KayentaConfiguration {
   StorageServiceRepository storageServiceRepository(
       @Autowired(required = false) Optional<List<StorageService>> storageServices) {
     return new MapBackedStorageServiceRepository(storageServices.orElse(Collections.emptyList()));
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  MetricSetPairListService metricSetPairListService(
+      AccountCredentialsRepository accountCredentialsRepository,
+      StorageServiceRepository storageServiceRepository) {
+    return new MetricSetPairListService(accountCredentialsRepository, storageServiceRepository);
   }
 
   //

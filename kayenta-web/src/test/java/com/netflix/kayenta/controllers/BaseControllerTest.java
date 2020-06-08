@@ -11,6 +11,7 @@ import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
+import com.netflix.kayenta.service.MetricSetPairListService;
 import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -41,6 +42,7 @@ public abstract class BaseControllerTest {
   protected static final String CONFIGS_ACCOUNT = "configs-account";
 
   @Autowired StorageService storageService;
+  @MockBean MetricSetPairListService metricSetPairListService;
   @MockBean ExecutionRepository executionRepository;
   @MockBean ExecutionMapper executionMapper;
 
