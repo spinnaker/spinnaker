@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as ReactTooltip from 'react-tooltip';
+import ReactTooltip from 'react-tooltip';
 
 export interface ITooltipProps {
   x?: number;
