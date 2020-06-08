@@ -9,11 +9,14 @@ import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action.WRITE
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.APPLICATION
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity.SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
+import com.netflix.spinnaker.keel.validators.DeliveryConfigProcessor
 import com.netflix.spinnaker.keel.validators.DeliveryConfigValidator
+import com.netflix.spinnaker.keel.validators.applyAll
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.prepost.PreAuthorize
@@ -34,7 +37,8 @@ class DeliveryConfigController(
   private val adHocDiffer: AdHocDiffer,
   private val validator: DeliveryConfigValidator,
   private val importer: DeliveryConfigImporter,
-  private val authorizationSupport: AuthorizationSupport
+  private val authorizationSupport: AuthorizationSupport,
+  @Autowired(required = false) private val deliveryConfigProcessors: List<DeliveryConfigProcessor> = emptyList()
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -54,11 +58,13 @@ class DeliveryConfigController(
       description = "The delivery config. If its `name` matches an existing delivery config the operation is an update, otherwise a new delivery config is created."
     )
     deliveryConfig: SubmittedDeliveryConfig
-  ): DeliveryConfig {
-    validator.validate(deliveryConfig)
-    log.debug("Upserting delivery config '${deliveryConfig.name}' for app '${deliveryConfig.application}'")
-    return repository.upsertDeliveryConfig(deliveryConfig)
-  }
+  ): DeliveryConfig =
+    deliveryConfigProcessors.applyAll(deliveryConfig)
+      .let { processedDeliveryConfig ->
+        validator.validate(processedDeliveryConfig)
+        log.debug("Upserting delivery config '${processedDeliveryConfig.name}' for app '${processedDeliveryConfig.application}'")
+        repository.upsertDeliveryConfig(processedDeliveryConfig)
+      }
 
   @GetMapping(
     path = ["/{name}"],
@@ -125,7 +131,9 @@ class DeliveryConfigController(
       importer.import(repoType, projectKey, repoSlug, manifestPath, ref ?: "refs/heads/master")
 
     authorizationSupport.checkApplicationPermission(WRITE, APPLICATION, deliveryConfig.application)
-    authorizationSupport.checkServiceAccountAccess(SERVICE_ACCOUNT, deliveryConfig.serviceAccount)
+    deliveryConfig.serviceAccount?.also {
+      authorizationSupport.checkServiceAccountAccess(SERVICE_ACCOUNT, it)
+    }
 
     return upsert(deliveryConfig)
   }

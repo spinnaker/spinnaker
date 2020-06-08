@@ -105,7 +105,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   private fun SubmittedDeliveryConfig.toDeliveryConfig(): DeliveryConfig = DeliveryConfig(
     name = safeName,
     application = application,
-    serviceAccount = serviceAccount,
+    serviceAccount = serviceAccount!!,
     artifacts = artifacts,
     environments = environments.map {
       Environment(
@@ -293,7 +293,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             }
             val invalidPayload = mapper
               .readValue<Map<String, Any?>>(payload)
-              .let { it - "serviceAccount" }
+              .let { it - "application" }
               .let(mapper::writeValueAsString)
 
             val request = post("/delivery-configs")

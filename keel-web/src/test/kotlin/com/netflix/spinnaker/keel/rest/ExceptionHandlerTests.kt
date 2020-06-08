@@ -38,8 +38,8 @@ class ExceptionHandlerTests : JUnit5Minutests {
           """
             ---
             name: fnord
-            application: fnord
-            # serviceAccount: keel@netlix.com
+            # application: fnord
+            serviceAccount: keel@netlix.com
             artifacts: []
             environments:
             - name: test
@@ -58,7 +58,7 @@ class ExceptionHandlerTests : JUnit5Minutests {
             isA<ParsingErrorDetails>().and {
               get { error }.isEqualTo(ParsingError.MISSING_PROPERTY)
               get { path }.size.isEqualTo(1)
-              get { pathExpression }.isEqualTo(".serviceAccount")
+              get { pathExpression }.isEqualTo(".application")
             }
           }
         }

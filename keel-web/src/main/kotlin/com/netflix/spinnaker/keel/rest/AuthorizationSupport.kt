@@ -78,8 +78,8 @@ class AuthorizationSupport(
   /**
    * Returns true if  the caller has access to the specified service account.
    */
-  fun hasServiceAccountAccess(serviceAccount: String) =
-    passes { checkServiceAccountAccess(SERVICE_ACCOUNT, serviceAccount) }
+  fun hasServiceAccountAccess(serviceAccount: String?) =
+    serviceAccount?.let { passes { checkServiceAccountAccess(SERVICE_ACCOUNT, it) } } ?: true
 
   /**
    * Returns true if the caller has the specified permission (action) to access the cloud account associated with the
