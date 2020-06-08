@@ -17,26 +17,30 @@
 
 package com.netflix.spinnaker.front50.config.annotations;
 
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.env.Environment;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-public class AnyProviderExceptRedisCondition implements Condition {
+public class AnyProviderExceptRedisCondition extends AnyNestedCondition {
 
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    Environment env = context.getEnvironment();
-    return serviceEnabled("sql", env)
-        || serviceEnabled("s3", env)
-        || serviceEnabled("oracle", env)
-        || serviceEnabled("gcs", env)
-        || serviceEnabled("azs", env)
-        || serviceEnabled("swift", env);
+  public AnyProviderExceptRedisCondition() {
+    super(ConfigurationPhase.PARSE_CONFIGURATION);
   }
 
-  private static boolean serviceEnabled(String s, Environment env) {
-    return env.getProperty(
-        (s.equals("sql") ? "" : "spinnaker.") + s + ".enabled", Boolean.class, false);
-  }
+  @ConditionalOnProperty("sql.enabled")
+  static class SqlEnabled {}
+
+  @ConditionalOnProperty("spinnaker.s3.enabled")
+  static class S3Enabled {}
+
+  @ConditionalOnProperty("spinnaker.oracle.enabled")
+  static class OracleEnabled {}
+
+  @ConditionalOnProperty("spinnaker.gcs.enabled")
+  static class GcsEnabled {}
+
+  @ConditionalOnProperty("spinnaker.azs.enabled")
+  static class AzureEnabled {}
+
+  @ConditionalOnProperty("spinnaker.swift.enabled")
+  static class SwiftEnabled {}
 }
