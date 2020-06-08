@@ -472,7 +472,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the desired artifact version is vetoed from the target environment") {
-          verify { artifactRepository.markAsVetoedIn(any(), EnvironmentArtifactVeto("staging", "fnord", "fnord-42.0", "Spinnaker", "Automatically vetoed because multiple deployments of this version failed."), false) }
+          verify { artifactRepository.markAsVetoedIn(any(), EnvironmentArtifactVeto("staging", "fnord", "fnord-42.0", "Spinnaker", "Automatically marked as bad because multiple deployments of this version failed."), false) }
           verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
         }
       }

@@ -126,7 +126,7 @@ class ResourceActuator(
                       version = artifactVersion,
                       targetEnvironment = environment,
                       vetoedBy = "Spinnaker",
-                      comment = "Automatically vetoed because multiple deployments of this version failed."
+                      comment = "Automatically marked as bad because multiple deployments of this version failed."
                     )
                   )
                   // TODO: emit event + metric
