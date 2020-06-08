@@ -39,7 +39,7 @@ class CreateWebhookTaskSpec extends Specification {
   def pipeline = PipelineExecutionImpl.newPipeline("orca")
 
   @Subject
-  def createWebhookTask = new CreateWebhookTask()
+  def createWebhookTask = new CreateWebhookTask(null, new WebhookProperties())
 
   def "should create new webhook task with expected parameters"() {
     setup:
@@ -152,7 +152,8 @@ class CreateWebhookTaskSpec extends Specification {
     ]
   }
 
-  def "should retry on HTTP status 429"() {
+  @Unroll
+  def "should retry on HTTP status #status"() {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
       url: "https://my-service.io/api/",
@@ -167,8 +168,12 @@ class CreateWebhookTaskSpec extends Specification {
         "https://my-service.io/api/",
         [:],
         [:]
-      ) >> { throwHttpException(HttpStatus.TOO_MANY_REQUESTS, null) }
+      ) >> { throwHttpException(status, null) }
     }
+
+    WebhookProperties webhookProperties = new WebhookProperties()
+    webhookProperties.defaultRetryStatusCodes = [429,403]
+    createWebhookTask.webhookProperties = webhookProperties
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -179,11 +184,14 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
     (result.context as Map) == [
       webhook: [
-        statusCode: HttpStatus.TOO_MANY_REQUESTS,
-        statusCodeValue: HttpStatus.TOO_MANY_REQUESTS.value(),
+        statusCode: status,
+        statusCodeValue: status.value(),
         error: errorMessage
       ]
     ]
+
+    where:
+    status << [HttpStatus.TOO_MANY_REQUESTS, HttpStatus.FORBIDDEN]
   }
 
   def "should retry on name resolution failure"() {

@@ -19,7 +19,11 @@ package com.netflix.spinnaker.orca.webhook.config;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredStageParameter;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,6 +56,8 @@ public class WebhookProperties {
   private TrustSettings trust;
 
   private boolean verifyRedirects = true;
+
+  private int[] defaultRetryStatusCodes = {429};
 
   @Data
   @NoArgsConstructor
