@@ -190,7 +190,7 @@ public class DaemonTask<C, T> {
 
     TaskRepository.getTask(childTask.getUuid());
 
-    log.info(this + "Collected child task " + childTask + " with state " + childTask.getState());
+    log.info(this + " Collected child task " + childTask + " with state " + childTask.getState());
     if (childTask.getResponse() == null) {
       throw new RuntimeException("Child response may not be null.");
     }
