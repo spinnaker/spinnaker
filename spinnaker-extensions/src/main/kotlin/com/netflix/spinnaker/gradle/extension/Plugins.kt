@@ -25,6 +25,7 @@ object Plugins {
   const val RELEASE_BUNDLE_TASK_NAME = "releaseBundle"
   const val CHECKSUM_BUNDLE_TASK_NAME = "checksumBundle"
   const val COLLECT_PLUGIN_ZIPS_TASK_NAME = "collectPluginZips"
+  const val ADD_PLUGIN_DATA_TO_MANIFEST = "addPluginDataToManifest"
 
   internal fun hasDeckPlugin(project: Project): Boolean =
     project.rootProject.subprojects.any { it.plugins.hasPlugin(SpinnakerUIExtensionPlugin::class.java) }
