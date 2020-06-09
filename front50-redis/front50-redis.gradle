@@ -20,13 +20,13 @@ configurations.all {
 
 dependencies {
   implementation project(":front50-core")
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
 
   implementation("org.codehaus.groovy:groovy-all")
 
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
-  implementation "com.netflix.spinnaker.kork:kork-hystrix"
   implementation 'org.springframework.data:spring-data-redis'
   implementation 'redis.clients:jedis'
   implementation "com.github.ben-manes.caffeine:guava"

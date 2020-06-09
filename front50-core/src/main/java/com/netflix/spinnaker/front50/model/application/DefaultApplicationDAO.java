@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.Collection;
 import java.util.Map;
 import rx.Scheduler;
@@ -34,7 +35,8 @@ public class DefaultApplicationDAO extends StorageServiceSupport<Application>
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.APPLICATION,
         service,
@@ -42,7 +44,8 @@ public class DefaultApplicationDAO extends StorageServiceSupport<Application>
         objectKeyLoader,
         refreshIntervalMs,
         shouldWarmCache,
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 
   @Override

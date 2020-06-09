@@ -21,6 +21,7 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import rx.Scheduler;
@@ -33,7 +34,8 @@ public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags>
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.ENTITY_TAGS,
         service,
@@ -41,7 +43,8 @@ public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags>
         objectKeyLoader,
         refreshIntervalMs,
         shouldWarmCache,
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 
   @Override

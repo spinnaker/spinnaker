@@ -23,7 +23,6 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-aws"
   implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "com.netflix.spinnaker.kork:kork-hystrix"
   implementation "com.amazonaws:aws-java-sdk-s3"
   implementation "com.amazonaws:aws-java-sdk-sts"
 

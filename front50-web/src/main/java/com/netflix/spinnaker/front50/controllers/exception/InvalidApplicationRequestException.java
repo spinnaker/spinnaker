@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.front50.controllers.exception;
 
-import com.netflix.hystrix.exception.HystrixBadRequestException;
+import com.netflix.spinnaker.kork.exceptions.UserException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidApplicationRequestException extends HystrixBadRequestException {
+public class InvalidApplicationRequestException extends UserException {
   public InvalidApplicationRequestException(String message) {
     super(message);
   }

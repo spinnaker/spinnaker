@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.fiat.shared.FiatAccessDeniedExceptionHandler;
@@ -36,7 +35,6 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
-import java.io.Serializable;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -46,14 +44,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -146,11 +139,6 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
-  public HystrixRuntimeExceptionHandler hystrixRuntimeExceptionHandler() {
-    return new HystrixRuntimeExceptionHandler();
-  }
-
-  @Bean
   public FiatAccessDeniedExceptionHandler fiatAccessDeniedExceptionHandler() {
     return new FiatAccessDeniedExceptionHandler();
   }
@@ -166,23 +154,5 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
       Registry registry,
       FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);
-  }
-
-  @ControllerAdvice
-  public static class HystrixRuntimeExceptionHandler {
-    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
-    @ResponseBody
-    @ExceptionHandler(HystrixRuntimeException.class)
-    public Map<String, Serializable> handleHystrix(HystrixRuntimeException exception) {
-      LinkedHashMap<String, Serializable> map = new LinkedHashMap<>(7);
-      map.put("fallbackException", exception.getFallbackException().toString());
-      map.put("failureType", exception.getFailureType());
-      map.put("failureCause", exception.getCause().toString());
-      map.put("error", "Hystrix Failure");
-      map.put("message", exception.getMessage());
-      map.put("status", HttpStatus.TOO_MANY_REQUESTS.value());
-      map.put("timestamp", System.currentTimeMillis());
-      return map;
-    }
   }
 }

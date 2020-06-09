@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
@@ -146,7 +147,8 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     GcsStorageService service =
         googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
     ObjectKeyLoader keyLoader = new DefaultObjectKeyLoader(service);
@@ -158,6 +160,7 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
         keyLoader,
         storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
         storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 }

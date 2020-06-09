@@ -12,7 +12,6 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-web"
 
   implementation "io.strikt:strikt-core"
-  implementation "com.netflix.hystrix:hystrix-core"
   implementation "io.github.resilience4j:resilience4j-retry"
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"

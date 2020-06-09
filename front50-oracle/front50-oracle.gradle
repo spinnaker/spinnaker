@@ -3,7 +3,6 @@ dependencies {
 
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-hystrix"
   implementation "com.oracle.oci.sdk:oci-java-sdk-objectstorage:1.5.2"
   implementation "com.sun.jersey:jersey-client"
   implementation "org.springframework.boot:spring-boot-autoconfigure"

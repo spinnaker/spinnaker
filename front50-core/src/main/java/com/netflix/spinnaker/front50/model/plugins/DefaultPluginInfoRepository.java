@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.kork.exceptions.UserException;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
@@ -38,7 +39,8 @@ public class DefaultPluginInfoRepository extends StorageServiceSupport<PluginInf
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.PLUGIN_INFO,
         service,
@@ -46,7 +48,8 @@ public class DefaultPluginInfoRepository extends StorageServiceSupport<PluginInf
         objectKeyLoader,
         refreshIntervalMs,
         shouldWarmCache,
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 
   @Nonnull

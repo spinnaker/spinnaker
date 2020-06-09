@@ -21,6 +21,7 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.Objects;
 import rx.Scheduler;
 
@@ -33,7 +34,8 @@ public class DefaultPluginVersionPinningRepository
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.PLUGIN_VERSIONS,
         service,
@@ -41,7 +43,8 @@ public class DefaultPluginVersionPinningRepository
         objectKeyLoader,
         refreshIntervalMs,
         shouldWarmCache,
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 
   @Override

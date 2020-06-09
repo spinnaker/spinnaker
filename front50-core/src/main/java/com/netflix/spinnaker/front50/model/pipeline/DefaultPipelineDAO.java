@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,7 +36,8 @@ public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implemen
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.PIPELINE,
         service,
@@ -43,7 +45,8 @@ public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implemen
         objectKeyLoader,
         refreshIntervalMs,
         shouldWarmCache,
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 
   @Override

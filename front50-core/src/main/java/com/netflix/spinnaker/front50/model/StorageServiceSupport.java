@@ -18,19 +18,21 @@ package com.netflix.spinnaker.front50.model;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.google.common.collect.Lists;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.hystrix.SimpleJava8HystrixCommand;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.core.SupplierUtils;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -51,6 +53,8 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final long refreshIntervalMs;
   private final boolean shouldWarmCache;
   private final Registry registry;
+  private final CircuitBreakerRegistry circuitBreakerRegistry;
+
   private final Timer autoRefreshTimer; // Only spontaneous refreshes in all()
   private final Timer scheduledRefreshTimer; // Only refreshes from scheduler
   private final Counter addCounter; // Newly discovered files during refresh
@@ -68,7 +72,8 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     this.objectType = objectType;
     this.service = service;
     this.scheduler = scheduler;
@@ -80,6 +85,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     }
     this.shouldWarmCache = shouldWarmCache;
     this.registry = registry;
+    this.circuitBreakerRegistry = circuitBreakerRegistry;
 
     String typeName = objectType.name();
     this.autoRefreshTimer =
@@ -202,29 +208,23 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public T findById(String id) throws NotFoundException {
-    try {
-      return new SimpleJava8HystrixCommand<T>(
-              getClass().getSimpleName(),
-              getClass().getSimpleName() + "-findById",
-              () -> service.loadObject(objectType, buildObjectKey(id)),
-              throwable ->
-                  allItemsCache.get().stream()
-                      .filter(item -> item.getId().equalsIgnoreCase(id))
-                      .findFirst()
-                      .orElseThrow(
-                          () ->
-                              new NotFoundException(
-                                  String.format(
-                                      "No item found in cache with id of %s", id.toLowerCase()))))
-          .execute();
-    } catch (HystrixRuntimeException e) {
-      // This handles the case where the hystrix command times out.
-      if (e.getFallbackException() instanceof NotFoundException) {
-        throw (NotFoundException) e.getFallbackException();
-      } else {
-        throw e;
-      }
-    }
+    CircuitBreaker breaker =
+        circuitBreakerRegistry.circuitBreaker(getClass().getSimpleName() + "-findById");
+
+    Supplier<T> recoverableSupplier =
+        SupplierUtils.recover(
+            () -> service.loadObject(objectType, buildObjectKey(id)),
+            e ->
+                allItemsCache.get().stream()
+                    .filter(item -> item.getId().equalsIgnoreCase(id))
+                    .findFirst()
+                    .orElseThrow(
+                        () ->
+                            new NotFoundException(
+                                String.format(
+                                    "No item found in cache with id of %s", id.toLowerCase()))));
+
+    return breaker.executeSupplier(recoverableSupplier);
   }
 
   public void update(String id, T item) {

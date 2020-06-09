@@ -21,6 +21,7 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import rx.Scheduler;
 
 public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission>
@@ -31,7 +32,8 @@ public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Appli
       ObjectKeyLoader objectKeyLoader,
       long refreshIntervalMs,
       boolean shouldWarmCache,
-      Registry registry) {
+      Registry registry,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.APPLICATION_PERMISSION,
         service,
@@ -39,7 +41,8 @@ public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Appli
         objectKeyLoader,
         refreshIntervalMs,
         shouldWarmCache,
-        registry);
+        registry,
+        circuitBreakerRegistry);
   }
 
   @Override
