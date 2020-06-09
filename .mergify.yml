@@ -66,7 +66,6 @@ pull_request_rules:
       - base=master
       - status-failure=build
       - "label~=autobump-*"
-      - base=master
     actions:
       request_reviews:
         teams: ["oss-approvers"]
