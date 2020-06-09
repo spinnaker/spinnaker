@@ -37,6 +37,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -61,7 +62,7 @@ class TravisServiceSpec extends Specification {
         client = Mock()
         travisCache = Mock()
         artifactDecorator = Optional.of(new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null))
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', TravisService.TRAVIS_JOB_RESULT_LIMIT, TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', TravisService.TRAVIS_JOB_RESULT_LIMIT, TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false, CircuitBreakerRegistry.ofDefaults())
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
@@ -101,7 +102,7 @@ class TravisServiceSpec extends Specification {
     @Unroll
     def "getLatestBuilds() with #numberOfJobs jobs should query Travis #expectedNumberOfPages time(s)"() {
         given:
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', numberOfJobs, TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', numberOfJobs, TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, false, CircuitBreakerRegistry.ofDefaults())
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
         service.accessToken = accessToken
@@ -305,7 +306,7 @@ class TravisServiceSpec extends Specification {
                 ])],
             content: "log"
         ])
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, legacyLogFetching)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, TRAVIS_BUILD_RESULT_LIMIT, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY, legacyLogFetching, CircuitBreakerRegistry.ofDefaults())
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
         service.accessToken = accessToken

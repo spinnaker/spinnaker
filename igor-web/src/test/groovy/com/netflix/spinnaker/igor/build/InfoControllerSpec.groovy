@@ -30,6 +30,7 @@ import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import groovy.json.JsonSlurper
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
@@ -44,10 +45,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @SuppressWarnings(['UnnecessaryBooleanExpression', 'LineLength'])
 class InfoControllerSpec extends Specification {
-    static {
-        System.setProperty("hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds", "30000")
-    }
-
     MockMvc mockMvc
     BuildCache cache
     BuildServices buildServices
@@ -55,6 +52,9 @@ class InfoControllerSpec extends Specification {
 
     @Shared
     JenkinsService service
+
+    @Shared
+    CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.ofDefaults()
 
     @Shared
     MockWebServer server
@@ -132,7 +132,7 @@ class InfoControllerSpec extends Specification {
 
     void 'buildServices returns correctly if gcb is not defined'() {
       given:
-      JenkinsService jenkinsService1 = new JenkinsService('master2', null, false, Permissions.EMPTY)
+      JenkinsService jenkinsService1 = new JenkinsService('master2', null, false, Permissions.EMPTY, circuitBreakerRegistry)
       createMocks(['master2': jenkinsService1])
 
       when:
@@ -148,15 +148,16 @@ class InfoControllerSpec extends Specification {
 
     void 'is able to get a list of buildServices with permissions'() {
         given:
-        JenkinsService jenkinsService1 = new JenkinsService('jenkins-foo', null, false, Permissions.EMPTY)
+        JenkinsService jenkinsService1 = new JenkinsService('jenkins-foo', null, false, Permissions.EMPTY, circuitBreakerRegistry)
         JenkinsService jenkinsService2 = new JenkinsService('jenkins-bar', null, false,
             new Permissions.Builder()
                 .add(Authorization.READ, ['group-1', 'group-2'])
-                .add(Authorization.WRITE, 'group-2').build())
+                .add(Authorization.WRITE, 'group-2').build(),
+          circuitBreakerRegistry)
         TravisService travisService = new TravisService('travis-baz', null, null, 100, 10, null, null, Optional.empty(), [], null,
             new Permissions.Builder()
                 .add(Authorization.READ, ['group-3', 'group-4'])
-                .add(Authorization.WRITE, 'group-3').build(), false)
+                .add(Authorization.WRITE, 'group-3').build(), false, CircuitBreakerRegistry.ofDefaults())
 
         GoogleCloudBuildProperties.Account gcbAccount = GoogleCloudBuildProperties.Account.builder()
           .name("gcbAccount")
@@ -316,7 +317,7 @@ class InfoControllerSpec extends Specification {
             address: server.getUrl('/').toString(),
             username: 'username',
             password: 'password')
-        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false, Permissions.EMPTY)
+        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false, Permissions.EMPTY, circuitBreakerRegistry)
     }
 
     @Unroll

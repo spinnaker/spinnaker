@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor
 
-import com.netflix.config.ConfigurationManager
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -48,7 +47,6 @@ class Main extends SpringBootServletInitializer {
      */
     InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
     Security.setProperty('networkaddress.cache.ttl', '0')
-    ConfigurationManager.loadCascadedPropertiesFromResources("hystrix")
   }
 
   static void main(String... args) {

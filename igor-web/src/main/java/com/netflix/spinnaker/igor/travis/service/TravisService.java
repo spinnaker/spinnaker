@@ -20,7 +20,6 @@ package com.netflix.spinnaker.igor.travis.service;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.hystrix.SimpleJava8HystrixCommand;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration;
@@ -50,6 +49,9 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.core.SupplierUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import net.logstash.logback.argument.StructuredArguments;
@@ -86,6 +89,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   private final String buildMessageKey;
   private final Permissions permissions;
   private final boolean legacyLogFetching;
+  private final CircuitBreakerRegistry circuitBreakerRegistry;
   protected AccessToken accessToken;
 
   public TravisService(
@@ -100,7 +104,8 @@ public class TravisService implements BuildOperations, BuildProperties {
       Collection<String> artifactRegexes,
       String buildMessageKey,
       Permissions permissions,
-      boolean legacyLogFetching) {
+      boolean legacyLogFetching,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     this.numberOfJobs = numberOfJobs;
     this.buildResultLimit = buildResultLimit;
     this.groupKey = travisHostId;
@@ -114,6 +119,7 @@ public class TravisService implements BuildOperations, BuildProperties {
     this.buildMessageKey = buildMessageKey;
     this.permissions = permissions;
     this.legacyLogFetching = legacyLogFetching;
+    this.circuitBreakerRegistry = circuitBreakerRegistry;
   }
 
   @Override
@@ -128,51 +134,39 @@ public class TravisService implements BuildOperations, BuildProperties {
 
   @Override
   public List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, GenericBuild build) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("getGenericGitRevisions"),
-            () -> {
-              String repoSlug = cleanRepoSlug(inputRepoSlug);
-              if (StringUtils.isNumeric(build.getId())) {
-                V3Build v3build = getV3Build(Integer.parseInt(build.getId()));
-                if (v3build.getCommit() != null) {
-                  return Collections.singletonList(
-                      v3build
-                          .getCommit()
-                          .getGenericGitRevision()
-                          .withName(v3build.getBranch().getName())
-                          .withBranch(v3build.getBranch().getName()));
-                }
-              } else {
-                log.info(
-                    "Getting getGenericGitRevisions for build {}:{} using deprecated V2 API",
-                    inputRepoSlug,
-                    build.getNumber());
-                Builds builds = getBuilds(repoSlug, build.getNumber());
-                final List<Commit> commits = builds.getCommits();
-                if (commits != null) {
-                  return commits.stream()
-                      .filter(commit -> commit.getBranch() != null)
-                      .map(Commit::getGenericGitRevision)
-                      .collect(Collectors.toList());
-                }
-              }
-              return null;
-            })
-        .execute();
+    String repoSlug = cleanRepoSlug(inputRepoSlug);
+    if (StringUtils.isNumeric(build.getId())) {
+      V3Build v3build = getV3Build(Integer.parseInt(build.getId()));
+      if (v3build.getCommit() != null) {
+        return Collections.singletonList(
+            v3build
+                .getCommit()
+                .getGenericGitRevision()
+                .withName(v3build.getBranch().getName())
+                .withBranch(v3build.getBranch().getName()));
+      }
+    } else {
+      log.info(
+          "Getting getGenericGitRevisions for build {}:{} using deprecated V2 API",
+          inputRepoSlug,
+          build.getNumber());
+      Builds builds = getBuilds(repoSlug, build.getNumber());
+      final List<Commit> commits = builds.getCommits();
+      if (commits != null) {
+        return commits.stream()
+            .filter(commit -> commit.getBranch() != null)
+            .map(Commit::getGenericGitRevision)
+            .collect(Collectors.toList());
+      }
+    }
+    return null;
   }
 
   @Override
   public GenericBuild getGenericBuild(final String inputRepoSlug, final int buildNumber) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("getGenericBuild"),
-            () -> {
-              String repoSlug = cleanRepoSlug(inputRepoSlug);
-              Build build = getBuild(repoSlug, buildNumber);
-              return getGenericBuild(build, repoSlug);
-            })
-        .execute();
+    String repoSlug = cleanRepoSlug(inputRepoSlug);
+    Build build = getBuild(repoSlug, buildNumber);
+    return getGenericBuild(build, repoSlug);
   }
 
   @Override
@@ -212,21 +206,12 @@ public class TravisService implements BuildOperations, BuildProperties {
   }
 
   public V3Build getV3Build(int buildId) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("getV3Build"),
-            () ->
-                travisClient.v3build(
-                    getAccessToken(), buildId, addLogCompleteIfApplicable("build.commit")))
-        .execute();
+    return travisClient.v3build(
+        getAccessToken(), buildId, addLogCompleteIfApplicable("build.commit"));
   }
 
   public Builds getBuilds(String repoSlug, int buildNumber) {
-    return new SimpleJava8HystrixCommand<>(
-            groupKey,
-            buildCommandKey("getBuildList"),
-            () -> travisClient.builds(getAccessToken(), repoSlug, buildNumber))
-        .execute();
+    return travisClient.builds(getAccessToken(), repoSlug, buildNumber);
   }
 
   public Build getBuild(String repoSlug, int buildNumber) {
@@ -303,9 +288,10 @@ public class TravisService implements BuildOperations, BuildProperties {
   }
 
   private List<V3Job> getJobs(int limit, TravisBuildState... buildStatesFilter) {
-    return new SimpleJava8HystrixCommand<List<V3Job>>(
-            groupKey,
-            buildCommandKey("getJobs"),
+    CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("travis");
+
+    Supplier<List<V3Job>> supplier =
+        SupplierUtils.recover(
             () ->
                 IntStream.rangeClosed(1, calculatePagination(limit))
                     .mapToObj(
@@ -324,8 +310,9 @@ public class TravisService implements BuildOperations, BuildProperties {
             error -> {
               log.warn("An error occurred while fetching new jobs from Travis.", error);
               return Collections.emptyList();
-            })
-        .execute();
+            });
+
+    return breaker.executeSupplier(supplier);
   }
 
   public List<V3Build> getLatestBuilds() {
@@ -416,12 +403,7 @@ public class TravisService implements BuildOperations, BuildProperties {
       log.debug("Found log for jobId {} in the cache", jobId);
       return Optional.of(cachedLog);
     }
-    V3Log v3Log =
-        new SimpleJava8HystrixCommand<>(
-                groupKey,
-                buildCommandKey("getJobLog"),
-                () -> travisClient.jobLog(getAccessToken(), jobId))
-            .execute();
+    V3Log v3Log = travisClient.jobLog(getAccessToken(), jobId);
     if (v3Log != null && v3Log.isReady()) {
       log.info("Log for jobId {} was ready, caching it", jobId);
       travisCache.setJobLog(groupKey, jobId, v3Log.getContent());

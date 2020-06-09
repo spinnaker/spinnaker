@@ -9,7 +9,6 @@
 package com.netflix.spinnaker.igor.wercker
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions
-import com.netflix.spinnaker.hystrix.SimpleHystrixCommand
 import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
@@ -213,51 +212,35 @@ class WerckerService implements BuildOperations {
     }
 
     List<Application> getApplications() {
-        new SimpleHystrixCommand<List<Application>>(groupKey, buildCommandKey("getApplications"), {
-            return werckerClient.getApplications(authHeaderValue, limit)
-        }).execute()
+      return werckerClient.getApplications(authHeaderValue, limit)
     }
 
     List<Pipeline> getPipelines(String org, String app) {
-        new SimpleHystrixCommand<List<Pipeline>>(groupKey, buildCommandKey("getPipelines"), {
-            return werckerClient.getPipelinesForApplication(authHeaderValue, org, app)
-        }).execute()
+      return werckerClient.getPipelinesForApplication(authHeaderValue, org, app)
     }
 
     Run getRunById(String runId) {
-        new SimpleHystrixCommand<Run>(groupKey, buildCommandKey("getRunById"), {
-            return werckerClient.getRunById(authHeaderValue, runId)
-        }).execute()
+      return werckerClient.getRunById(authHeaderValue, runId)
     }
 
     Response abortRun(String runId, Map body) {
-        new SimpleHystrixCommand<Response>(groupKey, buildCommandKey("abortRun"), {
-            return werckerClient.abortRun(authHeaderValue, runId, body)
-        }).execute()
+      return werckerClient.abortRun(authHeaderValue, runId, body)
     }
 
     List<Run> getRunsSince(String branch, List<String> pipelineIds, int limit, long since) {
-        new SimpleHystrixCommand<List<Run>>(groupKey, buildCommandKey("getRunsSince"), {
-            return werckerClient.getRunsSince(authHeaderValue, branch, pipelineIds, limit, since)
-        }).execute()
+      return werckerClient.getRunsSince(authHeaderValue, branch, pipelineIds, limit, since)
     }
 
     List<Run> getRunsForPipeline(String pipelineId) {
-        new SimpleHystrixCommand<List<Run>>(groupKey, buildCommandKey("getRunsForPipeline"), {
-            return werckerClient.getRunsForPipeline(authHeaderValue, pipelineId)
-        }).execute()
+      return werckerClient.getRunsForPipeline(authHeaderValue, pipelineId)
     }
 
     Pipeline getPipeline(String pipelineId) {
-        new SimpleHystrixCommand<Pipeline>(groupKey, buildCommandKey("getPipeline"), {
-            return werckerClient.getPipeline(authHeaderValue, pipelineId)
-        }).execute()
+      return werckerClient.getPipeline(authHeaderValue, pipelineId)
     }
 
     Map<String, Object> triggerBuild(RunPayload runPayload) {
-        new SimpleHystrixCommand<Map<String, Object>>(groupKey, buildCommandKey("triggerBuild"), {
-            return werckerClient.triggerBuild(authHeaderValue, runPayload)
-        }).execute()
+      return werckerClient.triggerBuild(authHeaderValue, runPayload)
     }
 
     /**

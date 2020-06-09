@@ -35,6 +35,7 @@ import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -86,7 +87,8 @@ class JenkinsConfig {
                                                @Valid JenkinsProperties jenkinsProperties,
                                                JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider,
                                                JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider,
-                                               Registry registry) {
+                                               Registry registry,
+                                               CircuitBreakerRegistry circuitBreakerRegistry) {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
@@ -100,7 +102,8 @@ class JenkinsConfig {
                     igorConfigurationProperties.client.timeout
                 ),
                 host.csrf,
-                host.permissions.build()
+                host.permissions.build(),
+                circuitBreakerRegistry
             )]
         }
 
@@ -108,8 +111,14 @@ class JenkinsConfig {
         jenkinsMasters
     }
 
-    static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient, Boolean csrf, Permissions permissions) {
-        return new JenkinsService(jenkinsHostId, jenkinsClient, csrf, permissions)
+    static JenkinsService jenkinsService(
+      String jenkinsHostId,
+      JenkinsClient jenkinsClient,
+      Boolean csrf,
+      Permissions permissions,
+      CircuitBreakerRegistry circuitBreakerRegistry
+    ) {
+        return new JenkinsService(jenkinsHostId, jenkinsClient, csrf, permissions, circuitBreakerRegistry)
     }
 
     static ObjectMapper getObjectMapper() {

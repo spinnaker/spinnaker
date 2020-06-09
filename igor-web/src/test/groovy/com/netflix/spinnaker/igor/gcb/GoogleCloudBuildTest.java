@@ -37,7 +37,6 @@ import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
 import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
-import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorPublisher;
 import com.netflix.spinnaker.igor.RedisConfig;
 import com.netflix.spinnaker.igor.config.LockManagerConfig;
 import java.util.ArrayList;
@@ -54,7 +53,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -85,8 +83,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
     })
 public class GoogleCloudBuildTest {
   @Autowired private MockMvc mockMvc;
-
-  @MockBean HystrixSpectatorPublisher hystrixSpectatorPublisher;
 
   @Autowired
   @Qualifier("stubCloudBuildService")

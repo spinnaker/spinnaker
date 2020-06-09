@@ -27,6 +27,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
@@ -62,7 +63,8 @@ public class TravisConfig {
       IgorConfigurationProperties igorConfigurationProperties,
       @Valid TravisProperties travisProperties,
       ObjectMapper objectMapper,
-      Optional<ArtifactDecorator> artifactDecorator) {
+      Optional<ArtifactDecorator> artifactDecorator,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     log.info("creating travisMasters");
 
     Map<String, TravisService> travisMasters =
@@ -104,7 +106,8 @@ public class TravisConfig {
                           travisProperties.getRegexes(),
                           travisProperties.getBuildMessageKey(),
                           host.getPermissions().build(),
-                          useLegacyLogFetching);
+                          useLegacyLogFetching,
+                          circuitBreakerRegistry);
                     })
                 .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
 

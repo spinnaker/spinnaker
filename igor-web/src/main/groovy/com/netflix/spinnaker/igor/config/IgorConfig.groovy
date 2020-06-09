@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.config
 
-import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -38,15 +37,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.core.Ordered
-import org.springframework.http.HttpStatus
 import org.springframework.security.web.firewall.StrictHttpFirewall
-import org.springframework.web.bind.annotation.ControllerAdvice
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
-import retrofit.RetrofitError
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -105,12 +98,10 @@ class IgorConfig extends WebMvcConfigurerAdapter {
         Executors.newCachedThreadPool()
     }
 
-    @Bean
-    HystrixRuntimeExceptionHandler hystrixRuntimeExceptionHandler() {
-        return new HystrixRuntimeExceptionHandler()
-    }
-
-    @Bean
+  /**
+   * TODO: Replace with R4J
+   */
+  @Bean
     RetrySupport retrySupport() {
         return new RetrySupport()
     }
@@ -124,28 +115,5 @@ class IgorConfig extends WebMvcConfigurerAdapter {
     @Bean
     JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory(JinjavaFactory jinjavaFactory) {
         return new JinjaArtifactExtractor.Factory(jinjavaFactory);
-    }
-
-    @ControllerAdvice
-    static class HystrixRuntimeExceptionHandler {
-        @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
-        @ResponseBody
-        @ExceptionHandler(HystrixRuntimeException)
-        public Map handleHystrix(HystrixRuntimeException exception) {
-            def failureCause = exception.cause
-            if (failureCause instanceof RetrofitError) {
-                failureCause = failureCause.cause ?: failureCause
-            }
-
-            return [
-                fallbackException: exception.fallbackException.toString(),
-                failureType: exception.failureType,
-                failureCause: failureCause.toString(),
-                error: "Hystrix Failure",
-                message: exception.message,
-                status: HttpStatus.TOO_MANY_REQUESTS.value(),
-                timestamp: System.currentTimeMillis()
-            ]
-        }
     }
 }
