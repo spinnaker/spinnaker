@@ -29,7 +29,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "commons-codec:commons-codec"
-  implementation "javax.mail:mail:1.4.1"
+  implementation "javax.mail:javax.mail-api:1.6.2"
   implementation "org.springframework.boot:spring-boot-starter-mail"
   implementation "org.springframework.boot:spring-boot-starter-freemarker"
   implementation "org.jsoup:jsoup:1.8.3"
