@@ -197,4 +197,47 @@ class TargetHealthCachingAgentSpec extends Specification {
     EcsTargetHealth targetHealthDescription = targetHealthList.get(0)
     targetHealthDescription.getTargetGroupArn() == targetGroupArn
   }
+
+  def 'should handle null targetGroupArn in cache data'() {
+    given:
+    def targetGroupAttributes = [
+      loadBalancerNames: ['loadBalancerName'],
+      targetGroupArn: null,
+      targetGroupName: null,
+      vpcId: 'vpc-id',
+    ]
+    def targetGroupKey =
+      Keys.getTargetGroupKey('test-tg', CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, 'ip', 'vpc-id')
+    def loadbalancerKey =
+      Keys.getLoadBalancerKey('loadBalancerName', CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, 'vpc-id', 'ip')
+    def relations = [loadBalancers: [loadbalancerKey]]
+    def targetGroupCacheData =
+      new DefaultCacheData(targetGroupKey, targetGroupAttributes, relations)
+
+
+    def badAwsProviderCache = Mock(ProviderCache)
+    badAwsProviderCache.filterIdentifiers(_, _) >> []
+    badAwsProviderCache.getAll(TARGET_GROUPS.getNs(), _, _) >> [targetGroupCacheData]
+
+    when:
+    agent.setAwsCache(badAwsProviderCache)
+    def targetHealthList = agent.getItems(ecs, Mock(ProviderCache))
+
+    then:
+    targetHealthList.size() == 0
+  }
+
+  def 'should return empty set when no target group cache data available'() {
+    given:
+    def emptyAwsProviderCache = Mock(ProviderCache)
+    emptyAwsProviderCache.filterIdentifiers(_, _) >> []
+    emptyAwsProviderCache.getAll(TARGET_GROUPS.getNs(), _, _) >> []
+
+    when:
+    agent.setAwsCache(emptyAwsProviderCache)
+    def targetHealthList = agent.getItems(ecs, Mock(ProviderCache))
+
+    then:
+    targetHealthList.size() == 0
+  }
 }

@@ -122,7 +122,10 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
     // TODO: refine search key instead of filtering these cache results
     List<EcsTargetGroup> tgList =
         cacheClient.find(targetGroupKeys).stream()
-            .filter(t -> t.getTargetGroupArn().contains(account.getAccountId()))
+            .filter(
+                t ->
+                    t.getTargetGroupArn() != null
+                        && t.getTargetGroupArn().contains(account.getAccountId()))
             .collect(Collectors.toList());
 
     return tgList.stream().map(EcsTargetGroup::getTargetGroupArn).collect(Collectors.toSet());
