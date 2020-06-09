@@ -52,7 +52,7 @@ import static retrofit.Endpoints.newFixedEndpoint
   "com.netflix.spinnaker.orca.kato.tasks"
 ])
 @CompileStatic
-@EnableConfigurationProperties(CloudDriverConfigurationProperties)
+@EnableConfigurationProperties([CloudDriverConfigurationProperties, PollerConfigurationProperties])
 @Slf4j
 class CloudDriverConfiguration {
 

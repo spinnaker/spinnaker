@@ -25,13 +25,16 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.config.PollerConfigurationProperties;
+import com.netflix.spinnaker.orca.front50.Front50Service;
+import com.netflix.spinnaker.orca.front50.model.Application;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.netflix.spinnaker.security.User;
 import groovy.util.logging.Slf4j;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -42,7 +45,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 @Slf4j
 @Component
@@ -54,6 +59,8 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final OortService oortService;
   private final RetrySupport retrySupport;
   private final ExecutionLauncher executionLauncher;
+  private final Front50Service front50Service;
+  private final PollerConfigurationProperties pollerConfigurationProperties;
 
   private final PollerSupport pollerSupport;
 
@@ -67,13 +74,17 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
       OortService oortService,
       RetrySupport retrySupport,
       Registry registry,
-      ExecutionLauncher executionLauncher) {
+      ExecutionLauncher executionLauncher,
+      Front50Service front50Service,
+      PollerConfigurationProperties pollerConfigurationProperties) {
     super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
     this.oortService = oortService;
     this.retrySupport = retrySupport;
     this.executionLauncher = executionLauncher;
+    this.front50Service = front50Service;
+    this.pollerConfigurationProperties = pollerConfigurationProperties;
 
     this.pollerSupport = new PollerSupport(objectMapper, retrySupport, oortService);
 
@@ -128,16 +139,29 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
         Map<String, Object> cleanupOperation = buildCleanupOperation(ephemeralServerGroupTag, jobs);
         log.info((String) cleanupOperation.get("name"));
 
-        User systemUser = new User();
-        systemUser.setUsername("spinnaker");
-        systemUser.setAllowedAccounts(Collections.singletonList(ephemeralServerGroupTag.account));
+        String taskUser =
+            Optional.ofNullable(
+                    pollerConfigurationProperties.getEphemeralServerGroupsPoller().getUsername())
+                .orElseGet(
+                    () ->
+                        getApplication(ephemeralServerGroupTag.application)
+                            .map(it -> it.email)
+                            .orElseGet(
+                                () -> {
+                                  log.warn(
+                                      "Failed to find application owner for server group '{}', "
+                                          + "will use static 'spinnaker' user as fallback.",
+                                      ephemeralServerGroupTag.serverGroup);
+                                  return "spinnaker";
+                                }));
 
-        AuthenticatedRequest.propagate(
+        AuthenticatedRequest.runAs(
+                taskUser,
+                Collections.singletonList(ephemeralServerGroupTag.account),
                 () ->
                     executionLauncher.start(
                         ExecutionType.ORCHESTRATION,
-                        objectMapper.writeValueAsString(cleanupOperation)),
-                systemUser)
+                        objectMapper.writeValueAsString(cleanupOperation)))
             .call();
 
         triggeredCounter.increment();
@@ -231,6 +255,17 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
     operation.put("cloudProvider", ephemeralServerGroupTag.cloudProvider);
 
     return operation;
+  }
+
+  private Optional<Application> getApplication(String applicationName) {
+    try {
+      return Optional.of(front50Service.get(applicationName));
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+        return Optional.empty();
+      }
+      throw new SystemException(format("Failed to retrieve application '%s'", applicationName), e);
+    }
   }
 
   private static class EphemeralServerGroupTag {
