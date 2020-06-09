@@ -23,27 +23,36 @@ import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecuti
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@AllArgsConstructor
-public enum ObjectType {
-  CANARY_CONFIG(new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json"),
-  CANARY_RESULT_ARCHIVE(
-      new TypeReference<CanaryExecutionStatusResponse>() {},
-      "canary_archive",
-      "canary_archive.json"),
-  METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json"),
-  METRIC_SET_PAIR_LIST(
-      new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
-  STANDALONE_CANARY_RESULT_ARCHIVE(
-      new TypeReference<CanaryAnalysisExecutionStatusResponse>() {},
-      "standalone_canary_archive",
-      "standalone_canary_archive.json");
+public interface ObjectType {
 
-  @Getter final TypeReference<?> typeReference;
+  ObjectType CANARY_CONFIG =
+      new StandardObjectType(
+          new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json");
 
-  @Getter final String group;
+  ObjectType CANARY_RESULT_ARCHIVE =
+      new StandardObjectType(
+          new TypeReference<CanaryExecutionStatusResponse>() {},
+          "canary_archive",
+          "canary_archive.json");
 
-  @Getter final String defaultFilename;
+  ObjectType METRIC_SET_LIST =
+      new StandardObjectType(
+          new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json");
+
+  ObjectType METRIC_SET_PAIR_LIST =
+      new StandardObjectType(
+          new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json");
+
+  ObjectType STANDALONE_CANARY_RESULT_ARCHIVE =
+      new StandardObjectType(
+          new TypeReference<CanaryAnalysisExecutionStatusResponse>() {},
+          "standalone_canary_archive",
+          "standalone_canary_archive.json");
+
+  TypeReference<?> getTypeReference();
+
+  String getGroup();
+
+  String getDefaultFilename();
 }
