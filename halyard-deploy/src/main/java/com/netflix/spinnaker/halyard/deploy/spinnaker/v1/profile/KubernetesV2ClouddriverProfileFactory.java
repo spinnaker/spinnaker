@@ -27,10 +27,9 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -43,6 +42,17 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
   private final ObjectMapper objectMapper;
   private final Yaml yamlParser;
   private final FileService fileService;
+
+  // Constants used for parsing Kubeconfig file.
+  private static final String CURRENT_CONTEXT = "current-context";
+  private static final String CONTEXTS = "contexts";
+  private static final String CONTEXT = "context";
+  private static final String USERS = "users";
+  private static final String USER = "user";
+  private static final String NAME = "name";
+  private static final String AUTH_PROVIDER = "auth-provider";
+  private static final String CONFIG = "config";
+  private static final String GCP = "gcp";
 
   public KubernetesV2ClouddriverProfileFactory(
       ObjectMapper objectMapper, Yaml yamlParser, FileService fileService) {
@@ -64,89 +74,50 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
     }
 
     // If kubeconfigFile is remote, clouddriver will download it at runtime instead of using a
-    // halyard-generated version
+    // halyard-generated version.
     String kubeconfigFile = account.getKubeconfigFile();
     if (StringUtils.isEmpty(kubeconfigFile) || fileService.isRemoteFile(kubeconfigFile)) {
       return;
     }
 
-    String kubeconfigContents = getKubconfigFileContents(kubeconfigFile);
-    String context = account.getContext();
+    String kubeconfigContents = getKubeconfigFileContents(kubeconfigFile);
 
     Object obj = yamlParser.load(kubeconfigContents);
     Map<String, Object> parsedKubeconfig =
         objectMapper.convertValue(obj, new TypeReference<Map<String, Object>>() {});
-
-    if (StringUtils.isEmpty(context)) {
-      context = (String) parsedKubeconfig.get("current-context");
-    }
-
-    if (StringUtils.isEmpty(context)) {
+    if (parsedKubeconfig == null) {
       throw new HalException(
-          Problem.Severity.FATAL,
-          "No context specified in kubernetes account "
-              + account.getName()
-              + " and no 'current-context' in "
-              + kubeconfigFile);
+          Problem.Severity.FATAL, "Empty kubeconfig file located at: " + kubeconfigFile);
     }
 
-    final String finalContext = context;
+    final String context = getContext(account, kubeconfigFile, parsedKubeconfig);
 
-    String user =
-        (String)
-            ((List<Map<String, Object>>)
-                    parsedKubeconfig.getOrDefault("contexts", new ArrayList<>()))
-                .stream()
-                    .filter(c -> c.getOrDefault("name", "").equals(finalContext))
-                    .findFirst()
-                    .map(
-                        m ->
-                            ((Map<String, Object>) m.getOrDefault("context", new HashMap<>()))
-                                .get("user"))
-                    .orElse("");
-
-    if (StringUtils.isEmpty(user)) {
+    Optional<String> user = getKubeconfigUser(parsedKubeconfig, context);
+    if (!user.isPresent()) {
       return;
     }
 
-    Map<String, Object> userProperties =
-        (Map<String, Object>)
-            ((List<Map<String, Object>>) parsedKubeconfig.getOrDefault("users", new ArrayList<>()))
-                .stream()
-                    .filter(c -> c.getOrDefault("name", "").equals(user))
-                    .findFirst()
-                    .map(u -> u.get("user"))
-                    .orElse(null);
+    Map<String, Object> userProperties = getKubeconfigUserProperties(parsedKubeconfig, user.get());
 
-    if (userProperties == null) {
-      throw new HalException(
-          Problem.Severity.FATAL, "No user named '" + user + "' exists in your kubeconfig file.");
-    }
-
-    Map<String, Object> authProvider = (Map<String, Object>) userProperties.get("auth-provider");
-
-    if (authProvider == null || !authProvider.getOrDefault("name", "").equals("gcp")) {
+    Optional<Map<String, String>> authProviderConfig =
+        getKubeconfigGcpAuthProviderConfig(userProperties);
+    if (!authProviderConfig.isPresent()) {
       return;
     }
 
-    Map<String, String> authProviderConfig = (Map<String, String>) authProvider.get("config");
-
-    if (authProviderConfig == null) {
-      return;
-    }
-
-    authProviderConfig.put("cmd-path", "gcloud");
+    authProviderConfig.get().put("cmd-path", "gcloud");
 
     try {
       yamlParser.dump(parsedKubeconfig, new FileWriter(kubeconfigFile));
     } catch (IOException e) {
       throw new HalException(
           Problem.Severity.FATAL,
-          "Unable to write the kubeconfig file to the staging area. This may be a user permissions issue.");
+          "Unable to write the kubeconfig file to the staging area. This may be a user permissions "
+              + "issue.");
     }
   }
 
-  private String getKubconfigFileContents(String kubeconfigFile) {
+  private String getKubeconfigFileContents(String kubeconfigFile) {
     try {
       return fileService.getFileContents(kubeconfigFile);
     } catch (IOException e) {
@@ -157,5 +128,68 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
               + e.getMessage(),
           e);
     }
+  }
+
+  private static String getContext(
+      KubernetesAccount account, String kubeconfigFile, Map<String, Object> parsedKubeconfig) {
+    if (StringUtils.isNotEmpty(account.getContext())) {
+      return account.getContext();
+    }
+
+    if (StringUtils.isNotEmpty((String) parsedKubeconfig.get(CURRENT_CONTEXT))) {
+      return (String) parsedKubeconfig.get(CURRENT_CONTEXT);
+    } else {
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "No context specified in kubernetes account "
+              + account.getName()
+              + " and no 'current-context' in "
+              + kubeconfigFile);
+    }
+  }
+
+  private static Optional<String> getKubeconfigUser(
+      Map<String, Object> parsedKubeconfig, String contextName) {
+    if (!parsedKubeconfig.containsKey(CONTEXTS)) {
+      return Optional.empty();
+    }
+    List<Map<String, Object>> contexts = (List<Map<String, Object>>) parsedKubeconfig.get(CONTEXTS);
+
+    Optional<Map<String, Object>> context =
+        contexts.stream()
+            .filter(c -> c.get(NAME).equals(contextName))
+            .findFirst()
+            .map(m -> (Map<String, Object>) m.get(CONTEXT));
+
+    return context.isPresent()
+        ? Optional.ofNullable((String) context.get().get(USER))
+        : Optional.empty();
+  }
+
+  private static Map<String, Object> getKubeconfigUserProperties(
+      Map<String, Object> parsedKubeconfig, String user) {
+    if (parsedKubeconfig.containsKey(USERS)) {
+      List<Map<String, Object>> users = (List<Map<String, Object>>) parsedKubeconfig.get(USERS);
+
+      Optional<Object> userProperties =
+          users.stream().filter(c -> c.get(NAME).equals(user)).findFirst().map(u -> u.get(USER));
+      if (userProperties.isPresent()) {
+        return (Map<String, Object>) userProperties.get();
+      }
+    }
+    throw new HalException(
+        Problem.Severity.FATAL, "No user named '" + user + "' exists in your kubeconfig file.");
+  }
+
+  private static Optional<Map<String, String>> getKubeconfigGcpAuthProviderConfig(
+      Map<String, Object> userProperties) {
+    if (!userProperties.containsKey(AUTH_PROVIDER)) {
+      return Optional.empty();
+    }
+    Map<String, Object> authProvider = (Map<String, Object>) userProperties.get(AUTH_PROVIDER);
+
+    return GCP.equals(authProvider.get(NAME))
+        ? Optional.ofNullable((Map<String, String>) authProvider.get(CONFIG))
+        : Optional.empty();
   }
 }
