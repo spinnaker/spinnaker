@@ -25,19 +25,10 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class TitusServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
-
-  /**
-   * Prefer composition over inheritance FTW!
-   */
-  @Delegate(excludes = ['getCloudProvider'])
-  @Autowired
-  AmazonServerGroupCreator delegate
-
-  final String cloudProvider = "titus"
-
+class TitusServerGroupCreator extends AmazonServerGroupCreator {
+  @Override
   String getCloudProvider() {
-    return cloudProvider
+    return "titus"
   }
 
   Optional<String> getHealthProviderName() {

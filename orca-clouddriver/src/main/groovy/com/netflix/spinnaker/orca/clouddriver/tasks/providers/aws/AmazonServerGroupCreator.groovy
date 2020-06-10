@@ -45,7 +45,11 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
   List<String> defaultSecurityGroups = DEFAULT_SECURITY_GROUPS
 
   boolean katoResultExpected = true
-  String cloudProvider = "aws"
+
+  @Override
+  String getCloudProvider() {
+    return "aws"
+  }
 
   @Override
   List<Map> getOperations(StageExecution stage) {
