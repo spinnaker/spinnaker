@@ -198,6 +198,27 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         )
       }
 
+      context("updating an existing delivery config") {
+        deriveFixture {
+          storeArtifacts()
+          storeResources()
+          store()
+
+          copy(deliveryConfig = deliveryConfig.copy(serviceAccount = "new-service-account@spinnaker.io"))
+        }
+
+        before {
+          store()
+        }
+
+        test("the service account can be updated") {
+          getByName()
+            .isSuccess()
+            .get { serviceAccount }
+            .isEqualTo(deliveryConfig.serviceAccount)
+        }
+      }
+
       context("the environments did not previously exist") {
         before {
           storeArtifacts()

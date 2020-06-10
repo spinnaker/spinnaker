@@ -280,6 +280,7 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .set(DELIVERY_CONFIG.METADATA, mapper.writeValueAsString(metadata))
         .onDuplicateKeyUpdate()
+        .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .set(DELIVERY_CONFIG.METADATA, mapper.writeValueAsString(metadata))
         .execute()
       artifacts.forEach { artifact ->

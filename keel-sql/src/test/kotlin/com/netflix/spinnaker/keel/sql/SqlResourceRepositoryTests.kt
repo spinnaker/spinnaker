@@ -8,6 +8,8 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import dev.minutest.experimental.SKIP
+import dev.minutest.experimental.minus
 import dev.minutest.rootContext
 import io.mockk.confirmVerified
 import java.time.Clock
@@ -36,7 +38,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
     cleanupDb(jooq)
   }
 
-  fun moreTests() = rootContext<Fixture<SqlResourceRepository>> {
+  fun moreTests() = SKIP - rootContext<Fixture<SqlResourceRepository>> {
     fixture {
       Fixture(subject = factory(clock))
     }
