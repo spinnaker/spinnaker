@@ -64,8 +64,8 @@ public class EcsAccountMapper {
     }
   }
 
-  public NetflixECSCredentials fromAwsAccountNameToEcs(String awsAccoutName) {
-    return ecsCredentialsMap.get(awsAccoutName);
+  public NetflixECSCredentials fromAwsAccountNameToEcs(String awsAccountName) {
+    return ecsCredentialsMap.get(awsAccountName);
   }
 
   public NetflixAmazonCredentials fromEcsAccountNameToAws(String ecsAccountName) {
