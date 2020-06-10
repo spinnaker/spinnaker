@@ -45,6 +45,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.io.InputStream;
 import java.time.Duration;
@@ -83,7 +84,20 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     this.jenkinsClient = jenkinsClient;
     this.csrf = csrf;
     this.permissions = permissions;
-    this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("jenkins-" + jenkinsHostId);
+    this.circuitBreaker =
+        circuitBreakerRegistry.circuitBreaker(
+            "jenkins-" + jenkinsHostId,
+            CircuitBreakerConfig.custom()
+                .ignoreException(
+                    (e) -> {
+                      if (e instanceof RetrofitError) {
+                        RetrofitError re = (RetrofitError) e;
+                        return re.getKind() == RetrofitError.Kind.HTTP
+                            && re.getResponse().getStatus() == 404;
+                      }
+                      return false;
+                    })
+                .build());
   }
 
   @Override
