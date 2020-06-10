@@ -59,13 +59,14 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
       Strings.emptyToNull(decoratedArtifact.name) == expectedName
       Strings.emptyToNull(decoratedArtifact.version) == expectedVersion
       decoratedArtifact.reference == expectedReference
-      decoratedArtifact.metadata == expectedMetadata
+      decoratedArtifact.getMetadata("build_info_url") == expected_build_url
+      decoratedArtifact.getMetadata("build_number") == expected_build_number
 
     where:
-      bakeRequest       | bakeRecipe       | expectedName          | expectedVersion      | expectedReference | expectedMetadata
-      null              | null             | null                  | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
+      bakeRequest       | bakeRecipe       | expectedName          | expectedVersion      | expectedReference | expected_build_url  | expected_build_number
+      null              | null             | null                  | null                 | SOME_AMI_ID       | null                | null
+      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | null                | null
+      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | SOME_BUILD_INFO_URL | SOME_BUILD_NR
 
   }
 

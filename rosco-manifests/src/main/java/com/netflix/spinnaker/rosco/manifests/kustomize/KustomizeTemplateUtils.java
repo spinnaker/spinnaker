@@ -186,24 +186,9 @@ public class KustomizeTemplateUtils {
   private List<Artifact> getArtifacts(Artifact artifact) {
     try {
       Set<String> files = getFilesFromArtifact(artifact);
-      List<Artifact> artifacts =
-          files.stream()
-              .map(
-                  f -> {
-                    return Artifact.builder()
-                        .reference(f)
-                        .artifactAccount(artifact.getArtifactAccount())
-                        .customKind(artifact.isCustomKind())
-                        .location(artifact.getLocation())
-                        .metadata(artifact.getMetadata())
-                        .name(artifact.getName())
-                        .provenance(artifact.getProvenance())
-                        .type(artifact.getType())
-                        .version(artifact.getVersion())
-                        .build();
-                  })
-              .collect(Collectors.toList());
-      return artifacts;
+      return files.stream()
+          .map(f -> artifact.toBuilder().reference(f).build())
+          .collect(Collectors.toList());
     } catch (IOException e) {
       throw new IllegalStateException("Error setting references in artifacts " + e.getMessage(), e);
     }
@@ -259,8 +244,12 @@ public class KustomizeTemplateUtils {
       // look like a folder then we know it should be downloaded later.
       if (isFolder(evaluate)) {
         Path tmpBase = Paths.get(FilenameUtils.normalize(base.resolve(evaluate).toString()));
-        artifact.setName(tmpBase.toString());
-        filesToDownload.addAll(getFilesFromArtifact(artifact, referenceBaseURL, tmpBase, filename));
+        filesToDownload.addAll(
+            getFilesFromArtifact(
+                artifact.toBuilder().name(tmpBase.toString()).build(),
+                referenceBaseURL,
+                tmpBase,
+                filename));
       } else {
         filesToDownload.add(referenceBase.concat(File.separator).concat(evaluate));
       }
