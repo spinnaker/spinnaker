@@ -23,11 +23,15 @@ export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
 }
 
 export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
-  return API.one('v2/canaryConfig').withParams({ application }).get();
+  return API.one('v2/canaryConfig')
+    .withParams({ application })
+    .get();
 }
 
 export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
-  return API.one('v2/canaryConfig').one(config.id).put(config);
+  return API.one('v2/canaryConfig')
+    .one(config.id)
+    .put(config);
 }
 
 export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
@@ -35,17 +39,21 @@ export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfig
 }
 
 export function deleteCanaryConfig(id: string): Promise<void> {
-  return API.one('v2/canaryConfig').one(id).remove();
+  return API.one('v2/canaryConfig')
+    .one(id)
+    .remove();
 }
 
 export function listJudges(): Promise<IJudge[]> {
   return API.one('v2/canaries/judges')
     .get()
-    .then((judges: IJudge[]) => judges.filter((judge) => judge.visible));
+    .then((judges: IJudge[]) => judges.filter(judge => judge.visible));
 }
 
 export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
-  return API.one('v2/canaries/credentials').useCache().get();
+  return API.one('v2/canaries/credentials')
+    .useCache()
+    .get();
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config
@@ -57,7 +65,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
     return {
       ...selectedConfig.config,
       judge: selectedConfig.judge.judgeConfig,
-      metrics: selectedConfig.metricList.map((metric) => omit(metric, 'id')),
+      metrics: selectedConfig.metricList.map(metric => omit(metric, 'id')),
       classifier: {
         ...selectedConfig.config.classifier,
         groupWeights: selectedConfig.group.groupWeights,
@@ -71,7 +79,7 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
 export function buildNewConfig(state: ICanaryState): ICanaryConfig {
   let configName = 'new-config';
   let i = 1;
-  while ((state.data.configSummaries || []).some((summary) => summary.name === configName)) {
+  while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `new-config-${i}`;
     i++;
   }
@@ -88,7 +96,7 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
       groupWeights: {} as { [key: string]: number },
     },
     judge: {
-      name: CanarySettings.defaultJudge,
+      name: CanarySettings.defaultJudge || 'NetflixACAJudge-v1.0',
       judgeConfigurations: {},
     },
   };
@@ -106,7 +114,7 @@ export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
   // Probably a rare case, but someone could be lazy about naming their configs.
   let configName = `${config.name}-copy`;
   let i = 1;
-  while ((state.data.configSummaries || []).some((summary) => summary.name === configName)) {
+  while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `${config.name}-copy-${i}`;
     i++;
   }

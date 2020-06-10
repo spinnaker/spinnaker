@@ -11,7 +11,7 @@ import 'kayenta/report/detail/graph/semiotic';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach((key) => {
+templates.keys().forEach(key => {
   templates(key);
 });
 
@@ -20,6 +20,8 @@ const modules = [CANARY_COMPONENTS, CANARY_DATA_SOURCE, CANARY_STATES];
 export const KAYENTA_MODULE = 'spinnaker.kayenta';
 if (CanarySettings.featureDisabled) {
   module(KAYENTA_MODULE, []);
+} else if (CanarySettings.stagesEnabled === false) {
+  module(KAYENTA_MODULE, modules);
 } else {
-  module(KAYENTA_MODULE, CanarySettings.stagesEnabled ? [CANARY_STAGES, ...modules] : modules);
+  module(KAYENTA_MODULE, [CANARY_STAGES, ...modules]);
 }
