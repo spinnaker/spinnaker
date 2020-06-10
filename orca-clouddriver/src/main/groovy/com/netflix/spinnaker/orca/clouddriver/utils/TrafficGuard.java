@@ -163,6 +163,16 @@ public class TrafficGuard {
       Location location,
       String cloudProvider,
       String operationDescriptor) {
+
+    if (!hasDisableLock(serverGroupMoniker, account, location)) {
+      log.debug(
+          "No traffic guard configured for '{}' in {}/{}",
+          serverGroupName,
+          account,
+          location.getValue());
+      return;
+    }
+
     Optional<Map> cluster =
         oortHelper.getCluster(
             serverGroupMoniker.getApp(), account, serverGroupMoniker.getCluster(), cloudProvider);
@@ -202,25 +212,42 @@ public class TrafficGuard {
                   return new TrafficGuardException(message);
                 });
 
-    verifyTrafficRemoval(serverGroupGoingAway, targetServerGroups, account, operationDescriptor);
-  }
-
-  public void verifyTrafficRemoval(
-      TargetServerGroup serverGroupGoingAway,
-      Collection<TargetServerGroup> currentServerGroups,
-      String account,
-      String operationDescriptor) {
-    verifyTrafficRemoval(
+    verifyTrafficRemovalInternal(
         Collections.singletonList(serverGroupGoingAway),
-        currentServerGroups,
+        targetServerGroups,
         account,
         operationDescriptor);
   }
 
+  public void verifyTrafficRemoval(
+      Collection<TargetServerGroup> serverGroupsGoingAway,
+      Collection<TargetServerGroup> currentServerGroups,
+      String account,
+      String operationDescriptor) {
+    if (serverGroupsGoingAway == null || serverGroupsGoingAway.isEmpty()) {
+      return;
+    }
+
+    TargetServerGroup someServerGroup = serverGroupsGoingAway.stream().findAny().get();
+    Location location = someServerGroup.getLocation();
+
+    if (!hasDisableLock(someServerGroup.getMoniker(), account, location)) {
+      log.debug(
+          "No traffic guard configured for '{}' in {}/{}",
+          someServerGroup.getName(),
+          account,
+          location.getValue());
+      return;
+    }
+
+    verifyTrafficRemovalInternal(
+        serverGroupsGoingAway, currentServerGroups, account, operationDescriptor);
+  }
+
+  // internal call, assumes that the front50 call (hasDisableCheck) has already been performed
   // if you disable serverGroup, are there other enabled server groups in the same cluster and
   // location?
-  // TODO rz - Expose traffic guards endpoint in clouddriver
-  public void verifyTrafficRemoval(
+  private void verifyTrafficRemovalInternal(
       Collection<TargetServerGroup> serverGroupsGoingAway,
       Collection<TargetServerGroup> currentServerGroups,
       String account,
@@ -246,14 +273,7 @@ public class TrafficGuard {
             .allMatch(sg -> cluster.equals(sg.getMoniker().getCluster())),
         "server groups must all be in the same cluster but some not in " + cluster);
 
-    if (!hasDisableLock(someServerGroup.getMoniker(), account, location)) {
-      log.debug(
-          "No traffic guard configured for '{}' in {}/{}", cluster, account, location.getValue());
-      return;
-    }
-
     // let the work begin
-
     Map<String, Integer> capacityByServerGroupName =
         currentServerGroups.stream()
             .collect(Collectors.toMap(TargetServerGroup::getName, this::getServerGroupCapacity));

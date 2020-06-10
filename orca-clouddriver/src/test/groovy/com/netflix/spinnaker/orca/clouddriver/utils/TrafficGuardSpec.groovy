@@ -75,15 +75,10 @@ class TrafficGuardSpec extends Specification {
     when:
     trafficGuard.verifyTrafficRemoval(targetName, moniker, "test", location, "aws", "x")
 
-    then:
+    then: 'we never look up anything in clouddriver if traffic guards are not enabled'
     notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
-    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
-      serverGroups: [
-        makeServerGroup(targetName, 1),
-        makeServerGroup(otherName, 0, 1, [isDisabled: true])
-      ]
-    ]
+    0 * oortHelper._
   }
 
   void "should throw exception when target server group is the only one enabled in cluster"() {
@@ -115,6 +110,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.startsWith("Could not find server group 'app-foo-v999'")
+    1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [
         makeServerGroup(targetName, 1),
@@ -124,11 +120,15 @@ class TrafficGuardSpec extends Specification {
   }
 
   void "should be able to handle a server group in a namespace"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+
     when:
     trafficGuard.verifyTrafficRemoval(targetName, moniker, "test", location, "aws", "x")
 
     then:
     notThrown(TrafficGuardException)
+    1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [
         makeServerGroup(targetName, 2, 0, [namespace: 'us-east-1']),
@@ -368,8 +368,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.startsWith('Could not find cluster')
-//    (the front50 check has moved after the cluster check)
-//    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> Optional.empty()
   }
 
