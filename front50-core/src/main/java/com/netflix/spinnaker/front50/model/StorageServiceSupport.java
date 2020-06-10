@@ -25,6 +25,7 @@ import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;
 import java.util.*;
@@ -209,7 +210,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
   public T findById(String id) throws NotFoundException {
     CircuitBreaker breaker =
-        circuitBreakerRegistry.circuitBreaker(getClass().getSimpleName() + "-findById");
+        circuitBreakerRegistry.circuitBreaker(
+            getClass().getSimpleName() + "-findById",
+            CircuitBreakerConfig.custom()
+                .ignoreException(e -> e instanceof NotFoundException)
+                .build());
 
     Supplier<T> recoverableSupplier =
         SupplierUtils.recover(
