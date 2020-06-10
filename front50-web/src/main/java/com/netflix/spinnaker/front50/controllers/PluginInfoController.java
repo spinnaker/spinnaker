@@ -76,6 +76,13 @@ public class PluginInfoController {
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @RequestMapping(value = "/{id}/releases", method = RequestMethod.PUT)
+  PluginInfo upsertRelease(
+      @PathVariable String id, @Valid @RequestBody PluginInfo.Release release) {
+    return pluginInfoService.upsertRelease(id, release);
+  }
+
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.PUT)
   PluginInfo.Release preferReleaseVersion(
       @PathVariable String id,

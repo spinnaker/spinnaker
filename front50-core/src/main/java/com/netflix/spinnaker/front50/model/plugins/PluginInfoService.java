@@ -121,6 +121,31 @@ public class PluginInfoService {
     return pluginInfo;
   }
 
+  public PluginInfo upsertRelease(@Nonnull String id, @Nonnull PluginInfo.Release release) {
+    release.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    release.setLastModified(Instant.now());
+    PluginInfo pluginInfo = repository.findById(id);
+    Optional<PluginInfo.Release> existingRelease =
+        pluginInfo.getReleaseByVersion(release.getVersion());
+
+    return existingRelease
+        .map(
+            r -> {
+              pluginInfo.getReleases().remove(r);
+              pluginInfo.getReleases().add(release);
+              cleanupPreferredReleases(pluginInfo, release);
+              validate(pluginInfo);
+              repository.update(pluginInfo.getId(), pluginInfo);
+              return pluginInfo;
+            })
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    String.format(
+                        "Plugin %s with release %s version not found. ",
+                        id, release.getVersion())));
+  }
+
   public PluginInfo deleteRelease(@Nonnull String id, @Nonnull String releaseVersion) {
     PluginInfo pluginInfo = repository.findById(id);
 
