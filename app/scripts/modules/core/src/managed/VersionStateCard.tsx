@@ -3,18 +3,27 @@ import { DateTime } from 'luxon';
 
 import { relativeTime, timestamp } from '../utils';
 import { IManagedArtifactVersion } from '../domain';
+import { Markdown, IconNames } from '../presentation';
 
 import { getArtifactVersionDisplayName } from './displayNames';
-import { StatusCard } from './StatusCard';
+import { StatusCard, IStatusCardProps } from './StatusCard';
 import { Pill } from './Pill';
 
 interface CardTitleMetadata {
   deployedAtMillis?: number;
   replacedAtMillis?: number;
   replacedByVersionName?: string;
+  vetoed?: IManagedArtifactVersion['environments'][0]['vetoed'];
 }
 
-const cardAppearanceByState = {
+interface CardAppearance {
+  icon: IconNames;
+  appearance: IStatusCardProps['appearance'];
+  title: (metadata: CardTitleMetadata) => string | JSX.Element;
+  description?: (metadata: CardTitleMetadata) => string | JSX.Element;
+}
+
+const cardAppearanceByState: { [state: string]: CardAppearance } = {
   pending: {
     icon: 'artifactPending',
     appearance: 'inactive',
@@ -82,31 +91,35 @@ const cardAppearanceByState = {
     ),
   },
   vetoed: {
-    icon: 'cloudError',
+    icon: 'artifactBad',
     appearance: 'error',
-    title: ({ deployedAtMillis }: CardTitleMetadata) => (
-      <span className="sp-group-margin-xs-xaxis">
-        Marked as bad <span className="text-regular sp-margin-xs-left">—</span>{' '}
-        {deployedAtMillis ? (
-          <>
-            <span className="text-regular">last deployed {relativeTime(deployedAtMillis)}</span>{' '}
-            <span className="text-italic text-regular">({timestamp(deployedAtMillis)})</span>
-          </>
-        ) : (
-          <span className="text-regular">never deployed here</span>
-        )}
-      </span>
-    ),
+    title: ({ vetoed }: CardTitleMetadata) => {
+      // we have to tolerate some older vetoes (from before June 2020) in the DB that don't have times/user attribution
+      const hasVetoMetadata = !!vetoed;
+      const vetoedAtMillis = hasVetoMetadata ? DateTime.fromISO(vetoed.at).toMillis() : null;
+      return (
+        <span className="sp-group-margin-xs-xaxis">
+          Marked as bad {hasVetoMetadata && `here ${relativeTime(vetoedAtMillis)}`}{' '}
+          {hasVetoMetadata && (
+            <>
+              <span className="text-italic text-regular sp-margin-xs-left">({timestamp(vetoedAtMillis)})</span>{' '}
+              <span className="text-regular">—</span> <span className="text-regular">by {vetoed.by}</span>
+            </>
+          )}
+        </span>
+      );
+    },
+    description: ({ vetoed }: CardTitleMetadata) => vetoed?.comment && <Markdown message={vetoed.comment} tag="span" />,
   },
 } as const;
 
 export type IVersionStateCardProps = Pick<
   IManagedArtifactVersion['environments'][0],
-  'state' | 'deployedAt' | 'replacedAt' | 'replacedBy'
+  'state' | 'deployedAt' | 'replacedAt' | 'replacedBy' | 'vetoed'
 > & { allVersions: IManagedArtifactVersion[] };
 
 export const VersionStateCard = memo(
-  ({ state, deployedAt, replacedAt, replacedBy, allVersions }: IVersionStateCardProps) => {
+  ({ state, deployedAt, replacedAt, replacedBy, vetoed, allVersions }: IVersionStateCardProps) => {
     const deployedAtMillis = deployedAt ? DateTime.fromISO(deployedAt).toMillis() : null;
     const replacedAtMillis = replacedAt ? DateTime.fromISO(replacedAt).toMillis() : null;
 
@@ -119,7 +132,18 @@ export const VersionStateCard = memo(
       <StatusCard
         appearance={cardAppearanceByState[state].appearance}
         iconName={cardAppearanceByState[state].icon}
-        title={cardAppearanceByState[state].title({ deployedAtMillis, replacedAtMillis, replacedByVersionName })}
+        title={cardAppearanceByState[state].title({
+          deployedAtMillis,
+          replacedAtMillis,
+          replacedByVersionName,
+          vetoed,
+        })}
+        description={cardAppearanceByState[state].description?.({
+          deployedAtMillis,
+          replacedAtMillis,
+          replacedByVersionName,
+          vetoed,
+        })}
       />
     );
   },

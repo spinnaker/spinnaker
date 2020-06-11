@@ -26,11 +26,11 @@ import { EnvironmentBadge } from './EnvironmentBadge';
 import { getArtifactVersionDisplayName } from './displayNames';
 import { useEnvironmentTypeFromResources } from './useEnvironmentTypeFromResources.hooks';
 
-const PINNING_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/pinning';
+const MARK_BAD_DOCS_URL = 'https://www.spinnaker.io/guides/user/managed-delivery/marking-as-bad/';
 
 const logClick = (label: string, application: string) =>
   ReactGA.event({
-    category: 'Environments - pin version modal',
+    category: 'Environments - mark version as bad modal',
     action: `${label} clicked`,
     label: application,
   });
@@ -54,18 +54,25 @@ const EnvironmentOption = memo(({ label, disabled, disabledReason, allResources 
   );
 });
 
-export interface IPinArtifactModalProps extends IModalComponentProps {
+export interface IMarkArtifactAsBadModalProps extends IModalComponentProps {
   application: Application;
   reference: string;
   version: IManagedArtifactVersion;
   resourcesByEnvironment: { [environment: string]: IManagedResourceSummary[] };
 }
 
-export const showPinArtifactModal = (props: IPinArtifactModalProps) =>
-  showModal(PinArtifactModal, props, { maxWidth: 750 });
+export const showMarkArtifactAsBadModal = (props: IMarkArtifactAsBadModalProps) =>
+  showModal(MarkArtifactAsBadModal, props, { maxWidth: 750 });
 
-export const PinArtifactModal = memo(
-  ({ application, reference, version, resourcesByEnvironment, dismissModal, closeModal }: IPinArtifactModalProps) => {
+export const MarkArtifactAsBadModal = memo(
+  ({
+    application,
+    reference,
+    version,
+    resourcesByEnvironment,
+    dismissModal,
+    closeModal,
+  }: IMarkArtifactAsBadModalProps) => {
     const optionRenderer = useCallback(
       (option: Option<string> & { disabledReason: string }) => (
         <EnvironmentOption {...option} allResources={resourcesByEnvironment[option.value]} />
@@ -75,7 +82,7 @@ export const PinArtifactModal = memo(
 
     return (
       <>
-        <ModalHeader>Pin {getArtifactVersionDisplayName(version)}</ModalHeader>
+        <ModalHeader>Mark {getArtifactVersionDisplayName(version)} as bad</ModalHeader>
         <SpinFormik<{
           environment: string;
           comment?: string;
@@ -84,7 +91,7 @@ export const PinArtifactModal = memo(
             environment: version.environments.find(({ pinned, state }) => !pinned && state !== 'vetoed').name,
           }}
           onSubmit={({ environment, comment }, { setSubmitting, setStatus }) =>
-            ManagedWriter.pinArtifactVersion({
+            ManagedWriter.markArtifactVersionAsBad({
               environment,
               reference,
               comment,
@@ -107,18 +114,18 @@ export const PinArtifactModal = memo(
                   <div className="flex-container-v middle sp-padding-xl-yaxis">
                     <div className="flex-container-h middle sp-margin-xl-bottom">
                       <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
-                        <Illustration name="pinArtifactVersion" />
+                        <Illustration name="markArtifactVersionAsBad" />
                       </span>
                       <span>
                         <p>
-                          Pinning ensures an environment uses a specific version, even if Spinnaker would've normally
-                          deployed a different one. If you pin a version, it'll remain pinned until you manually unpin
-                          it.
+                          If you mark a version as bad in an environment, Spinnaker will never deploy it there. If the
+                          version is already deployed there, Spinnaker will immediately replace it with the latest good
+                          version approved for deployment.
                         </p>{' '}
                         <a
                           target="_blank"
-                          onClick={() => logClick('Pinning docs link', application.name)}
-                          href={PINNING_DOCS_URL}
+                          onClick={() => logClick('Mark as bad docs link', application.name)}
+                          href={MARK_BAD_DOCS_URL}
                         >
                           Check out our documentation
                         </a>{' '}
@@ -175,7 +182,7 @@ export const PinArtifactModal = memo(
                     <div className="flex-container-h sp-group-margin-s-xaxis">
                       <Button onClick={() => dismissModal()}>Cancel</Button>
                       <Button appearance="primary" disabled={!isValid || isSubmitting} onClick={() => submitForm()}>
-                        Pin
+                        Mark as bad
                       </Button>
                     </div>
                   }

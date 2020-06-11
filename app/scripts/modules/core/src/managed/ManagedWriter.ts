@@ -3,7 +3,7 @@ import { IPromise } from 'angular';
 import { API } from 'core/api';
 import { StatefulConstraintStatus } from 'core/domain';
 
-export interface IPinArtifactVersionRequest {
+export interface IArtifactVersionRequest {
   application: string;
   environment: string;
   reference: string;
@@ -32,7 +32,7 @@ export class ManagedWriter {
     reference,
     version,
     comment,
-  }: IPinArtifactVersionRequest): IPromise<void> {
+  }: IArtifactVersionRequest): IPromise<void> {
     return API.one('managed')
       .one('application', application)
       .one('pin')
@@ -55,6 +55,24 @@ export class ManagedWriter {
       .one(environment)
       .withParams({ reference })
       .remove();
+  }
+
+  public static markArtifactVersionAsBad({
+    application,
+    environment,
+    reference,
+    version,
+    comment,
+  }: IArtifactVersionRequest): IPromise<void> {
+    return API.one('managed')
+      .one('application', application)
+      .one('veto')
+      .post({
+        targetEnvironment: environment,
+        reference,
+        version,
+        comment,
+      });
   }
 
   public static updateConstraintStatus({

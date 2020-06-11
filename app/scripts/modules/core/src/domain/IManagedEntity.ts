@@ -90,6 +90,11 @@ export interface IManagedArtifactVersion {
       by: string;
       comment?: string;
     };
+    vetoed?: {
+      at: string;
+      by: string;
+      comment?: string;
+    };
     deployedAt?: string;
     replacedAt?: string;
     replacedBy?: string;

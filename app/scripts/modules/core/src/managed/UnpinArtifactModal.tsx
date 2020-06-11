@@ -8,8 +8,8 @@ import {
   ModalFooter,
   showModal,
   ValidationMessage,
-  Icon,
   IRequestStatus,
+  Illustration,
 } from '../presentation';
 import { IManagedArtifactVersion, IManagedResourceSummary } from '../domain';
 import { Application } from '../application';
@@ -75,23 +75,26 @@ export const UnpinArtifactModal = memo(
         <ModalHeader>Unpin {getArtifactVersionDisplayName(version)}</ModalHeader>
         <ModalBody>
           <div className="flex-container-v middle sp-padding-xl-yaxis">
-            <div className="flex-container-h sp-margin-xl-bottom">
-              <span className="flex-container-h middle sp-margin-m-right">
-                <Icon name="unpin" appearance="neutral" size="large" />
+            <div className="flex-container-h middle sp-margin-xl-bottom">
+              <span className="sp-margin-m-right" style={{ minWidth: 145 }}>
+                <Illustration name="unpinArtifactVersion" />
               </span>
               <span>
-                When you unpin this version from the{' '}
-                <span className="sp-margin-2xs-xaxis">
-                  <EnvironmentBadge name={environment} critical={isEnvironmentCritical} size="extraSmall" />
-                </span>{' '}
-                environment, Spinnaker will use the latest version that's approved for deployment.{' '}
+                <p>
+                  When you unpin this version from the{' '}
+                  <span className="sp-margin-2xs-xaxis">
+                    <EnvironmentBadge name={environment} critical={isEnvironmentCritical} size="extraSmall" />
+                  </span>{' '}
+                  environment, Spinnaker will use the latest version that's approved for deployment.
+                </p>{' '}
                 <a
                   target="_blank"
                   onClick={() => logClick('Pinning docs link', application.name)}
                   href={PINNING_DOCS_URL}
                 >
-                  Learn more
-                </a>
+                  Check out our documentation
+                </a>{' '}
+                for more information.
               </span>
             </div>
 

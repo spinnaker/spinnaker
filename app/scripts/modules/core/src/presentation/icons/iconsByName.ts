@@ -4,6 +4,7 @@ import { ReactComponent as accordionExpandAll } from './vectors/accordionExpandA
 import { ReactComponent as add } from './vectors/add.svg';
 import { ReactComponent as artifact } from './vectors/artifact.svg';
 import { ReactComponent as artifactApproved } from './vectors/artifactApproved.svg';
+import { ReactComponent as artifactBad } from './vectors/artifactBad.svg';
 import { ReactComponent as artifactPending } from './vectors/artifactPending.svg';
 import { ReactComponent as artifactSkipped } from './vectors/artifactSkipped.svg';
 import { ReactComponent as build } from './vectors/build.svg';
@@ -117,6 +118,7 @@ export const iconsByName = {
   add,
   artifact,
   artifactApproved,
+  artifactBad,
   artifactPending,
   artifactSkipped,
   build,
