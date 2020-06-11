@@ -89,8 +89,8 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       log.info("Restoring min capacity of ${context.region}/${targetServerGroup.name} to ${minCapacity} (currentMin: ${targetServerGroup.capacity.min}, snapshotMin: ${sourceServerGroupCapacitySnapshot.min})")
 
       return context
-    } catch (CannotFindAncestorStage e) {
-      log.warn("Unable to apply source server group capacity (executionId: ${stage.execution.id})")
+    } catch (CannotFindAncestorStage ignored) {
+      log.info("Not applying source server capacity because none was captured")
       return null
     } catch (Exception e) {
       log.error("Unable to apply source server group capacity (executionId: ${stage.execution.id})", e)
@@ -171,7 +171,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
    * Find an ancestor (or synthetic sibling) stage w/ `sourceServerGroupCapacitySnapshot` in it's context.
    */
   static StageExecution getAncestorSnapshotStage(StageExecution stage) {
-    def ancestors = stage.ancestors().findAll { ancestorStage ->
+    def ancestors = stage.directAncestors().findAll { ancestorStage ->
       ancestorStage.context.containsKey("sourceServerGroupCapacitySnapshot")
     }
 
