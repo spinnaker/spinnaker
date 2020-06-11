@@ -42,10 +42,12 @@ import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.igor.build.BuildController.*
+import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
+import static com.netflix.spinnaker.igor.build.BuildController.validateJobParameters
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+
 /**
  * Tests for BuildController
  */
@@ -122,7 +124,7 @@ class BuildControllerSpec extends Specification {
 
     void 'get an item from the queue'() {
         given:
-        1 * jenkinsService.queuedBuild(QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
+        1 * jenkinsService.queuedBuild(_, QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/queue/${JENKINS_SERVICE}/${QUEUED_JOB_NUMBER}")

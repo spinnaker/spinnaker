@@ -28,6 +28,7 @@ include 'igor-bom',
   'igor-core',
   'igor-monitor-artifactory',
   'igor-monitor-plugins',
+  'igor-monitor-travis',
   'igor-web'
 
 def setBuildFile(project) {

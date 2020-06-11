@@ -19,6 +19,7 @@ dependencies {
     implementation project(":igor-core")
     implementation project(":igor-monitor-artifactory")
     implementation project(":igor-monitor-plugins")
+    implementation project(":igor-monitor-travis")
 
     implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     compileOnly "org.projectlombok:lombok"
@@ -47,7 +48,6 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-annotations"
     implementation "com.fasterxml.jackson.core:jackson-core"
     implementation "com.fasterxml.jackson.core:jackson-databind"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 

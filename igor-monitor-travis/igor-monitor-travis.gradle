@@ -1,0 +1,35 @@
+/*
+ * Copyright 2020 Schibsted ASA.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+dependencies {
+  implementation project(":igor-core")
+
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "io.reactivex:rxjava" // TODO(jervi): get rid of this dependency
+
+  testImplementation "com.squareup.okhttp:mockwebserver"
+}

@@ -73,7 +73,9 @@ class Build {
             }
         }
         if (testResults) {
-            genericBuild.testResults = testResults
+            genericBuild.testResults = testResults.collect {
+                new GenericBuild.TestResults(it.failCount, it.skipCount, it.totalCount, it.urlName)
+            }
         }
         return genericBuild
     }

@@ -27,7 +27,6 @@ import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildProperties
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -118,14 +117,7 @@ class BuildController {
     @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     Object getQueueLocation(@PathVariable String master, @PathVariable int item) {
         def buildService = getBuildService(master)
-        if (buildService instanceof JenkinsService) {
-            JenkinsService jenkinsService = (JenkinsService) buildService
-            return jenkinsService.queuedBuild(item)
-        } else if (buildService instanceof TravisService) {
-            TravisService travisService = (TravisService) buildService
-            return travisService.queuedBuild(item)
-        }
-        throw new UnsupportedOperationException(String.format("Queued builds are not supported for build service %s", master))
+        return buildService.queuedBuild(master, item);
     }
 
     @RequestMapping(value = '/builds/all/{master:.+}/**')
