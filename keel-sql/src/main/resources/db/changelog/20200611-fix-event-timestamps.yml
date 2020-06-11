@@ -1,0 +1,8 @@
+databaseChangeLog:
+- changeSet:
+    id: fix-event-timestamps
+    author: fletch
+    changes:
+    - sql:
+        sql: |
+          update event set timestamp = timestamp(json_unquote(json->'$.timestamp'));
