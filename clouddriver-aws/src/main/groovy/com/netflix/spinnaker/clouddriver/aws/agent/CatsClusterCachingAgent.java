@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS;
 
@@ -27,6 +29,8 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,11 +46,16 @@ import java.util.stream.Collectors;
  */
 public abstract class CatsClusterCachingAgent implements CachingAgent {
   private static final Collection<AgentDataType> dataTypes =
-      Collections.unmodifiableCollection(Collections.singleton(AUTHORITATIVE.forType(CLUSTERS.ns)));
+      Collections.unmodifiableCollection(
+          Arrays.asList(
+              AUTHORITATIVE.forType(CLUSTERS.ns),
+              INFORMATIVE.forType(APPLICATIONS.ns),
+              INFORMATIVE.forType(SERVER_GROUPS.ns)));
 
   private final String serverGroupsGlob;
   private final Function<String, Map<String, String>> keyParser;
   private final Function<Map<String, String>, String> clusterKeyBuilder;
+  private final Function<String, String> applicationKeyBuilder;
   private final String clusterNameAttribute;
   private final String clusterApplicationAttribute;
 
@@ -56,13 +65,22 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
    * @param keyParser A parser for the server group and cluster keys for the provider
    * @param clusterKeyBuilder Given a parsed server group key as a map, supplies the associated
    *     cluster key
+   * @param applicationKeyBuilder Given a parsed application name, supplies the associated
+   *     application key
    *     <p>Uses 'cluster' as the clusterNameAttribute
    */
   public CatsClusterCachingAgent(
       String serverGroupsGlob,
       Function<String, Map<String, String>> keyParser,
-      Function<Map<String, String>, String> clusterKeyBuilder) {
-    this(serverGroupsGlob, keyParser, clusterKeyBuilder, "cluster", "application");
+      Function<Map<String, String>, String> clusterKeyBuilder,
+      Function<String, String> applicationKeyBuilder) {
+    this(
+        serverGroupsGlob,
+        keyParser,
+        clusterKeyBuilder,
+        applicationKeyBuilder,
+        "cluster",
+        "application");
   }
 
   /**
@@ -71,6 +89,8 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
    * @param keyParser A parser for the server group and cluster keys for the provider
    * @param clusterKeyBuilder Given a parsed server group key as a map, supplies the associated
    *     cluster key
+   * @param applicationKeyBuilder Given a parsed application name, supplies the associated
+   *     application key
    * @param clusterNameAttribute The attribute name in the parsed cluster key that represents the
    *     cluster's name
    * @param clusterApplicationAttribute The attribute name in the parsed cluster key that represents
@@ -80,11 +100,13 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
       String serverGroupsGlob,
       Function<String, Map<String, String>> keyParser,
       Function<Map<String, String>, String> clusterKeyBuilder,
+      Function<String, String> applicationKeyBuilder,
       String clusterNameAttribute,
       String clusterApplicationAttribute) {
     this.serverGroupsGlob = serverGroupsGlob;
     this.keyParser = keyParser;
     this.clusterKeyBuilder = clusterKeyBuilder;
+    this.applicationKeyBuilder = applicationKeyBuilder;
     this.clusterNameAttribute = clusterNameAttribute;
     this.clusterApplicationAttribute = clusterApplicationAttribute;
   }
@@ -108,21 +130,59 @@ public abstract class CatsClusterCachingAgent implements CachingAgent {
       }
     }
 
-    Collection<CacheData> cacheData =
+    // cache data w/ relationships to app and cluster
+    Collection<CacheData> serverGroupData = new ArrayList<>();
+
+    // cache data w/ relationships to cluster and server groups
+    Map<String, Map<String, Collection<String>>> applicationRelationships = new HashMap<>();
+
+    Collection<CacheData> clusterCacheData =
         clusterData.entrySet().stream()
             .map(
                 entry -> {
                   Map<String, String> clusterAttributes = keyParser.apply(entry.getKey());
+                  String clusterApplication = clusterAttributes.get(clusterApplicationAttribute);
+                  String clusterApplicationKey = applicationKeyBuilder.apply(clusterApplication);
+
+                  for (String serverGroup : entry.getValue()) {
+                    Map<String, Collection<String>> sgRels = new HashMap<>();
+                    sgRels.put(APPLICATIONS.ns, Collections.singleton(clusterApplicationKey));
+                    sgRels.put(CLUSTERS.ns, Collections.singleton(entry.getKey()));
+                    serverGroupData.add(
+                        new DefaultCacheData(serverGroup, Collections.emptyMap(), sgRels));
+                  }
+                  Map<String, Collection<String>> appRels =
+                      applicationRelationships.computeIfAbsent(
+                          clusterApplicationKey, (s) -> new HashMap<>());
+
+                  appRels.computeIfAbsent(CLUSTERS.ns, (c) -> new HashSet<>()).add(entry.getKey());
+                  appRels
+                      .computeIfAbsent(SERVER_GROUPS.ns, (sg) -> new HashSet<>())
+                      .addAll(entry.getValue());
+
+                  // cluster
                   Map<String, Object> cacheAttributes = new HashMap<>();
                   cacheAttributes.put("name", clusterAttributes.get(clusterNameAttribute));
                   cacheAttributes.put(
                       "application", clusterAttributes.get(clusterApplicationAttribute));
                   Map<String, Collection<String>> relationships = new HashMap<>();
                   relationships.put(SERVER_GROUPS.ns, entry.getValue());
+
                   return new DefaultCacheData(entry.getKey(), cacheAttributes, relationships);
                 })
             .collect(Collectors.toList());
 
-    return new DefaultCacheResult(Collections.singletonMap(CLUSTERS.ns, cacheData));
+    Collection<CacheData> applicationCacheData =
+        applicationRelationships.entrySet().stream()
+            .map(
+                entry ->
+                    new DefaultCacheData(entry.getKey(), Collections.emptyMap(), entry.getValue()))
+            .collect(Collectors.toList());
+
+    Map<String, Collection<CacheData>> cacheResult = new HashMap<>();
+    cacheResult.put(CLUSTERS.ns, clusterCacheData);
+    cacheResult.put(SERVER_GROUPS.ns, serverGroupData);
+    cacheResult.put(APPLICATIONS.ns, applicationCacheData);
+    return new DefaultCacheResult(cacheResult);
   }
 }

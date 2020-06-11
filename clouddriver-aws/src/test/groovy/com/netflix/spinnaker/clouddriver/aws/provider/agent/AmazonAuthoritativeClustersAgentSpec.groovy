@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import org.hamcrest.Matchers
 import spock.lang.Specification
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS;
 
@@ -38,8 +39,13 @@ class AmazonAuthoritativeClustersAgentSpec extends Specification {
     1 * providerCache.filterIdentifiers(SERVER_GROUPS.ns, Keys.getServerGroupKey('*','*', '*', '*')) >> sgIds
     1 * providerCache.existingIdentifiers(SERVER_GROUPS.ns, _) >> sgIds
 
-    result.cacheResults.size() == 1
+    result.cacheResults.size() == 3
+    result.cacheResults.containsKey(CLUSTERS.ns)
+    result.cacheResults.containsKey(SERVER_GROUPS.ns)
+    result.cacheResults.containsKey(APPLICATIONS.ns)
     result.cacheResults[CLUSTERS.ns].size() == expectedSize
+    result.cacheResults[SERVER_GROUPS.ns].size() == sgIds.size()
+    result.cacheResults[APPLICATIONS.ns].size() == 1
     Matchers.containsInAnyOrder(expected.toArray()).matches(result.cacheResults[CLUSTERS.ns]*.id)
     Matchers.containsInAnyOrder("foo-main", "foo-staging").matches(result.cacheResults[CLUSTERS.ns]*.attributes["name"])
 
