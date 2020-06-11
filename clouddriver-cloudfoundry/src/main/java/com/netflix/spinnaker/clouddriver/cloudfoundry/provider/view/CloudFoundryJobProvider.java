@@ -12,12 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.job;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Task;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryJobStatus;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;

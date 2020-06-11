@@ -12,17 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.job;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RUN_JOB;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters.AbstractCloudFoundryAtomicOperationConverter;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CloudFoundryRunJobOperationDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryRunJobOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -42,7 +45,9 @@ public class CloudFoundryRunJobOperationConverter
     CloudFoundryRunJobOperationDescription converted =
         getObjectMapper().convertValue(input, CloudFoundryRunJobOperationDescription.class);
 
-    CloudFoundryClient client = getClient(input);
+    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    converted.setCredentials(credentials);
+    CloudFoundryClient client = credentials.getClient();
     converted.setClient(client);
     String jobName = (String) input.get("jobName");
     String region = (String) input.get("region");
