@@ -197,7 +197,8 @@ public class SqlTestUtil {
     context.meta().getTables().stream()
         .filter(
             table ->
-                table.getSchema().getName().equals(schema)
+                table.getType().isTable()
+                    && table.getSchema().getName().equals(schema)
                     && !table.getName().equals(configuration.getDatabaseChangeLogTableName())
                     && !table.getName().equals(configuration.getDatabaseChangeLogLockTableName()))
         .forEach(
