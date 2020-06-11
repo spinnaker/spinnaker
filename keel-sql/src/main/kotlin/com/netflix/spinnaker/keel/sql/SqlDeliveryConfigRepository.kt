@@ -429,6 +429,12 @@ class SqlDeliveryConfigRepository(
         }
     } ?: throw OrphanedResourceException(resourceId)
 
+  /**
+   * gets or creates constraint id
+   * saves constraint
+   * calls [constraintStateForWithTransaction]
+   * if all constraints pass, puts in queue for approval table
+   */
   override fun storeConstraintState(state: ConstraintState) {
     environmentUidByName(state.deliveryConfigName, state.environmentName)
       ?.also { envUid ->
@@ -491,6 +497,7 @@ class SqlDeliveryConfigRepository(
              */
             val allStates = constraintStateForWithTransaction(state.deliveryConfigName, state.environmentName, state.artifactVersion, txn)
             if (allStates.allPass && allStates.size >= environment.constraints.statefulCount) {
+              // todo eb: add link to artifact https://github.com/spinnaker/keel/issues/1270
               txn.insertInto(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID, envUid)
                 .set(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ARTIFACT_VERSION, state.artifactVersion)
@@ -846,6 +853,7 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  // todo eb: add link to artifact https://github.com/spinnaker/keel/issues/1270
   override fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
       ?: return emptyList()
@@ -861,6 +869,7 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  // todo eb: add link to artifact https://github.com/spinnaker/keel/issues/1270
   override fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String): Set<String> {
     val environmentUID = environmentUidByName(deliveryConfigName, environmentName)
       ?: return emptySet()
@@ -874,6 +883,12 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  /**
+   * Not actually used because this is done in [storeConstraintState], except
+   * in that place the envId does not have to be queried for.
+   * It's also done as part of the existing transaction
+   */
+  // todo eb: add link to artifact https://github.com/spinnaker/keel/issues/1270
   override fun queueAllConstraintsApproved(
     deliveryConfigName: String,
     environmentName: String,

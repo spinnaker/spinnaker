@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.netflix.spinnaker.keel.actuation.EnvironmentConstraintRunner
 import com.netflix.spinnaker.keel.actuation.EnvironmentPromotionChecker
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -77,9 +78,14 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       every { isImplicit() } returns true
       every { canPromote(any(), any(), any(), any()) } returns true
     }
+    val environmentConstraintRunner = EnvironmentConstraintRunner(
+      repository,
+      listOf(statelessEvaluator, statefulEvaluator, implicitStatelessEvaluator)
+    )
+
     val subject = EnvironmentPromotionChecker(
       repository,
-      listOf(statelessEvaluator, statefulEvaluator, implicitStatelessEvaluator),
+      environmentConstraintRunner,
       publisher
     )
 
