@@ -20,8 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -46,16 +44,6 @@ public class DeployCloudFoundryServerGroupDescription
   @JsonIgnore private ArtifactCredentials artifactCredentials;
 
   @JsonIgnore private ApplicationAttributes applicationAttributes;
-
-  @Override
-  public String getAccount() {
-    return accountName;
-  }
-
-  @Override
-  public Collection<String> getApplications() {
-    return Collections.singletonList(application);
-  }
 
   @Data
   public static class ApplicationAttributes {

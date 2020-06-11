@@ -17,26 +17,17 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
-import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
-import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
-import java.util.Collection;
-import java.util.Collections;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CloudFoundryRunJobOperationDescription extends AbstractCloudFoundryDescription
-    implements ApplicationNameable {
+public class CloudFoundryRunJobOperationDescription
+    extends AbstractCloudFoundryServerGroupDescription {
 
   private CloudFoundryServerGroup serverGroup;
   @Nullable private String jobName;
   private String command;
-
-  @Override
-  public Collection<String> getApplications() {
-    return Collections.singletonList(Names.parseName(serverGroup.getName()).getApp());
-  }
 }
