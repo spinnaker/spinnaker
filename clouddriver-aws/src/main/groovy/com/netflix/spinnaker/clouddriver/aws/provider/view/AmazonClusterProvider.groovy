@@ -203,22 +203,18 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       allImages
     )
 
-    Collection<AmazonCluster> clusters = cacheResults[CLUSTERS.ns].findResults { clusterData ->
+    Collection<AmazonCluster> clusters = cacheResults[CLUSTERS.ns].collect { clusterData ->
       Map<String, String> clusterKey = Keys.parse(clusterData.id)
-
-      if (clusterKey == null) {
-        return null
-      }
 
       AmazonCluster cluster = new AmazonCluster()
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.cluster
 
-      cluster.serverGroups = clusterData.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
-      cluster.loadBalancers = clusterData.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) } ?: []
-      cluster.targetGroups = clusterData.relationships[TARGET_GROUPS.ns]?.findResults { targetGroups.get(it) } ?: []
+      cluster.serverGroups = clusterData.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
+      cluster.loadBalancers = clusterData.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
+      cluster.targetGroups = clusterData.relationships[TARGET_GROUPS.ns]?.findResults { targetGroups.get(it) }
 
-      return cluster
+      cluster
     }
 
     return clusters
@@ -251,20 +247,20 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       AmazonCluster cluster = new AmazonCluster()
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.cluster
-      cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
+      cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
 
       if (includeDetails) {
-        cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) } ?: []
-        cluster.targetGroups = clusterDataEntry.relationships[TARGET_GROUPS.ns]?.findResults { targetGroups.get(it) } ?: []
+        cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
+        cluster.targetGroups = clusterDataEntry.relationships[TARGET_GROUPS.ns]?.findResults { targetGroups.get(it) }
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
           new AmazonLoadBalancer(name: parts.loadBalancer, account: parts.account, region: parts.region)
-        } ?: []
+        }
         cluster.targetGroups = clusterDataEntry.relationships[TARGET_GROUPS.ns]?.collect { targetGroupKey ->
           Map parts = Keys.parse(targetGroupKey)
           new AmazonTargetGroup(name: parts.loadBalancer, account: parts.account, region: parts.region)
-        } ?: []
+        }
       }
       cluster
     }
