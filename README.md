@@ -115,12 +115,12 @@ See [Sample deployment topology](#sample-deployment-topology) for additional inf
 There are several ways to suppress triggers in `echo` (note, all of the below are backed by `DynamicConfigService` and therefore can be modified at runtime)
 * `orca.enabled` (default: `true`)  
     top level knob that disables communication with `orca` and thus ALL triggers
-* `scheduler.suppressTriggers` (default: `false`)  
+* `scheduler.triggers.enabled` (default: `true`)  
     allows suppressing triggering of events from the CRON scheduler only
-* `scheduler.compensationJob.suppressTriggers` (default: `false`)  
+* `scheduler.compensationJob.triggers.enabled` (default: `true`)  
     allows suppressing triggering of events from the compensation job (aka missed CRON scheduler) only
 
-There are two settings for each trigger, e.g. `scheduler.enabled` and `scheduler.suppressTriggers`. 
+There are two settings for each trigger, e.g. `scheduler.enabled` and `scheduler.triggers.enabled`. 
 The reason for this complexity is to allow scenarios where there are two `echo` clusters that are running the scheduler for redundancy reasons (e.g. in two regions).  
 In order to correctly switch which cluster (region) is generating triggers they both need to be "up-to-speed" hence you'd run the scheduler in both clusters but only one would trigger.
 That way, when you switch which cluster does the triggering it will trigger the correct events without duplicates.

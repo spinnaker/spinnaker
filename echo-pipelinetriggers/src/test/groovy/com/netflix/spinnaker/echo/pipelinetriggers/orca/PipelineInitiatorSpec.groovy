@@ -78,7 +78,7 @@ class PipelineInitiatorSpec extends Specification {
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
 
     then:
-    1 * dynamicConfigService.getConfig(Boolean.class, 'scheduler.suppress-triggers', false) >> { return suppress }
+    1 * dynamicConfigService.isEnabled('scheduler.triggers', true) >> { return !suppress }
     _ * dynamicConfigService.isEnabled("orca", true) >> { return enabled }
     _ * fiatStatus.isEnabled() >> { return enabled }
     _ * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }

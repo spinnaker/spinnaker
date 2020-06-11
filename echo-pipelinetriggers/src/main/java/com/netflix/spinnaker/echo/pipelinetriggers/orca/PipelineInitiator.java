@@ -394,12 +394,9 @@ public class PipelineInitiator {
     boolean triggerEnabled = true;
 
     if (triggerSource == TriggerSource.COMPENSATION_SCHEDULER) {
-      triggerEnabled =
-          !dynamicConfigService.getConfig(
-              Boolean.class, "scheduler.compensation-job.suppress-triggers", false);
+      triggerEnabled = dynamicConfigService.isEnabled("scheduler.compensation-job.triggers", true);
     } else if (triggerSource == TriggerSource.CRON_SCHEDULER) {
-      triggerEnabled =
-          !dynamicConfigService.getConfig(Boolean.class, "scheduler.suppress-triggers", false);
+      triggerEnabled = dynamicConfigService.isEnabled("scheduler.triggers", true);
     }
 
     return triggerEnabled && dynamicConfigService.isEnabled("orca", true);
