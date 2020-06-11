@@ -37,7 +37,11 @@ abstract class AbstractLoadBalancerRegistrationTask
     List<TargetServerGroup> tsgList = tsgResolver.resolve(stage);
     if (!tsgList.isEmpty()) {
       Optional.ofNullable(tsgList.get(0))
-          .ifPresent(tsg -> stage.getContext().put("serverGroupName", tsg.getName()));
+          .ifPresent(
+              tsg -> {
+                stage.getContext().put("serverGroupName", tsg.getName());
+                stage.getContext().put("moniker", tsg.getMoniker());
+              });
     }
 
     return super.execute(stage);

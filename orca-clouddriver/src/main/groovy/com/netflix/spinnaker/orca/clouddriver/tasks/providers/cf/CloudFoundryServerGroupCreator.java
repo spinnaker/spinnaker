@@ -19,11 +19,13 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +62,8 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
             .build();
     ManifestEvaluator.Result evaluatedManifest = manifestEvaluator.evaluate(stage, manifestContext);
 
+    Moniker moniker = buildMoniker(context);
+
     final PipelineExecution execution = stage.getExecution();
     ImmutableMap.Builder<String, Object> operation =
         ImmutableMap.<String, Object>builder()
@@ -70,7 +74,8 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
             .put("executionId", execution.getId())
             .put("trigger", execution.getTrigger().getOther())
             .put("applicationArtifact", resolveArtifact(stage, context.get("applicationArtifact")))
-            .put("manifest", evaluatedManifest.getManifests());
+            .put("manifest", evaluatedManifest.getManifests())
+            .put("moniker", moniker);
 
     if (context.get("stack") != null) {
       operation.put("stack", context.get("stack"));
@@ -97,6 +102,21 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
     }
 
     return artifact;
+  }
+
+  private Moniker buildMoniker(Map<String, Object> context) {
+    String app = context.get("application").toString();
+    String stack = (String) context.getOrDefault("stack", "");
+    String detail = (String) context.getOrDefault("freeFormDetails", "");
+
+    String cluster = app;
+    if (!stack.isEmpty()) {
+      cluster = cluster + "-" + stack;
+    }
+    if (!detail.isEmpty()) {
+      cluster = cluster + "-" + detail;
+    }
+    return MonikerHelper.friggaToMoniker(cluster);
   }
 
   @Override
