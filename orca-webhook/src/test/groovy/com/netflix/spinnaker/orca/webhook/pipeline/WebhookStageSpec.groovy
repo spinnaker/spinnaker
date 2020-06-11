@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
 import spock.lang.Specification
@@ -31,8 +32,11 @@ class WebhookStageSpec extends Specification {
 
   def builder = Mock(TaskNode.Builder)
 
+  WebhookService webhookService = Mock()
+  MonitorWebhookTask monitorWebhookTask = Mock()
+
   @Subject
-  webhookStage = new WebhookStage()
+  webhookStage = new WebhookStage(webhookService, monitorWebhookTask)
 
   @Unroll
   def "Should create correct tasks"() {

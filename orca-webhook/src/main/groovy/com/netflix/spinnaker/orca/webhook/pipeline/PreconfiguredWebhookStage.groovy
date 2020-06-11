@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.webhook.config.WebhookProperties.Preconfigured
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFoundException
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookUnauthorizedException
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -39,10 +40,11 @@ class PreconfiguredWebhookStage extends WebhookStage {
 
   @Autowired
   PreconfiguredWebhookStage(
-    WebhookService webhookService,
-    @Value('${services.fiat.enabled:false}') boolean fiatEnabled,
-    FiatService fiatService) {
-    super(webhookService)
+      WebhookService webhookService,
+      @Value('${services.fiat.enabled:false}') boolean fiatEnabled,
+      FiatService fiatService,
+      MonitorWebhookTask monitorWebhookTask) {
+    super(webhookService, monitorWebhookTask)
 
     this.fiatEnabled = fiatEnabled
     this.fiatService = fiatService

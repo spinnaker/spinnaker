@@ -40,12 +40,13 @@ import javax.annotation.Nonnull
 @Component
 class WebhookStage implements StageDefinitionBuilder {
 
-  @Autowired
   WebhookService webhookService
+  MonitorWebhookTask monitorWebhookTask
 
   @Autowired
-  WebhookStage(WebhookService webhookService) {
+  WebhookStage(WebhookService webhookService, MonitorWebhookTask monitorWebhookTask) {
     this.webhookService = webhookService
+    this.monitorWebhookTask = monitorWebhookTask
   }
 
   @Override
@@ -74,7 +75,7 @@ class WebhookStage implements StageDefinitionBuilder {
 
   @Override
   void onFailureStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
-    new MonitorWebhookTask(webhookService).onCancel(stage)
+    monitorWebhookTask.onCancel(stage)
   }
 
   static class StageData {

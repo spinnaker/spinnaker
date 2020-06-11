@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import spock.lang.Specification
@@ -31,9 +32,10 @@ class PreconfiguredWebhookStageSpec extends Specification {
 
   def webhookService = Mock(WebhookService)
   def builder = new TaskNode.Builder()
+  MonitorWebhookTask monitorWebhookTask = Mock(MonitorWebhookTask)
 
   @Subject
-  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, false, null)
+  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, false, null, monitorWebhookTask)
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:
