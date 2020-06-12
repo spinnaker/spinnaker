@@ -7,7 +7,9 @@ import { SETTINGS } from 'core/config/settings';
 
 import { SystemTimezone } from './SystemTimezone';
 
-const isInputValid = (input: any) => !(!input || isNaN(input) || input < 0);
+// Luxon supports up to 100 million days after epoch start
+const MAX_VALID_INPUT = 8640000000000000;
+const isInputValid = (input: any) => !(!input || isNaN(input) || input < 0 || input > MAX_VALID_INPUT);
 
 export function duration(input: any) {
   if (!isInputValid(input)) {
