@@ -19,7 +19,14 @@ package com.netflix.spinnaker.orca.config;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.Data;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
@@ -103,34 +110,45 @@ public class UserConfiguredUrlRestrictions {
       if (!allowedSchemes.contains(u.getScheme().toLowerCase())) {
         throw new IllegalArgumentException("unsupported URI scheme " + url);
       }
-      if (!allowedHostnames.matcher(u.getHost()).matches()) {
+
+      // fallback to `getAuthority()` in the event that the hostname contains an underscore and
+      // `getHost()` returns null
+      String host = u.getHost();
+      if (host == null) {
+        String authority = u.getAuthority();
+        if (authority != null) {
+          int portIndex = authority.indexOf(":");
+          host = (portIndex > -1) ? authority.substring(0, portIndex) : authority;
+        }
+      }
+
+      if (host == null) {
+        throw new IllegalArgumentException("Unable to determine host for the url provided " + url);
+      }
+
+      if (!allowedHostnames.matcher(host).matches()) {
         throw new IllegalArgumentException(
-            "Host not allowed "
-                + u.getHost()
-                + ". Host much match "
-                + allowedHostnames.toString()
-                + ".");
+            "Host not allowed " + host + ". Host much match " + allowedHostnames.toString() + ".");
       }
 
       if (rejectLocalhost || rejectLinkLocal) {
-        InetAddress addr = InetAddress.getByName(u.getHost());
+        InetAddress addr = InetAddress.getByName(host);
         if (rejectLocalhost) {
           if (addr.isLoopbackAddress()
               || Optional.ofNullable(NetworkInterface.getByInetAddress(addr)).isPresent()) {
-            throw new IllegalArgumentException("invalid address for " + u.getHost());
+            throw new IllegalArgumentException("invalid address for " + host);
           }
         }
         if (rejectLinkLocal && addr.isLinkLocalAddress()) {
-          throw new IllegalArgumentException("invalid address for " + u.getHost());
+          throw new IllegalArgumentException("invalid address for " + host);
         }
       }
 
       for (String ip : rejectedIps) {
         IpAddressMatcher ipMatcher = new IpAddressMatcher(ip);
 
-        if (ipMatcher.matches(u.getHost())) {
-          throw new IllegalArgumentException(
-              "address " + u.getHost() + " is within rejected IPs: " + ip);
+        if (ipMatcher.matches(host)) {
+          throw new IllegalArgumentException("address " + host + " is within rejected IPs: " + ip);
         }
       }
 
