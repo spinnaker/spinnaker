@@ -201,17 +201,27 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
             }
           }
 
-          test("no constraint evaluation happens") {
-            verify(exactly = 0) {
+          test("constraint evaluation happens") {
+            verify(exactly = 1) {
               environmentConstraintRunner.checkEnvironment(any())
-              environmentConstraintRunner.checkStatelessConstraints(any(), any(), any(), any())
-              repository.getQueuedConstraintApprovals(any(), any())
             }
           }
 
-          test("the artifact is approved") {
+          test("the pinned artifact is approved") {
             verify(exactly = 1) {
               repository.approveVersionFor(deliveryConfig, artifact, "1.0", environment.name)
+            }
+          }
+
+          test("queued constraints aren't looked at") {
+            verify(exactly = 0) {
+              environmentConstraintRunner.checkStatelessConstraints(any(), any(), any(), any())
+            }
+          }
+
+          test("stateless constraints for queued versions aren't rechecked") {
+            verify(exactly = 0) {
+              repository.getQueuedConstraintApprovals(any(), any())
             }
           }
         }
@@ -313,6 +323,12 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         test("all environments have the version approved") {
           verify(exactly = 2) {
             repository.approveVersionFor(multiEnvConfig, artifact, "2.0", any())
+          }
+        }
+
+        test("all environments have constraints checked") {
+          verify(exactly = 2) {
+            environmentConstraintRunner.checkEnvironment(any())
           }
         }
       }

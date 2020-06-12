@@ -40,24 +40,22 @@ class EnvironmentPromotionChecker(
           log.warn("No versions for ${artifact.type} artifact ${artifact.name} are known")
         } else {
           deliveryConfig.environments.forEach { environment ->
-            // if pinned, we approve that version right away without doing anything else
-            // to fast track that deployment
-            if (pinnedEnvs.hasPinFor(environment.name, artifact)) {
-              // todo: https://github.com/spinnaker/keel/issues/1254
-              val pinnedVersion: String = pinnedEnvs.versionFor(environment.name, artifact) ?: return@forEach
-              // todo eb: this shouldn't be null, we just checked if a pin exists in the map above.
-              approveVersion(deliveryConfig, artifact, pinnedVersion, environment.name)
-            } else {
+            val envContext = EnvironmentContext(
+              deliveryConfig = deliveryConfig,
+              environment = environment,
+              artifact = artifact,
+              versions = versions,
+              vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions) ?: emptySet()
+            )
 
-              constraintRunner.checkEnvironment(
-                EnvironmentContext(
-                  deliveryConfig = deliveryConfig,
-                  environment = environment,
-                  artifact = artifact,
-                  versions = versions,
-                  vetoedVersions = (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions) ?: emptySet()
-                )
-              )
+            if (pinnedEnvs.hasPinFor(environment.name, artifact)) {
+              val pinnedVersion = pinnedEnvs.versionFor(environment.name, artifact)
+              // approve version first to fast track deployment
+              approveVersion(deliveryConfig, artifact, pinnedVersion!!, environment.name)
+              // then evaluate constraints
+              constraintRunner.checkEnvironment(envContext)
+            } else {
+              constraintRunner.checkEnvironment(envContext)
 
               // everything the constraint runner has already approved
               val queuedForApproval: MutableSet<String> = repository
