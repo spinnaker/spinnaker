@@ -73,9 +73,14 @@ test {
   //assertions can be made against the version (see echo-plugins-test, for example).
   jar {
     manifest {
-      attributes(
-        'Implementation-Version': '1.0.0'
-      )
+      String implementationVersion = getAttributes()["Implementation-Version"]
+      if (implementationVersion == null
+        || implementationVersion.isEmpty()
+        || implementationVersion == "undefined") {
+        attributes(
+          'Implementation-Version': '1.0.0'
+        )
+      }
     }
   }
 }
