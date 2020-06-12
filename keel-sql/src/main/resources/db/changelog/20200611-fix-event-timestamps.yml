@@ -5,4 +5,4 @@ databaseChangeLog:
     changes:
     - sql:
         sql: |
-          update event set timestamp = timestamp(json_unquote(json->'$.timestamp'));
+          update event set timestamp = timestamp(replace(json_unquote(json->'$.timestamp'), 'Z', ''));
