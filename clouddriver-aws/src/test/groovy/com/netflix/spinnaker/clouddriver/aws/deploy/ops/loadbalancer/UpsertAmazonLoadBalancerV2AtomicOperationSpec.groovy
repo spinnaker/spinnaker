@@ -81,6 +81,72 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     idleTimeout: 60,
     deletionProtection: true
   )
+  UpsertAmazonLoadBalancerV2Description updateDescription = new UpsertAmazonLoadBalancerV2Description(
+    loadBalancerType: AmazonLoadBalancerType.APPLICATION,
+    name: "foo-main-frontend",
+    availabilityZones: ["us-east-1": ["us-east-1a"]],
+    listeners: [
+      new UpsertAmazonLoadBalancerV2Description.Listener(
+        port: 80,
+        protocol: ProtocolEnum.HTTP,
+        defaultActions: [
+          new UpsertAmazonLoadBalancerV2Description.Action(
+            targetGroupName: targetGroupName
+          )
+        ]
+      )
+    ],
+    securityGroups: ["foo"],
+    credentials: TestCredential.named('bar'),
+    targetGroups: [
+      new UpsertAmazonLoadBalancerV2Description.TargetGroup(
+        name: "target-group-foo",
+        protocol: ProtocolEnum.HTTP,
+        port: 80,
+        healthCheckProtocol: ProtocolEnum.HTTP,
+        healthCheckPort: 8080,
+        attributes: [
+          deregistrationDelay: 300,
+        ]
+      )
+    ],
+    subnetType: "internal",
+    idleTimeout: 60,
+    deletionProtection: true
+  )
+  UpsertAmazonLoadBalancerV2Description descriptionWithNoAttributes = new UpsertAmazonLoadBalancerV2Description(
+    loadBalancerType: AmazonLoadBalancerType.APPLICATION,
+    name: "foo-main-frontend",
+    availabilityZones: ["us-east-1": ["us-east-1a"]],
+    listeners: [
+      new UpsertAmazonLoadBalancerV2Description.Listener(
+        port: 80,
+        protocol: ProtocolEnum.HTTP,
+        defaultActions: [
+          new UpsertAmazonLoadBalancerV2Description.Action(
+            targetGroupName: targetGroupName
+          )
+        ]
+      )
+    ],
+    securityGroups: ["foo"],
+    credentials: TestCredential.named('bar'),
+    targetGroups: [
+      new UpsertAmazonLoadBalancerV2Description.TargetGroup(
+        name: "target-group-foo",
+        protocol: ProtocolEnum.HTTP,
+        port: 80,
+        healthCheckProtocol: ProtocolEnum.HTTP,
+        healthCheckPort: 8080,
+        attributes: [
+        ]
+      )
+    ],
+    subnetType: "internal",
+    idleTimeout: 60,
+    deletionProtection: true
+  )
+
   def loadBalancerArn = "test:arn"
   def targetGroupArn = "test:target:group:arn"
   def targetGroup = new TargetGroup(targetGroupArn: targetGroupArn, targetGroupName: targetGroupName, port: 80, protocol: ProtocolEnum.HTTP)
@@ -184,6 +250,74 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     0 * _
   }
 
+  void "should create target group attributes passed for existing load balancer"() {
+    setup:
+    def existingLoadBalancers = [ loadBalancerOld ]
+    def existingTargetGroups = []
+    def existingListeners = []
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
+      loadBalancerArn: loadBalancerArn,
+      securityGroups: ["sg-1234"]
+    ))
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
+    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds'}.value == "300"
+      assert request.attributes.find { it.key == 'stickiness.enabled'}.value == "false"
+      assert request.attributes.find { it.key == 'stickiness.type'}.value == "lb_cookie"
+      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds'}.value == "86400"
+      assert request.targetGroupArn == "test:target:group:arn"
+      return new ModifyTargetGroupAttributesResult()
+    }
+    0 * _
+  }
+
+  void "should create target group attributes with defaults for existing load balancer"() {
+    @Subject createOperation = new UpsertAmazonLoadBalancerV2AtomicOperation(descriptionWithNoAttributes)
+    setup:
+    def existingLoadBalancers = [ loadBalancerOld ]
+    def existingTargetGroups = []
+    def existingListeners = []
+    createOperation.amazonClientProvider = mockAmazonClientProvider
+    createOperation.regionScopedProviderFactory = regionScopedProviderFactory
+    createOperation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
+    createOperation.ingressLoadBalancerBuilder = ingressLoadBalancerBuilder
+    when:
+    createOperation.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
+      loadBalancerArn: loadBalancerArn,
+      securityGroups: ["sg-1234"]
+    ))
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.createTargetGroup(_ as CreateTargetGroupRequest) >> new CreateTargetGroupResult(targetGroups: [targetGroup])
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
+    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds'}.value == "300"
+      assert request.attributes.find { it.key == 'stickiness.enabled'}.value == "false"
+      assert request.attributes.find { it.key == 'stickiness.type'}.value == "lb_cookie"
+      assert request.attributes.find { it.key == 'stickiness.lb_cookie.duration_seconds'}.value == "86400"
+      assert request.targetGroupArn == "test:target:group:arn"
+      return new ModifyTargetGroupAttributesResult()
+    }
+    0 * _
+  }
+
   void "should modify target group of existing load balancer"() {
     setup:
     def existingLoadBalancers = [ loadBalancerOld ]
@@ -203,6 +337,42 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
     1 * loadBalancing.modifyTargetGroup(_ as ModifyTargetGroupRequest)
     1 * loadBalancing.modifyTargetGroupAttributes(_ as ModifyTargetGroupAttributesRequest)
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
+    1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]
+    0 * _
+  }
+
+  void "should modify only target group attributes that are passed of existing load balancer"() {
+    @Subject updateOperation = new UpsertAmazonLoadBalancerV2AtomicOperation(updateDescription)
+
+    setup:
+    def existingLoadBalancers = [ loadBalancerOld ]
+    def existingTargetGroups = [ targetGroup ]
+    def existingListeners = []
+    updateOperation.amazonClientProvider = mockAmazonClientProvider
+    updateOperation.regionScopedProviderFactory = regionScopedProviderFactory
+    updateOperation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
+    updateOperation.ingressLoadBalancerBuilder = ingressLoadBalancerBuilder
+
+    when:
+    updateOperation.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: ["foo-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancers: existingLoadBalancers)
+    1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
+      loadBalancerArn: loadBalancerArn,
+      securityGroups: ["sg-1234"]
+    ))
+    1 * loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeTargetGroupsResult(targetGroups: existingTargetGroups)
+    1 * loadBalancing.modifyTargetGroup(_ as ModifyTargetGroupRequest)
+    1 * loadBalancing.modifyTargetGroupAttributes(_) >> { ModifyTargetGroupAttributesRequest request ->
+      assert request.attributes.find { it.key == 'deregistration_delay.timeout_seconds'}.value == "300"
+      assert request.attributes.find { it.key == 'stickiness.enabled'} == null
+      assert request.targetGroupArn == "test:target:group:arn"
+      return new ModifyTargetGroupAttributesResult()
+    }
     1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: existingListeners)
     1 * loadBalancing.createListener(new CreateListenerRequest(loadBalancerArn: loadBalancerArn, port: 80, protocol: "HTTP", defaultActions: [new Action(targetGroupArn: targetGroupArn, type: ActionTypeEnum.Forward, order: 1)]))
     1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: loadBalancerAttributes]

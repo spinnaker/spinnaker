@@ -329,13 +329,13 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   }
 
   public static class Attributes {
-    private Integer deregistrationDelay = 300;
-    private Boolean stickinessEnabled = false;
-    private String stickinessType = "lb_cookie";
-    private Integer stickinessDuration = 86400;
-    private Boolean proxyProtocolV2 = false;
+    private Integer deregistrationDelay;
+    private Boolean stickinessEnabled;
+    private String stickinessType;
+    private Integer stickinessDuration;
+    private Boolean proxyProtocolV2;
     /** The following attribute is supported only if the target is a Lambda function. */
-    private Boolean multiValueHeadersEnabled = false;
+    private Boolean multiValueHeadersEnabled;
 
     public Integer getDeregistrationDelay() {
       return deregistrationDelay;

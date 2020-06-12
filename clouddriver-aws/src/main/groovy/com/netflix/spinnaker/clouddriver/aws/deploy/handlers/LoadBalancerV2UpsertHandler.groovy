@@ -34,18 +34,61 @@ class LoadBalancerV2UpsertHandler {
   private static final String ATTRIBUTE_IDLE_TIMEOUT = "idle_timeout.timeout_seconds"
   private static final String ATTRIBUTE_DELETION_PROTECTION = "deletion_protection.enabled"
 
+  //Defaults for Target Group Attributes
+  private static final String DEREGISTRATION_DELAY = "300"
+  private static final Boolean STICKINESS_ENABLED = false
+  private static final String STICKINESS_TYPE = "lb_cookie"
+  private static final String STICKINESS_DURATION = "86400"
+  private static final Boolean PROXY_PROTOCOL_V2 = false
+  /** The following attribute is supported only if the target is a Lambda function. */
+  private static final Boolean MULTI_VALUE_HEADERS_ENABLED = false
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes) {
-    return modifyTargetGroupAttributes(loadBalancing, loadBalancer, targetGroup, attributes, null)
+  //Create Target Group Attributes with values provided in description, set to defaults other wise
+  static String createTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes, DeployDefaults deployDefaults) {
+    def targetGroupAttributes = []
+    log.info("Creating target group attributes for targetGroup {}", targetGroup.targetGroupName)
+    if (attributes) {
+      if (TargetTypeEnum.Lambda.toString().equalsIgnoreCase(targetGroup.getTargetType())) {
+        def multiValueHeaderAttribute = attributes.multiValueHeadersEnabled ?: MULTI_VALUE_HEADERS_ENABLED
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "lambda.multi_value_headers.enabled", value: multiValueHeaderAttribute))
+
+      } else {
+        Integer deregistrationDelay = [attributes.deregistrationDelay, deployDefaults?.loadBalancing?.deregistrationDelayDefault].findResult(Closure.IDENTITY)
+
+        def deregistrationDealyAttribute = deregistrationDelay?.toString() ?: DEREGISTRATION_DELAY
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: deregistrationDealyAttribute))
+      }
+      if (loadBalancer.type == 'application') {
+        def stickinessEnabledAttribute = attributes.stickinessEnabled?.toString() ?: STICKINESS_ENABLED
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: stickinessEnabledAttribute))
+
+        def stickinessTypeAttribute = attributes.stickinessType ?: STICKINESS_TYPE
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.type", value: stickinessTypeAttribute))
+
+        def stickinessDurationAttribute = attributes.stickinessDuration?.toString() ?: STICKINESS_DURATION
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: stickinessDurationAttribute))
+
+      }
+      if (loadBalancer.type == 'network') {
+        def proxyProtocolV2Attribute = attributes.proxyProtocolV2 ?: PROXY_PROTOCOL_V2
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: proxyProtocolV2Attribute))
+
+      }
+    }
+    return updateTargetGroupAttributes(loadBalancing, targetGroup, targetGroupAttributes)
   }
+
+  // Modify target group attributes with attributes that are set in the description , do not update attributes that are not set
   private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes, DeployDefaults deployDefaults) {
+
+    log.info("Update target group attributes for targetGroup {}", targetGroup.targetGroupName)
     def targetGroupAttributes = []
     if (attributes) {
-      if (TargetTypeEnum.Lambda.toString().equalsIgnoreCase(targetGroup.getTargetType()))
-      {
+      if (TargetTypeEnum.Lambda.toString().equalsIgnoreCase(targetGroup.getTargetType())) {
         if (attributes.multiValueHeadersEnabled != null) {
           targetGroupAttributes.add(new TargetGroupAttribute(key: "lambda.multi_value_headers.enabled", value: attributes.multiValueHeadersEnabled))
         }
@@ -65,23 +108,27 @@ class LoadBalancerV2UpsertHandler {
             targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: attributes.stickinessDuration.toString()))
           }
         }
-        if (loadBalancer.type == 'network' ) {
-          if(attributes.proxyProtocolV2 != null) {
+        if (loadBalancer.type == 'network') {
+          if (attributes.proxyProtocolV2 != null) {
             targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: attributes.proxyProtocolV2))
           }
         }
       }
     }
+    return updateTargetGroupAttributes(loadBalancing, targetGroup, targetGroupAttributes)
+  }
 
-    try {
-      loadBalancing.modifyTargetGroupAttributes(new ModifyTargetGroupAttributesRequest()
-        .withTargetGroupArn(targetGroup.targetGroupArn)
-        .withAttributes(targetGroupAttributes))
-      task.updateStatus BASE_PHASE, "Modified target group ${targetGroup.targetGroupName} attributes."
-    } catch (AmazonServiceException e) {
-      return handleError("Failed to modify attributes for target group ${targetGroup.targetGroupName} - reason: ${e.toString()}.", e)
+  static String updateTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, TargetGroup targetGroup, List<TargetGroupAttribute> targetGroupAttributes) {
+    if (!targetGroupAttributes.isEmpty()) {
+      try {
+        loadBalancing.modifyTargetGroupAttributes(new ModifyTargetGroupAttributesRequest()
+          .withTargetGroupArn(targetGroup.targetGroupArn)
+          .withAttributes(targetGroupAttributes))
+        task.updateStatus BASE_PHASE, "Modified target group ${targetGroup.targetGroupName} attributes."
+      } catch (AmazonServiceException e) {
+        return handleError("Failed to modify attributes for target group ${targetGroup.targetGroupName} - reason: ${e.toString()}.", e)
+      }
     }
-
     return null
   }
 
@@ -145,7 +192,7 @@ class LoadBalancerV2UpsertHandler {
         createdTargetGroups.add(createdTargetGroup)
 
         // Add attributes
-        String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, loadBalancer, createdTargetGroup, targetGroup.attributes, deployDefaults)
+        String exceptionMessage = createTargetGroupAttributes(loadBalancing, loadBalancer, createdTargetGroup, targetGroup.attributes, deployDefaults)
         if (exceptionMessage) {
           amazonErrors << exceptionMessage
         }
@@ -198,7 +245,7 @@ class LoadBalancerV2UpsertHandler {
       task.updateStatus BASE_PHASE, "Target group updated in ${loadBalancer.loadBalancerName} (${awsTargetGroup.targetGroupName}:${awsTargetGroup.port}:${awsTargetGroup.protocol})."
 
       // Update attributes
-      String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, loadBalancer, awsTargetGroup, targetGroup.attributes)
+      String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, loadBalancer, awsTargetGroup, targetGroup.attributes, null)
       if (exceptionMessage) {
         amazonErrors << exceptionMessage
       }
