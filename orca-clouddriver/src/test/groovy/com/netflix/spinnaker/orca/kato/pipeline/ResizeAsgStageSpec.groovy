@@ -50,7 +50,7 @@ class ResizeAsgStageSpec extends Specification {
     stageBuilder.buildTaskGraph(stage)
 
     then:
-    stage.status == ExecutionStatus.SUCCEEDED
+    stage.status == ExecutionStatus.NOT_STARTED
 
     when:
     stageBuilder.beforeStages(stage, graphBefore)

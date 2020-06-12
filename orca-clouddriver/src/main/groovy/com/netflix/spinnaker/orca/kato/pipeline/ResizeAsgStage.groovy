@@ -56,14 +56,6 @@ class ResizeAsgStage implements StageDefinitionBuilder {
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    if (!stage.parentStageId || stage.execution.stages.find {
-      it.id == stage.parentStageId
-    }.type != stage.type) {
-      // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
-      stage.status = ExecutionStatus.SUCCEEDED
-      return
-    }
-
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("resizeAsg", ResizeAsgTask)
