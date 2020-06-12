@@ -32,7 +32,6 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
   'serverGroupCommandBuilder',
   function($scope, app, $uibModal, $timeout, insightFilterStateModel, serverGroupCommandBuilder) {
     this.$onInit = () => {
-      insightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
       const groupsUpdatedSubscription = ClusterState.filterService.groupsUpdatedStream.subscribe(() =>
         clusterGroupsUpdated(),
       );
@@ -51,7 +50,7 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
         .ready()
         .then(
           () => {
-            insightFilterStateModel.filtersHidden = false;
+            insightFilterStateModel.filtersHidden = Boolean(this.dataSource.fetchOnDemand);
             updateClusterGroups();
           },
           () => this.clustersLoadError(),
