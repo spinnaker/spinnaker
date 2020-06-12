@@ -9,7 +9,6 @@ ext {
     aws            : "1.11.764",
     bouncycastle   : "1.61",
     groovy         : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
-    hystrix        : "1.4.21",
     jsch           : "0.1.54",
     jschAgentProxy : "0.0.9",
     protobuf       : "3.9.1",
@@ -75,8 +74,6 @@ dependencies {
     api("com.netflix.dyno:dyno-jedis:1.7.2")
     api("com.netflix.eureka:eureka-client:1.9.18")
     api("com.netflix.frigga:frigga:0.24.0")
-    api("com.netflix.hystrix:hystrix-core:${versions.hystrix}")
-    api("com.netflix.hystrix:hystrix-javanica:${versions.hystrix}")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
     api("com.netflix.spectator:spectator-api:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")

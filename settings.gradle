@@ -34,7 +34,6 @@ include(
   "kork-core-tck",
   "kork-exceptions",
   "kork-expressions",
-  "kork-hystrix",
   "kork-jedis",
   "kork-jedis-test",
   "kork-plugins",
