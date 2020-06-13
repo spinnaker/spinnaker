@@ -36,6 +36,7 @@ import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 
@@ -77,7 +78,8 @@ public class PluginMonitorConfig {
       Optional<LockService> lockService,
       PluginReleaseService pluginReleaseService,
       PluginCache pluginCache,
-      Optional<EchoService> echoService) {
+      Optional<EchoService> echoService,
+      TaskScheduler scheduler) {
     return new PluginsBuildMonitor(
         properties,
         registry,
@@ -86,6 +88,7 @@ public class PluginMonitorConfig {
         lockService,
         pluginReleaseService,
         pluginCache,
-        echoService);
+        echoService,
+        scheduler);
   }
 }

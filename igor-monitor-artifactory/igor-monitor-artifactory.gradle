@@ -29,9 +29,6 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-jedis"
 
   // TODO(rz): Get rid of this dependency!
-  implementation "io.reactivex:rxjava"
-
-  // TODO(rz): Get rid of this dependency!
   implementation "net.logstash.logback:logstash-logback-encoder"
 
   // TODO(rz): Get rid of this dependency!

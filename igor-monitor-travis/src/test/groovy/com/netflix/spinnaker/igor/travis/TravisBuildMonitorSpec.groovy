@@ -30,6 +30,7 @@ import com.netflix.spinnaker.igor.travis.config.TravisProperties
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import org.springframework.scheduling.TaskScheduler
 import spock.lang.Specification
 
 class TravisBuildMonitorSpec extends Specification {
@@ -55,7 +56,8 @@ class TravisBuildMonitorSpec extends Specification {
             buildServices,
             travisProperties,
             Optional.of(echoService),
-            Optional.empty()
+            Optional.empty(),
+            Mock(TaskScheduler)
         )
         travisService.isLogReady(_) >> true
         buildCache.getTrackedBuilds(MASTER) >> []

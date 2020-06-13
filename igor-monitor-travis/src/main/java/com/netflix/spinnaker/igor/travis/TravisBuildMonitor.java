@@ -53,6 +53,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 /** Monitors travis builds */
@@ -79,8 +80,9 @@ public class TravisBuildMonitor
       BuildServices buildServices,
       TravisProperties travisProperties,
       Optional<EchoService> echoService,
-      Optional<LockService> lockService) {
-    super(properties, registry, dynamicConfigService, discoveryClient, lockService);
+      Optional<LockService> lockService,
+      TaskScheduler scheduler) {
+    super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.travisProperties = travisProperties;

@@ -54,6 +54,7 @@ import org.jfrog.artifactory.client.aql.AqlItem;
 import org.jfrog.artifactory.client.aql.AqlQueryBuilder;
 import org.jfrog.artifactory.client.impl.ArtifactoryRequestImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -74,8 +75,9 @@ public class ArtifactoryBuildMonitor
       Optional<LockService> lockService,
       Optional<EchoService> echoService,
       ArtifactoryCache cache,
-      ArtifactoryProperties artifactoryProperties) {
-    super(properties, registry, dynamicConfigService, discoveryClient, lockService);
+      ArtifactoryProperties artifactoryProperties,
+      TaskScheduler scheduler) {
+    super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
     this.cache = cache;
     this.artifactoryProperties = artifactoryProperties;
     this.echoService = echoService;

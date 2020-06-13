@@ -37,6 +37,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
 
 import java.util.concurrent.TimeUnit
@@ -64,8 +65,9 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   DockerRegistryAccounts dockerRegistryAccounts,
                   Optional<EchoService> echoService,
                   Optional<KeelService> keelService,
-                  DockerRegistryProperties dockerRegistryProperties) {
-        super(properties, registry, dynamicConfigService, discoveryClient, lockService)
+                  DockerRegistryProperties dockerRegistryProperties,
+                  TaskScheduler scheduler) {
+        super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler)
         this.cache = cache
         this.dockerRegistryAccounts = dockerRegistryAccounts
         this.echoService = echoService

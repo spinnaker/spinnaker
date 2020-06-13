@@ -23,7 +23,11 @@ import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.plugins.front50.PluginReleaseService;
 import com.netflix.spinnaker.igor.plugins.model.PluginEvent;
 import com.netflix.spinnaker.igor.plugins.model.PluginRelease;
-import com.netflix.spinnaker.igor.polling.*;
+import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
+import com.netflix.spinnaker.igor.polling.DeltaItem;
+import com.netflix.spinnaker.igor.polling.LockService;
+import com.netflix.spinnaker.igor.polling.PollContext;
+import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
@@ -32,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Data;
+import org.springframework.scheduling.TaskScheduler;
 
 public class PluginsBuildMonitor
     extends CommonPollingMonitor<
@@ -49,8 +54,9 @@ public class PluginsBuildMonitor
       Optional<LockService> lockService,
       PluginReleaseService pluginInfoService,
       PluginCache cache,
-      Optional<EchoService> echoService) {
-    super(igorProperties, registry, dynamicConfigService, discoveryClient, lockService);
+      Optional<EchoService> echoService,
+      TaskScheduler scheduler) {
+    super(igorProperties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
     this.pluginInfoService = pluginInfoService;
     this.cache = cache;
     this.echoService = echoService;

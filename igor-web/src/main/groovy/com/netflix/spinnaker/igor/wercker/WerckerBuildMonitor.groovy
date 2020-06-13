@@ -10,6 +10,7 @@ package com.netflix.spinnaker.igor.wercker
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import org.springframework.scheduling.TaskScheduler
 
 import static com.netflix.spinnaker.igor.wercker.model.Run.finishedAtComparator
 import static com.netflix.spinnaker.igor.wercker.model.Run.startedAtComparator
@@ -71,8 +72,9 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
       BuildServices buildServices,
       @Value('${wercker.polling.enabled:true}') boolean pollingEnabled,
       Optional<EchoService> echoService,
-      WerckerProperties werckerProperties) {
-        super(properties, registry, dynamicConfigService, discoveryClient, lockService)
+      WerckerProperties werckerProperties,
+      TaskScheduler scheduler) {
+        super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler)
         this.cache = cache
         this.buildServices = buildServices
         this.pollingEnabled = pollingEnabled
@@ -99,14 +101,6 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
         }
         )
         log.info "WerckerBuildMonitor Polling cycle done in ${System.currentTimeMillis() - startTime}ms"
-    }
-
-    @PreDestroy
-    void stop() {
-        log.info('Stopped')
-        if (!worker.isUnsubscribed()) {
-            worker.unsubscribe()
-        }
     }
 
     /**

@@ -29,14 +29,14 @@ import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.Logger
+import org.springframework.scheduling.TaskScheduler
 import retrofit.RetrofitError
-import rx.schedulers.Schedulers
 import spock.lang.Specification
 /**
  * Tests for JenkinsBuildMonitor
  */
 @SuppressWarnings(['DuplicateNumberLiteral', 'PropertyName'])
-class JenkinsBuildMonitorSpec extends Specification {
+class   JenkinsBuildMonitorSpec extends Specification {
 
     JenkinsCache cache = Mock(JenkinsCache)
     JenkinsService jenkinsService = Mock(JenkinsService)
@@ -59,10 +59,9 @@ class JenkinsBuildMonitorSpec extends Specification {
             buildServices,
             true,
             Optional.of(echoService),
-            new JenkinsProperties()
+            new JenkinsProperties(),
+            Mock(TaskScheduler)
         )
-
-        monitor.worker = Schedulers.immediate().createWorker()
     }
 
     def 'should handle any failure to talk to jenkins graciously' () {

@@ -75,6 +75,9 @@ public class IgorConfigurationProperties {
 
       /** TODO(jc): Please document */
       private boolean processBuildsOlderThanLookBackWindow = true;
+
+      /** The thread pool size used by the polling monitors */
+      private int schedulerPoolSize = Runtime.getRuntime().availableProcessors();
     }
 
     @Data

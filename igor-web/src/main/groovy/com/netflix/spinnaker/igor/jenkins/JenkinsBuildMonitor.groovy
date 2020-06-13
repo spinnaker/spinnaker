@@ -40,6 +40,7 @@ import groovy.time.TimeCategory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
 import retrofit.RetrofitError
 import java.util.stream.Collectors
@@ -69,8 +70,9 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
                         BuildServices buildServices,
                         @Value('${jenkins.polling.enabled:true}') boolean pollingEnabled,
                         Optional<EchoService> echoService,
-                        JenkinsProperties jenkinsProperties) {
-        super(properties, registry, dynamicConfigService, discoveryClient, lockService)
+                        JenkinsProperties jenkinsProperties,
+                        TaskScheduler scheduler) {
+        super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler)
         this.cache = cache
         this.buildServices = buildServices
         this.pollingEnabled = pollingEnabled

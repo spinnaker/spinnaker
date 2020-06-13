@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import rx.schedulers.Schedulers;
+import org.springframework.scheduling.TaskScheduler;
 
 class ConcourseBuildMonitorTest {
   private ArtifactDecorator artifactDecorator = mock(ArtifactDecorator.class);
@@ -69,9 +69,8 @@ class ConcourseBuildMonitorTest {
             Optional.of(echoService),
             buildServices,
             cache,
-            props);
-
-    this.monitor.setWorker(Schedulers.immediate().createWorker());
+            props,
+            mock(TaskScheduler.class));
   }
 
   @Test

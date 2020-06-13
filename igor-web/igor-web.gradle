@@ -79,7 +79,6 @@ dependencies {
     implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
     implementation "com.netflix.spinnaker.kork:kork-plugins"
 
-    implementation "io.reactivex:rxjava"
     implementation "com.netflix.eureka:eureka-client"
     implementation "io.github.resilience4j:resilience4j-retry"
 

@@ -26,7 +26,7 @@ import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
-import rx.schedulers.Schedulers
+import org.springframework.scheduling.TaskScheduler
 import spock.lang.Specification
 
 class ArtifactoryBuildMonitorSpec extends Specification {
@@ -47,9 +47,9 @@ class ArtifactoryBuildMonitorSpec extends Specification {
       Optional.ofNullable(lockService),
       Optional.of(echoService),
       cache,
-      new ArtifactoryProperties(searches: [search])
+      new ArtifactoryProperties(searches: [search]),
+      Mock(TaskScheduler)
     )
-    monitor.worker = Schedulers.immediate().createWorker()
 
     return monitor
   }
