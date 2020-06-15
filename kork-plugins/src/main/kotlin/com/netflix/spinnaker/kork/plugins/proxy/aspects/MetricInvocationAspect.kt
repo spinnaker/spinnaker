@@ -121,7 +121,7 @@ class MetricInvocationAspect(
     if (!MethodInstrumentation.isMethodAllowed(method)) {
       return null
     } else {
-      return this.get(method) { m ->
+      return this.get(target.javaClass.getMethod(method.name, *method.parameterTypes)) { m ->
         m.declaredAnnotations
           .find { it is Metered }
           .let { metered ->

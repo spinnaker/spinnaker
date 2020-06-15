@@ -35,7 +35,7 @@ public class MethodInstrumentation {
     return
     // Only instrument public methods
     Modifier.isPublic(method.getModifiers())
-        ||
+        &&
         // Ignore any methods from the root Object class
         Arrays.stream(Object.class.getDeclaredMethods())
             .noneMatch(m -> m.getName().equals(method.getName()));
