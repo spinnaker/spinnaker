@@ -23,11 +23,13 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.ListRolesResult;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
@@ -151,5 +153,40 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
               + ".",
           keys.contains(cacheData.getId()));
     }
+  }
+
+  @Test
+  public void shouldGetDefaultRegion() {
+    // given
+    String defaultRegionName = Regions.DEFAULT_REGION.getName();
+    when(netflixAmazonCredentials.getRegions())
+        .thenReturn(Collections.singletonList(new AmazonCredentials.AWSRegion("us-east-1", null)));
+
+    // when
+    String actualRegionName = agent.getIamRegion();
+
+    // then
+    assertEquals(
+        "Expected region to equal " + defaultRegionName + ", but got " + actualRegionName,
+        defaultRegionName,
+        actualRegionName);
+  }
+
+  @Test
+  public void shouldGetConfiguredIamRegion() {
+    // given
+    String expectedRegionName = "cn-north-1";
+    when(netflixAmazonCredentials.getRegions())
+        .thenReturn(
+            Collections.singletonList(new AmazonCredentials.AWSRegion(expectedRegionName, null)));
+
+    // when
+    String actualRegionName = agent.getIamRegion();
+
+    // then
+    assertEquals(
+        "Expected region to equal " + expectedRegionName + ", but got " + actualRegionName,
+        expectedRegionName,
+        actualRegionName);
   }
 }
