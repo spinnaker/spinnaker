@@ -70,7 +70,9 @@ public final class Artifact {
     this.version = version;
     this.location = location;
     this.reference = reference;
-    this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
+    // Shallow copy the metadata map so changes to the input map after creating the artifact
+    // don't affect its metadata.
+    this.metadata = Optional.ofNullable(metadata).map(HashMap::new).orElseGet(HashMap::new);
     this.artifactAccount = artifactAccount;
     this.provenance = provenance;
     this.uuid = uuid;
@@ -161,7 +163,7 @@ public final class Artifact {
   public static class ArtifactBuilder {
     @Nonnull private Map<String, Object> metadata = new HashMap<>();
 
-    public Artifact.ArtifactBuilder metadata(@Nullable Map<String, Object> metadata) {
+    public ArtifactBuilder metadata(@Nullable Map<String, Object> metadata) {
       this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
       return this;
     }

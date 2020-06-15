@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 
@@ -210,6 +212,23 @@ final class ArtifactTest {
     // Ensure that there is no exception reading an artifact with null metadata.
     Artifact artifact = objectMapper.readValue(json, Artifact.class);
     assertThat(artifact.getMetadata("abc")).isNull();
+  }
+
+  @Test
+  void immutableMetadata() throws IOException {
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("key1", "before");
+
+    Artifact artifact = Artifact.builder().metadata(metadata).build();
+
+    assertThat(artifact.getMetadata("key1")).isEqualTo("before");
+    assertThat(artifact.getMetadata("key2")).isNull();
+
+    metadata.put("key1", "after");
+    metadata.put("key2", "something");
+
+    assertThat(artifact.getMetadata("key1")).isEqualTo("before");
+    assertThat(artifact.getMetadata("key2")).isNull();
   }
 
   private String fullArtifactJson() {
