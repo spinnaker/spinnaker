@@ -25,24 +25,24 @@ import org.springframework.stereotype.Component
 class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+  boolean handles(OnDemandType type, String cloudProvider) {
     false
   }
 
   @Override
-  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ?> data) {
+  OnDemandCacheResult handle(OnDemandType type, String cloudProvider, Map<String, ?> data) {
     return new OnDemandCacheResult(
       status: OnDemandCacheStatus.SUCCESSFUL
     )
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider) {
+  Collection<Map> pendingOnDemandRequests(OnDemandType type, String cloudProvider) {
     return []
   }
 
   @Override
-  Map pendingOnDemandRequest(OnDemandAgent.OnDemandType type, String cloudProvider, String id) {
+  Map pendingOnDemandRequest(OnDemandType type, String cloudProvider, String id) {
     return null
   }
 }

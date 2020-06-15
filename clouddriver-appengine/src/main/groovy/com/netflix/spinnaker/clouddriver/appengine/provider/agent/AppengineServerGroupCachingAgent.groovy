@@ -40,6 +40,7 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.view.MutableCacheDat
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -70,7 +71,7 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,
       this,
-      "$AppengineCloudProvider.ID:$OnDemandAgent.OnDemandType.ServerGroup")
+      "$AppengineCloudProvider.ID:$OnDemandType.ServerGroup")
   }
 
   @Override
@@ -89,8 +90,8 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == AppengineCloudProvider.ID
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.ServerGroup && cloudProvider == AppengineCloudProvider.ID
   }
 
   @Override

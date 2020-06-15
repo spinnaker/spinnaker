@@ -27,6 +27,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -65,12 +66,12 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,
       this,
-      "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+      "${GoogleCloudProvider.ID}:${OnDemandType.SecurityGroup}")
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == GoogleCloudProvider.ID
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.SecurityGroup && cloudProvider == GoogleCloudProvider.ID
   }
 
   @Override

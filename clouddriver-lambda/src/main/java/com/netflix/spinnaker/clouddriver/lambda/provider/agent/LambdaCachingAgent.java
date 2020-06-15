@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import java.util.*;
 import java.util.function.Predicate;
@@ -265,7 +266,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
 
   @Override
   public boolean handles(OnDemandType type, String cloudProvider) {
-    return type == OnDemandType.Function && cloudProvider.equals(AmazonCloudProvider.ID);
+    return type.equals(OnDemandType.Function) && cloudProvider.equals(AmazonCloudProvider.ID);
   }
 
   @Override

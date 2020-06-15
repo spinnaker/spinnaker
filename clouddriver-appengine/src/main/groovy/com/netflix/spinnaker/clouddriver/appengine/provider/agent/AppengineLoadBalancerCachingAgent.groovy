@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccoun
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandResult
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -78,12 +79,12 @@ class AppengineLoadBalancerCachingAgent extends AbstractAppengineCachingAgent im
     metricsSupport = new OnDemandMetricsSupport(
       registry,
       this,
-      "$AppengineCloudProvider.ID:$OnDemandAgent.OnDemandType.LoadBalancer")
+      "$AppengineCloudProvider.ID:$OnDemandType.LoadBalancer")
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == AppengineCloudProvider.ID
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.LoadBalancer && cloudProvider == AppengineCloudProvider.ID
   }
 
   @Override

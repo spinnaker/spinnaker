@@ -50,17 +50,17 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+  boolean handles(OnDemandType type, String cloudProvider) {
     onDemandAgents.any { it.handles(type, cloudProvider) }
   }
 
   @Override
-  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ?> data) {
+  OnDemandCacheResult handle(OnDemandType type, String cloudProvider, Map<String, ?> data) {
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
     return handle(type, onDemandAgents, data)
   }
 
-  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+  OnDemandCacheResult handle(OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
     log.debug("Calling handle on data: {}, onDemandAgents: {}, type: {}", data, onDemandAgents, type)
     boolean hasOnDemandResults = false
     Map<String, List<String>> cachedIdentifiersByType = [:].withDefault { [] }
@@ -139,7 +139,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider) {
+  Collection<Map> pendingOnDemandRequests(OnDemandType type, String cloudProvider) {
     if (agentScheduler.atomic) {
       return []
     }
@@ -152,7 +152,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  Map pendingOnDemandRequest(OnDemandAgent.OnDemandType type, String cloudProvider, String id) {
+  Map pendingOnDemandRequest(OnDemandType type, String cloudProvider, String id) {
     if (agentScheduler.atomic) {
       return null
     }

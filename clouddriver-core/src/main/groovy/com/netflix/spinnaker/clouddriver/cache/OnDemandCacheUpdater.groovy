@@ -34,7 +34,7 @@ interface OnDemandCacheUpdater {
    * @param cloudProvider
    * @return
    */
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider)
+  boolean handles(OnDemandType type, String cloudProvider)
 
   /**
    * Handles the update request
@@ -42,11 +42,11 @@ interface OnDemandCacheUpdater {
    * @param cloudProvider
    * @param data
    */
-  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data)
+  OnDemandCacheResult handle(OnDemandType type, String cloudProvider, Map<String, ? extends Object> data)
 
-  Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider)
+  Collection<Map> pendingOnDemandRequests(OnDemandType type, String cloudProvider)
 
-  Map pendingOnDemandRequest(OnDemandAgent.OnDemandType type, String cloudProvider, String id)
+  Map pendingOnDemandRequest(OnDemandType type, String cloudProvider, String id)
 
   static class OnDemandCacheResult {
     OnDemandCacheStatus status

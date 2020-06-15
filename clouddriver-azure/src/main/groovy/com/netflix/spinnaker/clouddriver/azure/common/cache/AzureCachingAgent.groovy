@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.AzureInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 
 abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
@@ -84,7 +85,7 @@ abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, Account
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+  boolean handles(OnDemandType type, String cloudProvider) {
     type == getOnDemandType() && cloudProvider == azureCloudProvider.id
   }
 
@@ -101,7 +102,7 @@ abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, Account
 
   abstract Boolean validKeys(Map<String, ? extends Object> data)
 
-  abstract protected OnDemandAgent.OnDemandType getOnDemandType()
+  abstract protected OnDemandType getOnDemandType()
 
   def static parseOnDemandCache(Collection<CacheData> results, long lastReadTime) {
     List<String> evictions = new ArrayList<String>()

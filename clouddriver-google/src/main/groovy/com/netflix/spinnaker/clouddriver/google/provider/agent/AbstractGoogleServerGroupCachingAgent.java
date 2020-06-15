@@ -68,6 +68,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider;
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder;
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder.CacheDataBuilder;
@@ -127,7 +128,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
           INFORMATIVE.forType(LOAD_BALANCERS.getNs()));
 
   private static final String ON_DEMAND_TYPE =
-      String.join(":", GoogleCloudProvider.getID(), OnDemandType.ServerGroup.name());
+      String.join(":", GoogleCloudProvider.getID(), OnDemandType.ServerGroup.getValue());
 
   private static final Splitter COMMA = Splitter.on(',').omitEmptyStrings().trimResults();
   private static final MapSplitter IMAGE_DESCRIPTION_SPLITTER =

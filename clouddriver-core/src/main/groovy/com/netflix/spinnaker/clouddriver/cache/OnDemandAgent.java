@@ -20,7 +20,6 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,25 +37,6 @@ public interface OnDemandAgent {
 
   // TODO(ttomsu): This seems like it should go in a different interface.
   OnDemandMetricsSupport getMetricsSupport();
-
-  enum OnDemandType {
-    ServerGroup,
-    SecurityGroup,
-    LoadBalancer,
-    Job,
-    TargetGroup,
-    CloudFormation,
-    Manifest,
-    Function;
-
-    static OnDemandType fromString(String s) {
-      return Arrays.stream(values())
-          .filter(v -> v.toString().equalsIgnoreCase(s))
-          .findFirst()
-          .orElseThrow(
-              () -> new IllegalArgumentException("Cannot create OnDemandType from '" + s + "'"));
-    }
-  }
 
   boolean handles(OnDemandType type, String cloudProvider);
 

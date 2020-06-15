@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.Azu
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import groovy.transform.WithWriteLock
 import groovy.util.logging.Slf4j
 
@@ -68,7 +69,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -97,8 +98,8 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == azureCloudProvider.id
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.SecurityGroup && cloudProvider == azureCloudProvider.id
   }
 
   @Override

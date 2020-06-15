@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.azure.common.cache.AzureCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.common.cache.MutableCacheData
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 
 import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.*
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
@@ -343,8 +344,8 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
   }
 
   @Override
-  OnDemandAgent.OnDemandType getOnDemandType() {
-    OnDemandAgent.OnDemandType.ServerGroup
+  OnDemandType getOnDemandType() {
+    OnDemandType.ServerGroup
   }
 
   private static void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {

@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -213,9 +214,9 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
 
     where:
     onDemandType                              | provider               || expected
-    OnDemandAgent.OnDemandType.CloudFormation | AmazonCloudProvider.ID || true
-    OnDemandAgent.OnDemandType.CloudFormation | "other"                || false
-    OnDemandAgent.OnDemandType.Job            | AmazonCloudProvider.ID || false
+    OnDemandType.CloudFormation | AmazonCloudProvider.ID || true
+    OnDemandType.CloudFormation | "other"                || false
+    OnDemandType.Job            | AmazonCloudProvider.ID || false
   }
 
   @Unroll

@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.A
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import groovy.transform.WithWriteLock
 import groovy.util.logging.Slf4j
 
@@ -59,7 +60,7 @@ class AzureAppGatewayCachingAgent extends AzureCachingAgent {
                               Registry registry) {
     super(azureCloudProvider, accountName, creds, region, objectMapper)
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandAgent.OnDemandType.LoadBalancer}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandType.LoadBalancer}")
   }
 
   @Override
@@ -79,13 +80,13 @@ class AzureAppGatewayCachingAgent extends AzureCachingAgent {
   }
 
   @Override
-  OnDemandAgent.OnDemandType getOnDemandType() {
-    OnDemandAgent.OnDemandType.LoadBalancer
+  OnDemandType getOnDemandType() {
+    OnDemandType.LoadBalancer
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == azureCloudProvider.id
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.LoadBalancer && cloudProvider == azureCloudProvider.id
   }
 
   @Override

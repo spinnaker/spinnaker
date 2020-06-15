@@ -45,6 +45,7 @@ import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider;
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys;
@@ -179,7 +180,7 @@ public class TitusV2ClusterCachingAgent
 
   @Override
   public boolean handles(OnDemandType type, String cloudProvider) {
-    return type == OnDemandType.ServerGroup && cloudProvider.equals(TitusCloudProvider.ID);
+    return type.equals(OnDemandType.ServerGroup) && cloudProvider.equals(TitusCloudProvider.ID);
   }
 
   @Override

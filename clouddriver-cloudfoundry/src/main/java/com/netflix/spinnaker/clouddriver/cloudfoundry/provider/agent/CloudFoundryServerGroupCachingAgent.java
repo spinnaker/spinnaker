@@ -35,7 +35,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
-import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
@@ -132,8 +132,8 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
   }
 
   @Override
-  public boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    return type.equals(OnDemandAgent.OnDemandType.ServerGroup)
+  public boolean handles(OnDemandType type, String cloudProvider) {
+    return type.equals(OnDemandType.ServerGroup)
         && cloudProvider.equals(CloudFoundryProvider.PROVIDER_ID);
   }
 

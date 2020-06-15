@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -71,7 +72,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     this.objectMapper = objectMapper
     this.registry = registry
     this.eddaTimeoutConfig = eddaTimeoutConfig
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.ID}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.ID}:${OnDemandType.SecurityGroup}")
     this.lastModifiedKey = Keys.getSecurityGroupKey('LAST_MODIFIED', 'LAST_MODIFIED', region, account.name, null)
   }
 
@@ -125,8 +126,8 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == AmazonCloudProvider.ID
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.SecurityGroup && cloudProvider == AmazonCloudProvider.ID
   }
 
   @Override

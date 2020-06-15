@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
-import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType.Manifest;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +31,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -77,7 +76,8 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
             .withResource(KubernetesManifest.class);
 
     metricsSupport =
-        new OnDemandMetricsSupport(registry, this, KubernetesCloudProvider.ID + ":" + Manifest);
+        new OnDemandMetricsSupport(
+            registry, this, KubernetesCloudProvider.ID + ":" + OnDemandType.Manifest);
   }
 
   @Override
@@ -333,7 +333,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
   @Override
   public boolean handles(OnDemandType type, String cloudProvider) {
-    return type == Manifest && cloudProvider.equals(KubernetesCloudProvider.ID);
+    return type.equals(OnDemandType.Manifest) && cloudProvider.equals(KubernetesCloudProvider.ID);
   }
 
   @Override

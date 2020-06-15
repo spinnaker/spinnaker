@@ -33,7 +33,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
-import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
@@ -151,7 +151,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
 
   @Override
   public boolean handles(OnDemandType type, String cloudProvider) {
-    return type.equals(OnDemandAgent.OnDemandType.LoadBalancer)
+    return type.equals(OnDemandType.LoadBalancer)
         && cloudProvider.equals(CloudFoundryProvider.PROVIDER_ID);
   }
 

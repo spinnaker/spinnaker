@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -69,12 +70,12 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,
       this,
-      "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}")
+      "${GoogleCloudProvider.ID}:${OnDemandType.LoadBalancer}")
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.ID
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.ID
   }
 
   @Override
