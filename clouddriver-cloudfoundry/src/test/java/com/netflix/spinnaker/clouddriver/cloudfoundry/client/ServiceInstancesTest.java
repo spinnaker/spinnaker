@@ -1118,7 +1118,7 @@ class ServiceInstancesTest {
             new ServiceInstanceResponse()
                 .setServiceInstanceName("new-service-instance-name")
                 .setType(DELETE)
-                .setState(LastOperation.State.NOT_FOUND));
+                .setState(IN_PROGRESS));
     verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
     verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
