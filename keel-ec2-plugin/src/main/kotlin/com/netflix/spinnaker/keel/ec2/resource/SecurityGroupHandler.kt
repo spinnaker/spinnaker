@@ -23,8 +23,10 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.ec2.AllPorts
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.IngressPorts
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
@@ -271,10 +273,10 @@ class SecurityGroupHandler(
       inboundRules = inboundRules.flatMap { rule ->
         val ingressGroup = rule.securityGroup
         val ingressRange = rule.range
-        val protocol = Protocol.valueOf(rule.protocol!!.toUpperCase())
+        val protocol = rule.protocol!!.clouddriverProtocolToKeel()
         when {
           ingressGroup != null -> rule.portRanges
-            ?.map { PortRange(it.startPort!!, it.endPort!!) }
+            ?.map { it.toPortRange() }
             ?.map { portRange ->
               when {
                 ingressGroup.accountName != accountName || ingressGroup.vpcId != vpcId -> CrossAccountReferenceRule(
@@ -292,7 +294,7 @@ class SecurityGroupHandler(
               }
             } ?: emptyList()
           ingressRange != null -> rule.portRanges
-            ?.map { PortRange(it.startPort!!, it.endPort!!) }
+            ?.map { it.toPortRange() }
             ?.map { portRange ->
               CidrRule(
                 protocol,
@@ -305,6 +307,14 @@ class SecurityGroupHandler(
       }
         .toSet()
     )
+
+  private fun SecurityGroupModel.SecurityGroupRulePortRange.toPortRange(): IngressPorts =
+    (startPort to endPort).let { (start, end) ->
+      if (start == null || end == null) AllPorts else PortRange(start, end)
+    }
+
+  private fun String.clouddriverProtocolToKeel(): Protocol =
+    if (this == "-1") Protocol.ALL else Protocol.valueOf(toUpperCase())
 
   private fun SecurityGroup.toCreateJob(): Job =
     Job(
@@ -356,15 +366,15 @@ class SecurityGroupHandler(
   private fun SecurityGroupRule.referenceRuleToJob(securityGroup: SecurityGroup): Map<String, Any?>? =
     when (this) {
       is ReferenceRule -> mapOf(
-        "type" to protocol.name.toLowerCase(),
-        "startPort" to portRange.startPort,
-        "endPort" to portRange.endPort,
+        "type" to protocol.type,
+        "startPort" to (portRange as? PortRange)?.startPort,
+        "endPort" to (portRange as? PortRange)?.endPort,
         "name" to (name ?: securityGroup.moniker.toString())
       )
       is CrossAccountReferenceRule -> mapOf(
-        "type" to protocol.name.toLowerCase(),
-        "startPort" to portRange.startPort,
-        "endPort" to portRange.endPort,
+        "type" to protocol.type,
+        "startPort" to (portRange as? PortRange)?.startPort,
+        "endPort" to (portRange as? PortRange)?.endPort,
         "name" to name,
         "accountName" to account,
         "crossAccountEnabled" to true,
@@ -379,14 +389,16 @@ class SecurityGroupHandler(
 
   private fun SecurityGroupRule.cidrRuleToJob(): Map<String, Any?>? =
     when (this) {
-      is CidrRule -> portRange.let { ports ->
+      is CidrRule ->
         mapOf<String, Any?>(
-          "type" to protocol.name,
-          "startPort" to ports.startPort,
-          "endPort" to ports.endPort,
+          "type" to protocol.type,
+          "startPort" to (portRange as? PortRange)?.startPort,
+          "endPort" to (portRange as? PortRange)?.endPort,
           "cidr" to blockRange
         )
-      }
       else -> null
     }
+
+  private val Protocol.type: String
+    get() = if (this == Protocol.ALL) "-1" else name.toLowerCase()
 }

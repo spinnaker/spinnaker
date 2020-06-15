@@ -23,12 +23,14 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.ec2.AllPorts
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.ALL
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
@@ -76,6 +78,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 
 @Suppress("UNCHECKED_CAST")
 internal class SecurityGroupHandlerTests : JUnit5Minutests {
@@ -327,28 +330,41 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             inboundRules = setOf(
               // cross account ingress rule from another app
               SecurityGroupRule(
-                "tcp",
-                listOf(SecurityGroupRulePortRange(443, 443)),
-                SecurityGroupRuleReference("otherapp", vpcOtherAccount.account, vpcOtherAccount.region, vpcOtherAccount.id),
-                null),
+                protocol = "tcp",
+                portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
+                securityGroup = SecurityGroupRuleReference("otherapp", vpcOtherAccount.account, vpcOtherAccount.region, vpcOtherAccount.id),
+                range = null),
               // multi-port range self-referencing ingress
               SecurityGroupRule(
-                "tcp",
-                listOf(
+                protocol = "tcp",
+                portRanges = listOf(
                   SecurityGroupRulePortRange(7001, 7001),
-                  SecurityGroupRulePortRange(7102, 7102)),
-                SecurityGroupRuleReference(
+                  SecurityGroupRulePortRange(7102, 7102)
+                ),
+                securityGroup = SecurityGroupRuleReference(
                   cloudDriverResponse1.name,
                   cloudDriverResponse1.accountName,
                   cloudDriverResponse1.region,
-                  vpcRegion1.id),
-                null),
+                  vpcRegion1.id
+                ),
+                range = null
+              ),
               // CIDR ingress
-              SecurityGroupRule("tcp",
-                listOf(
-                  SecurityGroupRulePortRange(443, 443)),
-                null,
-                SecurityGroupRuleCidr("10.0.0.0", "/16"))
+              SecurityGroupRule(
+                protocol = "tcp",
+                portRanges = listOf(
+                  SecurityGroupRulePortRange(443, 443)
+                ),
+                securityGroup = null,
+                range = SecurityGroupRuleCidr("10.0.0.0", "/16")
+              ),
+              // CIDR ingress on all protocols and ports
+              SecurityGroupRule(
+                protocol = "-1",
+                portRanges = listOf(SecurityGroupRulePortRange(null, null)),
+                securityGroup = null,
+                range = SecurityGroupRuleCidr("100.64.0.0", "/10")
+              )
             )
           )
         )
@@ -496,8 +512,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                   .and {
                     securityGroupSpec.inboundRules.first().also { rule ->
                       get("type").isEqualTo(rule.protocol.name.toLowerCase())
-                      get("startPort").isEqualTo(rule.portRange.startPort)
-                      get("endPort").isEqualTo(rule.portRange.endPort)
+                      get("startPort").isEqualTo((rule.portRange as? PortRange)?.startPort)
+                      get("endPort").isEqualTo((rule.portRange as? PortRange)?.endPort)
                       get("name").isEqualTo((rule as CrossAccountReferenceRule).name)
                     }
                   }
@@ -558,10 +574,10 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                   .first()
                   .and {
                     securityGroupSpec.inboundRules.first().also { rule ->
-                      get("type").isEqualTo(rule.protocol.name)
+                      get("type").isEqualTo(rule.protocol.name.toLowerCase())
                       get("cidr").isEqualTo((rule as CidrRule).blockRange)
-                      get("startPort").isEqualTo(rule.portRange.startPort)
-                      get("endPort").isEqualTo(rule.portRange.endPort)
+                      get("startPort").isEqualTo((rule.portRange as? PortRange)?.startPort)
+                      get("endPort").isEqualTo((rule.portRange as? PortRange)?.endPort)
                     }
                   }
               }
@@ -669,6 +685,70 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             job.hasSize(1)
             job.first().type.isEqualTo("upsertSecurityGroup")
             job.first().securityGroupIngress.hasSize(1)
+          }
+        }
+      }
+    }
+
+    context("update a security group with an all protocols/ports ingress rule") {
+      deriveFixture {
+        copy(
+          securityGroupSpec = securityGroupSpec.copy(
+            inboundRules = setOf(
+              CidrRule(
+                protocol = ALL,
+                portRange = AllPorts,
+                blockRange = "100.64.0.0/10"
+              )
+            )
+          )
+        )
+      }
+
+      before {
+        clearMocks(orcaService)
+        every { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+          TaskRefResponse("/tasks/${randomUUID()}")
+        }
+
+        runBlocking {
+          val withoutIngress = resource.copy(
+            spec = resource.spec.copy(
+              inboundRules = emptySet()
+            )
+          )
+
+          handler.update(resource,
+            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutIngress)))
+        }
+      }
+
+      after {
+        confirmVerified(orcaService)
+      }
+
+      test("it includes all protocols/ports rule in the Orca task") {
+        val tasks = mutableListOf<OrchestrationRequest>()
+        verify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        expectThat(tasks)
+          .hasSize(2)
+        expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+          .hasSize(2)
+          .containsExactly(regions)
+
+        tasks.forEach { task ->
+          expectThat(task) {
+            application.isEqualTo(securityGroupSpec.moniker.app)
+            job.hasSize(1)
+            with(job.first()) {
+              type.isEqualTo("upsertSecurityGroup")
+              ipIngress.hasSize(1)
+              with(ipIngress.first()) {
+                get("type").isEqualTo("-1")
+                get("startPort").isNull()
+                get("endPort").isNull()
+              }
+            }
           }
         }
       }

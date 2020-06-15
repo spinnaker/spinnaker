@@ -18,15 +18,18 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonDeserializer.None
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.netflix.spinnaker.keel.ec2.jackson.IngressPortsDeserializer
+import com.netflix.spinnaker.keel.ec2.jackson.IngressPortsSerializer
 import com.netflix.spinnaker.keel.ec2.jackson.SecurityGroupRuleDeserializer
 
 @JsonDeserialize(using = SecurityGroupRuleDeserializer::class)
 sealed class SecurityGroupRule {
   abstract val protocol: Protocol
-  abstract val portRange: PortRange
+  abstract val portRange: IngressPorts
 
   enum class Protocol {
-    TCP, UDP, ICMP
+    ALL, TCP, UDP, ICMP
   }
 
   @JsonIgnore
@@ -37,7 +40,7 @@ sealed class SecurityGroupRule {
 data class ReferenceRule(
   override val protocol: Protocol,
   val name: String? = null,
-  override val portRange: PortRange
+  override val portRange: IngressPorts
 ) : SecurityGroupRule() {
   @get:JsonIgnore
   override val isSelfReference: Boolean
@@ -50,17 +53,23 @@ data class CrossAccountReferenceRule(
   val name: String,
   val account: String,
   val vpc: String,
-  override val portRange: PortRange
+  override val portRange: IngressPorts
 ) : SecurityGroupRule()
 
 @JsonDeserialize(using = None::class)
 data class CidrRule(
   override val protocol: Protocol,
-  override val portRange: PortRange,
+  override val portRange: IngressPorts,
   val blockRange: String
 ) : SecurityGroupRule()
+
+@JsonSerialize(using = IngressPortsSerializer::class)
+@JsonDeserialize(using = IngressPortsDeserializer::class)
+sealed class IngressPorts
+
+object AllPorts : IngressPorts()
 
 data class PortRange(
   val startPort: Int,
   val endPort: Int
-)
+) : IngressPorts()

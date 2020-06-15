@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.ALL
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.TestContextBuilder
@@ -11,7 +12,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.propertiesAreEqualTo
 
-internal object SecurityGroupRuleTests : JUnit5Minutests {
+internal class SecurityGroupRuleTests : JUnit5Minutests {
 
   data class Fixture(
     val mapper: ObjectMapper = configuredYamlMapper(),
@@ -106,6 +107,26 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
             protocol = TCP,
             blockRange = "172.16.0.0/24",
             portRange = PortRange(8080, 8080)
+          )
+        )
+      }
+
+      canSerialize()
+      canDeserialize()
+    }
+    context("an open CIDR rule") {
+      fixture {
+        Fixture(
+          yaml = """
+            |---
+            |protocol: "ALL"
+            |portRange: "ALL"
+            |blockRange: "172.16.0.0/24"
+            |""".trimMargin(),
+          model = CidrRule(
+            protocol = ALL,
+            blockRange = "172.16.0.0/24",
+            portRange = AllPorts
           )
         )
       }
