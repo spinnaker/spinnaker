@@ -243,17 +243,12 @@ public class OperationsService {
 
   private ProviderVersion getOperationVersion(OperationInput operation) {
     final String accountName = operation.computeAccountName();
-    if (accountName == null) {
-      log.warn("Unable to get account name from operation: {}", operation);
-    } else {
-      try {
-        AccountCredentials credentials = accountCredentialsRepository.getOne(accountName);
-        return credentials.getProviderVersion();
-      } catch (Exception e) {
-        log.warn("Unable to determine provider version for account {}", accountName, e);
-      }
+    Optional<AccountCredentials> credentials =
+        Optional.ofNullable(accountName).map(accountCredentialsRepository::getOne);
+    if (!credentials.isPresent()) {
+      log.warn("Unable to find account with name {}", accountName);
     }
-    return ProviderVersion.v1;
+    return credentials.map(AccountCredentials::getProviderVersion).orElse(ProviderVersion.v1);
   }
 
   /**
