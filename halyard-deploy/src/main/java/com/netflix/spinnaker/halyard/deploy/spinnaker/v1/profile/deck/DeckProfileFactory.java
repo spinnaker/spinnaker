@@ -101,7 +101,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     if (validatedVersion.isPresent()) {
       String changelog = validatedVersion.get().getChangelog();
       bindings.put("changelog.gist.id", changelog.substring(changelog.lastIndexOf("/") + 1));
-      bindings.put("changelog.gist.name", "changelog.md");
+      bindings.put("changelog.gist.name", String.format("%s.md", version));
     } else {
       bindings.put("changelog.gist.id", "");
       bindings.put("changelog.gist.name", "");
