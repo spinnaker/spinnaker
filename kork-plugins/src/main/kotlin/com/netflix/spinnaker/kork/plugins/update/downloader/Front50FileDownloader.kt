@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins.update.downloader
 
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.github.resilience4j.retry.Retry
 import java.net.URL
@@ -28,12 +30,14 @@ import okhttp3.Request
  * Downloads plugin binaries from Front50.
  */
 class Front50FileDownloader(
-  private val okHttpClient: OkHttpClient,
+  private val okHttpClientProvider: OkHttpClientProvider,
   private val front50BaseUrl: URL
 ) : SupportingFileDownloader {
 
   override fun supports(url: URL): Boolean =
     url.host == front50BaseUrl.host
+
+  private val okHttpClient: OkHttpClient = okHttpClientProvider.getClient(DefaultServiceEndpoint("front50", front50BaseUrl.toString()))
 
   override fun downloadFile(fileUrl: URL): Path {
     val request = Request.Builder()
