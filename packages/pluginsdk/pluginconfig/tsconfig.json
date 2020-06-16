@@ -13,7 +13,6 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "skipLibCheck": true,
-    "sourceMap": true,
     "target": "es2017"
   }
 }
