@@ -1,11 +1,11 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2020 Armory, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,18 +15,18 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.orchestration
+package com.netflix.spinnaker.clouddriver.orchestration;
 
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 
-trait VersionedCloudProviderOperation {
+public interface VersionedCloudProviderOperation {
   /**
-   * Various operations can satisfy different provider's versions. This operation will only be applicable to accounts
-   * at this version.
+   * Various operations can satisfy different provider's versions. This operation will only be
+   * applicable to accounts at this version.
    *
    * @return true i.f.f. this operations works on accounts at this version
    */
-  boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v1
+  default boolean acceptsVersion(ProviderVersion version) {
+    return ProviderVersion.v1.equals(version);
   }
 }
