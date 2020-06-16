@@ -370,7 +370,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _ ) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _ ) >> pipelines.findAll {
         it.pipelineConfigId == "1"
       }.collect { config ->
         PipelineExecutionImpl pipeline = pipeline {
@@ -418,7 +418,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -467,7 +467,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -510,7 +510,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -549,7 +549,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["2"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["2"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -588,7 +588,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -626,7 +626,7 @@ class TaskControllerSpec extends Specification {
     pipelines[0].trigger.artifacts.addAll([Artifact.builder().name("a").version("1").build(), Artifact.builder().name("a").build()])
     pipelines[1].trigger.artifacts.addAll([Artifact.builder().name("a").build(), Artifact.builder().name("a").version("1").build()])
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {
@@ -670,7 +670,7 @@ class TaskControllerSpec extends Specification {
       ]
     ]
 
-    executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       PipelineExecutionImpl pipeline = pipeline {

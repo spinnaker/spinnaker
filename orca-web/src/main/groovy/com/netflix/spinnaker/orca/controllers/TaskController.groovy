@@ -344,32 +344,47 @@ class TaskController {
 
     ExecutionCriteria executionCriteria = new ExecutionCriteria()
       .setSortType(sortType)
+      .setPageSize(size * 2)
+
     if (statuses != null && statuses != "") {
       executionCriteria.setStatuses(statuses.split(",").toList())
     }
 
-    List<PipelineExecution> allExecutions = executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
-      pipelineConfigIds,
-      triggerTimeStartBoundary,
-      triggerTimeEndBoundary,
-      executionCriteria
-    )
+    List<PipelineExecution> matchingExecutions = new ArrayList<>()
 
-    List<PipelineExecution> matchingExecutions = allExecutions
-      .stream()
-      .filter({
-        // Filter by trigger type
-        if (triggerTypesAsSet && !triggerTypesAsSet.contains(it.getTrigger().type)) {
-          return false
-        }
-        // Filter by event ID
-        if (eventId && eventId != it.getTrigger().other.eventId) {
-          return false
-        }
-        // Filter by trigger params
-        return compareTriggerWithTriggerSubset(it.getTrigger(), triggerParams)
-      })
-      .collect(Collectors.toList())
+    int page = 1
+    while (matchingExecutions.size() < size) {
+      List<PipelineExecution> executions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+          pipelineConfigIds,
+          triggerTimeStartBoundary,
+          triggerTimeEndBoundary,
+          executionCriteria.setPage(page)
+      )
+
+      matchingExecutions.addAll(
+          executions
+              .stream()
+              .filter({
+                // Filter by trigger type
+                if (triggerTypesAsSet && !triggerTypesAsSet.contains(it.getTrigger().type)) {
+                  return false
+                }
+                // Filter by event ID
+                if (eventId && eventId != it.getTrigger().other.eventId) {
+                  return false
+                }
+                // Filter by trigger params
+                return compareTriggerWithTriggerSubset(it.getTrigger(), triggerParams)
+              })
+              .collect(Collectors.toList())
+      )
+
+      if (executions.size() < executionCriteria.pageSize) {
+        break
+      }
+
+      page++
+    }
 
     List<PipelineExecution> rval
     if (startIndex >= matchingExecutions.size()) {
