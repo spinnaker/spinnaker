@@ -34,6 +34,21 @@ const AdditionalHelpLinks = () =>
     </>
   ) : null;
 
+const Version = () => {
+  if (!SETTINGS.version) {
+    return null;
+  }
+
+  const CHANGELOG_PATH = `${SETTINGS.version.replace(/\./g, '-')}-changelog`;
+  const CHANGELOG_URL = `${VERSIONS_URL}${CHANGELOG_PATH}`;
+
+  return (
+    <MenuItem href={CHANGELOG_URL} target="_blank">
+      Spinnaker {SETTINGS.version}
+    </MenuItem>
+  );
+};
+
 export const HelpMenu = () => {
   return (
     <li className="help-menu">
@@ -51,11 +66,7 @@ export const HelpMenu = () => {
           <MenuItem href={COMMUNITY_URL} target="_blank">
             Community Resources
           </MenuItem>
-          {SETTINGS.version && (
-            <MenuItem href={VERSIONS_URL} target="_blank">
-              Spinnaker {SETTINGS.version}
-            </MenuItem>
-          )}
+          <Version />
           {SETTINGS.feature.pagerDuty && (
             <li role="presentation">
               <UISref to="home.page">
@@ -81,11 +92,7 @@ export const HelpMenu = () => {
           <MenuItem href={COMMUNITY_URL} target="_blank">
             Community Resources
           </MenuItem>
-          {SETTINGS.version && (
-            <MenuItem href={VERSIONS_URL} target="_blank">
-              Spinnaker {SETTINGS.version}
-            </MenuItem>
-          )}
+          <Version />
           {SETTINGS.feature.pagerDuty && (
             <li role="presentation">
               <UISref to="home.page">
