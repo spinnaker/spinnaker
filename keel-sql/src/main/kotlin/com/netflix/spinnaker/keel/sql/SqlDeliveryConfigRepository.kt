@@ -33,6 +33,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -928,12 +929,12 @@ class SqlDeliveryConfigRepository(
     sqlRetry.withRetry(READ) {
       jooq
         .select(
-          RESOURCE.KIND,
-          RESOURCE.METADATA,
-          RESOURCE.SPEC
+          RESOURCE_WITH_METADATA.KIND,
+          RESOURCE_WITH_METADATA.METADATA,
+          RESOURCE_WITH_METADATA.SPEC
         )
-        .from(RESOURCE, ENVIRONMENT_RESOURCE)
-        .where(RESOURCE.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
+        .from(RESOURCE_WITH_METADATA, ENVIRONMENT_RESOURCE)
+        .where(RESOURCE_WITH_METADATA.UID.eq(ENVIRONMENT_RESOURCE.RESOURCE_UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
         .fetch { (kind, metadata, spec) ->
           Resource(

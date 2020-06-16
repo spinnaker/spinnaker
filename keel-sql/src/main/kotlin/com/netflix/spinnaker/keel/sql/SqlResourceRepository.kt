@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.resources.migrate
@@ -70,9 +71,9 @@ open class SqlResourceRepository(
   override fun get(id: String): Resource<ResourceSpec> {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-        .from(RESOURCE)
-        .where(RESOURCE.ID.eq(id))
+        .select(RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
+        .from(RESOURCE_WITH_METADATA)
+        .where(RESOURCE_WITH_METADATA.ID.eq(id))
         .fetchOne()
         ?.let { (kind, metadata, spec) ->
           constructResource(kind, metadata, spec)
@@ -83,9 +84,9 @@ open class SqlResourceRepository(
   override fun getResourcesByApplication(application: String): List<Resource<*>> {
     return sqlRetry.withRetry(READ) {
       jooq
-        .select(RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-        .from(RESOURCE)
-        .where(RESOURCE.APPLICATION.eq(application))
+        .select(RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
+        .from(RESOURCE_WITH_METADATA)
+        .where(RESOURCE_WITH_METADATA.APPLICATION.eq(application))
         .fetch()
         .map { (kind, metadata, spec) ->
           constructResource(kind, metadata, spec)
@@ -139,7 +140,6 @@ open class SqlResourceRepository(
     val updatePairs = mapOf(
       RESOURCE.KIND to resource.kind,
       RESOURCE.ID to resource.id,
-      RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata + ("uid" to uid)),
       RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec),
       RESOURCE.APPLICATION to resource.application
     )
@@ -310,9 +310,9 @@ open class SqlResourceRepository(
     val cutoff = now.minus(minTimeSinceLastCheck).toTimestamp()
     return sqlRetry.withRetry(WRITE) {
       jooq.inTransaction {
-        select(RESOURCE.UID, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-          .from(RESOURCE, RESOURCE_LAST_CHECKED)
-          .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
+        select(RESOURCE_WITH_METADATA.UID, RESOURCE_WITH_METADATA.KIND, RESOURCE_WITH_METADATA.METADATA, RESOURCE_WITH_METADATA.SPEC)
+          .from(RESOURCE_WITH_METADATA, RESOURCE_LAST_CHECKED)
+          .where(RESOURCE_WITH_METADATA.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
           .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
           .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(true))
           .orderBy(RESOURCE_LAST_CHECKED.AT)

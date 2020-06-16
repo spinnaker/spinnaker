@@ -161,3 +161,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200611-fix-event-timestamps.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200611-create-resource-metadata-view.yml
+      relativeToChangelogFile: true

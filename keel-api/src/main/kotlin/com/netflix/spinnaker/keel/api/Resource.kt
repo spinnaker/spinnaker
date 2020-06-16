@@ -10,7 +10,6 @@ data class Resource<out T : ResourceSpec>(
 ) {
   init {
     require(metadata["id"].isValidId()) { "resource id must be a valid id" }
-    require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
     require(metadata["application"].isValidApplication()) { "application must be a valid application" }
   }
 
