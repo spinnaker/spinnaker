@@ -91,7 +91,7 @@ class ResourceActuator(
           /**
            * [VersionedArtifactProvider] is a special [resource] sub-type. When a veto response sets
            * [VetoResponse.vetoArtifact] and the resource under evaluation is of type
-           * [VersionedArtifactProvider], blacklist the desired artifact version from the environment
+           * [VersionedArtifactProvider], denylist the desired artifact version from the environment
            * containing [resource]. This ensures that the environment will be fully restored to
            * a prior good-state.
            */
