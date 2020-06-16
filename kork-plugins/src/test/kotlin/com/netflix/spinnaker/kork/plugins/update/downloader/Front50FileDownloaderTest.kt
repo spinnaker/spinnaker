@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.plugins.update.downloader
 
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -58,16 +57,15 @@ class Front50FileDownloaderTest : JUnit5Minutests {
   }
 
   private inner class Fixture {
-    private val okHttpClientProvider: OkHttpClientProvider = mockk(relaxed = true)
     private val okHttpClient: OkHttpClient = mockk(relaxed = true)
     private val call: Call = mockk(relaxed = true)
     val response: Response = mockk(relaxed = true)
-    val subject: Front50FileDownloader
+
+    val subject: Front50FileDownloader = Front50FileDownloader(okHttpClient, URL("https://front50.com"))
+
     init {
       every { okHttpClient.newCall(any()) } returns call
-      every { okHttpClientProvider.getClient(any()) } returns okHttpClient
       every { call.execute() } returns response
-      subject = Front50FileDownloader(okHttpClientProvider, URL("http://front50.com"))
     }
   }
 }

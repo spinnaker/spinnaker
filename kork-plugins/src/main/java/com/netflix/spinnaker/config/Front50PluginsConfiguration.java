@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupLocationResolver;
 import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupNameResolver;
 import com.netflix.spinnaker.kork.plugins.update.ServerGroupLocationResolver;
@@ -77,13 +76,13 @@ public class Front50PluginsConfiguration {
   @Bean
   public static Front50FileDownloader front50FileDownloader(
       Environment environment,
-      OkHttpClientProvider okHttpClientProvider,
+      PluginOkHttpClientProvider pluginsOkHttpClientProvider,
       Map<String, PluginRepositoryProperties> pluginRepositoriesConfig) {
     PluginRepositoryProperties front50RepositoryProps =
         pluginRepositoriesConfig.get(PluginsConfigurationProperties.FRONT5O_REPOSITORY);
 
     URL front50Url = getFront50Url(environment, front50RepositoryProps);
-    return new Front50FileDownloader(okHttpClientProvider, front50Url);
+    return new Front50FileDownloader(pluginsOkHttpClientProvider.getOkHttpClient(), front50Url);
   }
 
   @Bean
