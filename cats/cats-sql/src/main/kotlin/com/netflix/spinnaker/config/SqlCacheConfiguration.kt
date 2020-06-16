@@ -100,6 +100,7 @@ class SqlCacheConfiguration {
     cacheMetrics: SqlCacheMetrics,
     dynamicConfigService: DynamicConfigService,
     sqlConstraints: SqlConstraints,
+    mapper: ObjectMapper,
     @Value("\${sql.cache.async-pool-size:0}") poolSize: Int,
     @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?
   ): NamedCacheFactory {
@@ -126,7 +127,7 @@ class SqlCacheConfiguration {
 
     return SqlNamedCacheFactory(
       jooq,
-      ObjectMapper(),
+      mapper,
       dispatcher,
       clock,
       sqlProperties.retries,
