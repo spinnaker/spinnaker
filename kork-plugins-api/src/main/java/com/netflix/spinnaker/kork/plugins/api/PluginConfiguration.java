@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kork.plugins.api;
 
-import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * Denotes that a class provides plugin configuration. Classes annotated with [PluginConfiguration]
  * can be injected via the Plugin constructor or the Extension Point constructor.
  */
-@Alpha
+@Beta
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented

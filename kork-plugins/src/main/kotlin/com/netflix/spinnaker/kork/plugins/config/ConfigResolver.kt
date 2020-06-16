@@ -16,12 +16,12 @@
 package com.netflix.spinnaker.kork.plugins.config
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.netflix.spinnaker.kork.annotations.Alpha
+import com.netflix.spinnaker.kork.annotations.Beta
 
 /**
  * Resolves configuration values for plugins and their extensions.
  */
-@Alpha
+@Beta
 interface ConfigResolver {
   /**
    * Resolve config by [coordinates], casting the resulting config into the [expectedType] if possible.

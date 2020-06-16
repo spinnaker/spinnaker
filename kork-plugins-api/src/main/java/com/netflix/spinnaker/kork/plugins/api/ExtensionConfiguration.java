@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.plugins.api;
 
-import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
  * }
  * }</pre>
  */
-@Alpha
+@Beta
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented

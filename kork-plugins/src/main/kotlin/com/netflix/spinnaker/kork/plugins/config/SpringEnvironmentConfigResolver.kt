@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TreeTraversingParser
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spinnaker.kork.annotations.Alpha
+import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import java.lang.RuntimeException
@@ -48,7 +48,7 @@ import org.springframework.core.env.EnumerablePropertySource
  * TODO(rz): Should introduce some mechanism for providing plugins updated configuration in the case of backing
  *  plugin configuration with Spring Config Server / FastProps, without leaking Spring into the plugins.
  */
-@Alpha
+@Beta
 class SpringEnvironmentConfigResolver(
   private val environment: ConfigurableEnvironment
 ) : ConfigResolver {
