@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service
 class WebhookService {
 
   // These headers create a security vulnerability.
-  static final List<String> headerBlacklist = [
+  static final List<String> headerDenyList = [
     "X-SPINNAKER-USER",
     "X-SPINNAKER-ACCOUNT",
     "X-SPINNAKER-USER-ORIGIN",
@@ -80,7 +80,7 @@ class WebhookService {
   private static HttpHeaders buildHttpHeaders(Object customHeaders) {
     HttpHeaders headers = new HttpHeaders()
     customHeaders?.each { key, value ->
-      if (headerBlacklist.contains(key.toUpperCase())) {
+      if (headerDenyList.contains(key.toUpperCase())) {
         return;
       }
       if (value instanceof List<String>) {
