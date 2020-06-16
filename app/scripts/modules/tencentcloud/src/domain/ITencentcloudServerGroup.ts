@@ -4,7 +4,7 @@ import { ISuspendedProcess, IScalingPolicyView } from '.';
 
 import { IScalingPolicy } from './IScalingPolicy';
 
-export interface ITencentCloudAsg extends IAsg {
+export interface ITencentcloudAsg extends IAsg {
   availabilityZones: string[];
   defaultCooldown: number;
   terminationPolicies: string[];
@@ -18,13 +18,13 @@ export interface ITencentCloudAsg extends IAsg {
   instanceCount?: string;
 }
 
-export interface ITencentCloudServerGroup extends IServerGroup {
+export interface ITencentcloudServerGroup extends IServerGroup {
   [x: string]: any;
   vpcName?: any;
   image?: any;
   scalingPolicies?: IScalingPolicy[];
   targetGroups?: string[];
-  asg?: ITencentCloudAsg;
+  asg?: ITencentcloudAsg;
   accountName?: string;
   instanceCount?: number;
 }
@@ -40,7 +40,7 @@ export interface IScheduledAction {
   desiredCapacity: number;
 }
 
-export interface ITencentCloudServerGroupView extends ITencentCloudServerGroup {
+export interface ITencentcloudServerGroupView extends ITencentcloudServerGroup {
   accountDetails?: IAccountDetails;
   scalingPolicies: IScalingPolicyView[];
   scheduledActions?: IScheduledAction[];

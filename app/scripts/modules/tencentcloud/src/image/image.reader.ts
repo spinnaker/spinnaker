@@ -2,13 +2,13 @@ import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 
 import { API } from '@spinnaker/core';
-export interface ITencentSnapshot {
+export interface ITencentcloudSnapshot {
   diskSize: string;
   diskType: string;
   diskUsage: 'SYSTEM_DISK' | 'DATA_DISK';
   snapshotId: string;
 }
-export interface ITencentCloudImage {
+export interface ITencentcloudImage {
   accounts: string[];
   images: {
     [region: string]: string[];
@@ -19,7 +19,7 @@ export interface ITencentCloudImage {
   attributes: {
     createdTime?: string;
     creationDate?: string;
-    snapshotSet?: ITencentSnapshot[];
+    snapshotSet?: ITencentcloudSnapshot[];
     osPlatform: string;
   };
   imageName: string;
@@ -27,12 +27,12 @@ export interface ITencentCloudImage {
     [tag: string]: string;
   };
   tagsByImageId: {
-    [imageId: string]: ITencentCloudImage['tags'];
+    [imageId: string]: ITencentcloudImage['tags'];
   };
 }
 
-export class TencentCloudImageReader {
-  public findImages(params: { q: string; region?: string }): IPromise<ITencentCloudImage[]> {
+export class TencentcloudImageReader {
+  public findImages(params: { q: string; region?: string }): IPromise<ITencentcloudImage[]> {
     if (!params.q || params.q.length < 3) {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
@@ -40,10 +40,10 @@ export class TencentCloudImageReader {
     return API.one('images/find')
       .withParams({ ...params, provider: 'tencentcloud' })
       .get()
-      .catch(() => [] as ITencentCloudImage[]);
+      .catch(() => [] as ITencentcloudImage[]);
   }
 
-  public getImage(name: string, region: string, credentials: string): IPromise<ITencentCloudImage> {
+  public getImage(name: string, region: string, credentials: string): IPromise<ITencentcloudImage> {
     return API.one('images')
       .one(credentials)
       .one(region)
@@ -51,6 +51,6 @@ export class TencentCloudImageReader {
       .withParams({ provider: 'tencentcloud' })
       .get()
       .then((results: any[]) => (results && results.length ? results[0] : null))
-      .catch(() => null as ITencentCloudImage);
+      .catch(() => null as ITencentcloudImage);
   }
 }

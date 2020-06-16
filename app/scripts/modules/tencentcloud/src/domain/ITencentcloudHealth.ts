@@ -2,11 +2,11 @@ import { IHealth } from '@spinnaker/core';
 
 import { ITargetGroup } from '.';
 
-export interface ITencentCloudHealth extends IHealth {
+export interface ITencentcloudHealth extends IHealth {
   targetGroups: ITargetGroup[];
 }
 
-export interface ITencentHealthCheck {
+export interface ITencentcloudHealthCheck {
   healthSwitch: number;
   timeOut: number;
   intervalTime: number;

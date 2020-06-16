@@ -1,4 +1,4 @@
-import { IScalingPolicyAlarmView } from './ITencentCloudScalingPolicy';
+import { IScalingPolicyAlarmView } from './ITencentcloudScalingPolicy';
 
 export interface IScalingPolicyAlarm {
   dimensions?: any[];

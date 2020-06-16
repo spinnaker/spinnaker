@@ -5,7 +5,7 @@ export interface IClassicLaunchWhitelist {
   credentials: string;
 }
 
-export interface ITencentCloudProviderSettings extends IProviderSettings {
+export interface ITencentcloudProviderSettings extends IProviderSettings {
   defaults: {
     account?: string;
     region?: string;
@@ -26,9 +26,9 @@ export interface ITencentCloudProviderSettings extends IProviderSettings {
   disableSpotPricing?: boolean;
 }
 
-export const TencentCloudProviderSettings: ITencentCloudProviderSettings = (SETTINGS.providers
-  .tencentcloud as ITencentCloudProviderSettings) || { defaults: {} };
+export const TencentcloudProviderSettings: ITencentcloudProviderSettings = (SETTINGS.providers
+  .tencentcloud as ITencentcloudProviderSettings) || { defaults: {} };
 
-if (TencentCloudProviderSettings) {
-  TencentCloudProviderSettings.resetToOriginal = SETTINGS.resetProvider('tencentcloud');
+if (TencentcloudProviderSettings) {
+  TencentcloudProviderSettings.resetToOriginal = SETTINGS.resetProvider('tencentcloud');
 }

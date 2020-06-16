@@ -1,4 +1,4 @@
-import { ITencentCloudLoadBalancerSourceData } from './ITencentCloudLoadBalancerSourceData';
+import { ITencentcloudLoadBalancerSourceData } from './ITencentcloudLoadBalancerSourceData';
 import {
   ILoadBalancer,
   ILoadBalancerDeleteCommand,
@@ -8,8 +8,8 @@ import {
   ISubnet,
 } from '@spinnaker/core';
 
-import { ITencentCloudServerGroup } from './ITencentCloudServerGroup';
-import { ITencentHealthCheck } from './ITencentCloudHealth';
+import { ITencentcloudServerGroup } from './ITencentcloudServerGroup';
+import { ITencentcloudHealthCheck } from './ITencentcloudHealth';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'UDP';
@@ -30,7 +30,7 @@ export interface IAuthenticateOidcActionConfig {
   userInfoEndpoint: string;
 }
 
-export interface ITencentCloudLoadBalancer extends ILoadBalancer {
+export interface ITencentcloudLoadBalancer extends ILoadBalancer {
   loadBalancerType: any;
   provider: any;
   type: any;
@@ -41,11 +41,11 @@ export interface ITencentCloudLoadBalancer extends ILoadBalancer {
   credentials?: string;
   listeners?: any[];
   detachedInstances?: IInstance[];
-  elb?: ITencentCloudLoadBalancerSourceData;
+  elb?: ITencentcloudLoadBalancerSourceData;
   isInternal?: boolean;
   loadBalacnerVips: string[];
   regionZones: string[];
-  serverGroups: ITencentCloudServerGroup[];
+  serverGroups: ITencentcloudServerGroup[];
   subnets?: string[];
   subnetDetails?: ISubnet[];
   subnetType?: string;
@@ -62,7 +62,7 @@ export interface IClassicListener {
   sslCertificateType?: string;
 }
 
-export interface ITencentCloudClassicLoadBalancer extends ITencentCloudLoadBalancer {
+export interface ITencentcloudClassicLoadBalancer extends ITencentcloudLoadBalancer {
   region: any;
   cloudProvider: any;
   account: string;
@@ -80,7 +80,7 @@ export interface ITencentCloudClassicLoadBalancer extends ITencentCloudLoadBalan
   idleTimeout?: number;
 }
 
-export interface ITencentCloudApplicationLoadBalancer extends ITencentCloudLoadBalancer {
+export interface ITencentcloudApplicationLoadBalancer extends ITencentcloudLoadBalancer {
   loadBalancerType: string;
   region: any;
   cloudProvider: any;
@@ -96,7 +96,7 @@ export interface ITencentCloudApplicationLoadBalancer extends ITencentCloudLoadB
   idleTimeout: number;
 }
 
-export interface ITencentCloudNetworkLoadBalancer extends ITencentCloudLoadBalancer {
+export interface ITencentcloudNetworkLoadBalancer extends ITencentcloudLoadBalancer {
   listeners: INLBListener[];
   targetGroups: ITargetGroup[];
   ipAddressType?: string; // returned from clouddriver
@@ -156,7 +156,7 @@ export interface IListenerRule {
   domain: string;
   url: string;
   locationId?: string;
-  healthCheck?: ITencentHealthCheck;
+  healthCheck?: ITencentcloudHealthCheck;
   default?: boolean;
   priority?: number | 'default';
   [key: string]: any;
@@ -196,7 +196,7 @@ export interface ITargetGroup {
   protocol?: string;
   provider?: string;
   region: string; // returned from clouddriver
-  serverGroups?: ITencentCloudServerGroup[];
+  serverGroups?: ITencentcloudServerGroup[];
   targetType?: string;
   type: string; // returned from clouddriver
   vpcId?: string;
@@ -212,7 +212,7 @@ export interface IListenerDescription {
   port: number;
   sslPolicy?: string;
   rules?: IListenerRule[];
-  healthCheck?: ITencentHealthCheck;
+  healthCheck?: ITencentcloudHealthCheck;
   listenerName?: string;
 }
 
@@ -268,7 +268,7 @@ export interface INLBTargetGroupDescription {
   unhealthyThreshold?: number;
 }
 
-export interface ITencentCloudLoadBalancerUpsertCommand extends ILoadBalancerUpsertCommand {
+export interface ITencentcloudLoadBalancerUpsertCommand extends ILoadBalancerUpsertCommand {
   securityGroupsRemoved?: string;
   Firewalls?: string;
   availabilityZones: { [region: string]: string[] };
@@ -285,7 +285,7 @@ export interface ITencentCloudLoadBalancerUpsertCommand extends ILoadBalancerUps
   application: string;
 }
 
-export interface ITencentCloudLoadBalancerDeleteCommand extends ILoadBalancerDeleteCommand {
+export interface ITencentcloudLoadBalancerDeleteCommand extends ILoadBalancerDeleteCommand {
   loadBalancerId: string;
   region: string;
   account: string;
@@ -297,7 +297,7 @@ export interface IClassicListenerDescription extends IClassicListener {
   sslCertificateName?: string;
 }
 
-export interface ITencentCloudClassicLoadBalancerUpsertCommand extends ITencentCloudLoadBalancerUpsertCommand {
+export interface ITencentcloudClassicLoadBalancerUpsertCommand extends ITencentcloudLoadBalancerUpsertCommand {
   healthCheck: string;
   healthCheckPath: string;
   healthCheckProtocol: string;
@@ -310,7 +310,7 @@ export interface ITencentCloudClassicLoadBalancerUpsertCommand extends ITencentC
   idleTimeout?: number;
 }
 
-export interface ITencentCloudApplicationLoadBalancerUpsertCommand extends ITencentCloudLoadBalancerUpsertCommand {
+export interface ITencentcloudApplicationLoadBalancerUpsertCommand extends ITencentcloudLoadBalancerUpsertCommand {
   deletionProtection?: boolean;
   idleTimeout?: number;
   listener?: IListenerDescription[];
@@ -319,7 +319,7 @@ export interface ITencentCloudApplicationLoadBalancerUpsertCommand extends ITenc
   subnetId: string;
 }
 
-export interface ITencentCloudNetworkLoadBalancerUpsertCommand extends ITencentCloudLoadBalancerUpsertCommand {
+export interface ITencentcloudNetworkLoadBalancerUpsertCommand extends ITencentcloudLoadBalancerUpsertCommand {
   deletionProtection: boolean;
   listeners: IListenerDescription[];
   targetGroups: INLBTargetGroupDescription[];

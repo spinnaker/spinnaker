@@ -1,32 +1,32 @@
 import { ILoadBalancerSourceData } from '@spinnaker/core';
 
-import { IListenerAction, NLBListenerProtocol } from './ITencentCloudLoadBalancer';
+import { IListenerAction, NLBListenerProtocol } from './ITencentcloudLoadBalancer';
 
-import { IListenerRule } from './ITencentCloudLoadBalancer';
+import { IListenerRule } from './ITencentcloudLoadBalancer';
 
-export interface ITencentCloudContainerServerGroupSourceData {
+export interface ITencentcloudContainerServerGroupSourceData {
   detachedInstances: string[];
   isDisabled: boolean;
   name: string;
   region: string;
 }
 
-export interface ITencentCloudLoadBalancerServerGroupSourceData extends ITencentCloudContainerServerGroupSourceData {
-  instances: ITencentCloudLoadBalancerInstanceSourceData[];
+export interface ITencentcloudLoadBalancerServerGroupSourceData extends ITencentcloudContainerServerGroupSourceData {
+  instances: ITencentcloudLoadBalancerInstanceSourceData[];
 }
 
-export interface ITencentCloudTargetGroupServerGroupSourceData extends ITencentCloudContainerServerGroupSourceData {
-  instances: ITencentCloudTargetGroupInstanceSourceData[];
+export interface ITencentcloudTargetGroupServerGroupSourceData extends ITencentcloudContainerServerGroupSourceData {
+  instances: ITencentcloudTargetGroupInstanceSourceData[];
 }
 
-export interface ITencentCloudInstanceHealthSourceData {
+export interface ITencentcloudInstanceHealthSourceData {
   type: string;
   state: 'InService' | 'OutOfService' | 'Unknown';
   reasonCode: 'ELB' | 'Instance' | 'N/A';
   description: string;
 }
 
-export interface ITencentCloudTargetHealthSourceData {
+export interface ITencentcloudTargetHealthSourceData {
   description: string;
   reason: string;
   state: 'initial' | 'healthy' | 'unhealthy' | 'unused' | 'draining';
@@ -39,7 +39,7 @@ export interface IClassicListenerSourceData {
   protocol: string;
 }
 
-export interface ITencentCloudLoadBalancerSourceData extends ILoadBalancerSourceData {
+export interface ITencentcloudLoadBalancerSourceData extends ILoadBalancerSourceData {
   id?: string;
   account: string;
   availabilityZones: string[];
@@ -52,7 +52,7 @@ export interface ITencentCloudLoadBalancerSourceData extends ILoadBalancerSource
   region: string;
   scheme: 'internal' | 'internet-facing';
   securityGroups: string[];
-  serverGroups: ITencentCloudLoadBalancerServerGroupSourceData[];
+  serverGroups: ITencentcloudLoadBalancerServerGroupSourceData[];
   subnets: string[];
   type: string;
   vpcId: string;
@@ -62,19 +62,19 @@ export interface ITencentCloudLoadBalancerSourceData extends ILoadBalancerSource
   vpcid?: string;
 }
 
-export interface ITencentCloudLoadBalancerInstanceSourceData {
+export interface ITencentcloudLoadBalancerInstanceSourceData {
   id: string;
   zone: string;
-  health: ITencentCloudInstanceHealthSourceData;
+  health: ITencentcloudInstanceHealthSourceData;
 }
 
-export interface ITencentCloudTargetGroupInstanceSourceData {
+export interface ITencentcloudTargetGroupInstanceSourceData {
   id: string;
   zone: string;
-  health: ITencentCloudTargetHealthSourceData;
+  health: ITencentcloudTargetHealthSourceData;
 }
 
-export interface ITencentCloudTargetGroupSourceData {
+export interface ITencentcloudTargetGroupSourceData {
   account: string;
   attributes: {
     'deregistration_delay.timeout_seconds': number;
@@ -99,7 +99,7 @@ export interface ITencentCloudTargetGroupSourceData {
   port: number;
   protocol: string;
   region: string;
-  serverGroups: ITencentCloudTargetGroupServerGroupSourceData[];
+  serverGroups: ITencentcloudTargetGroupServerGroupSourceData[];
   targetGroupArn: string;
   targetGroupName: string;
   targetType: string;
@@ -123,7 +123,7 @@ export interface IApplicationLoadBalancerListenerSourceData {
   sslPolicy?: string;
 }
 
-export interface IApplicationLoadBalancerSourceData extends ITencentCloudLoadBalancerSourceData {
+export interface IApplicationLoadBalancerSourceData extends ITencentcloudLoadBalancerSourceData {
   ipAddressType: 'ipv4' | 'dualstack';
   listeners: IApplicationLoadBalancerListenerSourceData[];
   loadBalancerArn: string;
@@ -132,7 +132,7 @@ export interface IApplicationLoadBalancerSourceData extends ITencentCloudLoadBal
     code: 'active' | 'provisioning' | 'failed';
     reason?: string;
   };
-  targetGroups: ITencentCloudTargetGroupSourceData[];
+  targetGroups: ITencentcloudTargetGroupSourceData[];
 }
 
 export interface INetworkLoadBalancerListenerSourceData {
@@ -149,7 +149,7 @@ export interface INetworkLoadBalancerListenerSourceData {
   sslPolicy?: string;
 }
 
-export interface INetworkLoadBalancerSourceData extends ITencentCloudLoadBalancerSourceData {
+export interface INetworkLoadBalancerSourceData extends ITencentcloudLoadBalancerSourceData {
   ipAddressType: 'ipv4' | 'dualstack';
   listeners: INetworkLoadBalancerListenerSourceData[];
   loadBalancerArn: string;
@@ -158,10 +158,10 @@ export interface INetworkLoadBalancerSourceData extends ITencentCloudLoadBalance
     code: 'active' | 'provisioning' | 'failed';
     reason?: string;
   };
-  targetGroups: ITencentCloudTargetGroupSourceData[];
+  targetGroups: ITencentcloudTargetGroupSourceData[];
 }
 
-export interface IClassicLoadBalancerSourceData extends ITencentCloudLoadBalancerSourceData {
+export interface IClassicLoadBalancerSourceData extends ITencentcloudLoadBalancerSourceData {
   healthCheck: {
     healthyThreshold: number;
     interval: number;

@@ -3,7 +3,7 @@ import IInjectorService = angular.auto.IInjectorService;
 import { ReactInject } from '@spinnaker/core';
 
 // prettier-ignore
-export class TencentCloudReactInject extends ReactInject {
+export class TencentcloudReactInject extends ReactInject {
 
 
   public initialize($injector: IInjectorService) {
@@ -11,4 +11,4 @@ export class TencentCloudReactInject extends ReactInject {
   }
 }
 
-export const TencentcloudReactInjector: TencentCloudReactInject = new TencentCloudReactInject();
+export const TencentcloudReactInjector: TencentcloudReactInject = new TencentcloudReactInject();

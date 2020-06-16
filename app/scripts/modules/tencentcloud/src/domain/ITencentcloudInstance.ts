@@ -1,5 +1,5 @@
 import { IInstance } from '@spinnaker/core';
 
-export interface ITencentCloudInstance extends IInstance {
+export interface ITencentcloudInstance extends IInstance {
   targetGroups?: string[];
 }

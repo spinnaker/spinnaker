@@ -1,6 +1,6 @@
 import { ICertificate } from '@spinnaker/core';
 
-export interface ITencentCloudCertificate extends ICertificate {
+export interface ITencentcloudCertificate extends ICertificate {
   arn: string;
   uploadDate: number;
 }
