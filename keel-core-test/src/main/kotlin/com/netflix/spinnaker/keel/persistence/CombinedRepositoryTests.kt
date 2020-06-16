@@ -52,6 +52,8 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
   val configName = "my-config"
   val secondConfigName = "my-config-2"
+  val application = "fnord"
+  val secondApplication = "fnord-2"
   val artifact = DockerArtifact(name = "org/image", deliveryConfigName = configName)
   val newArtifact = artifact.copy(reference = "myart")
   val firstResource = resource()
@@ -60,14 +62,30 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
   val secondEnv = Environment(name = "env2", resources = setOf(secondResource))
   val deliveryConfig = DeliveryConfig(
     name = configName,
-    application = "fnord",
+    application = application,
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(firstEnv)
   )
   val secondDeliveryConfig = DeliveryConfig(
     name = secondConfigName,
-    application = "fnord-2",
+    application = secondApplication,
+    serviceAccount = "keel@spinnaker",
+    artifacts = setOf(artifact),
+    environments = setOf(firstEnv)
+  )
+
+  val anotherDeliveryConfigWithSameName = DeliveryConfig(
+    name = configName,
+    application = secondApplication,
+    serviceAccount = "keel@spinnaker",
+    artifacts = setOf(),
+    environments = setOf()
+  )
+
+  val anotherDeliveryConfigWithSameApp = DeliveryConfig(
+    name = secondConfigName,
+    application = application,
     serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(firstEnv)
@@ -315,6 +333,34 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
         expectThrows<DuplicateManagedResourceException> { subject.upsertDeliveryConfig(secondDeliveryConfig) }
         expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.get(secondConfigName) }
         expectCatching { resourceRepository.get(firstResource.id) }.isSuccess()
+      }
+    }
+
+    context("trying to persist two configs with the same name, but different application") {
+      before {
+        subject.upsertDeliveryConfig(deliveryConfig)
+      }
+      test("second config fails with exception, first config didn't change") {
+        expectThrows<ConflictingDeliveryConfigsException> { subject.upsertDeliveryConfig(anotherDeliveryConfigWithSameName) }
+        expectThat(deliveryConfigRepository.get(configName))
+          .get { application }
+          .isEqualTo(deliveryConfig.application)
+
+        expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.getByApplication(anotherDeliveryConfigWithSameName.application) }
+      }
+    }
+
+    context("trying to persist another config with the same application, but different config names") {
+      before {
+        subject.upsertDeliveryConfig(deliveryConfig)
+      }
+      test("second config fails with exception, first config didn't change") {
+        expectThrows<TooManyDeliveryConfigsException> { subject.upsertDeliveryConfig(anotherDeliveryConfigWithSameApp) }
+        expectThat(deliveryConfigRepository.get(configName))
+          .get { application }
+          .isEqualTo(deliveryConfig.application)
+
+        expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.get(anotherDeliveryConfigWithSameApp.name) }
       }
     }
   }

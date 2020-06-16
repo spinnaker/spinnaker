@@ -175,5 +175,8 @@ class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType
 class TooManyDeliveryConfigsException(application: String, existing: String) :
   ConfigurationException("A delivery config already exists for application $application, and we only allow one per application - please delete existing config $existing before submitting a new config")
 
+class ConflictingDeliveryConfigsException(application: String) :
+  ConfigurationException("A delivery config already exists for a different application $application, and we don't allow delivery config name duplication - please select a different config name before submitting a new config")
+
 class OrphanedResourceException(id: String) :
   SystemException("Resource $id exists without being a part of a delivery config")

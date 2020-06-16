@@ -81,26 +81,31 @@ class CombinedRepository(
 
   @Transactional(propagation = REQUIRED)
   override fun upsertDeliveryConfig(deliveryConfig: DeliveryConfig): DeliveryConfig {
-    val old = try {
+    val configWithSameName = try {
       getDeliveryConfig(deliveryConfig.name)
     } catch (e: NoSuchDeliveryConfigException) {
       null
     }
 
-    val existingConfig = try {
+    if (configWithSameName != null && configWithSameName.application != deliveryConfig.application) {
+      // we don't allow storing 2 configs with the same name, for different applications
+      throw ConflictingDeliveryConfigsException(configWithSameName.application)
+    }
+
+    val existingApplicationConfig = try {
       getDeliveryConfigForApplication(deliveryConfig.application)
     } catch (e: NoSuchDeliveryConfigException) {
       null
     }
 
-    if (old == null && existingConfig != null) {
+    if (configWithSameName == null && existingApplicationConfig != null) {
       // we only allow one delivery config, so throw an error if someone is trying to submit a new config
-      // instead of updating the existing config
-      throw TooManyDeliveryConfigsException(deliveryConfig.application, existingConfig.name)
+      // instead of updating the existing config for the same application
+      throw TooManyDeliveryConfigsException(deliveryConfig.application, existingApplicationConfig.name)
     }
 
+    // by this point, configWithSameName is the old delivery config for this application
     deliveryConfig.resources.forEach { resource ->
-
       upsertResource(resource, deliveryConfig.name)
     }
 
@@ -110,8 +115,8 @@ class CombinedRepository(
 
     storeDeliveryConfig(deliveryConfig)
 
-    if (old != null) {
-      removeDependents(old, deliveryConfig)
+    if (configWithSameName != null) {
+      removeDependents(configWithSameName, deliveryConfig)
     }
     return deliveryConfig
   }
