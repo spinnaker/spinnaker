@@ -158,6 +158,22 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
     validator == null
   }
 
+  void 'should return matching converter based on description version'() {
+    when:
+    def converter = atomicOperationsRegistry.getAtomicOperationConverter('versionedDescription', 'test-provider', ProviderVersion.v1)
+
+    then:
+    noExceptionThrown()
+    converter instanceof VersionedDescriptionConverter
+
+    when:
+    converter = atomicOperationsRegistry.getAtomicOperationConverter('versionedDescription@v2', 'test-provider', ProviderVersion.v1)
+
+    then:
+    noExceptionThrown()
+    converter instanceof VersionedDescriptionV2Converter
+  }
+
   static class MyCloudProvider implements CloudProvider {
     String id = 'test-provider'
     String displayName = 'Test Provider'
@@ -189,6 +205,16 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
     @Bean(name = "operationOldDescriptionValidatorV2")
     DescriptionValidator descriptionValidatorV2() {
       new TestValidatorV2()
+    }
+
+    @Bean(name = "versionedConverterV1")
+    AtomicOperationConverter versionedConverter() {
+      new VersionedDescriptionConverter()
+    }
+
+    @Bean(name = "versionedConverterV2")
+    AtomicOperationConverter versionedConverterV2() {
+      new VersionedDescriptionV2Converter()
     }
   }
 
@@ -253,4 +279,38 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
       return false
     }
   }
+
+  @TestProviderOperation("versionedDescription")
+  static class VersionedDescriptionConverter implements AtomicOperationConverter {
+    @Override
+    AtomicOperation convertOperation(Map input) {
+      return null
+    }
+    @Override
+    Object convertDescription(Map input) {
+      return null
+    }
+    @Override
+    boolean acceptsVersion(String version) {
+      return version == null || version == "v1"
+    }
+  }
+
+  @TestProviderOperation("versionedDescription@v2")
+  static class VersionedDescriptionV2Converter implements AtomicOperationConverter {
+    @Override
+    AtomicOperation convertOperation(Map input) {
+      return null
+    }
+    @Override
+    Object convertDescription(Map input) {
+      return null
+    }
+    @Override
+    boolean acceptsVersion(String version) {
+      return version == "v2"
+    }
+  }
+
+
 }

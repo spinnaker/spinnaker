@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
+import com.google.common.base.Splitter
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.exceptions.CloudProviderNotFoundException
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
+import com.netflix.spinnaker.kork.exceptions.UserException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Autowired
 
+import javax.annotation.Nonnull
+import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 
 @Slf4j
@@ -51,14 +55,18 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
       }
     }
 
+    // Operations can be versioned (within the same provider version)
+    VersionedDescription versionedDescription = VersionedDescription.from(description)
+
     Class<? extends Annotation> providerAnnotationType = getCloudProviderAnnotation(cloudProvider)
 
     List converters = applicationContext.getBeansWithAnnotation(providerAnnotationType).findAll { key, value ->
-      value.getClass().getAnnotation(providerAnnotationType).value() == description &&
-      value instanceof AtomicOperationConverter
+      VersionedDescription converterVersion = VersionedDescription.from(value.getClass().getAnnotation(providerAnnotationType).value())
+      converterVersion.descriptionName == versionedDescription.descriptionName && value instanceof AtomicOperationConverter
     }.values().toList()
 
     converters = VersionedOperationHelper.findVersionMatches(version, converters)
+    converters = VersionedOperationHelper.findVersionMatches(versionedDescription.version, converters)
 
     if (!converters) {
       throw new AtomicOperationConverterNotFoundException(
@@ -112,6 +120,32 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
       )
     }
     cloudProviderInstances[0].getOperationAnnotationType()
+  }
+
+  private static class VersionedDescription {
+
+    private final static SPLITTER = Splitter.on("@")
+
+    @Nonnull String descriptionName
+    @Nullable String version
+
+    VersionedDescription(String descriptionName, String version) {
+      this.descriptionName = descriptionName
+      this.version = version
+    }
+
+    static VersionedDescription from(String descriptionName) {
+      if (descriptionName.contains("@")) {
+        List<String> parts = SPLITTER.splitToList(descriptionName)
+        if (parts.size() != 2) {
+          throw new UserException("Versioned descriptions must follow '{description}@{version}' format")
+        }
+
+        return new VersionedDescription(parts[0], parts[1])
+      } else {
+        return new VersionedDescription(descriptionName, null)
+      }
+    }
   }
 
 }

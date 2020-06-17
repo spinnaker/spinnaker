@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.orchestration;
 
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import javax.annotation.Nullable;
 
 public interface VersionedCloudProviderOperation {
   /**
@@ -28,5 +29,17 @@ public interface VersionedCloudProviderOperation {
    */
   default boolean acceptsVersion(ProviderVersion version) {
     return ProviderVersion.v1.equals(version);
+  }
+
+  /**
+   * Allows individual operations to be versioned.
+   *
+   * <p>A {@code version} may be null if no specific version is requested, which is the common case.
+   *
+   * @param version The operation version requested by the client
+   * @return true if the operation works with the provided version
+   */
+  default boolean acceptsVersion(@Nullable String version) {
+    return true;
   }
 }
