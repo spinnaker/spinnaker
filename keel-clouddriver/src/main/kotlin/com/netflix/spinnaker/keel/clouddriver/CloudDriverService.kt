@@ -127,6 +127,9 @@ interface CloudDriverService {
     @Query("region") region: String
   ): ServerGroupCollection<TitusServerGroup>
 
+  /**
+   * Note: This endpoint does not get the latest healthy cluster, only the latest enabled cluster
+   */
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun activeServerGroup(
     @Header("X-SPINNAKER-USER") user: String,

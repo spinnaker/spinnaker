@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
@@ -28,14 +29,15 @@ fun ServerGroup.toCloudDriverResponse(
   vpc: Network,
   subnets: List<Subnet>,
   securityGroups: List<SecurityGroupSummary>,
-  image: ActiveServerGroupImage? = null
+  image: ActiveServerGroupImage? = null,
+  instanceCounts: InstanceCounts = InstanceCounts(1, 1, 0, 0, 0, 0)
 ): ActiveServerGroup =
   RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
     ActiveServerGroup(
-      "$name-v$sequence",
-      location.region,
-      location.availabilityZones,
-      ActiveServerGroupImage(
+      name = "$name-v$sequence",
+      region = location.region,
+      zones = location.availabilityZones,
+      image = ActiveServerGroupImage(
         imageId = launchConfiguration.imageId,
         appVersion = launchConfiguration.appVersion,
         baseImageVersion = launchConfiguration.baseImageVersion,
@@ -43,7 +45,7 @@ fun ServerGroup.toCloudDriverResponse(
         imageLocation = "location",
         description = image?.description
       ),
-      LaunchConfig(
+      launchConfig = LaunchConfig(
         launchConfiguration.ramdiskId,
         launchConfiguration.ebsOptimized,
         launchConfiguration.imageId,
@@ -52,7 +54,7 @@ fun ServerGroup.toCloudDriverResponse(
         launchConfiguration.iamRole,
         InstanceMonitoring(launchConfiguration.instanceMonitoring)
       ),
-      AutoScalingGroup(
+      asg = AutoScalingGroup(
         "$name-v$sequence",
         health.cooldown.seconds,
         health.healthCheckType.let(HealthCheckType::toString),
@@ -63,7 +65,7 @@ fun ServerGroup.toCloudDriverResponse(
         health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
         subnets.map(Subnet::id).joinToString(",")
       ),
-      listOf(ScalingPolicy(
+      scalingPolicies = listOf(ScalingPolicy(
         autoScalingGroupName = "$name-v$sequence",
         policyName = "$name-target-tracking-policy",
         policyType = "TargetTrackingScaling",
@@ -97,13 +99,14 @@ fun ServerGroup.toCloudDriverResponse(
           "Average"
         ))
       )),
-      vpc.id,
-      dependencies.targetGroups,
-      dependencies.loadBalancerNames,
-      capacity.let { Capacity(it.min, it.max, it.desired) },
-      CLOUD_PROVIDER,
-      securityGroups.map(SecurityGroupSummary::id).toSet(),
-      location.account,
-      parseMoniker("$name-v$sequence")
+      vpcId = vpc.id,
+      targetGroups = dependencies.targetGroups,
+      loadBalancers = dependencies.loadBalancerNames,
+      capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
+      cloudProvider = CLOUD_PROVIDER,
+      securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
+      accountName = location.account,
+      moniker = parseMoniker("$name-v$sequence"),
+      instanceCounts = instanceCounts
     )
   }

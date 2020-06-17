@@ -783,7 +783,10 @@ class ClusterHandler(
       serviceAccount = resource.serviceAccount
     )
       .also { them ->
-        if (them.distinctBy { it.launchConfiguration.appVersion }.size == 1) {
+        val allSame: Boolean = them.distinctBy { it.launchConfiguration.appVersion }.size == 1
+        val healthy: Boolean = them.all { it.instanceCounts?.isHealthy() == true }
+        if (allSame && healthy) {
+          // // only publish a successfully deployed event if the server group is healthy
           val appVersion = them.first().launchConfiguration.appVersion
           if (appVersion != null) {
             publisher.publishEvent(ArtifactVersionDeployed(
@@ -875,7 +878,8 @@ class ClusterHandler(
         stepScalingPolicies = scalingPolicies.toStepScalingPolicies()
       ),
       tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS },
-      image = image
+      image = image,
+      instanceCounts = instanceCounts
     )
 
   private fun List<MetricDimensionModel>?.toSpec(): Set<MetricDimension> =

@@ -474,6 +474,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
       app = app,
       sequence = 0
     ),
-    buildInfo = BuildInfo(packageName = "fnord")
+    buildInfo = BuildInfo(packageName = "fnord"),
+    instanceCounts = InstanceCounts(1, 0, 0, 1, 0, 0)
   )
 }

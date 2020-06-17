@@ -41,6 +41,7 @@ import com.netflix.spinnaker.keel.api.titus.cluster.resolveCapacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
@@ -48,6 +49,7 @@ import com.netflix.spinnaker.keel.core.api.Highlander
 import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -245,7 +247,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
     }
 
-    context("the cluster has active server groups") {
+    context("the cluster has healthy active server groups") {
       before {
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
@@ -272,6 +274,33 @@ class TitusClusterHandlerTests : JUnit5Minutests {
               activeServerGroupResponseEast.name,
               activeServerGroupResponseWest.name
             )
+        }
+
+        test("a deployed event fired") {
+          verify { publisher.publishEvent(any<ArtifactVersionDeployed>()) }
+        }
+      }
+    }
+
+    context("the cluster has unhealthy active server groups") {
+      before {
+        val instanceCounts = InstanceCounts(1, 0, 0, 1, 0, 0)
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount, instanceCounts)
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount, instanceCounts)
+        coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
+          listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
+      }
+
+      // TODO: test for multiple server group response
+      derivedContext<Map<String, TitusServerGroup>>("fetching the current server group state") {
+        deriveFixture {
+          runBlocking {
+            current(resource)
+          }
+        }
+
+        test("no deployed event firs") {
+          verify(exactly = 0) { publisher.publishEvent(any<ArtifactVersionDeployed>()) }
         }
       }
     }

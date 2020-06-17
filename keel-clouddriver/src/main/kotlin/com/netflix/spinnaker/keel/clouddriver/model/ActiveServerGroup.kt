@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.kork.exceptions.SystemException
 
-data class ServerGroupCollection<T : BaseServerGroup> (
+data class ServerGroupCollection<T : BaseServerGroup>(
   val accountName: String,
   val serverGroups: Set<T>
 )
@@ -26,6 +26,20 @@ interface BaseServerGroup {
   val moniker: Moniker
   val disabled: Boolean
     get() = false
+  val instanceCounts: InstanceCounts
+}
+
+data class InstanceCounts(
+  val total: Int,
+  val up: Int,
+  val down: Int,
+  val unknown: Int,
+  val outOfService: Int,
+  val starting: Int
+) {
+  // active asg is healthy if all instances are up
+  fun isHealthy(): Boolean =
+    up == total
 }
 
 /**
@@ -64,7 +78,8 @@ data class ServerGroup(
   override val securityGroups: Set<String>,
   override val moniker: Moniker,
   override val buildInfo: BuildInfo? = null,
-  override val disabled: Boolean
+  override val disabled: Boolean,
+  override val instanceCounts: InstanceCounts
 ) : BaseEc2ServerGroup
 
 fun ServerGroup.toActive(accountName: String) =
@@ -84,7 +99,8 @@ fun ServerGroup.toActive(accountName: String) =
     securityGroups = securityGroups,
     accountName = accountName,
     moniker = moniker,
-    buildInfo = buildInfo
+    buildInfo = buildInfo,
+    instanceCounts = instanceCounts
   )
 
 // todo eb: this should be more general so that it works for all server groups, not just ec2
@@ -104,7 +120,8 @@ data class ActiveServerGroup(
   override val securityGroups: Set<String>,
   val accountName: String,
   override val moniker: Moniker,
-  override val buildInfo: BuildInfo? = null
+  override val buildInfo: BuildInfo? = null,
+  override val instanceCounts: InstanceCounts
 ) : BaseEc2ServerGroup
 
 fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =

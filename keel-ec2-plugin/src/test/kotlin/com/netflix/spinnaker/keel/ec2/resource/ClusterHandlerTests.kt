@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -322,7 +323,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
     }
 
-    context("the cluster has active server groups") {
+    context("the cluster has healthy active server groups") {
       before {
         coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
@@ -351,6 +352,38 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
         test("an event is fired if all server groups have the same artifact version") {
           verify { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
+        }
+      }
+    }
+
+    context("the cluster has unhealthy active server groups") {
+      before {
+        val instanceCounts = InstanceCounts(1, 0, 0, 1, 0, 0)
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns
+          serverGroupEast.toCloudDriverResponse(
+            vpc = vpcEast,
+            subnets = listOf(subnet1East, subnet2East, subnet3East),
+            securityGroups = listOf(sg1East, sg2East),
+            instanceCounts = instanceCounts
+          )
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns
+          serverGroupWest.toCloudDriverResponse(
+            vpc = vpcWest,
+            subnets = listOf(subnet1West, subnet2West, subnet3West),
+            securityGroups = listOf(sg1West, sg2West),
+            instanceCounts = instanceCounts
+          )
+      }
+
+      derivedContext<Map<String, ServerGroup>>("fetching the current server group state") {
+        deriveFixture {
+          runBlocking {
+            current(resource)
+          }
+        }
+
+        test("a deployed event is not fired") {
+          verify(exactly = 0) { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
         }
       }
     }

@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.core.api.Capacity
@@ -62,7 +63,8 @@ class ClusterExportHelperTests : JUnit5Minutests {
       cloudProvider = "aws",
       securityGroups = emptySet(),
       accountName = "test",
-      moniker = parseMoniker("keek-test-v001")
+      moniker = parseMoniker("keek-test-v001"),
+      instanceCounts = InstanceCounts(1, 1, 0, 0, 0, 0)
     )
 
     val taskEntityTags = EntityTags(

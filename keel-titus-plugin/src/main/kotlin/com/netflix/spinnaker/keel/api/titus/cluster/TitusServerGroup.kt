@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.core.api.Capacity
@@ -66,7 +67,10 @@ data class TitusServerGroup(
   override val artifactType: ArtifactType? = ArtifactType.docker,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
-  override val artifactVersion: String? = null
+  override val artifactVersion: String? = null,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  val instanceCounts: InstanceCounts? = null
 ) : VersionedArtifactProvider
 
 val TitusServerGroup.moniker: Moniker

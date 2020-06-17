@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.BuildInfo
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.parseMoniker
@@ -61,7 +62,10 @@ data class ServerGroup(
   override val artifactType: ArtifactType? = ArtifactType.deb,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
-  override val artifactVersion: String? = null
+  override val artifactVersion: String? = null,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  val instanceCounts: InstanceCounts? = null
 ) : VersionedArtifactProvider {
   init {
     require(

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.titus.resource
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroup
 import com.netflix.spinnaker.keel.api.titus.cluster.moniker
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.Placement
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
@@ -13,7 +14,8 @@ import org.apache.commons.lang3.RandomStringUtils
 
 fun TitusServerGroup.toClouddriverResponse(
   securityGroups: List<SecurityGroupSummary>,
-  awsAccount: String
+  awsAccount: String,
+  instanceCounts: InstanceCounts = InstanceCounts(1, 1, 0, 0, 0, 0)
 ): TitusActiveServerGroup =
   RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
     TitusActiveServerGroup(
@@ -36,6 +38,7 @@ fun TitusServerGroup.toClouddriverResponse(
       serviceJobProcesses = ServiceJobProcesses(),
       tags = emptyMap(),
       resources = resources,
-      capacityGroup = moniker.app
+      capacityGroup = moniker.app,
+      instanceCounts = instanceCounts
     )
   }

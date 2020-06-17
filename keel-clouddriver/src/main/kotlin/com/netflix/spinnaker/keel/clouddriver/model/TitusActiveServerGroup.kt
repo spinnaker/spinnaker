@@ -67,7 +67,8 @@ data class TitusServerGroup(
   override val tags: Map<String, String>,
   override val resources: Resources,
   override val capacityGroup: String,
-  override val disabled: Boolean
+  override val disabled: Boolean,
+  override val instanceCounts: InstanceCounts
 ) : BaseTitusServerGroup
 
 fun TitusServerGroup.toActive() =
@@ -92,7 +93,9 @@ fun TitusServerGroup.toActive() =
     constraints = constraints,
     tags = tags,
     resources = resources,
-    capacityGroup = capacityGroup)
+    capacityGroup = capacityGroup,
+    instanceCounts = instanceCounts
+  )
 
 /**
  * Object returned when querying for the active titus server groups associated with a cluster.
@@ -121,7 +124,8 @@ data class TitusActiveServerGroup(
   override val constraints: Constraints,
   override val tags: Map<String, String>,
   override val resources: Resources,
-  override val capacityGroup: String
+  override val capacityGroup: String,
+  override val instanceCounts: InstanceCounts
 ) : BaseTitusServerGroup
 
 data class Placement(

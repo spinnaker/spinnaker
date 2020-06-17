@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
+import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -236,6 +237,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     cloudProvider = "aws",
     securityGroups = setOf("fnord"),
     accountName = "test",
-    moniker = parseMoniker("fnord-prod")
+    moniker = parseMoniker("fnord-prod"),
+    instanceCounts = InstanceCounts(10, 10, 0, 0, 0, 0)
   )
 }
