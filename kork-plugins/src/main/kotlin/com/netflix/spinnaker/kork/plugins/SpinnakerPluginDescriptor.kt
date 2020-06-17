@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins
 
 import java.util.Objects
 import org.pf4j.DefaultPluginDescriptor
+import org.pf4j.PluginDependency
 import org.pf4j.PluginDescriptor
 
 /**
@@ -41,6 +42,11 @@ class SpinnakerPluginDescriptor(
   requires ?: "",
   provider,
   license) {
+
+  // Jackson compatible private setter
+  private fun setDependencies(dependencies: List<PluginDependency>) {
+    this.setDependencies(dependencies.joinToString(","))
+  }
 
   // TODO(cf): rework once upstream equals/hashCode change is released:
   override fun equals(other: Any?): Boolean {
