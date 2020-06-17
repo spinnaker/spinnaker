@@ -45,7 +45,7 @@ class TomcatConfiguration {
   @Bean
   TomcatContainerCustomizerUtil tomcatContainerCustomizerUtil(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                                                               TomcatConfigurationProperties tomcatConfigurationProperties) {
-    return new TomcatContainerCustomizerUtil(okHttpClientConfigurationProperties, sslExtensionConfigurationProperties, tomcatConfigurationProperties)
+    return new TomcatContainerCustomizerUtil(okHttpClientConfigurationProperties, tomcatConfigurationProperties)
   }
 
   /**
