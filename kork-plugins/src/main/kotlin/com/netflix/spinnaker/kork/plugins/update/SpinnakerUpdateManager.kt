@@ -91,7 +91,7 @@ class SpinnakerUpdateManager(
 
         log.debug("Downloading plugin '{}' with version '{}'", release.pluginId, release.props.version)
         val tmpPath = downloadPluginRelease(release.pluginId, release.props.version)
-        val downloadedPluginPath = pluginManager.pluginsRoot.write(tmpPath)
+        val downloadedPluginPath = pluginManager.pluginsRoot.write(release.pluginId, tmpPath)
 
         log.debug("Downloaded plugin '{}'", release.pluginId)
         applicationEventPublisher.publishEvent(
@@ -158,9 +158,9 @@ class SpinnakerUpdateManager(
    * Write the plugin, creating the the plugins root directory defined in [pluginManager] if
    * necessary.
    */
-  private fun Path.write(downloaded: Path): Path {
+  private fun Path.write(pluginId: String, downloaded: Path): Path {
     if (pluginManager.pluginsRoot == this) {
-      val file = this.resolve(downloaded.fileName)
+      val file = this.resolve(pluginId + "-" + downloaded.fileName.toString())
       File(this.toString()).mkdirs()
       try {
         return Files.move(downloaded, file, StandardCopyOption.REPLACE_EXISTING)
