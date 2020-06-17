@@ -19,11 +19,11 @@ package com.netflix.spinnaker.kork.expressions;
 import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.expressions.whitelisting.FilteredMethodResolver;
-import com.netflix.spinnaker.kork.expressions.whitelisting.FilteredPropertyAccessor;
-import com.netflix.spinnaker.kork.expressions.whitelisting.MapPropertyAccessor;
-import com.netflix.spinnaker.kork.expressions.whitelisting.ReturnTypeRestrictor;
-import com.netflix.spinnaker.kork.expressions.whitelisting.WhitelistTypeLocator;
+import com.netflix.spinnaker.kork.expressions.allowlist.AllowListTypeLocator;
+import com.netflix.spinnaker.kork.expressions.allowlist.FilteredMethodResolver;
+import com.netflix.spinnaker.kork.expressions.allowlist.FilteredPropertyAccessor;
+import com.netflix.spinnaker.kork.expressions.allowlist.MapPropertyAccessor;
+import com.netflix.spinnaker.kork.expressions.allowlist.ReturnTypeRestrictor;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +49,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 /**
  * Provides utility support for SpEL integration Supports registering SpEL functions, ACLs to
- * classes (via whitelisting)
+ * classes (via allow list)
  */
 public class ExpressionsSupport {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExpressionsSupport.class);
@@ -133,7 +133,7 @@ public class ExpressionsSupport {
    *
    * @param rootObject the root object to transform
    * @param allowUnknownKeys flag to control what helper functions are available
-   * @return an evaluation context hooked with helper functions and correct ACL via whitelisting
+   * @return an evaluation context hooked with helper functions and correct ACL via allow list
    */
   public StandardEvaluationContext buildEvaluationContext(
       Object rootObject, boolean allowUnknownKeys) {
@@ -150,7 +150,7 @@ public class ExpressionsSupport {
     ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
 
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
-    evaluationContext.setTypeLocator(new WhitelistTypeLocator());
+    evaluationContext.setTypeLocator(new AllowListTypeLocator());
     evaluationContext.setMethodResolvers(
         Collections.singletonList(new FilteredMethodResolver(returnTypeRestrictor)));
     evaluationContext.setPropertyAccessors(

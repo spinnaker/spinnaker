@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.expressions.whitelisting;
+package com.netflix.spinnaker.kork.expressions.allowlist;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;

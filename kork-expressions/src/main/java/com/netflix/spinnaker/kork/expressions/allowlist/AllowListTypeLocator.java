@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.expressions.whitelisting;
+package com.netflix.spinnaker.kork.expressions.allowlist;
 
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.TypeLocator;
@@ -22,7 +22,7 @@ import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 
-public class WhitelistTypeLocator implements TypeLocator {
+public class AllowListTypeLocator implements TypeLocator {
   private final InstantiationTypeRestrictor instantiationTypeRestrictor =
       new InstantiationTypeRestrictor();
   private final TypeLocator delegate = new StandardTypeLocator();

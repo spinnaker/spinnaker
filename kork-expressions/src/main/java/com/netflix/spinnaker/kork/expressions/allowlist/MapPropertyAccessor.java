@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.expressions.whitelisting;
+package com.netflix.spinnaker.kork.expressions.allowlist;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.AccessException;
