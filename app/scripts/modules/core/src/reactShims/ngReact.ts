@@ -55,7 +55,6 @@ export class NgReactInjector extends ReactInject {
   public UserMenu: React.ComponentClass<{}>                                                     = angular2react('userMenu', {}, this.$injectorProxy) as any;
   public ViewChangesLink: React.ComponentClass<IViewChangesLinkProps>                           = angular2react('viewChangesLinkWrapper', viewChangesLinkWrapper, this.$injectorProxy) as any;
   public ViewScalingActivitiesLink: React.ComponentClass<IViewScalingActivitiesLinkProps>       = angular2react('viewScalingActivitiesLink', viewScalingActivitiesLink, this.$injectorProxy) as any;
-  public WhatsNew: React.ComponentClass<{}>                                                     = angular2react('whatsNew', {}, this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

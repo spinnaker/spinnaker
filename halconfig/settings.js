@@ -7,8 +7,6 @@ var authEndpoint = gateHost + '/auth/user';
 var bakeryDetailUrl = gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
 var canaryFeatureDisabled = '{%canary.featureEnabled%}' !== 'true';
 var canaryStagesEnabled = '{%canary.stages%}' === 'true';
-var changelogGistId = '{%changelog.gist.id%}';
-var changelogGistName = '{%changelog.gist.name%}';
 var chaosEnabled = '{%features.chaos%}' === 'true';
 var defaultCanaryJudge = '{%canary.defaultJudge%}';
 var defaultMetricsStore = '{%canary.defaultMetricsStore%}';
@@ -101,10 +99,6 @@ window.spinnakerSettings = {
     stagesEnabled: canaryStagesEnabled,
     storageAccountName: defaultStorageAccountName,
     templatesEnabled: templatesEnabled,
-  },
-  changelog: {
-    fileName: changelogGistName,
-    gistId: changelogGistId,
   },
   defaultInstancePort: 80,
   defaultTimeZone: timezone, // see http://momentjs.com/timezone/docs/#/data-utilities/

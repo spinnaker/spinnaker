@@ -70,11 +70,6 @@ export interface ISpinnakerSettings {
   authEndpoint: string;
   authTtl: number;
   bakeryDetailUrl: string;
-  changelog?: {
-    accessToken?: string;
-    fileName: string;
-    gistId: string;
-  };
   checkForUpdates: boolean;
   debugEnabled: boolean;
   defaultInstancePort: number;

@@ -34,7 +34,7 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
   };
 
   public render(): React.ReactElement<SpinnakerHeader> {
-    const { UserMenu, WhatsNew } = NgReact;
+    const { UserMenu } = NgReact;
 
     return (
       <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
@@ -83,7 +83,6 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
             <ul className="nav nav-items">
               <UserMenu />
               <GlobalSearch />
-              <WhatsNew />
               <HelpMenu />
             </ul>
           </div>

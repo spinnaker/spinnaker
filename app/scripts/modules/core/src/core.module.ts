@@ -67,7 +67,6 @@ import { SUBNET_MODULE } from './subnet/subnet.module';
 import { FIREWALL_LABEL_COMPONENT } from 'core/securityGroup/label/firewallLabel.component';
 import { LABEL_FILTER_COMPONENT } from 'core/cluster/filter/labelFilter.component';
 
-import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
 import * as State from './state';
@@ -167,7 +166,6 @@ module(CORE_MODULE, [
 
   CORE_UTILS_UTILS_MODULE,
 
-  WHATS_NEW_MODULE,
   WIDGETS_MODULE,
 
   CORE_VALIDATION_VALIDATION_MODULE,
