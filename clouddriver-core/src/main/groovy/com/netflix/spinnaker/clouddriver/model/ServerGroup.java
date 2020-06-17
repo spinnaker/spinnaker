@@ -227,6 +227,14 @@ public interface ServerGroup {
     private Integer max;
     /** Desired number of instances required in this server group */
     private Integer desired;
+
+    /**
+     * @return true if the capacity of this server group is fixed, i.e min, max and desired are all
+     *     the same
+     */
+    public boolean isPinned() {
+      return Objects.equals(max, desired) && Objects.equals(desired, min);
+    }
   }
 
   /**
