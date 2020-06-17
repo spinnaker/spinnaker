@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactPin;
 import com.netflix.spinnaker.gate.model.manageddelivery.EnvironmentArtifactVeto;
 import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
+import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
 import retrofit.client.Response;
@@ -146,4 +147,7 @@ public interface KeelService {
 
   @GET("/v3/api-docs")
   Map<String, Object> getApiDocs();
+
+  @GET("/installedPlugins")
+  List<SpinnakerPluginDescriptor> getInstalledPlugins();
 }
