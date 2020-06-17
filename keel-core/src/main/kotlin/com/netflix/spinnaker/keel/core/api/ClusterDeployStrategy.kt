@@ -38,7 +38,8 @@ sealed class ClusterDeployStrategy {
 
 @JsonTypeName("red-black")
 data class RedBlack(
-  val rollbackOnFailure: Boolean? = true,
+  // defaulting to false because this rollback behavior doesn't seem to play nice with managed delivery
+  val rollbackOnFailure: Boolean? = false,
   val resizePreviousToZero: Boolean? = false,
   val maxServerGroups: Int? = 2,
   val delayBeforeDisable: Duration? = ZERO,
@@ -76,9 +77,9 @@ data class RedBlack(
     "rollback" to mapOf("onFailure" to rollbackOnFailure),
     "stageTimeoutMs" to (
       (waitForInstancesUp ?: DEFAULT_WAIT_FOR_INSTANCES_UP) +
-      (delayBeforeDisable ?: ZERO) +
-      (delayBeforeScaleDown ?: ZERO)
-    ).toMillis()
+        (delayBeforeDisable ?: ZERO) +
+        (delayBeforeScaleDown ?: ZERO)
+      ).toMillis()
   )
 
   override val isStaggered: Boolean

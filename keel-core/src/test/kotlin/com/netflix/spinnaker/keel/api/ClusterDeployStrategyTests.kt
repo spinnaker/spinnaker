@@ -13,7 +13,6 @@ import java.time.Duration
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.assertions.isTrue
 import strikt.jackson.at
 import strikt.jackson.booleanValue
 import strikt.jackson.hasSize
@@ -49,7 +48,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
         expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
           path("strategy").textValue() isEqualTo "red-black"
           path("resizePreviousToZero").booleanValue().isFalse()
-          path("rollbackOnFailure").booleanValue().isTrue()
+          path("rollbackOnFailure").booleanValue().isFalse()
           path("maxServerGroups").numberValue().isEqualTo(2)
           path("delayBeforeDisable").isTextual().textValue() isEqualTo "PT0S"
           path("delayBeforeScaleDown").isTextual().textValue() isEqualTo "PT0S"
@@ -75,7 +74,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
           expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
             path("strategy").textValue() isEqualTo "red-black"
             path("resizePreviousToZero").booleanValue().isFalse()
-            path("rollbackOnFailure").booleanValue().isTrue()
+            path("rollbackOnFailure").booleanValue().isFalse()
             path("maxServerGroups").numberValue().isEqualTo(2)
             path("delayBeforeDisable").isTextual().textValue() isEqualTo "PT0S"
             path("delayBeforeScaleDown").isTextual().textValue() isEqualTo "PT0S"
@@ -127,9 +126,9 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
                 "rollback" to mapOf("onFailure" to strategy.rollbackOnFailure),
                 "stageTimeoutMs" to (
                   strategy.delayBeforeDisable!! +
-                  strategy.delayBeforeScaleDown!! +
-                  strategy.waitForInstancesUp!!
-                ).toMillis()
+                    strategy.delayBeforeScaleDown!! +
+                    strategy.waitForInstancesUp!!
+                  ).toMillis()
               )
             )
           }
