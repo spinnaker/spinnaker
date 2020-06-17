@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.manifest;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch;
@@ -33,9 +34,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.HasPods;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+@ParametersAreNonnullByDefault
 public abstract class AbstractKubernetesEnableDisableManifestOperation
     implements AtomicOperation<OperationResult> {
   private final KubernetesEnableDisableManifestDescription description;
@@ -59,10 +64,11 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
     return TaskRepository.threadLocalTask.get();
   }
 
-  private List<String> determineLoadBalancers(KubernetesManifest target) {
+  @Nonnull
+  private List<String> determineLoadBalancers(@Nonnull KubernetesManifest target) {
     getTask().updateStatus(OP_NAME, "Getting load balancer list to " + getVerbName() + "...");
-    List<String> result = description.getLoadBalancers();
-    if (result != null && !result.isEmpty()) {
+    ImmutableList<String> result = description.getLoadBalancers();
+    if (!result.isEmpty()) {
       getTask().updateStatus(OP_NAME, "Using supplied list [" + String.join(", ", result) + "]");
     } else {
       KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(target);
@@ -88,7 +94,13 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
     CanLoadBalance loadBalancerHandler =
         CanLoadBalance.lookupProperties(credentials.getResourcePropertyRegistry(), name);
     KubernetesManifest loadBalancer =
-        credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
+        Optional.ofNullable(credentials.get(name.getLeft(), target.getNamespace(), name.getRight()))
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        String.format(
+                            "Could not find load balancer. (kind: %s, name: %s, namespace: %s)",
+                            name.getLeft(), name.getRight(), target.getNamespace())));
 
     List<JsonPatch> patch = patchResource(loadBalancerHandler, loadBalancer, target);
 
@@ -125,7 +137,14 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
     getTask().updateStatus(OP_NAME, "Starting " + getVerbName() + " operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
     KubernetesManifest target =
-        credentials.get(coordinates.getKind(), coordinates.getNamespace(), coordinates.getName());
+        Optional.ofNullable(
+                credentials.get(
+                    coordinates.getKind(), coordinates.getNamespace(), coordinates.getName()))
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        String.format(
+                            "Could not find kubernetes manifest: %s", coordinates.toString())));
     determineLoadBalancers(target).forEach(l -> op(l, target));
 
     getTask()

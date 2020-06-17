@@ -17,16 +17,27 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesEnableDisableManifestDescription
+public final class KubernetesEnableDisableManifestDescription
     extends KubernetesManifestOperationDescription {
-  int targetPercentage = 100;
+  private int targetPercentage = 100;
   // optional: can be inferred from the annotations as well
-  List<String> loadBalancers = new ArrayList<>();
+  @Nonnull private ImmutableList<String> loadBalancers = ImmutableList.of();
+
+  @Nonnull
+  public KubernetesEnableDisableManifestDescription setLoadBalancers(
+      @Nullable List<String> loadBalancers) {
+    this.loadBalancers =
+        Optional.ofNullable(loadBalancers).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
+    return this;
+  }
 }

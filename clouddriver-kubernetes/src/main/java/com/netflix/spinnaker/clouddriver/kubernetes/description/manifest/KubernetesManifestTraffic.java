@@ -17,14 +17,23 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
+import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
-import lombok.AllArgsConstructor;
+import java.util.Optional;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-@AllArgsConstructor
 @EqualsAndHashCode
 @Getter
-public class KubernetesManifestTraffic {
-  private List<String> loadBalancers;
+@NonnullByDefault
+public final class KubernetesManifestTraffic {
+  private final ImmutableList<String> loadBalancers;
+
+  @ParametersAreNullableByDefault
+  public KubernetesManifestTraffic(List<String> loadBalancers) {
+    this.loadBalancers =
+        Optional.ofNullable(loadBalancers).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
+  }
 }

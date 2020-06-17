@@ -62,6 +62,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -366,6 +367,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return ImmutableList.of();
   }
 
+  @Nullable
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
     return runAndRecordMetrics(
         "get", kind, namespace, () -> jobExecutor.get(this, kind, namespace, name));

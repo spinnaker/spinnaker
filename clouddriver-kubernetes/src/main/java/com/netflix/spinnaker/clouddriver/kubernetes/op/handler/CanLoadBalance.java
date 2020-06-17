@@ -23,8 +23,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourceProperty
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.commons.lang3.tuple.Pair;
 
+@ParametersAreNonnullByDefault
 public interface CanLoadBalance {
   void attach(KubernetesManifest loadBalancer, KubernetesManifest target);
 

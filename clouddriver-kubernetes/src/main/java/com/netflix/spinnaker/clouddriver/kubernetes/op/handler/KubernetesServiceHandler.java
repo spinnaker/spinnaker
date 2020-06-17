@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -178,6 +179,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public void attach(KubernetesManifest loadBalancer, KubernetesManifest target) {
     Map<String, String> labels = target.getSpecTemplateLabels().orElse(target.getLabels());
     ImmutableMap<String, String> selector = getSelector(loadBalancer);
@@ -209,6 +211,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public List<JsonPatch> attachPatch(KubernetesManifest loadBalancer, KubernetesManifest target) {
     String pathPrefix = pathPrefix(target);
     Map<String, String> labels = labels(target);
@@ -225,6 +228,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public List<JsonPatch> detachPatch(KubernetesManifest loadBalancer, KubernetesManifest target) {
     String pathPrefix = pathPrefix(target);
     Map<String, String> labels = labels(target);
