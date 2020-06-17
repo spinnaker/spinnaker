@@ -242,6 +242,6 @@ class AllowedTimesConstraintEvaluator(
 
   private fun defaultTimeZone(): ZoneId =
     ZoneId.of(
-      dynamicConfigService.getConfig(String::class.java, "default.time-zone", "UTC")
+      dynamicConfigService.getConfig(String::class.java, "default.time-zone", "America/Los_Angeles")
     )
 }
