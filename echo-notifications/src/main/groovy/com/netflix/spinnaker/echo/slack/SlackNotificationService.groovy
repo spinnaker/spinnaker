@@ -53,7 +53,7 @@ class SlackNotificationService implements NotificationService {
     def text = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       def response
-      String address = it.startsWith('#') ? it : "#${it}"
+      String address = it
       if (slack.config.sendCompactMessages) {
         response = slack.sendCompactMessage(new CompactSlackMessage(text), address, true)
       } else {

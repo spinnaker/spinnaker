@@ -99,7 +99,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
         .replace("{{link}}", link ?: "")
     }
 
-    String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
+    String address = preference.address
 
     Response response
     if (sendCompactMessages) {

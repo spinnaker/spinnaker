@@ -42,7 +42,7 @@ class SlackNotificationServiceSpec extends Specification {
     given:
     Notification notification = new Notification()
     notification.notificationType = "SLACK"
-    notification.to = [ "channel1", "channel2" ]
+    notification.to = [ "channel1", "#channel2", "C12345678" ]
     notification.severity = Notification.Severity.NORMAL
     notification.additionalContext["body"] = "text"
 
@@ -54,6 +54,8 @@ class SlackNotificationServiceSpec extends Specification {
     service.handle(notification)
 
     then:
-    notification.to.size() * slack.sendMessage(*_)
+    1 * slack.sendMessage(_, "channel1", _)
+    1 * slack.sendMessage(_, "#channel2", _)
+    1 * slack.sendMessage(_, "C12345678", _)
   }
 }
