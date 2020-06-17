@@ -156,8 +156,8 @@ const rule = function(context) {
   function fromFunction(thisGuy) {
     const { node: fn } = thisGuy;
     const name = fn.type === 'FunctionDeclaration' ? fn.id.name : fn.name;
-    let params = fn.params.map(param => param.name);
-    let diStrings = getDiStrings(name);
+    const params = fn.params.map(param => param.name);
+    const diStrings = getDiStrings(name);
     return { type: 'function', fn, name, params, diStrings };
   }
 
@@ -181,7 +181,7 @@ const rule = function(context) {
         return fromClassDeclaration(thisGuy);
       case 'MemberExpression': {
         const memberExpression = context.getSourceCode().getText(thisGuy.node);
-        // whitelist some known symbols
+        // allowlist some known symbols
         if (!['angular.noop', 'noop'].includes(memberExpression)) {
           console.warn(`Unable to handle MemberExpression: ${memberExpression}`);
         }

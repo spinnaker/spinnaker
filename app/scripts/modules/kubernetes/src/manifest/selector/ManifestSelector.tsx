@@ -289,7 +289,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     const { application, includeSpinnakerKinds } = this.props;
     const { selector } = this.state;
     const applications = application ? [application] : [];
-    // If the only whitelisted Spinnaker kind is `serverGroups`, exclude server groups with `serverGroupManagers`.
+    // If the only allowlisted Spinnaker kind is `serverGroups`, exclude server groups with `serverGroupManagers`.
     // This is because traffic management stages only allow ReplicaSets.
     const includeServerGroupsWithManagers: boolean =
       isEmpty(includeSpinnakerKinds) || includeSpinnakerKinds.length > 1 || includeSpinnakerKinds[0] !== 'serverGroups';

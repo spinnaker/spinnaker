@@ -115,10 +115,10 @@ const angularJSModuleStrictDiHandler: ProxyHandler<any> = {
   },
 };
 
-const whitelistedModules = ['ngMock'];
+const allowlistedModules = ['ngMock'];
 const realModule = angular.module;
 (angular as any).module = function module() {
   const angularModule = realModule.apply(this, arguments);
-  const isWhitelisted = whitelistedModules.includes(arguments[0]);
-  return isWhitelisted ? angularModule : new Proxy(angularModule, angularJSModuleStrictDiHandler);
+  const isAllowlisted = allowlistedModules.includes(arguments[0]);
+  return isAllowlisted ? angularModule : new Proxy(angularModule, angularJSModuleStrictDiHandler);
 };

@@ -33,9 +33,9 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
     skipManual: false,
   };
   const jitter = get(props.restrictedExecutionWindow, 'jitter', defaultJitter);
-  const whitelist = get(props.restrictedExecutionWindow, 'whitelist', []);
+  const allowlist = get(props.restrictedExecutionWindow, 'whitelist', []);
   const days = get(props.restrictedExecutionWindow, 'days', []);
-  const [timelineWindows, setTimelineWindows] = useState(getTimelineWindows(whitelist));
+  const [timelineWindows, setTimelineWindows] = useState(getTimelineWindows(allowlist));
   const [enableCustomSkipWindowText, setEnableCustomSkipWindowText] = useState(!!props.skipWindowText);
   const defaultSkipWindowText = DEFAULT_SKIP_WINDOW_TEXT;
   const isWindowExpression =
@@ -49,8 +49,8 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
   }));
 
   // if the user edits the stage as JSON, we'll get a re-render, but the state will be possibly stale, so reset
-  if (!isEqual(getTimelineWindows(whitelist), timelineWindows)) {
-    setTimelineWindows(getTimelineWindows(whitelist));
+  if (!isEqual(getTimelineWindows(allowlist), timelineWindows)) {
+    setTimelineWindows(getTimelineWindows(allowlist));
   }
 
   const jitterUpdated = (changes: Partial<IJitter>) => {
@@ -79,17 +79,17 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
     };
     const restrictedExecutionWindow = {
       ...(props.restrictedExecutionWindow || {}),
-      whitelist: [...whitelist, newExecutionWindow],
+      whitelist: [...allowlist, newExecutionWindow],
     };
     props.updateStageField({ restrictedExecutionWindow });
   };
 
   const removeWindow = (index: number): void => {
-    const newWhitelist = [...whitelist];
-    newWhitelist.splice(index, 1);
+    const newAllowlist = [...allowlist];
+    newAllowlist.splice(index, 1);
     const restrictedExecutionWindow = {
       ...props.restrictedExecutionWindow,
-      whitelist: newWhitelist,
+      whitelist: newAllowlist,
     };
     props.updateStageField({ restrictedExecutionWindow });
   };
@@ -102,15 +102,15 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
     props.updateStageField({ restrictedExecutionWindow });
   };
 
-  const updateWhitelist = (changes: Partial<IWindow>, index: number) => {
-    const newWhitelist = [...whitelist];
-    extend(newWhitelist[index], changes);
+  const updateAllowlist = (changes: Partial<IWindow>, index: number) => {
+    const newAllowlist = [...allowlist];
+    extend(newAllowlist[index], changes);
     const restrictedExecutionWindow = {
       ...props.restrictedExecutionWindow,
-      whitelist: newWhitelist,
+      whitelist: newAllowlist,
     };
     props.updateStageField({ restrictedExecutionWindow });
-    setTimelineWindows(getTimelineWindows(newWhitelist));
+    setTimelineWindows(getTimelineWindows(newAllowlist));
   };
 
   function getTimelineWindows(w: IWindow[]): ITimelineWindow[] {
@@ -254,7 +254,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
               ):
             </p>
           </div>
-          {whitelist.map((w: IWindow, i: number) => {
+          {allowlist.map((w: IWindow, i: number) => {
             return (
               <div className="window-entry" key={i}>
                 <div className="form-group">
@@ -266,7 +266,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       value={w.startHour}
                       options={hours.map(h => ({ label: h.label, value: h.value }))}
                       onChange={(option: Option<number>) => {
-                        updateWhitelist({ startHour: option.target.value }, i);
+                        updateAllowlist({ startHour: option.target.value }, i);
                       }}
                     />
                     <span> : </span>
@@ -276,7 +276,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       value={w.startMin}
                       options={minutes.map(m => ({ label: m.label, value: m.value }))}
                       onChange={(option: Option<number>) => {
-                        updateWhitelist({ startMin: option.target.value }, i);
+                        updateAllowlist({ startMin: option.target.value }, i);
                       }}
                     />
                     <span className="start-end-divider"> to </span>
@@ -286,7 +286,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       value={w.endHour}
                       options={hours.map(h => ({ label: h.label, value: h.value }))}
                       onChange={(option: Option<number>) => {
-                        updateWhitelist({ endHour: option.target.value }, i);
+                        updateAllowlist({ endHour: option.target.value }, i);
                       }}
                     />
                     <span> : </span>
@@ -296,7 +296,7 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
                       value={w.endMin}
                       options={minutes.map(m => ({ label: m.label, value: m.value }))}
                       onChange={(option: Option<number>) => {
-                        updateWhitelist({ endMin: option.target.value }, i);
+                        updateAllowlist({ endMin: option.target.value }, i);
                       }}
                     />
                     <Tooltip value={'Remove window'}>

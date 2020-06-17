@@ -19,7 +19,7 @@ export interface IExecutionWindowActionsState {
   dayText: string;
 }
 
-export interface IExecutionWindowWhitelistEntry {
+export interface IExecutionWindowAllowlistEntry {
   startHour: number;
   startMin: number;
   endHour: number;
@@ -82,7 +82,7 @@ export class ExecutionWindowActions extends React.Component<
         <strong>Stage execution can only run:</strong>
         <dl className="dl-narrow dl-horizontal">
           {get(stage, 'context.restrictedExecutionWindow.whitelist', []).map(
-            (entry: IExecutionWindowWhitelistEntry, index: number) => {
+            (entry: IExecutionWindowAllowlistEntry, index: number) => {
               return (
                 <div key={index}>
                   <dt>From</dt>

@@ -1,6 +1,6 @@
 import { IProviderSettings, SETTINGS } from '@spinnaker/core';
 
-export interface IClassicLaunchWhitelist {
+export interface IClassicLaunchAllowlist {
   region: string;
   credentials: string;
 }
@@ -18,7 +18,7 @@ export interface ITencentcloudProviderSettings extends IProviderSettings {
     certificateTypes?: string[];
   };
   classicLaunchLockout?: number;
-  classicLaunchWhitelist?: IClassicLaunchWhitelist[];
+  classicLaunchAllowlist?: IClassicLaunchAllowlist[];
   metrics?: {
     customNamespaces?: string[];
   };

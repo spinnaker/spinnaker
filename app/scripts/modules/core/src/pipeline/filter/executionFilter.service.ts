@@ -104,7 +104,7 @@ export class ExecutionFilterService {
     }
   }
 
-  private static getValuesAsString(object: any, blacklist: string[] = []): string {
+  private static getValuesAsString(object: any, denylist: string[] = []): string {
     if (typeof object === 'string') {
       return object;
     }
@@ -112,15 +112,15 @@ export class ExecutionFilterService {
       return '' + object;
     }
     if (object instanceof Array) {
-      return object.map(val => this.getValuesAsString(val, blacklist)).join(' ');
+      return object.map(val => this.getValuesAsString(val, denylist)).join(' ');
     }
     if (object instanceof Object) {
       return Object.keys(object)
         .map(key => {
-          if (blacklist.includes(key)) {
+          if (denylist.includes(key)) {
             return '';
           }
-          return this.getValuesAsString(object[key], blacklist);
+          return this.getValuesAsString(object[key], denylist);
         })
         .join(' ');
     }

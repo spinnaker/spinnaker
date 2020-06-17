@@ -34,12 +34,12 @@ export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, 
   public state: ISubnetSelectInputState = { options: [] };
 
   private isClassicLockout(region: string, credentials: string, application: Application): boolean {
-    const { classicLaunchLockout, classicLaunchWhitelist: whitelist } = AWSProviderSettings;
+    const { classicLaunchLockout, classicLaunchAllowlist: allowlist } = AWSProviderSettings;
 
     const appCreationDate = Number(get(application, 'attributes.createTs', 0));
     const appCreatedAfterLockout = appCreationDate > (classicLaunchLockout || 0);
-    const isWhitelisted = !!whitelist && whitelist.some(e => e.region === region && e.credentials === credentials);
-    return appCreatedAfterLockout || !isWhitelisted;
+    const isAllowlisted = !!allowlist && allowlist.some(e => e.region === region && e.credentials === credentials);
+    return appCreatedAfterLockout || !isAllowlisted;
   }
 
   private getOptions(subnets: ISubnet[], isClassicHidden: boolean): Array<Option<string>> {

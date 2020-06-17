@@ -3,11 +3,11 @@ import { module } from 'angular';
 import { ITaskStep } from 'core/domain';
 
 export function displayableTasks(input: ITaskStep[]): ITaskStep[] {
-  const blacklist = ['stageStart', 'stageEnd', 'determineTargetServerGroup'];
+  const denylist = ['stageStart', 'stageEnd', 'determineTargetServerGroup'];
 
   let result: ITaskStep[] = [];
   if (input) {
-    result = input.filter((test: ITaskStep) => !blacklist.includes(test.name) || test.status === 'TERMINAL');
+    result = input.filter((test: ITaskStep) => !denylist.includes(test.name) || test.status === 'TERMINAL');
   }
 
   return result;
