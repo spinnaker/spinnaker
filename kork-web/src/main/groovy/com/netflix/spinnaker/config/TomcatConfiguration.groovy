@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.tomcat.TomcatContainerCustomizerUtil
-import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import groovy.util.logging.Slf4j
 import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.Http11NioProtocol
@@ -35,10 +34,9 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @Slf4j
 @Configuration
-@ComponentScan(basePackages = ["com.netflix.spinnaker.endpoint", "com.netflix.spinnaker.tomcat.x509"])
+@ComponentScan(basePackages = ["com.netflix.spinnaker.endpoint"])
 @EnableConfigurationProperties([
   ResolvedEnvironmentConfigurationProperties,
-  SslExtensionConfigurationProperties,
   TomcatConfigurationProperties
 ])
 @EnableScheduling
@@ -46,7 +44,6 @@ class TomcatConfiguration {
 
   @Bean
   TomcatContainerCustomizerUtil tomcatContainerCustomizerUtil(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-                                                              SslExtensionConfigurationProperties sslExtensionConfigurationProperties,
                                                               TomcatConfigurationProperties tomcatConfigurationProperties) {
     return new TomcatContainerCustomizerUtil(okHttpClientConfigurationProperties, sslExtensionConfigurationProperties, tomcatConfigurationProperties)
   }

@@ -2,8 +2,6 @@ package com.netflix.spinnaker.tomcat
 
 import com.netflix.spinnaker.config.TomcatConfigurationProperties
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.tomcat.x509.BlacklistingSSLImplementation
-import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.AbstractHttp11JsseProtocol
 import org.apache.coyote.http11.AbstractHttp11Protocol
@@ -18,14 +16,11 @@ class TomcatContainerCustomizerUtil {
   private final Logger log = LoggerFactory.getLogger(getClass())
 
   private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
-  private final SslExtensionConfigurationProperties sslExtensionConfigurationProperties
   private final TomcatConfigurationProperties tomcatConfigurationProperties
 
   TomcatContainerCustomizerUtil(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-                                SslExtensionConfigurationProperties sslExtensionConfigurationProperties,
                                 TomcatConfigurationProperties tomcatConfigurationProperties) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
-    this.sslExtensionConfigurationProperties = sslExtensionConfigurationProperties
     this.tomcatConfigurationProperties = tomcatConfigurationProperties
   }
 
@@ -49,12 +44,10 @@ class TomcatContainerCustomizerUtil {
         if (sslConfigs.size() != 1) {
           throw new RuntimeException("Ssl configs: found ${sslConfigs.size()}, expected 1.")
         }
-        handler.setSslImplementationName(BlacklistingSSLImplementation.name)
         SSLHostConfig sslHostConfig = sslConfigs.first()
         sslHostConfig.setHonorCipherOrder(true)
         sslHostConfig.ciphers = okHttpClientConfigurationProperties.cipherSuites.join(",")
         sslHostConfig.setProtocols(okHttpClientConfigurationProperties.tlsVersions.join(","))
-        sslHostConfig.setCertificateRevocationListFile(sslExtensionConfigurationProperties.getCrlFile())
       }
     }
   }
