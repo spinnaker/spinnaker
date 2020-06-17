@@ -299,14 +299,14 @@ class ApplicationLoadBalancerHandler(
               "protocol" to it.protocol,
               "port" to it.port,
               "healthCheckEnabled" to it.healthCheckEnabled,
-              "healthCheckTimeoutSeconds" to it.healthCheckTimeoutSeconds.seconds,
+              "healthCheckTimeout" to it.healthCheckTimeoutSeconds.seconds,
               "healthCheckPort" to it.healthCheckPort,
               "healthCheckProtocol" to it.healthCheckProtocol,
               "healthCheckHttpCode" to it.healthCheckHttpCode,
               "healthCheckPath" to it.healthCheckPath,
-              "healthCheckIntervalSeconds" to it.healthCheckIntervalSeconds.seconds,
-              "healthyThresholdCount" to it.healthyThresholdCount,
-              "unhealthyThresholdCount" to it.unhealthyThresholdCount,
+              "healthCheckInterval" to it.healthCheckIntervalSeconds.seconds,
+              "healthyThreshold" to it.healthyThresholdCount,
+              "unhealthyThreshold" to it.unhealthyThresholdCount,
               "attributes" to it.attributes
             )
           }
