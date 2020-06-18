@@ -4,12 +4,17 @@ const typescript = require('@rollup/plugin-typescript');
 const postCss = require('rollup-plugin-postcss');
 const externalGlobals = require('rollup-plugin-external-globals');
 
+const ROLLUP_WATCH = !!process.env.ROLLUP_WATCH;
+
 module.exports = {
   input: 'src/index.ts',
   plugins: [
     nodeResolve(),
     commonjs(),
-    typescript(),
+    typescript({
+      // In watch mode, always emit javascript even with errors (otherwise rollup will terminate)
+      noEmitOnError: !ROLLUP_WATCH,
+    }),
     // map imports from shared libraries (react, etc) to global variables exposed by spinnaker
     externalGlobals(spinnakerSharedLibraries()),
     // import from .css, .less, and inject into the document <head></head>
