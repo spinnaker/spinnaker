@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+  implementation(project(":keel-api"))
   implementation(project(":keel-core"))
   implementation(project(":keel-test"))
   implementation("org.junit.jupiter:junit-jupiter-api")

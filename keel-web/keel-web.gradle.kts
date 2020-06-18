@@ -21,6 +21,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
+  implementation("com.netflix.spinnaker.kork:kork-artifacts")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.security:spring-security-config")

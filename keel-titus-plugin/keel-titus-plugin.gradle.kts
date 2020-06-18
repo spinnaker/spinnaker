@@ -10,6 +10,7 @@ dependencies {
   implementation(project(":keel-orca"))
   implementation(project(":keel-retrofit"))
   implementation(project(":keel-docker"))
+  implementation(project(":keel-artifact"))
   implementation("com.netflix.spinnaker.kork:kork-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

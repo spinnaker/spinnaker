@@ -26,16 +26,18 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 
 private val objectMapper: ObjectMapper = configuredObjectMapper()
 
 /**
  * A helper function to construct the proper artifact type from the serialized json.
+ * FIXME: this needs to go away in favor of [ArtifactPublisher] functions to keep
+ * artifact contracts generic.
  */
 fun mapToArtifact(
   name: String,

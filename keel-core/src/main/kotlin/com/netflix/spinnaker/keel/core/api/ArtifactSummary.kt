@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import java.time.Instant
@@ -29,22 +31,6 @@ data class ArtifactVersionSummary(
   val environments: Set<ArtifactSummaryInEnvironment>,
   val build: BuildMetadata? = null,
   val git: GitMetadata? = null
-)
-
-/**
- * todo eb: other information should go here, like a link to the jenkins build. But that needs to be done
- * in a scalable way. For now, this is just a minimal container for information we can parse from the version.
- */
-data class BuildMetadata(
-  val id: Int
-)
-
-/**
- * todo eb: other information should go here, like a link to the commit. But that needs to be done
- * in a scalable way. For now, this is just a minimal container for information we can parse from the version.
- */
-data class GitMetadata(
-  val commit: String
 )
 
 @JsonInclude(Include.NON_EMPTY)

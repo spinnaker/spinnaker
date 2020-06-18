@@ -4,9 +4,9 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.events.ArtifactEvent
-import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
+import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
+import com.netflix.spinnaker.keel.artifact.events.KorkArtifactEvent
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -38,9 +38,9 @@ class ArtifactController(
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
     echoArtifactEvent.payload.artifacts.forEach { artifact ->
       if (artifact.type.equals(deb.toString(), true) && artifact.isFromArtifactEvent()) {
-        publisher.publishEvent(ArtifactEvent(listOf(artifact), emptyMap()))
+        publisher.publishEvent(KorkArtifactEvent(listOf(artifact), emptyMap()))
       } else if (artifact.type.equals(docker.toString(), true)) {
-        publisher.publishEvent(ArtifactEvent(listOf(artifact), emptyMap()))
+        publisher.publishEvent(KorkArtifactEvent(listOf(artifact), emptyMap()))
       } else {
         log.debug("Ignoring artifact event with type {}: {}", artifact.type, artifact)
       }
@@ -81,6 +81,6 @@ class ArtifactController(
 }
 
 data class EchoArtifactEvent(
-  val payload: ArtifactEvent,
+  val payload: KorkArtifactEvent,
   val eventName: String
 )

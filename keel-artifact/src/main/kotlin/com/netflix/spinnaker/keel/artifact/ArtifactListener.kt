@@ -7,15 +7,15 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
+import com.netflix.spinnaker.keel.artifact.events.KorkArtifactEvent
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.comparator
-import com.netflix.spinnaker.keel.events.ArtifactEvent
-import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -50,8 +50,8 @@ class ArtifactListener(
     enabled.set(false)
   }
 
-  @EventListener(ArtifactEvent::class)
-  fun onArtifactEvent(event: ArtifactEvent) {
+  @EventListener(KorkArtifactEvent::class)
+  fun onArtifactEvent(event: KorkArtifactEvent) {
     log.debug("Received artifact event: {}", event)
     event
       .artifacts
@@ -117,6 +117,7 @@ class ArtifactListener(
             val latestVersion = when (artifact) {
               is DebianArtifact -> getLatestDeb(artifact)?.let { "${artifact.name}-$it" }
               is DockerArtifact -> getLatestDockerTag(artifact)
+              else -> error("Unrecognized artifact type: ${artifact.type}")
             }
             if (latestVersion != null) {
               val hasNew = when {

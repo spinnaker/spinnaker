@@ -45,6 +45,7 @@ tasks.getByName<Delete>("clean") {
 
 dependencies {
   implementation(project(":keel-core"))
+  implementation(project(":keel-artifact"))
   implementation("com.netflix.spinnaker.kork:kork-sql")
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")

@@ -26,7 +26,6 @@ dependencies {
   api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   api("com.fasterxml.jackson.module:jackson-module-kotlin")
   api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  api("com.netflix.spinnaker.kork:kork-artifacts")
   api("de.danielbechler:java-object-diff")
   api("org.springframework:spring-context")
   api("org.springframework.boot:spring-boot-autoconfigure")
@@ -35,6 +34,7 @@ dependencies {
   api("net.swiftzer.semver:semver:1.1.0")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
+  api("org.apache.commons:commons-lang3")
 
   implementation("org.springframework:spring-tx")
 

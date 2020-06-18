@@ -21,7 +21,6 @@ plugins {
 
 dependencies {
   api(project(":keel-retrofit"))
-  api("com.netflix.spinnaker.kork:kork-artifacts")
   api("com.fasterxml.jackson.module:jackson-module-kotlin")
   api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 

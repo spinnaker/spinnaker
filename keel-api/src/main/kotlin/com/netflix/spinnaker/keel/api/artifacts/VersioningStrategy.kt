@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.api.artifacts
 /**
  * Strategy for how to sort versions of artifacts.
  */
-sealed class VersioningStrategy
+abstract class VersioningStrategy
 
 object DebianSemVerVersioningStrategy : VersioningStrategy() {
   override fun toString(): String =

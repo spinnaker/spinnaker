@@ -4,14 +4,14 @@ import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.artifact.events.KorkArtifactEvent
+import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.events.ArtifactEvent
-import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -40,7 +40,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   val deliveryConfig = DeliveryConfig(name = "fnord-config", application = "fnord", serviceAccount = "keel", artifacts = setOf(debianArtifact, dockerArtifact))
 
   data class ArtifactFixture(
-    val event: ArtifactEvent,
+    val event: KorkArtifactEvent,
     val artifact: DeliveryArtifact,
     val repository: KeelRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
@@ -53,7 +53,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   fun artifactEventTests() = rootContext<ArtifactFixture> {
     fixture {
       ArtifactFixture(
-        event = ArtifactEvent(
+        event = KorkArtifactEvent(
           artifacts = listOf(korkDeb),
           details = emptyMap()
         ),
