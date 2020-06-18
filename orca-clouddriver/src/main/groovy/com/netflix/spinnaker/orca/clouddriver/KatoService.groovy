@@ -16,14 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.ExecutionContext
+import com.netflix.spinnaker.orca.clouddriver.model.OperationContext
+import com.netflix.spinnaker.orca.clouddriver.model.SubmitOperationResult
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
+import retrofit.client.Response
 
 import javax.annotation.Nonnull
 import java.time.Duration
@@ -34,6 +39,7 @@ class KatoService {
   private final KatoRestService katoRestService
   private final CloudDriverTaskStatusService cloudDriverTaskStatusService
   private final RetrySupport retrySupport
+  private final ObjectMapper objectMapper
 
   @Autowired
   KatoService(KatoRestService katoRestService, CloudDriverTaskStatusService cloudDriverTaskStatusService, RetrySupport retrySupport) {
@@ -52,6 +58,30 @@ class KatoService {
     return retrySupport.retry({
       katoRestService.requestOperations(requestId(operations), cloudProvider, operations)
     }, 3, Duration.ofSeconds(1), false)
+  }
+
+  SubmitOperationResult submitOperation(@Nonnull String cloudProvider, OperationContext operation) {
+    Response response = katoRestService.submitOperation(
+      requestId(operation),
+      cloudProvider,
+      operation.operationType,
+      operation
+    )
+
+    InputStream body = null
+    try {
+      body = response.body.in()
+    } finally {
+      body?.close()
+    }
+
+    TaskId taskId = objectMapper.readValue(body, TaskId.class)
+
+    SubmitOperationResult result = new SubmitOperationResult()
+    result.id = taskId.id
+    result.status = response.status
+
+    return result
   }
 
   Task lookupTask(String id, boolean skipReplica = false) {
