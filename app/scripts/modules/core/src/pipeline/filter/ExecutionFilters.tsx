@@ -27,6 +27,7 @@ export interface IExecutionFiltersState {
   pipelineNames: string[];
   strategyNames: string[];
   pipelineReorderEnabled: boolean;
+  searchString: string;
   tags: IFilterTag[];
 }
 
@@ -47,6 +48,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
       pipelineNames: this.getPipelineNames(false),
       strategyNames: this.getPipelineNames(true),
       pipelineReorderEnabled: false,
+      searchString: '',
       tags: ExecutionState.filterModel.asFilterModel.tags,
     };
   }
@@ -124,8 +126,13 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 
   private refreshPipelines(): void {
-    const { pipelineNames, strategyNames } = this.state;
-    const newPipelineNames = this.getPipelineNames(false);
+    const { pipelineNames, strategyNames, searchString } = this.state;
+    let newPipelineNames = this.getPipelineNames(false);
+    if (searchString.length > 0) {
+      newPipelineNames = newPipelineNames.filter(pipelineName =>
+        pipelineName.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()),
+      );
+    }
     const newStrategyNames = this.getPipelineNames(true);
     if (!isEqual(pipelineNames, newPipelineNames) || !isEqual(strategyNames, newStrategyNames)) {
       this.setState({ pipelineNames: newPipelineNames, strategyNames: newStrategyNames });
@@ -157,6 +164,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 
   private searchFieldUpdated = (event: React.FormEvent<HTMLInputElement>): void => {
+    this.setState({ searchString: event.currentTarget.value }, () => this.refreshPipelines());
     this.updateFilterSearch(event.currentTarget.value);
   };
 
