@@ -171,7 +171,10 @@ class RunTaskHandler(
         } else if (e is TimeoutException && stage.context["markSuccessfulOnTimeout"] == true) {
           queue.push(CompleteTask(message, SUCCEEDED))
         } else {
-          log.error("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]", e)
+          if (e !is TimeoutException) {
+            log.error("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]", e)
+          }
+
           val status = stage.failureStatus(default = TERMINAL)
           stage.context["exception"] = exceptionDetails
           repository.storeStage(stage)
@@ -304,7 +307,7 @@ class RunTaskHandler(
           msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())}, ")
           msg.append("timeoutValue: ${formatTimeout(actualTimeout.toMillis())}")
 
-          log.warn(msg.toString())
+          log.info(msg.toString())
           throw TimeoutException(msg.toString())
         }
       }
