@@ -18,6 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
+  implementation("io.swagger.core.v3:swagger-annotations:2.1.2")
 
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-retrofit-test-support"))

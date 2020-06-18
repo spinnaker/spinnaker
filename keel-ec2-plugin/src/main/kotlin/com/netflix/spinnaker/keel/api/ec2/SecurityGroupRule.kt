@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.netflix.spinnaker.keel.ec2.jackson.IngressPortsDeserializer
 import com.netflix.spinnaker.keel.ec2.jackson.IngressPortsSerializer
 import com.netflix.spinnaker.keel.ec2.jackson.SecurityGroupRuleDeserializer
+import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonDeserialize(using = SecurityGroupRuleDeserializer::class)
 sealed class SecurityGroupRule {
@@ -67,6 +68,7 @@ data class CidrRule(
 @JsonDeserialize(using = IngressPortsDeserializer::class)
 sealed class IngressPorts
 
+@Schema(type = "string", allowableValues = ["ALL"])
 object AllPorts : IngressPorts()
 
 data class PortRange(

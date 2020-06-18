@@ -7,8 +7,6 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
-import dev.minutest.experimental.SKIP
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlin.reflect.KClass
@@ -54,7 +52,7 @@ class ApiDocCompatibilityTests : JUnit5Minutests {
       .let { jacksonObjectMapper().readTree(it) }
   }
 
-  fun tests() = SKIP - rootContext<SchemaValidator> {
+  fun tests() = rootContext<SchemaValidator> {
     fixture {
       SchemaValidator("Keel", api)
     }

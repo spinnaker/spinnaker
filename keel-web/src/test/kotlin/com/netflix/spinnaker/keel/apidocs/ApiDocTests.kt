@@ -37,6 +37,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.doesNotContain
 import strikt.assertions.isEqualTo
@@ -104,7 +105,7 @@ class ApiDocTests : JUnit5Minutests {
       .let { jacksonObjectMapper().readTree(it) }
   }
 
-  fun tests() = SKIP - rootContext<Assertion.Builder<JsonNode>> {
+  fun tests() = rootContext<Assertion.Builder<JsonNode>> {
     fixture {
       expectThat(api).describedAs("API Docs response")
     }
@@ -179,7 +180,8 @@ class ApiDocTests : JUnit5Minutests {
           constructRef("ManualJudgementConstraint"),
           constructRef("PipelineConstraint"),
           constructRef("TimeWindowConstraint"),
-          constructRef("ArtifactUsedConstraint")
+          constructRef("ArtifactUsedConstraint"),
+          constructRef("ImageExistsConstraint")
         )
     }
 
@@ -334,7 +336,7 @@ class ApiDocTests : JUnit5Minutests {
     }
 
     test("instant properties are date-time format strings") {
-      at("/components/schemas/PersistentEvent/properties/timestamp")
+      at("/components/schemas/ApplicationEvent/properties/timestamp")
         .and {
           path("type").textValue().isEqualTo("string")
           path("format").textValue().isEqualTo("date-time")
@@ -372,6 +374,18 @@ class ApiDocTests : JUnit5Minutests {
     SKIP - test("annotated property description is inherited") {
       at("/components/schemas/ClusterSpecSubmittedResource/properties/spec/description")
         .isTextual()
+    }
+
+    test("IngressPorts are either an enum or an object") {
+      at("/components/schemas/IngressPorts/oneOf")
+        .isArray()
+        .findValuesAsText("\$ref")
+        .containsExactlyInAnyOrder(constructRef("AllPorts"), constructRef("PortRange"))
+      at("/components/schemas/AllPorts")
+        .and {
+          path("type").textValue().isEqualTo("string")
+          path("enum").isArray().textValues().containsExactly("ALL")
+        }
     }
 
     resourceSpecTypes
