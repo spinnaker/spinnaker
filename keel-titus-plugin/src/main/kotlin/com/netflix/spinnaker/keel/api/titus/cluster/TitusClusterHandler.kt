@@ -125,18 +125,16 @@ class TitusClusterHandler(
         .filter { diff -> diff.hasChanges() }
         .map { diff ->
           val desired = diff.desired
-          val job = when {
-            diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.upsertServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
-          }
-
           var tags: Set<String> = emptySet()
+
+          var tagToUse: String? = null
           val version = when {
             diff.isCapacityOnly() -> null
             else -> {
               // calculate the version for the digest
               tags = getTagsForDigest(desired.container, desired.location.account)
               if (tags.size == 1) {
+                tagToUse = tags.first() // only one tag, so use it to deploy
                 tags.first()
               } else {
                 log.debug("Container digest ${desired.container} has multiple tags: $tags")
@@ -144,6 +142,11 @@ class TitusClusterHandler(
                 desired.container.digest.subSequence(0, 7)
               }
             }
+          }
+
+          val job = when {
+            diff.isCapacityOnly() -> diff.resizeServerGroupJob()
+            else -> diff.upsertServerGroupJob(tagToUse) + resource.spec.deployWith.toOrcaJobProperties()
           }
 
           val description = when (version) {
@@ -322,8 +325,24 @@ class TitusClusterHandler(
     )
   }
 
-  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(): Map<String, Any?> =
+  /**
+   * If a tag is provided, deploys by tag.
+   * Otherwise, deploys by digest.
+   */
+  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(tag: String?): Map<String, Any?> =
     with(desired) {
+      val image = if (tag == null) {
+        mapOf(
+          "digest" to container.digest,
+          "imageId" to "${container.organization}/${container.image}:${container.digest}"
+        )
+      } else {
+        mapOf(
+          "tag" to tag,
+          "imageId" to "${container.organization}/${container.image}:$tag"
+        )
+      }
+
       mapOf(
         "application" to moniker.app,
         "credentials" to location.account,
@@ -343,11 +362,9 @@ class TitusClusterHandler(
         "env" to env,
         "containerAttributes" to containerAttributes,
         "constraints" to constraints,
-        "digest" to container.digest,
         "registry" to runBlocking { getRegistryForTitusAccount(location.account) },
         "migrationPolicy" to migrationPolicy,
         "resources" to resources,
-        "imageId" to "${container.organization}/${container.image}:${container.digest}",
         // </titus things>
         "stack" to moniker.stack,
         "freeFormDetails" to moniker.detail,
@@ -360,7 +377,7 @@ class TitusClusterHandler(
         "loadBalancers" to dependencies.loadBalancerNames,
         "targetGroups" to dependencies.targetGroups,
         "account" to location.account
-      )
+      ) + image
     }
       .let { job ->
         current?.run {

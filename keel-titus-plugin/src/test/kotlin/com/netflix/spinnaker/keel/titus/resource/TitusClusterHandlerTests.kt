@@ -86,6 +86,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 import strikt.assertions.map
 
 // todo eb: we could probably have generic cluster tests
@@ -341,6 +342,38 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         }
       }
 
+      context("a version diff with one tag per sha deploys by tag") {
+        before {
+          coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
+            listOf(
+              DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111")
+            )
+        }
+
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity().withDifferentRuntimeOptions()
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+
+        test("resolving diff clones the current server group by tag") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            // single tag for a digest, so deploy by tag
+            get("tag").isNotNull().isEqualTo("master-h2.blah")
+          }
+        }
+      }
+
       context("the diff is something other than just capacity") {
         before {
           coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
@@ -369,7 +402,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           verify { publisher.publishEvent(ArtifactVersionDeploying(resource.id, "im-master-now")) }
         }
 
-        test("resolving diff clones the current server group") {
+        test("resolving diff clones the current server group by digest") {
           runBlocking {
             upsert(resource, diff)
           }
@@ -386,6 +419,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
                 "asgName" to activeServerGroupResponseWest.name
               )
             )
+            // multiple tags for a digest, so deploy by digest
+            get("digest").isNotNull().isEqualTo("sha:1111")
           }
         }
 
