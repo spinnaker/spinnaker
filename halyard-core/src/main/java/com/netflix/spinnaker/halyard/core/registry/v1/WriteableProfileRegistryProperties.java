@@ -24,5 +24,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spinnaker.config.input.gcs")
 public class WriteableProfileRegistryProperties {
   private String jsonPath = "";
-  private String project = "spinnaker-community";
+  private String project = "spinnaker-marketplace";
 }

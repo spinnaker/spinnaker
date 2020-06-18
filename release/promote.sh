@@ -25,18 +25,9 @@ function pull_tag_push() {
 }
 
 if [ "$PLATFORM" = "docker" ]; then
-  # Still publishing to old spinnaker-marketplace project until all known Halyard installation instructions are updated.
   PUBLISH_HALYARD_DOCKER_IMAGE_BASE=${PUBLISH_HALYARD_DOCKER_IMAGE_BASE:-gcr.io/spinnaker-marketplace/halyard}
   SOURCE_IMAGE=$PUBLISH_HALYARD_DOCKER_IMAGE_BASE:$SOURCE_VERSION
   TARGET_IMAGE=$PUBLISH_HALYARD_DOCKER_IMAGE_BASE:$TARGET_VERSION
-
-  pull_tag_push $SOURCE_IMAGE $TARGET_IMAGE
-  pull_tag_push ${SOURCE_IMAGE}-ubuntu ${TARGET_IMAGE}-ubuntu
-
-  PUBLISH_HALYARD_ARTIFACT_DOCKER_IMAGE_SRC_BASE=${PUBLISH_HALYARD_ARTIFACT_DOCKER_IMAGE_SRC_BASE:-us-docker.pkg.dev/spinnaker-community/nightly/halyard}
-  PUBLISH_HALYARD_ARTIFACT_DOCKER_IMAGE_TARGET_BASE=${PUBLISH_HALYARD_ARTIFACT_DOCKER_IMAGE_TARGET_BASE:-us-docker.pkg.dev/spinnaker-community/releases/halyard}
-  SOURCE_IMAGE=$PUBLISH_HALYARD_ARTIFACT_DOCKER_IMAGE_SRC_BASE:$SOURCE_VERSION
-  TARGET_IMAGE=$PUBLISH_HALYARD_ARTIFACT_DOCKER_IMAGE_TARGET_BASE:$TARGET_VERSION
 
   pull_tag_push $SOURCE_IMAGE $TARGET_IMAGE
   pull_tag_push ${SOURCE_IMAGE}-ubuntu ${TARGET_IMAGE}-ubuntu

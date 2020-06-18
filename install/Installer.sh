@@ -7,7 +7,7 @@ set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
 SPINNAKER_REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
-SPINNAKER_DOCKER_REGISTRY="us-docker.pkg.dev/spinnaker-community/releases"
+SPINNAKER_DOCKER_REGISTRY="gcr.io/spinnaker-marketplace"
 SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
 CONFIG_BUCKET="halconfig" 
 
