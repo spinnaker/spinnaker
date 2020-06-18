@@ -28,6 +28,7 @@ message DeploymentMethod {
     OTHER = 1;
     HALYARD = 2;
     KUBERNETES_OPERATOR = 3;
+    KLEAT = 4;
   }
 }
 
