@@ -20,6 +20,7 @@ dependencies {
   api project(':echo-api')
   implementation project(':echo-model')
   implementation project(':echo-core')
+  implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation 'com.google.protobuf:protobuf-java-util'
   implementation "com.netflix.spinnaker.kork:kork-proto"
   implementation 'com.netflix.spinnaker.kork:kork-web'
@@ -29,6 +30,7 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
   testImplementation 'io.mockk:mockk'
   testImplementation 'io.strikt:strikt-core'
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 }
 
 test {

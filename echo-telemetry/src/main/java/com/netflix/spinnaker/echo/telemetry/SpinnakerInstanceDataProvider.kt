@@ -28,14 +28,14 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty("stats.enabled")
-class SpinnakerInstanceDataProvider(private val config: TelemetryConfigProps) : TelemetryEventDataProvider {
+class SpinnakerInstanceDataProvider(private val config: TelemetryConfigProps, private val instanceIdSupplier: InstanceIdSupplier) : TelemetryEventDataProvider {
   override fun populateData(echoEvent: EchoEvent, statsEvent: StatsEvent): StatsEvent {
 
     // TelemetryEventListener should ensure this is set
     val applicationId: String = echoEvent.details?.application
       ?: throw IllegalStateException("application not set")
 
-    val instanceId: String = config.instanceId
+    val instanceId: String = instanceIdSupplier.uniqueId
     val hashedInstanceId: String = hash(instanceId)
 
     // We want to ensure it's really hard to guess the application name. Using the instance ID (a

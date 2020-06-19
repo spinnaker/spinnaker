@@ -42,7 +42,7 @@ class SpinnakerInstanceDataProviderTest {
   @BeforeEach
   fun setUp() {
     config = TelemetryConfigProps()
-    dataProvider = SpinnakerInstanceDataProvider(config)
+    dataProvider = SpinnakerInstanceDataProvider(config, InstanceIdSupplier(config, null))
   }
 
   @Test
