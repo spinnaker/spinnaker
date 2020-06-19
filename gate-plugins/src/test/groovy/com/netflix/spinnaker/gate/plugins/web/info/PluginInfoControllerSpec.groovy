@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.plugins.web.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
@@ -50,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = [PluginInfoController])
 @AutoConfigureMockMvc(addFilters = false)
-@ContextConfiguration(classes = [PluginInfoController, GenericExceptionHandlers, SpinnakerExtensionsConfigProperties, PluginWebConfiguration, ServiceConfiguration])
+@ContextConfiguration(classes = [PluginsAutoConfiguration.class,PluginInfoController, GenericExceptionHandlers, SpinnakerExtensionsConfigProperties,  PluginWebConfiguration, ServiceConfiguration])
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml"])
 class PluginInfoControllerSpec extends Specification {

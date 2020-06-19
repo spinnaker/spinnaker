@@ -60,3 +60,7 @@ spring:
 spinnaker:
   extensions:
     applicationName: spinnakerpluginstest
+    repositories:
+      front50:
+        enabled: true
+        url: https://front50.net

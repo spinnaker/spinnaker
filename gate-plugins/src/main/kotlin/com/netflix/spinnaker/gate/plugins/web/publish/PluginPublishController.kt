@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gate.plugins.web.publish
 
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.PluginsConfigurationProperties
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginService
@@ -44,7 +45,8 @@ import org.springframework.web.multipart.MultipartFile
 class PluginPublishController(
   private val pluginService: PluginService,
   okHttpClientProvider: OkHttpClientProvider,
-  serviceConfiguration: ServiceConfiguration
+  serviceConfiguration: ServiceConfiguration,
+  private val pluginRepositoriesConfig: Map<String, PluginsConfigurationProperties.PluginRepositoryProperties>
 ) {
 
   private val front50Url = serviceConfiguration.getServiceEndpoint("front50").url
@@ -66,7 +68,12 @@ class PluginPublishController(
     verifyChecksum(bytes, release.sha512sum)
     uploadToFront50(pluginId, pluginVersion, release.sha512sum, bytes)
 
-    release.url = "$front50Url/pluginBinaries/$pluginId/$pluginVersion"
+    // TODO: Need to change this back to front50Url service endpoint.
+    //  Doing this temporarily due to the scheme difference while uploading and downloading binaries.
+    val front50RepoUrl: String = pluginRepositoriesConfig["front50"]?.url?.toString() ?: front50Url
+
+    release.url = "$front50RepoUrl/pluginBinaries/$pluginId/$pluginVersion"
+
     pluginService.upsertPluginInfo(pluginInfo)
   }
 
