@@ -7,22 +7,25 @@ import { duration } from 'core/utils/timeFormatters';
 
 import { Application } from 'core/application/application.model';
 import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
+import { ExecutionMarkerInformationModal } from './ExecutionMarkerInformationModal';
+import { SETTINGS } from 'core/config/settings';
 
 import './executionMarker.less';
 
 export interface IExecutionMarkerProps {
-  stage: IExecutionStageSummary;
+  active?: boolean;
   application: Application;
   execution: IExecution;
-  active?: boolean;
-  previousStageActive?: boolean;
-  width: string;
   onClick: (stageIndex: number) => void;
+  previousStageActive?: boolean;
+  stage: IExecutionStageSummary;
+  width: string;
 }
 
 export interface IExecutionMarkerState {
   duration: string;
   hydrated: boolean;
+  showingExecutionMarkerInformationModal: boolean;
 }
 
 export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExecutionMarkerState> {
@@ -36,6 +39,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     this.state = {
       duration: duration(stage.runningTimeInMs),
       hydrated: execution.hydrated,
+      showingExecutionMarkerInformationModal: false,
     };
   }
 
@@ -58,6 +62,25 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     this.props.onClick(this.props.stage.index);
   };
 
+  private handleStageInformationClick = (event: any): void => {
+    ReactGA.event({ category: 'Pipeline', action: 'Stage show context menu (bar)' });
+    event.preventDefault();
+    event.stopPropagation();
+    this.showExecutionMarkerInformationModal();
+  };
+
+  private showExecutionMarkerInformationModal = () => {
+    this.setState({
+      showingExecutionMarkerInformationModal: true,
+    });
+  };
+
+  private hideExecutionMarkerInformationModal = () => {
+    this.setState({
+      showingExecutionMarkerInformationModal: false,
+    });
+  };
+
   public render() {
     const { stage, application, execution, active, previousStageActive, width } = this.props;
     const stageType = (stage.activeStageType || stage.type).toLowerCase(); // support groups
@@ -75,18 +98,32 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
 
     const TooltipComponent = stage.useCustomTooltip ? stage.labelComponent : ExecutionBarLabel;
     const MarkerIcon = stage.markerIcon;
+    const showInfoIcon =
+      SETTINGS.feature.executionMarkerInformationModal &&
+      stage.status.toLowerCase() === 'terminal' &&
+      stage.type === 'pipeline';
     const stageContents = (
       <div className={markerClassName} style={{ width, backgroundColor: stage.color }} onClick={this.handleStageClick}>
         <span className="horizontal center middle">
           <MarkerIcon stage={stage} />
           <span className="duration">{this.state.duration}</span>
+          {showInfoIcon && <i className="fa fa-info-circle" onClick={this.handleStageInformationClick} />}
         </span>
       </div>
     );
     return (
-      <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
-        {stageContents}
-      </TooltipComponent>
+      <span>
+        <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
+          {stageContents}
+        </TooltipComponent>
+        {this.state.showingExecutionMarkerInformationModal && (
+          <ExecutionMarkerInformationModal
+            executionId={execution.id}
+            onClose={this.hideExecutionMarkerInformationModal}
+            stageId={execution.stageSummaries[stage.index].id}
+          />
+        )}
+      </span>
     );
   }
 }
