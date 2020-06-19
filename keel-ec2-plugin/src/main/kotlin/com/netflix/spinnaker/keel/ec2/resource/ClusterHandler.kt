@@ -157,10 +157,10 @@ class ClusterHandler(
   ): List<Deferred<Task>> =
     coroutineScope {
       diffs.mapNotNull { diff ->
-        val job = when {
-          diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob())
-          diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob()
-          else -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1)
+        val (job, what) = when {
+          diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob()) to "capacity"
+          diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob() to "auto-scaling"
+          else -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1) to "capacity and auto-scaling"
         }
 
         if (job.isEmpty()) {
@@ -171,7 +171,7 @@ class ClusterHandler(
           async {
             taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${diff.desired.moniker} in " +
+              description = "Modify $what of server group ${diff.desired.moniker} in " +
                 "${diff.desired.location.account}/${diff.desired.location.region}",
               correlationId = "${resource.id}:${diff.desired.location.region}",
               stages = job)
@@ -207,12 +207,12 @@ class ClusterHandler(
         if (stages.isEmpty()) {
           null
         } else {
-          log.info("Upserting server group using task: {}", stages)
+          log.info("Upsert server group using task: {}", stages)
 
           async {
             taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${diff.desired.moniker} to $version in " +
+              description = "Deploy $version to server group ${diff.desired.moniker}  in " +
                 "${diff.desired.location.account}/${diff.desired.location.region}",
               correlationId = "${resource.id}:${diff.desired.location.region}",
               stages = stages)
@@ -285,7 +285,7 @@ class ClusterHandler(
         val deferred = async {
           taskLauncher.submitJob(
             resource = resource,
-            description = "Upsert server group ${diff.desired.moniker} to $version in " +
+            description = "Deploy $version to server group ${diff.desired.moniker} in " +
               "${diff.desired.location.account}/${diff.desired.location.region}",
             correlationId = "${resource.id}:${diff.desired.location.region}",
             stages = stages

@@ -98,11 +98,11 @@ class SecurityGroupHandler(
           when (diff.current) {
             null -> {
               job = spec.toCreateJob()
-              verb = Pair("Creating", "create")
+              verb = Pair("Create", "create")
             }
             else -> {
               job = spec.toUpdateJob()
-              verb = Pair("Updating", "update")
+              verb = Pair("Update", "update")
             }
           }
 

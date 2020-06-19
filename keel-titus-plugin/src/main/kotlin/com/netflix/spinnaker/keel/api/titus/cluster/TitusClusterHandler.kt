@@ -150,8 +150,8 @@ class TitusClusterHandler(
           }
 
           val description = when (version) {
-            null -> "Resizing server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
-            else -> "Upserting server group ${desired.moniker} to $version in ${desired.location.account}/${desired.location.region}"
+            null -> "Resize server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
+            else -> "Deploy $version to server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
           }
           log.info("Upserting server group using task: {}", job)
 

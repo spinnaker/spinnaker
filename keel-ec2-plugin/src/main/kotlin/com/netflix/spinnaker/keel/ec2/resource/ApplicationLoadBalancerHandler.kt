@@ -80,8 +80,8 @@ class ApplicationLoadBalancerHandler(
           val desired = diff.desired
 
           val action = when {
-            resourceDiff.current == null -> "Creating"
-            else -> "Upserting"
+            resourceDiff.current == null -> "Create"
+            else -> "Update"
           }
           val description = "$action ${resource.kind} load balancer ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
 
