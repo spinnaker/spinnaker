@@ -10,7 +10,6 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
-import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.time.Duration
 

@@ -6,11 +6,12 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.allPass
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
+import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.api.statefulCount
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
@@ -56,7 +57,8 @@ class SqlDeliveryConfigRepository(
   private val clock: Clock,
   private val resourceSpecIdentifier: ResourceSpecIdentifier,
   private val mapper: ObjectMapper,
-  private val sqlRetry: SqlRetry
+  private val sqlRetry: SqlRetry,
+  private val artifactSuppliers: List<ArtifactSupplier<*>> = emptyList()
 ) : DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -291,7 +293,7 @@ class SqlDeliveryConfigRepository(
             .select(DELIVERY_ARTIFACT.UID)
             .from(DELIVERY_ARTIFACT)
             .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-            .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+            .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
             .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
             .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference)))
           .onDuplicateKeyIgnore()
@@ -370,7 +372,7 @@ class SqlDeliveryConfigRepository(
         .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
         .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
         .fetch { (name, type, details, reference, configName) ->
-          mapToArtifact(name, ArtifactType.valueOf(type.toLowerCase()), details, reference, configName)
+          mapToArtifact(artifactSuppliers.supporting(type), name, type.toLowerCase(), details, reference, configName)
         }
     }
       .toSet()

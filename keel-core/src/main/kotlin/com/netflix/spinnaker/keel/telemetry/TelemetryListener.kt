@@ -85,7 +85,7 @@ class TelemetryListener(
       ARTIFACT_UPDATED_COUNTER_ID,
       listOf(
         BasicTag("artifactName", event.name),
-        BasicTag("artifactType", event.type.name)
+        BasicTag("artifactType", event.type)
       )
     ).safeIncrement()
   }
@@ -98,7 +98,7 @@ class TelemetryListener(
         BasicTag("application", event.application),
         BasicTag("environment", event.environmentName),
         BasicTag("artifactName", event.artifactName),
-        BasicTag("artifactType", event.artifactType.name)
+        BasicTag("artifactType", event.artifactType)
       )
     ).safeIncrement()
   }

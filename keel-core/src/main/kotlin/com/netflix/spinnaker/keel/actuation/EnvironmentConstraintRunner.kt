@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
-import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

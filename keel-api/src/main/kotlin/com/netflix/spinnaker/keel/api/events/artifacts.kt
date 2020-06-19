@@ -1,14 +1,14 @@
 package com.netflix.spinnaker.keel.api.events
 
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.SpinnakerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 
 /**
- * An event that conveys information about one or more software artifacts that are
+ * An event that conveys information about one or more [PublishedArtifact] that are
  * potentially relevant to keel.
  */
-data class ArtifactEvent(
-  val artifacts: List<SpinnakerArtifact>,
+data class ArtifactPublishedEvent(
+  val artifacts: List<PublishedArtifact>,
   val details: Map<String, Any>?
 )
 

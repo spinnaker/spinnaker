@@ -21,10 +21,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.artifacts.DOCKER
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
@@ -89,8 +89,8 @@ abstract class DockerImageResolver<T : ResourceSpec>(
   fun getArtifact(container: ContainerProvider, deliveryConfig: DeliveryConfig): DockerArtifact =
     when (container) {
       is ReferenceProvider -> {
-        deliveryConfig.artifacts.find { it.reference == container.reference && it.type == docker } as DockerArtifact?
-          ?: throw NoMatchingArtifactException(reference = container.reference, type = docker, deliveryConfigName = deliveryConfig.name)
+        deliveryConfig.artifacts.find { it.reference == container.reference && it.type == DOCKER } as DockerArtifact?
+          ?: throw NoMatchingArtifactException(reference = container.reference, type = DOCKER, deliveryConfigName = deliveryConfig.name)
       }
       is VersionedTagProvider -> {
         // deprecated

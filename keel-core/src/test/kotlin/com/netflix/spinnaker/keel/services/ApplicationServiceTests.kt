@@ -2,15 +2,15 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
-import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.constraints.SupportedConstraintType
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
+import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
@@ -27,7 +27,9 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
+import com.netflix.spinnaker.keel.test.DummyArtifact
 import com.netflix.spinnaker.keel.test.artifactReferenceResource
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.versionedArtifactResource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -36,6 +38,7 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import java.time.Instant
 import java.time.ZoneId
@@ -58,16 +61,8 @@ class ApplicationServiceTests : JUnit5Minutests {
     val resourceStatusService: ResourceStatusService = mockk()
 
     val application = "fnord"
-    val artifact = DebianArtifact(
-      name = application,
-      deliveryConfigName = "manifest",
-      reference = "fnord",
-      statuses = setOf(RELEASE),
-      vmOptions = VirtualMachineOptions(
-        baseOs = "xenial",
-        regions = setOf("us-west-2", "us-east-1")
-      )
-    )
+
+    val artifact = DummyArtifact()
 
     val environments = listOf("test", "staging", "production").associateWith { name ->
       Environment(
@@ -113,8 +108,26 @@ class ApplicationServiceTests : JUnit5Minutests {
       every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
     }
 
+    private val publishedArtifact = slot<PublishedArtifact>()
+    private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact>>(relaxUnitFun = true) {
+      every { supportedArtifact } returns SupportedArtifact("dummy", DummyArtifact::class.java)
+      every {
+        getVersionDisplayName(capture(publishedArtifact))
+      } answers {
+        publishedArtifact.captured.version
+      }
+      every { getBuildMetadata(any(), any()) } returns null
+      every { getGitMetadata(any(), any()) } returns null
+    }
+
     // subject
-    val applicationService = ApplicationService(repository, resourceStatusService, listOf(dependsOnEvaluator))
+    val applicationService = ApplicationService(
+      repository,
+      resourceStatusService,
+      listOf(dependsOnEvaluator),
+      listOf(artifactSupplier),
+      configuredTestObjectMapper()
+    )
   }
 
   fun applicationServiceTests() = rootContext<Fixture> {
@@ -574,7 +587,7 @@ class ApplicationServiceTests : JUnit5Minutests {
           name = artifact.name,
           type = artifact.type,
           reference = artifact.reference,
-          statuses = artifact.statuses,
+          statuses = emptySet(),
           versions = block(),
           pinnedVersion = null
         )

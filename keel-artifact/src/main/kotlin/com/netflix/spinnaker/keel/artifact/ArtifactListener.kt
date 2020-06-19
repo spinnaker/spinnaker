@@ -1,25 +1,19 @@
 package com.netflix.spinnaker.keel.artifact
 
-import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
-import com.netflix.spinnaker.keel.artifact.events.KorkArtifactEvent
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
-import com.netflix.spinnaker.keel.core.comparator
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
+import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -32,9 +26,8 @@ import org.springframework.stereotype.Component
 @Component
 class ArtifactListener(
   private val repository: KeelRepository,
-  private val artifactService: ArtifactService,
-  private val clouddriverService: CloudDriverService,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: ApplicationEventPublisher,
+  private val artifactSuppliers: List<ArtifactSupplier<*>>
 ) {
   private val enabled = AtomicBoolean(false)
 
@@ -50,30 +43,22 @@ class ArtifactListener(
     enabled.set(false)
   }
 
-  @EventListener(KorkArtifactEvent::class)
-  fun onArtifactEvent(event: KorkArtifactEvent) {
-    log.debug("Received artifact event: {}", event)
+  @EventListener(ArtifactPublishedEvent::class)
+  fun onArtifactPublished(event: ArtifactPublishedEvent) {
+    log.debug("Received artifact published event: {}", event)
     event
       .artifacts
       .filter { it.type.toLowerCase() in artifactTypeNames }
       .forEach { artifact ->
-        if (repository.isRegistered(artifact.name, artifact.type())) {
-          val version: String
-          var status: ArtifactStatus? = null
-          when (artifact.type()) {
-            deb -> {
-              version = "${artifact.name}-${artifact.version}"
-              status = debStatus(artifact)
-            }
-            docker -> {
-              version = artifact.version
-            }
-          }
+        if (repository.isRegistered(artifact.name, artifact.artifactType)) {
+          val artifactSupplier = artifactSuppliers.supporting(artifact.artifactType)
+          val version = artifactSupplier.getFullVersionString(artifact)
+          var status = artifactSupplier.getReleaseStatus(artifact)
           log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
-          repository.storeArtifact(artifact.name, artifact.type(), version, status)
+          repository.storeArtifact(artifact.name, artifact.artifactType, version, status)
             .also { wasAdded ->
               if (wasAdded) {
-                publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type()))
+                publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
               }
             }
         }
@@ -88,15 +73,24 @@ class ArtifactListener(
     val artifact = event.artifact
 
     if (repository.artifactVersions(artifact).isEmpty()) {
-      when (artifact) {
-        is DebianArtifact -> storeLatestDebVersion(artifact)
-        is DockerArtifact -> storeLatestDockerVersion(artifact)
+      val artifactSupplier = artifactSuppliers.supporting(artifact.type)
+      val latestArtifact = runBlocking {
+        log.debug("Retrieving latest version of registered artifact {}", artifact)
+        artifactSupplier.getLatestArtifact(artifact.deliveryConfig, artifact)
+      }
+      val latestVersion = latestArtifact?.let { artifactSupplier.getFullVersionString(it) }
+      if (latestVersion != null) {
+        var status = artifactSupplier.getReleaseStatus(latestArtifact)
+        log.debug("Storing latest version {} (status={}) for registered artifact {}", latestVersion, status, artifact)
+        repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
+      } else {
+        log.warn("No artifact versions found for ${artifact.type}:${artifact.name}")
       }
     }
   }
 
   @EventListener(ArtifactSyncEvent::class)
-  fun triggerDebSync(event: ArtifactSyncEvent) {
+  fun triggerArtifactSync(event: ArtifactSyncEvent) {
     if (event.controllerTriggered) {
       log.info("Fetching latest version of all registered artifacts...")
     }
@@ -111,14 +105,16 @@ class ArtifactListener(
   fun syncArtifactVersions() {
     if (enabled.get()) {
       runBlocking {
+        log.debug("Syncing artifact versions...")
         repository.getAllArtifacts().forEach { artifact ->
           launch {
             val lastRecordedVersion = getLatestStoredVersion(artifact)
-            val latestVersion = when (artifact) {
-              is DebianArtifact -> getLatestDeb(artifact)?.let { "${artifact.name}-$it" }
-              is DockerArtifact -> getLatestDockerTag(artifact)
-              else -> error("Unrecognized artifact type: ${artifact.type}")
-            }
+            log.debug("Last recorded version of $artifact: $lastRecordedVersion")
+            val artifactSupplier = artifactSuppliers.supporting(artifact.type)
+            val latestArtifact = artifactSupplier.getLatestArtifact(artifact.deliveryConfig, artifact)
+            val latestVersion = latestArtifact?.let { artifactSupplier.getFullVersionString(it) }
+            log.debug("Latest available version of $artifact: $latestVersion")
+
             if (latestVersion != null) {
               val hasNew = when {
                 lastRecordedVersion == null -> true
@@ -129,13 +125,11 @@ class ArtifactListener(
               }
 
               if (hasNew) {
-                log.debug("Artifact {} has a missing version {}, persisting..", artifact, latestVersion)
-                val status = when (artifact.type) {
-                  deb -> debStatus(artifactService.getArtifact(artifact.name, latestVersion.removePrefix("${artifact.name}-")))
-                  // todo eb: is there a better way to think of docker status?
-                  docker -> null
-                }
+                log.debug("$artifact has a missing version $latestVersion, persisting.")
+                val status = artifactSupplier.getReleaseStatus(latestArtifact)
                 repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
+              } else {
+                log.debug("No new versions to persist for $artifact")
               }
             }
           }
@@ -147,59 +141,19 @@ class ArtifactListener(
   private fun getLatestStoredVersion(artifact: DeliveryArtifact): String? =
     repository.artifactVersions(artifact).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
 
-  private suspend fun getLatestDeb(artifact: DebianArtifact): String? =
-    artifactService.getVersions(artifact.name).firstOrNull()
+  private val DeliveryArtifact.deliveryConfig: DeliveryConfig
+    get() = this.deliveryConfigName
+      ?.let { repository.getDeliveryConfig(it) }
+      ?: throw InvalidSystemStateException("Delivery config name missing in artifact object")
 
-  private suspend fun getLatestDockerTag(artifact: DockerArtifact): String? {
-    val serviceAccount = artifact.deliveryConfigName?.let { repository.getDeliveryConfig(it) }
-      ?.serviceAccount
-      ?: DEFAULT_SERVICE_ACCOUNT
-    return clouddriverService
-      .findDockerTagsForImage("*", artifact.name, serviceAccount)
-      .distinct()
-      .sortedWith(artifact.versioningStrategy.comparator)
-      .firstOrNull()
+  private val PublishedArtifact.artifactType: ArtifactType
+    get() = artifactTypeNames.find { it == type.toLowerCase() }
+      ?.let { type.toLowerCase() }
+      ?: throw InvalidSystemStateException("Unable to find registered artifact type for '$type'")
+
+  private val artifactTypeNames by lazy {
+    artifactSuppliers.map { it.supportedArtifact.name }
   }
-
-  /**
-   * Grab the latest version which matches the statuses we care about, so the artifact is relevant.
-   */
-  protected fun storeLatestDebVersion(artifact: DebianArtifact) =
-    runBlocking {
-      getLatestDeb(artifact)
-        ?.let { firstVersion ->
-          val version = "${artifact.name}-$firstVersion"
-          val status = debStatus(artifactService.getArtifact(artifact.name, firstVersion))
-          log.debug("Storing latest version {} ({}) for registered artifact {}", version, status, artifact)
-          repository.storeArtifact(artifact.name, artifact.type, version, status)
-        }
-    }
-
-  /**
-   * Grabs the latest tag and stores it.
-   */
-  protected fun storeLatestDockerVersion(artifact: DockerArtifact) =
-    runBlocking {
-      getLatestDockerTag(artifact)
-        ?.let { firstVersion ->
-          log.debug("Storing latest version {} for registered artifact {}", firstVersion, artifact)
-          repository.storeArtifact(artifact.name, artifact.type, firstVersion, null)
-        }
-    }
-
-  /**
-   * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
-   * present in [metadata]
-   */
-  private fun debStatus(artifact: Artifact): ArtifactStatus {
-    val status = artifact.metadata["releaseStatus"]?.toString()
-      ?: throw IntegrationException("Artifact event received without 'releaseStatus' field")
-    return ArtifactStatus.valueOf(status)
-  }
-
-  private fun Artifact.type() = ArtifactType.valueOf(type.toLowerCase())
-
-  private val artifactTypeNames by lazy { ArtifactType.values().map(ArtifactType::name) }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

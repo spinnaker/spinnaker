@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -41,7 +42,10 @@ private val DEFAULT_PROPS = mapOf(
     "com.netflix.spinnaker.keel"
   ]
 )
-@Import(PlatformComponents::class)
+@Import(
+  PlatformComponents::class,
+  PluginsAutoConfiguration::class
+)
 @EnableAsync
 @EnableScheduling
 class KeelApplication

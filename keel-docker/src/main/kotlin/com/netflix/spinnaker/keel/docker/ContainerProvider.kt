@@ -29,10 +29,8 @@ data class ReferenceProvider(
   val reference: String
 ) : ContainerProvider()
 
+// used in titus handler as a way to represent a fully specified container
 @JsonDeserialize(using = JsonDeserializer.None::class)
-@Deprecated("Non-reference-based artifact providers are no longer supported.",
-  replaceWith = ReplaceWith("ReferenceProvider")
-)
 data class DigestProvider(
   val organization: String, // todo eb: should this be name = org/image instead, for consistency?
   val image: String,

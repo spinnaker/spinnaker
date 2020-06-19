@@ -25,4 +25,4 @@ class ArtifactParsingException(
   val type: ArtifactType,
   val json: String,
   val e: Exception?
-) : SystemException("Unable to construct a delivery artifact from entry with name $name, type ${type.name}, and json $json", e)
+) : SystemException("Unable to construct a delivery artifact from entry with name $name, type $type, and json $json", e)

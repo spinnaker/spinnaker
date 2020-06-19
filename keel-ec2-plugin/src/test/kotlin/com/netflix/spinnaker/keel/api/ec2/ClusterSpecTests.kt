@@ -13,8 +13,8 @@ import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
+import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.time.Duration
@@ -33,8 +33,8 @@ internal class ClusterSpecTests : JUnit5Minutests {
       fixture { Fixture }
 
       mapOf(
-        "YAML" to configuredYamlMapper(),
-        "JSON" to configuredObjectMapper()
+        "YAML" to configuredTestYamlMapper(),
+        "JSON" to configuredTestObjectMapper()
       ).forEach { (format, mapper) ->
         test("can serialize and deserialize as $format") {
           val text = mapper.writeValueAsString(spec)

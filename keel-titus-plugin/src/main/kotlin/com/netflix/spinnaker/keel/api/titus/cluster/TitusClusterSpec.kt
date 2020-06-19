@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.titus.exceptions.ErrorResolvingContainerException
+import com.netflix.spinnaker.keel.artifacts.DOCKER
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
@@ -54,7 +55,7 @@ data class TitusClusterSpec(
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   val overrides: Map<String, TitusServerGroupSpec> = emptyMap(),
   @JsonIgnore
-  override val artifactType: ArtifactType? = ArtifactType.docker,
+  override val artifactType: ArtifactType? = DOCKER,
   @JsonIgnore
   private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
   @JsonIgnore

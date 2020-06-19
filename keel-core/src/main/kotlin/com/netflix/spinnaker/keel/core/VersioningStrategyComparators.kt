@@ -19,24 +19,13 @@ package com.netflix.spinnaker.keel.core
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.rocket.semver.shaded.DebianVersionComparator
-import com.netflix.spinnaker.keel.api.artifacts.DebianSemVerVersioningStrategy
-import com.netflix.spinnaker.keel.api.artifacts.DockerVersioningStrategy
 import com.netflix.spinnaker.keel.api.artifacts.SortType.INCREASING
 import com.netflix.spinnaker.keel.api.artifacts.SortType.SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
-import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import net.swiftzer.semver.SemVer
 import org.slf4j.LoggerFactory
 import org.springframework.util.comparator.NullSafeComparator
-
-val VersioningStrategy.comparator: Comparator<String>
-  // TODO: this needs to support versioning strategies provided by artifact plugins
-  get() = when (this) {
-    is DebianSemVerVersioningStrategy -> DEBIAN_VERSION_COMPARATOR
-    is DockerVersioningStrategy -> TagComparator(strategy, captureGroupRegex)
-    else -> error("Unsupported versioning strategy ${this.javaClass.simpleName}")
-  }
 
 /**
  * Comparator that supports all the tag options for docker containers

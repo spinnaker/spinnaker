@@ -19,27 +19,20 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.exceptions.ArtifactParsingException
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 
 private val objectMapper: ObjectMapper = configuredObjectMapper()
 
 /**
- * A helper function to construct the proper artifact type from the serialized json.
- * FIXME: this needs to go away in favor of [ArtifactPublisher] functions to keep
- * artifact contracts generic.
+ * A helper function to construct the proper artifact type from the serialized JSON.
  */
 fun mapToArtifact(
+  artifactSupplier: ArtifactSupplier<*>,
   name: String,
   type: ArtifactType,
   json: String,
@@ -47,37 +40,15 @@ fun mapToArtifact(
   deliveryConfigName: String
 ): DeliveryArtifact {
   try {
-    val details = objectMapper.readValue<Map<String, Any>>(json)
-    return when (type) {
-      deb -> {
-        val statuses: Set<ArtifactStatus> = details["statuses"]?.let { it ->
-          try {
-            objectMapper.convertValue<Set<ArtifactStatus>>(it)
-          } catch (e: IllegalArgumentException) {
-            null
-          }
-        } ?: emptySet()
-        DebianArtifact(
-          name = name,
-          statuses = statuses,
-          reference = reference,
-          deliveryConfigName = deliveryConfigName,
-          vmOptions = details["vmOptions"]?.let {
-            objectMapper.convertValue<VirtualMachineOptions>(it)
-          } ?: error("vmOptions is required")
-        )
+    val artifactAsMap = objectMapper.readValue<Map<String, Any>>(json)
+      .toMutableMap()
+      .also {
+        it["name"] = name
+        it["type"] = type
+        it["reference"] = reference
+        it["deliveryConfigName"] = deliveryConfigName
       }
-      docker -> {
-        val tagVersionStrategy = details.getOrDefault("tagVersionStrategy", "semver-tag")
-        DockerArtifact(
-          name = name,
-          tagVersionStrategy = objectMapper.convertValue(tagVersionStrategy),
-          captureGroupRegex = details["captureGroupRegex"]?.toString(),
-          reference = reference,
-          deliveryConfigName = deliveryConfigName
-        )
-      }
-    }
+    return objectMapper.convertValue(artifactAsMap, artifactSupplier.supportedArtifact.artifactClass)
   } catch (e: JsonMappingException) {
     throw ArtifactParsingException(name, type, json, e)
   }

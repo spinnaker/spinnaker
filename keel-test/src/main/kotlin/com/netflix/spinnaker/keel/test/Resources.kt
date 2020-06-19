@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
@@ -177,7 +178,7 @@ data class DummyArtifactVersionedResourceSpec(
   override val application: String = "fnord",
   override val artifactVersion: String? = "fnord-42.0",
   override val artifactName: String? = "fnord",
-  override val artifactType: ArtifactType? = ArtifactType.deb
+  override val artifactType: ArtifactType? = DEBIAN
 ) : ResourceSpec, VersionedArtifactProvider
 
 data class DummyArtifactReferenceResourceSpec(
@@ -185,7 +186,7 @@ data class DummyArtifactReferenceResourceSpec(
   override val id: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord",
-  override val artifactType: ArtifactType? = ArtifactType.deb,
+  override val artifactType: ArtifactType? = DEBIAN,
   override val artifactReference: String? = "fnord"
 ) : ResourceSpec, ArtifactReferenceProvider
 

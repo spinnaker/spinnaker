@@ -1,12 +1,14 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
+import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.core.api.ActionMetadata
@@ -27,7 +29,6 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.SKIPPED
 import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.core.api.randomUID
-import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -62,7 +63,8 @@ class SqlArtifactRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val objectMapper: ObjectMapper,
-  private val sqlRetry: SqlRetry
+  private val sqlRetry: SqlRetry,
+  private val artifactSuppliers: List<ArtifactSupplier<*>> = emptyList()
 ) : ArtifactRepository {
   override fun register(artifact: DeliveryArtifact) {
     val id: String = (sqlRetry.withRetry(READ) {
@@ -70,7 +72,7 @@ class SqlArtifactRepository(
         .select(DELIVERY_ARTIFACT.UID)
         .from(DELIVERY_ARTIFACT)
         .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)
-          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
           .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
           .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference)))
         .fetchOne(DELIVERY_ARTIFACT.UID)
@@ -82,7 +84,7 @@ class SqlArtifactRepository(
         .set(DELIVERY_ARTIFACT.UID, id)
         .set(DELIVERY_ARTIFACT.FINGERPRINT, artifact.fingerprint())
         .set(DELIVERY_ARTIFACT.NAME, artifact.name)
-        .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
+        .set(DELIVERY_ARTIFACT.TYPE, artifact.type)
         .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
         .set(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, artifact.deliveryConfigName)
         .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
@@ -99,27 +101,20 @@ class SqlArtifactRepository(
     }
   }
 
-  private fun DeliveryArtifact.detailsAsJson() =
-    when (this) {
-      is DockerArtifact -> detailsAsJson()
-      is DebianArtifact -> detailsAsJson()
-      else -> "{}" // there are only two types of artifacts, but kotlin can't infer this here.
-    }
+  private fun DeliveryArtifact.detailsAsJson(): String {
+    val details = objectMapper.convertValue<Map<String, Any?>>(this)
+      .toMutableMap()
+      // remove all the basic fields that have their own columns; everything else is serialized
+      // as one json blob in the `details` column
+      .also {
+        it.remove("name")
+        it.remove("deliveryConfigName")
+        it.remove("type")
+        it.remove("reference")
+      }
 
-  private fun DockerArtifact.detailsAsJson() =
-    objectMapper.writeValueAsString(
-      mapOf(
-        "tagVersionStrategy" to tagVersionStrategy,
-        "captureGroupRegex" to captureGroupRegex)
-    )
-
-  private fun DebianArtifact.detailsAsJson() =
-    objectMapper.writeValueAsString(
-      mapOf(
-        "vmOptions" to vmOptions,
-        "statuses" to statuses
-      )
-    )
+    return objectMapper.writeValueAsString(details)
+  }
 
   override fun get(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact> {
     return sqlRetry.withRetry(READ) {
@@ -127,10 +122,10 @@ class SqlArtifactRepository(
         .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
         .from(DELIVERY_ARTIFACT)
         .where(DELIVERY_ARTIFACT.NAME.eq(name))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
         .fetch { (details, reference) ->
-          mapToArtifact(name, type, details, reference, deliveryConfigName)
+          mapToArtifact(artifactSuppliers.supporting(type), name, type, details, reference, deliveryConfigName)
         }
     } ?: throw NoSuchArtifactException(name, type)
   }
@@ -141,13 +136,13 @@ class SqlArtifactRepository(
         .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
         .from(DELIVERY_ARTIFACT)
         .where(DELIVERY_ARTIFACT.NAME.eq(name))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
         .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference))
         .fetchOne()
     }
       ?.let { (details, reference) ->
-        mapToArtifact(name, type, details, reference, deliveryConfigName)
+        mapToArtifact(artifactSuppliers.supporting(type), name, type, details, reference, deliveryConfigName)
       } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
   }
 
@@ -163,7 +158,7 @@ class SqlArtifactRepository(
         .fetchOne()
     }
       ?.let { (name, details, reference, type) ->
-        mapToArtifact(name, ArtifactType.valueOf(type), details, reference, deliveryConfigName)
+        mapToArtifact(artifactSuppliers.supporting(type), name, type, details, reference, deliveryConfigName)
       } ?: throw ArtifactNotFoundException(reference, deliveryConfigName)
   }
 
@@ -178,7 +173,7 @@ class SqlArtifactRepository(
     return sqlRetry.withRetry(WRITE) {
       jooq.insertInto(ARTIFACT_VERSIONS)
         .set(ARTIFACT_VERSIONS.NAME, name)
-        .set(ARTIFACT_VERSIONS.TYPE, type.name)
+        .set(ARTIFACT_VERSIONS.TYPE, type)
         .set(ARTIFACT_VERSIONS.VERSION, version)
         .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
         .onDuplicateKeyIgnore()
@@ -210,7 +205,7 @@ class SqlArtifactRepository(
         .selectCount()
         .from(DELIVERY_ARTIFACT)
         .where(DELIVERY_ARTIFACT.NAME.eq(name))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type))
         .fetchOne()
         .value1()
     } > 0
@@ -222,7 +217,7 @@ class SqlArtifactRepository(
         .from(DELIVERY_ARTIFACT)
         .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
         .fetch { (name, storedType, details, reference, configName) ->
-          mapToArtifact(name, ArtifactType.valueOf(storedType.toLowerCase()), details, reference, configName)
+          mapToArtifact(artifactSuppliers.supporting(storedType), name, storedType.toLowerCase(), details, reference, configName)
         }
     }
 
@@ -231,7 +226,7 @@ class SqlArtifactRepository(
       jooq.select(ARTIFACT_VERSIONS.VERSION)
         .from(ARTIFACT_VERSIONS)
         .where(ARTIFACT_VERSIONS.NAME.eq(name))
-        .and(ARTIFACT_VERSIONS.TYPE.eq(type.name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(type))
         .fetch()
         .getValues(ARTIFACT_VERSIONS.VERSION)
     }
@@ -244,13 +239,14 @@ class SqlArtifactRepository(
           .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
           .from(ARTIFACT_VERSIONS)
           .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
-          .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
           .fetch()
           .getValues(ARTIFACT_VERSIONS.VERSION)
       }
         .sortedWith(artifact.versioningStrategy.comparator)
         .also { versions ->
+          // FIXME: remove special handling for Docker
           return if (artifact is DockerArtifact) {
             filterDockerVersions(artifact, versions)
           } else {
@@ -753,7 +749,7 @@ class SqlArtifactRepository(
           )
           .where(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
           .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
           .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
           .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
@@ -762,8 +758,8 @@ class SqlArtifactRepository(
           .and(ENVIRONMENT.NAME.eq(environment.name))
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
-          .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
         val pendingVersions = jooq
           .select(
             ARTIFACT_VERSIONS.VERSION,
@@ -777,15 +773,15 @@ class SqlArtifactRepository(
             DELIVERY_CONFIG
           )
           .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type))
           .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
           .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT.NAME.eq(environment.name))
           .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
-          .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+          .apply { if (artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
           .andNotExists(
             selectOne()
               .from(ENVIRONMENT_ARTIFACT_VERSIONS)
@@ -898,8 +894,9 @@ class SqlArtifactRepository(
             deliveryConfigName = deliveryConfig.name,
             targetEnvironment = environmentName,
             artifact = mapToArtifact(
+              artifactSuppliers.supporting(type),
               artifactName,
-              ArtifactType.valueOf(type.toLowerCase()),
+              type.toLowerCase(),
               details,
               reference,
               deliveryConfig.name),
@@ -1036,7 +1033,7 @@ class SqlArtifactRepository(
             }
           }
           .map { (_, name, type, details, reference, deliveryConfigName) ->
-            mapToArtifact(name, ArtifactType.valueOf(type), details, reference, deliveryConfigName)
+            mapToArtifact(artifactSuppliers.supporting(type), name, type, details, reference, deliveryConfigName)
           }
       }
     }
@@ -1100,7 +1097,7 @@ class SqlArtifactRepository(
     get() = select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.NAME.eq(name)
-        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
         .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
 
@@ -1109,7 +1106,7 @@ class SqlArtifactRepository(
       jooq.select(DELIVERY_ARTIFACT.UID)
         .from(DELIVERY_ARTIFACT)
         .where(DELIVERY_ARTIFACT.NAME.eq(name)
-          .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+          .and(DELIVERY_ARTIFACT.TYPE.eq(type))
           .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
           .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
         .fetchOne(DELIVERY_ARTIFACT.UID) ?: error("artifact not found for " +
@@ -1127,7 +1124,7 @@ class SqlArtifactRepository(
 
   // Generates a unique hash for an artifact
   private fun DeliveryArtifact.fingerprint(): String {
-    return fingerprint(name, type.name, deliveryConfigName ?: "_pending", reference)
+    return fingerprint(name, type, deliveryConfigName ?: "_pending", reference)
   }
 
   private fun fingerprint(name: String, type: String, deliveryConfigName: String, reference: String): String {

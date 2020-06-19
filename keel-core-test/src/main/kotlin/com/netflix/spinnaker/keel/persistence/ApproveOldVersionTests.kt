@@ -23,8 +23,8 @@ import com.netflix.spinnaker.keel.core.api.ArtifactUsedConstraint
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -45,7 +45,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
     val repositoryProvider: (ResourceSpecIdentifier, ObjectMapper) -> T
   ) {
 
-    val mapper: ObjectMapper = configuredObjectMapper().apply {
+    val mapper: ObjectMapper = configuredTestObjectMapper().apply {
       registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
     }
 

@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -10,8 +12,6 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
@@ -50,7 +50,8 @@ class CombinedRepository(
   val artifactRepository: ArtifactRepository,
   val resourceRepository: ResourceRepository,
   override val clock: Clock,
-  override val publisher: ApplicationEventPublisher
+  override val publisher: ApplicationEventPublisher,
+  val objectMapper: ObjectMapper
 ) : KeelRepository {
 
   override val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -197,11 +198,9 @@ class CombinedRepository(
 
   private fun Set<DeliveryArtifact>.transform(deliveryConfigName: String) =
     map { artifact ->
-      when (artifact) {
-        is DockerArtifact -> artifact.copy(deliveryConfigName = deliveryConfigName)
-        is DebianArtifact -> artifact.copy(deliveryConfigName = deliveryConfigName)
-        else -> error("Unrecognized artifact type: ${artifact.type}")
-      }
+      val artifacAsMap: MutableMap<String, Any?> = objectMapper.convertValue(artifact)
+      artifacAsMap["deliveryConfigName"] = deliveryConfigName
+      objectMapper.convertValue(artifacAsMap, artifact.javaClass)
     }.toSet()
 
   // START Delivery config methods

@@ -5,12 +5,12 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.artifacts.DOCKER
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.ActionMetadata
@@ -624,8 +624,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       test("querying works") {
         expect {
           that(subject.getAll().size).isEqualTo(3)
-          that(subject.getAll(docker).size).isEqualTo(1)
-          that(subject.getAll(deb).size).isEqualTo(2)
+          that(subject.getAll(DOCKER).size).isEqualTo(1)
+          that(subject.getAll(DEBIAN).size).isEqualTo(2)
         }
       }
     }

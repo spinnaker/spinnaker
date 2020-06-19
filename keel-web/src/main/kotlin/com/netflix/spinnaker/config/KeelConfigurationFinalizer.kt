@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
@@ -24,6 +25,7 @@ class KeelConfigurationFinalizer(
   private val resourceHandlers: List<ResourceHandler<*, *>> = emptyList(),
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
+  private val artifactSuppliers: List<ArtifactSupplier<*>> = emptyList(),
   private val objectMappers: List<ObjectMapper>
 ) {
 
@@ -64,6 +66,25 @@ class KeelConfigurationFinalizer(
   }
 
   @PostConstruct
+  fun registerArtifactPublisherSubtypes() {
+    artifactSuppliers
+      .map { it.supportedArtifact }
+      .forEach { (name, artifactClass) ->
+        log.info("Registering DeliveryArtifact sub-type {}: {}", name, artifactClass.simpleName)
+        val namedType = NamedType(artifactClass, name)
+        objectMappers.forEach { it.registerSubtypes(namedType) }
+      }
+
+    artifactSuppliers
+      .flatMap { it.supportedVersioningStrategies }
+      .forEach { (name, strategyClass) ->
+        log.info("Registering VersioningStrategy sub-type {}: {}", name, strategyClass.simpleName)
+        val namedType = NamedType(strategyClass, name)
+        objectMappers.forEach { it.registerSubtypes(namedType) }
+      }
+  }
+
+  @PostConstruct
   fun initialStatus() {
     sequenceOf(
       BaseImageCache::class to baseImageCache?.javaClass,
@@ -73,7 +94,8 @@ class KeelConfigurationFinalizer(
         log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
       }
 
-    log.info("Supporting resource kinds: {}", kinds.joinToString { it.kind.toString() })
+    log.info("Supported resources: {}", kinds.joinToString { it.kind.toString() })
+    log.info("Supported artifacts: {}", artifactSuppliers.joinToString { it.supportedArtifact.name })
     log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
     log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
   }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.ApproveOldVersionTests
 import com.netflix.spinnaker.keel.persistence.CombinedRepository
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
+import com.netflix.spinnaker.keel.test.defaultArtifactPublishers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -19,15 +21,16 @@ class SqlApproveOldVersionTests : ApproveOldVersionTests<CombinedRepository>() {
   private val clock = Clock.systemUTC()
 
   override fun createKeelRepository(resourceSpecIdentifier: ResourceSpecIdentifier, mapper: ObjectMapper): CombinedRepository {
-    val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry)
+    val deliveryConfigRepository = SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, mapper, sqlRetry, defaultArtifactPublishers())
     val resourceRepository = SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), mapper, sqlRetry)
-    val artifactRepository = SqlArtifactRepository(jooq, clock, mapper, sqlRetry)
+    val artifactRepository = SqlArtifactRepository(jooq, clock, mapper, sqlRetry, defaultArtifactPublishers())
     return CombinedRepository(
       deliveryConfigRepository,
       artifactRepository,
       resourceRepository,
       clock,
-      mockk(relaxed = true)
+      mockk(relaxed = true),
+      configuredTestObjectMapper()
     )
   }
 

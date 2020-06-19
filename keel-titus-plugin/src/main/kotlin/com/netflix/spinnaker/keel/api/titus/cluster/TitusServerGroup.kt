@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.artifacts.DOCKER
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
@@ -64,7 +65,7 @@ data class TitusServerGroup(
   override val artifactName: String? = null,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
-  override val artifactType: ArtifactType? = ArtifactType.docker,
+  override val artifactType: ArtifactType? = DOCKER,
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
   override val artifactVersion: String? = null,

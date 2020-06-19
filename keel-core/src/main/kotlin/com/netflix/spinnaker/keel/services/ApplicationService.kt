@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.frigga.ami.AppVersion
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locatable
@@ -9,11 +9,8 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.StatefulConstraint
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
@@ -21,7 +18,8 @@ import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
+import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.core.api.AllowedTimesConstraintMetadata
 import com.netflix.spinnaker.keel.core.api.ArtifactSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
@@ -55,7 +53,9 @@ import org.springframework.stereotype.Component
 class ApplicationService(
   private val repository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
-  constraintEvaluators: List<ConstraintEvaluator<*>>
+  private val constraintEvaluators: List<ConstraintEvaluator<*>>,
+  private val artifactSuppliers: List<ArtifactSupplier<*>>,
+  private val objectMapper: ObjectMapper
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val statelessEvaluators: List<ConstraintEvaluator<*>> =
@@ -319,62 +319,32 @@ class ApplicationService(
     artifact: DeliveryArtifact,
     version: String,
     environments: Set<ArtifactSummaryInEnvironment>
-  ): ArtifactVersionSummary =
-    when (artifact.type) {
-      deb -> {
-        var summary = ArtifactVersionSummary(
-          version = version,
-          environments = environments,
-          displayName = version.removePrefix("${artifact.name}-")
-        )
-
-        // attempt to parse helpful info from the appversion.
-        // todo: replace, this is brittle
-        val appversion = AppVersion.parseName(version)
-        if (appversion?.version != null) {
-          summary = summary.copy(displayName = appversion.version)
-        }
-        if (appversion?.buildNumber != null) {
-          summary = summary.copy(build = BuildMetadata(id = appversion.buildNumber.toInt()))
-        }
-        if (appversion?.commit != null) {
-          summary = summary.copy(git = GitMetadata(commit = appversion.commit))
-        }
-        summary
-      }
-      docker -> {
-        var build: BuildMetadata? = null
-        var git: GitMetadata? = null
-        val dockerArtifact = artifact as DockerArtifact
-        if (dockerArtifact.hasBuild()) {
-          // todo eb: this could be less brittle
-          val regex = Regex("""^.*-h(\d+).*$""")
-          val result = regex.find(version)
-          if (result != null && result.groupValues.size == 2) {
-            build = BuildMetadata(id = result.groupValues[1].toInt())
-          }
-        }
-        if (dockerArtifact.hasCommit()) {
-          // todo eb: this could be less brittle
-          git = GitMetadata(commit = version.substringAfterLast("."))
-        }
-        ArtifactVersionSummary(
-          version = version,
-          environments = environments,
-          displayName = version,
-          build = build,
-          git = git
-        )
-      }
-      else -> error("Unrecognized artifact type: ${artifact.type}")
-    }
+  ): ArtifactVersionSummary {
+    val artifactSupplier = artifactSuppliers.supporting(artifact.type)
+    val publishedArtifact = artifact.toSpinnakerArtifact(version)
+    return ArtifactVersionSummary(
+      version = version,
+      environments = environments,
+      displayName = artifactSupplier.getVersionDisplayName(publishedArtifact),
+      build = artifactSupplier.getBuildMetadata(publishedArtifact, artifact.versioningStrategy),
+      git = artifactSupplier.getGitMetadata(publishedArtifact, artifact.versioningStrategy)
+    )
+  }
 
   fun getApplicationEventHistory(application: String, limit: Int) =
     repository.applicationEventHistory(application, limit)
 
   private val ArtifactVersions.key: String
-    get() = "${type.name}:$name"
+    get() = "$type:$name"
 
   private fun ConstraintState.toConstraintSummary() =
     StatefulConstraintSummary(type, status, createdAt, judgedBy, judgedAt, comment, attributes)
+
+  private fun DeliveryArtifact.toSpinnakerArtifact(version: String): PublishedArtifact =
+    objectMapper.convertValue(this, Map::class.java)
+      .toMutableMap()
+      .let {
+        it["version"] = version
+        objectMapper.convertValue(it, PublishedArtifact::class.java)
+      }
 }

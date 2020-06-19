@@ -2,9 +2,9 @@ package com.netflix.spinnaker.keel.tx
 
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ResourceKind.Companion.parseKind
-import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
@@ -136,7 +136,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
       }
 
       test("the artifact is not persisted") {
-        expectThat(repository.isRegistered("keel", deb))
+        expectThat(repository.isRegistered("keel", DEBIAN))
           .isFalse()
       }
     }
@@ -177,7 +177,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
       }
 
       test("the artifact not persisted") {
-        expectThat(repository.isRegistered("keel", deb))
+        expectThat(repository.isRegistered("keel", DEBIAN))
           .isFalse()
       }
     }

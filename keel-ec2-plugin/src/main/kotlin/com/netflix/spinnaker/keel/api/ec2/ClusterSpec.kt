@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.UnhappyControl
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
+import com.netflix.spinnaker.keel.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
@@ -117,7 +118,7 @@ data class ClusterSpec(
   @JsonInclude(NON_EMPTY)
   override val overrides: Map<String, ServerGroupSpec> = emptyMap(),
   @JsonIgnore
-  override val artifactType: ArtifactType? = ArtifactType.deb,
+  override val artifactType: ArtifactType? = DEBIAN,
   @JsonIgnore
   private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
   @JsonIgnore

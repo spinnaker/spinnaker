@@ -2,7 +2,8 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.persistence.CombinedRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
+import com.netflix.spinnaker.keel.test.defaultArtifactPublishers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
@@ -12,19 +13,19 @@ import org.junit.jupiter.api.AfterAll
 internal object SqlCombinedRepositoryTests : CombinedRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
-  private val objectMapper = configuredObjectMapper()
+  private val objectMapper = configuredTestObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
   private val clock = Clock.systemUTC()
 
   override fun createDeliveryConfigRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlDeliveryConfigRepository =
-    SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, objectMapper, sqlRetry)
+    SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, objectMapper, sqlRetry, defaultArtifactPublishers())
 
   override fun createResourceRepository(resourceSpecIdentifier: ResourceSpecIdentifier): SqlResourceRepository =
     SqlResourceRepository(jooq, clock, resourceSpecIdentifier, emptyList(), objectMapper, sqlRetry)
 
   override fun createArtifactRepository(): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry)
+    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactPublishers())
 
   override fun flush() {
     SqlTestUtil.cleanupDb(jooq)

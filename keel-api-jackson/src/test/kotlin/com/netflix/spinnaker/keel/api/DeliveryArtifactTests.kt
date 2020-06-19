@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -82,5 +82,5 @@ internal class DeliveryArtifactTests : JUnit5Minutests {
 private data class Fixture(
   val json: String
 ) {
-  val mapper = configuredObjectMapper()
+  val mapper = configuredTestObjectMapper()
 }

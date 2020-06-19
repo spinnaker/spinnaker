@@ -27,7 +27,7 @@ import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
-import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -35,7 +35,7 @@ import strikt.assertions.isA
 import strikt.assertions.isSuccess
 
 class ConvertExampleFilesTest : JUnit5Minutests {
-  private val mapper = configuredYamlMapper()
+  private val mapper = configuredTestYamlMapper()
 
   fun tests() = rootContext<Unit> {
     before {

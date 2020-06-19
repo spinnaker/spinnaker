@@ -6,8 +6,8 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.igor.ScmService
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -22,9 +22,9 @@ import strikt.assertions.isFailure
 
 class DeliveryConfigImporterTests : JUnit5Minutests {
   object Fixture {
-    val jsonMapper: ObjectMapper = configuredObjectMapper()
-      .also {
-        it.registerSubtypes(
+    val jsonMapper: ObjectMapper = configuredTestObjectMapper()
+      .apply {
+        registerSubtypes(
           NamedType(DummyResourceSpec::class.java, "test/whatever@v1")
         )
       }

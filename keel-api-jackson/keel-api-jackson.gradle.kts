@@ -26,8 +26,7 @@ dependencies {
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 
-  // this is really just so we can access `configuredObjectMapper`
-  testImplementation(project(":keel-core"))
+  testImplementation(project(":keel-test"))
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")
