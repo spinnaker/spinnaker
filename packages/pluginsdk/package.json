@@ -14,13 +14,18 @@
   },
   "bin": {
     "scaffold": "scripts/scaffold.js",
-    "check-plugin": "scripts/check-plugin.js"
+    "check-plugin": "scripts/check-plugin.js",
+    "dev-proxy": "scripts/dev-proxy/server.js"
   },
   "dependencies": {
     "check-peer-dependencies": "^2.0.1",
+    "chokidar": "^3.4.0",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^1.0.4",
     "lodash": "^4.17.15",
     "readline-sync": "^1.4.10",
     "strip-json-comments": "^3.1.0",
+    "ws": "^7.3.0",
     "yargs": "^15.3.1"
   },
   "devDependencies": {
