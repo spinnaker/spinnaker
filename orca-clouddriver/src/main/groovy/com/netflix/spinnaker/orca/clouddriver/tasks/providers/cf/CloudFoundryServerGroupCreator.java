@@ -48,8 +48,7 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
   @Override
   public List<Map> getOperations(StageExecution stage) {
     Map<String, Object> context = stage.getContext();
-
-    Artifact manifestArtifact = resolveArtifact(stage, context.get("manifest"));
+    Artifact manifestArtifact = resolveManifestArtifact(stage, context.get("manifest"));
     CloudFoundryManifestContext manifestContext =
         CloudFoundryManifestContext.builder()
             .source(ManifestContext.Source.Artifact)
@@ -73,7 +72,9 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
             .put("region", context.get("region"))
             .put("executionId", execution.getId())
             .put("trigger", execution.getTrigger().getOther())
-            .put("applicationArtifact", resolveArtifact(stage, context.get("applicationArtifact")))
+            .put(
+                "applicationArtifact",
+                resolveApplicationArtifact(stage, context.get("applicationArtifact")))
             .put("manifest", evaluatedManifest.getManifests())
             .put("moniker", moniker);
 
@@ -89,7 +90,7 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
         ImmutableMap.<String, Object>builder().put(OPERATION, operation.build()).build());
   }
 
-  private Artifact resolveArtifact(StageExecution stage, Object input) {
+  private Artifact resolveApplicationArtifact(StageExecution stage, Object input) {
     StageContextArtifactView stageContextArtifactView =
         mapper.convertValue(input, StageContextArtifactView.class);
     Artifact artifact =
@@ -98,7 +99,21 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
             stageContextArtifactView.getArtifactId(),
             stageContextArtifactView.getArtifact());
     if (artifact == null) {
-      throw new IllegalArgumentException("Unable to bind the application artifact");
+      throw new IllegalArgumentException(
+          "Unable to bind the application artifact. Either the application artifact doesn't exist or this stage doesn't have access to fetch it");
+    }
+
+    return artifact;
+  }
+
+  private Artifact resolveManifestArtifact(StageExecution stage, Object input) {
+    DeploymentManifest manifest = mapper.convertValue(input, DeploymentManifest.class);
+    Artifact artifact =
+        artifactUtils.getBoundArtifactForStage(
+            stage, manifest.getArtifactId(), manifest.getArtifact());
+    if (artifact == null) {
+      throw new IllegalArgumentException(
+          "Unable to bind the manifest artifact. Either the manifest artifact doesn't exist or this stage doesn't have access to fetch it");
     }
 
     return artifact;
