@@ -16,7 +16,23 @@ message Event {
 message SpinnakerInstance {
   string id = 1;
   string version = 2;
-  DeploymentMethod deploymentMethod = 3;
+  DeploymentMethod deployment_method = 3;
+  Environment environment = 4;
+  DeployedArtifacts deployed_artifacts = 5;
+
+  enum Environment {
+    ENVIRONMENT_UNKNOWN = 0;
+    KUBERNETES = 1;
+  }
+
+  enum DeployedArtifacts {
+    DEPLOYED_ARTIFACTS_UNKNOWN = 0;
+    DEBIAN_PACKAGES = 1;
+    DOCKER_CONTAINERS = 2;
+  }
+
+  // total number of configured pipelines across the entire Spinnaker instance
+  int32 pipeline_count = 6;
 }
 
 message DeploymentMethod {
@@ -34,6 +50,9 @@ message DeploymentMethod {
 
 message Application {
   string id = 1;
+
+  // total number of pipelines in the application that triggered this event
+  int32 pipeline_count = 2;
 }
 
 message Execution {
