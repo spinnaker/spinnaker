@@ -67,7 +67,16 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
                 "execution",
                 "The execution containing the currently executing stage"),
             new FunctionParameter(
-                String.class, "pipelineName", "A valid stage reference identifier")));
+                String.class, "pipelineName", "A valid stage reference identifier")),
+        new FunctionDefinition(
+            "pipelineIdInApplication",
+            "Lookup pipeline ID (or null if not found) given the name of the pipeline and the name of the application",
+            new FunctionParameter(
+                PipelineExecution.class,
+                "execution",
+                "The execution containing the currently executing stage"),
+            new FunctionParameter(String.class, "pipelineName", "The name of the pipeline"),
+            new FunctionParameter(String.class, "applicationName", "The name of the application")));
   }
 
   /**
@@ -83,39 +92,18 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
           "pipelineName must be specified for function #pipelineId");
     }
 
-    if (front50Service == null) {
+    String currentApplication = execution.getApplication();
+    Map<String, Object> pipeline =
+        searchForPipelineInApplication("pipelineId", currentApplication, pipelineName);
+
+    if (pipeline == null) {
       throw new SpelHelperFunctionException(
-          "front50 service is missing. It's required when using #pipelineId function");
+          format(
+              "Pipeline with name '%s' could not be found on application %s",
+              pipelineName, currentApplication));
     }
 
-    try {
-      String currentApplication = execution.getApplication();
-
-      RetrySupport retrySupport = new RetrySupport();
-      Map<String, Object> pipeline =
-          retrySupport.retry(
-              () ->
-                  front50Service.getPipelines(currentApplication).stream()
-                      .filter(p -> pipelineName.equals(p.getOrDefault("name", null)))
-                      .findFirst()
-                      .orElse(null),
-              3,
-              1000,
-              true);
-
-      if (pipeline == null) {
-        throw new SpelHelperFunctionException(
-            format(
-                "Pipeline with name '%s' could not be found on application %s",
-                pipelineName, currentApplication));
-      }
-
-      return (String) pipeline.get("id");
-    } catch (SpelHelperFunctionException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new SpelHelperFunctionException("Failed to evaluate #pipelineId function", e);
-    }
+    return (String) pipeline.get("id");
   }
 
   /**
@@ -134,6 +122,56 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
         return null;
       }
       throw e;
+    }
+  }
+
+  /**
+   * Function to convert pipeline name/application name to pipeline ID
+   *
+   * @param execution the current execution
+   * @param pipelineName name of the pipeline to lookup
+   * @param applicationName name of the application
+   * @return the id of the pipeline or null if pipeline not found
+   */
+  public static String pipelineIdInApplication(
+      PipelineExecution execution, String pipelineName, String applicationName) {
+    if (Strings.isNullOrEmpty(applicationName)) {
+      throw new SpelHelperFunctionException(
+          "applicationName must be specified for function #pipelineIdInApplication");
+    }
+
+    Map<String, Object> pipeline =
+        searchForPipelineInApplication("pipelineIdInApplication", applicationName, pipelineName);
+
+    if (pipeline == null) {
+      return null;
+    }
+
+    return (String) pipeline.get("id");
+  }
+
+  private static Map<String, Object> searchForPipelineInApplication(
+      String functionName, String applicationName, String pipelineName) {
+    if (front50Service == null) {
+      throw new SpelHelperFunctionException(
+          String.format(
+              "front50 service is missing. It's required when using #%s function", functionName));
+    }
+
+    try {
+      RetrySupport retrySupport = new RetrySupport();
+      return retrySupport.retry(
+          () ->
+              front50Service.getPipelines(applicationName).stream()
+                  .filter(p -> pipelineName.equals(p.getOrDefault("name", null)))
+                  .findFirst()
+                  .orElse(null),
+          3,
+          1000,
+          true);
+    } catch (Exception e) {
+      throw new SpelHelperFunctionException(
+          String.format("Failed to evaluate #%s function", functionName), e);
     }
   }
 }
