@@ -446,6 +446,12 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
       def instanceId = healthKeysToInstance.get(healthEntry.id)
       instances[instanceId].health << healthEntry.attributes
     }
+
+    instances.values().each { instance ->
+      instance.isHealthy = instance.health.any { it.state == 'Up' } && instance.health.every {
+        it.state == 'Up' || it.state == 'Unknown'
+      }
+    }
   }
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
