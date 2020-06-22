@@ -33,6 +33,8 @@ public class PluginEvent extends TriggerEvent {
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Content {
     private String pluginId;
+    private String description;
+    private String provider;
     private String version;
     private String releaseDate;
     private String requires;

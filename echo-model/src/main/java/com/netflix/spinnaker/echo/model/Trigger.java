@@ -160,6 +160,8 @@ public class Trigger {
 
   // Configuration for plugin triggers
   String pluginId;
+  String description;
+  String provider;
   String version;
   String releaseDate;
   String requires;

@@ -53,6 +53,8 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
         trigger
             .toBuilder()
             .pluginId(event.getContent().getPluginId())
+            .description(event.getContent().getDescription())
+            .provider(event.getContent().getProvider())
             .version(event.getContent().getVersion())
             .releaseDate(event.getContent().getReleaseDate())
             .requires(event.getContent().getRequires())
