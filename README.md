@@ -3,6 +3,7 @@ _**IMPORTANT:** This service is currently under development and is not ready for
 ---
 
 ![Release](https://github.com/spinnaker/keel/workflows/Release/badge.svg)
+![Download](https://api.bintray.com/packages/spinnaker/spinnaker/keel/images/download.svg)
 ![Codecov](https://img.shields.io/codecov/c/github/spinnaker/keel?token=90e13ffce6a54cd089878c6eee3d4c40)
 
 # High Level Project Overview
