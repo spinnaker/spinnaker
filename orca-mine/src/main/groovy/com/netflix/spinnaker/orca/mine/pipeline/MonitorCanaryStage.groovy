@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kayenta.pipeline.CanaryDisableClusterStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.*
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
@@ -37,22 +39,22 @@ class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
 
   @Autowired MineService mineService
   @Autowired CanaryStage canaryStage
+  @Autowired CanaryDisableClusterStage canaryDisableClusterStage
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("registerCanary", RegisterCanaryTask)
       .withTask("monitorCanary", MonitorCanaryTask)
-      .withTask("disableCanaryCluster", DisableCanaryTask)
-      .withTask("monitorDisable", MonitorKatoTask)
-      .withTask("waitBeforeCleanup", WaitTask)
-      .withTask("disableBaselineCluster", DisableCanaryTask)
-      .withTask("monitorDisable", MonitorKatoTask)
-      .withTask("waitBeforeCleanup", WaitTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-      .withTask("cleanupCanary", CleanupCanaryTask)
-      .withTask("monitorCleanup", MonitorKatoTask)
-      .withTask("completeCanary", CompleteCanaryTask)
+  }
+
+  @Override
+  void afterStages(StageExecution parent, StageGraphBuilder graph) {
+    graph.append {
+      it.type = canaryDisableClusterStage.type
+      it.name = "Disable Canary and Baseline"
+      it.context = parent.context
+    }
   }
 
   @Override
