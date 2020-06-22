@@ -27,7 +27,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
+import com.netflix.spinnaker.keel.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -241,7 +243,7 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ClusterSpec> =
     resource(
-      kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
+      kind = EC2_CLUSTER_V1.kind,
       spec = ClusterSpec(
         moniker = Moniker(
           app = "fnord",
@@ -276,7 +278,7 @@ internal class ClassicLoadBalancerNetworkResolverTests : NetworkResolverTests<Cl
   override val createSubject = ::ClassicLoadBalancerNetworkResolver
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ClassicLoadBalancerSpec> = resource(
-    kind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer"),
+    kind = EC2_CLASSIC_LOAD_BALANCER_V1.kind,
     spec = ClassicLoadBalancerSpec(
       moniker = Moniker(
         app = "fnord",
@@ -294,7 +296,7 @@ internal class ApplicationLoadBalancerNetworkResolverTests : NetworkResolverTest
   override val createSubject = ::ApplicationLoadBalancerNetworkResolver
 
   override fun createResource(locations: SubnetAwareLocations): Resource<ApplicationLoadBalancerSpec> = resource(
-    kind = SPINNAKER_EC2_API_V1.qualify("application-load-balancer"),
+    kind = EC2_APPLICATION_LOAD_BALANCER_V1_1.kind,
     spec = ApplicationLoadBalancerSpec(
       moniker = Moniker(
         app = "fnord",

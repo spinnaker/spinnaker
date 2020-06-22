@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_CO
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.ResourcesSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
@@ -110,7 +110,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount)
 
   val resource = resource(
-    kind = SPINNAKER_TITUS_API_V1.qualify("cluster"),
+    kind = TITUS_CLUSTER_V1.kind,
     spec = spec
   )
 
@@ -120,7 +120,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
     user = "fzlem@netflix.com",
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
-    kind = SPINNAKER_TITUS_API_V1.qualify("cluster")
+    kind = TITUS_CLUSTER_V1.kind
   )
 
   val image = DockerImage(

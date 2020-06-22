@@ -23,7 +23,7 @@ import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -40,7 +40,7 @@ class ApplicationLoadBalancerHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(resolvers) {
 
-  override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1
+  override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_1
 
   override suspend fun toResolvedType(resource: Resource<ApplicationLoadBalancerSpec>):
     Map<String, ApplicationLoadBalancer> =
@@ -245,7 +245,7 @@ class ApplicationLoadBalancerHandler(
                       protocol = tg.protocol,
                       port = tg.port,
                       healthCheckEnabled = tg.healthCheckEnabled,
-                      healthCheckTimeoutSeconds = Duration.ofSeconds(tg.healthCheckTimeoutSeconds.toLong()),
+                      healthCheckTimeout = Duration.ofSeconds(tg.healthCheckTimeoutSeconds.toLong()),
                       healthCheckPort = when (tg.healthCheckPort) {
                         "traffic-port" -> tg.port
                         else -> tg.healthCheckPort.toInt()
@@ -253,7 +253,7 @@ class ApplicationLoadBalancerHandler(
                       healthCheckProtocol = tg.healthCheckProtocol,
                       healthCheckHttpCode = tg.matcher.httpCode,
                       healthCheckPath = tg.healthCheckPath,
-                      healthCheckIntervalSeconds = Duration.ofSeconds(tg.healthCheckIntervalSeconds.toLong()),
+                      healthCheckInterval = Duration.ofSeconds(tg.healthCheckIntervalSeconds.toLong()),
                       healthyThresholdCount = tg.healthyThresholdCount,
                       unhealthyThresholdCount = tg.unhealthyThresholdCount,
                       attributes = tg.attributes
@@ -299,12 +299,12 @@ class ApplicationLoadBalancerHandler(
               "protocol" to it.protocol,
               "port" to it.port,
               "healthCheckEnabled" to it.healthCheckEnabled,
-              "healthCheckTimeout" to it.healthCheckTimeoutSeconds.seconds,
+              "healthCheckTimeout" to it.healthCheckTimeout.seconds,
               "healthCheckPort" to it.healthCheckPort,
               "healthCheckProtocol" to it.healthCheckProtocol,
               "healthCheckHttpCode" to it.healthCheckHttpCode,
               "healthCheckPath" to it.healthCheckPath,
-              "healthCheckInterval" to it.healthCheckIntervalSeconds.seconds,
+              "healthCheckInterval" to it.healthCheckInterval.seconds,
               "healthyThreshold" to it.healthyThresholdCount,
               "unhealthyThreshold" to it.unhealthyThresholdCount,
               "attributes" to it.attributes

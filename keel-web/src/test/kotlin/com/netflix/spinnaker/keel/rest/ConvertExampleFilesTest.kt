@@ -23,10 +23,14 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
-import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
+import com.netflix.spinnaker.keel.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -39,11 +43,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
   fun tests() = rootContext<Unit> {
     before {
-      mapper.registerSubtypes(NamedType(ClusterSpec::class.java, SPINNAKER_EC2_API_V1.qualify("cluster").toString()))
-      mapper.registerSubtypes(NamedType(SecurityGroupSpec::class.java, SPINNAKER_EC2_API_V1.qualify("security-group").toString()))
-      mapper.registerSubtypes(NamedType(ClassicLoadBalancerSpec::class.java, SPINNAKER_EC2_API_V1.qualify("classic-load-balancer").toString()))
-      mapper.registerSubtypes(NamedType(ApplicationLoadBalancerSpec::class.java, SPINNAKER_EC2_API_V1.qualify("application-load-balancer").toString()))
-      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, SPINNAKER_TITUS_API_V1.qualify("cluster").toString()))
+      mapper.registerSubtypes(EC2_CLUSTER_V1.toNamedType())
+      mapper.registerSubtypes(EC2_SECURITY_GROUP_V1.toNamedType())
+      mapper.registerSubtypes(EC2_CLASSIC_LOAD_BALANCER_V1.toNamedType())
+      mapper.registerSubtypes(EC2_APPLICATION_LOAD_BALANCER_V1_1.toNamedType())
+      mapper.registerSubtypes(TITUS_CLUSTER_V1.toNamedType())
     }
 
     context("ec2 cluster") {
@@ -147,4 +151,6 @@ class ConvertExampleFilesTest : JUnit5Minutests {
       }
     }
   }
+
+  private fun SupportedKind<*>.toNamedType(): NamedType = NamedType(specClass, kind.toString())
 }

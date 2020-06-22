@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
+import com.netflix.spinnaker.keel.resources.SpecMigrator
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -23,6 +24,7 @@ class KeelConfigurationFinalizer(
   private val instanceIdSupplier: InstanceIdSupplier,
   private val kinds: List<SupportedKind<*>> = emptyList(),
   private val resourceHandlers: List<ResourceHandler<*, *>> = emptyList(),
+  private val specMigrators: List<SpecMigrator<*, *>> = emptyList(),
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
@@ -33,8 +35,7 @@ class KeelConfigurationFinalizer(
 
   @PostConstruct
   fun registerResourceSpecSubtypes() {
-    resourceHandlers
-      .map { it.supportedKind }
+    (resourceHandlers.map { it.supportedKind } + specMigrators.map { it.input })
       .forEach { (kind, specClass) ->
         log.info("Registering ResourceSpec sub-type {}: {}", kind, specClass.simpleName)
         val namedType = NamedType(specClass, kind.toString())

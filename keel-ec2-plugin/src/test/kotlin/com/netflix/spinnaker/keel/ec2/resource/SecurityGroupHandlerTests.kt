@@ -46,7 +46,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -928,7 +928,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
   val Fixture.resource: Resource<SecurityGroupSpec>
     get() = resource(
-      kind = SPINNAKER_EC2_API_V1.qualify("security-group"),
+      kind = EC2_SECURITY_GROUP_V1.kind,
       spec = securityGroupSpec
     )
 }

@@ -19,9 +19,9 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -110,7 +110,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     )
 
     val resource = resource(
-      kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
+      kind = EC2_CLUSTER_V1.kind,
       spec = ClusterSpec(
         moniker = Moniker("fnord"),
         imageProvider = imageProvider,

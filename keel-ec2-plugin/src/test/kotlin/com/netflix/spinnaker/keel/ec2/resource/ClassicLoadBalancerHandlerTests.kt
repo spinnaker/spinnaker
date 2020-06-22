@@ -18,7 +18,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.ec2.resolvers.ClassicLoadBalancerNetworkResolver
 import com.netflix.spinnaker.keel.ec2.resolvers.ClassicLoadBalancerSecurityGroupsResolver
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -108,7 +108,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
   private val spec = yamlMapper.readValue(yaml, ClassicLoadBalancerSpec::class.java)
   private val resource = resource(
-    kind = SPINNAKER_EC2_API_V1.qualify("classic-load-balancer"),
+    kind = EC2_CLASSIC_LOAD_BALANCER_V1.kind,
     spec = spec
   )
 

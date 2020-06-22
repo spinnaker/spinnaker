@@ -33,7 +33,7 @@ import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.api.StaggeredRegion
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.toCloudDriverResponse
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -159,7 +159,7 @@ internal class ClusterExportTests : JUnit5Minutests {
   val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }.copy(image = image)
 
   val resource = resource(
-    kind = SPINNAKER_EC2_API_V1.qualify("cluster"),
+    kind = EC2_CLUSTER_V1.kind,
     spec = spec
   )
 
@@ -172,7 +172,7 @@ internal class ClusterExportTests : JUnit5Minutests {
     user = "fzlem@netflix.com",
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
-    kind = SPINNAKER_EC2_API_V1.qualify("cluster")
+    kind = EC2_CLUSTER_V1.kind
   )
 
   fun tests() = rootContext<ClusterHandler> {
