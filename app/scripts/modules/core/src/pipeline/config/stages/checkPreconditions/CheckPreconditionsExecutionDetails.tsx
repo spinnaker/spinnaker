@@ -33,7 +33,7 @@ export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSecti
           </dl>
         </div>
       </div>
-      <StageFailureMessage stage={props.stage} message={stageFailureMessage} />
+      {props.stage.status !== 'SUCCEEDED' && <StageFailureMessage stage={props.stage} message={stageFailureMessage} />}
     </ExecutionDetailsSection>
   );
 }
