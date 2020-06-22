@@ -38,12 +38,12 @@ class PluginReleaseServiceSpec extends Specification {
   @Unroll
   def "gets releases since timestamp"() {
     given:
-    PluginInfo plugin1 = new PluginInfo("plugin1", [
-      release("1.0.0", clock.instant()),
-      release("1.0.1", clock.instant().plus(1, ChronoUnit.DAYS))
+    PluginInfo plugin1 = new PluginInfo("plugin1", "A pugin", "foo@example.com", [
+            release("1.0.0", clock.instant()),
+            release("1.0.1", clock.instant().plus(1, ChronoUnit.DAYS))
     ])
-    PluginInfo plugin2 = new PluginInfo("plugin2", [
-      release("2.0.0", clock.instant().plus(2, ChronoUnit.DAYS))
+    PluginInfo plugin2 = new PluginInfo("plugin2", "A pugin", "foo@example.com", [
+            release("2.0.0", clock.instant().plus(2, ChronoUnit.DAYS))
     ])
 
     and:

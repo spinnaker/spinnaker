@@ -21,10 +21,14 @@ import java.util.List;
 public class PluginInfo {
 
   final String id;
+  final String description;
+  final String provider;
   final List<Release> releases;
 
-  public PluginInfo(String id, List<Release> releases) {
+  public PluginInfo(String id, String description, String provider, List<Release> releases) {
     this.id = id;
+    this.description = description;
+    this.provider = provider;
     this.releases = releases;
   }
 

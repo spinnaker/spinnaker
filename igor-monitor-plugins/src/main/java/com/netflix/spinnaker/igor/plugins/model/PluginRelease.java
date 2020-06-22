@@ -20,6 +20,8 @@ import java.util.List;
 
 public class PluginRelease {
   private final String pluginId;
+  private final String description;
+  private final String provider;
   private final String version;
   private final String releaseDate;
   private final String requires;
@@ -31,6 +33,8 @@ public class PluginRelease {
 
   public PluginRelease(
       String pluginId,
+      String description,
+      String provider,
       String version,
       String releaseDate,
       String requires,
@@ -40,6 +44,8 @@ public class PluginRelease {
       boolean preferred,
       String lastModified) {
     this.pluginId = pluginId;
+    this.description = description;
+    this.provider = provider;
     this.version = version;
     this.releaseDate = releaseDate;
     this.requires = requires;
@@ -52,6 +58,14 @@ public class PluginRelease {
 
   public String getPluginId() {
     return pluginId;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public String getProvider() {
+    return provider;
   }
 
   public String getVersion() {

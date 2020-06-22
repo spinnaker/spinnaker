@@ -74,6 +74,8 @@ public class PluginReleaseService {
                                 release ->
                                     new PluginRelease(
                                         info.id,
+                                        info.description,
+                                        info.provider,
                                         release.version,
                                         release.date,
                                         release.requires,
