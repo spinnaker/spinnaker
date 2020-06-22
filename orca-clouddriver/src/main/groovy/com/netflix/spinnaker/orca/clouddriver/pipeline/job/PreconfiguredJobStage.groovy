@@ -76,19 +76,32 @@ class PreconfiguredJobStage extends RunJobStage {
     }
     preconfiguredJob.parameters.each { defaults ->
       if (defaults.defaultValue != null) {
-        Eval.xy(context, defaults.defaultValue, "x.${defaults.mapping} = y.toString()")
+        setNestedValue(context, defaults.mapping, defaults.defaultValue)
       }
     }
     if (context.parameters) {
       context.parameters.each { k, v ->
         def parameterDefinition = preconfiguredJob.parameters.find { it.name == k }
         if (parameterDefinition) {
-          Eval.xy(context, v, "x.${parameterDefinition.mapping} = y.toString()")
+          setNestedValue(context, parameterDefinition.mapping, v.toString())
         }
       }
     }
     context.preconfiguredJobParameters = preconfiguredJob.parameters
     return context
+  }
+
+  private static void setNestedValue(Object root, String mapping, Object value) {
+    String[] props = mapping.split(/\./)
+    Object current = root
+    for (int i = 0; i < props.length - 1; i++) {
+      Object next = current[props[i]]
+      if (next == null) {
+        throw new IllegalArgumentException("no property ${props[i]} on $current")
+      }
+      current = next
+    }
+    current[props.last()] = value
   }
 
 }
