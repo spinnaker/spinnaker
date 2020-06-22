@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { UISref } from '@uirouter/react';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
@@ -26,6 +26,7 @@ import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.se
 import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
 import { Markdown } from 'core/presentation';
+import { Overridable } from 'core/overrideRegistry';
 
 import './pager.less';
 
@@ -84,6 +85,13 @@ const SortIndicator = (props: { direction: SortDirectionType; sorted: boolean })
   }
   return <span className="fa fa-caret-down disabled" />;
 };
+
+@Overridable('pager.banner')
+class PagerBanner extends React.Component {
+  render(): ReactNode {
+    return null;
+  }
+}
 
 export class Pager extends React.Component<IPagerProps, IPagerState> {
   private cache = new CellMeasurerCache({
@@ -499,6 +507,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
               </div>
             </h2>
           </div>
+          <PagerBanner />
         </div>
 
         <div className="container main-content on-call scrollable-columns">
