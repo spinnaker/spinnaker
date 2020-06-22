@@ -17,13 +17,15 @@ class DummyArtifact(
   override val reference: String = "fnord"
 ) : DeliveryArtifact() {
   override val type: ArtifactType = "dummy"
-  override val versioningStrategy = object : VersioningStrategy() {
-    override val comparator: Comparator<String> = Comparator.naturalOrder()
-    override val type = "dummy"
-  }
+  override val versioningStrategy = DummyVersioningStrategy
 }
 
-fun defaultArtifactPublishers(): List<ArtifactSupplier<*>> {
+object DummyVersioningStrategy : VersioningStrategy() {
+  override val comparator: Comparator<String> = Comparator.naturalOrder()
+  override val type = "dummy"
+}
+
+fun defaultArtifactPublishers(): List<ArtifactSupplier<*, *>> {
   val artifactService: ArtifactService = mockk(relaxUnitFun = true)
   val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true)
   val eventBridge: SpringEventPublisherBridge = mockk(relaxUnitFun = true)

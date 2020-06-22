@@ -24,10 +24,10 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  * version of an artifact. This is so that we don't miss any versions in case of missed or failure
  * to handle events in case of downtime, etc.
  */
-interface ArtifactSupplier<T : DeliveryArtifact> : SpinnakerExtensionPoint {
+interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : SpinnakerExtensionPoint {
   val eventPublisher: EventPublisher
-  val supportedArtifact: SupportedArtifact<T>
-  val supportedVersioningStrategies: List<SupportedVersioningStrategy<*>>
+  val supportedArtifact: SupportedArtifact<A>
+  val supportedVersioningStrategy: SupportedVersioningStrategy<V>
 
   /**
    * Publishes an [ArtifactPublishedEvent] to core Keel so that the corresponding artifact version can be
@@ -87,6 +87,6 @@ interface ArtifactSupplier<T : DeliveryArtifact> : SpinnakerExtensionPoint {
 /**
  * Return the [ArtifactSupplier] supporting the specified artifact type.
  */
-fun List<ArtifactSupplier<*>>.supporting(type: ArtifactType) =
+fun List<ArtifactSupplier<*, *>>.supporting(type: ArtifactType) =
   find { it.supportedArtifact.name.toLowerCase() == type.toLowerCase() }
     ?: error("Artifact type '$type' is not supported.")

@@ -27,11 +27,11 @@ import org.springframework.stereotype.Component
 class DockerArtifactSupplier(
   override val eventPublisher: EventPublisher,
   private val cloudDriverService: CloudDriverService
-) : ArtifactSupplier<DockerArtifact> {
+) : ArtifactSupplier<DockerArtifact, DockerVersioningStrategy> {
   override val supportedArtifact = SupportedArtifact("docker", DockerArtifact::class.java)
 
-  override val supportedVersioningStrategies: List<SupportedVersioningStrategy<*>> =
-    listOf(SupportedVersioningStrategy("docker", DockerVersioningStrategy::class.java))
+  override val supportedVersioningStrategy =
+    SupportedVersioningStrategy("docker", DockerVersioningStrategy::class.java)
 
   override suspend fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? {
     if (artifact !is DockerArtifact) {

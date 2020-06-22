@@ -25,7 +25,7 @@ class KeelConfigurationFinalizer(
   private val resourceHandlers: List<ResourceHandler<*, *>> = emptyList(),
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
-  private val artifactSuppliers: List<ArtifactSupplier<*>> = emptyList(),
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   private val objectMappers: List<ObjectMapper>
 ) {
 
@@ -76,7 +76,7 @@ class KeelConfigurationFinalizer(
       }
 
     artifactSuppliers
-      .flatMap { it.supportedVersioningStrategies }
+      .map { it.supportedVersioningStrategy }
       .forEach { (name, strategyClass) ->
         log.info("Registering VersioningStrategy sub-type {}: {}", name, strategyClass.simpleName)
         val namedType = NamedType(strategyClass, name)

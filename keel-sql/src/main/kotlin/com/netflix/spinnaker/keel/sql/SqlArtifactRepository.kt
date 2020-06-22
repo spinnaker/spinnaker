@@ -64,7 +64,7 @@ class SqlArtifactRepository(
   private val clock: Clock,
   private val objectMapper: ObjectMapper,
   private val sqlRetry: SqlRetry,
-  private val artifactSuppliers: List<ArtifactSupplier<*>> = emptyList()
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList()
 ) : ArtifactRepository {
   override fun register(artifact: DeliveryArtifact) {
     val id: String = (sqlRetry.withRetry(READ) {

@@ -58,7 +58,7 @@ class SqlDeliveryConfigRepository(
   private val resourceSpecIdentifier: ResourceSpecIdentifier,
   private val mapper: ObjectMapper,
   private val sqlRetry: SqlRetry,
-  private val artifactSuppliers: List<ArtifactSupplier<*>> = emptyList()
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList()
 ) : DeliveryConfigRepository {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

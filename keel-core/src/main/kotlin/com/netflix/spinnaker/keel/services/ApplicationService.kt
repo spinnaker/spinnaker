@@ -54,7 +54,7 @@ class ApplicationService(
   private val repository: KeelRepository,
   private val resourceStatusService: ResourceStatusService,
   private val constraintEvaluators: List<ConstraintEvaluator<*>>,
-  private val artifactSuppliers: List<ArtifactSupplier<*>>,
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>,
   private val objectMapper: ObjectMapper
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

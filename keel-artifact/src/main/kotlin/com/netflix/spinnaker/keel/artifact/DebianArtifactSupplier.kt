@@ -26,11 +26,11 @@ import org.springframework.stereotype.Component
 class DebianArtifactSupplier(
   override val eventPublisher: EventPublisher,
   private val artifactService: ArtifactService
-) : ArtifactSupplier<DebianArtifact> {
+) : ArtifactSupplier<DebianArtifact, DebianSemVerVersioningStrategy> {
   override val supportedArtifact = SupportedArtifact("deb", DebianArtifact::class.java)
 
-  override val supportedVersioningStrategies: List<SupportedVersioningStrategy<*>> =
-    listOf(SupportedVersioningStrategy("deb", DebianSemVerVersioningStrategy::class.java))
+  override val supportedVersioningStrategy =
+    SupportedVersioningStrategy("deb", DebianSemVerVersioningStrategy::class.java)
 
   override suspend fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
     artifactService

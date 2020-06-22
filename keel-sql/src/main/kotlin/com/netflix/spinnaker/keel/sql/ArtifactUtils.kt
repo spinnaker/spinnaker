@@ -32,7 +32,7 @@ private val objectMapper: ObjectMapper = configuredObjectMapper()
  * A helper function to construct the proper artifact type from the serialized JSON.
  */
 fun mapToArtifact(
-  artifactSupplier: ArtifactSupplier<*>,
+  artifactSupplier: ArtifactSupplier<*, *>,
   name: String,
   type: ArtifactType,
   json: String,

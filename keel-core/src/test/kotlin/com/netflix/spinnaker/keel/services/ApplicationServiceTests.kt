@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.core.api.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.test.DummyArtifact
+import com.netflix.spinnaker.keel.test.DummyVersioningStrategy
 import com.netflix.spinnaker.keel.test.artifactReferenceResource
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.versionedArtifactResource
@@ -109,7 +110,7 @@ class ApplicationServiceTests : JUnit5Minutests {
     }
 
     private val publishedArtifact = slot<PublishedArtifact>()
-    private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact>>(relaxUnitFun = true) {
+    private val artifactSupplier = mockk<ArtifactSupplier<DummyArtifact, DummyVersioningStrategy>>(relaxUnitFun = true) {
       every { supportedArtifact } returns SupportedArtifact("dummy", DummyArtifact::class.java)
       every {
         getVersionDisplayName(capture(publishedArtifact))

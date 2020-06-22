@@ -59,7 +59,7 @@ class SqlConfiguration {
     SqlResourceRepository(jooq, clock, resourceSpecIdentifier, specMigrators, objectMapper, SqlRetry(sqlRetryProperties))
 
   @Bean
-  fun artifactRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper, artifactSuppliers: List<ArtifactSupplier<*>>) =
+  fun artifactRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper, artifactSuppliers: List<ArtifactSupplier<*, *>>) =
     SqlArtifactRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties), artifactSuppliers)
 
   @Bean
@@ -68,7 +68,7 @@ class SqlConfiguration {
     clock: Clock,
     resourceSpecIdentifier: ResourceSpecIdentifier,
     objectMapper: ObjectMapper,
-    artifactSuppliers: List<ArtifactSupplier<*>>
+    artifactSuppliers: List<ArtifactSupplier<*, *>>
   ) =
     SqlDeliveryConfigRepository(jooq, clock, resourceSpecIdentifier, objectMapper, SqlRetry(sqlRetryProperties), artifactSuppliers)
 

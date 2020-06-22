@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class DeliveryArtifactModelConverter(
-  artifactSuppliers: List<ArtifactSupplier<*>>
+  artifactSuppliers: List<ArtifactSupplier<*, *>>
 ) : SubtypesModelConverter<DeliveryArtifact>(DeliveryArtifact::class.java) {
 
   override val discriminator: String? = DeliveryArtifact::type.name

@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 class ArtifactListener(
   private val repository: KeelRepository,
   private val publisher: ApplicationEventPublisher,
-  private val artifactSuppliers: List<ArtifactSupplier<*>>
+  private val artifactSuppliers: List<ArtifactSupplier<*, *>>
 ) {
   private val enabled = AtomicBoolean(false)
 

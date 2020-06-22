@@ -22,8 +22,6 @@ import io.mockk.coVerify as verify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
-import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 
@@ -74,9 +72,8 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       }
 
       test("supports Docker versioning strategy") {
-        expectThat(dockerArtifactPublisher.supportedVersioningStrategies)
-          .hasSize(1)
-          .containsExactly(
+        expectThat(dockerArtifactPublisher.supportedVersioningStrategy)
+          .isEqualTo(
             SupportedVersioningStrategy(DOCKER, DockerVersioningStrategy::class.java)
           )
       }
