@@ -45,6 +45,16 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
       description = TravisCommandProperties.NUMBER_OF_REPOSITORIES_DESCRIPTION)
   public Integer numberOfRepositories;
 
+  @Parameter(
+      names = "--number-of-jobs",
+      description = TravisCommandProperties.NUMBER_OF_JOBS_DESCRIPTION)
+  public Integer numberOfJobs;
+
+  @Parameter(
+      names = "--build-result-limit",
+      description = TravisCommandProperties.BUILD_RESULT_LIMIT_DESCRIPTION)
+  public Integer buildResultLimit;
+
   @Override
   protected CIAccount editMaster(TravisMaster master) {
     master.setAddress(isSet(address) ? address : master.getAddress());
@@ -52,6 +62,9 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
     master.setBaseUrl(isSet(baseUrl) ? baseUrl : master.getBaseUrl());
     master.setNumberOfRepositories(
         isSet(numberOfRepositories) ? numberOfRepositories : master.getNumberOfRepositories());
+    master.setNumberOfJobs(isSet(numberOfJobs) ? numberOfJobs : master.getNumberOfJobs());
+    master.setBuildResultLimit(
+        isSet(buildResultLimit) ? buildResultLimit : master.getBuildResultLimit());
 
     return master;
   }
