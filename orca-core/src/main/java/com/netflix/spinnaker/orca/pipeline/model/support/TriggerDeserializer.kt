@@ -153,6 +153,8 @@ class TriggerDeserializer :
           get("dryRun")?.booleanValue() == true,
           get("strategy")?.booleanValue() == true,
           get("pluginId").textValue(),
+          get("description").textValue(),
+          get("provider").textValue(),
           get("version").textValue(),
           get("releaseDate").textValue(),
           get("requires").listValue(parser),

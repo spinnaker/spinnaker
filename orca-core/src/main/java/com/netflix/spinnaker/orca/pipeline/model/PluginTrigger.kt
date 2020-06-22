@@ -31,6 +31,8 @@ data class PluginTrigger
   private var isDryRun: Boolean = false,
   private var isStrategy: Boolean = false,
   val pluginId: String,
+  val description: String,
+  val provider: String,
   val version: String,
   val releaseDate: String,
   val requires: List<Map<String, String>>,
