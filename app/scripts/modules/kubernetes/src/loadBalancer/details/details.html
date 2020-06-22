@@ -135,6 +135,21 @@
           </dd>
         </div>
       </dl>
+      <dl ng-if="ctrl.loadBalancer.manifest.spec.rules.length">
+        <dt>Host Rules</dt>
+        <dd ng-repeat="ingressRule in ctrl.loadBalancer.manifest.spec.rules">
+          <a ng-if="ingressRule.host" target="_blank" href="//{{ingressRule.host}}">
+            {{ingressRule.host}}
+          </a>
+          <copy-to-clipboard
+            ng-if="ingressRule.host"
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ingressRule.host"
+            tool-tip="'Copy ingress rule host to clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
+      </dl>
       <dl ng-if="ctrl.loadBalancer.manifest.status.loadBalancer.ingress.length">
         <dt>Ingress</dt>
         <dd ng-repeat="ingress in ctrl.loadBalancer.manifest.status.loadBalancer.ingress">
