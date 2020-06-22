@@ -28,7 +28,7 @@ import redis.clients.jedis.commands.JedisCommands
 val UNIQUE_ID_KEY = "spinnaker:stats:instanceId"
 
 @Component
-@ConditionalOnProperty("stats.enabled")
+@ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
 class InstanceIdSupplier(
   private val config: TelemetryConfig.TelemetryConfigProps,
   redisSelector: RedisClientSelector?

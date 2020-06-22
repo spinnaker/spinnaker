@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component
  * This is mostly in its own [TelemetryEventDataProvider] because it's not really testable.
  */
 @Component
-@ConditionalOnProperty("stats.enabled")
+@ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
 class SpinnakerEnvironmentDataProvider : TelemetryEventDataProvider {
 
   private val environment by lazy { computeDeploymentEnvironment() }

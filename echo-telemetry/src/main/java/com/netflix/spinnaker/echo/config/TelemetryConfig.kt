@@ -33,7 +33,7 @@ import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
 @Configuration
-@ConditionalOnProperty("stats.enabled")
+@ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
 @EnableConfigurationProperties(TelemetryConfigProps::class)
 open class TelemetryConfig {
 

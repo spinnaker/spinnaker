@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("stats.enabled")
+@ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
 class ExecutionDataProvider : TelemetryEventDataProvider {
 
   private val objectMapper = EchoObjectMapper.getInstance()

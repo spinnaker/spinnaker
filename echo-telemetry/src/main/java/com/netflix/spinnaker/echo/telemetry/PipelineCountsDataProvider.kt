@@ -26,7 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("stats.enabled")
+@ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
 class PipelineCountsDataProvider(private val front50: Front50Service) : TelemetryEventDataProvider {
 
   private val appPipelinesSupplier =

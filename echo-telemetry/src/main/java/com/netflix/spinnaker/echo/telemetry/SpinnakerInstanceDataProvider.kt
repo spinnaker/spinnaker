@@ -27,7 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("stats.enabled")
+@ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
 class SpinnakerInstanceDataProvider(private val config: TelemetryConfigProps, private val instanceIdSupplier: InstanceIdSupplier) : TelemetryEventDataProvider {
   override fun populateData(echoEvent: EchoEvent, statsEvent: StatsEvent): StatsEvent {
 
