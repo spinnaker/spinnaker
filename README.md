@@ -45,7 +45,7 @@ The following high level diagram shows how events flow through `echo`:
 
 `Echo` is also able to send events within Spinnaker to a predefined url, which is configurable under the `echo-rest` module.
 
-You can extend the way in which `echo` events are sent by implementing the `EchoEventListener` interface.
+You can extend the way in which `echo` events are sent by implementing the `EventListener` interface.
 
 
 ## Event Types
