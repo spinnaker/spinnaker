@@ -9,7 +9,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.util.Pool;
 import redis.embedded.RedisServer;
 
-public class EmbeddedRedis {
+public class EmbeddedRedis implements AutoCloseable {
 
   private final URI connection;
   private final RedisServer redisServer;
@@ -27,6 +27,11 @@ public class EmbeddedRedis {
             .setting("databases 1")
             .build();
     this.redisServer.start();
+  }
+
+  @Override
+  public void close() {
+    destroy();
   }
 
   public void destroy() {
