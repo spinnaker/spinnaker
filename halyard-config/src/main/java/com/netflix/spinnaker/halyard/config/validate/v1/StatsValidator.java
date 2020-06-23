@@ -16,7 +16,7 @@ public class StatsValidator extends Validator<Stats> {
     StringBuilder msg = new StringBuilder();
     msg.append("Stats are currently ");
     if (t.getEnabled()) {
-      msg.append("ENABLED. Usage statistics are being collected—Thank you! ");
+      msg.append("ENABLED. Usage statistics are being collected. Thank you! ");
       msg.append("These stats inform improvements to the product, and that helps the community. ");
       msg.append("To disable, run `hal config stats disable`. ");
     } else {
