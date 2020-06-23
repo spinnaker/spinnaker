@@ -39,19 +39,23 @@ class InstanceIdSupplierTest {
 
   @Test
   fun `returns the configured value when no current value in redis`() {
-    val instanceIdSupplier = InstanceIdSupplier(withInstanceId("my-id"), getRedis())
-
-    expectThat(instanceIdSupplier.uniqueId).isEqualTo("my-id")
+    EmbeddedRedis.embed().use { embeddedRedis ->
+      val instanceIdSupplier = InstanceIdSupplier(withInstanceId("my-id"), getRedis(embeddedRedis))
+      expectThat(instanceIdSupplier.uniqueId).isEqualTo("my-id")
+    }
   }
 
   @Test
   fun `returns the value in redis if it exists`() {
-    val redis = getRedis()
-    val instanceIdSupplier = InstanceIdSupplier(withInstanceId("my-id"), redis)
-    expectThat(instanceIdSupplier.uniqueId).isEqualTo("my-id")
+    EmbeddedRedis.embed().use { embeddedRedis ->
+      val redisSelector = getRedis(embeddedRedis)
 
-    val otherInstanceIdSupplier = InstanceIdSupplier(withInstanceId("my-new-id"), redis)
-    expectThat(otherInstanceIdSupplier.uniqueId).isEqualTo("my-id")
+      val instanceIdSupplier = InstanceIdSupplier(withInstanceId("my-id"), redisSelector)
+      expectThat(instanceIdSupplier.uniqueId).isEqualTo("my-id")
+
+      val otherInstanceIdSupplier = InstanceIdSupplier(withInstanceId("my-new-id"), redisSelector)
+      expectThat(otherInstanceIdSupplier.uniqueId).isEqualTo("my-id")
+    }
   }
 
   @Test
@@ -72,8 +76,7 @@ class InstanceIdSupplierTest {
     return result
   }
 
-  private fun getRedis(): RedisClientSelector {
-    val embeddedRedis = EmbeddedRedis.embed()
+  private fun getRedis(embeddedRedis: EmbeddedRedis): RedisClientSelector {
     val redisClientDelegate = JedisClientDelegate("primaryDefault", embeddedRedis.pool)
     return RedisClientSelector(listOf(redisClientDelegate))
   }
