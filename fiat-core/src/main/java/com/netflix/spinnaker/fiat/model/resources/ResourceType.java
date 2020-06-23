@@ -16,32 +16,60 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
-import javax.annotation.Nonnull;
+import java.util.Objects;
 
-public enum ResourceType {
-  ACCOUNT(Account.class),
-  APPLICATION(Application.class),
-  SERVICE_ACCOUNT(ServiceAccount.class), // Fiat service account.
-  ROLE(Role.class),
-  BUILD_SERVICE(BuildService.class);
+public class ResourceType {
 
-  public Class<? extends Resource> modelClass;
+  private final String name;
 
-  ResourceType(Class<? extends Resource> modelClass) {
-    this.modelClass = modelClass;
+  public static ResourceType ACCOUNT = new ResourceType("account");
+  public static ResourceType APPLICATION = new ResourceType("application");
+  public static ResourceType SERVICE_ACCOUNT =
+      new ResourceType("service_account"); // Fiat service account.
+  public static ResourceType ROLE = new ResourceType("role");
+  public static ResourceType BUILD_SERVICE = new ResourceType("build_service");
+
+  public ResourceType(String name) {
+    this.name = name;
   }
 
   // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
-  public static ResourceType parse(@Nonnull String pluralOrKey) {
+  public static ResourceType parse(String pluralOrKey) {
+    if (pluralOrKey == null) {
+      throw new NullPointerException("Resource type must not be null");
+    }
     pluralOrKey = pluralOrKey.substring(pluralOrKey.lastIndexOf(':') + 1);
     String singular =
         pluralOrKey.endsWith("s")
             ? pluralOrKey.substring(0, pluralOrKey.length() - 1)
             : pluralOrKey;
-    return ResourceType.valueOf(singular.toUpperCase());
+
+    if ("".equals(singular)) {
+      throw new IllegalArgumentException(
+          String.format("Malformed resource key \"%s\"", pluralOrKey));
+    }
+    return new ResourceType(singular);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ResourceType that = (ResourceType) o;
+    return Objects.equals(name.toLowerCase(), that.name.toLowerCase());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name.toLowerCase());
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 
   public String keySuffix() {
-    return this.toString().toLowerCase() + "s";
+    return name.toLowerCase() + "s";
   }
 }

@@ -21,10 +21,10 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-abstract class BaseAccessControlled<R extends BaseAccessControlled>
+public abstract class BaseAccessControlled<R extends BaseAccessControlled>
     implements Resource.AccessControlled {
 
-  abstract R setPermissions(Permissions p);
+  public abstract R setPermissions(Permissions p);
 
   /**
    * Legacy holdover where setting `requiredGroupMembership` implied both read and write

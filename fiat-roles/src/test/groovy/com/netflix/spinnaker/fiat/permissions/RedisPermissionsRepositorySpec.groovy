@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.BuildService
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
@@ -66,7 +67,8 @@ class RedisPermissionsRepositorySpec extends Specification {
     repo = new RedisPermissionsRepository(
         objectMapper,
         new JedisClientDelegate(embeddedRedis.pool as JedisPool),
-        prefix
+        [new Application(), new Account(), new ServiceAccount(), new Role(), new BuildService()],
+        prefix,
     )
   }
 

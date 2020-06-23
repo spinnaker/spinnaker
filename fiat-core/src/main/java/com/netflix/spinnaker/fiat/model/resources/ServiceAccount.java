@@ -26,8 +26,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+@Component
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ServiceAccount implements Resource, Viewable {

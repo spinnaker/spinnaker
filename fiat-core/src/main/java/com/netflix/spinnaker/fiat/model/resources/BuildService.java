@@ -22,7 +22,9 @@ import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class BuildService implements Resource.AccessControlled, Viewable {

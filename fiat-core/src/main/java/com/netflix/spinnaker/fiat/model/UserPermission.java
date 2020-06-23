@@ -17,23 +17,14 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.BuildService;
-import com.netflix.spinnaker.fiat.model.resources.Resource;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
-import com.netflix.spinnaker.fiat.model.resources.Viewable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import com.netflix.spinnaker.fiat.model.resources.*;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.val;
 
 @Data
 public class UserPermission {
@@ -44,6 +35,7 @@ public class UserPermission {
   private Set<ServiceAccount> serviceAccounts = new LinkedHashSet<>();
   private Set<Role> roles = new LinkedHashSet<>();
   private Set<BuildService> buildServices = new LinkedHashSet<>();
+  private Set<Resource> extensionResources = new LinkedHashSet<>();
   private boolean admin = false;
 
   public void addResource(Resource resource) {
@@ -68,7 +60,7 @@ public class UserPermission {
           } else if (resource instanceof BuildService) {
             buildServices.add((BuildService) resource);
           } else {
-            throw new IllegalArgumentException("Cannot add unknown resource " + resource);
+            extensionResources.add(resource);
           }
         });
 
@@ -83,6 +75,7 @@ public class UserPermission {
     retVal.addAll(serviceAccounts);
     retVal.addAll(roles);
     retVal.addAll(buildServices);
+    retVal.addAll(extensionResources);
     return retVal;
   }
 
@@ -112,6 +105,7 @@ public class UserPermission {
     Set<ServiceAccount.View> serviceAccounts;
     Set<Role.View> roles;
     Set<BuildService.View> buildServices;
+    HashMap<ResourceType, Set<Authorizable>> extensionResources;
     boolean admin;
     boolean legacyFallback = false;
     boolean allowAccessToUnknownApplications = false;
@@ -131,6 +125,18 @@ public class UserPermission {
           (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
       this.roles = (Set<Role.View>) toViews.apply(permission.getRoles());
       this.buildServices = (Set<BuildService.View>) toViews.apply(permission.getBuildServices());
+
+      this.extensionResources = new HashMap<>();
+      for (val resource : permission.extensionResources) {
+        val set =
+            this.extensionResources.computeIfAbsent(
+                resource.getResourceType(), (ignore) -> new HashSet<>());
+        val view = ((Viewable) resource).getView(permission.getRoles(), permission.isAdmin());
+        if (view instanceof Authorizable) {
+          set.add((Authorizable) view);
+        }
+      }
+
       this.admin = permission.isAdmin();
     }
   }

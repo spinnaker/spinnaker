@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.shared
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.Authorizable
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
@@ -59,7 +60,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     when:
     def result = evaluator.hasPermission(authentication,
                                          resource,
-                                         resourceType.name(),
+                                         resourceType.name,
                                          authorization)
 
     then:
@@ -69,7 +70,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     when:
     result = evaluator.hasPermission(authentication,
                                      resource,
-                                     resourceType.name(),
+                                     resourceType.name,
                                      authorization)
 
     then:
@@ -235,7 +236,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     evaluator.hasPermission(authentication, "my_resource", resourceType, "WRITE")
 
     where:
-    resourceType << ResourceType.values()*.toString()
+    resourceType << [ResourceType.ACCOUNT, ResourceType.APPLICATION, ResourceType.BUILD_SERVICE, ResourceType.ROLE, ResourceType.SERVICE_ACCOUNT]*.toString()
   }
 
   def "should support isAdmin check for a user"() {
@@ -255,11 +256,45 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     true    || true
   }
 
+  @Unroll
+  def "should evaluate permissions for extension resources"() {
+    setup:
+    def extensionResource = new MyExtensionResourceView()
+    extensionResource.with {
+      name = "extension_resource"
+      authorizations = [Authorization.READ] as Set
+    }
+
+    when:
+    def hasPermission = evaluator.hasPermission(authentication, "extension_resource", resourceType, authorization)
+
+    then:
+    1 * fiatService.getUserPermission("testUser") >> new UserPermission.View()
+        .setExtensionResources([
+            (MY_EXTENSION_RESOURCE): [extensionResource] as Set
+        ])
+
+    hasPermission == expectedHasPermission
+
+    where:
+    resourceType              | authorization | expectedHasPermission
+    "MY_EXTENSION_RESOURCE"   | "READ"        | true
+    "MY_EXTENSION_RESOURCE"   | "WRITE"       | false
+    "YOUR_EXTENSION_RESOURCE" | "READ"        | false
+    "YOUR_EXTENSION_RESOURCE" | "WRITE"       | false
+  }
+
   private static FiatClientConfigurationProperties buildConfigurationProperties() {
     FiatClientConfigurationProperties configurationProperties = new FiatClientConfigurationProperties()
     configurationProperties.enabled = true
     configurationProperties.cache.maxEntries = 0
     configurationProperties.cache.expiresAfterWriteSeconds = 0
     return configurationProperties
+  }
+
+  private static MY_EXTENSION_RESOURCE = new ResourceType("MY_EXTENSION_RESOURCE");
+  private static class MyExtensionResourceView implements Authorizable {
+    String name
+    Set<Authorization> authorizations
   }
 }

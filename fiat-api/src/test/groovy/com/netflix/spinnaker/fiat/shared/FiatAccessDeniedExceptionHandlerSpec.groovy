@@ -53,7 +53,7 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
         String resource = "service"
         UserPermission.View upv = new UserPermission.View()
         upv.setApplications([new Application.View().setName(resource)
-                                     .setAuthorizations([userAuthroizationType] as Set)] as Set)
+                                     .setAuthorizations([userAuthorizationType] as Set)] as Set)
         fiatService.getUserPermission("testUser") >> upv
 
         when:
@@ -66,7 +66,7 @@ class FiatAccessDeniedExceptionHandlerSpec extends FiatSharedSpecification {
         1 * response.sendError(403, "Access denied to application service - required authorization: " + authorizationTypeRequired)
 
         where:
-        userAuthroizationType | authorizationTypeRequired
+        userAuthorizationType | authorizationTypeRequired
         Authorization.READ    | "WRITE"
         Authorization.WRITE   | "READ"
     }

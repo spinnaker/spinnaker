@@ -209,7 +209,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     Authorization a = null;
 
     // Service accounts don't have read/write authorizations.
-    if (r != ResourceType.SERVICE_ACCOUNT) {
+    if (!r.equals(ResourceType.SERVICE_ACCOUNT)) {
       a = Authorization.valueOf(authorization.toString());
     }
 
@@ -218,7 +218,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
           "This method should not be called for `CREATE`. Please call the other implementation");
     }
 
-    if (r == ResourceType.APPLICATION && StringUtils.isNotEmpty(resourceName.toString())) {
+    if (r.equals(ResourceType.APPLICATION) && StringUtils.isNotEmpty(resourceName.toString())) {
       resourceName = resourceName.toString();
     }
 
@@ -394,43 +394,45 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
                           && authorizations.contains(authorization);
                     });
 
-    switch (resourceType) {
-      case ACCOUNT:
-        boolean authorized = containsAuth.apply(permission.getAccounts());
+    if (resourceType.equals(ResourceType.ACCOUNT)) {
+      boolean authorized = containsAuth.apply(permission.getAccounts());
 
-        // Todo(jonsie): Debug transitory access denied issue, remove when not necessary
-        if (!authorized) {
-          Map<String, Set<Authorization>> accounts =
-              permission.getAccounts().stream()
-                  .collect(
-                      Collectors.toMap(Account.View::getName, Account.View::getAuthorizations));
+      // Todo(jonsie): Debug transitory access denied issue, remove when not necessary
+      if (!authorized) {
+        Map<String, Set<Authorization>> accounts =
+            permission.getAccounts().stream()
+                .collect(Collectors.toMap(Account.View::getName, Account.View::getAuthorizations));
 
-          log.debug(
-              "Authorization={} denied to account={} for user permission={}, found={}",
-              authorization.toString(),
-              resourceName,
-              permission.getName(),
-              accounts.toString());
-        }
+        log.debug(
+            "Authorization={} denied to account={} for user permission={}, found={}",
+            authorization.toString(),
+            resourceName,
+            permission.getName(),
+            accounts.toString());
+      }
 
-        return authorized;
-      case APPLICATION:
-        boolean applicationHasPermissions =
-            permission.getApplications().stream()
-                .anyMatch(a -> a.getName().equalsIgnoreCase(resourceName));
+      return authorized;
+    } else if (resourceType.equals(ResourceType.APPLICATION)) {
+      boolean applicationHasPermissions =
+          permission.getApplications().stream()
+              .anyMatch(a -> a.getName().equalsIgnoreCase(resourceName));
 
-        if (!applicationHasPermissions && permission.isAllowAccessToUnknownApplications()) {
-          // allow access to any applications w/o explicit permissions
-          return true;
-        }
-        return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
-      case SERVICE_ACCOUNT:
-        return permission.getServiceAccounts().stream()
-            .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
-      case BUILD_SERVICE:
-        return permission.isLegacyFallback() || containsAuth.apply(permission.getBuildServices());
-      default:
-        return false;
+      if (!applicationHasPermissions && permission.isAllowAccessToUnknownApplications()) {
+        // allow access to any applications w/o explicit permissions
+        return true;
+      }
+      return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
+    } else if (resourceType.equals(ResourceType.SERVICE_ACCOUNT)) {
+      return permission.getServiceAccounts().stream()
+          .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
+    } else if (resourceType.equals(ResourceType.BUILD_SERVICE)) {
+      return permission.isLegacyFallback() || containsAuth.apply(permission.getBuildServices());
+    } else if (permission.getExtensionResources() != null
+        && permission.getExtensionResources().containsKey(resourceType)) {
+      val extensionResources = permission.getExtensionResources().get(resourceType);
+      return permission.isLegacyFallback() || containsAuth.apply(extensionResources);
+    } else {
+      return false;
     }
   }
 

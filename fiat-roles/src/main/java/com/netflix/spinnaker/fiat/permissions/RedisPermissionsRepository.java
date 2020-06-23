@@ -69,6 +69,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private final ObjectMapper objectMapper;
   private final RedisClientDelegate redisClientDelegate;
+  private final List<Resource> resources;
 
   private final String prefix;
 
@@ -76,16 +77,20 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   public RedisPermissionsRepository(
       ObjectMapper objectMapper,
       RedisClientDelegate redisClientDelegate,
+      List<Resource> resources,
       @Value("${fiat.redis.prefix:spinnaker:fiat}") String prefix) {
     this.objectMapper = objectMapper;
     this.redisClientDelegate = redisClientDelegate;
     this.prefix = prefix;
+    this.resources = resources;
   }
 
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
+    val resourceTypes =
+        resources.stream().map(Resource::getResourceType).collect(Collectors.toList());
     Map<ResourceType, Map<String, String>> resourceTypeToRedisValue =
-        new HashMap<>(ResourceType.values().length);
+        new HashMap<>(resourceTypes.size());
 
     permission
         .getAllResources()
@@ -128,17 +133,20 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                 .filter(it -> !permission.getRoles().contains(it))
                 .forEach(role -> pipeline.srem(roleKey(role), userId));
 
-            for (ResourceType r : ResourceType.values()) {
-              String userResourceKey = userKey(userId, r);
-              Map<String, String> redisValue = resourceTypeToRedisValue.get(r);
-              String tempKey = UUID.randomUUID().toString();
-              if (redisValue != null && !redisValue.isEmpty()) {
-                pipeline.hmset(tempKey, redisValue);
-                pipeline.rename(tempKey, userResourceKey);
-              } else {
-                pipeline.del(userResourceKey);
-              }
-            }
+            resources.stream()
+                .map(Resource::getResourceType)
+                .forEach(
+                    r -> {
+                      String userResourceKey = userKey(userId, r);
+                      Map<String, String> redisValue = resourceTypeToRedisValue.get(r);
+                      String tempKey = UUID.randomUUID().toString();
+                      if (redisValue != null && !redisValue.isEmpty()) {
+                        pipeline.hmset(tempKey, redisValue);
+                        pipeline.rename(tempKey, userResourceKey);
+                      } else {
+                        pipeline.del(userResourceKey);
+                      }
+                    });
             pipeline.sync();
           });
     } catch (Exception e) {
@@ -156,13 +164,17 @@ public class RedisPermissionsRepository implements PermissionsRepository {
             RawUserPermission unrestrictedResponseMap = new RawUserPermission();
 
             Response<Boolean> isUserInRepo = p.sismember(allUsersKey(), id);
-            for (ResourceType r : ResourceType.values()) {
-              Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
-              userResponseMap.put(r, resourceMap);
-              Response<Map<String, String>> unrestrictedMap = p.hgetAll(unrestrictedUserKey(r));
-              unrestrictedResponseMap.put(r, unrestrictedMap);
-              log.info("Resource: {}; map size: {}", r, unrestrictedResponseMap.size());
-            }
+            resources.stream()
+                .map(Resource::getResourceType)
+                .forEach(
+                    r -> {
+                      Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
+                      userResponseMap.put(r, resourceMap);
+                      Response<Map<String, String>> unrestrictedMap =
+                          p.hgetAll(unrestrictedUserKey(r));
+                      unrestrictedResponseMap.put(r, unrestrictedMap);
+                      log.info("Resource: {}; map size: {}", r, unrestrictedResponseMap.size());
+                    });
             Response<Boolean> admin = p.sismember(adminKey(), id);
             p.sync();
 
@@ -278,14 +290,20 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
     try {
       final Table<String, ResourceType, Response<Map<String, String>>> responseTable =
-          ArrayTable.create(userIds, new ArrayIterator<>(ResourceType.values()));
+          ArrayTable.create(
+              userIds,
+              new ArrayIterator<>(
+                  resources.stream().map(Resource::getResourceType).toArray(ResourceType[]::new)));
       for (List<String> userIdSubset : Lists.partition(new ArrayList<>(userIds), 10)) {
         redisClientDelegate.withMultiKeyPipeline(
             p -> {
               for (String userId : userIdSubset) {
-                for (ResourceType r : ResourceType.values()) {
-                  responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
-                }
+                resources.stream()
+                    .map(Resource::getResourceType)
+                    .forEach(
+                        r -> {
+                          responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
+                        });
               }
               p.sync();
             });
@@ -313,9 +331,12 @@ public class RedisPermissionsRepository implements PermissionsRepository {
               p.srem(roleKey(roleName), id);
             }
 
-            for (ResourceType r : ResourceType.values()) {
-              p.del(userKey(id, r));
-            }
+            resources.stream()
+                .map(Resource::getResourceType)
+                .forEach(
+                    r -> {
+                      p.del(userKey(id, r));
+                    });
             p.srem(adminKey(), id);
             p.sync();
           });
@@ -368,10 +389,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   private Set<Resource> extractResources(ResourceType r, Map<String, String> resourceMap) {
+    val modelClazz =
+        resources.stream()
+            .filter(resource -> resource.getResourceType().equals(r))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new)
+            .getClass();
     return resourceMap.values().stream()
         .map(
             (ThrowingFunction<String, ? extends Resource>)
-                serialized -> objectMapper.readValue(serialized, r.modelClass))
+                serialized -> objectMapper.readValue(serialized, modelClazz))
         .collect(Collectors.toSet());
   }
 

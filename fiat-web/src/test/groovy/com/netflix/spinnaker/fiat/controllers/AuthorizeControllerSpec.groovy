@@ -27,6 +27,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider
@@ -77,6 +78,9 @@ class AuthorizeControllerSpec extends Specification {
 
   @Autowired
   ResourcePermissionProvider<Application> applicationResourcePermissionProvider;
+
+  @Autowired
+  List<Resource> resources;
 
   @Delegate
   FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
@@ -164,6 +168,7 @@ class AuthorizeControllerSpec extends Specification {
             permissionsResolver,
             fiatServerConfigurationProperties,
             applicationResourcePermissionProvider,
+            resources,
             objectMapper
     )
 
@@ -193,6 +198,7 @@ class AuthorizeControllerSpec extends Specification {
             permissionsResolver,
             fiatServerConfigurationProperties,
             applicationResourcePermissionProvider,
+            resources,
             objectMapper
     )
 
@@ -275,6 +281,7 @@ class AuthorizeControllerSpec extends Specification {
             resolver,
             new FiatServerConfigurationProperties(allowPermissionResolverFallback: allowPermissionResolverFallback),
             applicationResourcePermissionProvider,
+            resources,
             objectMapper
     )
     def account = new Account().setName("some-account")
@@ -313,6 +320,7 @@ class AuthorizeControllerSpec extends Specification {
         permissionsResolver,
         new FiatServerConfigurationProperties(defaultToUnrestrictedUser: defaultToUnrestrictedUser),
         applicationResourcePermissionProvider,
+        resources,
         objectMapper
     )
     permissionsRepository.put(unrestrictedUser)
@@ -347,6 +355,7 @@ class AuthorizeControllerSpec extends Specification {
             permissionsResolver,
             new FiatServerConfigurationProperties(restrictApplicationCreation: false),
             applicationResourcePermissionProvider,
+            resources,
             objectMapper
     )
     when:
@@ -375,6 +384,7 @@ class AuthorizeControllerSpec extends Specification {
             permissionsResolver,
             new FiatServerConfigurationProperties(restrictApplicationCreation: true),
             applicationResourcePermissionProvider,
+            resources,
             objectMapper
     )
     when:

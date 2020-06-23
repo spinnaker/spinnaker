@@ -26,6 +26,8 @@ import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.BuildService
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
@@ -75,6 +77,7 @@ class UserRolesSyncerSpec extends Specification {
     repo = new RedisPermissionsRepository(
         objectMapper,
         new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+        [new Application(), new Account(), new ServiceAccount(), new Role(), new BuildService()],
         "unittests"
     )
   }

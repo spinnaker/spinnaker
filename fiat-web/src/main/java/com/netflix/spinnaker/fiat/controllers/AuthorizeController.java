@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +51,7 @@ public class AuthorizeController {
   private final FiatServerConfigurationProperties configProps;
   private final ResourcePermissionProvider<Application> applicationResourcePermissionProvider;
   private final ObjectMapper objectMapper;
+  private final List<Resource> resources;
 
   private final Id getUserPermissionCounterId;
 
@@ -60,12 +62,14 @@ public class AuthorizeController {
       PermissionsResolver permissionsResolver,
       FiatServerConfigurationProperties configProps,
       ResourcePermissionProvider<Application> applicationResourcePermissionProvider,
+      List<Resource> resources,
       ObjectMapper objectMapper) {
     this.registry = registry;
     this.permissionsRepository = permissionsRepository;
     this.permissionsResolver = permissionsResolver;
     this.configProps = configProps;
     this.applicationResourcePermissionProvider = applicationResourcePermissionProvider;
+    this.resources = resources;
     this.objectMapper = objectMapper;
 
     this.getUserPermissionCounterId = registry.createId("fiat.getUserPermission");
@@ -185,18 +189,15 @@ public class AuthorizeController {
     Set<Authorization> authorizations = new HashSet<>(0);
 
     try {
-      switch (r) {
-        case ACCOUNT:
-          authorizations = getUserAccount(userId, resourceName).getAuthorizations();
-          break;
-        case APPLICATION:
-          authorizations = getUserApplication(userId, resourceName).getAuthorizations();
-          break;
-        default:
-          response.sendError(
-              HttpServletResponse.SC_BAD_REQUEST,
-              "Resource type " + resourceType + " does not contain authorizations");
-          return;
+      if (r.equals(ResourceType.ACCOUNT)) {
+        authorizations = getUserAccount(userId, resourceName).getAuthorizations();
+      } else if (r.equals(ResourceType.APPLICATION)) {
+        authorizations = getUserApplication(userId, resourceName).getAuthorizations();
+      } else {
+        response.sendError(
+            HttpServletResponse.SC_BAD_REQUEST,
+            "Resource type " + resourceType + " does not contain authorizations");
+        return;
       }
     } catch (NotFoundException nfe) {
       // Ignore. Will return 404 below.
@@ -218,7 +219,7 @@ public class AuthorizeController {
       HttpServletResponse response)
       throws IOException {
     ResourceType rt = ResourceType.parse(resourceType);
-    if (rt != ResourceType.APPLICATION) {
+    if (!rt.equals(ResourceType.APPLICATION)) {
       response.sendError(
           HttpServletResponse.SC_BAD_REQUEST,
           "Resource type " + resourceType + " does not support creation");
@@ -234,7 +235,13 @@ public class AuthorizeController {
     List<String> userRoles =
         userPermissionView.getRoles().stream().map(Role.View::getName).collect(Collectors.toList());
 
-    Resource r = objectMapper.convertValue(resource, rt.modelClass);
+    val modelClazz =
+        resources.stream()
+            .filter(r -> r.getResourceType().equals(rt))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new)
+            .getClass();
+    Resource r = objectMapper.convertValue(resource, modelClazz);
 
     // can easily implement options other than APPLICATION, but it is not currently needed.
     if (userPermissionView.isAdmin()

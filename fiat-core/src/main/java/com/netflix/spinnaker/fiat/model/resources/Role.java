@@ -22,8 +22,10 @@ import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+@Component
 @Data
 @EqualsAndHashCode(of = "name")
 @NoArgsConstructor
