@@ -191,7 +191,7 @@ class ExplicitRollback implements Rollback {
     // let's directly produce a capacity with a pinned min instead of relying on the resize stage
     newRestoreCapacity.min = newRestoreCapacity.desired
 
-    ResizeStrategy.Capacity currentCapacity = restoreServerGroup.capacity
+    ResizeStrategy.Capacity currentCapacity = restoreServerGroup.getCapacity().asMap()
     if (currentCapacity == newRestoreCapacity) {
       log.info('Skipping resize stage because the current capacity of the restore server group {} would be unchanged ({})',
         restoreServerGroupName, newRestoreCapacity)
