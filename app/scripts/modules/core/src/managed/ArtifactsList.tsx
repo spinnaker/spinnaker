@@ -1,11 +1,15 @@
-import React from 'react';
 import classNames from 'classnames';
+import React, { useState } from 'react';
 
-import { Pill } from './Pill';
-import { StatusBubble } from './StatusBubble';
-
-import { IManagedArtifactSummary, IManagedArtifactVersion } from '../domain/IManagedEntity';
 import { ISelectedArtifactVersion } from './Environments';
+import {
+  IManagedArtifactSummary,
+  IManagedArtifactVersion,
+  IStatefulConstraint,
+  StatefulConstraintStatus,
+} from '../domain/IManagedEntity';
+import { Pill } from './Pill';
+import { IStatusBubbleStackProps, StatusBubbleStack } from './StatusBubbleStack';
 
 import styles from './ArtifactRow.module.css';
 
@@ -44,19 +48,16 @@ interface IArtifactRowProps {
   name?: string;
 }
 
-export const ArtifactRow = ({
-  isSelected,
-  clickHandler,
-  version: { version, displayName, environments, build, git },
-  reference,
-  name,
-}: IArtifactRowProps) => {
-  const pinnedEnvironments = environments.filter(({ pinned }) => pinned).length;
+export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, reference, name }: IArtifactRowProps) => {
+  const { version, displayName, environments, build, git } = versionInfo;
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       className={classNames(styles.ArtifactRow, { [styles.selected]: isSelected })}
       onClick={() => clickHandler({ reference, version })}
+      onMouseOver={() => setIsHovered(true)}
+      onMouseOut={() => setIsHovered(false)}
     >
       <div className={styles.content}>
         {build?.id && (
@@ -68,16 +69,11 @@ export const ArtifactRow = ({
           <div className={styles.sha}>{git?.commit || displayName}</div>
           {name && <div className={styles.name}>{name}</div>}
         </div>
-        {pinnedEnvironments > 0 && (
-          <div className="sp-margin-s-right">
-            <StatusBubble
-              iconName="pin"
-              appearance="warning"
-              size="small"
-              quantity={pinnedEnvironments > 1 ? pinnedEnvironments : null}
-            />
-          </div>
-        )}
+        <StatusBubbleStack
+          borderColor={isSelected ? 'var(--color-white)' : isHovered ? '#f1f4fa' : 'var(--color-alabaster)'}
+          maxBubbles={3}
+          statuses={getArtifactStatuses(versionInfo)}
+        />
       </div>
       <div className={styles.stages}>
         {environments
@@ -87,3 +83,26 @@ export const ArtifactRow = ({
     </div>
   );
 };
+
+type ArtifactStatusList = IStatusBubbleStackProps['statuses'];
+function getArtifactStatuses({ environments }: IManagedArtifactVersion): ArtifactStatusList {
+  const statuses: ArtifactStatusList = [];
+  // NOTE: The order in which entries are added to `statuses` is important. The highest priority
+  // item must be inserted first.
+
+  const isConstraintPendingManualJudgement = (constraint: IStatefulConstraint) =>
+    constraint.type == 'manual-judgement' && constraint.status == StatefulConstraintStatus.PENDING;
+  const requiresManualApproval = environments.some(environment =>
+    environment.statefulConstraints?.some(isConstraintPendingManualJudgement),
+  );
+  if (requiresManualApproval) {
+    statuses.push({ appearance: 'progress', iconName: 'manualJudgement' });
+  }
+
+  const isPinned = environments.some(({ pinned }) => pinned);
+  if (isPinned) {
+    statuses.push({ appearance: 'warning', iconName: 'pin' });
+  }
+
+  return statuses;
+}
