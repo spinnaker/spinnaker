@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,22 +26,23 @@ var (
 
 type ClusterControllerApiService service
 
+
 /* ClusterControllerApiService Retrieve a cluster&#39;s loadbalancers
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param applicationName applicationName
-@param clusterName clusterName
-@param type_ type
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return []interface{}*/
-func (a *ClusterControllerApiService) GetClusterLoadBalancersUsingGET(ctx context.Context, account string, applicationName string, clusterName string, type_ string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param applicationName applicationName
+ @param clusterName clusterName
+ @param type_ type
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetClusterLoadBalancersUsingGET(ctx context.Context, account string, applicationName string, clusterName string, type_ string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -61,7 +61,7 @@ func (a *ClusterControllerApiService) GetClusterLoadBalancersUsingGET(ctx contex
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -72,7 +72,7 @@ func (a *ClusterControllerApiService) GetClusterLoadBalancersUsingGET(ctx contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -101,24 +101,25 @@ func (a *ClusterControllerApiService) GetClusterLoadBalancersUsingGET(ctx contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a cluster&#39;s details
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param clusterName clusterName
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return map[string]interface{}*/
-func (a *ClusterControllerApiService) GetClustersUsingGET(ctx context.Context, account string, application string, clusterName string, localVarOptionals map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param clusterName clusterName
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return map[string]interface{}*/
+func (a *ClusterControllerApiService) GetClustersUsingGET(ctx context.Context, account string, application string, clusterName string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -136,7 +137,7 @@ func (a *ClusterControllerApiService) GetClustersUsingGET(ctx context.Context, a
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -147,7 +148,7 @@ func (a *ClusterControllerApiService) GetClustersUsingGET(ctx context.Context, a
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -176,23 +177,24 @@ func (a *ClusterControllerApiService) GetClustersUsingGET(ctx context.Context, a
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a list of clusters for an account
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return []interface{}*/
-func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, account string, application string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, account string, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -209,7 +211,7 @@ func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, 
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -220,7 +222,7 @@ func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -249,22 +251,23 @@ func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a list of cluster names for an application, grouped by account
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return map[string]interface{}*/
-func (a *ClusterControllerApiService) GetClustersUsingGET2(ctx context.Context, application string, localVarOptionals map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return map[string]interface{}*/
+func (a *ClusterControllerApiService) GetClustersUsingGET2(ctx context.Context, application string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -280,7 +283,7 @@ func (a *ClusterControllerApiService) GetClustersUsingGET2(ctx context.Context, 
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -291,7 +294,7 @@ func (a *ClusterControllerApiService) GetClustersUsingGET2(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -320,27 +323,28 @@ func (a *ClusterControllerApiService) GetClustersUsingGET2(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a list of scaling activities for a server group
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param clusterName clusterName
-@param serverGroupName serverGroupName
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-    @param "provider" (string) provider
-    @param "region" (string) region
-@return []interface{}*/
-func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.Context, account string, application string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param clusterName clusterName
+ @param serverGroupName serverGroupName
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
+     @param "region" (string) region
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.Context, account string, application string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -371,7 +375,7 @@ func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.C
 		localVarQueryParams.Add("region", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -382,7 +386,7 @@ func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -411,25 +415,26 @@ func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.C
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a server group&#39;s details
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param clusterName clusterName
-@param serverGroupName serverGroupName
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return []interface{}*/
-func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Context, account string, application string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param clusterName clusterName
+ @param serverGroupName serverGroupName
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Context, account string, application string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -448,7 +453,7 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Contex
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -459,7 +464,7 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -488,24 +493,25 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a list of server groups for a cluster
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param clusterName clusterName
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return []interface{}*/
-func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Context, account string, application string, clusterName string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param clusterName clusterName
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Context, account string, application string, clusterName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -523,7 +529,7 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Conte
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -534,7 +540,7 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Conte
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -563,30 +569,31 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Conte
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ClusterControllerApiService Retrieve a server group that matches a target coordinate (e.g., newest, ancestor) relative to a cluster
-&#x60;scope&#x60; is either a zone or a region
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param cloudProvider cloudProvider
-@param clusterName clusterName
-@param scope scope
-@param target target
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-    @param "onlyEnabled" (bool) onlyEnabled
-    @param "validateOldest" (bool) validateOldest
-@return map[string]interface{}*/
-func (a *ClusterControllerApiService) GetTargetServerGroupUsingGET(ctx context.Context, account string, application string, cloudProvider string, clusterName string, scope string, target string, localVarOptionals map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+ &#x60;scope&#x60; is either a zone or a region
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param cloudProvider cloudProvider
+ @param clusterName clusterName
+ @param scope scope
+ @param target target
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "onlyEnabled" (bool) onlyEnabled
+     @param "validateOldest" (bool) validateOldest
+ @return map[string]interface{}*/
+func (a *ClusterControllerApiService) GetTargetServerGroupUsingGET(ctx context.Context, account string, application string, cloudProvider string, clusterName string, scope string, target string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -619,7 +626,7 @@ func (a *ClusterControllerApiService) GetTargetServerGroupUsingGET(ctx context.C
 		localVarQueryParams.Add("validateOldest", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -630,7 +637,7 @@ func (a *ClusterControllerApiService) GetTargetServerGroupUsingGET(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -659,5 +666,7 @@ func (a *ClusterControllerApiService) GetTargetServerGroupUsingGET(ctx context.C
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

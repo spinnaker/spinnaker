@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,23 +26,24 @@ var (
 
 type JobControllerApiService service
 
+
 /* JobControllerApiService Get job
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param applicationName applicationName
-@param name name
-@param region region
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-    @param "expand" (string) expand
-@return map[string]interface{}*/
-func (a *JobControllerApiService) GetJobUsingGET(ctx context.Context, account string, applicationName string, name string, region string, localVarOptionals map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param applicationName applicationName
+ @param name name
+ @param region region
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "expand" (string) expand
+ @return map[string]interface{}*/
+func (a *JobControllerApiService) GetJobUsingGET(ctx context.Context, account string, applicationName string, name string, region string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -68,7 +68,7 @@ func (a *JobControllerApiService) GetJobUsingGET(ctx context.Context, account st
 		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -79,7 +79,7 @@ func (a *JobControllerApiService) GetJobUsingGET(ctx context.Context, account st
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -108,5 +108,7 @@ func (a *JobControllerApiService) GetJobUsingGET(ctx context.Context, account st
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

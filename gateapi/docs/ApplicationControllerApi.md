@@ -99,7 +99,7 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| filters results to only include applications deployed in the specified account | 
- **owner** | **string**| filteres results to only include applications owned by the specified email | 
+ **owner** | **string**| filters results to only include applications owned by the specified email | 
 
 ### Return type
 

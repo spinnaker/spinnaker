@@ -5,6 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.45.1 // indirect
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
+	github.com/antihax/optional v1.0.0
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.9 // indirect

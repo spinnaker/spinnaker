@@ -10,13 +10,12 @@
 package swagger
 
 import (
-	"encoding/json"
 	"io/ioutil"
-	"net/http"
 	"net/url"
+	"net/http"
 	"strings"
-
 	"golang.org/x/net/context"
+	"encoding/json"
 )
 
 // Linger please
@@ -26,24 +25,25 @@ var (
 
 type SearchControllerApiService service
 
+
 /* SearchControllerApiService Search infrastructure
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param type_ type
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-    @param "allowShortQuery" (bool) allowShortQuery
-    @param "page" (int32) page
-    @param "pageSize" (int32) pageSize
-    @param "platform" (string) platform
-    @param "q" (string) q
-@return []interface{}*/
-func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param type_ type
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "allowShortQuery" (bool) allowShortQuery
+     @param "page" (int32) page
+     @param "pageSize" (int32) pageSize
+     @param "platform" (string) platform
+     @param "q" (string) q
+ @return []interface{}*/
+func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -89,7 +89,7 @@ func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ s
 	}
 	localVarQueryParams.Add("type", parameterToString(type_, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -100,7 +100,7 @@ func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ s
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -129,5 +129,7 @@ func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ s
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

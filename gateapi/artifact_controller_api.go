@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,18 +26,19 @@ var (
 
 type ArtifactControllerApiService service
 
+
 /* ArtifactControllerApiService Retrieve the list of artifact accounts configured in Clouddriver.
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return []interface{}*/
-func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []interface{}*/
+func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -53,7 +53,7 @@ func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVar
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -64,7 +64,7 @@ func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVar
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -93,24 +93,25 @@ func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVar
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ArtifactControllerApiService Retrieve the list of artifact versions by account and artifact names
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param accountName accountName
-@param artifactName artifactName
-@param type_ type
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return []string*/
-func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Context, accountName string, artifactName string, type_ string, localVarOptionals map[string]interface{}) ([]string, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param accountName accountName
+ @param artifactName artifactName
+ @param type_ type
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []string*/
+func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Context, accountName string, artifactName string, type_ string, localVarOptionals map[string]interface{}) ([]string,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []string
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []string
 	)
 
 	// create path and map variables
@@ -128,7 +129,7 @@ func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Cont
 	localVarQueryParams.Add("artifactName", parameterToString(artifactName, ""))
 	localVarQueryParams.Add("type", parameterToString(type_, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -139,7 +140,7 @@ func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -168,22 +169,23 @@ func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ArtifactControllerApiService Retrieve the specified artifact version for an artifact provider and package name
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param packageName packageName
-@param provider provider
-@param version version
-@return interface{}*/
-func (a *ArtifactControllerApiService) GetArtifactUsingGET(ctx context.Context, packageName string, provider string, version string) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param packageName packageName
+ @param provider provider
+ @param version version
+ @return interface{}*/
+func (a *ArtifactControllerApiService) GetArtifactUsingGET(ctx context.Context, packageName string, provider string, version string) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -196,8 +198,9 @@ func (a *ArtifactControllerApiService) GetArtifactUsingGET(ctx context.Context, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -208,7 +211,7 @@ func (a *ArtifactControllerApiService) GetArtifactUsingGET(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -234,5 +237,7 @@ func (a *ArtifactControllerApiService) GetArtifactUsingGET(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

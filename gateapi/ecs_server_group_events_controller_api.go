@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,21 +26,22 @@ var (
 
 type EcsServerGroupEventsControllerApiService service
 
+
 /* EcsServerGroupEventsControllerApiService Retrieves a list of events for a server group
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param application application
-@param provider provider
-@param region region
-@param serverGroupName serverGroupName
-@return []interface{}*/
-func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context.Context, account string, application string, provider string, region string, serverGroupName string) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param application application
+ @param provider provider
+ @param region region
+ @param serverGroupName serverGroupName
+ @return []interface{}*/
+func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context.Context, account string, application string, provider string, region string, serverGroupName string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -54,10 +54,11 @@ func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	localVarQueryParams.Add("provider", parameterToString(provider, ""))
 	localVarQueryParams.Add("region", parameterToString(region, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -68,7 +69,7 @@ func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -94,5 +95,7 @@ func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

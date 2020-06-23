@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **AllByCloudProviderUsingGET1**
-> []interface{} AllByCloudProviderUsingGET1(ctx, cloudProvider, optional)
+> []interface{} AllByCloudProviderUsingGET1(ctx, cloudProvider)
 Retrieve a list of subnets for a given cloud provider
 
 ### Required Parameters
@@ -17,15 +17,6 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **cloudProvider** | **string**| cloudProvider | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
-
-### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **cloudProvider** | **string**| cloudProvider | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
 
 ### Return type
 
