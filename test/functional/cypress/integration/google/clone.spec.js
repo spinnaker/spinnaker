@@ -16,7 +16,7 @@ describe('google: Clone Modal Build custom instance type', () => {
     // click v000 cluster
     cy.get('.sub-group:contains("compute-engine")')
       .find('.server-group:contains("v000")')
-      .click();
+      .click({ force: true });
 
     // clone dialog
     cy.get('button:contains("Server Group Actions")').click();
