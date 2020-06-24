@@ -16,8 +16,8 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.event;
 
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.events.AbstractExecutionCompleteEventProcessor;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisService;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;

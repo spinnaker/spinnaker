@@ -3,7 +3,7 @@ package com.netflix.kayenta.standalonecanaryanalysis.event.listener;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.standalonecanaryanalysis.event.StandaloneCanaryAnalysisExecutionCompletedEvent;
-import com.netflix.kayenta.storage.ObjectType;
+import com.netflix.kayenta.standalonecanaryanalysis.storage.StandaloneCanaryAnalysisObjectType;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class StandaloneCanaryAnalysisExecutionArchivalListener {
 
               storageService.storeObject(
                   resolvedStorageAccountName,
-                  ObjectType.STANDALONE_CANARY_RESULT_ARCHIVE,
+                  StandaloneCanaryAnalysisObjectType.STANDALONE_CANARY_RESULT_ARCHIVE,
                   response.getPipelineId(),
                   response);
             });

@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.event;
 
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionStatusResponse;
 import org.springframework.context.ApplicationEvent;
 
 public class StandaloneCanaryAnalysisExecutionCompletedEvent extends ApplicationEvent {

@@ -23,10 +23,10 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUC
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionRequest;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionResult;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryExecutionResult;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequest;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionResult;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryExecutionResult;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.RunCanaryStage;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;

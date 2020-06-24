@@ -22,8 +22,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionRequest;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionRequestScope;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequest;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequestScope;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;

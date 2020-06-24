@@ -21,13 +21,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisAdhocExecutionRequest;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionRequest;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionResponse;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisAdhocExecutionRequest;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionRequest;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionResponse;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisService;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;

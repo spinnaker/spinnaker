@@ -21,17 +21,17 @@ import static com.netflix.kayenta.standalonecanaryanalysis.orca.task.GenerateCan
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionResponse;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionResult;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.StageMetadata;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.standalonecanaryanalysis.CanaryAnalysisConfig;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionResponse;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionResult;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecutionStatusResponse;
+import com.netflix.kayenta.standalonecanaryanalysis.domain.StageMetadata;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.MonitorKayentaCanaryContext;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.GenerateCanaryAnalysisResultStage;
 import com.netflix.kayenta.standalonecanaryanalysis.orca.stage.SetupAndExecuteCanariesStage;
-import com.netflix.kayenta.storage.ObjectType;
+import com.netflix.kayenta.standalonecanaryanalysis.storage.StandaloneCanaryAnalysisObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -135,7 +135,7 @@ public class CanaryAnalysisService {
                 return (CanaryAnalysisExecutionStatusResponse)
                     storageService.loadObject(
                         resolvedStorageAccountName,
-                        ObjectType.STANDALONE_CANARY_RESULT_ARCHIVE,
+                        StandaloneCanaryAnalysisObjectType.STANDALONE_CANARY_RESULT_ARCHIVE,
                         canaryAnalysisExecutionId);
               })
           .orElseThrow(() -> e);

@@ -19,7 +19,6 @@ package com.netflix.kayenta.storage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
-import com.netflix.kayenta.domain.standalonecanaryanalysis.CanaryAnalysisExecutionStatusResponse;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import java.util.List;
@@ -43,12 +42,6 @@ public interface ObjectType {
   ObjectType METRIC_SET_PAIR_LIST =
       new StandardObjectType(
           new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json");
-
-  ObjectType STANDALONE_CANARY_RESULT_ARCHIVE =
-      new StandardObjectType(
-          new TypeReference<CanaryAnalysisExecutionStatusResponse>() {},
-          "standalone_canary_archive",
-          "standalone_canary_archive.json");
 
   TypeReference<?> getTypeReference();
 

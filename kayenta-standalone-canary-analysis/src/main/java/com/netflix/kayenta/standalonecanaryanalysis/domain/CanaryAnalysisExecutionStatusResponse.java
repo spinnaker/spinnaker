@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Nike, inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.domain.standalonecanaryanalysis;
+package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.kayenta.canary.CanaryConfig;
