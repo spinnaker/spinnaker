@@ -4,7 +4,7 @@ import React from 'react';
 import { react2angular } from 'react2angular';
 import { isEmpty } from 'lodash';
 
-import { CheckboxInput, FormField, LayoutProvider, NumberInput, ReactSelectInput, SETTINGS } from '@spinnaker/core';
+import { CheckboxInput, FormField, LayoutProvider, NumberInput, ReactSelectInput } from '@spinnaker/core';
 
 import { GceAutoScalingFieldLayout } from './GceAutoScalingFieldLayout';
 
@@ -13,8 +13,8 @@ enum maxReplicasUnit {
   percent = 'percent',
 }
 
-interface IGceScaleDownControl {
-  maxScaledDownReplicas?: {
+interface IGceScaleInControl {
+  maxScaledInReplicas?: {
     fixed?: number;
     percent?: number;
   };
@@ -22,36 +22,32 @@ interface IGceScaleDownControl {
 }
 
 interface IGceAutoscalingPolicy {
-  scaleDownControl: IGceScaleDownControl;
+  scaleInControl: IGceScaleInControl;
 }
 
-interface IGceScaleDownControlsProps {
+interface IGceScaleInControlsProps {
   policy: IGceAutoscalingPolicy;
   updatePolicy: (policy: IGceAutoscalingPolicy) => void;
 }
 
-const defaultScaleDownControl: IGceScaleDownControl = {
-  maxScaledDownReplicas: {
+const defaultScaleInControl: IGceScaleInControl = {
+  maxScaledInReplicas: {
     fixed: null,
     percent: 0,
   },
   timeWindowSec: 60,
 };
 
-function GceScaleDownControls({ policy, updatePolicy }: IGceScaleDownControlsProps) {
-  if (!SETTINGS.feature.gceScaleDownControlsEnabled) {
-    return null;
-  }
-
-  function updateScaleDownControl(scaleDownControl: IGceScaleDownControl) {
+function GceScaleInControls({ policy, updatePolicy }: IGceScaleInControlsProps) {
+  function updateScaleInControl(scaleInControl: IGceScaleInControl) {
     updatePolicy({
       ...policy,
-      scaleDownControl,
+      scaleInControl,
     });
   }
 
   function getMaxReplicasUnit(): maxReplicasUnit {
-    if (Number.isInteger(policy.scaleDownControl.maxScaledDownReplicas.percent)) {
+    if (Number.isInteger(policy.scaleInControl.maxScaledInReplicas.percent)) {
       return maxReplicasUnit.percent;
     }
     return maxReplicasUnit.fixed;
@@ -62,14 +58,14 @@ function GceScaleDownControls({ policy, updatePolicy }: IGceScaleDownControlsPro
       <div className="row">
         <FormField
           input={inputProps => <CheckboxInput {...inputProps} />}
-          label="Enable scale-down controls"
+          label="Enable scale-in controls"
           onChange={(e: React.ChangeEvent<any>) => {
-            updateScaleDownControl(e.target.checked ? defaultScaleDownControl : {});
+            updateScaleInControl(e.target.checked ? defaultScaleInControl : {});
           }}
-          value={!isEmpty(policy.scaleDownControl)}
+          value={!isEmpty(policy.scaleInControl)}
         />
       </div>
-      {!isEmpty(policy.scaleDownControl) && (
+      {!isEmpty(policy.scaleInControl) && (
         <>
           <div className="row">
             <FormField
@@ -80,16 +76,16 @@ function GceScaleDownControls({ policy, updatePolicy }: IGceScaleDownControlsPro
                   max={getMaxReplicasUnit() === maxReplicasUnit.percent ? 100 : null}
                 />
               )}
-              label="Max scaled-down replicas"
+              label="Max scaled-in replicas"
               onChange={(e: React.ChangeEvent<any>) => {
-                updateScaleDownControl({
-                  ...policy.scaleDownControl,
-                  maxScaledDownReplicas: {
+                updateScaleInControl({
+                  ...policy.scaleInControl,
+                  maxScaledInReplicas: {
                     [getMaxReplicasUnit()]: parseInt(e.target.value, 10),
                   },
                 });
               }}
-              value={policy.scaleDownControl.maxScaledDownReplicas[getMaxReplicasUnit()]}
+              value={policy.scaleInControl.maxScaledInReplicas[getMaxReplicasUnit()]}
             />
             <FormField
               input={inputProps => (
@@ -101,10 +97,10 @@ function GceScaleDownControls({ policy, updatePolicy }: IGceScaleDownControlsPro
               )}
               label=""
               onChange={(e: React.ChangeEvent<any>) => {
-                updateScaleDownControl({
-                  ...policy.scaleDownControl,
-                  maxScaledDownReplicas: {
-                    [e.target.value]: policy.scaleDownControl.maxScaledDownReplicas[getMaxReplicasUnit()],
+                updateScaleInControl({
+                  ...policy.scaleInControl,
+                  maxScaledInReplicas: {
+                    [e.target.value]: policy.scaleInControl.maxScaledInReplicas[getMaxReplicasUnit()],
                   },
                 });
               }}
@@ -116,12 +112,12 @@ function GceScaleDownControls({ policy, updatePolicy }: IGceScaleDownControlsPro
               input={inputProps => <NumberInput {...inputProps} min={60} max={3600} />}
               label="Time window (seconds)"
               onChange={(e: React.ChangeEvent<any>) => {
-                updateScaleDownControl({
-                  ...policy.scaleDownControl,
+                updateScaleInControl({
+                  ...policy.scaleInControl,
                   timeWindowSec: parseInt(e.target.value, 10),
                 });
               }}
-              value={policy.scaleDownControl.timeWindowSec}
+              value={policy.scaleInControl.timeWindowSec}
             />
           </div>
         </>
@@ -130,8 +126,8 @@ function GceScaleDownControls({ policy, updatePolicy }: IGceScaleDownControlsPro
   );
 }
 
-export const GCE_SCALE_DOWN_CONTROLS = 'spinnaker.gce.scaleDownControls';
-module(GCE_SCALE_DOWN_CONTROLS, []).component(
-  'gceScaleDownControls',
-  react2angular(GceScaleDownControls, ['policy', 'updatePolicy']),
+export const GCE_SCALE_IN_CONTROLS = 'spinnaker.gce.scaleInControls';
+module(GCE_SCALE_IN_CONTROLS, []).component(
+  'gceScaleInControls',
+  react2angular(GceScaleInControls, ['policy', 'updatePolicy']),
 );

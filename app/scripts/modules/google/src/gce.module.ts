@@ -9,7 +9,7 @@ import { GCE_TCP_LOAD_BALANCER_CTRL } from './loadBalancer/configure/tcp/gceCrea
 import { IAP_INTERCEPTOR } from 'google/interceptors/iap.interceptor';
 import { LOAD_BALANCER_SET_TRANSFORMER } from './loadBalancer/loadBalancer.setTransformer';
 import { GCE_SERVER_GROUP_DISK_DESCRIPTIONS } from './serverGroup/details/ServerGroupDiskDescriptions';
-import { GCE_SCALE_DOWN_CONTROLS } from './serverGroup/details/autoscalingPolicy/modal/GceScaleDownControls';
+import { GCE_SCALE_IN_CONTROLS } from './serverGroup/details/autoscalingPolicy/modal/GceScaleInControls';
 import { GceImageReader } from './image';
 import './help/gce.help';
 
@@ -64,7 +64,7 @@ module(GOOGLE_MODULE, [
   GCE_TCP_LOAD_BALANCER_CTRL,
   IAP_INTERCEPTOR,
   GCE_SERVER_GROUP_DISK_DESCRIPTIONS,
-  GCE_SCALE_DOWN_CONTROLS,
+  GCE_SCALE_IN_CONTROLS,
   GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE,
   GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
   GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER,

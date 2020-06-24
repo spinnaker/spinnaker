@@ -26,18 +26,18 @@
     <help-field key="gce.serverGroup.autoscaling.mode"></help-field>
   </dt>
   <dd>{{$ctrl.policy.mode}}</dd>
-  <dt ng-if="$ctrl.scaleDownControlsEnabled">
-    Scale-down Controls
+  <dt ng-if="$ctrl.scaleInControlsEnabled">
+    Scale-in Controls
   </dt>
-  <dd ng-if="$ctrl.scaleDownControlsEnabled">{{$ctrl.scaleDownControlsConfigured ? 'Enabled' : 'Disabled'}}</dd>
-  <dt ng-if="$ctrl.scaleDownControlsConfigured">
-    Max Scaled-down Replicas
+  <dd ng-if="$ctrl.scaleInControlsEnabled">{{$ctrl.scaleInControlsConfigured ? 'Enabled' : 'Disabled'}}</dd>
+  <dt ng-if="$ctrl.scaleInControlsConfigured">
+    Max Scaled-in Replicas
   </dt>
-  <dd ng-if="$ctrl.scaleDownControlsConfigured">{{$ctrl.maxScaledDownReplicasMessage}}</dd>
-  <dt ng-if="$ctrl.scaleDownControlsConfigured">
-    Scale-down Time Window
+  <dd ng-if="$ctrl.scaleInControlsConfigured">{{$ctrl.maxScaledInReplicasMessage}}</dd>
+  <dt ng-if="$ctrl.scaleInControlsConfigured">
+    Scale-in Time Window
   </dt>
-  <dd ng-if="$ctrl.scaleDownControlsConfigured">{{$ctrl.timeWindowSecMessage}}</dd>
+  <dd ng-if="$ctrl.scaleDownInConfigured">{{$ctrl.timeWindowSecMessage}}</dd>
   <dt ng-if="$ctrl.serverGroup.autoscalingMessages">Messages</dt>
   <dd ng-if="$ctrl.serverGroup.autoscalingMessages" ng-repeat="message in $ctrl.serverGroup.autoscalingMessages">
     {{message}}

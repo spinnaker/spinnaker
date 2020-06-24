@@ -79,20 +79,18 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
         policy.bases.push(basis);
       }
 
-      this.scaleDownControlsEnabled = SETTINGS.feature.gceScaleDownControlsEnabled;
-      this.scaleDownControlsConfigured =
-        this.scaleDownControlsEnabled &&
-        policy.scaleDownControl &&
-        policy.scaleDownControl.timeWindowSec &&
-        policy.scaleDownControl.maxScaledDownReplicas &&
-        (policy.scaleDownControl.maxScaledDownReplicas.percent || policy.scaleDownControl.maxScaledDownReplicas.fixed);
+      this.scaleInControlsConfigured =
+        policy.scaleInControl &&
+        policy.scaleInControl.timeWindowSec &&
+        policy.scaleInControl.maxScaledInReplicas &&
+        (policy.scaleInControl.maxScaledInReplicas.percent || policy.scaleInControl.maxScaledInReplicas.fixed);
 
-      if (this.scaleDownControlsConfigured) {
-        this.maxScaledDownReplicasMessage = policy.scaleDownControl.maxScaledDownReplicas.percent
-          ? `${policy.scaleDownControl.maxScaledDownReplicas.percent}%`
-          : `${policy.scaleDownControl.maxScaledDownReplicas.fixed}`;
+      if (this.scaleInControlsConfigured) {
+        this.maxScaledInReplicasMessage = policy.scaleInControl.maxScaledInReplicas.percent
+          ? `${policy.scaleInControl.maxScaledInReplicas.percent}%`
+          : `${policy.scaleInControl.maxScaledInReplicas.fixed}`;
 
-        this.timeWindowSecMessage = `${policy.scaleDownControl.timeWindowSec} seconds`;
+        this.timeWindowSecMessage = `${policy.scaleInControl.timeWindowSec} seconds`;
       }
 
       this.editPolicy = () => {
