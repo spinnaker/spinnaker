@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,6 +26,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 //
 // This allows anything through without authentication or csrf protection.
 //
+@ConditionalOnProperty(
+    value = "kayenta.security.enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
