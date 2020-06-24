@@ -9,7 +9,7 @@ import {
 import { ApplicationModelBuilder } from '../../application';
 import { NavSection } from './NavSection';
 
-describe('NavCategory', () => {
+describe('NavItem', () => {
   it('should render multiple categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(
       'testapp',
@@ -18,15 +18,15 @@ describe('NavCategory', () => {
       mockServerGroupDataSourceConfig,
     );
 
-    const wrapper = shallow(<NavSection app={app} categories={app.dataSources} />);
+    const wrapper = shallow(<NavSection app={app} dataSources={app.dataSources} />);
     const nodes = wrapper.children();
     expect(nodes.length).toEqual(3);
   });
 
-  it('should not render if no categories', () => {
+  it('should not render if no dataSources', () => {
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');
 
-    const wrapper = shallow(<NavSection app={app} categories={[]} />);
+    const wrapper = shallow(<NavSection app={app} dataSources={[]} />);
     const nodes = wrapper.children();
     expect(nodes.length).toEqual(0);
   });

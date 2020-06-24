@@ -5,14 +5,14 @@ import { ApplicationDataSource } from '../service/applicationDataSource';
 import { Application } from '../application.model';
 
 export interface INavigationSectionProps {
-  categories: ApplicationDataSource[];
+  dataSources: ApplicationDataSource[];
   app: Application;
 }
 
-export const NavSection = ({ app, categories }: INavigationSectionProps) => (
+export const NavSection = ({ app, dataSources }: INavigationSectionProps) => (
   <div className="nav-section sp-padding-s-yaxis text-semibold">
-    {categories.map(category => (
-      <NavRoute key={category.label} category={category} app={app} />
+    {dataSources.map(dataSource => (
+      <NavRoute key={dataSource.label} dataSource={dataSource} app={app} />
     ))}
   </div>
 );

@@ -113,12 +113,12 @@ describe('ApplicationNavigation', () => {
     const navSection = wrapper.find('NavSection').at(1);
     const taskRoute = navSection.find('NavRoute').at(0);
 
-    const taskCategory = taskRoute.find('NavCategory');
+    const taskCategory = taskRoute.find('NavItem');
     const isTaskCategoryActive = taskCategory.prop('isActive');
     expect(isTaskCategoryActive).toEqual(true);
 
     const configRoute = navSection.find('NavRoute').at(1);
-    const configCategory = configRoute.find('NavCategory');
+    const configCategory = configRoute.find('NavItem');
     const isConfigCategoryActive = configCategory.prop('isActive');
     expect(isConfigCategoryActive).toEqual(false);
   });

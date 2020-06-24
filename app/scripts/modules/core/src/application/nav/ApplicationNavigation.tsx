@@ -68,7 +68,7 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
       {navSections
         .filter(section => section.length)
         .map((section, i) => (
-          <NavSection key={`section-${i}`} categories={section} app={app} />
+          <NavSection key={`section-${i}`} dataSources={section} app={app} />
         ))}
       <div className="nav-section clickable">
         <div className="page-category flex-container-h middle" onClick={pageApplicationOwner}>

@@ -8,19 +8,19 @@ import { Application } from '../application.model';
 import { IEntityTags } from '../../domain';
 
 export interface INavCategoryProps {
-  category: ApplicationDataSource;
+  dataSource: ApplicationDataSource;
   isActive: boolean;
   app: Application;
 }
 
-export const NavCategory = ({ app, category, isActive }: INavCategoryProps) => {
-  const { alerts, badge, iconName, key, label } = category;
+export const NavItem = ({ app, dataSource, isActive }: INavCategoryProps) => {
+  const { alerts, badge, iconName, key, label } = dataSource;
 
   const { data: badgeData } = useDataSource(app.getDataSource(badge || key));
   const runningCount = badge ? badgeData.length : 0;
 
   // useDataSource is enough to update alerts when needed
-  useDataSource(category);
+  useDataSource(dataSource);
   const tags: IEntityTags[] = alerts || [];
 
   const badgeClassNames = runningCount ? 'badge-running-count' : 'badge-none';
@@ -33,7 +33,7 @@ export const NavCategory = ({ app, category, isActive }: INavCategoryProps) => {
           <Icon className="nav-icon" name={iconName} size="extraSmall" color={isActive ? 'primary' : 'accent'} />
         )}
       </div>
-      <div className="nav-item">{' ' + category.label}</div>
+      <div className="nav-item">{' ' + dataSource.label}</div>
       <DataSourceNotifications tags={tags} application={app} tabName={label} />
     </div>
   );
