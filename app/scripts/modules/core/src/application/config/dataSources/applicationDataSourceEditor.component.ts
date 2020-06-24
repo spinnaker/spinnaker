@@ -4,6 +4,7 @@ import { Application } from '../../application.model';
 import { ApplicationDataSource } from '../../service/applicationDataSource';
 import { ApplicationWriter } from '../../service/ApplicationWriter';
 import { ApplicationReader } from '../../service/ApplicationReader';
+import { TaskReader } from 'core';
 
 import './applicationDataSourceEditor.component.less';
 
@@ -66,20 +67,24 @@ export class DataSourceEditorController implements IController {
       name: this.application.name,
       accounts: this.application.attributes.accounts,
       dataSources: newDataSources,
-    }).then(
-      () => {
-        this.application.attributes.dataSources = newDataSources;
-        ApplicationReader.setDisabledDataSources(this.application);
-        this.application.refresh(true);
-        this.saving = false;
-        this.isDirty = false;
-        this.$onInit();
-      },
-      () => {
-        this.saving = false;
-        this.saveError = true;
-      },
-    );
+    })
+      .then(task => {
+        return TaskReader.waitUntilTaskCompletes(task);
+      })
+      .then(
+        () => {
+          this.application.attributes.dataSources = newDataSources;
+          ApplicationReader.setDisabledDataSources(this.application);
+          this.application.refresh(true);
+          this.saving = false;
+          this.isDirty = false;
+          this.$onInit();
+        },
+        () => {
+          this.saving = false;
+          this.saveError = true;
+        },
+      );
   }
 }
 

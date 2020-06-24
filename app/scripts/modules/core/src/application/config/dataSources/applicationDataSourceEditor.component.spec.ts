@@ -4,6 +4,7 @@ import { Application } from 'core/application/application.model';
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { APPLICATION_DATA_SOURCE_EDITOR, DataSourceEditorController } from './applicationDataSourceEditor.component';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
+import { TaskReader } from 'core';
 
 describe('Component: Application Data Source Editor', () => {
   let application: Application,
@@ -127,6 +128,7 @@ describe('Component: Application Data Source Editor', () => {
   describe('save', () => {
     it('sets state flags, saves, then updates existing data sources and refreshes application', () => {
       spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.when());
+      spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue($q.when());
       spyOn(application, 'refresh').and.returnValue(null);
       initialize();
       expect(ctrl.saving).toBe(false);
