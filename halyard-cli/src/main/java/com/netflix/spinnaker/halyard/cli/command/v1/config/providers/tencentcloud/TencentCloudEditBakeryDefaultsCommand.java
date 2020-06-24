@@ -35,13 +35,13 @@ public class TencentCloudEditBakeryDefaultsCommand
   @Parameter(
       names = "--secret-id",
       required = true,
-      description = "The default access key used to communicate with AWS.")
+      description = "The default secret id used to communicate with Tencent Cloud.")
   private String secretId;
 
   @Parameter(
       names = "--secret-key",
       required = true,
-      description = "The secret key used to communicate with AWS.",
+      description = "The secret key used to communicate with Tencent Cloud.",
       password = true)
   private String secretKey;
 
