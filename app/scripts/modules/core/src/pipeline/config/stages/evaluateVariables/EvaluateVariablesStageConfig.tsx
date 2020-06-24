@@ -33,7 +33,7 @@ export interface IEvaluatedVariable {
 }
 
 const variableNameValidator: IValidator = (val: string, label: string) =>
-  !val.match(/^[a-zA-Z_][a-zA-Z0-9_]+$/) &&
+  !val.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/) &&
   errorMessage(`${label} should consist only of letters, numbers, or underscore`);
 
 const duplicateKeyValidatorFactory = (variables: IEvaluatedVariable[] = []) => {
