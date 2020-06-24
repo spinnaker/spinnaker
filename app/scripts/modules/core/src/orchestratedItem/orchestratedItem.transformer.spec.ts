@@ -41,7 +41,7 @@ describe('orchestratedItem transformer', () => {
       expect(getMessage({ context: {} })).toBe(null);
     });
 
-    it('returns general exception even if a kato task is present', () => {
+    it('returns combined exception if both kato and general exceptions are present', () => {
       const stage = {
         context: {
           'kato.tasks': [
@@ -61,7 +61,7 @@ describe('orchestratedItem transformer', () => {
           },
         },
       };
-      expect(getMessage(stage)).toBe('E1\n\nE2');
+      expect(getMessage(stage)).toBe('E1\n\nE2\n\nfailed!');
     });
 
     it('returns exception when it is in the last kato task', () => {

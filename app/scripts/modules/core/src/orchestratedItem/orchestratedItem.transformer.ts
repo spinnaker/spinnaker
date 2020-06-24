@@ -51,11 +51,7 @@ export class OrchestratedItemTransformer {
 
     Object.defineProperties(item, {
       failureMessage: {
-        get: (): string =>
-          this.getCustomException(item) ||
-          this.getGeneralException(item) ||
-          this.getOrchestrationException(item) ||
-          null,
+        get: (): string => this.mergeExceptions(item),
       },
       isCompleted: {
         get: (): boolean => ['SUCCEEDED', 'SKIPPED'].includes(item.status),
@@ -108,6 +104,18 @@ export class OrchestratedItemTransformer {
         configurable: true,
       },
     });
+  }
+
+  private static mergeExceptions(item: any): string | null {
+    const exceptions = [
+      this.getCustomException(item),
+      this.getGeneralException(item),
+      this.getOrchestrationException(item),
+    ].filter(it => !!it);
+    if (exceptions.length === 0) {
+      return null;
+    }
+    return exceptions.join('\n\n');
   }
 
   private static getOrchestrationException(task: ITask): string {
