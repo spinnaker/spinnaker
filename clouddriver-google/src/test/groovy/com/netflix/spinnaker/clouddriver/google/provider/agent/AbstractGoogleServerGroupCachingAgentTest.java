@@ -33,7 +33,7 @@ import com.google.api.services.compute.model.AutoscalingPolicy;
 import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization;
 import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization;
-import com.google.api.services.compute.model.AutoscalingPolicyScaleDownControl;
+import com.google.api.services.compute.model.AutoscalingPolicyScaleInControl;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import com.google.api.services.compute.model.FixedOrPercent;
@@ -738,10 +738,10 @@ class AbstractGoogleServerGroupCachingAgentTest {
                         .setUtilizationTarget(911.23)
                         .setUtilizationTargetType("GAUGE"),
                     new AutoscalingPolicyCustomMetricUtilization()))
-            .setScaleDownControl(
-                new AutoscalingPolicyScaleDownControl()
+            .setScaleInControl(
+                new AutoscalingPolicyScaleInControl()
                     .setTimeWindowSec(10111)
-                    .setMaxScaledDownReplicas(new FixedOrPercent().setFixed(123).setPercent(456)));
+                    .setMaxScaledInReplicas(new FixedOrPercent().setFixed(123).setPercent(456)));
 
     InstanceGroupManager instanceGroupManager =
         new InstanceGroupManager().setName("myServerGroup").setZone(ZONE_URL);
@@ -769,11 +769,9 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(converted.getMaxNumReplicas()).isEqualTo(input.getMaxNumReplicas());
     assertThat(converted.getMinNumReplicas()).isEqualTo(input.getMinNumReplicas());
     assertThat(converted.getMode().toString()).isEqualTo(input.getMode());
-    assertThat(converted.getScaleDownControl().getTimeWindowSec()).isEqualTo(10111);
-    assertThat(converted.getScaleDownControl().getMaxScaledDownReplicas().getFixed())
-        .isEqualTo(123);
-    assertThat(converted.getScaleDownControl().getMaxScaledDownReplicas().getPercent())
-        .isEqualTo(456);
+    assertThat(converted.getScaleInControl().getTimeWindowSec()).isEqualTo(10111);
+    assertThat(converted.getScaleInControl().getMaxScaledInReplicas().getFixed()).isEqualTo(123);
+    assertThat(converted.getScaleInControl().getMaxScaledInReplicas().getPercent()).isEqualTo(456);
 
     assertThat(converted.getCustomMetricUtilizations())
         .hasSize(input.getCustomMetricUtilizations().size());
@@ -823,7 +821,7 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(converted.getMaxNumReplicas()).isNull();
     assertThat(converted.getMinNumReplicas()).isNull();
     assertThat(converted.getMode()).isNull();
-    assertThat(converted.getScaleDownControl()).isNull();
+    assertThat(converted.getScaleInControl()).isNull();
   }
 
   public static AbstractGoogleServerGroupCachingAgent createCachingAgent(

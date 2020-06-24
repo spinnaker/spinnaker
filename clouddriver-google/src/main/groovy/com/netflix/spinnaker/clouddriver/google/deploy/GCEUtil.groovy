@@ -847,18 +847,19 @@ class GCEUtil {
         }
       }
 
-      if (scaleDownControl) {
-        def scaledDownReplicasInput = scaleDownControl.maxScaledDownReplicas
-        def maxScaledDownReplicas = null
-        if (scaledDownReplicasInput != null) {
-          maxScaledDownReplicas = FixedOrPercent.newInstance()
-            .setFixed(scaledDownReplicasInput.fixed)
-            .setPercent(scaledDownReplicasInput.percent)
+      if (scaleInControl) {
+        def scaledInReplicasInput = scaleInControl.maxScaledInReplicas
+        FixedOrPercent maxScaledInReplicas = null
+        if (scaledInReplicasInput != null) {
+          maxScaledInReplicas = new FixedOrPercent(
+            fixed: scaledInReplicasInput.fixed,
+            percent: scaledInReplicasInput.percent
+          )
         }
-        gceAutoscalingPolicy.scaleDownControl =
-          new AutoscalingPolicyScaleDownControl(
-            maxScaledDownReplicas: maxScaledDownReplicas,
-            timeWindowSec: scaleDownControl.timeWindowSec)
+        gceAutoscalingPolicy.scaleInControl =
+          new AutoscalingPolicyScaleInControl(
+            maxScaledInReplicas: maxScaledInReplicas,
+            timeWindowSec: scaleInControl.timeWindowSec)
       }
 
       new Autoscaler(name: serverGroupName,
