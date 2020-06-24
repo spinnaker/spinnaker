@@ -18,8 +18,10 @@ package com.netflix.kayenta.config;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.kayenta.filters.KayentaCorsFilter;
-import com.netflix.kayenta.interceptors.MetricsInterceptor;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import java.util.Collections;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -39,16 +41,19 @@ public class WebConfiguration implements WebMvcConfigurer {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
+    List<String> queryParamsToTag =
+        ImmutableList.of(
+            "accountName",
+            "configurationAccountName",
+            "metricsAccountName",
+            "storageAccountName",
+            "application");
     registry.addInterceptor(
         new MetricsInterceptor(
             this.registry,
             "controller.invocations",
-            ImmutableList.of(
-                "accountName",
-                "configurationAccountName",
-                "metricsAccountName",
-                "storageAccountName",
-                "application"),
+            Collections.emptyList(),
+            queryParamsToTag,
             ImmutableList.of("BasicErrorController")));
   }
 
