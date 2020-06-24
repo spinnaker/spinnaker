@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+enableFeaturePreview("VERSION_ORDERING_V2")
+
 rootProject.name="kayenta"
 
 include 'kayenta-atlas'
