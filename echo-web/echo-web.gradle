@@ -15,7 +15,7 @@
  */
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/".toString())
   springProfiles = System.getProperty('spring.profiles.active', "test,local")
 }
 

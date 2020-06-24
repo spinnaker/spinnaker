@@ -22,6 +22,8 @@
   }
 }
 
+enableFeaturePreview("VERSION_ORDERING_V2")
+
 include 'echo-api',
         'echo-artifacts',
         'echo-bom',
