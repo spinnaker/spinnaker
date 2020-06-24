@@ -22,6 +22,8 @@
   }
 }
 
+enableFeaturePreview("VERSION_ORDERING_V2")
+
 rootProject.name = "front50"
 
 include 'front50-web',
