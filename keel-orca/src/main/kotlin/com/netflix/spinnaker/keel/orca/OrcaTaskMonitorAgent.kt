@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
+import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import retrofit2.HttpException
 
 @Component
 class OrcaTaskMonitorAgent(
@@ -43,36 +45,51 @@ class OrcaTaskMonitorAgent(
 
   // 1. Get active tasks from task tracking table
   // 2. For each task, call orca and ask for details
-  // 3. For each completed task, will emit an event for success/failure
+  // 3. For each completed task, will emit an event for success/failure and delete from the table
   override suspend fun invokeAgent() {
     coroutineScope {
       taskTrackingRepository.getTasks()
         .associate {
           it.subject to
             async {
-              orcaService.getOrchestrationExecution(it.id, DEFAULT_SERVICE_ACCOUNT)
-            }
-        }
-        .mapValues { it.value.await() }
-        .filterValues { it.status.isComplete() }
-        .map { (resourceId, taskDetails) ->
-          // only resource events are currently supported
-          if (resourceId.startsWith(RESOURCE.toString())) {
-            val id = resourceId.substringAfter(":")
-            try {
-              when (taskDetails.status.isSuccess()) {
-                true -> publisher.publishEvent(
-                  ResourceTaskSucceeded(
-                    resourceRepository.get(id), listOf(Task(taskDetails.id, taskDetails.name)), clock))
-                false -> publisher.publishEvent(
-                  ResourceTaskFailed(
-                    resourceRepository.get(id), taskDetails.execution.stages.getFailureMessage() ?: "", listOf(Task(taskDetails.id, taskDetails.name)), clock))
+              try {
+                orcaService.getOrchestrationExecution(it.id, DEFAULT_SERVICE_ACCOUNT)
+              } catch (e: HttpException) {
+                when (e.isNotFound) {
+                  true -> {
+                    log.warn("Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" +
+                      " Possible reason: orca is saving info for 2000 tasks/app and this task is older.", e)
+                    // when we get not found exception from orca, we shouldn't try to get the status anymore
+                    taskTrackingRepository.delete(it.id)
+                  }
+                  else -> throw e
               }
-            } catch (e: NoSuchResourceId) {
-              log.warn("No resource found for id $resourceId")
+                null
+              }
+            }.await()
+        }
+        .filterValues { it != null && it.status.isComplete() }
+        .map { (resourceId, taskDetails) ->
+          if (taskDetails != null) {
+            // only resource events are currently supported
+            if (resourceId.startsWith(RESOURCE.toString())) {
+              val id = resourceId.substringAfter(":")
+              try {
+                when (taskDetails.status.isSuccess()) {
+                  true -> publisher.publishEvent(
+                    ResourceTaskSucceeded(
+                      resourceRepository.get(id), listOf(Task(taskDetails.id, taskDetails.name)), clock))
+                  false -> publisher.publishEvent(
+                    ResourceTaskFailed(
+                      resourceRepository.get(id), taskDetails.execution.stages.getFailureMessage()
+                      ?: "", listOf(Task(taskDetails.id, taskDetails.name)), clock))
+                }
+              } catch (e: NoSuchResourceId) {
+                log.warn("No resource found for id $resourceId")
+              }
             }
+            taskTrackingRepository.delete(taskDetails.id)
           }
-          taskTrackingRepository.delete(taskDetails.id)
         }
     }
   }

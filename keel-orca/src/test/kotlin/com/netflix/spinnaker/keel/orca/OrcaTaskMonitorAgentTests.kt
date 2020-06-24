@@ -24,7 +24,14 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.time.Clock
 import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.springframework.context.ApplicationEventPublisher
+import retrofit2.HttpException
+import retrofit2.Response
+import strikt.api.expectThat
+import strikt.api.expectThrows
+import strikt.assertions.isTrue
 
 internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
 
@@ -173,6 +180,46 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
       }
     }
 
+    context("cannot determinate task status since orca returned a not found exception for the task id") {
+      before {
+        every { resourceRepository.get(resource.id) } returns resource
+        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every {
+          orcaService.getOrchestrationExecution(event.taskRecord.id)
+        } throws RETROFIT_NOT_FOUND
+      }
+
+      test("task record was removed from the table") {
+        runBlocking {
+          subject.invokeAgent()
+        }
+
+        verify(exactly = 0) { publisher.publishEvent(any()) }
+        verify { taskTrackingRepository.delete(event.taskRecord.id) }
+      }
+    }
+
+    context("cannot determinate task status since orca returned an exception for the task id") {
+      before {
+        every { resourceRepository.get(resource.id) } returns resource
+        every { taskTrackingRepository.getTasks() } returns setOf(event.taskRecord)
+        every {
+          orcaService.getOrchestrationExecution(event.taskRecord.id)
+        } throws Exception()
+      }
+
+      test("an exception is thrown and the task was not deleted") {
+        runBlocking {
+          expectThrows<Exception> {
+            subject.invokeAgent()
+          }
+        }
+
+        verify(exactly = 0) { publisher.publishEvent(any()) }
+        expectThat(taskTrackingRepository.getTasks().contains(event.taskRecord)).isTrue()
+      }
+    }
+
     context("constraint events") {
       modifyFixture {
         event = TaskCreatedEvent(taskConstraintRecord)
@@ -245,4 +292,8 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
       )
     ))
     )
+
+  val RETROFIT_NOT_FOUND = HttpException(
+    Response.error<Any>(404, "".toResponseBody("application/json".toMediaTypeOrNull()))
+  )
 }
