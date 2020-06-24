@@ -1,6 +1,6 @@
 plugins {
   id "com.diffplug.gradle.spotless" version "3.29.0" apply false
-  id "com.gradle.plugin-publish" version "0.11.0" apply false
+  id "com.gradle.plugin-publish" version "0.12.0" apply false
 }
 
 subprojects {
