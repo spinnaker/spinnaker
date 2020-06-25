@@ -53,6 +53,7 @@ import javax.xml.bind.DatatypeConverter
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
+import org.jooq.SelectConditionStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
@@ -532,6 +533,45 @@ class SqlArtifactRepository(
     return vetoes.values.toList()
   }
 
+  /**
+   *  Record that an artifact version should be vetoed (marked as bad) in a target environment
+   *
+   *  @param deliveryConfig config object for looking up artifact information by artifact reference
+   *  @param veto information about the artifact version to be vetoed and the target environment to veto in
+   *  @param force if true, record the version as vetoed even if it is marked as the promotion reference
+   *               (automated rollback target) of a previously vetoed version
+   *
+   *  @return true on success
+   *
+   * Preconditions for success:
+   *
+   *  1. [veto.version] is not currently pinned in the target environment
+   *  2. There exists a record R in the environment_artifacts_versions table such that:
+   *     a. R references the artifact version to veto and the target environment encoded in [veto]
+   *     b. R.promotion_reference is NULL, or [force] is true
+   *
+   *  Note: 2b is a precondition to avoid cascading veto-triggered deployments. If R contains a promotion reference, then
+   *  [veto.version] was originally deployed as a result of another artifact version being vetoed (see postcondition 3a).
+   *
+   *
+   * Postconditions on success:
+   *
+   *  1. There exists a record R in the environment_artifacts_versions table such that:
+   *     a. R references the artifact version and the target environment encoded in [veto]
+   *     b. R.promotion_status="VETOED"
+   *     c. If there exists a version that was previously deployed in [veto.targetEnvironment]:
+   *       - R.promotion_reference=<prior deployed version>
+   *     d. If there does not exist a version that was previously deployed in [veto.targetEnvironment]:
+   *       - R.promotion_reference=[veto.version]
+   *
+   *  2. There exists a record T in the environment_artifacts_vetoes table such that:
+   *      a. T references the the target environment and artifact version encoded in [veto]
+   *
+   *  3. If there exists a version that was previously deployed in [veto.targetEnironment]:
+   *      a. There exists a record P in the environment_artifacts_versions table such that
+   *        - P.artifact_version=<most recent previously deployed version>
+   *        - P.promotion_reference=[veto.version]
+   */
   override fun markAsVetoedIn(
     deliveryConfig: DeliveryConfig,
     veto: EnvironmentArtifactVeto,
@@ -540,23 +580,9 @@ class SqlArtifactRepository(
     val artifact = deliveryConfig.matchingArtifactByReference(veto.reference)
       ?: throw ArtifactNotFoundException(veto.reference, deliveryConfig.name)
 
-    val (envUid, artUid) = sqlRetry.withRetry(READ) {
-      Pair(
-        deliveryConfig.getUidStringFor(
-          deliveryConfig.environmentNamed(veto.targetEnvironment)),
-        artifact.uidString)
-    }
+    val (envUid, artUid) = environmentAndArtifactIds(deliveryConfig, veto.targetEnvironment, artifact)
 
-    val isPinned = sqlRetry.withRetry(READ) {
-      jooq
-        .fetchExists(
-          ENVIRONMENT_ARTIFACT_PIN,
-          ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(envUid)
-            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artUid))
-            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION.eq(veto.version)))
-    }
-
-    if (isPinned) {
+    if (isPinned(envUid, artUid, veto.version)) {
       log.warn(
         "Pinned artifact version cannot be vetoed: " +
           "deliveryConfig=${deliveryConfig.name}, " +
@@ -565,24 +591,22 @@ class SqlArtifactRepository(
       return false
     }
 
-    return jooq
-      .select(
-        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
-        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
-      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .where(
-        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
-        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
-        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(veto.version))
-      .fetchOne { (_, reference) ->
-        if (reference != null && !force) {
-          log.warn(
-            "Not vetoing artifact version as it appears to have already been an automated rollback target: " +
-              "deliveryConfig=${deliveryConfig.name}, " +
-              "environment=${veto.targetEnvironment}, " +
-              "artifactVersion=${veto.version}, " +
-              "priorVersionReference=$reference")
-          return@fetchOne false
+    return selectPromotionReference(envUid, artUid, veto.version)
+      .fetchOne { (ref: String?) ->
+        ref?.let { reference ->
+          /**
+           * If there's a promotion reference, that means this artifact version was deployed as a result of
+           * another artifact version being vetoed. In that case, we don't veto unless [force] is enabled.
+           */
+          if (!force) {
+            log.warn(
+              "Not vetoing artifact version as it appears to have already been an automated rollback target: " +
+                "deliveryConfig=${deliveryConfig.name}, " +
+                "environment=${veto.targetEnvironment}, " +
+                "artifactVersion=${veto.version}, " +
+                "priorVersionReference=$reference")
+            return@fetchOne false
+          }
         }
 
         val prior = priorVersionDeployedIn(envUid, artUid, veto.version)
@@ -590,28 +614,8 @@ class SqlArtifactRepository(
         sqlRetry.withRetry(WRITE) {
           jooq.transaction { config ->
             val txn = DSL.using(config)
-            txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
-              .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
-              .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: veto.version)
-              .where(
-                ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
-                ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
-                ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(veto.version)
-              )
-              .execute()
-
-            txn.insertInto(ENVIRONMENT_ARTIFACT_VETO)
-              .set(ENVIRONMENT_ARTIFACT_VETO.ENVIRONMENT_UID, envUid)
-              .set(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_UID, artUid)
-              .set(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_VERSION, veto.version)
-              .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.timestamp())
-              .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_BY, veto.vetoedBy)
-              .set(ENVIRONMENT_ARTIFACT_VETO.COMMENT, veto.comment)
-              .onDuplicateKeyUpdate()
-              .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.timestamp())
-              .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_BY, veto.vetoedBy)
-              .set(ENVIRONMENT_ARTIFACT_VETO.COMMENT, veto.comment)
-              .execute()
+            txn.updateAsVetoedInEnvironmentArtifactVersionsTable(prior, veto, envUid, artUid)
+            txn.addRecordToEnvironmentArtifactVetoTable(envUid, artUid, veto)
 
             /**
              * If there's a previously deployed version in [targetEnvironment], set `promotion_reference`
@@ -620,20 +624,100 @@ class SqlArtifactRepository(
              * or other issue unrelated to an artifact version triggering continual automated rollbacks
              * thru all previously deployed versions.
              */
-            if (prior != null) {
-              txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
-                .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, veto.version)
-                .where(
-                  ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
-                  ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
-                  ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(prior)
-                )
-                .execute()
-            }
+            prior?.let { txn.setPromotionReference(veto.version, envUid, artUid, it) }
           }
         }
         return@fetchOne true
       }
+  }
+
+  private fun DSLContext.setPromotionReference(version: String, envUid: String, artUid: String, prior: String) {
+    update(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, version)
+      .where(
+        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(prior)
+      )
+      .execute()
+  }
+
+  private fun DSLContext.addRecordToEnvironmentArtifactVetoTable(
+    envUid: String,
+    artUid: String,
+    veto: EnvironmentArtifactVeto
+  ) {
+    insertInto(ENVIRONMENT_ARTIFACT_VETO)
+      .set(ENVIRONMENT_ARTIFACT_VETO.ENVIRONMENT_UID, envUid)
+      .set(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_UID, artUid)
+      .set(ENVIRONMENT_ARTIFACT_VETO.ARTIFACT_VERSION, veto.version)
+      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.timestamp())
+      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_BY, veto.vetoedBy)
+      .set(ENVIRONMENT_ARTIFACT_VETO.COMMENT, veto.comment)
+      .onDuplicateKeyUpdate()
+      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_AT, clock.timestamp())
+      .set(ENVIRONMENT_ARTIFACT_VETO.VETOED_BY, veto.vetoedBy)
+      .set(ENVIRONMENT_ARTIFACT_VETO.COMMENT, veto.comment)
+      .execute()
+  }
+
+  private fun DSLContext.updateAsVetoedInEnvironmentArtifactVersionsTable(
+    prior: String?,
+    veto: EnvironmentArtifactVeto,
+    envUid: String,
+    artUid: String
+  ) {
+    update(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: veto.version)
+      .where(
+        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(veto.version)
+      )
+      .execute()
+  }
+
+  private fun selectPromotionReference(
+    envUid: String,
+    artUid: String,
+    version: String
+  ): SelectConditionStep<Record1<String>> {
+    return jooq
+      .select(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .where(
+        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+  }
+
+  private fun isPinned(
+    envUid: String,
+    artUid: String,
+    version: String
+  ): Boolean {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .fetchExists(
+          ENVIRONMENT_ARTIFACT_PIN,
+          ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(envUid)
+            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artUid))
+            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION.eq(version)))
+    }
+  }
+
+  private fun environmentAndArtifactIds(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String,
+    artifact: DeliveryArtifact
+  ): Pair<String, String> {
+    return sqlRetry.withRetry(READ) {
+      Pair(
+        deliveryConfig.getUidStringFor(
+          deliveryConfig.environmentNamed(targetEnvironment)),
+        artifact.uidString)
+    }
   }
 
   override fun deleteVeto(
