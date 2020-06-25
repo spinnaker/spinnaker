@@ -327,6 +327,96 @@ class TaskHealthCachingAgentSpec extends Specification {
     taskHealthList == []
   }
 
+  def 'should skip tasks with no networking'() {
+    given:
+    ObjectMapper mapper = new ObjectMapper()
+    Map<String, Object> containerMap = mapper.convertValue(new Container(), Map.class)
+    def taskAttributes = [
+      taskId               : CommonCachingAgent.TASK_ID_1,
+      taskArn              : CommonCachingAgent.TASK_ARN_1,
+      startedAt            : new Date().getTime(),
+      containerInstanceArn : CommonCachingAgent.CONTAINER_INSTANCE_ARN_1,
+      group                : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
+      containers           : Collections.singletonList(containerMap)
+    ]
+    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
+    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
+
+    def taskDefAttributes = [
+      taskDefinitionArn    : CommonCachingAgent.TASK_DEFINITION_ARN_1
+    ]
+    def taskDefKey = Keys.getTaskDefinitionKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_DEFINITION_ARN_1)
+    def taskDefCacheData = new DefaultCacheData(taskDefKey, taskDefAttributes, Collections.emptyMap())
+    providerCache.get(TASK_DEFINITIONS.toString(), taskDefKey) >> taskDefCacheData
+
+    when:
+    def taskHealthList = agent.getItems(ecs, providerCache)
+
+    then:
+    taskHealthList == []
+  }
+
+  def 'should skip tasks with null network bindings'() {
+    given:
+    ObjectMapper mapper = new ObjectMapper()
+    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkBindings(null), Map.class)
+    def taskAttributes = [
+      taskId               : CommonCachingAgent.TASK_ID_1,
+      taskArn              : CommonCachingAgent.TASK_ARN_1,
+      startedAt            : new Date().getTime(),
+      containerInstanceArn : CommonCachingAgent.CONTAINER_INSTANCE_ARN_1,
+      group                : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
+      containers           : Collections.singletonList(containerMap)
+    ]
+    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
+    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
+
+    def taskDefAttributes = [
+      taskDefinitionArn    : CommonCachingAgent.TASK_DEFINITION_ARN_1
+    ]
+    def taskDefKey = Keys.getTaskDefinitionKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_DEFINITION_ARN_1)
+    def taskDefCacheData = new DefaultCacheData(taskDefKey, taskDefAttributes, Collections.emptyMap())
+    providerCache.get(TASK_DEFINITIONS.toString(), taskDefKey) >> taskDefCacheData
+
+    when:
+    def taskHealthList = agent.getItems(ecs, providerCache)
+
+    then:
+    taskHealthList == []
+  }
+
+  def 'should skip tasks with null network interfaces'() {
+    given:
+    ObjectMapper mapper = new ObjectMapper()
+    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkInterfaces(null), Map.class)
+    def taskAttributes = [
+      taskId               : CommonCachingAgent.TASK_ID_1,
+      taskArn              : CommonCachingAgent.TASK_ARN_1,
+      startedAt            : new Date().getTime(),
+      containerInstanceArn : CommonCachingAgent.CONTAINER_INSTANCE_ARN_1,
+      group                : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
+      containers           : Collections.singletonList(containerMap)
+    ]
+    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
+    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
+
+    def taskDefAttributes = [
+      taskDefinitionArn    : CommonCachingAgent.TASK_DEFINITION_ARN_1
+    ]
+    def taskDefKey = Keys.getTaskDefinitionKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_DEFINITION_ARN_1)
+    def taskDefCacheData = new DefaultCacheData(taskDefKey, taskDefAttributes, Collections.emptyMap())
+    providerCache.get(TASK_DEFINITIONS.toString(), taskDefKey) >> taskDefCacheData
+
+    when:
+    def taskHealthList = agent.getItems(ecs, providerCache)
+
+    then:
+    taskHealthList == []
+  }
+
   def 'should get task health for task with some non-networked containers'() {
     given:
     ObjectMapper mapper = new ObjectMapper()

@@ -129,27 +129,22 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
             Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
         TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
 
-        if (isContainerMissingNetworking(task)) {
+        boolean lacksNetworkBindings = isTaskMissingNetworkBindings(task);
+        if (task.getContainers().isEmpty()
+            || (lacksNetworkBindings && isTaskMissingNetworkInterfaces(task))) {
           log.debug(
-              "Task '{}' is missing networking. Will not retrieve health.", task.getTaskArn());
+              "Task '{}' is missing networking. Will not retrieve load balancer health.",
+              task.getTaskArn());
           continue;
         }
 
         TaskHealth taskHealth = null;
-        Collection<Container> containers = task.getContainers();
-
-        for (Container container : containers) {
-          if (container.getNetworkBindings().size() >= 1) {
-            taskHealth =
-                inferHealthNetworkBindedContainer(
-                    targetHealthCacheClient,
-                    task,
-                    containerInstance,
-                    serviceName,
-                    service,
-                    taskDefinition);
-            break;
-          }
+        // ideally, could determine health check method by looking at taskDef.networkMode,
+        // however this isn't reliably cached yet, so reusing network binding check.
+        if (!lacksNetworkBindings) {
+          taskHealth =
+              inferHealthNetworkBindedContainer(
+                  targetHealthCacheClient, task, containerInstance, serviceName, service);
         }
 
         if (taskHealth == null) {
@@ -157,6 +152,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
               inferHealthNetworkInterfacedContainer(
                   targetHealthCacheClient, task, serviceName, service, taskDefinition);
         }
+
         log.debug("Task Health contains the following elements: {}", taskHealth);
 
         if (taskHealth != null) {
@@ -179,7 +175,10 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       TaskDefinition taskDefinition) {
 
     if (taskDefinition == null) {
-      log.debug("Provided task definition is null for task '{}'.", task.getTaskArn());
+      log.debug(
+          "Provided task definition '{}' is null for task '{}'.",
+          loadBalancerService.getTaskDefinition(),
+          task.getTaskArn());
       return null;
     }
 
@@ -215,7 +214,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
           describeTargetHealth(
               targetHealthCacheClient,
               task,
-              loadBalancerService,
               serviceName,
               loadBalancer.getTargetGroupArn(),
               networkInterface.getPrivateIpv4Address(),
@@ -251,12 +249,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       Task task,
       ContainerInstance containerInstance,
       String serviceName,
-      Service loadBalancerService,
-      TaskDefinition taskDefinition) {
-    if (taskDefinition == null) {
-      log.debug("Provided task definition is null.");
-      return null;
-    }
+      Service loadBalancerService) {
 
     List<LoadBalancer> loadBalancers = loadBalancerService.getLoadBalancers();
     log.debug("LoadBalancerService found {} load balancers.", loadBalancers.size());
@@ -286,7 +279,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
           describeTargetHealth(
               targetHealthCacheClient,
               task,
-              loadBalancerService,
               serviceName,
               loadBalancer.getTargetGroupArn(),
               containerInstance.getEc2InstanceId(),
@@ -312,7 +304,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   private TaskHealth describeTargetHealth(
       TargetHealthCacheClient targetHealthCacheClient,
       Task task,
-      Service loadBalancerService,
       String serviceName,
       String targetGroupArn,
       String targetId,
@@ -352,7 +343,9 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     if (containers != null && !containers.isEmpty()) {
       for (Container container : containers) {
         for (NetworkBinding networkBinding : container.getNetworkBindings()) {
-          if (networkBinding.getContainerPort().intValue() == hostPort.intValue()) {
+          Integer containerPort = networkBinding.getContainerPort();
+
+          if (containerPort != null && containerPort.intValue() == hostPort.intValue()) {
             log.debug("Load balanced hostPort: {} found for container.", hostPort);
             return Optional.of(networkBinding.getHostPort());
           }
@@ -375,14 +368,6 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     }
 
     return false;
-  }
-
-  private boolean isContainerMissingNetworking(Task task) {
-    if (task.getContainers().isEmpty()) {
-      return true;
-    }
-
-    return isTaskMissingNetworkBindings(task) && isTaskMissingNetworkInterfaces(task);
   }
 
   private boolean isTaskMissingNetworkBindings(Task task) {
