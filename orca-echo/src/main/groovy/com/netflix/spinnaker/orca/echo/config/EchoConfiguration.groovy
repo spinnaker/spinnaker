@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
@@ -75,8 +76,10 @@ class EchoConfiguration {
   }
 
   @Bean
-  EchoNotifyingStageListener echoNotifyingStageExecutionListener(EchoService echoService, ExecutionRepository repository, ContextParameterProcessor contextParameterProcessor) {
-    new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor)
+  EchoNotifyingStageListener echoNotifyingStageExecutionListener(EchoService echoService, ExecutionRepository repository,
+                                                                 ContextParameterProcessor contextParameterProcessor,
+                                                                 DynamicConfigService dynamicConfigService) {
+    new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor, dynamicConfigService)
   }
 
   @Bean

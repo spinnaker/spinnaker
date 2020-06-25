@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -12,16 +13,18 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener.INCLUDE_FULL_EXECUTION_PROPERTY
 
 class EchoNotifyingStageListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
   def persister = Stub(Persister)
   def repository = Mock(ExecutionRepository)
+  def dynamicConfigService = Mock(DynamicConfigService)
   def contextParameterProcessor =  new ContextParameterProcessor()
 
   @Subject
-  def echoListener = new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor)
+  def echoListener = new EchoNotifyingStageListener(echoService, repository, contextParameterProcessor, dynamicConfigService)
 
   @Shared
   def pipelineStage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", "test", [:])
@@ -121,6 +124,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoListener.afterTask(persister, stage, task, executionStatus, wasSuccessful)
 
     then:
+    1 * dynamicConfigService.getConfig(Boolean, INCLUDE_FULL_EXECUTION_PROPERTY, _) >> fullExecutionToggle
     message.details.source == "orca"
     message.details.application == pipelineStage.execution.application
     message.details.type == "orca:task:$echoMessage"
@@ -129,13 +133,16 @@ class EchoNotifyingStageListenerSpec extends Specification {
     message.content.taskName == "${stage.type}.$taskName"
     message.content.taskName instanceof String
     message.content.stageId == stage.id
+    (message.content.execution != null) == includesFullExecution
 
     where:
-    stage              | executionStatus | wasSuccessful | echoMessage | standalone
-    orchestrationStage | STOPPED         | true          | "complete"  | true
-    pipelineStage      | SUCCEEDED       | true          | "complete"  | false
-    pipelineStage      | TERMINAL        | false         | "failed"    | false
-
+    stage              | executionStatus | wasSuccessful | echoMessage | standalone | fullExecutionToggle | includesFullExecution
+    orchestrationStage | STOPPED         | true          | "complete"  | true       | true                | true
+    pipelineStage      | SUCCEEDED       | true          | "complete"  | false      | true                | true
+    pipelineStage      | TERMINAL        | false         | "failed"    | false      | true                | true
+    orchestrationStage | STOPPED         | true          | "complete"  | true       | false               | false
+    pipelineStage      | SUCCEEDED       | true          | "complete"  | false      | false               | false
+    pipelineStage      | TERMINAL        | false         | "failed"    | false      | false               | false
     taskName = "xxx"
   }
 }

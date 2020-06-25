@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.netflix.spinnaker.kork.common.Header
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -40,16 +41,20 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHE
 @CompileStatic
 @Slf4j
 class EchoNotifyingStageListener implements StageListener {
-
+  public static final String INCLUDE_FULL_EXECUTION_PROPERTY = "echo.events.includeFullExecution"
   private final EchoService echoService
   private final ExecutionRepository repository
   private final ContextParameterProcessor contextParameterProcessor
+  private final DynamicConfigService dynamicConfigService
 
   @Autowired
-  EchoNotifyingStageListener(EchoService echoService, ExecutionRepository repository, ContextParameterProcessor contextParameterProcessor) {
+  EchoNotifyingStageListener(EchoService echoService, ExecutionRepository repository,
+                             ContextParameterProcessor contextParameterProcessor,
+                             DynamicConfigService dynamicConfigService) {
     this.echoService = echoService
     this.repository = repository
     this.contextParameterProcessor = contextParameterProcessor
+    this.dynamicConfigService = dynamicConfigService
   }
 
   @Override
@@ -116,7 +121,6 @@ class EchoNotifyingStageListener implements StageListener {
           context    : buildContext(stage.execution, stage.context),
           startTime  : stage.startTime,
           endTime    : stage.endTime,
-          execution  : stage.execution,
           executionId: stage.execution.id,
           stageId    : stage.id,
           isSynthetic: stage.syntheticStageOwner != null,
@@ -125,6 +129,16 @@ class EchoNotifyingStageListener implements StageListener {
       ]
       maybeTask.ifPresent { TaskExecution task ->
         event.content.taskName = "${stage.type}.${task.name}".toString()
+      }
+
+      if (dynamicConfigService.getConfig(Boolean, INCLUDE_FULL_EXECUTION_PROPERTY, true)) {
+        event.content.execution = stage.execution
+      } else {
+        if (type == 'task') {
+          // skip the full execution for task events
+        } else {
+          event.content.execution = stage.execution
+        }
       }
 
       try {
