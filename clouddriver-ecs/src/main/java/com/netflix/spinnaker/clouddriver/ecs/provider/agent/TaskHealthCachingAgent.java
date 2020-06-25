@@ -129,30 +129,28 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
             Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
         TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
 
-        boolean lacksNetworkBindings = isTaskMissingNetworkBindings(task);
+        boolean lacksNetworkInterfaces = isTaskMissingNetworkInterfaces(task);
         if (task.getContainers().isEmpty()
-            || (lacksNetworkBindings && isTaskMissingNetworkInterfaces(task))) {
+            || (isTaskMissingNetworkBindings(task) && lacksNetworkInterfaces)) {
           log.debug(
               "Task '{}' is missing networking. Will not retrieve load balancer health.",
               task.getTaskArn());
           continue;
         }
 
-        TaskHealth taskHealth = null;
+        TaskHealth taskHealth;
         // ideally, could determine health check method by looking at taskDef.networkMode,
         // however this isn't reliably cached yet, so reusing network binding check.
-        if (!lacksNetworkBindings) {
+        if (!lacksNetworkInterfaces) {
+          // if network interfaces are present, assume awsvpc mode
+          taskHealth =
+              inferHealthNetworkInterfacedContainer(
+                  targetHealthCacheClient, task, serviceName, service, taskDefinition);
+        } else {
           taskHealth =
               inferHealthNetworkBindedContainer(
                   targetHealthCacheClient, task, containerInstance, serviceName, service);
         }
-
-        if (taskHealth == null) {
-          taskHealth =
-              inferHealthNetworkInterfacedContainer(
-                  targetHealthCacheClient, task, serviceName, service, taskDefinition);
-        }
-
         log.debug("Task Health contains the following elements: {}", taskHealth);
 
         if (taskHealth != null) {
