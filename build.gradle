@@ -10,15 +10,15 @@ allprojects {
 
   group = "com.netflix.spinnaker.gate"
 
-  if (name != "gate-bom") {
+  if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  if (name != "gate-bom" && name != "gate-api") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
-
-    if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
-      repositories {
-        mavenLocal()
-      }
-    }
 
     repositories {
       maven { url 'https://build.shibboleth.net/nexus/content/repositories/releases/' }
@@ -52,17 +52,17 @@ allprojects {
       exclude group: 'javax.servlet', module: 'servlet-api'
       exclude group: 'javax.servlet', module: 'javax.servlet-api'
     }
+  }
 
-    tasks.withType(JavaExec) {
-      if (System.getProperty('DEBUG', 'false') == 'true') {
-        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8184'
-      }
+  tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8184'
     }
+  }
 
-    test {
-      testLogging {
-        exceptionFormat = 'full'
-      }
+  test {
+    testLogging {
+      exceptionFormat = 'full'
     }
   }
 }
