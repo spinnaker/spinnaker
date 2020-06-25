@@ -150,6 +150,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
                           .flatMap(route -> route.values().stream())
                           .collect(toList()));
               attrs.setEnv(app.getEnv());
+              attrs.setStack(app.getStack());
               return attrs;
             })
         .get();
@@ -178,5 +179,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     @Nullable private List<Map<String, String>> routes;
 
     @Nullable private Map<String, String> env;
+
+    @Nullable private String stack;
   }
 }

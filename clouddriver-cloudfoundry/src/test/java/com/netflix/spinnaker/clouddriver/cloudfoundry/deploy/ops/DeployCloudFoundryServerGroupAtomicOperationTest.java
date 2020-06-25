@@ -142,12 +142,16 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
 
   private void verifyInOrder(final Applications apps, Supplier<VerificationMode> calls) {
     final InOrder inOrder = Mockito.inOrder(apps, cloudFoundryClient.getServiceInstances());
+    DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes =
+        new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
+    applicationAttributes.setBuildpacks(
+        io.vavr.collection.List.of("buildpack1", "buildpack2").asJava());
     inOrder
         .verify(apps)
         .createApplication(
             "app1-stack1-detail1-v000",
             CloudFoundrySpace.builder().id("space1Id").name("space1").build(),
-            io.vavr.collection.List.of("buildpack1", "buildpack2").asJava(),
+            getDeployCloudFoundryServerGroupDescription(true).getApplicationAttributes(),
             HashMap.of("token", "ASDF").toJavaMap());
     inOrder.verify(apps).uploadPackageBits(eq("serverGroupId_package"), any());
     inOrder.verify(apps).createBuild("serverGroupId_package");

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.Collections;
-import java.util.List;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
@@ -38,21 +38,36 @@ public class CreateApplication {
       String name,
       Map<String, ToOneRelationship> relationships,
       @Nullable Map<String, String> environmentVariables,
-      @Nullable List<String> buildpacks) {
+      DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes) {
     this.name = name;
     this.relationships = relationships;
     this.environmentVariables = environmentVariables;
-    this.lifecycle = buildpacks != null ? new BuildpackLifecycle(buildpacks) : null;
+    this.lifecycle =
+        applicationAttributes.getBuildpacks() != null || applicationAttributes.getStack() != null
+            ? new BuildpackLifecycle(applicationAttributes)
+            : null;
   }
 
   @AllArgsConstructor
   @Getter
   public static class BuildpackLifecycle {
     private String type = "buildpack";
-    private Map<String, List<String>> data;
+    private Map<String, Object> data;
 
-    BuildpackLifecycle(List<String> buildpacks) {
-      this.data = Collections.singletonMap("buildpacks", buildpacks);
+    BuildpackLifecycle(
+        DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes) {
+      this.data =
+          new BuildpackLifecycleBuilder<String, Object>()
+              .putIfValueNotNull("buildpacks", applicationAttributes.getBuildpacks())
+              .putIfValueNotNull("stack", applicationAttributes.getStack())
+              .build();
+    }
+  }
+
+  static class BuildpackLifecycleBuilder<K, V> extends ImmutableMap.Builder<K, V> {
+    public BuildpackLifecycleBuilder<K, V> putIfValueNotNull(K key, V value) {
+      if (value != null) super.put(key, value);
+      return this;
     }
   }
 }

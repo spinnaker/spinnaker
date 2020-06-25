@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import java.io.File;
@@ -534,7 +535,7 @@ public class Applications {
   public CloudFoundryServerGroup createApplication(
       String appName,
       CloudFoundrySpace space,
-      List<String> buildpacks,
+      DeployCloudFoundryServerGroupDescription.ApplicationAttributes applicationAttributes,
       @Nullable Map<String, String> environmentVariables)
       throws CloudFoundryApiException {
     Map<String, ToOneRelationship> relationships = new HashMap<>();
@@ -544,7 +545,7 @@ public class Applications {
             () ->
                 api.createApplication(
                     new CreateApplication(
-                        appName, relationships, environmentVariables, buildpacks)))
+                        appName, relationships, environmentVariables, applicationAttributes)))
         .map(this::map)
         .orElseThrow(
             () ->

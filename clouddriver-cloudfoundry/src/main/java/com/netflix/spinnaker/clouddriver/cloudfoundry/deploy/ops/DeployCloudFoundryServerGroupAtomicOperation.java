@@ -190,7 +190,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
             .createApplication(
                 description.getServerGroupName(),
                 description.getSpace(),
-                description.getApplicationAttributes().getBuildpacks(),
+                description.getApplicationAttributes(),
                 getEnvironmentVars(description));
     getTask()
         .updateStatus(

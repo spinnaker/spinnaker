@@ -62,5 +62,7 @@ public class DeployCloudFoundryServerGroupDescription
     @Nullable private Map<String, String> env;
 
     @Nullable private List<String> services;
+
+    @Nullable private String stack;
   }
 }
