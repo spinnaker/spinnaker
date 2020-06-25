@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kayenta.pipeline.CanaryDisableClusterStage
+import com.netflix.spinnaker.orca.mine.pipeline.CanaryDisableClusterStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.*
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder

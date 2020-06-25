@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kayenta.pipeline
+package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder

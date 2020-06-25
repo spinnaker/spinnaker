@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
-import com.netflix.spinnaker.orca.kayenta.pipeline.CanaryDisableClusterStage
+import com.netflix.spinnaker.orca.mine.pipeline.CanaryDisableClusterStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
