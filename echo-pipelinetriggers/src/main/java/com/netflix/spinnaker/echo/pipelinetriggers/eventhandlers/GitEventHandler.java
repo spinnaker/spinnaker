@@ -90,6 +90,7 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
     String project = gitEvent.getContent().getRepoProject();
     String slug = gitEvent.getContent().getSlug();
     String branch = gitEvent.getContent().getBranch();
+    String action = gitEvent.getContent().getAction();
 
     return trigger ->
         trigger.getType().equals(GIT_TRIGGER_TYPE)
@@ -99,7 +100,10 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
             && (trigger.getBranch() == null
                 || trigger.getBranch().equals("")
                 || matchesPattern(branch, trigger.getBranch()))
-            && passesGithubAuthenticationCheck(gitEvent, trigger);
+            && passesGithubAuthenticationCheck(gitEvent, trigger)
+            && (trigger.getEvents() == null
+                || trigger.getEvents().size() == 0
+                || trigger.getEvents().stream().anyMatch(a -> a.equals(action)));
   }
 
   @Override

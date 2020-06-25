@@ -117,6 +117,7 @@ public class Trigger {
   String slug;
   String source;
   String branch;
+  List<String> events;
 
   // Configuration for Jenkins, Travis, Concourse triggers
   String master;
