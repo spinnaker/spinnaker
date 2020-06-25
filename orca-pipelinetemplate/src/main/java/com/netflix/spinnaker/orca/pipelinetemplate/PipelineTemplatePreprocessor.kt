@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.PipelineMissingTemplateVariabledException
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.DefaultHandlerChain
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.GlobalPipelineTemplateContext
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateContext
@@ -86,7 +87,11 @@ class PipelineTemplatePreprocessor
           throw IrrecoverableConditionException(t)
         }
 
-        log.error("Unexpected error occurred while processing template: ", context.getRequest().getId(), t)
+        // Missing variables is a very common error and not really an exception, just a user forgetting to specify all variables
+        // No point logging anything in this case - it's just noise
+        if (t !is PipelineMissingTemplateVariabledException) {
+          log.error("Unexpected error occurred while processing template: ", context.getRequest().getId(), t)
+        }
         context.getCaughtThrowables().add(t)
         chain.clear()
       }

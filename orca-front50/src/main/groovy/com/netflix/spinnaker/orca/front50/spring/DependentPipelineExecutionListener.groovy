@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.front50.spring
 
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
@@ -76,6 +77,10 @@ class DependentPipelineExecutionListener implements ExecutionListener {
        if (V2Util.isV2Pipeline(pipeline)) {
          try {
            return V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipeline)
+         } catch (ValidationException ignored) {
+           // Really no point in logging this error out here - the user created a bad template, which has no relation
+           // to the currently executing pipeline
+           return null
          } catch (Exception e) {
            log.error("Failed to plan V2 templated pipeline {}", pipeline.getOrDefault("id", "<UNKNOWN ID>"), e)
            return null

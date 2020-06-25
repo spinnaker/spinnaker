@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.v2.transform;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.PipelineMissingTemplateVariabledException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
@@ -68,7 +69,7 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
             .collect(Collectors.toList());
 
     if (!missingVariables.isEmpty()) {
-      throw new IllegalTemplateConfigurationException(
+      throw new PipelineMissingTemplateVariabledException(
           "Missing variable values for: " + StringUtils.join(missingVariables, ", "));
     }
 
