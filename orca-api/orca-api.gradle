@@ -23,7 +23,12 @@ sourceSets {
 }
 
 dependencies {
+  implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+  annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+
   api("com.netflix.spinnaker.kork:kork-plugins-api")
+
+  //TODO(jonsie): Remove this dependency
   api("com.netflix.spinnaker.kork:kork-artifacts")
 
   compileOnly("org.projectlombok:lombok")

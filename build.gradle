@@ -34,15 +34,16 @@ allprojects {
 }
 
 subprojects {
-  if (name != "orca-bom") {
-    apply plugin: "java-library"
 
-    if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
-      logger.info("Enabling mavenLocal")
-      repositories {
-        mavenLocal()
-      }
+  if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
     }
+  }
+
+  if (name != "orca-bom" && name != "orca-api") {
+    apply plugin: "java-library"
 
     dependencies {
       implementation(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
