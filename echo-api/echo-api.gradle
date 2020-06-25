@@ -8,6 +8,9 @@
 apply from: "${project.rootDir}/gradle/kotlin.gradle"
 
 dependencies {
+  implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+  annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+
   api "com.netflix.spinnaker.kork:kork-plugins-api"
 
   compileOnly("org.projectlombok:lombok")
@@ -16,6 +19,7 @@ dependencies {
   testImplementation("io.strikt:strikt-core")
   testImplementation("dev.minutest:minutest")
   testImplementation("io.mockk:mockk")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 test {

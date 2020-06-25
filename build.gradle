@@ -48,7 +48,7 @@ subprojects {
     }
   }
 
-  if (name != "echo-bom") {
+  if (name != "echo-bom" && name != "echo-api") {
     jacoco {
       toolVersion = '0.8.3'
     }
