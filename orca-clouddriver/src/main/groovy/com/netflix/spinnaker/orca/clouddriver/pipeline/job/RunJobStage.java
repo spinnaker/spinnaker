@@ -87,17 +87,20 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
     try {
       RunJobStageContext context =
           objectMapper.convertValue(stage.getContext(), RunJobStageContext.class);
-      destroyContext.put("jobName", context.getCloudProvider());
-      destroyContext.put("cloudProvider", context.getCloudProvider());
-      destroyContext.put("region", context.getJobStatus().getRegion());
-      destroyContext.put("credentials", context.getCredentials());
 
-      getCloudProviderDecorator(stage)
-          .ifPresent(it -> it.modifyDestroyJobContext(context, destroyContext));
+      if (context.getJobStatus() != null) {
+        destroyContext.put("jobName", context.getCloudProvider());
+        destroyContext.put("cloudProvider", context.getCloudProvider());
+        destroyContext.put("region", context.getJobStatus().getRegion());
+        destroyContext.put("credentials", context.getCredentials());
 
-      stage.setContext(destroyContext);
+        getCloudProviderDecorator(stage)
+            .ifPresent(it -> it.modifyDestroyJobContext(context, destroyContext));
 
-      destroyJobTask.execute(stage);
+        stage.setContext(destroyContext);
+
+        destroyJobTask.execute(stage);
+      }
     } catch (Exception e) {
       log.error(
           String.format(
