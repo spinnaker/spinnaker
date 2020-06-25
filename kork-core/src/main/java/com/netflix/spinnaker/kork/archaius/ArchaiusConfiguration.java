@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
+import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -61,17 +62,20 @@ public class ArchaiusConfiguration {
       this.propertyBindings = propertyBindings != null ? propertyBindings : Collections.emptyList();
       initPropertyBindings();
 
-      configurationInstance = new DynamicConfiguration(polledConfigurationSource, pollingScheduler);
+      DynamicConfiguration installedConfiguration = null;
       if (!ConfigurationManager.isConfigurationInstalled()) {
-        ConfigurationManager.install(new CompositeConfiguration());
+        installedConfiguration =
+            new DynamicConfiguration(polledConfigurationSource, pollingScheduler);
+        CompositeConfiguration configuration = new CompositeConfiguration();
+        configuration.addConfiguration(installedConfiguration);
+        ConfigurationManager.install(configuration);
+      } else {
+        pollingScheduler.stop();
       }
-      CompositeConfiguration config =
-          (CompositeConfiguration) ConfigurationManager.getConfigInstance();
-      config.addConfiguration(configurationInstance);
+      configurationInstance = installedConfiguration;
+      AbstractConfiguration config = ConfigurationManager.getConfigInstance();
 
-      applicationContext
-          .getBeanFactory()
-          .registerSingleton("environmentBackedConfig", ConfigurationManager.getConfigInstance());
+      applicationContext.getBeanFactory().registerSingleton("environmentBackedConfig", config);
       applicationContext
           .getBeanFactory()
           .registerAlias("environmentBackedConfig", "abstractConfiguration");
@@ -79,9 +83,11 @@ public class ArchaiusConfiguration {
 
     @PreDestroy
     public void shutdown() {
-      pollingScheduler.stop();
-      ((CompositeConfiguration) ConfigurationManager.getConfigInstance())
-          .removeConfiguration(configurationInstance);
+      if (configurationInstance != null) {
+        pollingScheduler.stop();
+        ((CompositeConfiguration) ConfigurationManager.getConfigInstance())
+            .removeConfiguration(configurationInstance);
+      }
     }
 
     private void initPropertyBindings() {
