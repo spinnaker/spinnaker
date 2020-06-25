@@ -83,9 +83,10 @@ class MonitoredDeployStrategySpec extends Specification {
     def afterStages = strategy.composeAfterStages(stage)
 
     then: 'goes straight to 100%'
-    afterStages.size() == 8
+    afterStages.size() == 9
     afterStages[0].type == DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
     afterStages[1].type == PinServerGroupStage.TYPE
+    afterStages[1].context.pinMinimumCapacity == true
     afterStages[2].type == NotifyDeployStartingStage.PIPELINE_CONFIG_TYPE
     afterStages[3].type == ResizeServerGroupStage.TYPE
     afterStages[3].context.scalePct == 100
@@ -93,14 +94,17 @@ class MonitoredDeployStrategySpec extends Specification {
     afterStages[4].context.desiredPercentage == 100
     afterStages[5].type == EvaluateDeploymentHealthStage.PIPELINE_CONFIG_TYPE
     afterStages[6].type == PinServerGroupStage.TYPE
-    afterStages[7].type == NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE
+    afterStages[6].context.unpinMinimumCapacity == true
+    afterStages[6].context.pinMinimumCapacity == false
+    afterStages[7].type == PinServerGroupStage.TYPE
+    afterStages[8].type == NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE
 
     when: 'only 50% step is provided'
     stage.context.deploySteps = [50]
     afterStages = strategy.composeAfterStages(stage)
 
     then: 'adds 100% step'
-    afterStages.size() == 11
+    afterStages.size() == 12
     afterStages[3].type == ResizeServerGroupStage.TYPE
     afterStages[3].context.scalePct == 50
     afterStages[4].type == DisableServerGroupStage.PIPELINE_CONFIG_TYPE
@@ -116,10 +120,10 @@ class MonitoredDeployStrategySpec extends Specification {
     stage.context.scaleDown = false
 
     then: 'adds a scale down stage'
-    afterStages.size() == 11
-    afterStages[9].type == ScaleDownClusterStage.PIPELINE_CONFIG_TYPE
-    afterStages[9].allowSiblingStagesToContinueOnFailure == true
-    afterStages[9].continuePipelineOnFailure == true
+    afterStages.size() == 12
+    afterStages[10].type == ScaleDownClusterStage.PIPELINE_CONFIG_TYPE
+    afterStages[10].allowSiblingStagesToContinueOnFailure == true
+    afterStages[10].continuePipelineOnFailure == true
 
     when: 'shrink is requested'
     stage.context.maxRemainingAsgs = 2
@@ -127,10 +131,10 @@ class MonitoredDeployStrategySpec extends Specification {
     stage.context.remove("maxRemainingAsgs")
 
     then: 'adds a scale shrink stage'
-    afterStages.size() == 12
-    afterStages[10].type == ShrinkClusterStage.STAGE_TYPE
-    afterStages[10].allowSiblingStagesToContinueOnFailure == true
-    afterStages[10].continuePipelineOnFailure == true
+    afterStages.size() == 13
+    afterStages[11].type == ShrinkClusterStage.STAGE_TYPE
+    afterStages[11].allowSiblingStagesToContinueOnFailure == true
+    afterStages[11].continuePipelineOnFailure == true
 
     when: 'no deployment monitor specified'
     stage.context.remove("deploymentMonitor")
@@ -138,7 +142,7 @@ class MonitoredDeployStrategySpec extends Specification {
 
     then:
     noExceptionThrown()
-    afterStages.size() == 7
+    afterStages.size() == 8
   }
 
   def "composes correct failure flow when no deployment monitor specified"() {

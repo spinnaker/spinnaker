@@ -152,8 +152,8 @@ class MonitoredDeployStrategy implements Strategy {
     if (source == null) {
       log.info("no source server group -- will perform Monitored Deploy to exact fallback capacity $savedCapacity with no disableCluster or scaleDownCluster stages")
     } else {
-      def resizeContext = baseContext
-      resizeContext.putAll([
+      def pinContext = new HashMap<String, Object>(baseContext)
+      pinContext.putAll([
         serverGroupName   : source.serverGroupName,
         action            : ResizeStrategy.ResizeAction.scale_to_server_group,
         source            : source,
@@ -164,8 +164,8 @@ class MonitoredDeployStrategy implements Strategy {
       stages << StageExecutionFactory.newStage(
         stage.execution,
         PinServerGroupStage.TYPE,
-        "Pin ${resizeContext.serverGroupName}",
-        resizeContext,
+        "Pin ${pinContext.serverGroupName}",
+        pinContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
@@ -186,30 +186,33 @@ class MonitoredDeployStrategy implements Strategy {
       log.warn("No deployment monitor specified, all monitoring will be skipped")
     }
 
-    // java .forEach rather than groovy .each, since the nested .each closure sometimes omits parent context
-    deploySteps.forEach({ p ->
-      def resizeContext = baseContext + [
+    def resizeContextBase = baseContext + [
         target                       : TargetServerGroup.Params.Target.current_asg_dynamic,
         targetLocation               : cleanupConfig.location,
-        scalePct                     : p,
-        pinCapacity                  : p < 100,  // if p < 100, capacity should be pinned (min == max == desired)
-        unpinMinimumCapacity         : p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
-        pinMinimumCapacity           : p < 100,  // pinMinimumCapacity should be false when unpinMinimumCapacity is true
+        scalePct                     : 0,
+        pinCapacity                  : true,
+        unpinMinimumCapacity         : false,
+        pinMinimumCapacity           : true,
         useNameAsLabel               : true,     // hint to deck that it should _not_ override the name
         targetHealthyDeployPercentage: stage.context.targetHealthyDeployPercentage
-      ]
+    ]
 
-      if (source) {
-        resizeContext = resizeContext + [
+    if (source) {
+      resizeContextBase = resizeContextBase + [
           action: ResizeStrategy.ResizeAction.scale_to_server_group,
           source: source
-        ]
-      } else {
-        resizeContext = resizeContext + [
+      ]
+    } else {
+      resizeContextBase = resizeContextBase + [
           action: ResizeStrategy.ResizeAction.scale_exact,
-        ]
-        resizeContext.capacity = savedCapacity // will scale to a percentage of that static capacity
-      }
+      ]
+      resizeContextBase.capacity = savedCapacity // will scale to a percentage of that static capacity
+    }
+
+    // java .forEach rather than groovy .each, since the nested .each closure sometimes omits parent context
+    deploySteps.forEach({ p ->
+      Map resizeContext = new HashMap<String, Object>(resizeContextBase)
+      resizeContext.scalePct = p
 
       log.info("Adding `Grow ${internalStageData.newServerGroup} to $p% of Desired Size` stage with context $resizeContext [executionId=${stage.execution.id}]")
 
@@ -261,6 +264,26 @@ class MonitoredDeployStrategy implements Strategy {
       }
     })
 
+    // Unpin target
+    def unpinTargetContext = new HashMap<String, Object>(resizeContextBase)
+    unpinTargetContext.putAll([
+        serverGroupName     : internalStageData.newServerGroup,
+        scalePct            : 100,
+        useNameAsLabel      : true,     // hint to deck that it should _not_ override the name
+        unpinMinimumCapacity: true,
+        pinMinimumCapacity  : false,
+        pinCapacity         : false,
+    ])
+
+    stages << StageExecutionFactory.newStage(
+        stage.execution,
+        PinServerGroupStage.TYPE,
+        "Unpin ${internalStageData.newServerGroup}",
+        unpinTargetContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+    )
+
     // only scale down if we have a source server group to scale down
     if (source && stageData.scaleDown) {
       if (stageData?.getDelayBeforeScaleDown()) {
@@ -295,10 +318,10 @@ class MonitoredDeployStrategy implements Strategy {
       stages << scaleDownStage
     }
 
-    // Only unpin if we have a source ASG and we didn't scale it down
+    // Only unpin source if we have a source ASG and we didn't scale it down
     if (source && !stageData.scaleDown) {
-      def resizeContext = baseContext
-      resizeContext.putAll([
+      def unpinSourceContext = new HashMap<String, Object>(baseContext)
+      unpinSourceContext.putAll([
         serverGroupName     : source.serverGroupName,
         action              : ResizeStrategy.ResizeAction.scale_to_server_group,
         source              : source,
@@ -309,8 +332,8 @@ class MonitoredDeployStrategy implements Strategy {
       stages << StageExecutionFactory.newStage(
         stage.execution,
         PinServerGroupStage.TYPE,
-        "Unpin ${resizeContext.serverGroupName}",
-        resizeContext,
+        "Unpin ${unpinSourceContext.serverGroupName}",
+          unpinSourceContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
