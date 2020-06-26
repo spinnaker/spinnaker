@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPoolConfig;
 import rx.Scheduler;
 
 @Configuration
@@ -85,7 +86,7 @@ public class RedisConfiguration {
   @Bean
   @ConfigurationProperties("redis")
   public GenericObjectPoolConfig redisPoolConfig() {
-    GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+    GenericObjectPoolConfig config = new JedisPoolConfig();
     config.setMaxTotal(100);
     config.setMaxIdle(100);
     config.setMinIdle(25);
