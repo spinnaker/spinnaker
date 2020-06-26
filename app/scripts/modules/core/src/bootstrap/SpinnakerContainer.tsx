@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { UIView } from '@uirouter/react';
+import { RecoilRoot } from 'recoil';
 
 import { CustomBanner } from '../header/customBanner/CustomBanner';
 import { Notifier } from '../widgets/notifier/Notifier';
@@ -12,7 +13,7 @@ export interface ISpinnakerContainerProps {
 }
 
 export const SpinnakerContainer = ({ authenticating, routing }: ISpinnakerContainerProps) => (
-  <>
+  <RecoilRoot>
     <div className="spinnaker-container grid-container">
       {!authenticating && routing && (
         <div className="transition-overlay">
@@ -26,5 +27,5 @@ export const SpinnakerContainer = ({ authenticating, routing }: ISpinnakerContai
       <div className="spinnaker-content grid-contents">{!authenticating && <UIView name="main" />}</div>
     </div>
     <Notifier />
-  </>
+  </RecoilRoot>
 );
