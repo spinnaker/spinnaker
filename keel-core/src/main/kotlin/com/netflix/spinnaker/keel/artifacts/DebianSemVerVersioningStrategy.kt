@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.artifacts
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.core.DEBIAN_VERSION_COMPARATOR
 
-object DebianSemVerVersioningStrategy : VersioningStrategy() {
+object DebianSemVerVersioningStrategy : VersioningStrategy {
   override val type: String = "debian"
 
   override val comparator: Comparator<String> =

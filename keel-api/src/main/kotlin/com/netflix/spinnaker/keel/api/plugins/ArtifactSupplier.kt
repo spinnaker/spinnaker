@@ -36,6 +36,7 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    * The default implementation of [publishArtifact] simply publishes the event via the [EventPublisher],
    * and should *not* be overridden by implementors.
    */
+  @JvmDefault
   fun publishArtifact(artifactPublishedEvent: ArtifactPublishedEvent) =
     eventPublisher.publishEvent(artifactPublishedEvent)
 
@@ -45,7 +46,7 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    *
    * This function may interact with external systems to retrieve artifact information as needed.
    */
-  suspend fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact?
+  fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact?
 
   /**
    * Given a [PublishedArtifact] supported by this [ArtifactSupplier], return the full representation of

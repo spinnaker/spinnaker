@@ -32,15 +32,17 @@ class DebianArtifactSupplier(
   override val supportedVersioningStrategy =
     SupportedVersioningStrategy("deb", DebianSemVerVersioningStrategy::class.java)
 
-  override suspend fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
-    artifactService
-      .getVersions(artifact.name)
-      .map { version -> "${artifact.name}-$version" }
-      .sortedWith(artifact.versioningStrategy.comparator)
-      .firstOrNull() // versioning strategies return descending by default... ¯\_(ツ)_/¯
-      ?.let { version ->
-        artifactService.getArtifact(artifact.name, version.removePrefix("${artifact.name}-"))
-      }
+  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? =
+    runWithIoContext {
+      artifactService
+        .getVersions(artifact.name)
+        .map { version -> "${artifact.name}-$version" }
+        .sortedWith(artifact.versioningStrategy.comparator)
+        .firstOrNull() // versioning strategies return descending by default... ¯\_(ツ)_/¯
+        ?.let { version ->
+          artifactService.getArtifact(artifact.name, version.removePrefix("${artifact.name}-"))
+        }
+    }
 
   override fun getFullVersionString(artifact: PublishedArtifact): String =
     "${artifact.name}-${artifact.version}"

@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.core.TagComparator
 data class DockerVersioningStrategy(
   val strategy: TagVersionStrategy,
   val captureGroupRegex: String? = null
-) : VersioningStrategy() {
+) : VersioningStrategy {
   override val type: String = "docker"
 
   override val comparator: Comparator<String> =

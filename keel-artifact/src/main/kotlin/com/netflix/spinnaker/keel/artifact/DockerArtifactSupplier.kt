@@ -33,30 +33,34 @@ class DockerArtifactSupplier(
   override val supportedVersioningStrategy =
     SupportedVersioningStrategy("docker", DockerVersioningStrategy::class.java)
 
-  override suspend fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? {
+  override fun getLatestArtifact(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact): PublishedArtifact? {
     if (artifact !is DockerArtifact) {
       throw IllegalArgumentException("Only Docker artifacts are supported by this implementation.")
     }
 
     // Note: we currently don't have a way to derive account information from artifacts,
     // so, in the calls to clouddriver below, we look in all accounts.
-    val latestTag = cloudDriverService
-      .findDockerTagsForImage("*", artifact.name, deliveryConfig.serviceAccount)
-      .distinct()
-      .sortedWith(artifact.versioningStrategy.comparator)
-      .firstOrNull()
+    val latestTag = runWithIoContext {
+      cloudDriverService
+        .findDockerTagsForImage("*", artifact.name, deliveryConfig.serviceAccount)
+        .distinct()
+        .sortedWith(artifact.versioningStrategy.comparator)
+        .firstOrNull()
+    }
 
     return if (latestTag != null) {
-      cloudDriverService.findDockerImages(account = "*", repository = artifact.name, tag = latestTag)
-        .firstOrNull()
-        ?.let { dockerImage ->
-          PublishedArtifact(
-            name = dockerImage.repository,
-            type = DOCKER,
-            reference = dockerImage.repository.substringAfter(':', dockerImage.repository),
-            version = dockerImage.tag
-          )
+      runWithIoContext {
+        cloudDriverService.findDockerImages(account = "*", repository = artifact.name, tag = latestTag)
+          .firstOrNull()
+          ?.let { dockerImage ->
+            PublishedArtifact(
+              name = dockerImage.repository,
+              type = DOCKER,
+              reference = dockerImage.repository.substringAfter(':', dockerImage.repository),
+              version = dockerImage.tag
+            )
         }
+      }
     } else {
       null
     }

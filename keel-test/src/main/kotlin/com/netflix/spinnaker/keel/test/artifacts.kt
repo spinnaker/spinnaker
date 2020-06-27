@@ -20,7 +20,7 @@ class DummyArtifact(
   override val versioningStrategy = DummyVersioningStrategy
 }
 
-object DummyVersioningStrategy : VersioningStrategy() {
+object DummyVersioningStrategy : VersioningStrategy {
   override val comparator: Comparator<String> = Comparator.naturalOrder()
   override val type = "dummy"
 }
