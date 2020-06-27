@@ -24,26 +24,44 @@ interface IReportScoresDispatchProps {
   clearSelectedGroup: () => void;
 }
 
+interface IReportScoreParentProps {
+  isExpanded: boolean;
+  toggleHeader: () => void;
+}
+
 /*
  * Layout for the report scores.
  * */
 const ReportScores = ({
   groups,
+  isExpanded,
   selectedGroup,
   clearSelectedGroup,
   score,
   scoreThresholds,
-}: IReportScoresStateProps & IReportScoresDispatchProps) => (
-  <section className="horizontal report-scores">
-    <AllMetricResultsHeader
-      onClick={clearSelectedGroup}
-      score={score}
-      scoreThresholds={scoreThresholds}
-      className={classNames('flex-1', 'report-score', { active: !selectedGroup })}
-    />
-    <GroupScores groups={groups} className="flex-12" />
-  </section>
-);
+  toggleHeader,
+}: IReportScoresStateProps & IReportScoresDispatchProps & IReportScoreParentProps) => {
+  const chevronStyle = {
+    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+    transition: 'all ease 0.15s',
+  };
+
+  return (
+    <section className="horizontal report-scores">
+      <AllMetricResultsHeader
+        onClick={clearSelectedGroup}
+        score={score}
+        scoreThresholds={scoreThresholds}
+        className={classNames('flex-1', 'report-score', { active: !selectedGroup })}
+      />
+      <GroupScores groups={groups} className="flex-12" />
+      <div className="kayenta-overview-toggle horizontal middle" onClick={() => toggleHeader()}>
+        {isExpanded ? <p>hide details</p> : <p>show details</p>}
+        <span className="glyphicon glyphicon-chevron-right" style={chevronStyle} />
+      </div>
+    </section>
+  );
+};
 
 const mapStateToProps = (state: ICanaryState): IReportScoresStateProps => ({
   groups: sortBy(

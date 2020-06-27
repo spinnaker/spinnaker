@@ -25,21 +25,12 @@ export default class DetailView extends React.Component<any, IDetailViewState> {
   public render() {
     const { isExpanded } = this.state;
 
-    const chevronStyle = {
-      transform: this.state.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-      transition: 'all ease 0.15s',
-    };
-
     return (
       <>
-        <div className="kayenta-overview-toggle" onClick={this.toggleDetailHeader}>
-          {isExpanded ? <p>hide details</p> : <p>show details</p>}
-          <span className="glyphicon glyphicon-chevron-right" style={chevronStyle} />
-        </div>
         <div className="vertical flex-1">
           {isExpanded && <ReportHeader />}
           <ReportExplanation />
-          <ReportScores />
+          <ReportScores isExpanded={isExpanded} toggleHeader={this.toggleDetailHeader} />
           <MetricResults />
         </div>
       </>
