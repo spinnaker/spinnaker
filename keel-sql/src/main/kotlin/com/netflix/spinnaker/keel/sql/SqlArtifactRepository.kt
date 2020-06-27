@@ -546,9 +546,10 @@ class SqlArtifactRepository(
    * Preconditions for success:
    *
    *  1. [veto.version] is not currently pinned in the target environment
-   *  2. There exists a record R in the environment_artifacts_versions table such that:
-   *     a. R references the artifact version to veto and the target environment encoded in [veto]
-   *     b. R.promotion_reference is NULL, or [force] is true
+   *  2. One of the following is true:
+   *     a. There is no record in the environment_artifacts_version table for this version
+   *     b. The record in the environment_artifacts_versions table for this version has promotion_reference=NULL
+   *     c. [force] is true
    *
    *  Note: 2b is a precondition to avoid cascading veto-triggered deployments. If R contains a promotion reference, then
    *  [veto.version] was originally deployed as a result of another artifact version being vetoed (see postcondition 3a).
@@ -591,44 +592,44 @@ class SqlArtifactRepository(
       return false
     }
 
-    return selectPromotionReference(envUid, artUid, veto.version)
-      .fetchOne { (ref: String?) ->
-        ref?.let { reference ->
-          /**
-           * If there's a promotion reference, that means this artifact version was deployed as a result of
-           * another artifact version being vetoed. In that case, we don't veto unless [force] is enabled.
-           */
-          if (!force) {
-            log.warn(
-              "Not vetoing artifact version as it appears to have already been an automated rollback target: " +
-                "deliveryConfig=${deliveryConfig.name}, " +
-                "environment=${veto.targetEnvironment}, " +
-                "artifactVersion=${veto.version}, " +
-                "priorVersionReference=$reference")
-            return@fetchOne false
-          }
-        }
-
-        val prior = priorVersionDeployedIn(envUid, artUid, veto.version)
-
-        sqlRetry.withRetry(WRITE) {
-          jooq.transaction { config ->
-            val txn = DSL.using(config)
-            txn.updateAsVetoedInEnvironmentArtifactVersionsTable(prior, veto, envUid, artUid)
-            txn.addRecordToEnvironmentArtifactVetoTable(envUid, artUid, veto)
-
-            /**
-             * If there's a previously deployed version in [targetEnvironment], set `promotion_reference`
-             * to the version that's currently being vetoed. If that version also fails to fully deploy,
-             * this is used to short-circuit further automated vetoes. We want to avoid a cloud provider
-             * or other issue unrelated to an artifact version triggering continual automated rollbacks
-             * thru all previously deployed versions.
-             */
-            prior?.let { txn.setPromotionReference(veto.version, envUid, artUid, it) }
-          }
-        }
-        return@fetchOne true
+    /**
+     * If there's a promotion reference, that means this artifact version was deployed as a result of
+     * another artifact version being vetoed. In that case, we don't veto unless [force] is enabled.
+     */
+    selectPromotionReference(envUid, artUid, veto.version)
+      .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+      ?.let { reference ->
+      if (!force) {
+        log.warn(
+          "Not vetoing artifact version as it appears to have already been an automated rollback target: " +
+            "deliveryConfig=${deliveryConfig.name}, " +
+            "environment=${veto.targetEnvironment}, " +
+            "artifactVersion=${veto.version}, " +
+            "priorVersionReference=$reference")
+        return false
       }
+    }
+
+    val prior = priorVersionDeployedIn(envUid, artUid, veto.version)
+
+    sqlRetry.withRetry(WRITE) {
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        txn.upsertAsVetoedInEnvironmentArtifactVersionsTable(prior, veto, envUid, artUid)
+        txn.addRecordToEnvironmentArtifactVetoTable(envUid, artUid, veto)
+
+        /**
+         * If there's a previously deployed version in [targetEnvironment], set `promotion_reference`
+         * to the version that's currently being vetoed. If that version also fails to fully deploy,
+         * this is used to short-circuit further automated vetoes. We want to avoid a cloud provider
+         * or other issue unrelated to an artifact version triggering continual automated rollbacks
+         * thru all previously deployed versions.
+         */
+        prior?.let { txn.setPromotionReference(veto.version, envUid, artUid, it) }
+      }
+    }
+
+    return true
   }
 
   private fun DSLContext.setPromotionReference(version: String, envUid: String, artUid: String, prior: String) {
@@ -661,20 +662,21 @@ class SqlArtifactRepository(
       .execute()
   }
 
-  private fun DSLContext.updateAsVetoedInEnvironmentArtifactVersionsTable(
+  private fun DSLContext.upsertAsVetoedInEnvironmentArtifactVersionsTable(
     prior: String?,
     veto: EnvironmentArtifactVeto,
     envUid: String,
     artUid: String
   ) {
-    update(ENVIRONMENT_ARTIFACT_VERSIONS)
+    insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, envUid)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artUid)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, veto.version)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: veto.version)
-      .where(
-        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
-        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
-        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(veto.version)
-      )
+      .onDuplicateKeyUpdate()
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: veto.version)
       .execute()
   }
 

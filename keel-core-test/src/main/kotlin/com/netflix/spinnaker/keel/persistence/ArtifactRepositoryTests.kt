@@ -301,6 +301,27 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             get(ArtifactVersionStatus::previous).isEmpty()
           }
         }
+
+        test("an artifact version can be vetoed even if it was not previously deployed") {
+          val veto = EnvironmentArtifactVeto(
+            targetEnvironment = environment1.name,
+            reference = artifact1.reference,
+            version = version1,
+            vetoedBy = "someone",
+            comment = "testing if mark as bad works"
+          )
+
+          subject.markAsVetoedIn(deliveryConfig = manifest, veto = veto, force = true)
+
+          expectThat(
+            subject.vetoedEnvironmentVersions(manifest))
+            .isEqualTo(listOf(
+            EnvironmentArtifactVetoes(
+              deliveryConfigName = manifest.name,
+              targetEnvironment = environment1.name,
+              artifact = artifact1,
+              versions = mutableSetOf(version1))))
+        }
       }
 
       context("another version is stuck in deploying") {
