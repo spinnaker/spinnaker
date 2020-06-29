@@ -13,6 +13,7 @@ import { ColumnHeader } from './ColumnHeader';
 import { ArtifactsList } from './ArtifactsList';
 import { EnvironmentsList } from './EnvironmentsList';
 import { ArtifactDetail } from './ArtifactDetail';
+import { EnvironmentsHeader } from './EnvironmentsHeader';
 
 import styles from './Environments.module.css';
 
@@ -157,6 +158,13 @@ export function Environments({ app }: IEnvironmentsProps) {
             show && (
               <animated.div key={key} className={styles.environmentsPane} style={props}>
                 <ColumnHeader text="Environments" icon="environment" />
+                <EnvironmentsHeader
+                  app={app}
+                  resourceInfo={{
+                    managed: resources.filter(r => !r.isPaused).length,
+                    total: resources.length,
+                  }}
+                />
                 <EnvironmentsList application={app} {...{ environments, artifacts, resourcesById }} />
               </animated.div>
             ),

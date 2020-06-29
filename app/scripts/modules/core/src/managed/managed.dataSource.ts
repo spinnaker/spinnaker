@@ -39,9 +39,10 @@ module(MANAGED_RESOURCES_DATA_SOURCE, []).run([
     };
 
     const addEnvironments = (
-      _application: Application,
+      application: Application,
       data: IManagedApplicationSummary<'resources' | 'artifacts' | 'environments'>,
     ) => {
+      application.isManagementPaused = data.applicationPaused;
       return $q.when(data);
     };
 
