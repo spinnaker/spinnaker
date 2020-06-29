@@ -108,9 +108,10 @@ public class TravisBuildMonitor
             .collect(Collectors.toList());
 
     log.info(
-        "({}) generateDelta: Took {}ms to generate polling delta",
+        "({}) generateDelta: Took {}ms to generate polling delta. Polled {} builds.",
         kv("master", master),
-        Duration.between(startTime, Instant.now()).toMillis());
+        Duration.between(startTime, Instant.now()).toMillis(),
+        builds.size());
 
     return BuildPollingDelta.builder().master(master).items(builds).build();
   }

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.igor.travis.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.config.BuildServerProperties;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -67,6 +69,8 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
      * jobs that writes a lot of logs, which is why the default setting is a bit conservative.
      */
     private int buildResultLimit = 10;
+
+    private Collection<String> filteredRepositories = Collections.emptySet();
 
     private Integer itemUpperThreshold;
     private Permissions.Builder permissions = new Permissions.Builder();

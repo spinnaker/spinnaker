@@ -1,3 +1,5 @@
+services.fiat.baseUrl: https://fiat.net
+
 netflix:
   appinfo:
     name: 'igor'
@@ -9,7 +11,7 @@ spinnaker:
     # A lower value can help prevent accidental re-triggers of pipelines, but may require hands-on operations if
     # set low.
     # See code documentation for more details. Class [PollingSafeguardProperties] in
-    # https://github.com/spinnaker/igor/blob/master/igor-web/src/main/groovy/com/netflix/spinnaker/igor/IgorConfigurationProperties.groovy#L47
+    # https://github.com/spinnaker/igor/blob/master/igor-core/src/main/java/com/netflix/spinnaker/igor/IgorConfigurationProperties.java#L92
     itemUpperThreshold: 1000
 
 endpoints.health.sensitive: false

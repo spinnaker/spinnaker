@@ -39,6 +39,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static java.util.Collections.emptyList
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 /**
  * tests for the info controller
@@ -154,7 +155,7 @@ class InfoControllerSpec extends Specification {
                 .add(Authorization.READ, ['group-1', 'group-2'])
                 .add(Authorization.WRITE, 'group-2').build(),
           circuitBreakerRegistry)
-        TravisService travisService = new TravisService('travis-baz', null, null, 100, 10, null, null, Optional.empty(), [], null,
+        TravisService travisService = new TravisService('travis-baz', null, null, 100, 10, emptyList(), null, null, Optional.empty(), [], null,
             new Permissions.Builder()
                 .add(Authorization.READ, ['group-3', 'group-4'])
                 .add(Authorization.WRITE, 'group-3').build(), false, CircuitBreakerRegistry.ofDefaults())

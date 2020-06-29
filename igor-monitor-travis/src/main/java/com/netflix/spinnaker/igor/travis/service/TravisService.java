@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.igor.travis.service;
 
+import static java.util.Collections.emptyList;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -52,6 +53,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;
+import io.vavr.control.Either;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -82,6 +84,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   private final GithubAuth gitHubAuth;
   private final int numberOfJobs;
   private final int buildResultLimit;
+  private Collection<String> filteredRepositories;
   private final TravisClient travisClient;
   private final TravisCache travisCache;
   private final Collection<String> artifactRegexes;
@@ -98,6 +101,7 @@ public class TravisService implements BuildOperations, BuildProperties {
       String githubToken,
       int numberOfJobs,
       int buildResultLimit,
+      Collection<String> filteredRepositories,
       TravisClient travisClient,
       TravisCache travisCache,
       Optional<ArtifactDecorator> artifactDecorator,
@@ -110,6 +114,7 @@ public class TravisService implements BuildOperations, BuildProperties {
     this.buildResultLimit = buildResultLimit;
     this.groupKey = travisHostId;
     this.gitHubAuth = new GithubAuth(githubToken);
+    this.filteredRepositories = filteredRepositories;
     this.travisClient = travisClient;
     this.baseUrl = baseUrl;
     this.travisCache = travisCache;
@@ -309,13 +314,18 @@ public class TravisService implements BuildOperations, BuildProperties {
                     .collect(Collectors.toList()),
             error -> {
               log.warn("An error occurred while fetching new jobs from Travis.", error);
-              return Collections.emptyList();
+              return emptyList();
             });
 
     return breaker.executeSupplier(supplier);
   }
 
   public List<V3Build> getLatestBuilds() {
+
+    if (!filteredRepositories.isEmpty()) {
+      return getBuildsForSpecificRepos(filteredRepositories);
+    }
+
     Map<V3Build, List<V3Job>> jobs =
         getJobs(
                 numberOfJobs,
@@ -336,6 +346,28 @@ public class TravisService implements BuildOperations, BuildProperties {
               return build;
             })
         .collect(Collectors.toList());
+  }
+
+  private List<V3Build> getBuildsForSpecificRepos(Collection<String> repositories) {
+    return repositories
+        .parallelStream()
+        .map(this::fetchBuilds)
+        .filter(Either::isLeft)
+        .map(Either::getLeft)
+        .flatMap(item -> item.getBuilds().stream())
+        .collect(Collectors.toList());
+  }
+
+  private Either<V3Builds, Exception> fetchBuilds(String repoSlug) {
+    try {
+      log.info("fetching builds for repo: {}", repoSlug);
+      return Either.left(
+          travisClient.v3builds(
+              getAccessToken(), repoSlug, buildResultLimit, addLogCompleteIfApplicable()));
+    } catch (Exception e) {
+      log.error("Failed to fetch builds for repo {}. Skipping. {}.", repoSlug, e.getMessage());
+      return Either.right(e);
+    }
   }
 
   private String addLogCompleteIfApplicable(String... initialParams) {

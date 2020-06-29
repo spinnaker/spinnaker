@@ -100,6 +100,7 @@ public class TravisConfig {
                           host.getGithubToken(),
                           host.getNumberOfJobs(),
                           host.getBuildResultLimit(),
+                          host.getFilteredRepositories(),
                           client,
                           travisCache,
                           artifactDecorator,
