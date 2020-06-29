@@ -53,7 +53,6 @@ type APIClient struct {
 	ClusterControllerApi	*ClusterControllerApiService
 	ConcourseControllerApi	*ConcourseControllerApiService
 	CredentialsControllerApi	*CredentialsControllerApiService
-	DeckPluginsControllerApi	*DeckPluginsControllerApiService
 	EcsServerGroupEventsControllerApi	*EcsServerGroupEventsControllerApiService
 	ExecutionsControllerApi	*ExecutionsControllerApiService
 	FirewallControllerApi	*FirewallControllerApiService
@@ -66,9 +65,6 @@ type APIClient struct {
 	PipelineConfigControllerApi	*PipelineConfigControllerApiService
 	PipelineControllerApi	*PipelineControllerApiService
 	PipelineTemplatesControllerApi	*PipelineTemplatesControllerApiService
-	PluginInfoControllerApi	*PluginInfoControllerApiService
-	PluginPublishControllerApi	*PluginPublishControllerApiService
-	PluginsInstalledControllerApi	*PluginsInstalledControllerApiService
 	ProjectControllerApi	*ProjectControllerApiService
 	PubsubSubscriptionControllerApi	*PubsubSubscriptionControllerApiService
 	ReorderPipelinesControllerApi	*ReorderPipelinesControllerApiService
@@ -112,7 +108,6 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.ClusterControllerApi = (*ClusterControllerApiService)(&c.common)
 	c.ConcourseControllerApi = (*ConcourseControllerApiService)(&c.common)
 	c.CredentialsControllerApi = (*CredentialsControllerApiService)(&c.common)
-	c.DeckPluginsControllerApi = (*DeckPluginsControllerApiService)(&c.common)
 	c.EcsServerGroupEventsControllerApi = (*EcsServerGroupEventsControllerApiService)(&c.common)
 	c.ExecutionsControllerApi = (*ExecutionsControllerApiService)(&c.common)
 	c.FirewallControllerApi = (*FirewallControllerApiService)(&c.common)
@@ -125,9 +120,6 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.PipelineConfigControllerApi = (*PipelineConfigControllerApiService)(&c.common)
 	c.PipelineControllerApi = (*PipelineControllerApiService)(&c.common)
 	c.PipelineTemplatesControllerApi = (*PipelineTemplatesControllerApiService)(&c.common)
-	c.PluginInfoControllerApi = (*PluginInfoControllerApiService)(&c.common)
-	c.PluginPublishControllerApi = (*PluginPublishControllerApiService)(&c.common)
-	c.PluginsInstalledControllerApi = (*PluginsInstalledControllerApiService)(&c.common)
 	c.ProjectControllerApi = (*ProjectControllerApiService)(&c.common)
 	c.PubsubSubscriptionControllerApi = (*PubsubSubscriptionControllerApiService)(&c.common)
 	c.ReorderPipelinesControllerApi = (*ReorderPipelinesControllerApiService)(&c.common)

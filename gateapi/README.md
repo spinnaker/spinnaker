@@ -76,8 +76,6 @@ Class | Method | HTTP request | Description
 *ConcourseControllerApi* | [**ResourcesUsingGET**](docs/ConcourseControllerApi.md#resourcesusingget) | **Get** /concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources | Retrieve the list of resource names for a given pipeline available to the Concourse stage
 *CredentialsControllerApi* | [**GetAccountUsingGET**](docs/CredentialsControllerApi.md#getaccountusingget) | **Get** /credentials/{account} | Retrieve an account&#39;s details
 *CredentialsControllerApi* | [**GetAccountsUsingGET**](docs/CredentialsControllerApi.md#getaccountsusingget) | **Get** /credentials | Retrieve a list of accounts
-*DeckPluginsControllerApi* | [**GetPluginAssetUsingGET**](docs/DeckPluginsControllerApi.md#getpluginassetusingget) | **Get** /plugins/deck/{pluginId}/{pluginVersion}/{asset} | Retrieve a single plugin asset by version
-*DeckPluginsControllerApi* | [**GetPluginManifestUsingGET**](docs/DeckPluginsControllerApi.md#getpluginmanifestusingget) | **Get** /plugins/deck/plugin-manifest.json | Retrieve a plugin manifest
 *EcsServerGroupEventsControllerApi* | [**GetEventsUsingGET**](docs/EcsServerGroupEventsControllerApi.md#geteventsusingget) | **Get** /applications/{application}/serverGroups/{account}/{serverGroupName}/events | Retrieves a list of events for a server group
 *ExecutionsControllerApi* | [**GetLatestExecutionsByConfigIdsUsingGET**](docs/ExecutionsControllerApi.md#getlatestexecutionsbyconfigidsusingget) | **Get** /executions | Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or pipelineConfigIds must be supplied in order to return any results. If both are supplied, an exception will be thrown.
 *ExecutionsControllerApi* | [**SearchForPipelineExecutionsByTriggerUsingGET**](docs/ExecutionsControllerApi.md#searchforpipelineexecutionsbytriggerusingget) | **Get** /applications/{application}/executions/search | Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that newer executions are first in the list.
@@ -150,12 +148,6 @@ Class | Method | HTTP request | Description
 *PipelineTemplatesControllerApi* | [**ListUsingGET**](docs/PipelineTemplatesControllerApi.md#listusingget) | **Get** /pipelineTemplates | List pipeline templates.
 *PipelineTemplatesControllerApi* | [**ResolveTemplatesUsingGET**](docs/PipelineTemplatesControllerApi.md#resolvetemplatesusingget) | **Get** /pipelineTemplates/resolve | Resolve a pipeline template.
 *PipelineTemplatesControllerApi* | [**UpdateUsingPOST**](docs/PipelineTemplatesControllerApi.md#updateusingpost) | **Post** /pipelineTemplates/{id} | Update a pipeline template.
-*PluginInfoControllerApi* | [**DeletePluginInfoUsingDELETE**](docs/PluginInfoControllerApi.md#deleteplugininfousingdelete) | **Delete** /plugins/info/{id} | Delete plugin info with the provided Id
-*PluginInfoControllerApi* | [**GetAllPluginInfoUsingGET**](docs/PluginInfoControllerApi.md#getallplugininfousingget) | **Get** /plugins/info | Get all plugin info objects
-*PluginInfoControllerApi* | [**PersistPluginInfoUsingPOST**](docs/PluginInfoControllerApi.md#persistplugininfousingpost) | **Post** /plugins/info | Persist plugin metadata information
-*PluginInfoControllerApi* | [**PersistPluginInfoUsingPUT**](docs/PluginInfoControllerApi.md#persistplugininfousingput) | **Put** /plugins/info | Persist plugin metadata information
-*PluginPublishControllerApi* | [**PublishPluginUsingPOST**](docs/PluginPublishControllerApi.md#publishpluginusingpost) | **Post** /plugins/publish/{pluginId}/{pluginVersion} | Publish a plugin binary and the plugin info metadata.
-*PluginsInstalledControllerApi* | [**GetInstalledPluginsUsingGET**](docs/PluginsInstalledControllerApi.md#getinstalledpluginsusingget) | **Get** /plugins/installed | Get all installed Spinnaker plugins
 *ProjectControllerApi* | [**AllPipelinesForProjectUsingGET**](docs/ProjectControllerApi.md#allpipelinesforprojectusingget) | **Get** /projects/{id}/pipelines | Get all pipelines for project
 *ProjectControllerApi* | [**AllUsingGET3**](docs/ProjectControllerApi.md#allusingget3) | **Get** /projects | Get all projects
 *ProjectControllerApi* | [**GetClustersUsingGET3**](docs/ProjectControllerApi.md#getclustersusingget3) | **Get** /projects/{id}/clusters | Get a project&#39;s clusters
@@ -211,30 +203,20 @@ Class | Method | HTTP request | Description
  - [AccountDetails](docs/AccountDetails.md)
  - [ConstraintState](docs/ConstraintState.md)
  - [ConstraintStatus](docs/ConstraintStatus.md)
- - [DeckPluginVersion](docs/DeckPluginVersion.md)
  - [DeliveryConfig](docs/DeliveryConfig.md)
  - [Environment](docs/Environment.md)
  - [EnvironmentArtifactPin](docs/EnvironmentArtifactPin.md)
  - [EnvironmentArtifactVeto](docs/EnvironmentArtifactVeto.md)
- - [File](docs/File.md)
  - [GrantedAuthority](docs/GrantedAuthority.md)
  - [HashMapstringobject](docs/HashMapstringobject.md)
  - [HttpEntity](docs/HttpEntity.md)
- - [InputStream](docs/InputStream.md)
  - [Mapstringobject](docs/Mapstringobject.md)
  - [Mapstringstring](docs/Mapstringstring.md)
  - [Notification](docs/Notification.md)
  - [PipelineTemplateDependent](docs/PipelineTemplateDependent.md)
- - [PluginDependency](docs/PluginDependency.md)
  - [ReorderPipelinesCommand](docs/ReorderPipelinesCommand.md)
  - [Resource](docs/Resource.md)
  - [ResponseEntity](docs/ResponseEntity.md)
- - [SpinnakerPluginDescriptor](docs/SpinnakerPluginDescriptor.md)
- - [SpinnakerPluginInfo](docs/SpinnakerPluginInfo.md)
- - [SpinnakerPluginRelease](docs/SpinnakerPluginRelease.md)
- - [Uri](docs/Uri.md)
- - [Url](docs/Url.md)
- - [UrlStreamHandler](docs/UrlStreamHandler.md)
  - [User](docs/User.md)
  - [Version](docs/Version.md)
 
