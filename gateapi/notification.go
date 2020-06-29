@@ -13,7 +13,7 @@ type Notification struct {
 
 	Address string `json:"address,omitempty"`
 
-	Frequency string `json:"frequency,omitempty"`
-
 	Type_ string `json:"type,omitempty"`
+
+	Frequency string `json:"frequency,omitempty"`
 }

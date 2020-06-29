@@ -11,15 +11,15 @@ package swagger
 
 type DeliveryConfig struct {
 
-	ApiVersion string `json:"apiVersion,omitempty"`
-
 	Application string `json:"application,omitempty"`
-
-	Artifacts []Mapstringobject `json:"artifacts,omitempty"`
 
 	Environments []Environment `json:"environments,omitempty"`
 
-	Name string `json:"name,omitempty"`
+	ApiVersion string `json:"apiVersion,omitempty"`
 
 	ServiceAccount string `json:"serviceAccount,omitempty"`
+
+	Name string `json:"name,omitempty"`
+
+	Artifacts []Mapstringobject `json:"artifacts,omitempty"`
 }
