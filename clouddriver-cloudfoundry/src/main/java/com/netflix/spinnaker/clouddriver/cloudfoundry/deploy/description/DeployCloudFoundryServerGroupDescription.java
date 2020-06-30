@@ -64,5 +64,7 @@ public class DeployCloudFoundryServerGroupDescription
     @Nullable private List<String> services;
 
     @Nullable private String stack;
+
+    @Nullable private String command;
   }
 }

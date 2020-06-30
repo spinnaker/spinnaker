@@ -94,7 +94,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation
 
     buildDroplet(packageId, serverGroup.getId(), description);
     scaleApplication(serverGroup.getId(), description);
-    if (description.getApplicationAttributes().getHealthCheckType() != null) {
+    if (description.getApplicationAttributes().getHealthCheckType() != null
+        || description.getApplicationAttributes().getCommand() != null) {
       updateProcess(serverGroup.getId(), description);
     }
 
@@ -423,7 +424,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         .getApplications()
         .updateProcess(
             serverGroupId,
-            null,
+            description.getApplicationAttributes().getCommand(),
             description.getApplicationAttributes().getHealthCheckType(),
             description.getApplicationAttributes().getHealthCheckHttpEndpoint());
     getTask().updateStatus(PHASE, "Updated process '" + description.getServerGroupName() + "'");

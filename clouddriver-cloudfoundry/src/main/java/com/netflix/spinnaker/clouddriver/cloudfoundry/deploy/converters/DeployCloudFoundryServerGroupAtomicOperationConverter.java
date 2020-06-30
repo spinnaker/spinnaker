@@ -151,6 +151,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
                           .collect(toList()));
               attrs.setEnv(app.getEnv());
               attrs.setStack(app.getStack());
+              attrs.setCommand(app.getCommand());
               return attrs;
             })
         .get();
@@ -181,5 +182,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     @Nullable private Map<String, String> env;
 
     @Nullable private String stack;
+
+    @Nullable private String command;
   }
 }

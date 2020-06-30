@@ -147,7 +147,9 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                                 List.of(HashMap.of("route", "www.example.com/foo").toJavaMap())
                                     .asJava(),
                                 "env",
-                                HashMap.of("token", "ASDF").toJavaMap())
+                                HashMap.of("token", "ASDF").toJavaMap(),
+                                "command",
+                                "some-command")
                             .toJavaMap())
                     .asJava())
             .toJavaMap();
@@ -163,7 +165,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                 .setBuildpacks(List.of("buildpack1", "buildpack2").asJava())
                 .setServices(List.of("service1").asJava())
                 .setRoutes(List.of("www.example.com/foo").asJava())
-                .setEnv(HashMap.of("token", "ASDF").toJavaMap()));
+                .setEnv(HashMap.of("token", "ASDF").toJavaMap())
+                .setCommand("some-command"));
   }
 
   @Test
