@@ -3,24 +3,24 @@ MAINTAINER sig-platform@spinnaker.io
 COPY clouddriver-web/build/install/clouddriver /opt/clouddriver
 
 RUN apt-get update && apt-get install -y curl gnupg && \
-    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    echo "deb https://packages.cloud.google.com/apt cloud-sdk-bionic main" > /etc/apt/sources.list.d/cloud-sdk.list && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y \
-      openjdk-8-jre-headless \
-      wget \
-      google-cloud-sdk \
-      google-cloud-sdk-app-engine-java \
-      google-cloud-sdk-app-engine-go \
-      kubectl \
-      python-pip && \
-    pip install awscli==1.16.258 --upgrade && \
-    rm -rf ~/.config/gcloud
+  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+  echo "deb https://packages.cloud.google.com/apt cloud-sdk-bionic main" > /etc/apt/sources.list.d/cloud-sdk.list && \
+  apt-get update && \
+  apt-get upgrade -y && \
+  apt-get install -y \
+  openjdk-8-jre-headless \
+  wget \
+  google-cloud-sdk \
+  google-cloud-sdk-app-engine-java \
+  google-cloud-sdk-app-engine-go \
+  kubectl \
+  python-pip && \
+  pip install awscli==1.16.258 --upgrade && \
+  rm -rf ~/.config/gcloud
 
-RUN curl -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/linux/amd64/aws-iam-authenticator && \
-    chmod +x /usr/local/bin/aws-iam-authenticator && \
-    ln -s    /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
+RUN curl -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/aws-iam-authenticator && \
+  chmod +x /usr/local/bin/aws-iam-authenticator && \
+  ln -s    /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
 
 RUN adduser --disabled-login --system spinnaker
 RUN mkdir -p /opt/clouddriver/plugins && chown -R spinnaker:nogroup /opt/clouddriver/plugins
