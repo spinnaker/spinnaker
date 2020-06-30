@@ -71,11 +71,11 @@ func (a *PluginPublishControllerApiService) PublishPluginUsingPOST(ctx context.C
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
-	if localVarFile != nil {
-		fbs, _ := ioutil.ReadAll(localVarFile)
+	if plugin != nil {
+		fbs, _ := ioutil.ReadAll(plugin)
 		localVarFileBytes = fbs
-		localVarFileName = localVarFile.Name()
-		localVarFile.Close()
+		localVarFileName = plugin.Name()
+		plugin.Close()
 	}
 	localVarFormParams.Add("pluginInfo", parameterToString(pluginInfo, ""))
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
