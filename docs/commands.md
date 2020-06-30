@@ -4419,6 +4419,7 @@ hal config ci travis master add MASTER [parameters]
  * `--base-url`: (*Required*) The base URL to the travis UI ([https://travis-ci.org](https://travis-ci.org)).
  * `--build-result-limit`: Defines how many builds Igor should return when querying for builds for a specific repo. This affects for instance how many builds that will be displayed in the drop down when starting a manual execution of a pipeline. If set too high, the Travis API might return an error for jobs that writes a lot of logs, which is why the default setting is a bit conservative. Defaults to 10. Used for spinnaker >= 1.17.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--filtered-repositories`: (*Default*: `[]`) Defines the list of repositories that will be scraped. Useful if the organization has a lot of repositories and you wish to speed things up by scanning only a subset.
  * `--github-token`: (*Sensitive data* - user will be prompted on standard input) The github token to authentiacte against travis with.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--number-of-jobs`: Defines how many jobs the Travis integration should retrieve per polling cycle. Defaults to 100. Used for spinnaker >= 1.17.
@@ -4461,6 +4462,7 @@ hal config ci travis master edit MASTER [parameters]
  * `--base-url`: The base URL to the travis UI ([https://travis-ci.org](https://travis-ci.org)).
  * `--build-result-limit`: Defines how many builds Igor should return when querying for builds for a specific repo. This affects for instance how many builds that will be displayed in the drop down when starting a manual execution of a pipeline. If set too high, the Travis API might return an error for jobs that writes a lot of logs, which is why the default setting is a bit conservative. Defaults to 10. Used for spinnaker >= 1.17.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--filtered-repositories`: (*Default*: `[]`) Defines the list of repositories that will be scraped. Useful if the organization has a lot of repositories and you wish to speed things up by scanning only a subset.
  * `--github-token`: (*Sensitive data* - user will be prompted on standard input) The github token to authentiacte against travis with.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--number-of-jobs`: Defines how many jobs the Travis integration should retrieve per polling cycle. Defaults to 100. Used for spinnaker >= 1.17.

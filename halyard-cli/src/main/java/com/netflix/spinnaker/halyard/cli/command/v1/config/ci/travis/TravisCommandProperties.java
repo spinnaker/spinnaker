@@ -45,4 +45,8 @@ public class TravisCommandProperties {
           + " jobs that writes a lot of logs, which is why the default setting is a bit conservative."
           + " Defaults to 10."
           + " Used for spinnaker >= 1.17.";
+
+  static final String FILTERED_REPOSITORIES_DESCRIPTION =
+      "Defines the list of repositories that will be scraped. Useful if the organization has a lot of"
+          + " repositories and you wish to speed things up by scanning only a subset.";
 }

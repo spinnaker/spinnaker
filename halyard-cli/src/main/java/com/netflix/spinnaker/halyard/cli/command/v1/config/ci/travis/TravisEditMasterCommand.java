@@ -21,6 +21,8 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractEditMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
+import java.util.ArrayList;
+import java.util.List;
 
 @Parameters(separators = "=")
 public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMaster> {
@@ -55,6 +57,11 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
       description = TravisCommandProperties.BUILD_RESULT_LIMIT_DESCRIPTION)
   public Integer buildResultLimit;
 
+  @Parameter(
+      names = "--filtered-repositories",
+      description = TravisCommandProperties.FILTERED_REPOSITORIES_DESCRIPTION)
+  public List<String> filteredRepositories = new ArrayList<>();
+
   @Override
   protected CIAccount editMaster(TravisMaster master) {
     master.setAddress(isSet(address) ? address : master.getAddress());
@@ -65,6 +72,8 @@ public class TravisEditMasterCommand extends AbstractEditMasterCommand<TravisMas
     master.setNumberOfJobs(isSet(numberOfJobs) ? numberOfJobs : master.getNumberOfJobs());
     master.setBuildResultLimit(
         isSet(buildResultLimit) ? buildResultLimit : master.getBuildResultLimit());
+    master.setFilteredRepositories(
+        isSet(filteredRepositories) ? filteredRepositories : master.getFilteredRepositories());
 
     return master;
   }
