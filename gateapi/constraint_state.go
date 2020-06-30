@@ -11,23 +11,23 @@ package swagger
 
 type ConstraintState struct {
 
+	ArtifactVersion string `json:"artifactVersion,omitempty"`
+
+	Attributes *interface{} `json:"attributes,omitempty"`
+
+	Comment string `json:"comment,omitempty"`
+
+	CreatedAt string `json:"createdAt,omitempty"`
+
 	DeliveryConfigName string `json:"deliveryConfigName,omitempty"`
 
 	EnvironmentName string `json:"environmentName,omitempty"`
 
-	Attributes *interface{} `json:"attributes,omitempty"`
+	JudgedAt string `json:"judgedAt,omitempty"`
 
 	JudgedBy string `json:"judgedBy,omitempty"`
 
-	Comment string `json:"comment,omitempty"`
-
-	ArtifactVersion string `json:"artifactVersion,omitempty"`
+	Status string `json:"status,omitempty"`
 
 	Type_ string `json:"type,omitempty"`
-
-	JudgedAt string `json:"judgedAt,omitempty"`
-
-	CreatedAt string `json:"createdAt,omitempty"`
-
-	Status string `json:"status,omitempty"`
 }

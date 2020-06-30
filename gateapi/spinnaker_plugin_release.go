@@ -9,15 +9,21 @@
 
 package swagger
 
-type EnvironmentArtifactPin struct {
+import (
+	"time"
+)
 
-	Comment string `json:"comment,omitempty"`
+type SpinnakerPluginRelease struct {
 
-	PinnedBy string `json:"pinnedBy,omitempty"`
+	Date time.Time `json:"date,omitempty"`
 
-	Reference string `json:"reference,omitempty"`
+	Preferred bool `json:"preferred,omitempty"`
 
-	TargetEnvironment string `json:"targetEnvironment,omitempty"`
+	Requires string `json:"requires,omitempty"`
+
+	Sha512sum string `json:"sha512sum,omitempty"`
+
+	Url string `json:"url,omitempty"`
 
 	Version string `json:"version,omitempty"`
 }
