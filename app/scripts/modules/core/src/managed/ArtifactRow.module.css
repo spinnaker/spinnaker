@@ -3,8 +3,9 @@
   display: block;
   cursor: pointer;
 }
+
 .ArtifactRow:not(.selected):hover {
-  background-image: linear-gradient(to bottom, rgba(160, 180, 220, 0.15), rgba(160, 180, 220, 0.15));
+  background-color: #f1f4fa;
 }
 
 .selected {
