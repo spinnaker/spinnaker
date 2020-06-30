@@ -1,3 +1,5 @@
+@import (reference) '~core/presentation/less/imports/commonImports.less';
+
 .vertical-navigation {
   width: 240px;
   height: 100%;
@@ -13,10 +15,14 @@
       border: 2px solid var(--color-white);
       color: var(--color-white);
       text-align: center;
-      width: 30px;
-      height: 30px;
-      line-height: 28px;
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
       font-size: 15px;
+    }
+
+    .header-icon-pulsing {
+      .pulsing(4);
     }
 
     .refresher {
