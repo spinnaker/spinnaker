@@ -579,7 +579,7 @@ class SqlCache(
 
         insert.apply {
           chunk.forEach {
-            values(it, agent, apps[it], hashes[it], bodies[it], now)
+            values(it, sqlNames.checkAgentName(agent), apps[it], hashes[it], bodies[it], now)
           }
 
           onDuplicateKeyUpdate()
@@ -602,7 +602,7 @@ class SqlCache(
             jooq.fetchExists(
               jooq.select()
                 .from(sqlNames.resourceTableName(type))
-                .where(field("id").eq(it), field("agent").eq(agent))
+                .where(field("id").eq(it), field("agent").eq(sqlNames.checkAgentName(agent)))
                 .forUpdate()
             )
           }
@@ -614,7 +614,7 @@ class SqlCache(
                 .set(field("body_hash"), hashes[it])
                 .set(field("body"), bodies[it])
                 .set(field("last_updated"), clock.millis())
-                .where(field("id").eq(it), field("agent").eq(agent))
+                .where(field("id").eq(it), field("agent").eq(sqlNames.checkAgentName(agent)))
                 .execute()
             }
             result.writeQueries.incrementAndGet()
@@ -631,7 +631,7 @@ class SqlCache(
                 field("last_updated")
               ).values(
                 it,
-                agent,
+                sqlNames.checkAgentName(agent),
                 apps[it],
                 hashes[it],
                 bodies[it],
@@ -765,7 +765,7 @@ class SqlCache(
 
           insert.apply {
             chunk.forEach {
-              values(ulid.toString(), it.id, it.rel_id, it.rel_type, relType, now)
+              values(ulid.toString(), it.id, it.rel_id, sqlNames.checkAgentName(it.rel_type), relType, now)
               ulid = ULID().nextMonotonicValue(ulid)
             }
           }
@@ -795,7 +795,7 @@ class SqlCache(
 
             insert.apply {
               chunk.forEach {
-                values(ulid.toString(), it.rel_id, it.id, it.rel_type, type, now)
+                values(ulid.toString(), it.rel_id, it.id, sqlNames.checkAgentName(it.rel_type), type, now)
                 ulid = ULID().nextMonotonicValue(ulid)
               }
             }
@@ -915,7 +915,7 @@ class SqlCache(
         .select(field("body_hash"), field("id"))
         .from(table(sqlNames.resourceTableName(type)))
         .where(
-          field("agent").eq(agent)
+          field("agent").eq(sqlNames.checkAgentName(agent))
         )
         .fetch()
         .into(HashId::class.java)
@@ -927,7 +927,7 @@ class SqlCache(
       jooq
         .select(field("uuid"), field("id"), field("rel_id"), field("rel_agent"))
         .from(table(sqlNames.relTableName(type)))
-        .where(field("rel_agent").eq(sourceAgent))
+        .where(field("rel_agent").eq(sqlNames.checkAgentName(sourceAgent)))
         .fetch()
         .into(RelId::class.java)
     }
@@ -939,7 +939,7 @@ class SqlCache(
         .select(field("uuid"), field("id"), field("rel_id"), field("rel_agent"))
         .from(table(sqlNames.relTableName(type)))
         .where(
-          field("rel_agent").eq(sourceAgent),
+          field("rel_agent").eq(sqlNames.checkAgentName(sourceAgent)),
           field("rel_type").eq(origType)
         )
         .fetch()
