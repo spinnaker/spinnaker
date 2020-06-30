@@ -151,7 +151,7 @@ public class ContainerInformationService {
       case "ACTIVATING":
         return "Starting";
       case "RUNNING":
-        return "Unknown";
+        return "Up";
       default:
         return "Down";
     }

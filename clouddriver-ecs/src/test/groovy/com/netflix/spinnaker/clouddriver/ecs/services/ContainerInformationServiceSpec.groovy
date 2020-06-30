@@ -83,7 +83,7 @@ class ContainerInformationServiceSpec extends Specification {
       ],
       [
         instanceId: taskId,
-        state     : 'Unknown',
+        state     : 'Up',
         type      :'ecs',
         healthClass: 'platform'
       ]
@@ -192,7 +192,7 @@ class ContainerInformationServiceSpec extends Specification {
     'UNKNOWN'     | 'Starting'    | 'PROVISIONING'
     'UNKNOWN'     | 'Starting'    | 'PENDING'
     'UNKNOWN'     | 'Starting'    | 'ACTIVATING'
-    'UNKNOWN'     | 'Unknown'     | 'RUNNING'
+    'UNKNOWN'     | 'Up'          | 'RUNNING'
     'UNHEALTHY'   | 'Down'        | 'PROVISIONING'
     'UNHEALTHY'   | 'Down'        | 'PENDING'
     'UNHEALTHY'   | 'Down'        | 'ACTIVATING'
@@ -244,7 +244,7 @@ class ContainerInformationServiceSpec extends Specification {
     'HEALTHY'     | 'Starting'    | 'PROVISIONING'
     'HEALTHY'     | 'Starting'    | 'PENDING'
     'HEALTHY'     | 'Starting'    | 'ACTIVATING'
-    'HEALTHY'     | 'Unknown'     | 'RUNNING'
+    'HEALTHY'     | 'Up'          | 'RUNNING'
   }
 
   def 'should return a proper private address for a task'() {
