@@ -51,7 +51,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
       task.oortService = oort
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeAsg", context)
+      def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeAsg", context)
 
     when:
       def result = task.execute(stage)
@@ -173,6 +173,50 @@ class WaitForCapacityMatchTaskSpec extends Specification {
             desired: 1
           ]
         ]
+  }
+
+  @Unroll
+  void 'should use targetHealthyDeployPercentage (if available) when determining if scaling has succeeded'() {
+    when:
+    def context  = [
+      capacity: [
+        min: configured.min,
+        max: configured.max,
+        desired: configured.desired
+      ],
+      targetHealthyDeployPercentage: targetHealthyDeployPercentage,
+      targetDesiredSize: targetHealthyDeployPercentage
+        ? Math.round(targetHealthyDeployPercentage * configured.desired / 100) : null
+    ]
+
+    def serverGroup = [
+      asg: [
+        desiredCapacity: asg.desired
+      ],
+      capacity: [
+        min: asg.min,
+        max: asg.max,
+        desired: asg.desired
+      ]
+    ]
+
+    def instances = []
+    (1..healthy).each {
+      instances << [health: [[state: 'Up']]]
+    }
+
+    then:
+    result == task.hasSucceeded(
+      new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", context),
+      serverGroup, instances, null
+    )
+
+    where:
+    result || healthy | asg                             | configured                      | targetHealthyDeployPercentage
+    false  || 5       | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 85
+    false  || 12      | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 85
+    true   || 13      | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 85
+    false  || 13      | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | null
   }
 
   @Unroll
