@@ -45,7 +45,12 @@ class ConcourseBuildMonitorTest {
   private MockWebServer mockConcourse = new MockWebServer();
 
   @BeforeEach
-  void before() {
+  void before() throws Exception {
+    mockConcourse.enqueue(
+        new MockResponse()
+            .setBody("{\"version\": \"6.0.0\"}")
+            .setHeader("Content-Type", "application/json;charset=utf-8"));
+
     ConcourseProperties.Host host = new ConcourseProperties.Host();
     host.setName("test");
     host.setUrl(mockConcourse.url("").toString());

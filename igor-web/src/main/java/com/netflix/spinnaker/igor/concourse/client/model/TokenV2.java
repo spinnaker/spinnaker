@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.concourse.client;
+package com.netflix.spinnaker.igor.concourse.client.model;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.ZonedDateTime;
 
-import java.net.UnknownHostException;
-import org.junit.jupiter.api.Test;
+public class TokenV2 extends Token {
 
-class ConcourseClientTest {
-  @Test
-  void connectException() {
-    assertThatThrownBy(() -> new ConcourseClient("http://does.not.exist", "test", "test"))
-        .hasRootCauseInstanceOf(UnknownHostException.class);
+  @Override
+  @JsonProperty("id_token")
+  public void setAccessToken(String idToken) {
+    super.setAccessToken(idToken);
+  }
+
+  @Override
+  public ZonedDateTime getExpiry() {
+    return ZonedDateTime.now();
   }
 }

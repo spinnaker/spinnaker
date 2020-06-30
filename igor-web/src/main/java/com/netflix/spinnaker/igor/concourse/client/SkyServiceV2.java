@@ -16,15 +16,10 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import retrofit.client.Response;
+import retrofit.http.GET;
 
-import java.net.UnknownHostException;
-import org.junit.jupiter.api.Test;
-
-class ConcourseClientTest {
-  @Test
-  void connectException() {
-    assertThatThrownBy(() -> new ConcourseClient("http://does.not.exist", "test", "test"))
-        .hasRootCauseInstanceOf(UnknownHostException.class);
-  }
+public interface SkyServiceV2 {
+  @GET("/api/v1/user")
+  Response userInfo();
 }

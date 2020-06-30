@@ -363,6 +363,6 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   private void refreshTokenIfNecessary() {
     // returns a 401 on expired/invalid token, which because of retry logic causes the token to be
     // refreshed.
-    client.getSkyService().userInfo();
+    client.userInfo();
   }
 }

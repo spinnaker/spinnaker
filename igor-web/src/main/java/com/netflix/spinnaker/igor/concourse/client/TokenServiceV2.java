@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.netflix.spinnaker.igor.concourse.client.model.TokenV2;
+import retrofit.http.Field;
+import retrofit.http.FormUrlEncoded;
+import retrofit.http.POST;
 
-import java.net.UnknownHostException;
-import org.junit.jupiter.api.Test;
-
-class ConcourseClientTest {
-  @Test
-  void connectException() {
-    assertThatThrownBy(() -> new ConcourseClient("http://does.not.exist", "test", "test"))
-        .hasRootCauseInstanceOf(UnknownHostException.class);
-  }
+public interface TokenServiceV2 {
+  @FormUrlEncoded
+  @POST("/sky/issuer/token")
+  TokenV2 passwordToken(
+      @Field("grant_type") String grantType,
+      @Field("username") String username,
+      @Field("password") String password,
+      @Field("scope") String scope);
 }

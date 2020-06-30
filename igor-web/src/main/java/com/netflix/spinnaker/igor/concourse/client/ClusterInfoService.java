@@ -16,15 +16,10 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.netflix.spinnaker.igor.concourse.client.model.ClusterInfo;
+import retrofit.http.GET;
 
-import java.net.UnknownHostException;
-import org.junit.jupiter.api.Test;
-
-class ConcourseClientTest {
-  @Test
-  void connectException() {
-    assertThatThrownBy(() -> new ConcourseClient("http://does.not.exist", "test", "test"))
-        .hasRootCauseInstanceOf(UnknownHostException.class);
-  }
+public interface ClusterInfoService {
+  @GET("/api/v1/info")
+  ClusterInfo clusterInfo();
 }

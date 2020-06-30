@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.concourse.client;
+package com.netflix.spinnaker.igor.concourse.client.model;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import lombok.Data;
 
-import java.net.UnknownHostException;
-import org.junit.jupiter.api.Test;
-
-class ConcourseClientTest {
-  @Test
-  void connectException() {
-    assertThatThrownBy(() -> new ConcourseClient("http://does.not.exist", "test", "test"))
-        .hasRootCauseInstanceOf(UnknownHostException.class);
-  }
+@Data
+public class ClusterInfo {
+  private String clusterName;
+  private String externalUrl;
+  private String version;
+  private String workerVersion;
 }
