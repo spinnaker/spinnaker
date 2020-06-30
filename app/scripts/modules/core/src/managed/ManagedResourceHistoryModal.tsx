@@ -146,7 +146,7 @@ const renderExpandedRowContent = (
   dismissModal: () => any,
 ) => {
   return (
-    <div className="flex-container-v left">
+    <div className="flex-container-v left" style={{ maxWidth: '90vw' }}>
       {message && (
         <div
           className={classNames('sp-padding-xs-yaxis', {
