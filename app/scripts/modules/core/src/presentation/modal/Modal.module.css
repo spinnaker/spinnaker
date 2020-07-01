@@ -122,15 +122,18 @@
 
 .dialogSizer {
   display: grid;
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr;
   max-height: calc(100vh - 64px);
   min-height: 320px;
+  width: calc(100vw - 128px);
   margin: 0 64px;
 }
 
 @media belowMobileSize {
   .dialogSizer {
     max-height: calc(100vh - 32px);
+    width: calc(100vw - 48px);
     margin: 0 24px;
   }
 }
@@ -145,8 +148,8 @@
 .dialog {
   display: flex;
   position: relative;
-  grid-column: 1;
-  grid-row: 1;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   flex-direction: column;
   overflow: hidden;
   border-radius: 8px;

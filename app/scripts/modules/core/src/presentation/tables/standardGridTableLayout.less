@@ -84,6 +84,10 @@
     }
   }
 
+  .standard-grid-table-row-container {
+    display: grid;
+  }
+
   .standard-grid-table-row {
     display: grid;
     min-height: 40px;
@@ -92,6 +96,7 @@
     font-size: 13px;
     padding: 8px 0;
     grid-column: 1 / -1;
+    grid-row: 1;
 
     &.expandable {
       cursor: pointer;
@@ -127,6 +132,7 @@
   .expanded-row-content {
     /* stretch across entire table width */
     grid-column: 1 / -1;
+    grid-row: 2;
     background-color: var(--color-white);
     padding: 16px;
     overflow-x: scroll;

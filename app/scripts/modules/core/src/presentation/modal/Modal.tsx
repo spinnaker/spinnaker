@@ -51,8 +51,7 @@ export const Modal = ({ isOpen, maxWidth, onRequestClose, onAfterClose, children
               <div
                 className={styles.dialogSizer}
                 style={{
-                  gridTemplateColumns: `minmax(min-content, ${(isNumber(maxWidth) ? `${maxWidth}px` : maxWidth) ??
-                    DEFAULT_MAX_WIDTH})`,
+                  maxWidth: (isNumber(maxWidth) ? `${maxWidth}px` : maxWidth) ?? DEFAULT_MAX_WIDTH,
                 }}
               >
                 <div className={styles.dialog}>{children}</div>

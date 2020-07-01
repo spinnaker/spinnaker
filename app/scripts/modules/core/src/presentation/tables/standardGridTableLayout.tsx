@@ -104,7 +104,7 @@ const TableRowLayout = ({
 
   return (
     <div
-      className={classNames('flex-container-v standard-grid-table-row-container', {
+      className={classNames('standard-grid-table-row-container', {
         'sp-margin-l-bottom': rowExpandable && expanded,
       })}
     >
