@@ -172,8 +172,18 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     return PipelineConfigService.reorderPipelines(this.props.application.name, idsToUpdatedIndices, false);
   }
 
+  // For ReactSortable
   private handleSortEnd = (sortEnd: SortEnd): void => {
     const pipelineNames = arrayMove(this.state.pipelineNames, sortEnd.oldIndex, sortEnd.newIndex);
+    this.applyNewPipelineSortOrder(pipelineNames);
+  };
+
+  private sortAlphabetically = () => {
+    const pipelineNames = this.state.pipelineNames.slice().sort();
+    this.applyNewPipelineSortOrder(pipelineNames);
+  };
+
+  private applyNewPipelineSortOrder = (pipelineNames: string[]): void => {
     const { application } = this.props;
     ReactGA.event({ category: 'Pipelines', action: 'Reordered pipeline' });
     const idsToUpdatedIndices: { [key: string]: number } = {};
@@ -184,6 +194,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
         idsToUpdatedIndices[pipeline.id] = newIndex;
       }
     });
+
     if (!isEmpty(idsToUpdatedIndices)) {
       this.updatePipelines(idsToUpdatedIndices);
       this.refreshPipelines();
@@ -222,6 +233,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
           <div className="content">
             <FilterSection heading="Pipelines" expanded={true}>
               <div className="form">
+                {pipelineReorderEnabled && (
+                  <a className="btn btn-xs btn-default clickable margin-left-md" onClick={this.sortAlphabetically}>
+                    Sort alphabetically
+                  </a>
+                )}
+
                 <Pipelines
                   names={pipelineNames}
                   tags={tags}
