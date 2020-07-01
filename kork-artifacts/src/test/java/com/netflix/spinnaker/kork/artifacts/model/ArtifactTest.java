@@ -231,6 +231,59 @@ final class ArtifactTest {
     assertThat(artifact.getMetadata("key2")).isNull();
   }
 
+  @Test
+  void putMetadataNullValue() throws IOException {
+    Artifact artifact = Artifact.builder().putMetadata("test", null).build();
+    assertThat(artifact.getMetadata("test")).isNull();
+  }
+
+  @Test
+  void putMetadataMapNullValue() throws IOException {
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("test", null);
+    Artifact artifact = Artifact.builder().metadata(metadata).build();
+    assertThat(artifact.getMetadata("test")).isNull();
+  }
+
+  @Test
+  void serializePutMetadataNullValue() throws IOException {
+    String result =
+        objectMapper.writeValueAsString(Artifact.builder().putMetadata("test", null).build());
+
+    // Compare the parsed trees of the two results, which is agnostic to key order
+    AssertionsForClassTypes.assertThat(objectMapper.readTree(result))
+        .isEqualTo(objectMapper.readTree(emptyArtifactJson()));
+  }
+
+  @Test
+  void serializePutMetadataMapNullValue() throws IOException {
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("test", null);
+    String result = objectMapper.writeValueAsString(Artifact.builder().metadata(metadata).build());
+
+    // Compare the parsed trees of the two results, which is agnostic to key order
+    AssertionsForClassTypes.assertThat(objectMapper.readTree(result))
+        .isEqualTo(objectMapper.readTree(emptyArtifactJson()));
+  }
+
+  @Test
+  void deserializeNullMetadataValue() throws IOException {
+    String json =
+        jsonFactory
+            .objectNode()
+            .<ObjectNode>set("metadata", jsonFactory.objectNode().<ObjectNode>set("key", null))
+            .toString();
+    Artifact result = objectMapper.readValue(json, Artifact.class);
+    assertThat(result.getMetadata("key")).isNull();
+  }
+
+  @Test
+  void deserializeNullUnknownKey() throws IOException {
+    String json = jsonFactory.objectNode().<ObjectNode>set("key", null).toString();
+    Artifact result = objectMapper.readValue(json, Artifact.class);
+    assertThat(result.getMetadata("key")).isNull();
+  }
+
   private String fullArtifactJson() {
     return jsonFactory
         .objectNode()
@@ -244,6 +297,16 @@ final class ArtifactTest {
         .put("provenance", "history")
         .put("uuid", "6b9a5d0b-5706-41da-b379-234c27971482")
         .<ObjectNode>set("metadata", jsonFactory.objectNode().put("test", "123"))
+        .toString();
+  }
+
+  // Returns the serialization of an empty artifact. Fields that default to null are omitted by our
+  // serialization config, while other fields (boolean, Map) serialize to their default values.
+  private String emptyArtifactJson() {
+    return jsonFactory
+        .objectNode()
+        .put("customKind", false)
+        .<ObjectNode>set("metadata", jsonFactory.objectNode())
         .toString();
   }
 
