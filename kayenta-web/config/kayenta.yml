@@ -60,6 +60,7 @@ kayenta:
 
   datadog:
     enabled: false
+#    metadataCachingIntervalMS: 900000
 #    accounts:
 #      - name: my-datadog-account
 #        apiKey: xxxx
@@ -91,6 +92,7 @@ kayenta:
 
   prometheus:
     enabled: false
+#   metadataCachingIntervalMS: 60000
 #    accounts:
 #      - name: my-prometheus-account
 #        endpoint:
@@ -130,6 +132,7 @@ kayenta:
 
   stackdriver:
     enabled: false
+#    metadataCachingIntervalMS: 60000
 
   memory:
     enabled: false

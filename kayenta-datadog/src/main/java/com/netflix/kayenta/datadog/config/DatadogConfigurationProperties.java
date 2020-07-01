@@ -24,7 +24,8 @@ import lombok.Setter;
 
 public class DatadogConfigurationProperties {
 
-  @Getter @Setter private long metadataCachingIntervalMS = Duration.ofSeconds(60).toMillis();
+  // Datadog has an api limit of 100 metric retrievals per hour, default to 15 minutes here
+  @Getter @Setter private long metadataCachingIntervalMS = Duration.ofMinutes(15).toMillis();
 
   @Getter private List<DatadogManagedAccount> accounts = new ArrayList<>();
 }
