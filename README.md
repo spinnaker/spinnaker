@@ -37,6 +37,7 @@ Currently supported user role providers are:
 * GitHub Teams
 * LDAP
 * File based role provider
+* SAML Groups
 
 ---
 
