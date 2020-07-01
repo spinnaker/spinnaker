@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ha.ClouddriverHaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -73,12 +74,9 @@ public class KubernetesV2GateService extends GateService
       Profile profile,
       DeploymentConfiguration deploymentConfiguration,
       SpinnakerRuntimeSettings endpoints) {
-    if (hasServiceOverrides(deploymentConfiguration)
-        && !deploymentConfiguration
-            .getDeploymentEnvironment()
-            .getHaServices()
-            .getClouddriver()
-            .isDisableClouddriverRoDeck()) {
+    ClouddriverHaService clouddriverHaService =
+        deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver();
+    if (clouddriverHaService.isEnabled() && !clouddriverHaService.isDisableClouddriverRoDeck()) {
       Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>> services =
           Collections.singletonMap(
               "services",

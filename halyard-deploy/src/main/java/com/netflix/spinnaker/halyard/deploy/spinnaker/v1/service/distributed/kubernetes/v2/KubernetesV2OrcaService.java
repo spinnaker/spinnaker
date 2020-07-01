@@ -95,7 +95,11 @@ public class KubernetesV2OrcaService extends OrcaService
       Profile profile,
       DeploymentConfiguration deploymentConfiguration,
       SpinnakerRuntimeSettings endpoints) {
-    if (hasServiceOverrides(deploymentConfiguration)) {
+    if (deploymentConfiguration
+        .getDeploymentEnvironment()
+        .getHaServices()
+        .getClouddriver()
+        .isEnabled()) {
       Map<String, Map<String, Map<String, String>>> clouddriver =
           Collections.singletonMap(
               "clouddriver",
