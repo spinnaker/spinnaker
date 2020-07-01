@@ -9,11 +9,9 @@
 
 package swagger
 
-type Notification struct {
+type DeckPluginVersion struct {
 
-	Address string `json:"address,omitempty"`
+	Id string `json:"id"`
 
-	Frequency string `json:"frequency,omitempty"`
-
-	Type_ string `json:"type,omitempty"`
+	Version string `json:"version"`
 }

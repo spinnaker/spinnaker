@@ -205,7 +205,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **executionId** | **string**| Execution id to run against | 
-  **expressions** | [**[]Mapstringstring**](Map«string,string».md)| List of variables/expressions to evaluate | 
+  **expressions** | [**[]Mapstringstring**](MapÂ«string,stringÂ».md)| List of variables/expressions to evaluate | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -214,7 +214,7 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **executionId** | **string**| Execution id to run against | 
- **expressions** | [**[]Mapstringstring**](Map«string,string».md)| List of variables/expressions to evaluate | 
+ **expressions** | [**[]Mapstringstring**](MapÂ«string,stringÂ».md)| List of variables/expressions to evaluate | 
  **requisiteStageRefIds** | **string**| Comma separated list of requisite stage IDs for the evaluation stage | 
  **spelVersion** | **string**| Version of SpEL evaluation logic to use (v3 or v4) | 
 

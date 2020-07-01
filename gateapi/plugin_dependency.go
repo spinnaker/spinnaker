@@ -9,11 +9,11 @@
 
 package swagger
 
-type Notification struct {
+type PluginDependency struct {
 
-	Address string `json:"address,omitempty"`
+	Optional bool `json:"optional,omitempty"`
 
-	Frequency string `json:"frequency,omitempty"`
+	PluginId string `json:"pluginId,omitempty"`
 
-	Type_ string `json:"type,omitempty"`
+	PluginVersionSupport string `json:"pluginVersionSupport,omitempty"`
 }
