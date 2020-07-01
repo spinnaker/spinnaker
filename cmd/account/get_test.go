@@ -17,6 +17,7 @@ package account
 import (
 	"bytes"
 	"fmt"
+	"github.com/nsf/jsondiff"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -59,7 +60,11 @@ func TestAccountGet_json(t *testing.T) {
 	expected := strings.TrimSpace(accountJson)
 	recieved := strings.TrimSpace(buffer.String())
 	if expected != recieved {
-		t.Fatalf("Unexpected command output:\n%s", diff.LineDiff(expected, recieved))
+		opts := jsondiff.DefaultJSONOptions()
+		eq, d := jsondiff.Compare([]byte(expected), []byte(recieved), &opts)
+		if eq != jsondiff.FullMatch {
+			t.Fatalf("Unexpected command output:\n%s", d)
+		}
 	}
 }
 

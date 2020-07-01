@@ -12,6 +12,7 @@ require (
 	github.com/mitchellh/cli v1.0.0
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/pkg/errors v0.9.1
 	github.com/posener/complete v1.2.1 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
