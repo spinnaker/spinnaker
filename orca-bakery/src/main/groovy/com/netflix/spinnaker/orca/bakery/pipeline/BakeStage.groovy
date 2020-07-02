@@ -17,22 +17,20 @@
 package com.netflix.spinnaker.orca.bakery.pipeline
 
 import com.google.common.base.Joiner
-import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
-
-import java.time.Clock
-import javax.annotation.Nonnull
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
+import com.netflix.spinnaker.orca.pipeline.tasks.ToggleablePauseTask
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import groovy.transform.CompileDynamic
@@ -41,6 +39,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+import java.time.Clock
 import java.util.stream.Collectors
 
 import static com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
@@ -53,12 +53,18 @@ import static java.time.ZoneOffset.UTC
 class BakeStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "bake"
+  public static final String BAKE_PAUSE_TOGGLE = "stages.bake-stage.pause"
+
+  private RegionCollector regionCollector
+  private Clock clock
+  private DynamicConfigService dynamicConfigService
 
   @Autowired
-  RegionCollector regionCollector
-
-  @Autowired
-  Clock clock = systemUTC()
+  BakeStage(RegionCollector regionCollector, DynamicConfigService dynamicConfigService, Clock clock = systemUTC()) {
+    this.regionCollector = regionCollector
+    this.clock = clock
+    this.dynamicConfigService = dynamicConfigService
+  }
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
@@ -66,6 +72,12 @@ class BakeStage implements StageDefinitionBuilder {
       builder
         .withTask("completeParallel", CompleteParallelBakeTask)
     } else {
+      if (dynamicConfigService.isEnabled(BAKE_PAUSE_TOGGLE, false)) {
+        log.info("Baking is currently paused. Adding pause task to ${stage.name} stage.")
+        stage.context.put("pauseToggleKey", BAKE_PAUSE_TOGGLE)
+        builder.withTask("delayBake", ToggleablePauseTask)
+      }
+
       builder
         .withTask("createBake", CreateBakeTask)
         .withTask("monitorBake", MonitorBakeTask)
