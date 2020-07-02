@@ -7,8 +7,10 @@ import {
   IExecutionDetailsSectionProps,
   ManifestYaml,
   StageFailureMessage,
+  Overridable,
 } from 'core';
 
+@Overridable('bakeManifest.bakeManifestDetailsTab')
 export class BakeManifestDetailsTab extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'bakedManifest';
 
