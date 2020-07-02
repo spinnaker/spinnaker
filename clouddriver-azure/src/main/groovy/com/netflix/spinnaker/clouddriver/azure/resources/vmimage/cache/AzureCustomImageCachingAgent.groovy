@@ -32,10 +32,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.A
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
-import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 

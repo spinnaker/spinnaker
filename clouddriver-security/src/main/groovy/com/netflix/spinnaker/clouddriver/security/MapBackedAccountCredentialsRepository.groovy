@@ -49,7 +49,7 @@ public class MapBackedAccountCredentialsRepository implements AccountCredentials
      */
     @Override
     public AccountCredentials save(String key, AccountCredentials credentials) {
-        if (!credentials?.getRequiredGroupMembership()?.isEmpty()) {
+      if (!credentials?.getRequiredGroupMembership()?.isEmpty()) {
             log.warn("Deprecated `requiredGroupMembership` found for account ${credentials?.name}." +
                          " Please update to `permissions` format.")
         }

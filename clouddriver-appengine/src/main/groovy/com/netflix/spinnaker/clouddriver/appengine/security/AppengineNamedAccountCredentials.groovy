@@ -21,15 +21,16 @@ import com.google.api.services.appengine.v1.Appengine
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentialType
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentials
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
-import org.apache.commons.lang3.StringUtils
 
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
 
 @TupleConstructor
-class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCredentials> {
+class AppengineNamedAccountCredentials extends AbstractAccountCredentials<AppengineCredentials> {
   final String name
   final String environment
   final String accountType

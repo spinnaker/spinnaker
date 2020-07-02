@@ -57,7 +57,7 @@ class HuaweiCloudImageProviderSpec extends Specification {
       .name('some-image')
       .build(),
 
-    Image.builder() 
+    Image.builder()
       .id('3b5ceb06-3b8d-43ee-866a-dc0443b85deg')
       .name('some-image-2')
       .build()

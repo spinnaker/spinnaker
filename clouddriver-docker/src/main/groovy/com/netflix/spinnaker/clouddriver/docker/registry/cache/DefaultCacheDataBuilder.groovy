@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.cache
 
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 

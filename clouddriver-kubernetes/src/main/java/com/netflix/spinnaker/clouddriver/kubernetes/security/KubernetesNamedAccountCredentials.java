@@ -21,7 +21,7 @@ import static lombok.EqualsAndHashCode.Include;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.*;
@@ -33,7 +33,7 @@ import lombok.Getter;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ParametersAreNonnullByDefault
 public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
-    implements AccountCredentials<C> {
+    extends AbstractAccountCredentials<C> {
   private final String cloudProvider = "kubernetes";
 
   @Include private final String name;

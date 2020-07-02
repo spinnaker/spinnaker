@@ -56,7 +56,7 @@ class HuaweiCloudSubnetProviderSpec extends Specification {
       .vpcId("vpc")
       .build(),
 
-    Subnet.builder() 
+    Subnet.builder()
       .id('3b5ceb06-3b8d-43ee-866a-dc0443b85deg')
       .name('some-subnet-2')
       .vpcId("vpc")

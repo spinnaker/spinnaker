@@ -22,7 +22,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ import java.util.Objects;
  * {@link com.amazonaws.auth.DefaultAWSCredentialsProviderChain} will be used. The account's active
  * regions and availability zones can be specified as well.
  */
-public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
+public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials> {
   private static final String CLOUD_PROVIDER = "aws";
 
   private final String name;

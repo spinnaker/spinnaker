@@ -18,6 +18,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   implementation project(":cats:cats-core")
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-event")
 

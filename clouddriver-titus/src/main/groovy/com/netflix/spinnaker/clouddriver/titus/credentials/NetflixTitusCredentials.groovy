@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.titus.credentials
 
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
+
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.security.TitusCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 
-class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
+class NetflixTitusCredentials extends AbstractAccountCredentials<TitusCredentials> {
   private static final String CLOUD_PROVIDER = TitusCloudProvider.ID
 
   final String name

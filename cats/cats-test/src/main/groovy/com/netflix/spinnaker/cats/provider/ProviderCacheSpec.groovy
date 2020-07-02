@@ -20,7 +20,6 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.*
 import com.netflix.spinnaker.cats.mem.InMemoryCache
-import com.netflix.spinnaker.cats.provider.DefaultProviderCache
 
 abstract class ProviderCacheSpec extends CacheSpec {
 

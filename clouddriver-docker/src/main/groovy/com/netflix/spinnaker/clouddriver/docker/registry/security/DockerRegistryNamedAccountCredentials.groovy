@@ -20,7 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
@@ -29,7 +30,7 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 @Slf4j
-class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
+class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<DockerRegistryCredentials> {
   static class Builder {
     String accountName
     String environment

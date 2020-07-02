@@ -28,10 +28,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
+import com.netflix.spinnaker.clouddriver.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,7 +66,7 @@ class CloudFoundryCredentialsSynchronizerTest {
             provider, configurationProperties, repository, catsModule, registry, cacheRepository);
   }
 
-  private class StaticOtherProviderCredentials implements AccountCredentials<Void> {
+  private class StaticOtherProviderCredentials extends AbstractAccountCredentials<Void> {
     @Override
     public String getName() {
       return "unchanged-other-provider";

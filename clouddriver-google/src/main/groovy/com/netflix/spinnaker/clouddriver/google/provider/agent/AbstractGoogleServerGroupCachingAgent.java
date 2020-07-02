@@ -65,6 +65,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
@@ -410,7 +411,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
       CacheResultBuilder cacheResultBuilder, GoogleServerGroup serverGroup) throws IOException {
 
     String serverGroupKey = getServerGroupKey(serverGroup);
-    Map<String, List<DefaultCacheData>> onDemandData =
+    Map<String, List<DefaultJsonCacheData>> onDemandData =
         objectMapper.readValue(
             (String)
                 cacheResultBuilder
@@ -419,7 +420,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
                     .get(serverGroupKey)
                     .getAttributes()
                     .get("cacheResults"),
-            new TypeReference<Map<String, List<DefaultCacheData>>>() {});
+            new TypeReference<Map<String, List<DefaultJsonCacheData>>>() {});
     onDemandData.forEach(
         (namespace, cacheDatas) -> {
           if (namespace.equals(ON_DEMAND.getNs())) {

@@ -21,14 +21,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.MarathonPathId
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties.LinkedDockerRegistryConfiguration
 
-class DcosAccountCredentials implements AccountCredentials<DcosCredentialMap> {
+class DcosAccountCredentials extends AbstractAccountCredentials<DcosCredentialMap> {
   private static final Logger LOGGER = LoggerFactory.getLogger(DcosAccountCredentials)
   private static final String CLOUD_PROVIDER = Keys.PROVIDER
 

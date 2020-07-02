@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Armory, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,7 @@ import com.netflix.spectator.api.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class OnDemandMetricsSupport {
-  public static final String ON_DEMAND_TOTAL_TIME = "onDemand_total";
-  public static final String DATA_READ = "onDemand_read";
-  public static final String DATA_TRANSFORM = "onDemand_transform";
-  public static final String ON_DEMAND_STORE = "onDemand_store";
-  public static final String CACHE_WRITE = "onDemand_cache";
-  public static final String CACHE_EVICT = "onDemand_evict";
-  public static final String ON_DEMAND_ERROR = "onDemand_error";
-  public static final String ON_DEMAND_COUNT = "onDemand_count";
+public class OnDemandMetricsSupport implements OnDemandMetricsSupportable {
 
   private final Timer onDemandTotal;
   private final Timer dataRead;
@@ -72,34 +64,42 @@ public class OnDemandMetricsSupport {
     }
   }
 
+  @Override
   public <T> T readData(Supplier<T> closure) {
     return record(dataRead, closure);
   }
 
+  @Override
   public <T> T transformData(Supplier<T> closure) {
     return record(dataTransform, closure);
   }
 
+  @Override
   public <T> T onDemandStore(Supplier<T> closure) {
     return record(onDemandStore, closure);
   }
 
+  @Override
   public <T> T cacheWrite(Supplier<T> closure) {
     return record(cacheWrite, closure);
   }
 
+  @Override
   public <T> T cacheEvict(Supplier<T> closure) {
     return record(cacheEvict, closure);
   }
 
+  @Override
   public void countError() {
     onDemandErrors.increment();
   }
 
+  @Override
   public void countOnDemand() {
     onDemandCount.increment();
   }
 
+  @Override
   public void recordTotalRunTimeNanos(long nanos) {
     onDemandTotal.record(nanos, TimeUnit.NANOSECONDS);
   }

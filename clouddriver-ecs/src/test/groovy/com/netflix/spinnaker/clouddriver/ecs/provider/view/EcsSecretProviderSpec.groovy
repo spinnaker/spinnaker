@@ -20,9 +20,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Secret
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.EcsClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.SecretCachingAgent
 import spock.lang.Specification
 import spock.lang.Subject

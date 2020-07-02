@@ -1,4 +1,6 @@
 dependencies {
+  implementation project(":clouddriver-api")
+
   implementation "org.slf4j:slf4j-api"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
   implementation "org.codehaus.groovy:groovy-all"

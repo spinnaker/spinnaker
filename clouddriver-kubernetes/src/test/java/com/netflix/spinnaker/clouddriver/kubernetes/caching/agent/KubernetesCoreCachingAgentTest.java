@@ -36,6 +36,7 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -282,7 +283,7 @@ final class KubernetesCoreCachingAgentTest {
         onDemandResult.getOnDemandEvictions().get(DEPLOYMENT_KIND);
     assertThat(deploymentEvictions).containsExactly(expectedKey);
 
-    Collection<DefaultCacheData> remainingItems =
+    Collection<DefaultJsonCacheData> remainingItems =
         Optional.ofNullable(onDemandResult.getOnDemandEntries().get(DEPLOYMENT_KIND))
             .orElse(ImmutableList.of());
     // We expect that exactly one caching agent processed the request, so the entry should have been
@@ -368,7 +369,7 @@ final class KubernetesCoreCachingAgentTest {
 
     // We expect that exactly one caching agent processed the request, so the entry should have been
     // evicted once
-    Collection<DefaultCacheData> remainingItems =
+    Collection<DefaultJsonCacheData> remainingItems =
         Optional.ofNullable(onDemandResult.getOnDemandEntries().get(STORAGE_CLASS_KIND))
             .orElse(ImmutableList.of());
     assertThat(remainingItems).hasSize(numCachingAgents - 1);
@@ -417,7 +418,7 @@ final class KubernetesCoreCachingAgentTest {
   private static class ProcessOnDemandResult {
     Map<String, Collection<CacheData>> onDemandResults;
     Map<String, Collection<String>> onDemandEvictions;
-    Map<String, Collection<DefaultCacheData>> onDemandEntries;
+    Map<String, Collection<DefaultJsonCacheData>> onDemandEntries;
 
     ProcessOnDemandResult(
         Collection<OnDemandAgent.OnDemandResult> onDemandResults,
@@ -469,7 +470,7 @@ final class KubernetesCoreCachingAgentTest {
   }
 
   /** Given a collection of ProviderCache, return all on-demand entries in these caches. */
-  private static ImmutableMap<String, Collection<DefaultCacheData>> extractCacheEntries(
+  private static ImmutableMap<String, Collection<DefaultJsonCacheData>> extractCacheEntries(
       Collection<ProviderCache> providerCaches) {
     return providerCaches.stream()
         .map(providerCache -> providerCache.getAll("onDemand"))
@@ -480,7 +481,7 @@ final class KubernetesCoreCachingAgentTest {
               try {
                 return objectMapper.readValue(
                     (String) cacheData.getAttributes().get("cacheResults"),
-                    new TypeReference<Map<String, Collection<DefaultCacheData>>>() {});
+                    new TypeReference<Map<String, Collection<DefaultJsonCacheData>>>() {});
               } catch (IOException e) {
                 throw new RuntimeException(e);
               }
@@ -554,7 +555,7 @@ final class KubernetesCoreCachingAgentTest {
   @Value
   private static class LoadDataResult {
     Map<String, Collection<CacheData>> results;
-    Map<String, Collection<DefaultCacheData>> cacheEntries;
+    Map<String, Collection<DefaultJsonCacheData>> cacheEntries;
 
     LoadDataResult(
         Collection<CacheResult> loadDataResults, Collection<ProviderCache> providerCaches) {

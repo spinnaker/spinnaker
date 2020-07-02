@@ -10,7 +10,6 @@ package com.netflix.spinnaker.clouddriver.oracle.security
 
 import com.google.common.base.Supplier
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.oracle.bmc.Region
 import com.oracle.bmc.auth.AuthenticationDetailsProvider
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider
@@ -22,7 +21,7 @@ import com.oracle.bmc.identity.requests.ListAvailabilityDomainsRequest
 import com.oracle.bmc.loadbalancer.LoadBalancerClient
 import com.oracle.bmc.objectstorage.ObjectStorageClient
 
-class OracleNamedAccountCredentials implements AccountCredentials<Object> {
+class OracleNamedAccountCredentials extends AbstractAccountCredentials<Object> {
 
   String cloudProvider = OracleCloudProvider.ID
   String name

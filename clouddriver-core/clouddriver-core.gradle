@@ -3,6 +3,7 @@ dependencies {
 
   implementation project(":cats:cats-core")
   implementation project(":cats:cats-redis")
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-saga")
 

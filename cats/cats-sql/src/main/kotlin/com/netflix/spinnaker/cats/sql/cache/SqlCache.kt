@@ -3,7 +3,7 @@ package com.netflix.spinnaker.cats.sql.cache
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
@@ -970,7 +970,7 @@ class SqlCache(
               .fetch()
               .getValues(0)
               .asSequence()
-              .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+              .map { mapper.readValue(it as String, DefaultJsonCacheData::class.java) }
               .toList()
           )
         }
@@ -1033,7 +1033,7 @@ class SqlCache(
             .fetch()
             .getValues(0)
             .asSequence()
-            .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+            .map { mapper.readValue(it as String, DefaultJsonCacheData::class.java) }
             .toList()
         )
       }
@@ -1247,7 +1247,7 @@ class SqlCache(
         .where(field("ID").`in`(*ids.toTypedArray()))
         .fetch()
         .getValues(0)
-        .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+        .map { mapper.readValue(it as String, DefaultJsonCacheData::class.java) }
         .toList()
     }
   }
@@ -1305,7 +1305,7 @@ class SqlCache(
     while (resultSet.next()) {
       if (!resultSet.getString(1).isNullOrBlank()) {
         try {
-          cacheData.add(mapper.readValue(resultSet.getString(1), DefaultCacheData::class.java))
+          cacheData.add(mapper.readValue(resultSet.getString(1), DefaultJsonCacheData::class.java))
         } catch (e: Exception) {
           log.error("Failed to deserialize cached value: type $type, body ${resultSet.getString(1)}", e)
         }

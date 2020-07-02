@@ -147,7 +147,7 @@ class HuaweiCloudSecurityGroupProviderSpec extends Specification {
       sg.name == name
 
       def rule = sg.inboundRules.find { it.protocol }
-      
+
       def rule1 = new IpRangeRule(
         range: new AddressableRange(ip: '', cidr: '0.0.0.0/0'),
         portRanges: [

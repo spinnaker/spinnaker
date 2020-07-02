@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.cache
 import com.amazonaws.services.secretsmanager.model.SecretListEntry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.SecretCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Secret
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.SecretCachingAgent

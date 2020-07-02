@@ -2,6 +2,7 @@ tasks.compileGroovy.enabled = false
 sourceSets.main.java.srcDirs = ['src/main/java']
 
 dependencies {
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")
   implementation project(":cats:cats-core")

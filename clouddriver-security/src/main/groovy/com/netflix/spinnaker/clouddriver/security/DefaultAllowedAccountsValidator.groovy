@@ -43,7 +43,9 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
       return
     }
 
-    if (!accountCredentialsProvider.all.find { it.requiredGroupMembership || it.permissions?.isRestricted() }) {
+    if (!accountCredentialsProvider.all.find {
+      it.requiredGroupMembership || ((it instanceof AbstractAccountCredentials) && it.permissions?.isRestricted())
+    }) {
       // no accounts have group restrictions so no need to validate / log
       return
     }
@@ -71,7 +73,7 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
   private void validateTargetAccount(AccountCredentials credentials, Collection<String> allowedAccounts, Object description, String user, Errors errors) {
     List<String> requiredGroups = []
     boolean anonymousAllowed = true
-    if (credentials.permissions?.isRestricted()) {
+    if ((credentials instanceof AbstractAccountCredentials) && credentials.permissions?.isRestricted()) {
       anonymousAllowed = false
       if (credentials.requiredGroupMembership) {
         log.warn("For account ${credentials.name}: using permissions ${credentials.permissions} over ${credentials.requiredGroupMembership} for authorization check.")

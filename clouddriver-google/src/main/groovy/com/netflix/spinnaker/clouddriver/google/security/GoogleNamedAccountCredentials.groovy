@@ -26,10 +26,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.names.GoogleLabeledResourceNamer
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.moniker.Namer
 import groovy.transform.TupleConstructor
@@ -37,7 +37,7 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 @TupleConstructor
-class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
+class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCredentials> {
 
   // Sorted in reverse clock speed order as per the table here (https://cloud.google.com/compute/docs/regions-zones/regions-zones#available).
   static final List<String> SORTED_CPU_PLATFORMS = [

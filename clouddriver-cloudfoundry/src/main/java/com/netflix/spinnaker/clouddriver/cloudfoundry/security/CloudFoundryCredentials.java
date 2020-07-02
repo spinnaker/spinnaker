@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiExce
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
   "cacheRepository",
   "spacesLive"
 })
-public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryClient> {
+public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFoundryClient> {
   private static final int SPACE_EXPIRY_SECONDS = 30;
 
   private final String name;

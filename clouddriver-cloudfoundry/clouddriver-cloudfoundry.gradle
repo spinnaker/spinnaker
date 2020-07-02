@@ -26,6 +26,7 @@ junitPlatform {
 
 dependencies {
   implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
   implementation project(":cats:cats-core")

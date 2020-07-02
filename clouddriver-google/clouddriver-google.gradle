@@ -1,5 +1,6 @@
 dependencies {
   implementation project(":cats:cats-core")
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-consul")
   implementation project(":clouddriver-core")

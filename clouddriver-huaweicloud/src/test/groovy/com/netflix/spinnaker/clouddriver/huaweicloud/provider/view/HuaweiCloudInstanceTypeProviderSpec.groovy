@@ -55,7 +55,7 @@ class HuaweiCloudInstanceTypeProviderSpec extends Specification {
       .name('c1.medium.1')
       .build(),
 
-    Flavor.builder() 
+    Flavor.builder()
       .id('3b5ceb06-3b8d-43ee-866a-dc0443b85deg')
       .name('c1.medium.2')
       .build()

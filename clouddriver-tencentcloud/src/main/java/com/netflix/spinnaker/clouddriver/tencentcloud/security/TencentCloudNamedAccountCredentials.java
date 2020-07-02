@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.tencentcloud.security;
 
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.clouddriver.tencentcloud.TencentCloudProvider;
 import com.netflix.spinnaker.clouddriver.tencentcloud.config.TencentCloudConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.tencentcloud.model.TencentCloudBasicResource;
@@ -37,7 +37,7 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 @Data
 public class TencentCloudNamedAccountCredentials
-    implements AccountCredentials<TencentCloudCredentials> {
+    extends AbstractAccountCredentials<TencentCloudCredentials> {
 
   private String name;
   private String environment;

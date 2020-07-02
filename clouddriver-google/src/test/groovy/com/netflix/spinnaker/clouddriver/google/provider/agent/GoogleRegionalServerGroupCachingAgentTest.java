@@ -47,6 +47,7 @@ import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -532,10 +533,10 @@ final class GoogleRegionalServerGroupCachingAgentTest {
 
     CacheData cacheData =
         providerCache.get(ON_DEMAND.getNs(), serverGroupKey("myservergroup-v001"));
-    Map<String, Collection<DefaultCacheData>> cacheResults =
+    Map<String, Collection<DefaultJsonCacheData>> cacheResults =
         objectMapper.readValue(
             (String) cacheData.getAttributes().get("cacheResults"),
-            new TypeReference<Map<String, Collection<DefaultCacheData>>>() {});
+            new TypeReference<Map<String, Collection<DefaultJsonCacheData>>>() {});
     assertThat(cacheResults.get(SERVER_GROUPS.getNs()))
         .extracting(data -> data.getAttributes().get("name"))
         .containsExactly("myservergroup-v001");

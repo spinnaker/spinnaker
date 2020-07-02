@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
@@ -139,11 +140,12 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
           "{}: On demand entry contents overwriting load data entry: {}",
           getAgentType(),
           onDemandResultsJson);
-      Map<String, List<DefaultCacheData>> onDemandResults;
+      Map<String, List<DefaultJsonCacheData>> onDemandResults;
       try {
         onDemandResults =
             objectMapper.readValue(
-                onDemandResultsJson, new TypeReference<Map<String, List<DefaultCacheData>>>() {});
+                onDemandResultsJson,
+                new TypeReference<Map<String, List<DefaultJsonCacheData>>>() {});
       } catch (IOException e) {
         log.error("Failure parsing stored on demand data for '{}'", onDemandKey, e);
         continue;

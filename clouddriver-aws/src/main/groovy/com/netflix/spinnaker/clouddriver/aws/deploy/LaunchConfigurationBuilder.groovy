@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.Immutable
 
 interface LaunchConfigurationBuilder {

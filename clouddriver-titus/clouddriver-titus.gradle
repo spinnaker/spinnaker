@@ -13,6 +13,7 @@ dependencies {
   protobuf 'com.netflix.titus:titus-api-definitions:0.0.1-rc71'
 
   implementation project(":cats:cats-core")
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-aws")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-eureka")

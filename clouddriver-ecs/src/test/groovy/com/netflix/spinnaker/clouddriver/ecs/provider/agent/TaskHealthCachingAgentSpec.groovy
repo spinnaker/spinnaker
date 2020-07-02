@@ -24,10 +24,6 @@ import com.amazonaws.services.ecs.model.LoadBalancer
 import com.amazonaws.services.ecs.model.NetworkBinding
 import com.amazonaws.services.ecs.model.NetworkInterface
 import com.amazonaws.services.ecs.model.PortMapping
-import com.amazonaws.services.ecs.model.TaskDefinition
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
@@ -37,7 +33,6 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth
 import spock.lang.Specification

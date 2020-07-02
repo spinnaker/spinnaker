@@ -55,7 +55,7 @@ class HuaweiCloudNetworkProviderSpec extends Specification {
       .name('some-network')
       .build(),
 
-    Vpc.builder() 
+    Vpc.builder()
       .id('3b5ceb06-3b8d-43ee-866a-dc0443b85deg')
       .name('some-network-2')
       .build()

@@ -1,4 +1,5 @@
 dependencies {
+  implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
 

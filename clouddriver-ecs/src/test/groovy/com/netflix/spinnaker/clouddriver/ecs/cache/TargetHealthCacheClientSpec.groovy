@@ -20,11 +20,11 @@ import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthStateEnum
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TARGET_HEALTHS;
 
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TargetHealthCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsTargetHealth
 import spock.lang.Specification

@@ -211,15 +211,15 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         it.authoritative = setOf(INSTANCES.ns)
         it.results = mapOf(
           INSTANCES.ns to listOf(
-            DefaultCacheData(
-              "aws:instances:test:us-east-1:i-abcd1234",
-              mapOf(),
-              mapOf(
-                SERVER_GROUPS.ns to listOf(
-                  "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000"
-                )
-              )
-            )
+                  DefaultCacheData(
+                          "aws:instances:test:us-east-1:i-abcd1234",
+                          mapOf(),
+                          mapOf(
+                                  SERVER_GROUPS.ns to listOf(
+                                          "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000"
+                                  )
+                          )
+                  )
           )
         )
       }
@@ -231,15 +231,15 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         it.authoritative = setOf(INSTANCES.ns)
         it.results = mapOf(
           INSTANCES.ns to listOf(
-            DefaultCacheData(
-              "aws:instances:prod:us-east-1:i-abcd1234",
-              mapOf(),
-              mapOf(
-                SERVER_GROUPS.ns to listOf(
-                  "aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000"
-                )
-              )
-            )
+                  DefaultCacheData(
+                          "aws:instances:prod:us-east-1:i-abcd1234",
+                          mapOf(),
+                          mapOf(
+                                  SERVER_GROUPS.ns to listOf(
+                                          "aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000"
+                                  )
+                          )
+                  )
           )
         )
       }
