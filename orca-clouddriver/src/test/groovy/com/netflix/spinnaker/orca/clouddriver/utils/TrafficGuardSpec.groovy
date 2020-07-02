@@ -569,7 +569,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    0 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >>
       [[results: [[account: "test", region: location.value, serverGroup: targetName]]]]
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >>
@@ -587,10 +587,23 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
 
-    // passes with no front50 check because the instance does not have healthState: Up
-    0 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> application
     1 * oortHelper.getTargetServerGroup("test", targetName, location.value, "aws") >>
       (makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]]) as TargetServerGroup)
+    0 * _
+  }
+
+  void "should avoid looking up server group details when traffic guards disabled"() {
+    given:
+    addGuard([enabled: false, account: "test", location: "us-east-1", stack: "foo"])
+
+    when:
+    trafficGuard.verifyInstanceTermination(targetName, moniker, ["i-1"], "test", location, "aws", "x")
+
+    then:
+    notThrown(TrafficGuardException)
+
+    1 * front50Service.get("app") >> application
     0 * _
   }
 

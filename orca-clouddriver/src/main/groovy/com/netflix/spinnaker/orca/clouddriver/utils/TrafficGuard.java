@@ -70,6 +70,7 @@ public class TrafficGuard {
       Location location,
       String cloudProvider,
       String operationDescriptor) {
+    Front50Cache front50Cache = new Front50Cache(this);
     // TODO rz - Expose a single `instance server groups` endpoint in clouddriver; returns a
     // map<instanceid, servergroup>.
     Map<String, List<String>> instancesPerServerGroup = new HashMap<>();
@@ -101,6 +102,15 @@ public class TrafficGuard {
                   serverGroupMonikerFromStage.getApp() == null
                       ? MonikerHelper.friggaToMoniker(serverGroupName)
                       : serverGroupMonikerFromStage;
+
+              if (!front50Cache.hasDisableLock(moniker, account, location)) {
+                log.debug(
+                    "No traffic guard configured for '{}' in {}/{}",
+                    serverGroupName,
+                    account,
+                    location.getValue());
+                return;
+              }
 
               // TODO rz - Remove: No longer needed since all data is retrieved in above clouddriver
               // calls
@@ -134,7 +144,8 @@ public class TrafficGuard {
                       account,
                       location,
                       cloudProvider,
-                      operationDescriptor);
+                      operationDescriptor,
+                      front50Cache);
                 }
               }
             });
@@ -163,8 +174,26 @@ public class TrafficGuard {
       Location location,
       String cloudProvider,
       String operationDescriptor) {
+    verifyTrafficRemoval(
+        serverGroupName,
+        serverGroupMoniker,
+        account,
+        location,
+        cloudProvider,
+        operationDescriptor,
+        new Front50Cache(this));
+  }
 
-    if (!hasDisableLock(serverGroupMoniker, account, location)) {
+  private void verifyTrafficRemoval(
+      String serverGroupName,
+      Moniker serverGroupMoniker,
+      String account,
+      Location location,
+      String cloudProvider,
+      String operationDescriptor,
+      Front50Cache front50Cache) {
+
+    if (!front50Cache.hasDisableLock(serverGroupMoniker, account, location)) {
       log.debug(
           "No traffic guard configured for '{}' in {}/{}",
           serverGroupName,
@@ -231,7 +260,8 @@ public class TrafficGuard {
     TargetServerGroup someServerGroup = serverGroupsGoingAway.stream().findAny().get();
     Location location = someServerGroup.getLocation();
 
-    if (!hasDisableLock(someServerGroup.getMoniker(), account, location)) {
+    Front50Cache front50Cache = new Front50Cache(this);
+    if (!front50Cache.hasDisableLock(someServerGroup.getMoniker(), account, location)) {
       log.debug(
           "No traffic guard configured for '{}' in {}/{}",
           someServerGroup.getName(),
@@ -453,5 +483,52 @@ public class TrafficGuard {
             .collect(Collectors.toList());
     return ClusterMatcher.getMatchingRule(account, location.getValue(), clusterMoniker, rules)
         != null;
+  }
+
+  /**
+   * A per-request cache of front50 traffic guard lookups to avoid repeated checks against the same
+   * application.
+   */
+  private static class Front50Cache {
+    private final Map<Key, Boolean> enabledCache = new HashMap<>();
+    private final TrafficGuard trafficGuard;
+
+    public Front50Cache(TrafficGuard trafficGuard) {
+      this.trafficGuard = trafficGuard;
+    }
+
+    private boolean hasDisableLock(Moniker moniker, String account, Location location) {
+      return enabledCache.computeIfAbsent(
+          new Key(moniker, account, location),
+          key -> trafficGuard.hasDisableLock(key.moniker, key.account, key.location));
+    }
+
+    /** Unique key for the hasDisabledLock check. */
+    private static class Key {
+      private final Moniker moniker;
+      private final String account;
+      private final Location location;
+
+      public Key(Moniker moniker, String account, Location location) {
+        this.moniker = moniker;
+        this.account = account;
+        this.location = location;
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Key key = (Key) o;
+        return Objects.equals(moniker, key.moniker)
+            && Objects.equals(account, key.account)
+            && Objects.equals(location, key.location);
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(moniker, account, location);
+      }
+    }
   }
 }
