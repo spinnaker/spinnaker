@@ -19,13 +19,18 @@ package com.netflix.spinnaker.keel.titus.resource
 
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -41,12 +46,7 @@ import com.netflix.spinnaker.keel.api.titus.cluster.resolveCapacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
-import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
-import com.netflix.spinnaker.keel.core.api.Highlander
-import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
@@ -9,7 +10,6 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.artifacts.DOCKER
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerVersioningStrategy
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService

@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
-import com.netflix.spinnaker.keel.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 
 abstract class ArtifactRepositoryPeriodicallyCheckedTests<S : ArtifactRepository> :

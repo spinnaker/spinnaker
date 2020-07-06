@@ -34,6 +34,7 @@ include(
   "keel-core",
   "keel-core-test",
   "keel-docker",
+  "keel-ec2-api",
   "keel-ec2-plugin",
   "keel-echo",
   "keel-eureka",

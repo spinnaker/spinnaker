@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions

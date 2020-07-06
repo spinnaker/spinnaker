@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
@@ -27,22 +28,23 @@ class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver
 
   private fun ClusterSpec.withResolvedKeyPairs(account: String): ClusterSpec {
     val defaultKeyPair = cloudDriverCache.defaultKeyPairForAccount(account)
-    var defaultLaunchConfig: ClusterSpec.LaunchConfigurationSpec? = null
-    val overrideLaunchConfigs = mutableMapOf<String, ClusterSpec.LaunchConfigurationSpec>()
+    var defaultLaunchConfig: LaunchConfigurationSpec? = null
+    val overrideLaunchConfigs = mutableMapOf<String, LaunchConfigurationSpec>()
 
     if (defaultKeyPair.contains(REGION_PLACEHOLDER)) {
       // if the default key pair in clouddriver is templated, we can't use that as a default but can try and apply it
       // to the overrides, if necessary.
       locations.regions.forEach { region ->
         val override = overrides[region.name]
-        if (override?.launchConfiguration != null) {
-          if (override.launchConfiguration.keyPair == null) {
-            overrideLaunchConfigs[region.name] = override.launchConfiguration.copy(
+        val launchConfiguration = override?.launchConfiguration
+        if (launchConfiguration != null) {
+          if (launchConfiguration.keyPair == null) {
+            overrideLaunchConfigs[region.name] = launchConfiguration.copy(
               keyPair = defaultKeyPair.replace(REGION_PLACEHOLDER, region.name)
             )
           }
         } else {
-          overrideLaunchConfigs[region.name] = ClusterSpec.LaunchConfigurationSpec(
+          overrideLaunchConfigs[region.name] = LaunchConfigurationSpec(
             keyPair = defaultKeyPair.replace(REGION_PLACEHOLDER, region.name)
           )
         }
@@ -56,7 +58,7 @@ class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver
         defaultLaunchConfig = if (defaults.launchConfiguration != null) {
           defaults.launchConfiguration!!.copy(keyPair = defaultKeyPair)
         } else {
-          ClusterSpec.LaunchConfigurationSpec(keyPair = defaultKeyPair)
+          LaunchConfigurationSpec(keyPair = defaultKeyPair)
         }
       }
     }

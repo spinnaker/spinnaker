@@ -18,20 +18,19 @@
 package com.netflix.spinnaker.keel.api.titus.cluster
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
-import com.netflix.spinnaker.keel.artifacts.DOCKER
+import com.netflix.spinnaker.keel.api.artifacts.DOCKER
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
-import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import de.danielbechler.diff.inclusion.Inclusion
-import de.danielbechler.diff.introspection.ObjectDiffProperty
 
 data class TitusServerGroup(
   /**
@@ -42,7 +41,7 @@ data class TitusServerGroup(
    * useful for some things (e.g. specifying ancestor server group when red-blacking a new version)
    * but is meaningless for a diff.
    */
-  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  @get:ExcludedFromDiff
   val name: String,
   val container: DigestProvider,
   val location: Location,
@@ -61,16 +60,16 @@ data class TitusServerGroup(
   val delayBeforeDisableSec: Int = 0,
   val delayBeforeScaleDownSec: Int = 0,
   @JsonIgnore
-  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  @get:ExcludedFromDiff
   override val artifactName: String? = null,
   @JsonIgnore
-  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  @get:ExcludedFromDiff
   override val artifactType: ArtifactType? = DOCKER,
   @JsonIgnore
-  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  @get:ExcludedFromDiff
   override val artifactVersion: String? = null,
   @JsonIgnore
-  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  @get:ExcludedFromDiff
   val instanceCounts: InstanceCounts? = null
 ) : VersionedArtifactProvider
 

@@ -5,6 +5,7 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.rocket.api.artifact.internal.debian.DebianArtifactParser
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -14,13 +15,14 @@ import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.UNKNOWN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.MetricDimension
@@ -29,12 +31,14 @@ import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.Health
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.StepAdjustment
 import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
-import com.netflix.spinnaker.keel.api.ec2.moniker
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
@@ -45,7 +49,6 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
@@ -53,15 +56,14 @@ import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
-import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
+import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
+import com.netflix.spinnaker.keel.ec2.toEc2Api
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ExportError
@@ -443,8 +445,8 @@ class ClusterHandler(
    * This function attempts to use image description to guess what OS the image is.
    * If not found, it will throw an error.
    */
-  fun guessBaseOsFrom(image: ActiveServerGroupImage): String =
-    parseBaseOsFrom(image.description)
+  fun guessBaseOsFrom(image: ActiveServerGroupImage?): String =
+    parseBaseOsFrom(image?.description)
       ?: throw ExportError("Unable to determine the base image from image description: $image")
 
   /**
@@ -701,18 +703,18 @@ class ClusterHandler(
         "targetTrackingConfiguration" to mapOf(
           "targetValue" to it.targetValue,
           "disableScaleIn" to it.disableScaleIn,
-          "predefinedMetricSpecification" to when (it.predefinedMetricSpec) {
+          "predefinedMetricSpecification" to when (val metricsSpec = it.predefinedMetricSpec) {
             null -> null
-            else -> with(it.predefinedMetricSpec) {
+            else -> with(metricsSpec) {
               PredefinedMetricSpecificationModel(
                 predefinedMetricType = type,
                 resourceLabel = label
               )
             }
           },
-          "customizedMetricSpecification" to when (it.customMetricSpec) {
+          "customizedMetricSpecification" to when (val metricsSpec = it.customMetricSpec) {
             null -> null
-            else -> with(it.customMetricSpec) {
+            else -> with(metricsSpec) {
               CustomizedMetricSpecificationModel(
                 metricName = name,
                 namespace = namespace,
@@ -853,7 +855,7 @@ class ClusterHandler(
           ramdiskId = ramdiskId.orNull()
         )
       },
-      buildInfo = buildInfo,
+      buildInfo = buildInfo?.toEc2Api(),
       capacity = capacity.let {
         when (scalingPolicies.isEmpty()) {
           true -> Capacity(it.min, it.max, it.desired)
@@ -878,8 +880,8 @@ class ClusterHandler(
         stepScalingPolicies = scalingPolicies.toStepScalingPolicies()
       ),
       tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS },
-      image = image,
-      instanceCounts = instanceCounts
+      image = image.toEc2Api(),
+      instanceCounts = instanceCounts.toEc2Api()
     )
 
   private fun List<MetricDimensionModel>?.toSpec(): Set<MetricDimension> =
@@ -961,6 +963,9 @@ class ClusterHandler(
       }
       .toSet()
 
+  private val ServerGroup.moniker: Moniker
+    get() = parseMoniker(name)
+
   private val ServerGroup.securityGroupIds: Collection<String>
     get() = dependencies
       .securityGroupNames
@@ -1009,7 +1014,15 @@ class ClusterHandler(
   }
 
   /**
-   * Translates a LaunchConfiguration object to a ClusterSpec.LaunchConfigurationSpec with default values omitted for export.
+   * Translates a Health object to a ClusterSpec.HealthSpec with default values omitted for export.
+   */
+  private fun Health.toSpecWithoutDefaults(): HealthSpec? {
+    val default = Health()
+    return buildSpecFromDiff(default, this)
+  }
+
+  /**
+   * Translates a LaunchConfiguration object to a [LaunchConfigurationSpec] with default values omitted for export.
    */
   private fun LaunchConfiguration.exportSpec(
     account: String,

@@ -2,6 +2,9 @@ package com.netflix.spinnaker.keel.api.artifacts
 
 typealias ArtifactType = String
 
+const val DEBIAN: ArtifactType = "deb"
+const val DOCKER: ArtifactType = "docker"
+
 /**
  * The release status of an artifact. This may not necessarily be applicable to all
  * [DeliveryArtifact] sub-classes.

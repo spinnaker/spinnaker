@@ -6,13 +6,10 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
+import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import dev.minutest.junit.JUnit5Minutests
@@ -33,8 +30,8 @@ internal class ClusterSpecTests : JUnit5Minutests {
       fixture { Fixture }
 
       mapOf(
-        "YAML" to configuredTestYamlMapper(),
-        "JSON" to configuredTestObjectMapper()
+        "YAML" to configuredTestYamlMapper().registerKeelEc2ApiModule(),
+        "JSON" to configuredTestObjectMapper().registerKeelEc2ApiModule()
       ).forEach { (format, mapper) ->
         test("can serialize and deserialize as $format") {
           val text = mapper.writeValueAsString(spec)

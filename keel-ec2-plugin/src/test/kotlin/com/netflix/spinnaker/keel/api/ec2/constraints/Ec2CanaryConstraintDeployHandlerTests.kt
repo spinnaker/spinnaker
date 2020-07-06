@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
+import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
@@ -22,7 +23,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 import com.netflix.spinnaker.keel.core.api.CanarySource
-import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler

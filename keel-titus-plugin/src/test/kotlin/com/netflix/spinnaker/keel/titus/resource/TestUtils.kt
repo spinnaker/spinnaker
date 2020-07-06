@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.keel.titus.resource
 
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroup
 import com.netflix.spinnaker.keel.api.titus.cluster.moniker
-import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
+import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.Placement
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
@@ -29,7 +30,7 @@ fun TitusServerGroup.toClouddriverResponse(
       targetGroups = dependencies.targetGroups,
       loadBalancers = dependencies.loadBalancerNames,
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
-      capacity = capacity,
+      capacity = capacity.run { Capacity(min, max, desired) },
       cloudProvider = CLOUD_PROVIDER,
       moniker = parseMoniker("$name-v$sequence"),
       env = env,
@@ -39,6 +40,6 @@ fun TitusServerGroup.toClouddriverResponse(
       tags = emptyMap(),
       resources = resources,
       capacityGroup = moniker.app,
-      instanceCounts = instanceCounts
+      instanceCounts = instanceCounts.run { com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts(total, up, down, unknown, outOfService, starting) }
     )
   }

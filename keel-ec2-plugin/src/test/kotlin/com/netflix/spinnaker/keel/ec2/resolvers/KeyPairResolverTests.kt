@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -35,7 +36,7 @@ internal class KeyPairResolverTests : JUnit5Minutests {
       }.toSet()
     ),
     _defaults = ClusterSpec.ServerGroupSpec(
-      launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
+      launchConfiguration = LaunchConfigurationSpec(
         keyPair = "nf-keypair-test-fake"
       )
     )
@@ -178,7 +179,7 @@ internal class KeyPairResolverTests : JUnit5Minutests {
     copy(
       overrides = mapOf(
         region to ClusterSpec.ServerGroupSpec(
-          launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
+          launchConfiguration = LaunchConfigurationSpec(
             keyPair = "foobar"
           )
         )

@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
+import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import javax.annotation.PostConstruct
@@ -32,6 +33,14 @@ class KeelConfigurationFinalizer(
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  // TODO: not sure if we can do this more dynamically
+  @PostConstruct
+  fun registerApiExtensionsWithObjectMappers() {
+    objectMappers.forEach {
+      it.registerKeelEc2ApiModule()
+    }
+  }
 
   @PostConstruct
   fun registerResourceSpecSubtypes() {

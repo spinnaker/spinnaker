@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.orca
 
+import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
+import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
-import com.netflix.spinnaker.keel.core.api.Highlander
-import com.netflix.spinnaker.keel.core.api.RedBlack
 import kotlinx.coroutines.async
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

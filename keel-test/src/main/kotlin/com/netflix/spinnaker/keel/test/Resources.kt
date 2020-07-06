@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.test
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactReferenceProvider
+import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
@@ -11,13 +12,11 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
-import com.netflix.spinnaker.keel.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
-import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
-import de.danielbechler.diff.introspection.ObjectDiffProperty
 import java.time.Duration
 import java.util.UUID
 
@@ -172,7 +171,7 @@ data class DummyLocatableResourceSpec(
 ) : ResourceSpec, Locatable<SimpleLocations>
 
 data class DummyArtifactVersionedResourceSpec(
-  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  @get:ExcludedFromDiff
   override val id: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord",
@@ -182,7 +181,7 @@ data class DummyArtifactVersionedResourceSpec(
 ) : ResourceSpec, VersionedArtifactProvider
 
 data class DummyArtifactReferenceResourceSpec(
-  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  @get:ExcludedFromDiff
   override val id: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord",

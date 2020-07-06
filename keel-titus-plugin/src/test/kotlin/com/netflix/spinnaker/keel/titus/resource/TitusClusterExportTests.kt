@@ -3,10 +3,13 @@ package com.netflix.spinnaker.keel.titus.resource
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -23,9 +26,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
-import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.exceptions.DockerArtifactExportError
@@ -338,7 +338,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
 
   private fun TitusActiveServerGroup.withDoubleCapacity(): TitusActiveServerGroup =
     copy(
-      capacity = Capacity(
+      capacity = com.netflix.spinnaker.keel.clouddriver.model.Capacity(
         min = capacity.min * 2,
         max = capacity.max * 2,
         desired = capacity.desired!! * 2

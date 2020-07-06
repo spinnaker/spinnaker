@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.api.Moniker
-import com.netflix.spinnaker.keel.core.api.Capacity
 
 /**
  * Fields common to classes that model Titus server groups

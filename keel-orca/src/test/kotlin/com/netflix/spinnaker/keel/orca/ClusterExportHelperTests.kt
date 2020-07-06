@@ -1,14 +1,14 @@
 package com.netflix.spinnaker.keel.orca
 
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
+import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.tags.EntityRef
@@ -59,7 +59,7 @@ class ClusterExportHelperTests : JUnit5Minutests {
       vpcId = "foo",
       targetGroups = emptySet(),
       loadBalancers = emptySet(),
-      capacity = Capacity(1, 1),
+      capacity = Capacity(1, 1, 1),
       cloudProvider = "aws",
       securityGroups = emptySet(),
       accountName = "test",

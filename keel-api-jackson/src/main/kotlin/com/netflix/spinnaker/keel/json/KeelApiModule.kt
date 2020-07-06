@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.json
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.fasterxml.jackson.databind.BeanDescription
 import com.fasterxml.jackson.databind.DeserializationConfig
 import com.fasterxml.jackson.databind.JavaType
@@ -18,21 +19,25 @@ import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.Serializers
+import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
+import com.netflix.spinnaker.keel.json.mixins.ClusterDeployStrategyMixin
 import com.netflix.spinnaker.keel.json.mixins.ConstraintStateMixin
 import com.netflix.spinnaker.keel.json.mixins.DeliveryArtifactMixin
 import com.netflix.spinnaker.keel.json.mixins.LocatableMixin
 import com.netflix.spinnaker.keel.json.mixins.MonikeredMixin
 import com.netflix.spinnaker.keel.json.mixins.ResourceKindMixin
+import com.netflix.spinnaker.keel.json.mixins.StaggeredRegionMixin
 import com.netflix.spinnaker.keel.json.mixins.SubnetAwareRegionSpecMixin
 
 fun ObjectMapper.registerKeelApiModule(): ObjectMapper = registerModule(KeelApiModule)
@@ -44,12 +49,14 @@ object KeelApiModule : SimpleModule("Keel API") {
       insertAnnotationIntrospector(KeelApiAnnotationIntrospector)
       addSerializers(KeelApiSerializers)
       addDeserializers(KeelApiDeserializers)
-      setMixInAnnotations<ResourceKind, ResourceKindMixin>()
+      setMixInAnnotations<ClusterDeployStrategy, ClusterDeployStrategyMixin>()
+      setMixInAnnotations<ConstraintState, ConstraintStateMixin>()
       setMixInAnnotations<DeliveryArtifact, DeliveryArtifactMixin>()
       setMixInAnnotations<Locatable<*>, LocatableMixin<*>>()
       setMixInAnnotations<Monikered, MonikeredMixin>()
+      setMixInAnnotations<ResourceKind, ResourceKindMixin>()
+      setMixInAnnotations<StaggeredRegion, StaggeredRegionMixin>()
       setMixInAnnotations<SubnetAwareRegionSpec, SubnetAwareRegionSpecMixin>()
-      setMixInAnnotations<ConstraintState, ConstraintStateMixin>()
     }
   }
 }
@@ -81,8 +88,8 @@ internal object KeelApiAnnotationIntrospector : NopAnnotationIntrospector() {
   override fun findTypeResolver(config: MapperConfig<*>, ac: AnnotatedClass, baseType: JavaType): TypeResolverBuilder<*>? =
     if (baseType.rawClass in types) {
       StdTypeResolverBuilder()
-        .init(JsonTypeInfo.Id.NAME, null)
-        .inclusion(JsonTypeInfo.As.EXISTING_PROPERTY)
+        .init(Id.NAME, null)
+        .inclusion(As.EXISTING_PROPERTY)
         .typeProperty("type")
     } else {
       null

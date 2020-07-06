@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.apidocs
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.module.kotlin.isKotlinClass
+import io.swagger.v3.core.converter.ModelConverterContext
 import io.swagger.v3.oas.models.media.Schema
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -25,10 +26,10 @@ import org.springframework.stereotype.Component
 @Order(HIGHEST_PRECEDENCE) // needs to run before ApiAnnotationModelConverter
 class KotlinOptionalPropertyConverter : AbstractSchemaCustomizer() {
 
-  override fun customize(schema: Schema<*>, type: Class<*>) {
-    if (type.isKotlinClass()) {
-      applyRequired(type.kotlin, schema)
-    }
+  override fun supports(type: Class<*>) = type.isKotlinClass()
+
+  override fun customize(schema: Schema<*>, type: Class<*>, context: ModelConverterContext) {
+    applyRequired(type.kotlin, schema)
   }
 
   private fun applyRequired(kotlinClass: KClass<*>, schema: Schema<*>) {

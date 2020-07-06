@@ -2,18 +2,24 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.RedBlack
+import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
+import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
@@ -23,17 +29,10 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
-import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
-import com.netflix.spinnaker.keel.core.api.Highlander
-import com.netflix.spinnaker.keel.core.api.RedBlack
-import com.netflix.spinnaker.keel.core.api.StaggeredRegion
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
@@ -851,11 +850,8 @@ private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
 
 private fun ActiveServerGroup.withMissingAppVersion(): ActiveServerGroup =
   copy(
-    image = ActiveServerGroupImage(
+    image = image.copy(
       imageId = "ami-573e1b2650a5",
-      name = "name",
-      imageLocation = "location",
-      description = null,
-      tags = emptyList()
+      appVersion = null
     )
   )

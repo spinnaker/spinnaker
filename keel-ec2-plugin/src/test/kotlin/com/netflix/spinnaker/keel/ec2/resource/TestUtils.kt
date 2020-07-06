@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
+import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
@@ -20,7 +21,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.TargetTrackingConfiguration
-import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import org.apache.commons.lang3.RandomStringUtils
@@ -29,8 +29,8 @@ fun ServerGroup.toCloudDriverResponse(
   vpc: Network,
   subnets: List<Subnet>,
   securityGroups: List<SecurityGroupSummary>,
-  image: ActiveServerGroupImage? = null,
-  instanceCounts: InstanceCounts = InstanceCounts(1, 1, 0, 0, 0, 0)
+  image: ServerGroup.ActiveServerGroupImage? = null,
+  instanceCounts: ServerGroup.InstanceCounts = ServerGroup.InstanceCounts(1, 1, 0, 0, 0, 0)
 ): ActiveServerGroup =
   RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
     ActiveServerGroup(
@@ -107,6 +107,6 @@ fun ServerGroup.toCloudDriverResponse(
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       accountName = location.account,
       moniker = parseMoniker("$name-v$sequence"),
-      instanceCounts = instanceCounts
+      instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) }
     )
   }

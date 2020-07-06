@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.LaunchConfiguration
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State.ADDED

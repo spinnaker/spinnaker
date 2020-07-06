@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.ec2.resolvers.ApplicationLoadBalancerDefaultsResolver
 import com.netflix.spinnaker.keel.ec2.resolvers.ApplicationLoadBalancerNetworkResolver
+import com.netflix.spinnaker.keel.ec2.toEc2Api
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
@@ -211,7 +212,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         val listeners = slot.captured.job.first()["listeners"] as Set<ApplicationLoadBalancerSpec.Listener>
 
         expectThat(listeners.first()) {
-          get { defaultActions.first() }.isEqualTo(model().listeners.first().defaultActions.first())
+          get { defaultActions.first() }.isEqualTo(model().listeners.first().defaultActions.first().toEc2Api())
         }
       }
     }

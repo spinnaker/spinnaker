@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
+import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.artifact.DebianArtifactSupplier
 import com.netflix.spinnaker.keel.artifact.DockerArtifactSupplier
-import com.netflix.spinnaker.keel.artifacts.DEBIAN
-import com.netflix.spinnaker.keel.artifacts.DOCKER
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory

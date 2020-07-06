@@ -3,20 +3,25 @@ package com.netflix.spinnaker.keel.api.ec2.export
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.RedBlack
+import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration.Companion.defaultIamRoleFor
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Scaling
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.ActiveServerGroupImage
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.LaunchConfiguration.Companion.defaultIamRoleFor
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -24,14 +29,10 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
+import com.netflix.spinnaker.keel.clouddriver.model.Capacity as ClouddriverCapacity
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
-import com.netflix.spinnaker.keel.core.api.RedBlack
-import com.netflix.spinnaker.keel.core.api.StaggeredRegion
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
@@ -151,7 +152,8 @@ internal class ClusterExportTests : JUnit5Minutests {
     name = "keel-0.287.0-h208.fe2e8a1-x86_64-20200413213533-bionic-classic-hvm-sriov-ebs",
     description = "name=keel, arch=x86_64, ancestor_name=bionic-classicbase-x86_64-202002251430-ebs, ancestor_id=ami-0000, ancestor_version=nflx-base-5.308.0-h1044.b4b3f78",
     imageLocation = "1111/keel-0.287.0-h208.fe2e8a1-x86_64-20200413213533-bionic-classic-hvm-sriov-ebs",
-    tags = emptyList()
+    appVersion = null,
+    baseImageVersion = null
   )
 
   val serverGroups = spec.resolve()
@@ -373,5 +375,5 @@ private fun ActiveServerGroup.withNonDefaultLaunchConfigProps(): ActiveServerGro
 
 private fun ActiveServerGroup.withDifferentSize(): ActiveServerGroup =
   copy(
-    capacity = Capacity(min = 1, max = 10)
+    capacity = ClouddriverCapacity(min = 1, max = 10, desired = 5)
   )

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 import java.util.UUID.randomUUID
 import kotlin.random.Random.Default.nextInt

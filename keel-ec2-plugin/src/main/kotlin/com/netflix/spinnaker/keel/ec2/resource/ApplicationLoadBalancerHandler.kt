@@ -9,8 +9,8 @@ import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerOverride
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.ApplicationLoadBalancerOverride
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.id
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
+import com.netflix.spinnaker.keel.ec2.toEc2Api
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -231,8 +232,8 @@ class ApplicationLoadBalancerHandler(
                       protocol = l.protocol,
                       certificateArn = l.certificates?.firstOrNull()?.certificateArn,
                       // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
-                      rules = l.rules.filter { !it.default }.toSet(),
-                      defaultActions = l.defaultActions.toSet()
+                      rules = l.rules.filter { !it.default }.map { it.toEc2Api() }.toSet(),
+                      defaultActions = l.defaultActions.map { it.toEc2Api() }.toSet()
                     )
                   }.toSet(),
                   dependencies = LoadBalancerDependencies(
@@ -256,7 +257,7 @@ class ApplicationLoadBalancerHandler(
                       healthCheckInterval = Duration.ofSeconds(tg.healthCheckIntervalSeconds.toLong()),
                       healthyThresholdCount = tg.healthyThresholdCount,
                       unhealthyThresholdCount = tg.unhealthyThresholdCount,
-                      attributes = tg.attributes
+                      attributes = tg.attributes.toEc2Api()
                     )
                   }.toSet()
                 )

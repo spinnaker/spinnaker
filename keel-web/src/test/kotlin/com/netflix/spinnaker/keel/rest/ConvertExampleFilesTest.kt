@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
+import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -39,7 +40,7 @@ import strikt.assertions.isA
 import strikt.assertions.isSuccess
 
 class ConvertExampleFilesTest : JUnit5Minutests {
-  private val mapper = configuredTestYamlMapper()
+  private val mapper = configuredTestYamlMapper().registerKeelEc2ApiModule()
 
   fun tests() = rootContext<Unit> {
     before {

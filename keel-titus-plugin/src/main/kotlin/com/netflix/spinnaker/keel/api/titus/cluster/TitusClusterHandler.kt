@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -32,6 +33,9 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_CO
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -49,10 +53,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
-import com.netflix.spinnaker.keel.core.api.Capacity
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
-import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
@@ -482,7 +483,7 @@ class TitusClusterHandler(
         account = placement.account,
         region = region
       ),
-      capacity = capacity,
+      capacity = capacity.run { Capacity(min, max, desired) },
       container = DigestProvider(
         organization = image.dockerImageName.split("/").first(),
         image = image.dockerImageName.split("/").last(),
@@ -501,7 +502,7 @@ class TitusClusterHandler(
         securityGroupNames = securityGroupNames,
         targetGroups = targetGroups
       ),
-      instanceCounts = instanceCounts
+      instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) }
     )
 
   private suspend fun getAwsAccountNameForTitusAccount(titusAccount: String): String =

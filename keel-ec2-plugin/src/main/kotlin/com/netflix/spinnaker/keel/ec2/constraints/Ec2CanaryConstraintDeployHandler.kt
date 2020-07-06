@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -14,7 +15,6 @@ import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationPrope
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.constraints.toStageBase
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
-import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.retrofit.isNotFound

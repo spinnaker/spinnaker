@@ -4,13 +4,13 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DebianSemVerVersioningStrategy
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService

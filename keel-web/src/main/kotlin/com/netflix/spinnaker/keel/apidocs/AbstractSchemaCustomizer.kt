@@ -4,6 +4,8 @@ import io.swagger.v3.core.converter.AnnotatedType
 import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverterContext
 import io.swagger.v3.oas.models.media.Schema
+import kotlin.reflect.KProperty
+import kotlin.reflect.jvm.javaType
 import org.slf4j.LoggerFactory
 
 /**
@@ -11,7 +13,7 @@ import org.slf4j.LoggerFactory
  * currently visiting a reference to it, or the schema itself. It works out schema refs, etc. and
  * just calls [customize] with the actual schema you can apply changes to.
  */
-abstract class AbstractSchemaCustomizer : BaseModelConverter() {
+abstract class AbstractSchemaCustomizer() : BaseModelConverter() {
 
   override fun resolve(
     annotatedType: AnnotatedType,
@@ -20,22 +22,35 @@ abstract class AbstractSchemaCustomizer : BaseModelConverter() {
   ): Schema<*>? =
     super.resolve(annotatedType, context, chain)
       ?.also {
-        val schema = if (annotatedType.isResolveAsRef) {
-          val referencedSchema = context.definedModels[annotatedType.rawClass.simpleName]
-          if (referencedSchema == null) {
-            log.warn("Referenced schema ${annotatedType.rawClass.simpleName} not found")
-            null
-          } else {
-            referencedSchema
+        if (supports(annotatedType.rawClass)) {
+          val schema = resolveIfReference(annotatedType, context, it)
+          if (schema != null) {
+            customize(schema, annotatedType.rawClass, context)
           }
-        } else {
-          it
-        }
-
-        if (schema != null) {
-          customize(schema, annotatedType.rawClass)
         }
       }
+
+  private fun resolveIfReference(
+    annotatedType: AnnotatedType,
+    context: ModelConverterContext,
+    schema: Schema<*>
+  ): Schema<*>? =
+    if (annotatedType.isResolveAsRef) {
+      val referencedSchema = context.definedModels[annotatedType.rawClass.simpleName]
+      if (referencedSchema == null) {
+        log.warn("Referenced schema ${annotatedType.rawClass.simpleName} not found")
+        null
+      } else {
+        referencedSchema
+      }
+    } else {
+      schema
+    }
+
+  /**
+   * Override this to only process certain classes. By default [customize] will run for all types.
+   */
+  open fun supports(type: Class<*>) = true
 
   /**
    * Provides a hook to customize [schema].
@@ -43,7 +58,28 @@ abstract class AbstractSchemaCustomizer : BaseModelConverter() {
    * @param type the model class the schema represents.
    * @param schema the current schema as generated so far.
    */
-  abstract fun customize(schema: Schema<*>, type: Class<*>)
+  abstract fun customize(schema: Schema<*>, type: Class<*>, context: ModelConverterContext)
+
+  protected inline fun <reified T> Class<*>.isSubclassOf() = T::class.java.isAssignableFrom(this)
+
+  /**
+   * Converts a Kotlin property to the name that would be used in the API schema.
+   */
+  private fun KProperty<*>.toSchemaPropertyName() =
+    if (returnType.javaType == Boolean::class.java) {
+      // boolean properties are named `is*` but appear in the API without that prefix
+      name.substring(2).decapitalize()
+    } else {
+      name
+    }
+
+  /**
+   * Invokes [callback] once for each of [properties], passing the name used for that property in
+   * the API schema.
+   */
+  protected fun eachSchemaProperty(vararg properties: KProperty<*>, callback: (String) -> Unit) {
+    properties.map { it.toSchemaPropertyName() }.forEach(callback)
+  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

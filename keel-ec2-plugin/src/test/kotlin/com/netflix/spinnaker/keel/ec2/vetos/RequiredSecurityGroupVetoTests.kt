@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
@@ -19,7 +20,6 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER

@@ -40,9 +40,7 @@ abstract class BaseModelConverter : ModelConverter {
    */
   protected fun ModelConverterContext.defineSchemaAsOneOf(type: Class<*>, subTypes: List<Class<*>>): ComposedSchema {
     subTypes.forEach {
-      if (!definedModels.containsKey(it.simpleName)) {
-        defineModel(it.simpleName, resolve(AnnotatedType(it)))
-      }
+      ensureDefinedModelExists(it)
     }
 
     return if (!definedModels.containsKey(type.simpleName)) {
@@ -57,5 +55,15 @@ abstract class BaseModelConverter : ModelConverter {
     } else {
       definedModels[type.simpleName] as ComposedSchema
     }
+  }
+
+  protected fun ModelConverterContext.ensureDefinedModelExists(type: Class<*>) {
+    if (!definedModels.containsKey(type.simpleName)) {
+      defineModel(type.simpleName, resolve(AnnotatedType(type)))
+    }
+  }
+
+  protected inline fun <reified T> ModelConverterContext.ensureDefinedModelExists() {
+    ensureDefinedModelExists(T::class.java)
   }
 }

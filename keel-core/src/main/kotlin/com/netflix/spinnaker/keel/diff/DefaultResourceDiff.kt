@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.diff
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.danielbechler.diff.NodeQueryService
@@ -14,9 +15,14 @@ import de.danielbechler.diff.differ.Differ
 import de.danielbechler.diff.differ.DifferDispatcher
 import de.danielbechler.diff.differ.DifferFactory
 import de.danielbechler.diff.filtering.ReturnableNodeService
+import de.danielbechler.diff.inclusion.Inclusion
+import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
+import de.danielbechler.diff.inclusion.Inclusion.INCLUDED
+import de.danielbechler.diff.inclusion.InclusionResolver
 import de.danielbechler.diff.introspection.IntrospectionService
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
+import java.time.Instant
 
 data class DefaultResourceDiff<T : Any>(
   override val desired: T,
@@ -71,12 +77,22 @@ data class DefaultResourceDiff<T : Any>(
     val differ: ObjectDiffer = ObjectDifferBuilder
       .startBuilding()
       .apply {
+        comparison().ofType(Instant::class.java).toUseEqualsMethod()
+        inclusion().resolveUsing(object : InclusionResolver {
+          override fun getInclusion(node: DiffNode): Inclusion =
+            if (node.getPropertyAnnotation<ExcludedFromDiff>() != null) EXCLUDED else INCLUDED
+
+          override fun enablesStrictIncludeMode() = false
+        })
         differs().register(PolymorphismAwareDifferFactory(this))
       }
       .build()
     val mapper: ObjectMapper = configuredObjectMapper()
   }
 }
+
+private inline fun <reified T : Annotation> DiffNode.getPropertyAnnotation() =
+  getPropertyAnnotation(T::class.java)
 
 fun <T : Any> ResourceDiff<Map<String, T>>.toIndividualDiffs(): List<ResourceDiff<T>> =
   desired
