@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.api
+package com.netflix.spinnaker.keel.jackson
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue

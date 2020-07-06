@@ -14,7 +14,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.USE_NATIVE_TY
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.json.registerKeelApiModule
+import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import de.huxhorn.sulky.ulid.ULID
 import java.text.SimpleDateFormat
 import java.util.TimeZone

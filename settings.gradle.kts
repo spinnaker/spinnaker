@@ -26,7 +26,6 @@ enableFeaturePreview("VERSION_ORDERING_V2")
 
 include(
   "keel-api",
-  "keel-api-jackson",
   "keel-artifact",
   "keel-bakery-plugin",
   "keel-bom",

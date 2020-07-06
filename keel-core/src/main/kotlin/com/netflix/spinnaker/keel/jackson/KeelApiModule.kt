@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.json
+package com.netflix.spinnaker.keel.jackson
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
@@ -31,14 +31,14 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStateAttributes
-import com.netflix.spinnaker.keel.json.mixins.ClusterDeployStrategyMixin
-import com.netflix.spinnaker.keel.json.mixins.ConstraintStateMixin
-import com.netflix.spinnaker.keel.json.mixins.DeliveryArtifactMixin
-import com.netflix.spinnaker.keel.json.mixins.LocatableMixin
-import com.netflix.spinnaker.keel.json.mixins.MonikeredMixin
-import com.netflix.spinnaker.keel.json.mixins.ResourceKindMixin
-import com.netflix.spinnaker.keel.json.mixins.StaggeredRegionMixin
-import com.netflix.spinnaker.keel.json.mixins.SubnetAwareRegionSpecMixin
+import com.netflix.spinnaker.keel.jackson.mixins.ClusterDeployStrategyMixin
+import com.netflix.spinnaker.keel.jackson.mixins.ConstraintStateMixin
+import com.netflix.spinnaker.keel.jackson.mixins.DeliveryArtifactMixin
+import com.netflix.spinnaker.keel.jackson.mixins.LocatableMixin
+import com.netflix.spinnaker.keel.jackson.mixins.MonikeredMixin
+import com.netflix.spinnaker.keel.jackson.mixins.ResourceKindMixin
+import com.netflix.spinnaker.keel.jackson.mixins.StaggeredRegionMixin
+import com.netflix.spinnaker.keel.jackson.mixins.SubnetAwareRegionSpecMixin
 
 fun ObjectMapper.registerKeelApiModule(): ObjectMapper = registerModule(KeelApiModule)
 

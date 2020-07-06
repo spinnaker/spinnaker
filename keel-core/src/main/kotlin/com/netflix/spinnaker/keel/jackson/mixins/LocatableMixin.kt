@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.json.mixins
+package com.netflix.spinnaker.keel.jackson.mixins
 
 import com.fasterxml.jackson.annotation.JacksonInject
 import com.netflix.spinnaker.keel.api.Locations

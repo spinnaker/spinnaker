@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.docker
 
-import com.netflix.spinnaker.keel.json.PropertyNamePolymorphicDeserializer
+import com.netflix.spinnaker.keel.jackson.PropertyNamePolymorphicDeserializer
 
 class ContainerProviderDeserializer :
   PropertyNamePolymorphicDeserializer<ContainerProvider>(ContainerProvider::class.java) {
