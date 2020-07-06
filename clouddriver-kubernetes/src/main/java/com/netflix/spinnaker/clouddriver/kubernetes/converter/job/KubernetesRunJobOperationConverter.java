@@ -41,7 +41,7 @@ public class KubernetesRunJobOperationConverter extends AbstractAtomicOperations
   @Autowired
   public KubernetesRunJobOperationConverter(
       KubernetesV2ArtifactProvider artifactProvider,
-      @Value("${kubernetes.jobs.append-suffix:true}") boolean appendSuffix) {
+      @Value("${kubernetes.jobs.append-suffix:false}") boolean appendSuffix) {
     this.artifactProvider = artifactProvider;
     this.appendSuffix = appendSuffix;
   }
