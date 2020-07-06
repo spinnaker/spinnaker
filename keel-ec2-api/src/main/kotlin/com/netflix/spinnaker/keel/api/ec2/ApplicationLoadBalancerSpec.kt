@@ -64,6 +64,7 @@ data class ApplicationLoadBalancerSpec(
         "targetGroup names have a 32 character limit"
       }
     }
+    override fun toString() = name
   }
 
   data class ApplicationLoadBalancerOverride(
