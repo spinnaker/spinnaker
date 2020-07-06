@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion.V1;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
@@ -25,7 +24,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
@@ -349,18 +347,6 @@ public class DeployService {
               "An account name must be "
                   + "specified as the desired place to run your distributed deployment.");
         }
-
-        Account account =
-            accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
-        Provider.ProviderType providerType = ((Provider) account.getParent()).providerType();
-
-        if (providerType == Provider.ProviderType.KUBERNETES
-            && account.getProviderVersion() == V1) {
-          throw new HalException(
-              Problem.Severity.FATAL,
-              "Distributed deployment is only available for standard Kubernetes (V2) accounts.");
-        }
-
         return kubectlDeployer;
       default:
         throw new IllegalArgumentException("Unrecognized deployment type " + type);

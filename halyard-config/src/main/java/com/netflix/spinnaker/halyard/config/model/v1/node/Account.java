@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import java.util.ArrayList;
@@ -25,11 +26,11 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@JsonIgnoreProperties({"providerVersion"})
 public abstract class Account extends Node implements Cloneable {
   String name;
   String environment;
   List<String> requiredGroupMembership = new ArrayList<>();
-  Provider.ProviderVersion providerVersion = Provider.ProviderVersion.V1;
   Permissions.Builder permissions = new Permissions.Builder();
 
   @Override

@@ -86,11 +86,6 @@ public class ServiceProviderFactory {
 
     switch (providerType) {
       case KUBERNETES:
-        if (account.getProviderVersion() == Provider.ProviderVersion.V1) {
-          throw new HalException(
-              Problem.Severity.FATAL,
-              "Distributed deployment is only available for standard Kubernetes (V2) accounts.");
-        }
         return kubectlServiceProvider;
       case GOOGLE:
         return googleDistributedServiceProvider;

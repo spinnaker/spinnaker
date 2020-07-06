@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersion;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
@@ -33,7 +32,16 @@ import org.apache.commons.lang3.StringUtils;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class KubernetesAccount extends ContainerAccount implements Cloneable {
+  @ValidForSpinnakerVersion(
+      lowerBound = "",
+      tooLowMessage = "",
+      upperBound = "1.21.0",
+      tooHighMessage =
+          "The legacy (V1) Kubernetes provider is now deprecated. All accounts will "
+              + "now be wired as standard (V2) accounts, and providerVersion can be removed from "
+              + "all configured accounts.")
   ProviderVersion providerVersion = ProviderVersion.V2;
+
   String context;
   String cluster;
   String user;
@@ -178,5 +186,27 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   @JsonProperty("oauthServiceAccount")
   public void setOauthServiceAccount(String oAuthServiceAccount) {
     this.oAuthServiceAccount = oAuthServiceAccount;
+  }
+
+  /**
+   * @deprecated All ProviderVersion-related logic will be removed from Clouddriver by Spinnaker
+   *     1.22. We will continue to support this enum in Halyard so that we can notify users with
+   *     this field configured that it is no longer read.
+   */
+  @Deprecated
+  public enum ProviderVersion {
+    V1("v1"),
+    V2("v2");
+
+    private final String name;
+
+    ProviderVersion(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return this.name;
+    }
   }
 }

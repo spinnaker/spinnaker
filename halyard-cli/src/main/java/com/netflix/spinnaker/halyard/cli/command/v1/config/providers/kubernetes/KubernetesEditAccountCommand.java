@@ -21,9 +21,9 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount.ProviderVersion;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -222,7 +222,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   @Parameter(
       names = "--provider-version",
       description = KubernetesCommandProperties.PROVIDER_VERSION_DESCRIPTION)
-  private Provider.ProviderVersion providerVersion;
+  private ProviderVersion providerVersion;
 
   @Override
   protected Account editAccount(KubernetesAccount account) {
