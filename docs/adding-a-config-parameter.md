@@ -34,6 +34,11 @@ In our example PR, we add the `List<String> omitNamespaces` field to the
 `KubernetesAccount` class as shown
 [here](https://github.com/spinnaker/halyard/pull/498/files#diff-f14f7138f2eb7e043ee1ff1bd8bc7a0bR46).
 
+If the field requires a minimum Spinnaker version, annotate it with
+`ValidForSpinnakerVersion`, indicating the first Spinnaker version in which the
+field is supported as the `lowerBound`. Optionally, supply a message indicating
+why the field is unsupported in earlier versions as the `tooLowMessage`.
+
 ## 2. Update the config generation
 
 The structure of the halconfig should closely mirror that of whatever

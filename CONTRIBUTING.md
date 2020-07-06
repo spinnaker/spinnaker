@@ -64,3 +64,13 @@ make
 > WARNING! Since this project uses one gradle project for two executables, you
 > currently can't run `make` and `./gradlew` at the same time (one of the two
 > will likely hang indefinitely).
+
+## Adding Functionality
+
+* [Adding a config parameter](/docs/adding-a-config-parameter.md)
+* [Adding a provider](/docs/adding-a-provider.md)
+
+## Deprecating Functionality
+
+* [Deprecating a command](/docs/deprecating-commands.md)
+* [Deprecating a field](/docs/deprecating-fields.md)
