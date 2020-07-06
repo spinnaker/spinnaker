@@ -41,16 +41,16 @@ import lombok.ToString;
 // Use camelCase regardless of the ObjectMapper configuration. (Detailed comment in ArtifactTest.)
 @JsonNaming
 public final class Artifact {
-  private String type;
-  private boolean customKind;
-  private String name;
-  private String version;
-  private String location;
-  private String reference;
-  @Nonnull private Map<String, Object> metadata;
-  private String artifactAccount;
-  private String provenance;
-  private String uuid;
+  private final String type;
+  private final boolean customKind;
+  private final String name;
+  private final String version;
+  private final String location;
+  private final String reference;
+  @Nonnull private final Map<String, Object> metadata;
+  private final String artifactAccount;
+  private final String provenance;
+  private final String uuid;
 
   @Builder(toBuilder = true)
   private Artifact(
@@ -78,82 +78,9 @@ public final class Artifact {
     this.uuid = uuid;
   }
 
-  // All setters for this class are deprecated. In general, artifacts are passed around the pipeline
-  // context and are liberally serialized and deserialized, which makes mutating them fraught with
-  // peril (because you might or might not actually be operating on a copy of the artifact you
-  // actually want to mutate). In order to remove this cause of subtle bugs, this class will soon
-  // become immutable and these setters will be removed.
-
-  // The encouraged pattern for adding a field to an artifact is:
-  // Artifact newArtifact = artifact.toBuilder().artifactAccount("my-account").build()
-
-  @Deprecated
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  @Deprecated
-  public void setCustomKind(boolean customKind) {
-    this.customKind = customKind;
-  }
-
-  @Deprecated
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @Deprecated
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-  @Deprecated
-  public void setLocation(String location) {
-    this.location = location;
-  }
-
-  @Deprecated
-  public void setReference(String reference) {
-    this.reference = reference;
-  }
-
-  @Deprecated
-  public void setMetadata(Map<String, Object> metadata) {
-    this.metadata = Optional.ofNullable(metadata).orElseGet(HashMap::new);
-  }
-
-  /**
-   * This function is deprecated in favor of using {@link Artifact#getMetadata(String)} to get the
-   * particular key of interest.
-   *
-   * <p>The reason is that we would like the metadata to be (at least shallowly) immutable, and it
-   * is much easier to safely enforce that by avoiding giving callers access to the raw map in the
-   * first place.
-   */
-  @Deprecated
-  @Nonnull
-  public Map<String, Object> getMetadata() {
-    return metadata;
-  }
-
   @Nullable
   public Object getMetadata(String key) {
     return metadata.get(key);
-  }
-
-  @Deprecated
-  public void setArtifactAccount(String artifactAccount) {
-    this.artifactAccount = artifactAccount;
-  }
-
-  @Deprecated
-  public void setProvenance(String provenance) {
-    this.provenance = provenance;
-  }
-
-  @Deprecated
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
   }
 
   @JsonIgnoreProperties("kind")
