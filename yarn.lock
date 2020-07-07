@@ -499,7 +499,7 @@
 
 "@types/redux-test-utils@^0.2.0":
   version "0.2.0"
-  resolved "http://registry.npmjs.org/@types/redux-test-utils/-/redux-test-utils-0.2.0.tgz#372fb9e2f55a24dd9d257b91257edbae146505c2"
+  resolved "https://registry.npmjs.org/@types/redux-test-utils/-/redux-test-utils-0.2.0.tgz#372fb9e2f55a24dd9d257b91257edbae146505c2"
   integrity sha512-uEMO7/mnLpo8X9N2J04RfdbkMCYWNnbyhVM1SFL+dbFwXmmYydDqdmFlLdn0gUB4ado6UcQFWgRS+FAc2vvSFw==
   dependencies:
     redux "^3.6.0"
@@ -4308,7 +4308,7 @@ get-stdin@^6.0.0:
 
 get-stream@^3.0.0:
   version "3.0.0"
-  resolved "http://registry.npmjs.org/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
+  resolved "https://registry.npmjs.org/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
   integrity sha1-jpQ9E1jcN1VQVOy+LtsFqhdO3hQ=
 
 get-stream@^4.0.0:
@@ -5560,10 +5560,10 @@ jquery-ui@1.12.0:
   resolved "https://registry.yarnpkg.com/jquery-ui/-/jquery-ui-1.12.0.tgz#59c6037a2d9c57e9a2521a9b7a497116d41b4246"
   integrity sha1-WcYDei2cV+miUhqbeklxFtQbQkY=
 
-jquery@3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
-  integrity sha512-Ubldcmxp5np52/ENotGxlLe6aGMvmF4R8S6tZjsP6Knsaxd/xp3Zrh50cG93lR6nPXyUFwzN3ZSOQI0wRJNdGg==
+jquery@3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.5.0.tgz#9980b97d9e4194611c36530e7dc46a58d7340fc9"
+  integrity sha512-Xb7SVYMvygPxbFMpTFQiHh1J7HClEaThguL15N/Gg37Lri/qKyhRGZYzHRyLH8Stq3Aow0LsHO2O2ci86fCrNQ==
 
 js-tokens@^3.0.0:
   version "3.0.2"
