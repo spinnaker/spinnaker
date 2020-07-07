@@ -31,8 +31,6 @@ public class AliCloudCredentials extends AbstractAccountCredentials<AccountCrede
 
   private List<String> regions;
 
-  private String providerVersion;
-
   private List<String> requiredGroupMembership;
 
   public void setName(String name) {
@@ -53,10 +51,6 @@ public class AliCloudCredentials extends AbstractAccountCredentials<AccountCrede
 
   public void setAccessSecretKey(String accessSecretKey) {
     this.accessSecretKey = accessSecretKey;
-  }
-
-  public void setProviderVersion(String providerVersion) {
-    this.providerVersion = providerVersion;
   }
 
   @Override

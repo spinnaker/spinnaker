@@ -32,6 +32,22 @@ class ApplicationContextAtomicOperationsRegistry implements AtomicOperationsRegi
   ApplicationContext applicationContext
 
   @Override
+  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider) {
+    return (AtomicOperationConverter) applicationContext.getBean(description)
+  }
+
+  @Override
+  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider) {
+    return (DescriptionValidator) applicationContext.getBean(validator)
+  }
+
+  /**
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
+   * is deprecated. This method will be removed in a future release. Use
+   * {@link #getAtomicOperationConverter(String, String)} instead.
+   */
+  @Override
+  @Deprecated
   AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider, ProviderVersion version) {
     def result = (AtomicOperationConverter) applicationContext.getBean(description)
     if (!result.acceptsVersion(version)) {
@@ -41,7 +57,13 @@ class ApplicationContextAtomicOperationsRegistry implements AtomicOperationsRegi
     return result
   }
 
+  /**
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
+   * is deprecated. This method will be removed in a future release. Use
+   * {@link #getAtomicOperationDescriptionValidator(String, String)} instead.
+   */
   @Override
+  @Deprecated
   DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider, ProviderVersion version) {
     def result = (DescriptionValidator) applicationContext.getBean(validator)
     if (!result.acceptsVersion(version)) {

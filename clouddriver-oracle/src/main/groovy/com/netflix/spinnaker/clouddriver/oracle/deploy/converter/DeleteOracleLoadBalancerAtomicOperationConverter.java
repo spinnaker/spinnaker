@@ -14,7 +14,6 @@ import com.netflix.spinnaker.clouddriver.oracle.deploy.op.DeleteOracleLoadBalanc
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import groovy.util.logging.Slf4j;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -36,10 +35,5 @@ public class DeleteOracleLoadBalancerAtomicOperationConverter
   public DeleteLoadBalancerDescription convertDescription(Map input) {
     return OracleAtomicOperationConverterHelper.convertDescription(
         input, this, DeleteLoadBalancerDescription.class);
-  }
-
-  @Override
-  public boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v1;
   }
 }

@@ -57,11 +57,6 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
   @PostConstruct
   public void setup() {
-    if (kubernetesConfigurationProperties.getAccounts().stream()
-        .anyMatch(a -> ProviderVersion.v1.equals(a.getProviderVersion()))) {
-      throw new IllegalArgumentException(
-          "The legacy Kubernetes provider (V1) is no longer supported. Please migrate all Kubernetes accounts to the standard provider (V2).");
-    }
     Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> allAccounts =
         kubernetesConfigurationProperties.getAccounts().stream()
             .map(
@@ -80,9 +75,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
     // we only want to initialize caching agents for new or updated accounts
     Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> newAndChangedAccounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(
-                accountCredentialsRepository,
-                KubernetesNamedAccountCredentials.class,
-                ProviderVersion.v2)
+                accountCredentialsRepository, KubernetesNamedAccountCredentials.class)
             .stream()
             .map(c -> (KubernetesNamedAccountCredentials<KubernetesV2Credentials>) c)
             .filter(account -> newAndChangedAccountNames.contains(account.getName()))
@@ -103,7 +96,6 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
     deleteAccounts(deletedAccounts);
 
     kubernetesConfigurationProperties.getAccounts().stream()
-        .filter(a -> ProviderVersion.v2.equals(a.getProviderVersion()))
         .map(
             managedAccount -> {
               KubernetesNamedAccountCredentials credentials =
@@ -159,7 +151,6 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
         accountCredentialsRepository.getAll().stream()
             .filter(
                 (AccountCredentials c) -> KubernetesCloudProvider.ID.equals(c.getCloudProvider()))
-            .filter((AccountCredentials c) -> ProviderVersion.v2.equals(c.getProviderVersion()))
             .map(AccountCredentials::getName)
             .collect(Collectors.toList());
 

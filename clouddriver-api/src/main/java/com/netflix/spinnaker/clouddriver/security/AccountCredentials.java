@@ -71,7 +71,10 @@ public interface AccountCredentials<T> {
    * By default every account is at version v1.
    *
    * @return the account's version.
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion} is deprecated.
+   *     This method will be removed in a future release.
    */
+  @Deprecated
   default ProviderVersion getProviderVersion() {
     return ProviderVersion.v1;
   }

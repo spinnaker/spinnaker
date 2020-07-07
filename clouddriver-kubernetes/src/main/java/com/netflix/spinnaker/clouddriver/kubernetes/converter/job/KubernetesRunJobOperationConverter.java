@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.job.KubernetesRu
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubernetesRunJobOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,10 +54,5 @@ public class KubernetesRunJobOperationConverter extends AbstractAtomicOperations
   public KubernetesRunJobOperationDescription convertDescription(Map input) {
     return KubernetesAtomicOperationConverterHelper.convertDescription(
         input, this, KubernetesRunJobOperationDescription.class);
-  }
-
-  @Override
-  public boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v2;
   }
 }

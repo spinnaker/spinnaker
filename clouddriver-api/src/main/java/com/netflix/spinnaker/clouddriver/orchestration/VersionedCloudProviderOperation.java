@@ -28,7 +28,10 @@ public interface VersionedCloudProviderOperation {
    * applicable to accounts at this version.
    *
    * @return true i.f.f. this operations works on accounts at this version
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion} is deprecated.
+   *     This method will be removed in a future release.
    */
+  @Deprecated
   default boolean acceptsVersion(ProviderVersion version) {
     return ProviderVersion.v1.equals(version);
   }

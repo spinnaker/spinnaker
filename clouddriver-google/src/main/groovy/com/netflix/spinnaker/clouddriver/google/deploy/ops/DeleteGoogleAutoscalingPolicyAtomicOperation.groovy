@@ -32,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation<Void>{
@@ -188,7 +187,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
     if (templateOpMap?.instanceMetadata) {
       templateOpMap.instanceMetadata.remove(GCEUtil.AUTOSCALING_POLICY)
-      def converter = atomicOperationsRegistry.getAtomicOperationConverter('modifyGoogleServerGroupInstanceTemplateDescription', 'gce', ProviderVersion.v1)
+      def converter = atomicOperationsRegistry.getAtomicOperationConverter('modifyGoogleServerGroupInstanceTemplateDescription', 'gce')
       AtomicOperation templateOp = converter.convertOperation(templateOpMap)
       orchestrationProcessor.process([templateOp], UUID.randomUUID().toString())
     }

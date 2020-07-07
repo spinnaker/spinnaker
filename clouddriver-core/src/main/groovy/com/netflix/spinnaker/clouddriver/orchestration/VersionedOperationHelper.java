@@ -25,8 +25,10 @@ import javax.annotation.Nullable;
 
 @NonnullByDefault
 public class VersionedOperationHelper {
-
-  /** @deprecated ProviderVersion is going away. */
+  /**
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion} is deprecated.
+   *     This method will be removed in a future release.
+   */
   @Deprecated
   static <T extends VersionedCloudProviderOperation> List<T> findVersionMatches(
       ProviderVersion version, List<T> converters) {

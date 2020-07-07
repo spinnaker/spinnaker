@@ -32,9 +32,30 @@ interface AtomicOperationsRegistry {
    *
    * @param description
    * @param cloudProvider
-   * @param providerVersion
    * @return
    */
+  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider)
+
+  /**
+   *
+   * @param validator
+   * @param cloudProvider
+   * @return
+   */
+  @Nullable DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider)
+
+  /**
+   *
+   * @param description
+   * @param cloudProvider
+   * @param providerVersion
+   * @return
+   *
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
+   * is deprecated. This method will be removed in a future release. Use
+   * {@link #getAtomicOperationConverter(String, String)} instead.
+   */
+  @Deprecated
   AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider, ProviderVersion version)
 
   /**
@@ -43,6 +64,11 @@ interface AtomicOperationsRegistry {
    * @param cloudProvider
    * @param providerVersion
    * @return
+   *
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
+   * is deprecated. This method will be removed in a future release. Use
+   * {@link #getAtomicOperationDescriptionValidator(String, String)} instead.
    */
+  @Deprecated
   @Nullable DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider, ProviderVersion version)
 }

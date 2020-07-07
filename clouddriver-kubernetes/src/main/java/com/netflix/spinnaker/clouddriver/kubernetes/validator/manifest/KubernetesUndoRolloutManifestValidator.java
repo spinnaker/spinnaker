@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesUndoRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,10 +51,5 @@ public class KubernetesUndoRolloutManifestValidator
     if (description.getNumRevisionsBack() == null && description.getRevision() == null) {
       util.reject("empty", "numRevisionsBack & revision");
     }
-  }
-
-  @Override
-  public boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v2;
   }
 }

@@ -19,7 +19,16 @@ package com.netflix.spinnaker.clouddriver.security;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
 
+/**
+ * ProviderVersion allowed cloud provider operations to be versioned at the account level. The
+ * Kubernetes provider was the only cloud provider to version itself using ProviderVersion. Since
+ * the removal of the legacy (v1) Kubernetes provider, there are no cloud providers that support a
+ * non-default ProviderVersion.
+ *
+ * @deprecated ProviderVersion is deprecated and will be removed in a future release.
+ */
 @Beta
+@Deprecated
 public enum ProviderVersion {
   v1,
   v2

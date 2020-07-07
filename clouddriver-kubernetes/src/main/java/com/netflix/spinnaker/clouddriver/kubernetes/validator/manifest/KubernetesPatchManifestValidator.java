@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesPatchManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -62,10 +61,5 @@ public class KubernetesPatchManifestValidator
         description.getPointCoordinates().getNamespace())) {
       return;
     }
-  }
-
-  @Override
-  public boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v2;
   }
 }

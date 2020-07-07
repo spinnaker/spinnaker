@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.clouddriver.kubernetes.config;
 
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,6 @@ public class KubernetesConfigurationProperties {
   @Data
   public static class ManagedAccount {
     private String name;
-    private ProviderVersion providerVersion = ProviderVersion.v2;
     private String environment;
     private String accountType;
     private String context;

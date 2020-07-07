@@ -11,7 +11,6 @@ package com.netflix.spinnaker.clouddriver.oracle.deploy.validator;
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation;
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,10 +92,5 @@ class UpsertLoadBalancerDescriptionValidator
                 validateNotNull(errors, listener.getPort(), "listener.port");
               });
     }
-  }
-
-  @Override
-  public boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v1;
   }
 }

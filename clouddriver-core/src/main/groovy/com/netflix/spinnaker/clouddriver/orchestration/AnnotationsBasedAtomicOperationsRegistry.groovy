@@ -37,6 +37,82 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
   List<CloudProvider> cloudProviders
 
   @Override
+  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider) {
+    // Legacy naming convention which is not generic and description name is specific to cloud provider
+    try {
+      AtomicOperationConverter converter = super.getAtomicOperationConverter(description, cloudProvider)
+      if (converter) return converter
+    } catch (NoSuchBeanDefinitionException e) {
+      /**
+       * If 'cloudProvider' is not specified then it means that caller was querying the bean as per the old cloud provider
+       * specific name and if no bean found then we can't do anything here other than throwing the NoSuchBeanDefinitionException
+       *
+       * TO-DO: Once all the operations have been migrated as per the new naming scheme that is not cloud provider specific, then
+       * make the 'description' and 'cloudProvider' arguments mandatory for this method
+       */
+      if (!cloudProvider) {
+        throw e
+      }
+    }
+
+    // Operations can be versioned
+    VersionedDescription versionedDescription = VersionedDescription.from(description)
+
+    Class<? extends Annotation> providerAnnotationType = getCloudProviderAnnotation(cloudProvider)
+
+    List converters = applicationContext.getBeansWithAnnotation(providerAnnotationType).findAll { key, value ->
+      VersionedDescription converterVersion = VersionedDescription.from(value.getClass().getAnnotation(providerAnnotationType).value())
+      converterVersion.descriptionName == versionedDescription.descriptionName && value instanceof AtomicOperationConverter
+    }.values().toList()
+
+    converters = VersionedOperationHelper.findVersionMatches(versionedDescription.version, converters)
+
+    if (!converters) {
+      throw new AtomicOperationConverterNotFoundException(
+        "No atomic operation converter found for description '${description}' and cloud provider '${cloudProvider}'. " +
+          "It is possible that either 1) the account name used for the operation is incorrect, or 2) the account name used for the operation is unhealthy/unable to communicate with ${cloudProvider}."
+      )
+    }
+
+    if (converters.size() > 1) {
+      throw new RuntimeException(
+        "More than one (${converters.size()}) atomic operation converters found for description '${description}' and cloud provider " +
+          "'${cloudProvider}'"
+      )
+    }
+
+    return (AtomicOperationConverter) converters[0]
+  }
+
+  @Override
+  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider) {
+    // Legacy naming convention which is not generic and validator name is specific to cloud provider
+    try {
+      DescriptionValidator descriptionValidator = super.getAtomicOperationDescriptionValidator(validator, cloudProvider)
+      if (descriptionValidator) {
+        return descriptionValidator
+      }
+    } catch (NoSuchBeanDefinitionException e) {}
+
+    if (!cloudProvider) return null
+
+    Class<? extends Annotation> providerAnnotationType = getCloudProviderAnnotation(cloudProvider)
+
+    List validators = applicationContext.getBeansWithAnnotation(providerAnnotationType).findAll { key, value ->
+      DescriptionValidator.getValidatorName(value.getClass().getAnnotation(providerAnnotationType).value()) == validator &&
+        value instanceof DescriptionValidator
+    }.values().toList()
+
+    return validators ? (DescriptionValidator) validators[0] : null
+  }
+
+  /**
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
+   * is deprecated. This method will be removed in a future release. Use
+   * {@link #getAtomicOperationConverter(String, String)} instead.
+   */
+  @Override
+  @Deprecated
   AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider, ProviderVersion version) {
     // Legacy naming convention which is not generic and description name is specific to cloud provider
     try {
@@ -85,7 +161,13 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
     return (AtomicOperationConverter) converters[0]
   }
 
+  /**
+   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
+   * is deprecated. This method will be removed in a future release. Use
+   * {@link #getAtomicOperationDescriptionValidator(String, String)} instead.
+   */
   @Override
+  @Deprecated
   DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider, ProviderVersion version) {
     // Legacy naming convention which is not generic and validator name is specific to cloud provider
     try {

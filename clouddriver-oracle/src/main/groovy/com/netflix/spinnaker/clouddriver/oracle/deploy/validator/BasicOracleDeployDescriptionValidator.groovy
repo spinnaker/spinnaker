@@ -13,14 +13,13 @@ import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.BasicOracleDeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @OracleOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("basicOracleDeployDescriptionValidator")
 class BasicOracleDeployDescriptionValidator extends StandardOracleAttributeValidator<BasicOracleDeployDescription> {
-  
+
   @Override
   void validate(List priorDescriptions, BasicOracleDeployDescription description, Errors errors) {
     context = "basicOracleDeployDescriptionValidator"

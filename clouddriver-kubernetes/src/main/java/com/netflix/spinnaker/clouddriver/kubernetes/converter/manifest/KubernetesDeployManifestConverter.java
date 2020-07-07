@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeploy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +68,6 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
         KubernetesAtomicOperationConverterHelper.convertDescription(
             input, this, KubernetesDeployManifestDescription.class);
     return convertListDescription(mainDescription);
-  }
-
-  @Override
-  public boolean acceptsVersion(ProviderVersion version) {
-    return version == ProviderVersion.v2;
   }
 
   /**
