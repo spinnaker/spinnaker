@@ -45,6 +45,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,8 +71,18 @@ public class ConcourseService implements BuildOperations, BuildProperties {
 
   public ConcourseService(
       ConcourseProperties.Host host, Optional<ArtifactDecorator> artifactDecorator) {
+    this(
+        new ConcourseClient(host.getUrl(), host.getUsername(), host.getPassword()),
+        host,
+        artifactDecorator);
+  }
+
+  protected ConcourseService(
+      ConcourseClient client,
+      ConcourseProperties.Host host,
+      Optional<ArtifactDecorator> artifactDecorator) {
     this.host = host;
-    this.client = new ConcourseClient(host.getUrl(), host.getUsername(), host.getPassword());
+    this.client = client;
     this.resourceFilter =
         host.getResourceFilterRegex() == null
             ? null
@@ -136,7 +147,8 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   public GenericBuild getGenericBuild(String jobPath, int buildNumber) {
     return getBuilds(jobPath, null).stream()
         .filter(build -> build.getNumber() == buildNumber)
-        .findAny()
+        .sorted()
+        .findFirst()
         .map(build -> getGenericBuild(jobPath, build, true))
         .orElse(null);
   }
@@ -160,7 +172,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
             + "/jobs/"
             + job.getName()
             + "/builds/"
-            + b.getNumber());
+            + b.getDecimalNumber());
     build.setTimestamp(Long.toString(b.getStartTime() * 1000));
 
     if (!fetchResources) {
@@ -327,14 +339,21 @@ public class ConcourseService implements BuildOperations, BuildProperties {
       return emptyList();
     }
 
-    return client
-        .getBuildService()
+    return client.getBuildService()
         .builds(
             job.getTeamName(),
             job.getPipelineName(),
             job.getName(),
             host.getBuildLookbackLimit(),
-            since);
+            since)
+        .stream()
+        .sorted()
+        .collect(
+            Collectors.toMap(
+                (b) -> b.getNumber(), Function.identity(), (b1, b2) -> b1, LinkedHashMap::new))
+        .values()
+        .stream()
+        .collect(Collectors.toList());
   }
 
   public List<String> getResourceNames(String team, String pipeline) {

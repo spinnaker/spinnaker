@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.igor.concourse.client.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.igor.build.model.Result;
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
-public class Build {
+public class Build implements Comparable<Build> {
   @Getter private String id;
   private String name; // the readable build number
 
@@ -29,8 +31,13 @@ public class Build {
 
   @Getter private String status;
 
+  @JsonIgnore
+  public BigDecimal getDecimalNumber() {
+    return new BigDecimal(name);
+  }
+
   public int getNumber() {
-    return Integer.parseInt(name);
+    return getDecimalNumber().intValue();
   }
 
   public boolean isSuccessful() {
@@ -48,5 +55,10 @@ public class Build {
       return Result.ABORTED;
     }
     return Result.NOT_BUILT;
+  }
+
+  @Override
+  public int compareTo(Build o) {
+    return o.getDecimalNumber().compareTo(getDecimalNumber());
   }
 }

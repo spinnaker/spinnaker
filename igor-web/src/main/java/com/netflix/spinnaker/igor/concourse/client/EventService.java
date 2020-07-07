@@ -72,6 +72,7 @@ public class EventService {
                       // we don't care about task output
                       if (origin != null
                           && !"stdout".equals(origin.getSource())
+                          && !"stderr".equals(origin.getSource())
                           && ev.getData().getMetadata() != null) {
                         sink.next(ev);
                       }
