@@ -8,9 +8,11 @@ module(GCE_CUSTOM_INSTANCE_CONFIGURER, []).component(
   'gceCustomInstanceConfigurer',
   react2angular(CustomInstanceConfigurer, [
     'vCpuList',
+    'instanceFamilyList',
     'memoryList',
     'selectedVCpuCount',
     'selectedMemory',
+    'selectedInstanceFamily',
     'onChange',
   ]),
 );

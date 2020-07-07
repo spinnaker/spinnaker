@@ -60,10 +60,23 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
         },
         {
           name: 'n1-standard-32',
-          helpFieldKey: 'gce.instanceType.32core',
           label: '4XLarge',
           cpu: 32,
           memory: 120,
+          costFactor: 4,
+        },
+        {
+          name: 'n1-standard-64',
+          label: '8XLarge',
+          cpu: 64,
+          memory: 240,
+          costFactor: 4,
+        },
+        {
+          name: 'n1-standard-96',
+          label: '12XLarge',
+          cpu: 96,
+          memory: 360,
           costFactor: 4,
         },
       ],
@@ -89,6 +102,27 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
           cpu: 1,
           memory: 1.7,
           costFactor: 1,
+        },
+        {
+          name: 'e2-micro',
+          label: 'E2 Micro',
+          cpu: 2,
+          memory: 1,
+          costFactor: 1,
+        },
+        {
+          name: 'e2-small',
+          label: 'E2 Small',
+          cpu: 2,
+          memory: 2,
+          costFactor: 2,
+        },
+        {
+          name: 'e2-medium',
+          label: 'E2 Medium',
+          cpu: 2,
+          memory: 4,
+          costFactor: 2,
         },
       ],
     };
@@ -130,10 +164,23 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
         },
         {
           name: 'n1-highmem-32',
-          helpFieldKey: 'gce.instanceType.32core',
           label: '4XLarge',
           cpu: 32,
           memory: 208,
+          costFactor: 4,
+        },
+        {
+          name: 'n1-highmem-64',
+          label: '8XLarge',
+          cpu: 64,
+          memory: 416,
+          costFactor: 4,
+        },
+        {
+          name: 'n1-highmem-96',
+          label: '12XLarge',
+          cpu: 96,
+          memory: 624,
           costFactor: 4,
         },
       ],
@@ -176,10 +223,23 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
         },
         {
           name: 'n1-highcpu-32',
-          helpFieldKey: 'gce.instanceType.32core',
           label: '4XLarge',
           cpu: 32,
           memory: 28.8,
+          costFactor: 4,
+        },
+        {
+          name: 'n1-highcpu-64',
+          label: '8XLarge',
+          cpu: 64,
+          memory: 57.6,
+          costFactor: 4,
+        },
+        {
+          name: 'n1-highcpu-96',
+          label: '12XLarge',
+          cpu: 96,
+          memory: 86.4,
           costFactor: 4,
         },
       ],
@@ -189,8 +249,22 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
       type: 'buildCustom',
       instanceTypes: [
         {
-          name: 'buildCustom',
+          name: 'n1buildCustom',
           nameRegex: /custom-\d{1,2}-\d{4,6}/,
+          storage: {
+            localSSDSupported: true,
+          },
+        },
+        {
+          name: 'e2buildCustom',
+          nameRegex: /e2-custom-(\d{1,2})-(\d{3,6})/,
+          storage: {
+            localSSDSupported: false,
+          },
+        },
+        {
+          name: 'otherbuildCustom',
+          nameRegex: /(.*)-?custom-(\d{1,2})-(\d{3,6})/,
           storage: {
             localSSDSupported: true,
           },
@@ -321,7 +395,7 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
           .map('instanceTypes')
           .flatten()
           .map('name')
-          .filter(name => name !== 'buildCustom')
+          .filter(name => name !== 'n1buildCustom' && name !== 'e2buildCustom' && name !== 'otherbuildCustom')
           .value();
       });
     }

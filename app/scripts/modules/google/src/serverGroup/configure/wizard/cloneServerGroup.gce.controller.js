@@ -217,6 +217,7 @@ angular
         const { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
 
         const customInstanceChoices = [
+          _.get(c, 'viewState.customInstance.instanceFamily'),
           _.get(c, 'viewState.customInstance.vCpuCount'),
           _.get(c, 'viewState.customInstance.memory'),
         ];

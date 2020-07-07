@@ -220,7 +220,7 @@ angular
 
         filtered = sortInstanceTypes(filtered);
         const instanceType = c.instanceType;
-        if (_.every([instanceType, !_.startsWith(instanceType, 'custom'), !_.includes(filtered, instanceType)])) {
+        if (_.every([instanceType, !_.includes(instanceType, 'custom-'), !_.includes(filtered, instanceType)])) {
           result.dirty.instanceType = c.instanceType;
           c.instanceType = null;
         }
@@ -232,6 +232,7 @@ angular
         const c = command;
         const result = { dirty: {} };
         let vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount');
+        const instanceFamily = _.get(c, 'viewState.customInstance.instanceFamily');
         const memory = _.get(c, 'viewState.customInstance.memory');
         const { zone, regional, region } = c;
         const { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
@@ -252,7 +253,12 @@ angular
         // initializes vCpuCount so that memory selector will be populated.
         if (
           !vCpuCount ||
-          !gceCustomInstanceBuilderService.vCpuCountForLocationIsValid(vCpuCount, location, locationToInstanceTypesMap)
+          !gceCustomInstanceBuilderService.vCpuCountForLocationIsValid(
+            instanceFamily,
+            vCpuCount,
+            location,
+            locationToInstanceTypesMap,
+          )
         ) {
           vCpuCount = _.get(c, 'backingData.customInstanceTypes.vCpuList[0]');
           _.set(c, 'viewState.customInstance.vCpuCount', vCpuCount);
@@ -261,14 +267,26 @@ angular
         _.set(
           c,
           'backingData.customInstanceTypes.memoryList',
-          gceCustomInstanceBuilderService.generateValidMemoryListForVCpuCount(vCpuCount),
+          gceCustomInstanceBuilderService.generateValidMemoryListForVCpuCount(instanceFamily, vCpuCount),
         );
 
-        if (_.every([memory, vCpuCount, !gceCustomInstanceBuilderService.memoryIsValid(memory, vCpuCount)])) {
+        if (
+          _.every([
+            memory,
+            vCpuCount,
+            !gceCustomInstanceBuilderService.memoryIsValid(instanceFamily, memory, vCpuCount),
+          ])
+        ) {
           _.set(c, 'viewState.customInstance.memory', undefined);
           result.dirty.instanceType = c.instanceType;
           c.instanceType = null;
         }
+
+        _.set(
+          c,
+          'backingData.customInstanceTypes.instanceFamilyList',
+          gceCustomInstanceBuilderService.generateValidInstanceFamilyList(),
+        );
 
         return result;
       }

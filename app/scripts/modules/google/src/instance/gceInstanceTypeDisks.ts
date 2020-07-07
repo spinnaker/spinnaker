@@ -56,6 +56,24 @@ export const GCE_INSTANCE_TYPE_DISK_DEFAULTS = Object.freeze([
     ],
   },
   {
+    instanceType: 'n1-standard-64',
+    disks: [
+      {
+        type: 'pd-ssd',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'n1-standard-96',
+    disks: [
+      {
+        type: 'pd-ssd',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
     instanceType: 'f1-micro',
     supportsLocalSSD: false,
     disks: [
@@ -67,6 +85,36 @@ export const GCE_INSTANCE_TYPE_DISK_DEFAULTS = Object.freeze([
   },
   {
     instanceType: 'g1-small',
+    supportsLocalSSD: false,
+    disks: [
+      {
+        type: 'pd-standard',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'e2-small',
+    supportsLocalSSD: false,
+    disks: [
+      {
+        type: 'pd-standard',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'e2-micro',
+    supportsLocalSSD: false,
+    disks: [
+      {
+        type: 'pd-standard',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'e2-medium',
     supportsLocalSSD: false,
     disks: [
       {
@@ -121,6 +169,24 @@ export const GCE_INSTANCE_TYPE_DISK_DEFAULTS = Object.freeze([
     ],
   },
   {
+    instanceType: 'n1-highmem-64',
+    disks: [
+      {
+        type: 'pd-ssd',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'n1-highmem-96',
+    disks: [
+      {
+        type: 'pd-ssd',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
     instanceType: 'n1-highcpu-2',
     disks: [
       {
@@ -158,6 +224,24 @@ export const GCE_INSTANCE_TYPE_DISK_DEFAULTS = Object.freeze([
   },
   {
     instanceType: 'n1-highcpu-32',
+    disks: [
+      {
+        type: 'pd-ssd',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'n1-highcpu-64',
+    disks: [
+      {
+        type: 'pd-ssd',
+        sizeGb: 10,
+      },
+    ],
+  },
+  {
+    instanceType: 'n1-highcpu-96',
     disks: [
       {
         type: 'pd-ssd',

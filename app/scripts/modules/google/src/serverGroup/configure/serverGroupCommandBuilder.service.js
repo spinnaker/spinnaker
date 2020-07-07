@@ -110,7 +110,7 @@ angular
           return instanceTypeService
             .getInstanceTypeDetails(
               command.selectedProvider,
-              _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType,
+              _.includes(command.instanceType, 'custom-') ? 'buildCustom' : command.instanceType,
             )
             .then(instanceTypeDetails => {
               command.viewState.instanceTypeDetails = instanceTypeDetails;
@@ -131,7 +131,7 @@ angular
           return instanceTypeService
             .getInstanceTypeDetails(
               command.selectedProvider,
-              _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType,
+              _.includes(command.instanceType, 'custom-') ? 'buildCustom' : command.instanceType,
             )
             .then(instanceTypeDetails => {
               command.viewState.instanceTypeDetails = instanceTypeDetails;
@@ -488,7 +488,7 @@ angular
             instanceType: instanceType,
           });
 
-          if (_.startsWith(instanceType, 'custom')) {
+          if (_.includes(instanceType, 'custom-')) {
             command.viewState.customInstance = gceCustomInstanceBuilderService.parseInstanceTypeString(instanceType);
             command.viewState.instanceProfile = 'buildCustom';
           }

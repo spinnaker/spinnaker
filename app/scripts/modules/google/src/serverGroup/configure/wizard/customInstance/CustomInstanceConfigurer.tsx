@@ -6,18 +6,25 @@ import { HelpField } from '@spinnaker/core';
 export interface ICustomInstanceConfig {
   vCpuCount: number;
   memory: number;
+  instanceFamily: string;
 }
 
 export interface ICustomInstanceConfigurerProps {
   vCpuList: number[];
   memoryList: number[];
+  instanceFamilyList: string[];
   selectedVCpuCount: number;
   selectedMemory: number;
+  selectedInstanceFamily: string;
   onChange: (config: ICustomInstanceConfig) => void;
 }
 
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
+    const instanceFamilyOptions: Option[] = (this.props.instanceFamilyList || []).map(instanceFamily => ({
+      label: instanceFamily,
+      value: instanceFamily,
+    }));
     const vCpuOptions: Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
     const memoryOptions: Option[] = (this.props.memoryList || []).map(memory => ({
       label: memory + '',
@@ -25,9 +32,23 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
     }));
     const selectedVCpuCountLabel = this.props.selectedVCpuCount ? this.props.selectedVCpuCount + '' : null;
     const selectedMemoryLabel = this.props.selectedMemory ? this.props.selectedMemory + '' : null;
+    const selectedInstanceFamilyLabel = this.props.selectedInstanceFamily ? this.props.selectedInstanceFamily : null;
 
     return (
       <div>
+        <div className="row">
+          <div className="col-md-5 sm-label-right">
+            <b>Family </b>
+          </div>
+          <div className="col-md-3">
+            <Select
+              options={instanceFamilyOptions}
+              clearable={false}
+              value={{ label: selectedInstanceFamilyLabel, value: this.props.selectedInstanceFamily }}
+              onChange={this.handleInstanceFamilyChange}
+            />
+          </div>
+        </div>
         <div className="row">
           <div className="col-md-5 sm-label-right">
             <b>Cores </b>
@@ -62,11 +83,28 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
 
   private handleVCpuChange = (option: Option) => {
     const value = (option ? option.value : null) as number;
-    this.props.onChange({ vCpuCount: value, memory: this.props.selectedMemory });
+    this.props.onChange({
+      instanceFamily: this.props.selectedInstanceFamily,
+      vCpuCount: value,
+      memory: this.props.selectedMemory,
+    });
   };
 
   private handleMemoryChange = (option: Option) => {
     const value = (option ? option.value : null) as number;
-    this.props.onChange({ vCpuCount: this.props.selectedVCpuCount, memory: value });
+    this.props.onChange({
+      instanceFamily: this.props.selectedInstanceFamily,
+      vCpuCount: this.props.selectedVCpuCount,
+      memory: value,
+    });
+  };
+
+  private handleInstanceFamilyChange = (option: Option) => {
+    const value = (option ? option.value : null) as string;
+    this.props.onChange({
+      instanceFamily: value,
+      vCpuCount: this.props.selectedVCpuCount,
+      memory: this.props.selectedMemory,
+    });
   };
 }
