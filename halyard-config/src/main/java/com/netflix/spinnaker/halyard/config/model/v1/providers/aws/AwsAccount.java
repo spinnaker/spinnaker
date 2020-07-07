@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties({"providerVersion"})
 public class AwsAccount extends Account {
   private String defaultKeyPair;
   private String edda;

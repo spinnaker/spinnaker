@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
@@ -26,6 +27,7 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@JsonIgnoreProperties({"providerVersion"})
 public class CommonGoogleAccount extends Account {
   private String project;
   @LocalFile @SecretFile private String jsonPath;

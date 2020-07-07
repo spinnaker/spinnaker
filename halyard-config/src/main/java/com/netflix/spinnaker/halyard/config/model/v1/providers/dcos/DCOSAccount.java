@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.dcos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
@@ -11,6 +12,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties({"providerVersion"})
 public class DCOSAccount extends ContainerAccount {
   private List<ClusterCredential> clusters;
 
