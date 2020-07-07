@@ -48,6 +48,8 @@ public class SamlConfig {
   String redirectHostname;
   String redirectBasePath;
 
+  String signatureDigest;
+
   Saml.UserAttributeMapping userAttributeMapping;
 
   public SamlConfig(Security security) {
@@ -76,6 +78,8 @@ public class SamlConfig {
     if (StringUtils.isNotEmpty(u.getPath())) {
       this.redirectBasePath = u.getPath();
     }
+
+    this.signatureDigest = saml.getSignatureDigest();
 
     this.userAttributeMapping = saml.getUserAttributeMapping();
   }

@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyStore;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +36,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SamlValidator extends Validator<Saml> {
+
+  // Known algorithms supported by Gate (SamlSsoConfig.SignatureAlgorithms).
+  // This is a copy of the known names so far, so we don't create a hard binary dependency between
+  // Halyard and Gate.
+  public static Collection<String> KNOWN_DIGEST_ALGORITHMS =
+      Arrays.asList("SHA1", "SHA256", "SHA384", "SHA512", "RIPEMD160", "MD5");
+
   @Override
   public void validate(ConfigProblemSetBuilder p, Saml saml) {
     if (!saml.isEnabled()) {
@@ -104,6 +113,18 @@ public class SamlValidator extends Validator<Saml> {
       p.addProblem(Problem.Severity.ERROR, "No service address specified.");
     } else if (!saml.getServiceAddress().getProtocol().equalsIgnoreCase("https")) {
       p.addProblem(Problem.Severity.WARNING, "Gate should operate on HTTPS");
+    }
+
+    // Printing a warning instead of an error because Halyard doesn't depend on Gate,
+    // and we don't want to prevent installing Spinnaker if new algorithms are added to Gate but not
+    // to this validator
+    String digest = saml.getSignatureDigest();
+    if (digest != null && !KNOWN_DIGEST_ALGORITHMS.contains(digest)) {
+      p.addProblem(
+          Problem.Severity.WARNING,
+          String.format(
+              "Unrecognized SAML signatureDigest '%s'. Known algorithms are %s",
+              digest, KNOWN_DIGEST_ALGORITHMS));
     }
   }
 }

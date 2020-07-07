@@ -40,6 +40,8 @@ public class Saml extends AuthnMethod {
 
   private URL serviceAddress;
 
+  private String signatureDigest;
+
   private UserAttributeMapping userAttributeMapping = new UserAttributeMapping();
 
   @Data

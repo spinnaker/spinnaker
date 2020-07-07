@@ -82,6 +82,12 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
   private URL serviceAddress;
 
   @Parameter(
+      names = "--signature-digest",
+      description =
+          "Digest algorithm to sign SAML messages (optional). Valid values include \"SHA1\", \"SHA256\", \"SHA384\", \"SHA512\", \"RIPEMD160\" and \"MD5\".")
+  private String signatureDigest;
+
+  @Parameter(
       names = "--user-attribute-mapping-first-name",
       description = "The first name field returned from your SAML provider.")
   private String userInfoMappingFirstName;
@@ -118,6 +124,7 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
     s.setKeyStorePassword(isSet(keystorePassword) ? keystorePassword : s.getKeyStorePassword());
     s.setKeyStoreAliasName(isSet(keystoreAliasName) ? keystoreAliasName : s.getKeyStoreAliasName());
     s.setServiceAddress(isSet(serviceAddress) ? serviceAddress : s.getServiceAddress());
+    s.setSignatureDigest(isSet(signatureDigest) ? signatureDigest : s.getSignatureDigest());
 
     if (isSet(metadata)) {
       if (metadata.startsWith("http")) {
