@@ -1,23 +1,23 @@
 'use strict';
 
-var feedbackUrl = process.env.FEEDBACK_URL;
-var gateHost = process.env.API_HOST || 'http://localhost:8084';
-var bakeryDetailUrl =
+const feedbackUrl = process.env.FEEDBACK_URL;
+const gateHost = process.env.API_HOST || 'http://localhost:8084';
+const bakeryDetailUrl =
   process.env.BAKERY_DETAIL_URL || gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
-var authEndpoint = process.env.AUTH_ENDPOINT || gateHost + '/auth/user';
-var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
-var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
-var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
-var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
-var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
-var manualCanaryAnalysisEnabled = process.env.MANUAL_CANARY_ANALYSIS_ENABLED === 'true';
-var legacySiteLocalFieldsEnabled = process.env.LEGACY_SITE_LOCAL_FIELDS_ENABLED === 'true';
-var canaryStageName = process.env.CANARY_STAGE_NAME;
-var canaryStageDescription = process.env.CANARY_STAGE_DESCRIPTION;
-var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
-var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
-var atlasWebComponentsPolyfillUrl = process.env.ATLAS_WEB_COMPONENTS_POLYFILL_URL;
-var canaryAccount = process.env.CANARY_ACCOUNT || 'my-google-account';
+const authEndpoint = process.env.AUTH_ENDPOINT || gateHost + '/auth/user';
+const fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
+const entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
+const reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
+const defaultMetricStore = process.env.METRIC_STORE || 'atlas';
+const canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
+const manualCanaryAnalysisEnabled = process.env.MANUAL_CANARY_ANALYSIS_ENABLED === 'true';
+const legacySiteLocalFieldsEnabled = process.env.LEGACY_SITE_LOCAL_FIELDS_ENABLED === 'true';
+const canaryStageName = process.env.CANARY_STAGE_NAME;
+const canaryStageDescription = process.env.CANARY_STAGE_DESCRIPTION;
+const templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
+const atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
+const atlasWebComponentsPolyfillUrl = process.env.ATLAS_WEB_COMPONENTS_POLYFILL_URL;
+const canaryAccount = process.env.CANARY_ACCOUNT || 'my-google-account';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -82,6 +82,9 @@ window.spinnakerSettings = {
   },
   authEnabled: true,
   authTtl: 600000,
+  entityTags: {
+    maxResults: 5000,
+  },
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   canary: {
@@ -101,6 +104,7 @@ window.spinnakerSettings = {
     showAllConfigs: true,
   },
   feature: {
+    canary: true,
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
     pipelines: true,

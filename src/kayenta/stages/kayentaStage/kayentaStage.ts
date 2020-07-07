@@ -213,7 +213,7 @@ module(KAYENTA_CANARY_STAGE, [
           validate: (_pipeline: IPipeline, stage: IKayentaStage) => {
             const startTime: string = get(stage, 'canaryConfig.scopes[0].startTimeIso');
             if (
-              stage.analysisType == KayentaAnalysisType.Retrospective &&
+              stage.analysisType === KayentaAnalysisType.Retrospective &&
               !isEmpty(startTime) &&
               !isValidUtcInstant(startTime)
             ) {

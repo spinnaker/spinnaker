@@ -17,7 +17,7 @@ declare module 'semiotic' {
     yAccessor?: string | ((d: DataPoint) => number);
     xScaleType?: ScaleTime<number, number>;
     baseMarkProps?: object;
-    hoverAnnotation?: boolean | (object | Function)[] | object | Function;
+    hoverAnnotation?: boolean | Array<object | Function> | object | Function;
     customHoverBehavior?: (d: IXYFrameHoverBaseArgs<DataPoint> & DataPoint) => void;
     xExtent?: Date[] | number[];
     axes?: object[];
@@ -80,7 +80,7 @@ declare module 'semiotic' {
    */
   export interface IOrFrameHoverArgs<DataPoint> {
     column?: IOrGroup<DataPoint>;
-    summary?: IOrPiece<DataPoint>[];
+    summary?: Array<IOrPiece<DataPoint>>;
     type?: string; // type of hover event (e.g. frame-hover)
     points: undefined | IOrSummaryPiece[]; // used for calculated summary datasets (e.g. boxplot)
     voronoiX?: number; // x position on the SVG element
@@ -111,7 +111,7 @@ declare module 'semiotic' {
     padding: number;
     width: number; // width of the column
     x: number; // starting position of the column (along the main axis)
-    xyData: IOrXyData<DataPoint>[];
+    xyData: Array<IOrXyData<DataPoint>>;
     y: number;
   }
 

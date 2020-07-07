@@ -3,9 +3,6 @@
 const path = require('path');
 const basePath = path.join(__dirname, '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
-const HappyPack = require('happypack');
-const HAPPY_PACK_POOL_SIZE = process.env.HAPPY_PACK_POOL_SIZE || 3;
-const happyThreadPool = HappyPack.ThreadPool({ size: HAPPY_PACK_POOL_SIZE });
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
@@ -48,9 +45,8 @@ module.exports = {
   watch: process.env.WATCH === 'true',
   module: {
     rules: [
-      { test: /\.js$/, use: ['happypack/loader?id=js'], exclude: exclusionPattern },
-      { test: /\.tsx?$/, use: ['happypack/loader?id=ts'], exclude: exclusionPattern },
-      { test: /\.json$/, loader: 'json-loader' },
+      { test: /\.js$/, use: ['envify-loader', 'eslint-loader'], exclude: exclusionPattern },
+      { test: /\.tsx?$/, use: ['ts-loader', 'eslint-loader'], exclude: exclusionPattern },
       { test: /\.(woff|otf|ttf|eot|png|gif|ico|svg)(.*)?$/, use: 'file-loader' },
       {
         test: require.resolve('jquery'),
@@ -58,7 +54,7 @@ module.exports = {
       },
       {
         test: /\.less$/,
-        use: ['happypack/loader?id=less'],
+        use: ['style-loader', 'css-loader', 'less-loader'],
       },
       {
         test: /\.css$/,
@@ -66,32 +62,10 @@ module.exports = {
       },
       {
         test: /\.html$/,
-        use: ['happypack/loader?id=lib-html'],
+        use: ['ngtemplate-loader?relativeTo=' + path.resolve(basePath, 'src') + '&prefix=kayenta', 'html-loader'],
         exclude: exclusionPattern,
       },
     ],
   },
-  plugins: [
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new HappyPack({
-      id: 'lib-html',
-      loaders: ['ngtemplate-loader?relativeTo=' + path.resolve(basePath, 'src') + '&prefix=kayenta', 'html-loader'],
-      threadPool: happyThreadPool,
-    }),
-    new HappyPack({
-      id: 'js',
-      loaders: ['envify-loader', 'eslint-loader'],
-      threadPool: happyThreadPool,
-    }),
-    new HappyPack({
-      id: 'ts',
-      loaders: [{ path: 'ts-loader', query: { happyPackMode: true } }, 'tslint-loader'],
-      threadPool: happyThreadPool,
-    }),
-    new HappyPack({
-      id: 'less',
-      loaders: ['style-loader', 'css-loader', 'less-loader'],
-      threadPool: happyThreadPool,
-    }),
-  ],
+  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })],
 };

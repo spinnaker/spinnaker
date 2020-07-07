@@ -4,14 +4,15 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
+    "baseUrl": "./src",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": ["es2017", "dom"],
+    "lib": ["es2016", "es2017", "dom", "es2018"],
     "moduleResolution": "node",
-    "module": "commonjs",
+    "module": "esnext",
     "noEmitHelpers": false,
+    "noErrorTruncation": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": false, // should really get to a place where we can turn this on
@@ -19,24 +20,19 @@
     "noUnusedParameters": true,
     "outDir": "transpiled",
     "paths": {
-      "rxjs": ["../node_modules/rxjs"], // only needed when using npm link
-      "kayenta": ["kayenta"]
+      "rxjs": ["../node_modules/rxjs"] // only needed when using npm link
     },
     "pretty": true,
     "removeComments": true,
-    "rootDir": ".",
+    "rootDir": "./src",
     "skipLibCheck": true,
-    "sourceMap": true,
+    "inlineSourceMap": true,
     "strictNullChecks": false, // should really get to a place where we can turn this on
     "target": "es6",
     "typeRoots": ["node_modules/@types"]
   },
-  "awesomeTypescriptLoaderOptions": {
-    "useBabel": false,
-    "useCache": true
-  },
   "exclude": ["build", "node", "node_modules", "transpiled"],
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
   "inlineSourceMap": true,
   "sourceMap": false
 }

@@ -8,6 +8,7 @@ const inclusionPattern = [path.resolve(__dirname, 'src'), path.resolve(NODE_MODU
 
 function configure(IS_TEST, IS_INSTRUMENTED) {
   const config = {
+    mode: IS_TEST ? 'development' : 'production',
     plugins: [],
     output: IS_TEST
       ? undefined
@@ -38,17 +39,39 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
         root: __dirname,
       },
     },
+    optimization: {
+      splitChunks: {
+        chunks: 'all', // enables splitting of both initial and async chunks
+        maxInitialRequests: 10, // allows up to 10 initial chunks
+        cacheGroups: {
+          // Put code matching each regexp in a separate chunk
+          app: new RegExp('/src'),
+          spinnakercore: /node_modules\/@spinnaker\/core/,
+          vendor: new RegExp('node_modules/(?!@spinnaker/core)'),
+        },
+      },
+    },
     module: {
       rules: [
-        { enforce: 'pre', test: /\.(spec\.)?tsx?$/, use: 'tslint-loader', include: inclusionPattern },
-        { enforce: 'pre', test: /\.(spec\.)?js$/, loader: 'eslint-loader', include: inclusionPattern },
+        { enforce: 'pre', test: /\.(spec\.)?tsx?$/, loader: 'eslint-loader', include: inclusionPattern },
         { test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader' },
         { test: /\.json$/, loader: 'json-loader', include: inclusionPattern },
         { test: require.resolve('jquery'), use: ['expose-loader?$', 'expose-loader?jQuery'] },
         {
           test: /\.js$/,
+          use: [{ loader: 'source-map-loader' }],
+          enforce: 'pre',
+          include: /node_modules.*(netflix|spinnaker|uirouter)/,
+          exclude: [/\/angular-cache.js/],
+        },
+        {
+          test: /\.js$/,
           use: ['cache-loader', 'eslint-loader'],
           include: inclusionPattern.concat(path.resolve(__dirname, 'settings.js')),
+        },
+        {
+          test: /\.d\.ts$/,
+          use: ['null-loader'],
         },
         {
           test: /\.less$/,
@@ -58,7 +81,6 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
         {
           test: /\.css$/,
           use: ['cache-loader', 'style-loader', 'css-loader'],
-          // include: inclusionPattern
         },
         {
           test: /\.html$/,
@@ -90,40 +112,20 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
     config.entry = {
       settings: './settings.js',
       app: './src/app.ts',
-      vendor: [
-        'jquery',
-        'angular',
-        'angular-ui-bootstrap',
-        'source-sans-pro',
-        'angular-cache',
-        'angular-messages',
-        'angular-sanitize',
-        'bootstrap',
-        'clipboard',
-        'd3',
-        'jquery-ui',
-        'moment-timezone',
-        'rxjs',
-        'react',
-        'angular2react',
-        'react2angular',
-        'react-bootstrap',
-        'react-dom',
-        'react-ga',
-        'ui-router-visualizer',
-        'ui-select',
-        '@uirouter/angularjs',
-      ],
-      spinnaker: ['@spinnaker/core'],
     };
 
     config.plugins.push(
       ...[
-        new webpack.optimize.CommonsChunkPlugin({ names: ['app', 'spinnaker', 'settings', 'vendor', 'manifest'] }),
-        new CopyWebpackPlugin([{ from: 'node_modules/@spinnaker/core/lib' }], {
-          copyUnmodified: false,
-          ignore: ['*.js', '*.ts', '*.map', 'index.html'],
-        }),
+        new CopyWebpackPlugin(
+          [
+            { from: 'node_modules/@spinnaker/core/lib' },
+            { from: `./plugin-manifest.json`, to: `./plugin-manifest.json` },
+          ],
+          {
+            copyUnmodified: false,
+            ignore: ['*.js', '*.ts', '*.map', 'index.html'],
+          },
+        ),
         new HtmlWebpackPlugin({
           title: 'Spinnaker',
           template: './index.deck',
@@ -159,31 +161,26 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
       },
       {
         test: /\.tsx?$/,
-        loader: 'awesome-typescript-loader',
-        options: {
-          sourceMap: false,
-          inlineSourceMap: true,
-          compilerOptions: {
-            removeComments: true,
-          },
-        },
+        use: [{ loader: 'ts-loader' }],
+        exclude: /\.d\.ts$/,
       },
       {
         enforce: 'post',
         test: /\.(js|ts|tsx)$/,
         loader: 'istanbul-instrumenter-loader',
-        query: {
+        options: {
           esModules: true,
         },
         include: path.resolve(__dirname, 'src'),
-        exclude: /\.spec\.(js|ts|tsx)$/,
+        exclude: /\.(d|spec)\.(js|ts|tsx)$/,
       },
     );
   } else {
     config.module.rules.push({
       test: /\.tsx?$/,
-      use: ['cache-loader', 'awesome-typescript-loader'],
+      use: ['cache-loader', 'ts-loader', 'eslint-loader'],
       include: inclusionPattern.concat(path.join(__dirname, 'test')),
+      exclude: /\.d\.ts$/,
     });
   }
 

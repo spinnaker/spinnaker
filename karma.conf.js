@@ -1,9 +1,8 @@
 'use strict';
 
-const path = require('path');
 const webpackCommon = require('./webpack.common');
 
-module.exports = function(config) {
+module.exports = function (config) {
   const reportCoverage = config.coverage === true;
   const options = {
     autoWatch: true,
@@ -28,13 +27,9 @@ module.exports = function(config) {
     },
 
     customLaunchers: {
-      Chrome_travis_ci: {
-        base: 'Chrome',
+      ChromeTravis: {
+        base: 'ChromeHeadless',
         flags: ['--no-sandbox'],
-      },
-      ChromeActive: {
-        base: 'Chrome',
-        flags: ['--override-plugin-power-saver-for-testing=0'],
       },
     },
 
@@ -52,7 +47,7 @@ module.exports = function(config) {
     // web server port
     port: 8081,
 
-    browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive'],
+    browsers: [process.env.TRAVIS ? 'ChromeTravis' : 'Chrome'],
 
     colors: true,
 
@@ -83,18 +78,19 @@ module.exports = function(config) {
   if (reportCoverage) {
     options.devtool = 'inline-source-map';
 
-    options.plugins.push(require('karma-coverage'), require('karma-remap-coverage'));
+    options.plugins.push('karma-coverage-istanbul-reporter');
 
-    options.coverageReporter = {
-      type: 'in-memory',
-    };
+    options.reporters.push('coverage-istanbul');
 
-    options.reporters.push('coverage', 'remap-coverage');
-
-    options.remapCoverageReporter = {
-      html: './coverage/html',
-      lcovonly: './coverage/lcov.info', // for codecov
-      'text-summary': null, // prints to console
+    options.coverageIstanbulReporter = {
+      fixWebpackSourcePaths: true,
+      reports: ['html', 'lcovonly', 'text-summary'],
+      'report-config': {
+        html: {
+          subdir: 'html',
+        },
+        lcovonly: { subdir: 'lcov.info' },
+      },
     };
   }
 

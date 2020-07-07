@@ -1,3 +1,4 @@
+import 'jquery';
 import { module } from 'angular';
 
 import { AMAZON_MODULE } from '@spinnaker/amazon';

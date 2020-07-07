@@ -8,6 +8,8 @@ import MetricResultsList from './metricResultsList';
 import MetricResultDetail from './metricResultDetail';
 import { judgeResultSelector } from 'kayenta/selectors';
 
+import './metricResults.less';
+
 interface IMetricResultsStateProps {
   metricResults: ICanaryAnalysisResult[];
   selectedMetricResult: ICanaryAnalysisResult;

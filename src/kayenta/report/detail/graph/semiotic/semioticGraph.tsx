@@ -29,13 +29,10 @@ export default class SemioticGraph extends React.Component<IMetricSetPairGraphPr
     switch (type) {
       case GraphType.TimeSeries:
         return <TimeSeries {...chartProps} />;
-        break;
       case GraphType.Histogram:
         return <Histogram {...chartProps} />;
-        break;
       case GraphType.BoxPlot:
         return <BoxPlot {...chartProps} />;
-        break;
       default:
         return null;
     }

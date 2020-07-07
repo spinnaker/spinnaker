@@ -65,7 +65,7 @@ const ResultsList = ({
     <section className="vertical metric-results-list flex-1">
       <Table
         rowKey={(r) => r.metricName}
-        tableBodyClassName="list-unstyled tabs-vertical flex-1"
+        tableBodyClassName="list-unstyled tabs-vertical flex-1 sp-padding-xl-bottom"
         rowClassName={(r) => classNames('horizontal', { selected: r.results[0].id === selectedMetric })}
         rows={rows}
         columns={metricResultsColumns}
