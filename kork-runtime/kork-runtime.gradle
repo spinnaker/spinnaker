@@ -1,0 +1,8 @@
+dependencies {
+  runtimeOnly(project(":kork-core"))
+  runtimeOnly(project(":kork-web"))
+  runtimeOnly(project(":kork-secrets-aws"))
+  runtimeOnly(project(":kork-secrets-gcp"))
+  runtimeOnly(project(":kork-stackdriver"))
+  runtimeOnly(project(":kork-swagger"))
+}

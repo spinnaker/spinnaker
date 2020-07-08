@@ -45,6 +45,7 @@ include(
   "kork-proto",
   "kork-pubsub",
   "kork-pubsub-aws",
+  "kork-runtime",
   "kork-secrets",
   "kork-secrets-aws",
   "kork-secrets-gcp",
