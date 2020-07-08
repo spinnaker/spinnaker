@@ -26,6 +26,7 @@ import com.netflix.spinnaker.front50.echo.EchoService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoints;
@@ -34,14 +35,12 @@ import retrofit.converter.JacksonConverter;
 
 /** echo service configuration */
 @Configuration
+@ConditionalOnProperty("services.echo.enabled")
 public class EchoConfiguration {
   @Bean
   EchoService echoService(
-      OkHttpClientProvider okHttpClientProvider, @Value("${echo.base-url:none}") String baseUrl) {
-    if ("none".equals(baseUrl)) {
-      return null;
-    }
-
+      OkHttpClientProvider okHttpClientProvider,
+      @Value("${services.echo.base-url}") String baseUrl) {
     OkHttpClient okHttpClient =
         okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", baseUrl));
     ObjectMapper objectMapper = new ObjectMapper();
