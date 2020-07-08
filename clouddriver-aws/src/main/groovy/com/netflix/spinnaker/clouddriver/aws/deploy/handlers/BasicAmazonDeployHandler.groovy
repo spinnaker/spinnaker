@@ -303,7 +303,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         tags: applyAppStackDetailTags(deployDefaults, description).tags,
         lifecycleHooks: getLifecycleHooks(account, description),
         setLaunchTemplate: description.setLaunchTemplate,
-        requireIMDSv2: description.requireIMDSv2
+        requireIMDSv2: description.requireIMDSv2,
+        associateIPv6Address: description.associateIPv6Address
       )
 
       def asgName = autoScalingWorker.deploy()

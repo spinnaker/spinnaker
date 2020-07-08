@@ -64,6 +64,12 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
    */
   Boolean requireIMDSv2 = false
 
+  /**
+   * Associate an IPv6 address
+   * This is a Launch Template only feature
+   */
+  Boolean associateIPv6Address = false
+
   Collection<OperationEvent> events = []
 
 
