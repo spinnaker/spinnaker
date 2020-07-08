@@ -36,11 +36,7 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
 
-  implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-plugins"
-  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
-  implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
-  implementation "com.netflix.spinnaker.kork:kork-stackdriver"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.netflix.frigga:frigga"
@@ -59,6 +55,9 @@ dependencies {
 
   implementation "com.graphql-java-kickstart:graphql-spring-boot-starter:7.0.1"
   implementation "com.graphql-java-kickstart:graphql-java-tools:6.0.2"
+
+  runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
+
   testImplementation "com.graphql-java-kickstart:graphql-spring-boot-starter-test:7.0.1"
 
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
