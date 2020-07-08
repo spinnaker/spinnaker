@@ -152,7 +152,7 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
     );
     return (
       <div className="page-navigator">
-        <div className="row" ref={this.refCallback}>
+        <div className="row flex-1" ref={this.refCallback}>
           {!hideNavigation && (
             <div className="col-md-3 hidden-sm hidden-xs">
               <ul className="page-navigation">

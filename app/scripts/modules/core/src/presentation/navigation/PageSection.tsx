@@ -38,7 +38,7 @@ export class PageSection extends React.Component<IPageSectionProps> {
 
     return visible !== false ? (
       <div className="page-section">
-        <div className="page-subheading" data-page-id={pageKey}>
+        <div className="page-subheading flex-1" data-page-id={pageKey}>
           <h4 className="sticky-header">{label}</h4>
           <div className={noWrapper ? 'no-wrapper' : 'section-body'} data-page-content={pageKey}>
             {children}

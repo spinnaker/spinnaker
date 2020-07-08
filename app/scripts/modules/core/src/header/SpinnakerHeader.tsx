@@ -28,7 +28,8 @@ export class SpinnakerHeader extends React.Component<{}, {}> {
 
 export const SpinnakerHeaderContent = () => {
   const { state: currentState } = useCurrentStateAndParams();
-  const isApplicationView = currentState.name.includes('applications.');
+  const isApplicationView =
+    currentState.name.includes('project.application.') || currentState.name.includes('applications.application.');
 
   const [verticalNavExpanded, setVerticalNavExpanded] = useRecoilState(verticalNavExpandedAtom);
   const toggleNav = () => setVerticalNavExpanded(!verticalNavExpanded);
