@@ -71,14 +71,10 @@ dependencies {
     implementation "com.google.apis:google-api-services-storage"
     implementation 'com.google.auth:google-auth-library-oauth2-http'
     implementation "com.netflix.spinnaker.kork:kork-config"
-    implementation "com.netflix.spinnaker.kork:kork-core"
     implementation "com.netflix.spinnaker.kork:kork-artifacts"
-    implementation "com.netflix.spinnaker.kork:kork-stackdriver"
     implementation "com.netflix.spinnaker.kork:kork-web"
     implementation "com.netflix.spinnaker.kork:kork-jedis"
     implementation "com.netflix.spinnaker.kork:kork-telemetry"
-    implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
-    implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
     implementation "com.netflix.spinnaker.kork:kork-plugins"
 
     implementation "com.netflix.eureka:eureka-client"
@@ -87,6 +83,8 @@ dependencies {
     implementation "io.projectreactor:reactor-core"
     implementation "com.google.code.gson:gson"
     implementation "com.google.guava:guava"
+
+    runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
 
     testImplementation "com.squareup.okhttp:mockwebserver"
     testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
