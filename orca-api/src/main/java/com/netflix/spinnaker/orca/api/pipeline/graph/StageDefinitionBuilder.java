@@ -88,7 +88,7 @@ public interface StageDefinitionBuilder extends SpinnakerExtensionPoint {
 
   /** @return the stage type this builder handles. */
   default @Nonnull String getType() {
-    return getType(this.getClass());
+    return getType((Class<StageDefinitionBuilder>) this.getExtensionClass());
   }
 
   /**
