@@ -3,6 +3,16 @@
   margin-bottom: 0;
   z-index: 25;
   min-height: 40px;
+  width: 100%;
+}
+
+.navbar-right {
+  margin-left: auto;
+}
+
+.spinnaker-header .navbar-menu-icon {
+  min-width: 24px;
+  cursor: pointer;
 }
 
 .spinnaker-header a {

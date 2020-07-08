@@ -49,12 +49,6 @@ body {
   padding-right: 15px;
 }
 
-.container {
-  @media (min-width: 1400px) {
-    width: 1370px;
-  }
-}
-
 /* Custom page header */
 .header {
   border-bottom: 1px solid var(--color-seashell);
@@ -194,9 +188,6 @@ html {
     .collapse-margin-on-filter-collapse {
       margin-left: 0;
     }
-    .dl-flex {
-      .dl-wide;
-    }
     .horizontal-when-filters-collapsed {
       .dl-horizontal;
       .dl-wide;
@@ -219,29 +210,12 @@ html {
 
     .nav-content {
       > .header {
-        margin-left: 72px;
+        margin-left: 80px;
       }
     }
   }
 
   &.filters-expanded {
-    .detail-content {
-      @media (min-width: 768px) and (max-width: 992px) {
-        width: 180px;
-      }
-      @media (min-width: 992px) {
-        width: 210px;
-      }
-      @media (min-width: 1200px) {
-        width: 230px;
-      }
-      @media (min-width: 1400px) {
-        width: 310px;
-      }
-    }
-    .dl-flex {
-      .dl-narrow;
-    }
     .nav {
       .content {
         padding-bottom: 20px;
@@ -252,22 +226,36 @@ html {
         width: inherit;
         display: block;
       }
-      .heading {
-        margin-top: 32px;
+
+      ::-webkit-scrollbar {
+        background: transparent;
+        width: 0;
       }
+
       @media (min-width: 768px) and (max-width: 992px) {
-        width: 180px;
+        width: 104px;
       }
 
       @media (min-width: 992px) {
-        width: 200px;
+        width: 124px;
       }
       @media (min-width: 1200px) {
-        width: 230px;
+        width: 154px;
       }
       @media (min-width: 1400px) {
-        width: 260px;
+        width: 184px;
       }
+      @media (min-width: 1600px) {
+        width: 214px;
+      }
+      @media (min-width: 1800px) {
+        width: 234px;
+      }
+
+      @media (min-width: 2000px) {
+        width: 254px;
+      }
+
       .filters-placeholder {
         display: none;
       }
@@ -291,30 +279,23 @@ html {
     .filters-placeholder {
       font-size: 120%;
     }
+    .insight-filter-content {
+      width: 100%;
+    }
   }
 
   .detail-content {
-    overflow: visible;
-    margin: 0;
-    @media (max-width: 768px) {
-      top: 170px;
-      width: 95%;
+    z-index: var(--layer-high);
+    position: fixed;
+    margin-top: -20px;
+    right: 0;
+    height: 100%;
+    width: 390px;
+
+    @media (max-width: 390px) {
+      width: 100%;
     }
 
-    @media (min-width: 768px) and (max-width: 992px) {
-      top: 190px;
-      width: 250px;
-    }
-
-    @media (min-width: 992px) {
-      width: 330px;
-    }
-    @media (min-width: 1200px) {
-      width: 390px;
-    }
-    @media (min-width: 1400px) {
-      width: 530px;
-    }
     react-ui-view-adapter {
       width: 100%;
       overflow-x: visible !important;
@@ -322,57 +303,12 @@ html {
   }
   .nav-content {
     margin-right: 25px;
-    @media (max-width: 768px) {
-      width: 70%;
-    }
-
-    @media (min-width: 768px) and (max-width: 992px) {
-      width: 450px;
-    }
-
-    @media (min-width: 992px) {
-      width: 540px;
-    }
-    @media (min-width: 1200px) {
-      width: 630px;
-    }
-    @media (min-width: 1400px) {
-      width: 720px;
-    }
+    max-width: 1000px;
   }
   .full-content {
     margin: 0 25px;
     flex-direction: column;
     width: 100%;
-    @media (max-width: 768px) {
-      width: 90%;
-    }
-
-    @media (min-width: 768px) and (max-width: 992px) {
-      width: 770px;
-      &.filters-expanded {
-        width: 650px;
-      }
-    }
-
-    @media (min-width: 992px) {
-      width: 900px;
-      &.filters-expanded {
-        width: 730px;
-      }
-    }
-    @media (min-width: 1200px) {
-      width: 1090px;
-      &.filters-expanded {
-        width: 900px;
-      }
-    }
-    @media (min-width: 1400px) {
-      width: 1290px;
-      &.filters-expanded {
-        width: 1070px;
-      }
-    }
   }
 }
 
@@ -411,6 +347,13 @@ html {
     float: right;
     margin-top: -15px;
     margin-right: -10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+
     a {
       padding: 0;
       font-size: 125%;
@@ -1023,7 +966,7 @@ select:invalid {
   .content-body {
     .fade-in(0.15);
     .clearfix;
-    padding-left: 25px;
+    padding-left: 4px;
     ul {
       list-style-type: none;
       padding-left: 0;
@@ -1127,6 +1070,11 @@ textarea.code {
   }
 }
 
+.modal-open {
+  .modal {
+    z-index: var(--layer-critical) !important;
+  }
+}
 // Works around Chrome 59 bug regarding: transform + box-shadow + position: sticky
 // This is apparently fixed in Chrome 61
 .modal.in .modal-dialog {
@@ -1134,6 +1082,7 @@ textarea.code {
 }
 
 .modal-backdrop {
+  z-index: 9500 !important;
   &.modal-backdrop-no-animate {
     background-color: var(--color-alabaster);
     transition: none;
@@ -1261,7 +1210,7 @@ html {
       }
       .insight {
         display: flex;
-        flex: 0 0 auto;
+        flex: 1;
         margin-left: 0;
         > div {
           display: flex;
@@ -1439,6 +1388,7 @@ ul.checkmap {
 // duplicated from bootstrap core
 // needed to render components in dropdowns correctly
 .dropdown-menu {
+  z-index: var(--layer-critical);
   li {
     > a {
       display: block;

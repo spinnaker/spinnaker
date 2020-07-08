@@ -28,7 +28,7 @@ export class FilterSection extends React.Component<IFilterSectionProps, IFilterS
 
   public render() {
     const chevronStyle = {
-      transform: this.state.expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+      transform: this.state.expanded ? 'rotate(-90deg)' : 'rotate(0deg)',
       transition: 'all ease 0.15s',
     };
 
@@ -43,7 +43,7 @@ export class FilterSection extends React.Component<IFilterSectionProps, IFilterS
                 <HelpField id={this.props.helpKey} placement="right" />
               </div>
             )}
-            <div className={`arrow glyphicon glyphicon-chevron-right`} style={chevronStyle} />
+            <div className={`arrow glyphicon glyphicon-chevron-left`} style={chevronStyle} />
           </h4>
         </div>
         {this.state.expanded && <div className="content-body">{this.props.children}</div>}

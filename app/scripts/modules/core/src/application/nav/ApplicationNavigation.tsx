@@ -1,13 +1,14 @@
 import React from 'react';
+import { useRecoilValue } from 'recoil';
 import { useCurrentStateAndParams } from '@uirouter/react';
 import { find, isEqual } from 'lodash';
 
-import { ApplicationRefresher } from './ApplicationRefresher';
-import { ApplicationIcon } from '../ApplicationIcon';
+import { AppRefresher } from './AppRefresher';
 import { NavSection } from './NavSection';
-import { Icon, usePrevious } from '../../presentation';
+import { Icon, Tooltip, useIsMobile, usePrevious } from '../../presentation';
 
 import { navigationCategoryRegistry } from './navigationCategory.registry';
+import { verticalNavExpandedAtom } from './navAtoms';
 import { PagerDutyWriter } from 'core/pagerDuty';
 import { Application } from '../application.model';
 import { ApplicationDataSource } from '../service/applicationDataSource';
@@ -21,6 +22,9 @@ export interface IApplicationNavigationProps {
 export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
   const prevDataSourceAttr = usePrevious(app.attributes.dataSources);
   useCurrentStateAndParams();
+  const isMobile = useIsMobile();
+
+  const isExpanded = useRecoilValue(verticalNavExpandedAtom);
 
   const getNavigationCategories = (dataSources: ApplicationDataSource[]) => {
     const appSources = dataSources.filter(ds => ds.visible !== false && !ds.disabled && ds.sref);
@@ -54,16 +58,15 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
     PagerDutyWriter.pageApplicationOwnerModal(app);
   };
 
+  if (!isExpanded && isMobile) {
+    return null;
+  }
+
   return (
-    <div className="vertical-navigation layer-high">
-      <h3 className="heading-2 horizontal middle nav-header sp-margin-l sp-padding-l-bottom">
-        <span className="hidden-xs sp-margin-l-right">
-          <ApplicationIcon app={app} />
-        </span>
-        <span className="horizontal middle wrap">
-          <span className="application-name text-semibold">{app.name}</span>
-          <ApplicationRefresher app={app} />
-        </span>
+    <div className={`vertical-navigation flex-fill layer-high${!isExpanded ? ' vertical-nav-collapsed' : ''}`}>
+      <h3 className="heading-2 horizontal middle nav-header sp-margin-l-xaxis sp-margin-l-top">
+        <AppRefresher app={app} />
+        <span className="application-name text-semibold heading-2 sp-margin-m-left">{app.name}</span>
       </h3>
       {navSections
         .filter(section => section.length)
@@ -71,11 +74,19 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
           <NavSection key={`section-${i}`} dataSources={section} app={app} />
         ))}
       <div className="nav-section clickable">
-        <div className="page-category flex-container-h middle" onClick={pageApplicationOwner}>
-          <div className="nav-item sp-margin-s-right">
-            <Icon className="nav-item-icon" name="spMenuPager" size="extraSmall" color="danger" />
+        <div className="page-category flex-container-h middle text-semibold" onClick={pageApplicationOwner}>
+          <div className="nav-item sp-margin-xs-right">
+            {!isExpanded ? (
+              <Tooltip value="Page App Owner" placement="right">
+                <div>
+                  <Icon className="nav-item-icon" name="spMenuPager" size="medium" color="danger" />
+                </div>
+              </Tooltip>
+            ) : (
+              <Icon className="nav-item-icon" name="spMenuPager" size="medium" color="danger" />
+            )}
           </div>
-          <span> Page App Owner</span>
+          <span className="nav-name"> Page App Owner</span>
         </div>
       </div>
     </div>

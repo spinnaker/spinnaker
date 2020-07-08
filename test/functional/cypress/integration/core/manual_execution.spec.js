@@ -36,7 +36,7 @@ describe('core: Manual execution', () => {
 
     // Execution has succeeded -- click refresh
     cy.route('/applications/compute/pipelines*', 'fixture:core/manual_execution/pipelines.succeeded.json');
-    cy.get('a.refresher').click();
+    cy.get('.application-header-icon').click();
 
     // Execution status says SUCCEEDED
     cy.get('.execution-group:contains("Simple Wait Pipeline")').get('.execution-status:contains("SUCCEEDED")');

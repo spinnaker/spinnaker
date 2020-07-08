@@ -1,19 +1,22 @@
 import React from 'react';
+import { useRecoilValue } from 'recoil';
 
 import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
-import { Icon, useDataSource } from '../../presentation';
+import { Icon, Tooltip, useDataSource } from '../../presentation';
+import { verticalNavExpandedAtom } from './navAtoms';
 
 import { ApplicationDataSource } from '../service/applicationDataSource';
 import { Application } from '../application.model';
 import { IEntityTags } from '../../domain';
 
-export interface INavCategoryProps {
+export interface INavItemProps {
+  app: Application;
   dataSource: ApplicationDataSource;
   isActive: boolean;
-  app: Application;
 }
 
-export const NavItem = ({ app, dataSource, isActive }: INavCategoryProps) => {
+export const NavItem = ({ app, dataSource, isActive }: INavItemProps) => {
+  const isExpanded = useRecoilValue(verticalNavExpandedAtom);
   const { alerts, badge, iconName, key, label } = dataSource;
 
   const { data: badgeData } = useDataSource(app.getDataSource(badge || key));
@@ -29,11 +32,18 @@ export const NavItem = ({ app, dataSource, isActive }: INavCategoryProps) => {
     <div className="nav-category flex-container-h middle sp-padding-s-yaxis">
       <div className={badgeClassNames}>{runningCount > 0 ? runningCount : ''}</div>
       <div className="nav-item">
-        {iconName && (
-          <Icon className="nav-icon" name={iconName} size="extraSmall" color={isActive ? 'primary' : 'accent'} />
-        )}
+        {iconName &&
+          (!isExpanded ? (
+            <Tooltip value={dataSource.label} placement="right">
+              <div>
+                <Icon className="nav-icon" name={iconName} size="medium" color={isActive ? 'primary' : 'accent'} />
+              </div>
+            </Tooltip>
+          ) : (
+            <Icon className="nav-icon" name={iconName} size="medium" color={isActive ? 'primary' : 'accent'} />
+          ))}
       </div>
-      <div className="nav-item">{' ' + dataSource.label}</div>
+      <div className="nav-item nav-name">{' ' + dataSource.label}</div>
       <DataSourceNotifications tags={tags} application={app} tabName={label} />
     </div>
   );

@@ -7,9 +7,6 @@
   </div>
   <div class="col-md-12 tasks" ng-if="!viewState.loading && !viewState.loadError">
     <div class="row tasks-header">
-      <div class="col-md-3">
-        <h3>Task History</h3>
-      </div>
       <div class="col-md-5">
         <div class="btn-group">
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="''">
@@ -32,7 +29,7 @@
           </label>
         </div>
       </div>
-      <div class="col-md-1 text-right" style="padding-right: 0">
+      <div class="col-md-4 text-right horizontal right" style="padding-right: 0;margin-left: auto">
         <a
           class="btn btn-link"
           ng-click="tasks.clearNameFilter()"
@@ -42,8 +39,6 @@
         >
           <span class="glyphicon glyphicon-remove" uib-tooltip="clear search filter"></span>
         </a>
-      </div>
-      <div class="col-md-3 text-right" style="padding-left: 0">
         <div class="form-group has-feedback">
           <label class="sr-only" for="task-filter">Filter tasks by name, user, or task ID</label>
           <input

@@ -285,18 +285,21 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       }
       return (
         <div className="executions-section">
-          <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
+          {!loading && (
             <div onClick={this.toggleFilters}>
               <FilterCollapse />
             </div>
-
-            <div className="nav">
-              {!loading && <ExecutionFilters application={app} setReloadingForFilters={this.setReloadingForFilters} />}
-            </div>
+          )}
+          <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
+            {filtersExpanded && (
+              <div className="nav ng-scope">
+                {!loading && (
+                  <ExecutionFilters application={app} setReloadingForFilters={this.setReloadingForFilters} />
+                )}
+              </div>
+            )}
             <div
-              className={`full-content ${filtersExpanded ? 'filters-expanded' : ''} ${
-                sortFilter.showDurations ? 'show-durations' : ''
-              }`}
+              className={`nav-content ng-scope ${sortFilter.showDurations ? 'show-durations' : ''}`}
               data-scroll-id="nav-content"
             >
               {!loading && (

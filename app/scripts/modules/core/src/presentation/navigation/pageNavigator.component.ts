@@ -103,7 +103,7 @@ const pageNavigatorComponent: ng.IComponentOptions = {
   transclude: true,
   template: `
     <div class="row">
-      <div class="col-md-3 hidden-sm hidden-xs" ng-show="!$ctrl.hideNavigation">
+      <div class="col-md-3 hidden-sm hidden-xs flex-1" ng-show="!$ctrl.hideNavigation">
         <ul class="page-navigation">
           <li ng-repeat="page in $ctrl.pageNavigationState.pages"
               data-page-navigation-link="{{page.key}}"

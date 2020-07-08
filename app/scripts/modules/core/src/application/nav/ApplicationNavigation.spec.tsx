@@ -1,4 +1,5 @@
 import React from 'react';
+import { RecoilRoot } from 'recoil';
 import { mount } from 'enzyme';
 import { mock } from 'angular';
 import { UIRouterReact, UIRouterContext } from '@uirouter/react';
@@ -56,9 +57,11 @@ describe('ApplicationNavigation', () => {
     app.setActiveState(activeDataSource);
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
-        <ApplicationNavigation app={app} />
-      </UIRouterContext.Provider>,
+      <RecoilRoot>
+        <UIRouterContext.Provider value={$uiRouter}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
     );
 
     const header = wrapper.find('.nav-header');
@@ -75,9 +78,11 @@ describe('ApplicationNavigation', () => {
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
-        <ApplicationNavigation app={app} />
-      </UIRouterContext.Provider>,
+      <RecoilRoot>
+        <UIRouterContext.Provider value={$uiRouter}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
     );
 
     const navSection = wrapper.find('NavSection');
@@ -105,9 +110,11 @@ describe('ApplicationNavigation', () => {
     app.setActiveState(activeDataSource);
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
-        <ApplicationNavigation app={app} />
-      </UIRouterContext.Provider>,
+      <RecoilRoot>
+        <UIRouterContext.Provider value={$uiRouter}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
     );
 
     const navSection = wrapper.find('NavSection').at(1);

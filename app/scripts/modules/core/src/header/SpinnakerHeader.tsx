@@ -1,11 +1,14 @@
 import React from 'react';
-import { useSrefActive } from '@uirouter/react';
+import { useRecoilState } from 'recoil';
+import { useCurrentStateAndParams, useSrefActive } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
 import { NgReact } from 'core/reactShims';
+import { verticalNavExpandedAtom } from 'core/application/nav/navAtoms';
 import { Overridable } from 'core/overrideRegistry';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
 import { HelpMenu } from 'core/help/HelpMenu';
+import { Icon } from 'core/presentation';
 
 import './SpinnakerHeader.css';
 
@@ -24,16 +27,20 @@ export class SpinnakerHeader extends React.Component<{}, {}> {
  */
 
 export const SpinnakerHeaderContent = () => {
+  const { state: currentState } = useCurrentStateAndParams();
+  const isApplicationView = currentState.name.includes('applications.');
+
+  const [verticalNavExpanded, setVerticalNavExpanded] = useRecoilState(verticalNavExpandedAtom);
+  const toggleNav = () => setVerticalNavExpanded(!verticalNavExpanded);
+
   const isDevicePhoneOrSmaller = () => {
     const bodyStyles = window.getComputedStyle(document.body);
     const isPhone = bodyStyles.getPropertyValue('--is-phone');
     return isPhone.toLowerCase() === 'true';
   };
+  const [navExpanded] = React.useState(!isDevicePhoneOrSmaller());
+
   const { UserMenu } = NgReact;
-
-  const [navExpanded, setNavExpanded] = React.useState(!isDevicePhoneOrSmaller());
-  const toggleNavItems = () => setNavExpanded(!navExpanded);
-
   const searchSref = useSrefActive('home.infrastructure', null, 'active');
   const projectsSref = useSrefActive('home.projects', null, 'active');
   const appsSref = useSrefActive('home.applications', null, 'active');
@@ -42,14 +49,12 @@ export const SpinnakerHeaderContent = () => {
   return (
     <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
       <div className="navbar-header horizontal middle">
+        <div onClick={toggleNav} className="sp-margin-xl-right navbar-menu-icon">
+          {isApplicationView && <Icon name={verticalNavExpanded ? 'menuClose' : 'menu'} size="medium" color="white" />}
+        </div>
         <a className="navbar-brand flex-1" href="#">
           SPINNAKER
         </a>
-        <button type="button" className="navbar-toggle" onClick={toggleNavItems}>
-          <span className="icon-bar" />
-          <span className="icon-bar" />
-          <span className="icon-bar" />
-        </button>
       </div>
       {navExpanded && (
         <div className="nav-container nav-items">

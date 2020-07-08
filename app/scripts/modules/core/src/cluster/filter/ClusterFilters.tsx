@@ -15,6 +15,7 @@ import {
 
 import { poolBuilder } from './clusterDependentFilterHelper.service';
 import { FilterSection } from './FilterSection';
+import { FilterSearch } from './FilterSearch';
 import LabelFilter from './LabelFilter';
 
 export interface IClusterFiltersProps {
@@ -69,18 +70,6 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
       ClusterState.filterModel.asFilterModel.activate();
     }
   });
-
-  const clearFilters = () => {
-    setSortFilter({
-      ...sortFilter,
-      minInstances: undefined,
-      maxInstances: undefined,
-    });
-    setLabelFilters([]);
-    ClusterState.filterService.clearFilters();
-    ClusterState.filterModel.asFilterModel.applyParamsToUrl();
-    ClusterState.filterService.updateClusterGroups(app);
-  };
 
   const updateClusterGroups = (applyParamsToUrl = true) => {
     const { providerType, instanceType, account, availabilityZone, region } = digestDependentFilters({
@@ -172,32 +161,17 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
 
   React.useEffect(() => {
     updateClusterGroups();
-  }, [serverGroupData.length]);
+  }, [serverGroupData.length, tags.length]);
 
   return (
     <div className="insight-filter-content">
       <div className="heading">
-        <span
-          className="btn btn-default btn-xs"
-          style={{ visibility: tags.length > 0 ? 'inherit' : 'hidden' }}
-          onClick={clearFilters}
-        >
-          Clear All
-        </span>
-        <FilterSection key="filter-search" heading="Search" expanded={true} helpKey="cluster.search">
-          <form className="form-horizontal" role="form">
-            <div className="form-group nav-search">
-              <input
-                type="search"
-                className="form-control input-sm"
-                value={sortFilter.filter}
-                onBlur={handleSearchChange}
-                onChange={handleSearchChange}
-                style={{ width: '85%', display: 'inline-block' }}
-              />
-            </div>
-          </form>
-        </FilterSection>
+        <FilterSearch
+          helpKey="cluster.search"
+          value={sortFilter.filter}
+          onBlur={handleSearchChange}
+          onSearchChange={handleSearchChange}
+        />
       </div>
       {clustersLoaded && (
         <div className="content">

@@ -33,7 +33,6 @@ export interface IPipelineGraphProps {
 export interface IPipelineGraphState {
   allNodes: IPipelineGraphNode[];
   graphHeight: number;
-  graphWidth: string;
   labelOffsetX: number;
   labelOffsetY: number;
   maxLabelWidth: number;
@@ -47,7 +46,6 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   private defaultState: IPipelineGraphState = {
     allNodes: [],
     graphHeight: 0,
-    graphWidth: '',
     labelOffsetX: this.defaultNodeRadius + 3,
     labelOffsetY: this.defaultNodeRadius + 10,
     maxLabelWidth: 0,
@@ -273,11 +271,6 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       newState.maxLabelWidth = newState.maxLabelWidth / (newState.phaseCount + 1) - phaseOffset;
     }
     newState.maxLabelWidth = Math.max(this.minLabelWidth, newState.maxLabelWidth);
-    if (newState.maxLabelWidth === this.minLabelWidth) {
-      newState.graphWidth = (newState.phaseCount + 1) * (newState.maxLabelWidth + phaseOffset) + 5 + 'px';
-    } else {
-      newState.graphWidth = '100%';
-    }
 
     // get the saved horizontal scroll position for executions
     if (props.execution) {
@@ -452,7 +445,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   public render() {
     const { execution } = this.props;
-    const { allNodes, graphHeight, graphWidth, labelOffsetX, labelOffsetY, maxLabelWidth, nodeRadius } = this.state;
+    const { allNodes, graphHeight, labelOffsetX, labelOffsetY, maxLabelWidth, nodeRadius } = this.state;
 
     return (
       <div className="pipeline-graph" ref={this.refCallback} onWheel={this.handleWheel}>
@@ -460,7 +453,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
           className="pipeline-graph"
           style={{
             height: graphHeight,
-            width: graphWidth,
+            width: '100%',
             padding: this.graphVerticalPadding + 'px ' + nodeRadius * 2 + 'px ' + '0 ' + nodeRadius * 2 + 'px',
           }}
         >

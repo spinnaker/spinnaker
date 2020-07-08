@@ -4,7 +4,7 @@
   position: fixed;
   bottom: 5px;
   width: 100%;
-  z-index: 3;
+  z-index: var(--layer-critical);
 }
 .user-notification {
   .fade-in(0.1);
@@ -12,8 +12,14 @@
   font-size: 120%;
   margin: 10px;
   padding: 10px;
-  background-color: var(--color-accent-g2);
+  background-color: var(--color-accent);
   box-shadow: 0 2px 5px var(--color-concrete);
+  color: var(--color-white);
+
+  a {
+    color: var(--color-white);
+  }
+
   & > .message {
     width: 100%;
     padding-right: 30px;

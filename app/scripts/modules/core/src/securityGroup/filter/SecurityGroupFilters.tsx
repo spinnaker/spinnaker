@@ -6,6 +6,7 @@ import { Application } from 'core/application';
 import { ISortFilter, digestDependentFilters } from 'core/filterModel';
 import { useDataSource, useObservable } from 'core/presentation';
 import { FilterCheckbox } from 'core/filterModel/FilterCheckBox';
+import { FilterSearch } from 'core/cluster/filter/FilterSearch';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { SecurityGroupState } from 'core/state';
 
@@ -128,40 +129,19 @@ export const SecurityGroupFilters = ({ app }: ISecurityGroupFiltersProps) => {
     updateSecurityGroups();
   };
 
-  const clearFilters = (): void => {
-    SecurityGroupState.filterService.clearFilters();
-    SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
-    SecurityGroupState.filterService.updateSecurityGroups(app);
-  };
-
   React.useEffect(() => {
     updateSecurityGroups();
-  }, [securityGroupData.length]);
+  }, [securityGroupData.length, tags.length]);
 
   return (
     <div className="insight-filter-content">
       <div className="heading">
-        <span
-          className="btn btn-default btn-xs"
-          style={{ visibility: tags.length > 0 ? 'inherit' : 'hidden' }}
-          onClick={clearFilters}
-        >
-          Clear All
-        </span>
-        <FilterSection key="filter-search" heading="Search" expanded={true} helpKey="securityGroup.search">
-          <form className="form-horizontal" role="form">
-            <div className="form-group nav-search">
-              <input
-                type="search"
-                className="form-control input-sm"
-                value={sortFilter.filter}
-                onBlur={handleSearchChange}
-                onChange={handleSearchChange}
-                style={{ width: '85%', display: 'inline-block' }}
-              />
-            </div>
-          </form>
-        </FilterSection>
+        <FilterSearch
+          helpKey="securityGroup.search"
+          value={sortFilter.filter}
+          onBlur={handleSearchChange}
+          onSearchChange={handleSearchChange}
+        />
       </div>
       {securityGroupsLoaded && (
         <div className="content">

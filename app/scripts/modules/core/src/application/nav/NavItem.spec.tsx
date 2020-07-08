@@ -1,4 +1,5 @@
 import React from 'react';
+import { RecoilRoot } from 'recoil';
 import { mount } from 'enzyme';
 import { BehaviorSubject } from 'rxjs';
 
@@ -17,8 +18,12 @@ describe('NavItem', () => {
     const dataSource = app.getDataSource('serverGroups');
     dataSource.iconName = 'spMenuClusters';
 
-    const wrapper = mount(<NavItem app={app} dataSource={dataSource} isActive={false} />);
-    const nodes = wrapper.children();
+    const wrapper = mount(
+      <RecoilRoot>
+        <NavItem app={app} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    const nodes = wrapper.childAt(1).children();
     const icon = nodes.childAt(1).children();
     expect(icon.find('svg').length).toEqual(1);
   });
@@ -27,8 +32,12 @@ describe('NavItem', () => {
     const app = buildApp<IServerGroup>(mockServerGroupDataSourceConfig);
     const dataSource = app.getDataSource('serverGroups');
 
-    const wrapper = mount(<NavItem app={app} dataSource={dataSource} isActive={false} />);
-    const nodes = wrapper.children();
+    const wrapper = mount(
+      <RecoilRoot>
+        <NavItem app={app} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    const nodes = wrapper.childAt(1).children();
     const icon = nodes.childAt(1).children();
     expect(icon.find('svg').length).toEqual(0);
   });
@@ -45,8 +54,12 @@ describe('NavItem', () => {
       data: [mockPipelineDataSourceConfig, mockPipelineDataSourceConfig],
     });
 
-    const wrapper = mount(<NavItem app={app} dataSource={dataSource} isActive={false} />);
-    const nodes = wrapper.children();
+    const wrapper = mount(
+      <RecoilRoot>
+        <NavItem app={app} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    const nodes = wrapper.childAt(1).children();
     expect(nodes.find('.badge-running-count').length).toBe(1);
     expect(nodes.find('.badge-none').length).toBe(0);
 
@@ -59,8 +72,12 @@ describe('NavItem', () => {
     const dataSource = app.getDataSource('executions');
     app.dataSources.push({ ...dataSource, key: 'runningExecutions' } as ApplicationDataSource<IPipeline>);
 
-    const wrapper = mount(<NavItem app={app} dataSource={dataSource} isActive={false} />);
-    const nodes = wrapper.children();
+    const wrapper = mount(
+      <RecoilRoot>
+        <NavItem app={app} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    const nodes = wrapper.childAt(1).children();
     expect(nodes.find('.badge-running-count').length).toBe(0);
     expect(nodes.find('.badge-none').length).toBe(1);
 
@@ -73,8 +90,12 @@ describe('NavItem', () => {
     const dataSource = app.getDataSource('executions');
     app.dataSources.push({ ...dataSource, key: 'runningExecutions' } as ApplicationDataSource<IPipeline>);
 
-    const wrapper = mount(<NavItem app={app} dataSource={dataSource} isActive={false} />);
-    const nodes = wrapper.children();
+    const wrapper = mount(
+      <RecoilRoot>
+        <NavItem app={app} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    const nodes = wrapper.childAt(1).children();
     expect(nodes.find('.badge-running-count').length).toBe(0);
     expect(nodes.find('.badge-none').length).toBe(1);
 
@@ -94,14 +115,10 @@ describe('NavItem', () => {
       data: [mockPipelineDataSourceConfig, mockPipelineDataSourceConfig],
     });
 
-    wrapper.setProps({
-      app: updatedApp,
-      dataSource,
-      isActive: false,
-    });
+    wrapper.setProps({ children: <NavItem app={updatedApp} dataSource={dataSource} isActive={false} /> });
     wrapper.update();
 
-    const newNodes = wrapper.children();
+    const newNodes = wrapper.childAt(1).children();
     expect(newNodes.find('.badge-running-count').length).toBe(1);
     expect(newNodes.find('.badge-none').length).toBe(0);
 
@@ -112,22 +129,19 @@ describe('NavItem', () => {
   it('should subscribe to alert updates', () => {
     const app = buildApp<IServerGroup>(mockServerGroupDataSourceConfig);
     const dataSource = app.getDataSource('serverGroups');
-    const wrapper = mount(<NavItem app={app} dataSource={dataSource} isActive={false} />);
-    const nodes = wrapper.children();
+    const wrapper = mount(
+      <RecoilRoot>
+        <NavItem app={app} dataSource={dataSource} isActive={false} />
+      </RecoilRoot>,
+    );
+    const nodes = wrapper.childAt(1).children();
     const tags: IEntityTags[] = nodes.find('DataSourceNotifications').prop('tags');
     expect(tags.length).toEqual(0);
 
-    const newDataSource = {
-      ...dataSource,
-      alerts: [mockEntityTags],
-      entityTags: [mockEntityTags],
-    };
-
-    wrapper.setProps({
-      app,
-      dataSource: newDataSource,
-      isActive: false,
-    });
+    dataSource.alerts = [mockEntityTags];
+    dataSource.entityTags = [mockEntityTags];
+    wrapper.setProps({ children: <NavItem app={app} dataSource={dataSource} isActive={false} /> });
+    wrapper.update();
 
     const newTags: IEntityTags[] = wrapper
       .children()

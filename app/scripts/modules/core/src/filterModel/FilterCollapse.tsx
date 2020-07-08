@@ -13,31 +13,38 @@ export class FilterCollapse extends React.Component<{}> {
   };
 
   public render() {
+    const { filtersExpanded } = ReactInjector.insightFilterStateModel;
+
     return (
-      <div className="filters-toggle layer-medium sp-margin-s-xaxis">
-        <h3 className="filters-placeholder">
-          <Tooltip value="Show filters">
-            <button
-              className="btn btn-xs btn-default pin clickable"
-              onClick={() => this.onClick(true)}
-              style={{ display: ReactInjector.insightFilterStateModel.filtersExpanded ? 'none' : 'inherit' }}
-            >
-              <i className="fa fa-forward" />
-              <span className="show-filter-text"> Show filters</span>
-            </button>
-          </Tooltip>
-        </h3>
-        <h3 className="filters-placeholder">
-          <Tooltip value="Hide filters">
-            <button
-              className="btn btn-xs btn-default pull-left unpin clickable"
-              onClick={() => this.onClick(false)}
-              style={{ display: ReactInjector.insightFilterStateModel.filtersExpanded ? 'inherit' : 'none' }}
-            >
-              <i className="fa fa-backward" />
-            </button>
-          </Tooltip>
-        </h3>
+      <div className="filters-toggle layer-medium">
+        {!filtersExpanded && (
+          <div className="filters-placeholder filters-hidden">
+            <Tooltip value="Show filters">
+              <button
+                className="btn btn-xs btn-default pin clickable sp-padding-xs"
+                onClick={() => this.onClick(true)}
+                style={{ display: filtersExpanded ? 'none' : 'inherit' }}
+              >
+                <i className="fa fa-forward" />
+                <span className="show-filter-text"> Show filters</span>
+              </button>
+            </Tooltip>
+          </div>
+        )}
+        {filtersExpanded && (
+          <div className="filters-placeholder filters-open horizontal middle">
+            <Tooltip value="Hide filters">
+              <button
+                className="btn btn-xs btn-default unpin clickable sp-margin-s-xaxis sp-margin-2xs-yaxis sp-padding-xs"
+                onClick={() => this.onClick(false)}
+                style={{ display: filtersExpanded ? 'inherit' : 'none' }}
+              >
+                <i className="fa fa-backward" />
+              </button>
+            </Tooltip>
+            <div className="horizontal center flex-1 sp-margin-xl-right">Filters</div>
+          </div>
+        )}
       </div>
     );
   }

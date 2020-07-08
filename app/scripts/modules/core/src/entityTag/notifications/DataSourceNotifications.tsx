@@ -37,7 +37,7 @@ export class DataSourceNotifications extends React.Component<IDataSourceNotifica
         gaLabelFn={this.getDataSourceAnalyticsLabel}
         grouped={true}
         categorized={true}
-        placement="bottom"
+        placement="right"
       />
     );
   }

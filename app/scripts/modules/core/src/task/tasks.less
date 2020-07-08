@@ -9,20 +9,8 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-
-  @media (min-width: 768px) and (max-width: 992px) {
-    width: 768px;
-  }
-
-  @media (min-width: 992px) {
-    width: 992px;
-  }
-  @media (min-width: 1200px) {
-    width: 1200px;
-  }
-  @media (min-width: 1400px) {
-    width: 1400px;
-  }
+  flex: 1;
+  margin-right: 24px;
 
   > .tasks-header {
     h3 {
@@ -30,6 +18,7 @@
       font-weight: 600;
     }
     flex: 0 0 auto;
+    display: flex;
     z-index: 4;
     box-shadow: 0 20px 10px -10px var(--color-alabaster);
     padding-bottom: 0;
