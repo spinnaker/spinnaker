@@ -18,6 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +33,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.Source;
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -46,7 +52,8 @@ final class ManifestEvaluatorTest {
   private ManifestEvaluator manifestEvaluator;
 
   @Mock private ArtifactUtils artifactUtils;
-  @Mock private ContextParameterProcessor contextParameterProcessor;
+  private ContextParameterProcessor contextParameterProcessor =
+      mock(ContextParameterProcessor.class);
   @Mock private OortService oortService;
 
   private final List<Map<Object, Object>> manifests =
@@ -56,7 +63,10 @@ final class ManifestEvaluatorTest {
               .build());
 
   private final TypedString manifestString =
-      new TypedString("{'metadata': {'name': 'my-manifest'}}");
+      new TypedString("{\"metadata\": {\"name\": \"my-manifest\"}}");
+
+  private final TypedString spelManifestString =
+      new TypedString("{\"metadata\": {\"name\": \"${manifest}\"}}");
 
   private final String manifestsWithEmptyDocument =
       "---\n"
@@ -70,7 +80,7 @@ final class ManifestEvaluatorTest {
   void setup() {
     manifestEvaluator =
         new ManifestEvaluator(
-            artifactUtils, contextParameterProcessor, oortService, new RetrySupport());
+            artifactUtils, contextParameterProcessor, oortService, new RetrySupport(), true);
   }
 
   @Test
@@ -266,5 +276,73 @@ final class ManifestEvaluatorTest {
 
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
     assertThat(result.getOptionalArtifacts()).isEqualTo(optionalArtifacts);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenFailedEvaluatingManifestExpressions() {
+    StageExecutionImpl stage = new StageExecutionImpl();
+    Artifact manifestArtifact =
+        Artifact.builder()
+            .artifactAccount("my-artifact-account")
+            .name("my-manifest-artifact")
+            .build();
+    DeployManifestContext context =
+        DeployManifestContext.builder()
+            .manifestArtifactId("my-manifest-artifact-id")
+            .skipExpressionEvaluation(false)
+            .source(Source.Artifact)
+            .build();
+
+    Map<String, Object> processorResult =
+        ImmutableMap.of(
+            PipelineExpressionEvaluator.SUMMARY,
+            "error",
+            "manifests",
+            ImmutableList.of(spelManifestString));
+
+    when(artifactUtils.getBoundArtifactForStage(stage, "my-manifest-artifact-id", null))
+        .thenReturn(manifestArtifact);
+    when(oortService.fetchArtifact(manifestArtifact))
+        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), spelManifestString));
+    when(contextParameterProcessor.process(anyMap(), isNull(), anyBoolean()))
+        .thenReturn(processorResult);
+
+    assertThatThrownBy(() -> manifestEvaluator.evaluate(stage, context))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  void shouldSucceedWhenFailedEvaluatingManifestExpressionsWithFlagSet() {
+    ManifestEvaluator manifestEvaluator =
+        new ManifestEvaluator(
+            artifactUtils, contextParameterProcessor, oortService, new RetrySupport(), false);
+    StageExecutionImpl stage = new StageExecutionImpl();
+    Artifact manifestArtifact =
+        Artifact.builder()
+            .artifactAccount("my-artifact-account")
+            .name("my-manifest-artifact")
+            .build();
+    DeployManifestContext context =
+        DeployManifestContext.builder()
+            .manifestArtifactId("my-manifest-artifact-id")
+            .skipExpressionEvaluation(false)
+            .source(Source.Artifact)
+            .build();
+
+    Map<String, Object> processorResult =
+        ImmutableMap.of(
+            PipelineExpressionEvaluator.SUMMARY,
+            "error",
+            "manifests",
+            ImmutableList.of(spelManifestString));
+
+    when(artifactUtils.getBoundArtifactForStage(stage, "my-manifest-artifact-id", null))
+        .thenReturn(manifestArtifact);
+    when(oortService.fetchArtifact(manifestArtifact))
+        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), spelManifestString));
+    when(contextParameterProcessor.process(anyMap(), isNull(), anyBoolean()))
+        .thenReturn(processorResult);
+
+    assertDoesNotThrow(() -> manifestEvaluator.evaluate(stage, context));
   }
 }

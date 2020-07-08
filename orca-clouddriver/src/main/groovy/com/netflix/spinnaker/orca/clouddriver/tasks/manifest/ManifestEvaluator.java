@@ -49,6 +49,7 @@ import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -66,17 +67,20 @@ public class ManifestEvaluator implements CloudProviderAware {
   private final ContextParameterProcessor contextParameterProcessor;
   private final OortService oortService;
   private final RetrySupport retrySupport;
+  private final Boolean failOnUnknownKeys;
 
   @Autowired
   public ManifestEvaluator(
       ArtifactUtils artifactUtils,
       ContextParameterProcessor contextParameterProcessor,
       OortService oortService,
-      RetrySupport retrySupport) {
+      RetrySupport retrySupport,
+      @Value("${manifest.evaluator.failOnUnknownKeys:true}") Boolean failOnUnknownKeys) {
     this.artifactUtils = artifactUtils;
     this.contextParameterProcessor = contextParameterProcessor;
     this.oortService = oortService;
     this.retrySupport = retrySupport;
+    this.failOnUnknownKeys = failOnUnknownKeys;
   }
 
   @RequiredArgsConstructor
@@ -195,7 +199,7 @@ public class ManifestEvaluator implements CloudProviderAware {
             contextParameterProcessor.buildExecutionContext(stage),
             /* allowUnknownKeys= */ true);
 
-    if (processorResult.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
+    if (failOnUnknownKeys && processorResult.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
       throw new IllegalStateException(
           String.format(
               "Failure evaluating manifest expressions: %s",

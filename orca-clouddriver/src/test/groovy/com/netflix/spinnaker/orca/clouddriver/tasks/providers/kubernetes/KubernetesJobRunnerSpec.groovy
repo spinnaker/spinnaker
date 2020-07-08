@@ -43,7 +43,8 @@ class KubernetesJobRunnerSpec extends Specification {
         },
         Mock(ContextParameterProcessor),
         Mock(OortService),
-        new RetrySupport()
+        new RetrySupport(),
+       true
     )
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("test"), "runJob", [
       credentials: "abc", cloudProvider: "kubernetes",
@@ -78,7 +79,8 @@ class KubernetesJobRunnerSpec extends Specification {
         },
         Mock(ContextParameterProcessor),
         Mock(OortService),
-        new RetrySupport()
+        new RetrySupport(),
+       true
     )
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("test"), "runJob", [
       credentials: "abc", cloudProvider: "kubernetes",
@@ -109,7 +111,7 @@ class KubernetesJobRunnerSpec extends Specification {
     ContextParameterProcessor contextParameterProcessor = Mock(ContextParameterProcessor)
     RetrySupport retrySupport = new RetrySupport()
     ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
-      artifactUtils, contextParameterProcessor, oortService, retrySupport
+      artifactUtils, contextParameterProcessor, oortService, retrySupport, true
     )
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("test"), "runJob", [
       credentials: "abc", cloudProvider: "kubernetes",
