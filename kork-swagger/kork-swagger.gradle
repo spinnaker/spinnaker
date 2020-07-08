@@ -3,7 +3,11 @@ apply plugin: "java-library"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
-  api "org.springframework.boot:spring-boot-autoconfigure"
-  api "io.springfox:springfox-swagger2"
-  api "io.springfox:springfox-swagger-ui"
+  api "io.swagger:swagger-annotations"
+
+  implementation "com.google.guava:guava"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "io.springfox:springfox-swagger2"
+  implementation "io.springfox:springfox-swagger-ui"
+
 }

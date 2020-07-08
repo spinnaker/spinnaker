@@ -6,22 +6,23 @@ javaPlatform {
 
 ext {
   versions = [
-    aws            : "1.11.802",
-    bouncycastle   : "1.61",
-    groovy         : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
-    jsch           : "0.1.54",
-    jschAgentProxy : "0.0.9",
-    protobuf       : "3.9.1",
-    okhttp         : "2.7.0",
-    okhttp3        : "3.14.9",
-    resilience4j   : "1.0.0",
-    retrofit       : "1.9.0",
-    retrofit2      : "2.8.1",
-    spectator      : "0.103.0",
-    spek           : "1.2.1",
-    springBoot     : "2.2.5.RELEASE",
-    springCloud    : "Greenwich.SR2",
-    swagger        : "2.9.2"
+    aws              : "1.11.802",
+    bouncycastle     : "1.61",
+    groovy           : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
+    jsch             : "0.1.54",
+    jschAgentProxy   : "0.0.9",
+    protobuf         : "3.9.1",
+    okhttp           : "2.7.0",
+    okhttp3          : "3.14.9",
+    resilience4j     : "1.0.0",
+    retrofit         : "1.9.0",
+    retrofit2        : "2.8.1",
+    spectator        : "0.103.0",
+    spek             : "1.2.1",
+    springBoot       : "2.2.5.RELEASE",
+    springCloud      : "Greenwich.SR2",
+    springfoxSwagger : "2.9.2",
+    swagger          : "1.5.20" //this should stay in sync with what springfoxSwagger expects
   ]
 }
 
@@ -117,8 +118,9 @@ dependencies {
     api("io.github.resilience4j:resilience4j-retry:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-spring-boot2:${versions.resilience4j}")
     api("io.mockk:mockk:1.10.0")
-    api("io.springfox:springfox-swagger-ui:${versions.swagger}")
-    api("io.springfox:springfox-swagger2:${versions.swagger}")
+    api("io.springfox:springfox-swagger-ui:${versions.springfoxSwagger}")
+    api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
+    api("io.swagger:swagger-annotations:${versions.swagger}")
     api("javax.annotation:javax.annotation-api:1.3.2")
     api("javax.xml.bind:jaxb-api:2.3.1")
     api("mysql:mysql-connector-java:8.0.20")
