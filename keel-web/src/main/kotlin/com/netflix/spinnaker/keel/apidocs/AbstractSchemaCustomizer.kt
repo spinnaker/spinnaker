@@ -5,7 +5,6 @@ import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverterContext
 import io.swagger.v3.oas.models.media.Schema
 import kotlin.reflect.KProperty
-import kotlin.reflect.jvm.javaType
 import org.slf4j.LoggerFactory
 
 /**
@@ -63,22 +62,11 @@ abstract class AbstractSchemaCustomizer() : BaseModelConverter() {
   protected inline fun <reified T> Class<*>.isSubclassOf() = T::class.java.isAssignableFrom(this)
 
   /**
-   * Converts a Kotlin property to the name that would be used in the API schema.
-   */
-  private fun KProperty<*>.toSchemaPropertyName() =
-    if (returnType.javaType == Boolean::class.java) {
-      // boolean properties are named `is*` but appear in the API without that prefix
-      name.substring(2).decapitalize()
-    } else {
-      name
-    }
-
-  /**
    * Invokes [callback] once for each of [properties], passing the name used for that property in
    * the API schema.
    */
   protected fun eachSchemaProperty(vararg properties: KProperty<*>, callback: (String) -> Unit) {
-    properties.map { it.toSchemaPropertyName() }.forEach(callback)
+    properties.map { it.name }.forEach(callback)
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
