@@ -61,6 +61,9 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   MineService mineService
 
   @Autowired
+  CanaryStage canaryStage
+
+  @Autowired
   MortService mortService
 
   @Nonnull
@@ -234,12 +237,12 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   }
 
   @Override
-  @CompileDynamic
-  CancellableStage.Result cancel(StageExecution stage) {
-    def canary = stage.ancestors { StageExecution s, StageDefinitionBuilder stageBuilder ->
-      stageBuilder instanceof CanaryStage
-    } first()
-    return ((CanaryStage) canary.stageBuilder).cancel(canary.stage)
+  Result cancel(StageExecution stage) {
+    StageExecution canaryStageInstance = stage.directAncestors().find {
+      it.type == CanaryStage.PIPELINE_CONFIG_TYPE
+    }
+
+    return canaryStage.cancel(canaryStageInstance)
   }
 }
 

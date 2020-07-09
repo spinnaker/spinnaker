@@ -82,7 +82,7 @@ class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
       log.error("Unable to cancel canary '${canaryId}' in mine", e)
     }
 
-    StageExecution canaryStageInstance = stage.ancestors().find {
+    StageExecution canaryStageInstance = stage.directAncestors().find {
       it.type == CanaryStage.PIPELINE_CONFIG_TYPE
     }
 

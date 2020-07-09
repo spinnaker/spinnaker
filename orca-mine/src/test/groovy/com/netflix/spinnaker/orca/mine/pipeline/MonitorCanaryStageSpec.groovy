@@ -58,6 +58,7 @@ class MonitorCanaryStageSpec extends Specification {
     def stage = new StageExecutionImpl(pipeline, "pipelineStage", [
       canary: [id: "canaryId"]
     ])
+    stage.setParentStageId(canaryStage.id)
     stage.setRequisiteStageRefIds(["1"])
 
     when:
