@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
@@ -49,19 +50,26 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
 
   @Override
   protected Function<Trigger, Trigger> buildTrigger(PluginEvent event) {
-    return trigger ->
-        trigger
-            .toBuilder()
-            .pluginId(event.getContent().getPluginId())
-            .description(event.getContent().getDescription())
-            .provider(event.getContent().getProvider())
-            .version(event.getContent().getVersion())
-            .releaseDate(event.getContent().getReleaseDate())
-            .requires(event.getContent().getRequires())
-            .parsedRequires(event.getContent().getParsedRequires())
-            .binaryUrl(event.getContent().getBinaryUrl())
-            .sha512sum(event.getContent().getSha512sum())
-            .build();
+    return trigger -> {
+      String pluginEventType =
+          Optional.ofNullable(event.getDetails().getAttributes())
+              .map(attributes -> attributes.get("pluginEventType"))
+              .orElse("PUBLISHED");
+
+      return trigger
+          .toBuilder()
+          .pluginEventType(pluginEventType)
+          .pluginId(event.getContent().getPluginId())
+          .description(event.getContent().getDescription())
+          .provider(event.getContent().getProvider())
+          .version(event.getContent().getVersion())
+          .releaseDate(event.getContent().getReleaseDate())
+          .requires(event.getContent().getRequires())
+          .parsedRequires(event.getContent().getParsedRequires())
+          .binaryUrl(event.getContent().getBinaryUrl())
+          .sha512sum(event.getContent().getSha512sum())
+          .build();
+    };
   }
 
   @Override

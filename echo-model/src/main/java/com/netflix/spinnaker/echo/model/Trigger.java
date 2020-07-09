@@ -160,6 +160,7 @@ public class Trigger {
   List<String> expectedArtifactIds;
 
   // Configuration for plugin triggers
+  String pluginEventType;
   String pluginId;
   String description;
   String provider;
