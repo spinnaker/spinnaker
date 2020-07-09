@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -64,11 +65,13 @@ class DefaultSqlConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(SpringLiquibase::class)
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun liquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties.migration)
 
   @Bean
   @ConditionalOnProperty("sql.secondary-migration.jdbc-url")
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun secondaryLiquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties.secondaryMigration)
 
