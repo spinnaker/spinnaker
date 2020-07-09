@@ -16,7 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.Builder;
+import lombok.Value;
 
 /**
  * Implementations of this interface will provide user data to instances during the deployment
@@ -52,5 +63,49 @@ public interface UserDataProvider {
         settings.getEnvironment(),
         settings.getAccountType(),
         legacyUdf);
+  }
+
+  default String getUserData(UserDataRequest userDataRequest) {
+    return "";
+  }
+
+  @Builder
+  @JsonDeserialize(builder = UserDataRequest.UserDataRequestBuilder.class)
+  @Value
+  class UserDataRequest {
+    String asgName;
+    String launchSettingName;
+    String region;
+    String account;
+    String environment;
+    String accountType;
+    Boolean launchTemplate;
+    Boolean legacyUdf;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class UserDataRequestBuilder {}
+
+    public String getUserData(List<UserDataProvider> providers, String base64UserData) {
+      List<String> allUserData = new ArrayList<>();
+      if (providers != null) {
+        allUserData = providers.stream().map(p -> p.getUserData(this)).collect(Collectors.toList());
+      }
+
+      String data = String.join("\n", allUserData);
+
+      byte[] bytes = Base64.getDecoder().decode(Optional.ofNullable(base64UserData).orElse(""));
+
+      String userDataDecoded = new String(bytes, StandardCharsets.UTF_8);
+      String result = String.join("\n", Arrays.asList(data, userDataDecoded));
+      if (result.startsWith("\n")) {
+        result = result.trim();
+      }
+
+      if (result.isEmpty()) {
+        return null;
+      }
+
+      return Base64.getEncoder().encodeToString(result.getBytes(StandardCharsets.UTF_8));
+    }
   }
 }

@@ -72,7 +72,26 @@ class LocalFileUserDataProvider implements UserDataProvider {
     def names = Names.parseName(settings.baseName)
     boolean useLegacyUdf = legacyUdf != null ? legacyUdf : isLegacyUdf(settings.account, names.app)
     def rawUserData = assembleUserData(useLegacyUdf, names, settings.region, settings.account)
-    replaceUserDataTokens useLegacyUdf, names, launchConfigName, settings.region, settings.account, settings.environment, settings.accountType, rawUserData
+    def userDataRequest = UserDataRequest
+      .builder()
+      .asgName(settings.baseName)
+      .launchSettingName(launchConfigName)
+      .environment(settings.environment)
+      .region(settings.region)
+      .account(settings.account)
+      .accountType(settings.accountType)
+      .legacyUdf(useLegacyUdf)
+      .build()
+
+    replaceUserDataTokens(names, userDataRequest, rawUserData)
+  }
+
+  @Override
+  String getUserData(UserDataRequest userDataRequest) {
+    def names = Names.parseName(userDataRequest.asgName)
+    boolean useLegacyUdf = userDataRequest.legacyUdf != null ? userDataRequest.legacyUdf : isLegacyUdf(userDataRequest.account, names.app)
+    def rawUserData = assembleUserData(useLegacyUdf, names, userDataRequest.region, userDataRequest.account)
+    return replaceUserDataTokens(names, userDataRequest, rawUserData)
   }
 
   String assembleUserData(boolean legacyUdf, Names names, String region, String account) {
@@ -105,7 +124,7 @@ class LocalFileUserDataProvider implements UserDataProvider {
     udfPaths.collect { String path -> getContents(path) }.join('')
   }
 
-  static String replaceUserDataTokens(boolean useAccountNameAsEnvironment, Names names, String launchConfigName, String region, String account, String environment, String accountType, String rawUserData) {
+  static String replaceUserDataTokens(Names names, UserDataRequest userDataRequest, String rawUserData) {
     String stack = names.stack ?: ''
     String cluster = names.cluster ?: ''
     String revision = names.revision ?: ''
@@ -117,11 +136,11 @@ class LocalFileUserDataProvider implements UserDataProvider {
 
     // Replace the tokens & return the result
     String result = rawUserData
-      .replace('%%account%%', account)
-      .replace('%%accounttype%%', accountType)
-      .replace('%%env%%', useAccountNameAsEnvironment ? account : environment)
+      .replace('%%account%%', userDataRequest.account)
+      .replace('%%accounttype%%', userDataRequest.accountType)
+      .replace('%%env%%', userDataRequest.legacyUdf ? userDataRequest.account : userDataRequest.environment)
       .replace('%%app%%', names.app)
-      .replace('%%region%%', region)
+      .replace('%%region%%', userDataRequest.region)
       .replace('%%group%%', names.group)
       .replace('%%autogrp%%', names.group)
       .replace('%%revision%%', revision)
@@ -132,8 +151,17 @@ class LocalFileUserDataProvider implements UserDataProvider {
       .replace('%%cluster%%', cluster)
       .replace('%%stack%%', stack)
       .replace('%%detail%%', detail)
-      .replace('%%launchconfig%%', launchConfigName)
       .replace('%%tier%%', '')
+
+    if (userDataRequest.launchTemplate) {
+      result = result
+        .replace('%%launchtemplate%%' : userDataRequest.launchSettingName)
+        .replace('%%launchconfig%%' : '')
+    } else {
+      result = result
+        .replace('%%launchconfig%%' : userDataRequest.launchSettingName)
+        .replace('%%launchtemplate%%' : '')
+    }
 
     List<String> additionalEnvVars = []
     additionalEnvVars << names.countries ? "NETFLIX_COUNTRIES=${names.countries}" : null

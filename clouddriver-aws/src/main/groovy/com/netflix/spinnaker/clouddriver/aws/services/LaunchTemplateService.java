@@ -36,6 +36,8 @@ import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.amazonaws.services.ec2.model.LaunchTemplatesMonitoringRequest;
 import com.amazonaws.services.ec2.model.RequestLaunchTemplateData;
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings;
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider;
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider.UserDataRequest;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import java.time.Duration;
@@ -45,10 +47,12 @@ import java.util.Optional;
 
 public class LaunchTemplateService {
   private final AmazonEC2 ec2;
+  private final List<UserDataProvider> userDataProviders;
   private final RetrySupport retrySupport = new RetrySupport();
 
-  public LaunchTemplateService(AmazonEC2 ec2) {
+  public LaunchTemplateService(AmazonEC2 ec2, List<UserDataProvider> userDataProviders) {
     this.ec2 = ec2;
+    this.userDataProviders = userDataProviders;
   }
 
   public Optional<LaunchTemplateVersion> getLaunchTemplateVersion(
@@ -101,9 +105,19 @@ public class LaunchTemplateService {
                 new LaunchTemplatesMonitoringRequest()
                     .withEnabled(settings.getInstanceMonitoring()));
 
-    if (settings.getBase64UserData() != null) {
-      request.setUserData(settings.getBase64UserData().trim());
-    }
+    UserDataRequest userDataRequest =
+        UserDataRequest.builder()
+            .launchTemplate(true)
+            .asgName(settings.getBaseName())
+            .launchSettingName(launchTemplateName)
+            .region(settings.getRegion())
+            .account(settings.getAccount())
+            .environment(settings.getEnvironment())
+            .accountType(settings.getAccountType())
+            .build();
+
+    request.withUserData(
+        userDataRequest.getUserData(userDataProviders, settings.getBase64UserData()));
 
     // block device mappings
     final List<LaunchTemplateBlockDeviceMappingRequest> mappings = new ArrayList<>();
