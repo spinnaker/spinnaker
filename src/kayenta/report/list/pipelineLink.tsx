@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link } from './link';
+import { useSref } from '@uirouter/react';
 
 interface IParentPipelineLinkProps {
   parentPipelineExecutionId: string;
@@ -7,15 +7,9 @@ interface IParentPipelineLinkProps {
 }
 
 export const PipelineLink = ({ parentPipelineExecutionId, application }: IParentPipelineLinkProps) => {
-  return (
-    <Link
-      targetState="home.applications.application.pipelines.executionDetails.execution"
-      stateParams={{
-        application,
-        executionId: parentPipelineExecutionId,
-      }}
-    >
-      Pipeline
-    </Link>
-  );
+  const sref = useSref('home.applications.application.pipelines.executionDetails.execution', {
+    application,
+    executionId: parentPipelineExecutionId,
+  });
+  return <a {...sref}>Pipeline</a>;
 };

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { ICanaryState } from 'kayenta/reducers';
 import { resolveConfigIdFromExecutionId } from 'kayenta/selectors';
-import { Link } from './link';
+import { useSref } from '@uirouter/react';
 
 interface IReportLinkOwnProps {
   configName: string;
@@ -16,17 +16,8 @@ interface IReportLinkStateProps {
 }
 
 export const ReportLink = ({ configId, executionId, children }: IReportLinkOwnProps & IReportLinkStateProps) => {
-  return (
-    <Link
-      targetState="^.reportDetail"
-      stateParams={{
-        configId,
-        runId: executionId,
-      }}
-    >
-      {children}
-    </Link>
-  );
+  const sref = useSref('^.reportDetail', { configId, runId: executionId });
+  return <a {...sref}>{children}</a>;
 };
 
 const mapStateToProps = (

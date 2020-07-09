@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { useSref } from '@uirouter/react';
 import { ICanaryState } from 'kayenta/reducers';
 import { resolveConfigIdFromExecutionId } from 'kayenta/selectors';
-import { Link } from './link';
 
 interface IConfigLinkOwnProps {
   configName: string;
@@ -15,16 +15,8 @@ interface IConfigLinkStateProps {
 }
 
 export const ConfigLink = ({ configId, configName }: IConfigLinkOwnProps & IConfigLinkStateProps) => {
-  return (
-    <Link
-      targetState="^.^.canaryConfig.configDetail"
-      stateParams={{
-        id: configId,
-      }}
-    >
-      {configName}
-    </Link>
-  );
+  const sref = useSref('^.^.canaryConfig.configDetail', { id: configId });
+  return <a {...sref}>{configName}</a>;
 };
 
 const mapStateToProps = (
