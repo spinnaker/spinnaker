@@ -1,12 +1,10 @@
-## AWS ECS Clouddriver
+## Amazon ECS Clouddriver
 
-The clouddriver-ecs module allows for ECS deployments of dockerized applications.  **You need to enable the AWS cloud provider in order for the ECS cloud provider to work**.
-
-It is a work in progress
+The clouddriver-ecs module allows for Amazon ECS deployments of dockerized applications.  **You need to enable the AWS cloud provider in order for the ECS cloud provider to work**.
 
 ## Clouddriver configuration
 
-In order for the ECS cloud provider to work, a corresponding AWS account must be configured and enabled. An ECS account will be tied to a given AWS account by its name. Below is an example snippet of `clouddriver.yml`:
+In order for the Amazon ECS cloud provider to work, a corresponding AWS account must be configured and enabled. An ECS account will be tied to a given AWS account by its name. Below is an example snippet of `clouddriver.yml`:
 
 ```
 aws:
@@ -27,29 +25,13 @@ ecs:
 ```
 
 
-
-
 ## Spinnaker role
-Make sure that you allow the `application-autoscaling.amazonaws.com` and `ecs.amazonaws.com` principals to assume the SpinnakerManaged role by adding it as a principal.  See example code below.  Failure to do so will prevent you from deploying ECS server groups:
-```
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-                "Service": [
-                  "ecs.amazonaws.com",
-                  "application-autoscaling.amazonaws.com"
-                ],
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-```
-##
 
+In Spinnaker 1.19 and later, the Amazon ECS cloud provider requires [service-linked roles](https://docs.aws.amazon.com/AmazonECS/latest/userguide/using-service-linked-roles.html) for Amazon ECS and Application Auto Scaling. To create the required service-linked roles, run the following `aws-cli` commands:
 
-TODO Wishlist:
-1. Perhaps clouddriver should try to add the 2 required trust relationships on startup if they are detected as not being present
+```
+aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com
+aws iam create-service-linked-role --aws-service-name ecs.application-autoscaling.amazonaws.com
+```
+
+See the official Spinnaker [Amazon ECS provider setup docs](https://spinnaker.io/setup/install/providers/aws/aws-ecs/#service-linked-iam-roles) for more information.
