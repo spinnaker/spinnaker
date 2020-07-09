@@ -29,6 +29,7 @@ dependencies {
   api "com.squareup.retrofit:retrofit"
 
   implementation "com.google.guava:guava"
+  implementation "javax.inject:javax.inject:1"
 
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 

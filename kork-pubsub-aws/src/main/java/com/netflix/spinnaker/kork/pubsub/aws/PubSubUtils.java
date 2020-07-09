@@ -25,8 +25,8 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusListener;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties.AmazonPubsubSubscription;
 import java.time.Duration;
 import java.util.Collections;
@@ -132,12 +132,12 @@ public class PubSubUtils {
   public static Supplier<Boolean> getEnabledSupplier(
       DynamicConfigService dynamicConfig,
       AmazonPubsubSubscription subscription,
-      EurekaStatusListener eurekaStatus) {
+      DiscoveryStatusListener discoveryStatus) {
     return () ->
         dynamicConfig.isEnabled("pubsub", false)
             && dynamicConfig.isEnabled("pubsub.amazon", false)
             && dynamicConfig.isEnabled("pubsub.amazon." + subscription.getName(), false)
-            && eurekaStatus.isEnabled();
+            && discoveryStatus.isEnabled();
   }
 
   public static Policy buildSNSPolicy(ARN topicARN, List<String> accountIds) {

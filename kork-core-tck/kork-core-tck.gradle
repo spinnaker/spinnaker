@@ -2,7 +2,11 @@ apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-  api(project(":kork-core"))
+  api(platform(project(":spinnaker-dependencies")))
 
-  api("org.spockframework:spock-core")
+  implementation(project(":kork-core"))
+  implementation(project(":kork-exceptions"))
+
+  implementation("org.codehaus.groovy:groovy-all")
+  implementation("org.spockframework:spock-core")
 }

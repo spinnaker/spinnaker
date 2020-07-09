@@ -20,8 +20,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusListener;
 import com.netflix.spinnaker.kork.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.kork.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.kork.pubsub.aws.DefaultAmazonMessageAcknowledger;
@@ -61,7 +61,7 @@ public class AmazonPubsubConfig {
       AmazonPubsubMessageHandlerFactory messageHandlerFactory,
       AmazonMessageAcknowledger messageAcknowledger,
       Registry registry,
-      EurekaStatusListener eurekaStatus,
+      DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {
     return new SQSSubscriberProvider(
         awsCredentialsProvider,
@@ -70,7 +70,7 @@ public class AmazonPubsubConfig {
         messageHandlerFactory,
         messageAcknowledger,
         registry,
-        eurekaStatus,
+        discoveryStatus,
         dynamicConfig);
   }
 
@@ -81,7 +81,7 @@ public class AmazonPubsubConfig {
       PubsubPublishers pubsubPublishers,
       Registry registry,
       RetrySupport retrySupport,
-      EurekaStatusListener eurekaStatus,
+      DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {
     return new SNSPublisherProvider(
         awsCredentialsProvider,
@@ -89,7 +89,7 @@ public class AmazonPubsubConfig {
         pubsubPublishers,
         registry,
         retrySupport,
-        eurekaStatus,
+        discoveryStatus,
         dynamicConfig);
   }
 }

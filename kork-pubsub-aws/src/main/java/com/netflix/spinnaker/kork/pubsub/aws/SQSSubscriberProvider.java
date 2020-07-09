@@ -23,8 +23,8 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.google.common.base.Preconditions;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusListener;
 import com.netflix.spinnaker.kork.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandlerFactory;
@@ -53,7 +53,7 @@ public class SQSSubscriberProvider {
   private final PubsubSubscribers pubsubSubscribers;
   private final AmazonPubsubMessageHandlerFactory pubsubMessageHandlerFactory;
   private final Registry registry;
-  private final EurekaStatusListener eurekaStatus;
+  private final DiscoveryStatusListener discoveryStatus;
   private final DynamicConfigService dynamicConfig;
   private final AmazonMessageAcknowledger messageAcknowledger;
 
@@ -65,7 +65,7 @@ public class SQSSubscriberProvider {
       AmazonPubsubMessageHandlerFactory pubsubMessageHandlerFactory,
       AmazonMessageAcknowledger messageAcknowledger,
       Registry registry,
-      EurekaStatusListener eurekaStatus,
+      DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
@@ -73,7 +73,7 @@ public class SQSSubscriberProvider {
     this.pubsubMessageHandlerFactory = pubsubMessageHandlerFactory;
     this.messageAcknowledger = messageAcknowledger;
     this.registry = registry;
-    this.eurekaStatus = eurekaStatus;
+    this.discoveryStatus = discoveryStatus;
     this.dynamicConfig = dynamicConfig;
   }
 
@@ -110,7 +110,7 @@ public class SQSSubscriberProvider {
                           .withClientConfiguration(new ClientConfiguration())
                           .withRegion(queueArn.getRegion())
                           .build(),
-                      PubSubUtils.getEnabledSupplier(dynamicConfig, subscription, eurekaStatus),
+                      PubSubUtils.getEnabledSupplier(dynamicConfig, subscription, discoveryStatus),
                       registry);
               try {
                 executorService.submit(worker);

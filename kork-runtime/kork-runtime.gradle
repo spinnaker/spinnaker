@@ -5,4 +5,5 @@ dependencies {
   runtimeOnly(project(":kork-secrets-gcp"))
   runtimeOnly(project(":kork-stackdriver"))
   runtimeOnly(project(":kork-swagger"))
+  runtimeOnly(project(":kork-eureka"))
 }

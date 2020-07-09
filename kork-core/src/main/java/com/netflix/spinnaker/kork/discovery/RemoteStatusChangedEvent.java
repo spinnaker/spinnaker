@@ -1,7 +1,7 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -12,20 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.kork.eureka;
+package com.netflix.spinnaker.kork.discovery;
 
-import com.netflix.discovery.StatusChangeEvent;
 import org.springframework.context.ApplicationEvent;
 
+/** A Spring {@link ApplicationEvent} wrapping the {@link DiscoveryStatusChangeEvent}. */
 public class RemoteStatusChangedEvent extends ApplicationEvent {
-  public RemoteStatusChangedEvent(StatusChangeEvent source) {
+  public RemoteStatusChangedEvent(DiscoveryStatusChangeEvent source) {
     super(source);
   }
 
   @Override
-  public StatusChangeEvent getSource() {
-    return (StatusChangeEvent) super.getSource();
+  public DiscoveryStatusChangeEvent getSource() {
+    return (DiscoveryStatusChangeEvent) super.getSource();
   }
 }

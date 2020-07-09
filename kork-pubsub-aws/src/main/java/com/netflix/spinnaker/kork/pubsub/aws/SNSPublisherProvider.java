@@ -23,8 +23,8 @@ import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusListener;
 import com.netflix.spinnaker.kork.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.kork.pubsub.model.PubsubPublisher;
@@ -49,7 +49,7 @@ public class SNSPublisherProvider {
   private final PubsubPublishers pubsubPublishers;
   private final Registry registry;
   private final RetrySupport retrySupport;
-  private final EurekaStatusListener eurekaStatus;
+  private final DiscoveryStatusListener discoveryStatus;
   private final DynamicConfigService dynamicConfig;
 
   @Autowired
@@ -59,14 +59,14 @@ public class SNSPublisherProvider {
       PubsubPublishers pubsubPublishers,
       Registry registry,
       RetrySupport retrySupport,
-      EurekaStatusListener eurekaStatus,
+      DiscoveryStatusListener discoveryStatus,
       DynamicConfigService dynamicConfig) {
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
     this.pubsubPublishers = pubsubPublishers;
     this.registry = registry;
     this.retrySupport = retrySupport;
-    this.eurekaStatus = eurekaStatus;
+    this.discoveryStatus = discoveryStatus;
     this.dynamicConfig = dynamicConfig;
   }
 
@@ -92,7 +92,7 @@ public class SNSPublisherProvider {
                       .build();
 
               Supplier<Boolean> isEnabled =
-                  PubSubUtils.getEnabledSupplier(dynamicConfig, subscription, eurekaStatus);
+                  PubSubUtils.getEnabledSupplier(dynamicConfig, subscription, discoveryStatus);
 
               SNSPublisher publisher =
                   new SNSPublisher(subscription, amazonSNS, isEnabled, registry, retrySupport);

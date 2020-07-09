@@ -34,6 +34,7 @@ include(
   "kork-config",
   "kork-core",
   "kork-core-tck",
+  "kork-eureka",
   "kork-exceptions",
   "kork-expressions",
   "kork-jedis",

@@ -12,31 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
+package com.netflix.spinnaker.kork.discovery;
 
-package com.netflix.spinnaker.kork.eureka;
-
-import com.netflix.appinfo.InstanceInfo;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 
-/**
- * A component that listens to Eureka status changes and can be queried to enable/disable components
- */
-public class EurekaStatusListener implements ApplicationListener<RemoteStatusChangedEvent> {
-  private static final Logger log = LoggerFactory.getLogger(EurekaStatusListener.class);
+public class DiscoveryStatusListener implements ApplicationListener<RemoteStatusChangedEvent> {
 
-  private AtomicBoolean enabled = new AtomicBoolean();
+  private static final Logger log = LoggerFactory.getLogger(DiscoveryStatusListener.class);
+
+  private final AtomicBoolean enabled = new AtomicBoolean();
 
   @Override
   public void onApplicationEvent(RemoteStatusChangedEvent event) {
-    log.info("Instance status has changed to {} in Eureka", event.getSource().getStatus());
+    log.info(
+        "Instance status has changed to {} in service discovery", event.getSource().getStatus());
 
-    if (event.getSource().getStatus() == InstanceInfo.InstanceStatus.UP) {
+    if (event.getSource().getStatus() == InstanceStatus.UP) {
       enabled.set(true);
-    } else if (event.getSource().getPreviousStatus() == InstanceInfo.InstanceStatus.UP) {
+    } else if (event.getSource().getPreviousStatus() == InstanceStatus.UP) {
       enabled.set(false);
     }
   }

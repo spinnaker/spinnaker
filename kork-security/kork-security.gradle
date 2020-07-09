@@ -5,14 +5,17 @@ apply from: "$rootDir/gradle/lombok.gradle"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
-  api project(":kork-core")
+  implementation(project(":kork-core"))
 
   api "org.springframework.security:spring-security-core"
   api "com.fasterxml.jackson.core:jackson-annotations"
 
   implementation "com.google.guava:guava"
+  implementation "org.slf4j:slf4j-api"
 
+  testImplementation("org.codehaus.groovy:groovy-all")
   testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
 }
