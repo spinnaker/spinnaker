@@ -5,6 +5,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 
 import { NgReact } from 'core/reactShims';
 import { verticalNavExpandedAtom } from 'core/application/nav/navAtoms';
+import { CollapsibleSectionStateCache } from 'core/cache';
 import { Overridable } from 'core/overrideRegistry';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
 import { HelpMenu } from 'core/help/HelpMenu';
@@ -32,7 +33,10 @@ export const SpinnakerHeaderContent = () => {
     currentState.name.includes('project.application.') || currentState.name.includes('applications.application.');
 
   const [verticalNavExpanded, setVerticalNavExpanded] = useRecoilState(verticalNavExpandedAtom);
-  const toggleNav = () => setVerticalNavExpanded(!verticalNavExpanded);
+  const toggleNav = () => {
+    setVerticalNavExpanded(!verticalNavExpanded);
+    CollapsibleSectionStateCache.setExpanded('verticalNav', !verticalNavExpanded);
+  };
 
   const isDevicePhoneOrSmaller = () => {
     const bodyStyles = window.getComputedStyle(document.body);
