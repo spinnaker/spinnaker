@@ -52,45 +52,14 @@ public class ProviderUtils {
 
   /**
    * Build a thread-safe set containing each account in the accountCredentialsRepository that is of type
-   * credentialsType, and (if specified) of providerVersion version.
-   *
-   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
-   * is deprecated. This method will be removed in a future release. Use
-   * {@link #buildThreadSafeSetOfAccounts(AccountCredentialsRepository, Class<T>)}
-   * instead.
-   */
-  public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType, ProviderVersion version) {
-    buildThreadSafeSetOfAccounts(accountCredentialsRepository, credentialsType, null, version)
-  }
-
-  /**
-   * Build a thread-safe set containing each account in the accountCredentialsRepository that is of type
-   * credentialsType, and (if specified) for a cloud provider.
+   * credentialsType and (if specified) for a cloud provider.
    */
   public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType, String cloudProvider) {
-    buildThreadSafeSetOfAccounts(accountCredentialsRepository, credentialsType, cloudProvider, null)
-  }
-
-  /**
-   * Build a thread-safe set containing each account in the accountCredentialsRepository that is of type
-   * credentialsType, (if specified) cloud provider, and (if specified) of providerVersion version.
-   *
-   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion}
-   * is deprecated. This method will be removed in a future release. Use
-   * {@link #buildThreadSafeSetOfAccounts(AccountCredentialsRepository, Class<T>, String)}
-   * instead.
-   */
-  @Deprecated
-  public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType, String cloudProvider, ProviderVersion version) {
     def allAccounts = Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>())
     allAccounts.addAll(accountCredentialsRepository.all.findResults { credentialsType.isInstance(it) ? credentialsType.cast(it) : null })
 
     if (cloudProvider != null) {
       allAccounts = allAccounts.findAll { acc -> acc.cloudProvider == cloudProvider }
-    }
-
-    if (version != null) {
-      allAccounts = allAccounts.findAll { acc -> acc.providerVersion == version }
     }
 
     return allAccounts

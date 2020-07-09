@@ -17,25 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration;
 
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import javax.annotation.Nullable;
 
 @Beta
 public interface VersionedCloudProviderOperation {
-  /**
-   * Various operations can satisfy different provider's versions. This operation will only be
-   * applicable to accounts at this version.
-   *
-   * @return true i.f.f. this operations works on accounts at this version
-   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion} is deprecated.
-   *     This method will be removed in a future release.
-   */
-  @Deprecated
-  default boolean acceptsVersion(ProviderVersion version) {
-    return ProviderVersion.v1.equals(version);
-  }
-
   /**
    * Allows individual operations to be versioned.
    *

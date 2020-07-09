@@ -65,20 +65,6 @@ public interface AccountCredentials<T> {
    */
   String getAccountType();
 
-  /**
-   * Provides the "version" of the account's provider. If an account has been configured at a
-   * particular version, it can be supported by different caching agents and operation converters.
-   * By default every account is at version v1.
-   *
-   * @return the account's version.
-   * @deprecated {@link com.netflix.spinnaker.clouddriver.security.ProviderVersion} is deprecated.
-   *     This method will be removed in a future release.
-   */
-  @Deprecated
-  default ProviderVersion getProviderVersion() {
-    return ProviderVersion.v1;
-  }
-
   /** @return the id for the account (may be null if not supported by underlying cloud provider) */
   default String getAccountId() {
     return null;
