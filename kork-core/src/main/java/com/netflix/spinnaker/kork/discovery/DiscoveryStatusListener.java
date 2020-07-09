@@ -25,7 +25,21 @@ public class DiscoveryStatusListener implements ApplicationListener<RemoteStatus
 
   private static final Logger log = LoggerFactory.getLogger(DiscoveryStatusListener.class);
 
-  private final AtomicBoolean enabled = new AtomicBoolean();
+  private final AtomicBoolean enabled;
+
+  public DiscoveryStatusListener() {
+    this(false);
+  }
+
+  /**
+   * To support unit tests, specifies the initial state of the DiscoveryStatusListener.
+   *
+   * @param enabledInitialState the initial enabled state of this DiscoveryStatusListener prior to
+   *     receiving any RemoteStatusChangedEvents.
+   */
+  public DiscoveryStatusListener(boolean enabledInitialState) {
+    this.enabled = new AtomicBoolean(enabledInitialState);
+  }
 
   @Override
   public void onApplicationEvent(RemoteStatusChangedEvent event) {
