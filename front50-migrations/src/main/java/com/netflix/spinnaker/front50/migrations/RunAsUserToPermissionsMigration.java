@@ -24,9 +24,6 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -45,16 +42,12 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty("migrations.migrate-to-managed-service-accounts")
 public class RunAsUserToPermissionsMigration implements Migration {
 
-  // Only valid until April 1, 2020
-  private static final LocalDate VALID_UNTIL = LocalDate.of(2020, Month.APRIL, 1);
-
   private static final String SERVICE_ACCOUNT_SUFFIX = "@managed-service-account";
   private static final String RUN_AS_USER = "runAsUser";
   private static final String ROLES = "roles";
 
   private final PipelineDAO pipelineDAO;
   private final ServiceAccountDAO serviceAccountDAO;
-  private Clock clock = Clock.systemDefaultZone();
 
   @Autowired
   public RunAsUserToPermissionsMigration(
@@ -65,7 +58,7 @@ public class RunAsUserToPermissionsMigration implements Migration {
 
   @Override
   public boolean isValid() {
-    return LocalDate.now(clock).isBefore(VALID_UNTIL);
+    return true;
   }
 
   @Override
@@ -150,9 +143,5 @@ public class RunAsUserToPermissionsMigration implements Migration {
     }
     String pipelineName = pipeline.getId();
     return pipelineName.toLowerCase() + SERVICE_ACCOUNT_SUFFIX;
-  }
-
-  void setClock(Clock clock) {
-    this.clock = clock;
   }
 }

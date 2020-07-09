@@ -10,11 +10,6 @@ import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
 
 class RunAsUserToPermissionsMigrationSpec extends Specification {
   PipelineDAO pipelineDAO = Mock()
@@ -22,31 +17,6 @@ class RunAsUserToPermissionsMigrationSpec extends Specification {
 
   @Subject
   def migration = new RunAsUserToPermissionsMigration(pipelineDAO, serviceAccountDAO)
-
-  def setup() {
-    migration.setClock(Clock.fixed(Instant.parse("2019-04-01T10:15:30.00Z"), ZoneId.of("Z")))
-  }
-
-  @Unroll
-  def "should #shouldRun migration if time is #date"() {
-    given:
-    migration.setClock(Clock.fixed(Instant.parse(date), ZoneId.of("Z")))
-
-    when:
-    def valid = migration.isValid()
-
-    then:
-    valid == expectedValid
-
-    where:
-    date                      || expectedValid
-    "2019-04-01T10:15:30.00Z" || true
-    "2020-03-31T23:59:59.99Z" || true
-    "2020-04-01T00:00:00.00Z" || false
-    "2020-04-02T10:15:30.00Z" || false
-    shouldRun = "${expectedValid ? '' : 'not '}run"
-
-  }
 
   def "should migrate pipeline if one trigger is missing automatic service user"() {
     given:
