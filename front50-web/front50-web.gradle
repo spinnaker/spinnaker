@@ -39,8 +39,8 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "io.swagger:swagger-annotations"
   implementation "commons-codec:commons-codec"
 
   runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
