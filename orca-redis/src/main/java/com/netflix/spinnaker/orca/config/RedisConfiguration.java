@@ -18,12 +18,13 @@ package com.netflix.spinnaker.orca.config;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
+import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisClusterNotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
-import com.netflix.spinnaker.orca.telemetry.RedisInstrumentedExecutionRepository;
+import java.util.Collections;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,15 +55,16 @@ public class RedisConfiguration {
       @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
       @Value("${chunk-size.execution-repository:75}") Integer threadPoolChunkSize,
       @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
-    return new RedisInstrumentedExecutionRepository(
+    ExecutionRepository repository =
         new RedisExecutionRepository(
             registry,
             redisClientSelector,
             queryAllScheduler,
             queryByAppScheduler,
             threadPoolChunkSize,
-            bufferedPrefix),
-        registry);
+            bufferedPrefix);
+    return InstrumentedProxy.proxy(
+        registry, repository, "redis.executionRepository", Collections.emptyMap());
   }
 
   @Bean

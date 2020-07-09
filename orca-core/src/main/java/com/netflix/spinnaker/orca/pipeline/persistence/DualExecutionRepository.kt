@@ -63,10 +63,9 @@ class DualExecutionRepository(
 
     val findExecutionRepositoryByClass = { className: String ->
       val repositoryClass = Class.forName(className)
-      allRepositories.find { repo ->
-        repositoryClass.isInstance(repo) ||
-          (repo is DelegatingExecutionRepository<*> && repositoryClass.isInstance(repo.getDelegate()))
-      } ?: throw IllegalStateException("No ExecutionRepository bean of class $className found")
+      allRepositories
+        .find { repositoryClass.isInstance(it) }
+        ?: throw IllegalStateException("No ExecutionRepository bean of class $className found")
     }
 
     val findExecutionRepository = { beanName: String, beanClass: String ->
