@@ -23,18 +23,17 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp-urlconnection"
   implementation "com.squareup.okhttp:okhttp-apache"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
+  implementation "com.google.guava:guava"
 
   implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-plugins"
   implementation "com.netflix.spinnaker.kork:kork-web"
-  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
-  implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
-  implementation "com.netflix.spinnaker.kork:kork-stackdriver"
-  implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "io.swagger:swagger-annotations"
   implementation "net.logstash.logback:logstash-logback-encoder"
+
+  runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
 
   implementation project(':fiat-core')
   implementation project(':fiat-roles')
