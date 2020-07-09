@@ -51,7 +51,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
       task.oortService = oort
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-      def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
+      def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeAsg", context)
 
     when:
       def result = task.execute(stage)
@@ -107,7 +107,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeAsg", context)
 
     when:
     def result = task.execute(stage)
@@ -140,7 +140,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     oort.getServerGroup("test", "us-east-1", "kato-main-v000") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(serverGroup))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeServerGroup", context)
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "resizeAsg", context)
 
     when:
     def result = task.execute(stage)
