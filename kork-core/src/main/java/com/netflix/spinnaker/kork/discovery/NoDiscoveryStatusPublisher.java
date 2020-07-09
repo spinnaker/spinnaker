@@ -37,8 +37,16 @@ public class NoDiscoveryStatusPublisher
   @Override
   public void onApplicationEvent(ContextRefreshedEvent event) {
     log.warn("No service discovery client is available, assuming application is UP");
+    setInstanceStatus(InstanceStatus.UP);
+  }
+
+  public void setInstanceEnabled(boolean enabled) {
+    setInstanceStatus(enabled ? InstanceStatus.UP : InstanceStatus.OUT_OF_SERVICE);
+  }
+
+  private void setInstanceStatus(InstanceStatus instanceStatus) {
     eventPublisher.publishEvent(
         new RemoteStatusChangedEvent(
-            new DiscoveryStatusChangeEvent(InstanceStatus.UNKNOWN, InstanceStatus.UP)));
+            new DiscoveryStatusChangeEvent(InstanceStatus.UNKNOWN, instanceStatus)));
   }
 }
