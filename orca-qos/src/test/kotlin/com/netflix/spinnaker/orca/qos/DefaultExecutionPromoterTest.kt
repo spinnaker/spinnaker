@@ -15,11 +15,10 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.DOWN
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
-import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent
+import com.netflix.spinnaker.kork.discovery.InstanceStatus
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
@@ -47,7 +46,7 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
   subject(CachingMode.GROUP) {
     DefaultExecutionPromoter(executionLauncher, executionRepository, listOf(policy), NoopRegistry())
       .also {
-        it.onApplicationEvent(RemoteStatusChangedEvent(StatusChangeEvent(DOWN, UP)))
+        it.onApplicationEvent(RemoteStatusChangedEvent(DiscoveryStatusChangeEvent(InstanceStatus.DOWN, InstanceStatus.UP)))
       }
   }
 

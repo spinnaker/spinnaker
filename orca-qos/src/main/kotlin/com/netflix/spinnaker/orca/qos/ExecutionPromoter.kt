@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
+import com.netflix.spinnaker.kork.discovery.InstanceStatus.UP
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent.AGENT_MDC_KEY
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher

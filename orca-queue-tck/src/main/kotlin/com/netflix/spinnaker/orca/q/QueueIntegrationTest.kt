@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
-import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent
+import com.netflix.spinnaker.kork.discovery.InstanceStatus
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE
@@ -117,12 +115,12 @@ abstract class QueueIntegrationTest {
 
   @Before
   fun discoveryUp() {
-    context.publishEvent(RemoteStatusChangedEvent(StatusChangeEvent(STARTING, UP)))
+    context.publishEvent(RemoteStatusChangedEvent(DiscoveryStatusChangeEvent(InstanceStatus.STARTING, InstanceStatus.UP)))
   }
 
   @After
   fun discoveryDown() {
-    context.publishEvent(RemoteStatusChangedEvent(StatusChangeEvent(UP, OUT_OF_SERVICE)))
+    context.publishEvent(RemoteStatusChangedEvent(DiscoveryStatusChangeEvent(InstanceStatus.UP, InstanceStatus.OUT_OF_SERVICE)))
   }
 
   @After

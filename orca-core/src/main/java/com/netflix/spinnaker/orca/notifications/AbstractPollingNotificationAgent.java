@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.orca.notifications;
 
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UP;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;

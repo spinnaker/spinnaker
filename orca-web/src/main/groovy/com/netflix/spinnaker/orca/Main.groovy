@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.PipelineTemplateConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
-import com.netflix.spinnaker.orca.eureka.DiscoveryPollingConfiguration
 import com.netflix.spinnaker.orca.flex.config.FlexConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
@@ -35,7 +34,6 @@ import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -57,7 +55,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   CloudDriverConfiguration,
   ClouddriverJobConfiguration,
   IgorConfiguration,
-  DiscoveryPollingConfiguration,
   MineConfiguration,
   ApplicationConfig,
   PipelineTemplateConfiguration,

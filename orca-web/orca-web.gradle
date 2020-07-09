@@ -42,7 +42,6 @@ dependencies {
   implementation(project(":orca-deploymentmonitor"))
   implementation(project(":orca-dry-run"))
   implementation(project(":orca-echo"))
-  implementation(project(":orca-eureka"))
   implementation(project(":orca-flex"))
   implementation(project(":orca-front50"))
   implementation(project(":orca-igor"))

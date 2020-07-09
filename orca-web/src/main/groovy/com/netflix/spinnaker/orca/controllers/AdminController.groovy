@@ -17,16 +17,17 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.discovery.NoDiscoveryStatusPublisher
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand
-import com.netflix.spinnaker.orca.eureka.NoDiscoveryApplicationStatusPublisher
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.http.HttpStatus
@@ -42,8 +43,11 @@ import org.springframework.web.bind.annotation.RestController
 @Slf4j
 class AdminController {
   @Autowired(required = false)
-  @Qualifier("discoveryStatusPoller")
+  @Qualifier("discoveryStatusListener")
   ApplicationListener<ContextRefreshedEvent> discoveryStatusPoller
+
+  @Autowired
+  ApplicationEventPublisher applicationEventPublisher
 
   @Autowired
   ExecutionRepository executionRepository
@@ -61,17 +65,17 @@ class AdminController {
       return
     }
 
-    if (!discoveryStatusPoller instanceof  NoDiscoveryApplicationStatusPublisher) {
+    if (!discoveryStatusPoller instanceof NoDiscoveryStatusPublisher) {
       throw new DiscoveryUnchangeableException("Discovery status cannot be overwritten", discoveryStatusPoller.class)
     }
 
-    NoDiscoveryApplicationStatusPublisher noDiscoveryApplicationStatusPublisher = (NoDiscoveryApplicationStatusPublisher) discoveryStatusPoller;
 
     Boolean enabled = enabledWrapper.get("enabled")
     if (enabled == null) {
       throw new ValidationException("The field \"enabled\" must be set", null)
     }
 
+    NoDiscoveryStatusPublisher noDiscoveryApplicationStatusPublisher = (NoDiscoveryStatusPublisher) discoveryStatusPoller;
     noDiscoveryApplicationStatusPublisher.setInstanceEnabled(enabled)
   }
 
