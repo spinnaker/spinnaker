@@ -144,19 +144,19 @@ class BuildController {
             if (buildNumber != 0 &&
                 buildService.metaClass.respondsTo(buildService, 'stopRunningBuild')) {
                 buildService.stopRunningBuild(jobName, buildNumber)
-            }
-
-            // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
-            // always returns a 404. This try catch block insures that the exception is eaten instead
-            // of being handled by the handleOtherException handler and returning a 500 to orca
-            try {
+            } else {
+              // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
+              // always returns a 404. This try catch block insures that the exception is eaten instead
+              // of being handled by the handleOtherException handler and returning a 500 to orca
+              try {
                 if (buildService.metaClass.respondsTo(buildService, 'stopQueuedBuild')) {
-                    buildService.stopQueuedBuild(queuedBuild)
+                  buildService.stopQueuedBuild(queuedBuild)
                 }
-            } catch (RetrofitError e) {
+              } catch (RetrofitError e) {
                 if (e.response?.status != NOT_FOUND.value()) {
-                    throw e
+                  throw e
                 }
+              }
             }
         }
 
