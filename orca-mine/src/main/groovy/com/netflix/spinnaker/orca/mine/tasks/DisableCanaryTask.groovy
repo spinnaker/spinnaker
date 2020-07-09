@@ -45,7 +45,6 @@ class DisableCanaryTask extends AbstractCloudProviderAwareTask implements Task {
       if (canary.health?.health == 'UNHEALTHY' || stage.context.unhealthy != null) {
         // If unhealthy, already disabled in MonitorCanaryTask
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
-          waitTime  : waitTime,
           unhealthy : true
         ]).build()
       }
