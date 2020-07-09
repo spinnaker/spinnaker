@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1
+import com.netflix.spinnaker.keel.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.ec2.EC2_SECURITY_GROUP_V1
@@ -58,6 +59,9 @@ class EC2Config {
 
   @Bean
   fun applicationLoadBalancerV1() = EC2_APPLICATION_LOAD_BALANCER_V1
+
+  @Bean
+  fun applicationLoadBalancerV1dot1() = EC2_APPLICATION_LOAD_BALANCER_V1_1
 
   @Bean
   fun clusterHandler(
