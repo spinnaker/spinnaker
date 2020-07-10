@@ -44,8 +44,7 @@ class SpinnakerServiceVersionManager(
         .find { it.service.equals(serviceName, ignoreCase = true) }
 
     if (requirements != null) {
-      val constraint = requirements.operator.symbol + requirements.version
-      return StringUtils.isNullOrEmpty(constraint) || Version.valueOf(version).satisfies(constraint)
+      return StringUtils.isNullOrEmpty(requirements.constraint) || Version.valueOf(version).satisfies(requirements.constraint)
     }
 
     return false

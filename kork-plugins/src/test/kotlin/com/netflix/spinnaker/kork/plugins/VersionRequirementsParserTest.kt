@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
-import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.VersionRequirementOperator
 import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.VersionRequirements
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -31,8 +30,15 @@ class VersionRequirementsParserTest : JUnit5Minutests {
       expectThat(VersionRequirementsParser.parse("clouddriver>=1.0.0"))
         .and {
           get { service }.isEqualTo("clouddriver")
-          get { operator }.isEqualTo(VersionRequirementOperator.GT_EQ)
-          get { version }.isEqualTo("1.0.0")
+          get { constraint }.isEqualTo(">=1.0.0")
+        }
+    }
+
+    test("parses a version string with range constraint") {
+      expectThat(VersionRequirementsParser.parse("clouddriver>=1.0.0 & <2.0.0"))
+        .and {
+          get { service }.isEqualTo("clouddriver")
+          get { constraint }.isEqualTo(">=1.0.0 & <2.0.0")
         }
     }
 
@@ -41,21 +47,48 @@ class VersionRequirementsParserTest : JUnit5Minutests {
         .hasSize(2)
         .and {
           get { this[0].service }.isEqualTo("orca")
+          get { this[0].constraint }.isEqualTo("<8.0.0")
           get { this[1].service }.isEqualTo("deck")
+          get { this[1].constraint }.isEqualTo(">=1.1.0")
+        }
+    }
+
+    test("parses a list of version strings with range") {
+      expectThat(VersionRequirementsParser.parseAll("orca>=7.0.0 & <8.0.0,deck>=1.1.0 & <1.2.0"))
+        .hasSize(2)
+        .and {
+          get { this[0].service }.isEqualTo("orca")
+          get { this[0].constraint }.isEqualTo(">=7.0.0 & <8.0.0")
+          get { this[1].service }.isEqualTo("deck")
+          get { this[1].constraint }.isEqualTo(">=1.1.0 & <1.2.0")
         }
     }
 
     test("converts a list of requirements to a string") {
       val result = VersionRequirementsParser.stringify(listOf(
-        VersionRequirements("clouddriver", VersionRequirementOperator.GT, "1.0.0"),
-        VersionRequirements("orca", VersionRequirementOperator.GT, "3.0.0")
+        VersionRequirements("clouddriver", ">1.0.0"),
+        VersionRequirements("orca", ">3.0.0")
       ))
       expectThat(result).isEqualTo("clouddriver>1.0.0,orca>3.0.0")
+    }
+
+    test("parses a version string with whitespaces") {
+      expectThat(VersionRequirementsParser.parse("clouddriver >=1.0.0 "))
+        .and {
+          get { service }.isEqualTo("clouddriver")
+          get { constraint }.isEqualTo(" >=1.0.0 ")
+        }
     }
 
     test("InvalidPluginVersionRequirementException thrown") {
       expectThrows<VersionRequirementsParser.InvalidPluginVersionRequirementException> {
         VersionRequirementsParser.parseAll("gate=foo")
+      }
+    }
+
+    test("InvalidPluginVersionRequirementException thrown when expression has invalid characters") {
+      expectThrows<VersionRequirementsParser.InvalidPluginVersionRequirementException> {
+        VersionRequirementsParser.parseAll("gate>1.2.3@")
       }
     }
   }

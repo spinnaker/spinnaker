@@ -15,28 +15,28 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.github.zafarkhaja.semver.ParseException
+import com.github.zafarkhaja.semver.Version
 import com.netflix.spinnaker.kork.exceptions.UserException
 import java.util.regex.Pattern
 
 /**
  * Provides utility methods for parsing version requirements values from and to [VersionRequirements].
  *
- * Version requirements are in the format of "{service}{operator}{version}", where:
+ * Version requirements are in the format of "{service}{constraint}", where:
  *
  * - `service` is the service name that is supported by a plugin
- * - `operator` is a version constraint operator (`>`, `<`, `>=`, `<=`)
- * - `version` is the service version that is being constrained
+ * - `constraint` is a semVer expression to be constrained ( >=1.5.0 , >=1.0.0 & <2.0.0)
  *
- * TODO(jonsie): Add range constraint support (>= 1.0.0 & < 2.0.0)
  */
 object VersionRequirementsParser {
 
   private val SUPPORTS_PATTERN = Pattern.compile(
-    "^(?<service>[\\w\\-]+)(?<operator>[><=]{1,2})(?<version>[0-9]+\\.[0-9]+\\.[0-9]+)$")
+    "^(?<service>[\\w\\-]+)(?<constraint>.*[><=]{1,2}[0-9]+\\.[0-9]+\\.[0-9]+.*)$")
+  private val CONSTRAINT_VALIDATOR = Version.valueOf("0.0.0")
 
   private const val SUPPORTS_PATTERN_SERVICE_GROUP = "service"
-  private const val SUPPORTS_PATTERN_OPERATOR_GROUP = "operator"
-  private const val SUPPORTS_PATTERN_VERSION_GROUP = "version"
+  private const val SUPPORTS_PATTERN_CONSTRAINT_GROUP = "constraint"
 
   /**
    * Parse a single version.
@@ -47,12 +47,17 @@ object VersionRequirementsParser {
         if (!it.matches()) {
           throw InvalidPluginVersionRequirementException(version)
         }
+        // we use semver to validate that the constraint is valid.
+        try {
+          CONSTRAINT_VALIDATOR.satisfies(it.group(SUPPORTS_PATTERN_CONSTRAINT_GROUP))
+        } catch (e: ParseException) {
+          throw InvalidPluginVersionRequirementException(version)
+        }
       }
       .let {
         VersionRequirements(
           service = it.group(SUPPORTS_PATTERN_SERVICE_GROUP),
-          operator = VersionRequirementOperator.from(it.group(SUPPORTS_PATTERN_OPERATOR_GROUP)),
-          version = it.group(SUPPORTS_PATTERN_VERSION_GROUP)
+          constraint = it.group(SUPPORTS_PATTERN_CONSTRAINT_GROUP)
         )
       }
   }
@@ -69,32 +74,14 @@ object VersionRequirementsParser {
   fun stringify(requirements: List<VersionRequirements>): String =
     requirements.joinToString(",") { it.toString() }
 
-  enum class VersionRequirementOperator(val symbol: String) {
-    GT(">"),
-    LT("<"),
-    GT_EQ(">="),
-    LT_EQ("<=");
-
-    companion object {
-      fun from(symbol: String): VersionRequirementOperator =
-        values().find { it.symbol == symbol }
-          ?: throw IllegalVersionRequirementsOperator(symbol, values().map { it.symbol }.joinToString { "'$it'" })
-    }
-  }
-
   data class VersionRequirements(
     val service: String,
-    val operator: VersionRequirementOperator,
-    val version: String
+    val constraint: String
   ) {
-    override fun toString(): String = "$service${operator.symbol}$version"
+    override fun toString(): String = "$service$constraint"
   }
 
   class InvalidPluginVersionRequirementException(version: String) : UserException(
-    "The provided version requirement '$version' is not valid: It must conform to '$SUPPORTS_PATTERN'"
-  )
-
-  class IllegalVersionRequirementsOperator(symbol: String, availableOperators: String) : UserException(
-    "Illegal version requirement operator '$symbol': Must be one of $availableOperators"
+    "The provided version requirement '$version' is not valid: It must conform a valid semantic version expression"
   )
 }
