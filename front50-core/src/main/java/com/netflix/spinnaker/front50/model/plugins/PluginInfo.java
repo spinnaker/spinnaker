@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.validation.Valid;
 import lombok.Data;
+import org.hibernate.validator.constraints.URL;
 
 /**
  * A Spinnaker plugin's artifact information.
@@ -34,6 +35,7 @@ import lombok.Data;
  * install, as well as the specific releases that should be installed.
  */
 @Data
+@Valid
 public class PluginInfo implements Timestamped {
   /**
    * The canonical plugin ID.
@@ -59,6 +61,12 @@ public class PluginInfo implements Timestamped {
 
   /** The last principal to modify this PluginInfo. */
   private String lastModifiedBy;
+
+  /** The code repository information for the plugin. */
+  private Repository repository;
+
+  /** The homepage URL for the plugin. */
+  @URL private String homepage;
 
   public PluginInfo() {}
 
@@ -155,5 +163,12 @@ public class PluginInfo implements Timestamped {
                 return false;
               });
     }
+  }
+
+  @Data
+  public static class Repository {
+    String type;
+
+    @URL String url;
   }
 }
