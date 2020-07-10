@@ -112,17 +112,19 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     val outlierFactor = MapUtils.getAsDoubleWithDefault(3.0, metricConfig.getAnalysisConfigurations, "canary", "outliers", "outlierFactor")
 
     val isCriticalMetric = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "critical")
-
     val isDataRequired = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "mustHaveData")
 
     //Effect Size Parameters
-    val allowedIncrease = MapUtils.getAsDoubleWithDefault(1.0, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "allowedIncrease")
-    val allowedDecrease = MapUtils.getAsDoubleWithDefault(1.0, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "allowedDecrease")
+    val effectSizeMeasure = MapUtils.getAsStringWithDefault("meanRatio", metricConfig.getAnalysisConfigurations, "canary", "effectSize", "measure")
+    val defaultEffect = if(effectSizeMeasure == "cles") 0.5 else 1.0
+
+    val allowedIncrease = MapUtils.getAsDoubleWithDefault(defaultEffect, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "allowedIncrease")
+    val allowedDecrease = MapUtils.getAsDoubleWithDefault(defaultEffect, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "allowedDecrease")
     val effectSizeThresholds = (allowedDecrease, allowedIncrease)
 
     //Critical Effect Size Parameters
-    val criticalIncrease = MapUtils.getAsDoubleWithDefault(1.0, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "criticalIncrease")
-    val criticalDecrease = MapUtils.getAsDoubleWithDefault(1.0, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "criticalDecrease")
+    val criticalIncrease = MapUtils.getAsDoubleWithDefault(defaultEffect, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "criticalIncrease")
+    val criticalDecrease = MapUtils.getAsDoubleWithDefault(defaultEffect, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "criticalDecrease")
     val criticalThresholds = (criticalDecrease, criticalIncrease)
 
     //=============================================
@@ -140,7 +142,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98, effectSizeThresholds, criticalThresholds)
+    val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98, effectSizeThresholds, criticalThresholds, effectSizeMeasure)
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)

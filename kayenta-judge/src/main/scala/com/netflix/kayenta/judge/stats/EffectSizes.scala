@@ -4,7 +4,7 @@ import com.netflix.kayenta.judge.Metric
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics._
 import org.apache.commons.math3.util.FastMath
 import org.apache.commons.math3.stat.StatUtils
-
+import org.apache.commons.math3.stat.ranking._
 
 object EffectSizes {
 
@@ -56,4 +56,39 @@ object EffectSizes {
     FastMath.abs(experiment.mean - control.mean) / pooledStd
   }
 
+  /**
+    * Common Language Effect Size (CLES)
+    * The common language effect size is the proportion of pairs where x is higher than y.
+    * Uses a brute-force version of the formula given by Vargha and Delaney 2000
+    *
+    * A. Vargha and H. D. Delaney.
+    * A critique and improvement of the CL common language
+    * effect size statistics of McGraw and Wong.
+    * Journal of Educational and Behavioral Statistics, 25(2):101-132, 2000
+    *
+    * The formula has been transformed to minimize accuracy errors
+    */
+  def cles(control: Array[Double], experiment: Array[Double]): Double = {
+    val m = experiment.length
+    val n = control.length
+    val ranks = new NaturalRanking(NaNStrategy.MAXIMAL, TiesStrategy.AVERAGE).rank(experiment ++ control)
+    val r1 = ranks.take(m).sum
+    (2 * r1 - m * (m + 1)) / (2 * n * m)
+  }
+
+  /**
+    * Common Language Effect Size (CLES)
+    * The common language effect size is the proportion of pairs where x is higher than y.
+    * Uses a brute-force version of the formula given by Vargha and Delaney 2000
+    *
+    * A. Vargha and H. D. Delaney.
+    * A critique and improvement of the CL common language
+    * effect size statistics of McGraw and Wong.
+    * Journal of Educational and Behavioral Statistics, 25(2):101-132, 2000
+    *
+    * The formula has been transformed to minimize accuracy errors
+    */
+  def cles(control: Metric, experiment: Metric): Double = {
+    cles(control.values, experiment.values)
+  }
 }

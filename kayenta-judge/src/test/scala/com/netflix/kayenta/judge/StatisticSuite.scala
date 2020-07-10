@@ -161,4 +161,81 @@ class StatisticSuite extends FunSuite{
     assert(result === (3.03821 +- 1e-5))
   }
 
+  test("CLES Effect Size: Identical"){
+    val experimentData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+    val controlData =  Array(1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val result = EffectSizes.cles(controlMetric, experimentMetric)
+    assert(result === 0.5)
+  }
+
+  test("CLES Effect Size: Different (No Overlap)"){
+    val experimentData = Array(
+      2.27776335, 2.61149434, 3.26894105, 2.91672701, 1.40656921,
+      2.18292082, 3.47901292, 3.00034118, 3.02402043, 4.69912745
+    )
+    val controlData =  Array(
+      25.31531073, 25.19450817, 24.6288846 , 24.37991861, 26.40999244,
+      25.28524759, 24.99788745, 26.13841676, 22.93604649, 24.56817832
+    )
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val result = EffectSizes.cles(controlMetric, experimentMetric)
+    assert(result === 0.0)
+  }
+
+  test("CLES Effect Size: High Metric"){
+    val experimentData = Array(
+      29.17644856, 25.16947646, 25.88467948, 29.4900454 , 27.05622757,
+      26.13307864, 27.2711558 , 26.69139944, 29.05412377, 26.39818697,
+      26.68312641, 24.99600187, 27.99524816, 22.57278291, 23.72798196,
+      25.82821505, 28.26624521, 28.02370228, 24.1792213 , 26.02914828,
+      25.90970275, 31.18337461, 27.44254942, 29.93347686, 26.70848069,
+      28.12191913, 27.39257837, 30.17636627, 29.60240485, 30.10635388
+    )
+    val controlData =  Array(
+      24.69397578, 25.37120574, 25.86186148, 26.93804252, 22.72232309,
+      24.15894084, 24.80842752, 26.07830794, 27.35323988, 23.25110886,
+      24.65909111, 23.88299016, 21.34817847, 26.33198082, 23.39498829,
+      26.6734461 , 25.33769589, 23.92348759, 25.29740715, 24.21381887,
+      28.1697053 , 22.2271772 , 27.16612837, 25.16639243, 26.85955896,
+      27.13421926, 25.43350074, 26.32130314, 23.8854011 , 27.86180318
+    )
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val result = EffectSizes.cles(controlMetric, experimentMetric)
+    assert(result === (0.771 +- 0.001))
+  }
+
+  test("CLES Effect Size: Low Metric"){
+    val experimentData = Array(
+      22.58442682, 18.83161858, 22.34282944, 18.52177725, 19.41399147,
+      21.77120485, 24.33796385, 22.16390531, 23.781802  , 21.38514296,
+      22.2205035 , 22.06152361, 21.30313392, 21.59652134, 22.38394223,
+      24.68882792, 20.58916439, 21.03137302, 22.26213957, 23.76485986,
+      20.56271226, 24.56567102, 19.86055958, 22.18967677, 20.31475409,
+      19.2634656 , 24.60283585, 20.41729998, 20.62069798, 22.53448767
+    )
+    val controlData =  Array(
+      23.15322873, 22.09179077, 26.56410603, 23.0971542 , 24.26372276,
+      25.6461273 , 29.42730472, 22.08630097, 29.15257054, 25.8096766 ,
+      24.62191338, 23.67398895, 23.63946085, 26.44684325, 25.76230914,
+      25.41279862, 22.64005862, 24.58898152, 25.01968457, 25.03695883,
+      23.79864705, 26.60180151, 25.99405034, 22.46726084, 28.31843786,
+      24.30152484, 22.83713467, 21.92380184, 23.44735223, 29.15676219
+    )
+
+    val experimentMetric = Metric("low-metric", experimentData, "canary")
+    val controlMetric = Metric("low-metric", controlData, "baseline")
+
+    val result = EffectSizes.cles(controlMetric, experimentMetric)
+    assert(result === 0.12)
+  }
 }
