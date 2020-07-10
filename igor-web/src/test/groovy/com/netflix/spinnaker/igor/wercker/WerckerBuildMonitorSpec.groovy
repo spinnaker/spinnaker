@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.wercker.model.Application
 import com.netflix.spinnaker.igor.wercker.model.Owner
 import com.netflix.spinnaker.igor.wercker.model.Pipeline
 import com.netflix.spinnaker.igor.wercker.model.Run
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.scheduling.TaskScheduler
 import spock.lang.Specification
@@ -189,7 +190,7 @@ class WerckerBuildMonitorSpec extends Specification {
                 cfg,
                 new NoopRegistry(),
                 new DynamicConfigService.NoopDynamicConfig(),
-                Optional.empty(),
+                new DiscoveryStatusListener(true),
                 Optional.empty(),
                 cache,
                 buildServices,

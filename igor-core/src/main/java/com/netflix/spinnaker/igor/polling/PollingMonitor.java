@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.igor.polling;
 
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import org.springframework.context.ApplicationListener;
 
 public interface PollingMonitor extends ApplicationListener<RemoteStatusChangedEvent> {

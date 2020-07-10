@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.igor.plugins.RedisPluginCache;
 import com.netflix.spinnaker.igor.plugins.front50.Front50Service;
 import com.netflix.spinnaker.igor.plugins.front50.PluginReleaseService;
 import com.netflix.spinnaker.igor.polling.LockService;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
@@ -74,7 +74,7 @@ public class PluginMonitorConfig {
       IgorConfigurationProperties properties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
       PluginReleaseService pluginReleaseService,
       PluginCache pluginCache,
@@ -84,7 +84,7 @@ public class PluginMonitorConfig {
         properties,
         registry,
         dynamicConfigService,
-        discoveryClient,
+        discoveryStatusListener,
         lockService,
         pluginReleaseService,
         pluginCache,

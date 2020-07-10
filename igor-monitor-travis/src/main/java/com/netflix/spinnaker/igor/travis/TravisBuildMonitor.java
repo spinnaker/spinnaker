@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.travis;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.BuildCache;
@@ -39,6 +38,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.config.TravisProperties;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
@@ -75,14 +75,20 @@ public class TravisBuildMonitor
       IgorConfigurationProperties properties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       BuildCache buildCache,
       BuildServices buildServices,
       TravisProperties travisProperties,
       Optional<EchoService> echoService,
       Optional<LockService> lockService,
       TaskScheduler scheduler) {
-    super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
+    super(
+        properties,
+        registry,
+        dynamicConfigService,
+        discoveryStatusListener,
+        lockService,
+        scheduler);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.travisProperties = travisProperties;

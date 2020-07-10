@@ -77,12 +77,12 @@ dependencies {
     implementation "com.netflix.spinnaker.kork:kork-telemetry"
     implementation "com.netflix.spinnaker.kork:kork-plugins"
 
-    implementation "com.netflix.eureka:eureka-client"
     implementation "io.github.resilience4j:resilience4j-retry"
 
     implementation "io.projectreactor:reactor-core"
     implementation "com.google.code.gson:gson"
     implementation "com.google.guava:guava"
+    implementation "javax.inject:javax.inject:1"
 
     runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
 

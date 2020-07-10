@@ -17,7 +17,6 @@ package com.netflix.spinnaker.igor.gitlabci;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.BuildCache;
@@ -38,6 +37,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
@@ -69,14 +69,20 @@ public class GitlabCiBuildMonitor
       IgorConfigurationProperties properties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
       BuildCache buildCache,
       BuildServices buildServices,
       GitlabCiProperties gitlabCiProperties,
       Optional<EchoService> echoService,
       TaskScheduler scheduler) {
-    super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
+    super(
+        properties,
+        registry,
+        dynamicConfigService,
+        discoveryStatusListener,
+        lockService,
+        scheduler);
     this.buildCache = buildCache;
     this.buildServices = buildServices;
     this.gitlabCiProperties = gitlabCiProperties;

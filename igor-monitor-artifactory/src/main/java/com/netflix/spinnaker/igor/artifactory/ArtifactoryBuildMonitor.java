@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.artifactory;
 import static java.util.Collections.emptyList;
 import static org.jfrog.artifactory.client.aql.AqlItem.aqlItem;
 
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryItem;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
@@ -71,13 +71,19 @@ public class ArtifactoryBuildMonitor
       IgorConfigurationProperties properties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
       Optional<EchoService> echoService,
       ArtifactoryCache cache,
       ArtifactoryProperties artifactoryProperties,
       TaskScheduler scheduler) {
-    super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
+    super(
+        properties,
+        registry,
+        dynamicConfigService,
+        discoveryStatusListener,
+        lockService,
+        scheduler);
     this.cache = cache;
     this.artifactoryProperties = artifactoryProperties;
     this.echoService = echoService;

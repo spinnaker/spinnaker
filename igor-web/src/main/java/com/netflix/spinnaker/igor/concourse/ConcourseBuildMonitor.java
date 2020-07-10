@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.concourse;
 
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Date;
@@ -64,14 +64,20 @@ public class ConcourseBuildMonitor
       IgorConfigurationProperties properties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
       Optional<EchoService> echoService,
       BuildServices buildServices,
       ConcourseCache cache,
       ConcourseProperties concourseProperties,
       TaskScheduler scheduler) {
-    super(properties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
+    super(
+        properties,
+        registry,
+        dynamicConfigService,
+        discoveryStatusListener,
+        lockService,
+        scheduler);
     this.buildServices = buildServices;
     this.cache = cache;
     this.concourseProperties = concourseProperties;

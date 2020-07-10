@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.igor.plugins;
 
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.igor.polling.DeltaItem;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
@@ -50,13 +50,19 @@ public class PluginsBuildMonitor
       IgorConfigurationProperties igorProperties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
       PluginReleaseService pluginInfoService,
       PluginCache cache,
       Optional<EchoService> echoService,
       TaskScheduler scheduler) {
-    super(igorProperties, registry, dynamicConfigService, discoveryClient, lockService, scheduler);
+    super(
+        igorProperties,
+        registry,
+        dynamicConfigService,
+        discoveryStatusListener,
+        lockService,
+        scheduler);
     this.pluginInfoService = pluginInfoService;
     this.cache = cache;
     this.echoService = echoService;

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.igor.docker
 
-import com.netflix.discovery.DiscoveryClient
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.DockerRegistryProperties
@@ -27,6 +26,10 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
 import com.netflix.spinnaker.igor.keel.KeelService
 import com.netflix.spinnaker.igor.polling.LockService
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
+import com.netflix.spinnaker.kork.discovery.InstanceStatus
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.scheduling.TaskScheduler
 import spock.lang.Specification
@@ -37,7 +40,7 @@ class DockerMonitorSpec extends Specification {
     def properties = new IgorConfigurationProperties()
     def registry = new NoopRegistry()
     def dynamicConfig = new DynamicConfigService.NoopDynamicConfig()
-    Optional<DiscoveryClient> discoveryClient = Optional.empty()
+    DiscoveryStatusListener discoveryStatusListener = new DiscoveryStatusListener(true)
     Optional<LockService> lockService = Optional.empty()
     def dockerRegistryCache = Mock(DockerRegistryCache)
     def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
@@ -61,7 +64,7 @@ class DockerMonitorSpec extends Specification {
                 properties,
                 registry,
                 dynamicConfig,
-                discoveryClient,
+                discoveryStatusListener,
                 lockService,
                 dockerRegistryCache,
                 dockerRegistryAccounts,
@@ -185,7 +188,7 @@ class DockerMonitorSpec extends Specification {
     }
 
     private DockerMonitor createSubject() {
-        return new DockerMonitor(properties, registry, dynamicConfig, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), dockerRegistryProperties, Mock(TaskScheduler))
+        return new DockerMonitor(properties, registry, dynamicConfig, discoveryStatusListener, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), dockerRegistryProperties, Mock(TaskScheduler))
     }
 
     private static String keyFromTaggedImage(TaggedImage taggedImage) {

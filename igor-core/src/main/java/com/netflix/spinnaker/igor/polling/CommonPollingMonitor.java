@@ -17,13 +17,12 @@ package com.netflix.spinnaker.igor.polling;
 
 import static java.lang.String.format;
 
-import com.netflix.appinfo.InstanceInfo.InstanceStatus;
-import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
@@ -43,7 +42,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
   protected final IgorConfigurationProperties igorProperties;
   protected final Registry registry;
   protected final Id missedNotificationId;
-  private final Optional<DiscoveryClient> discoveryClient;
+  private final DiscoveryStatusListener discoveryStatusListener;
   private final AtomicLong lastPoll = new AtomicLong();
   private final Id itemsCachedId;
   private final Id itemsOverThresholdId;
@@ -59,13 +58,13 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
       IgorConfigurationProperties igorProperties,
       Registry registry,
       DynamicConfigService dynamicConfigService,
-      Optional<DiscoveryClient> discoveryClient,
+      DiscoveryStatusListener discoveryStatusListener,
       Optional<LockService> lockService,
       TaskScheduler scheduler) {
     this.igorProperties = igorProperties;
     this.registry = registry;
     this.dynamicConfigService = dynamicConfigService;
-    this.discoveryClient = discoveryClient;
+    this.discoveryStatusListener = discoveryStatusListener;
     this.lockService = lockService;
     this.scheduler = scheduler;
 
@@ -238,14 +237,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
       return false;
     }
 
-    if (discoveryClient.isPresent()) {
-      InstanceStatus remoteStatus = discoveryClient.get().getInstanceRemoteStatus();
-      log.info("current remote status {}", remoteStatus);
-      return remoteStatus == InstanceStatus.UP;
-    }
-
-    log.info("no DiscoveryClient, assuming InService");
-    return true;
+    return discoveryStatusListener.isEnabled();
   }
 
   @Override
