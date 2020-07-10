@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig
 import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry
 import java.util.concurrent.ConcurrentHashMap
 import okhttp3.OkHttpClient
+import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 
 /**
@@ -36,15 +37,22 @@ class Ok3HttpClientRegistry(
   okHttp3ClientConfiguration: OkHttp3ClientConfiguration
 ) : HttpClientRegistry {
 
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   private val internalServicesClient = okHttp3ClientConfiguration.create().build()
   internal val okClients: MutableMap<HttpClientConfig, OkHttpClient> = ConcurrentHashMap()
   internal val clients: MutableMap<String, Ok3HttpClient> = ConcurrentHashMap()
 
   override fun configure(name: String, baseUrl: String, config: HttpClientConfig) {
     clients.computeIfAbsent("$pluginId.$name") {
+      log.info("Configuring HTTP client for '$pluginId' named '$name'")
+
       // Try to reduce the number of OkHttpClient instances that are floating around. We'll only create a new client
       // if the config is different from any other OkHttpClient.
-      val okClient = okClients.computeIfAbsent(config) { okHttp3ClientFactory.create(baseUrl, config) }
+      val okClient = okClients.computeIfAbsent(config) {
+        log.info("No existing OkHttpClient with a matching config requested by '$pluginId.$name', creating one")
+        okHttp3ClientFactory.create(baseUrl, config)
+      }
       Ok3HttpClient(
         "$pluginId.$name",
         okHttp3ClientFactory.normalizeBaseUrl(baseUrl),
