@@ -25,13 +25,13 @@ import com.google.common.base.Preconditions;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
-import com.netflix.spinnaker.echo.discovery.DiscoveryActivated;
 import com.netflix.spinnaker.echo.pubsub.PubsubEventCreator;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.aws.ARN;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 /** * Starts the individual SQS workers (one for each subscription) */
 @Component
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.amazon.enabled:false}")
-public class SQSSubscriberProvider implements DiscoveryActivated {
+public class SQSSubscriberProvider {
   private static final Logger log = LoggerFactory.getLogger(SQSSubscriberProvider.class);
 
   private final ObjectMapper objectMapper;
@@ -61,6 +61,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final Registry registry;
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
   private final DynamicConfigService dynamicConfigService;
+  private final DiscoveryStatusListener discoveryStatusListener;
 
   @Autowired
   SQSSubscriberProvider(
@@ -71,7 +72,8 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
       PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
       Registry registry,
       MessageArtifactTranslator.Factory messageArtifactTranslatorFactory,
-      DynamicConfigService dynamicConfigService) {
+      DynamicConfigService dynamicConfigService,
+      DiscoveryStatusListener discoveryStatusListener) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
@@ -80,6 +82,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
     this.registry = registry;
     this.messageArtifactTranslatorFactory = messageArtifactTranslatorFactory;
     this.dynamicConfigService = dynamicConfigService;
+    this.discoveryStatusListener = discoveryStatusListener;
   }
 
   @PostConstruct
@@ -145,6 +148,8 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   }
 
   private Supplier<Boolean> isEnabledSupplier() {
-    return () -> enabled.get() && dynamicConfigService.isEnabled("pubsub.amazon", true);
+    return () ->
+        discoveryStatusListener.isEnabled()
+            && dynamicConfigService.isEnabled("pubsub.amazon", true);
   }
 }

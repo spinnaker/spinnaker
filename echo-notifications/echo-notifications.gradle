@@ -29,12 +29,13 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "commons-codec:commons-codec"
-  implementation "javax.mail:javax.mail-api:1.6.2"
   implementation "org.springframework.boot:spring-boot-starter-mail"
   implementation "org.springframework.boot:spring-boot-starter-freemarker"
   implementation "org.jsoup:jsoup:1.8.3"
   implementation "com.atlassian.commonmark:commonmark:0.9.0"
-  testImplementation "com.icegreen:greenmail:1.4.0"
+  testImplementation("com.icegreen:greenmail:1.5.14") {
+    exclude group: "com.sun.mail", module: "javax.mail"
+  }
   testImplementation "org.apache.httpcomponents:httpclient"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"

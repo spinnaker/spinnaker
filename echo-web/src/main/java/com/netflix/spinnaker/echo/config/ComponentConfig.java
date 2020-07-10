@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
@@ -57,11 +56,6 @@ public class ComponentConfig implements WebMvcConfigurer {
     MetricsInterceptor interceptor =
         new MetricsInterceptor(this.registry, "controller.invocations", pathVarsToTag, exclude);
     registry.addInterceptor(interceptor);
-  }
-
-  @Bean
-  public InstanceStatus instanceStatus() {
-    return InstanceStatus.UNKNOWN;
   }
 
   @Bean
