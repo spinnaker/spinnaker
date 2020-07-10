@@ -50,7 +50,7 @@ public class KubernetesV2Health implements Health {
 
   public KubernetesV2Health(V1ContainerStatus status) {
     this.source = "Container " + status.getName();
-    this.type = "kuberentes/container";
+    this.type = "kubernetes/container";
 
     if (!status.getReady()) {
       state = HealthState.Down;
