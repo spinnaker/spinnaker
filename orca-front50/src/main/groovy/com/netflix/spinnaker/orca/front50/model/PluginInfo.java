@@ -32,6 +32,8 @@ public class PluginInfo {
   private String description;
   private String provider;
   @Nonnull private List<Release> releases;
+  private String homepage;
+  private Repository repository;
 
   @Data
   public static class Release {
@@ -43,5 +45,11 @@ public class PluginInfo {
     private String sha512sum;
     private boolean preferred;
     private String lastModifiedBy;
+  }
+
+  @Data
+  public static class Repository {
+    private String type;
+    private String url;
   }
 }
