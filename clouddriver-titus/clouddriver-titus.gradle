@@ -24,6 +24,7 @@ dependencies {
   compileOnly "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
+  implementation "javax.inject:javax.inject:1"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.google.protobuf:protobuf-java:$protobufVersion"
   implementation "com.netflix.frigga:frigga"

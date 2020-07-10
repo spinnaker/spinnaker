@@ -6,7 +6,6 @@ dependencies {
   testAnnotationProcessor "org.projectlombok:lombok"
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.netflix.eureka:eureka-client"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation "com.github.ben-manes.caffeine:guava"
 

@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.cache;
 
-package com.netflix.spinnaker.clouddriver.cache
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.EurekaClient
-import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
-
-class EurekaStatusNodeStatusProvider implements NodeStatusProvider {
-  private final EurekaClient eurekaClient
-
-  EurekaStatusNodeStatusProvider(EurekaClient eurekaClient) {
-    this.eurekaClient = eurekaClient
+public class DiscoveryStatusNodeStatusProvider implements NodeStatusProvider {
+  public DiscoveryStatusNodeStatusProvider(DiscoveryStatusListener discoveryStatusListener) {
+    this.discoveryStatusListener = discoveryStatusListener;
   }
 
   @Override
-  boolean isNodeEnabled() {
-    eurekaClient.instanceRemoteStatus == InstanceInfo.InstanceStatus.UP
+  public boolean isNodeEnabled() {
+    return discoveryStatusListener.isEnabled();
   }
+
+  private final DiscoveryStatusListener discoveryStatusListener;
 }

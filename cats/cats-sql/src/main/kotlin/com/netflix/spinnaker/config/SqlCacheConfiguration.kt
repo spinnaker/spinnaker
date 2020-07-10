@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.discovery.EurekaClient
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.cluster.DefaultNodeStatusProvider
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
@@ -21,15 +19,15 @@ import com.netflix.spinnaker.cats.sql.cache.SqlNames
 import com.netflix.spinnaker.cats.sql.cache.SqlTableMetricsAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlUnknownAgentCleanupAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
-import com.netflix.spinnaker.clouddriver.cache.EurekaStatusNodeStatusProvider
+import com.netflix.spinnaker.clouddriver.cache.DiscoveryStatusNodeStatusProvider
 import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.sql.SqlProvider
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import java.time.Clock
 import java.time.Duration
-import java.util.Optional
 import kotlin.contracts.ExperimentalContracts
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -183,11 +181,7 @@ class SqlCacheConfiguration {
     SqlProvider(agents.toMutableList())
 
   @Bean
-  fun nodeStatusProvider(eurekaClient: Optional<EurekaClient>): NodeStatusProvider {
-    return if (eurekaClient.isPresent) {
-      EurekaStatusNodeStatusProvider(eurekaClient.get())
-    } else {
-      DefaultNodeStatusProvider()
-    }
+  fun nodeStatusProvider(discoveryStatusListener: DiscoveryStatusListener): NodeStatusProvider {
+    return DiscoveryStatusNodeStatusProvider(discoveryStatusListener)
   }
 }
