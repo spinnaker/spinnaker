@@ -171,12 +171,13 @@ public class ApplicationService {
             p -> {
               log.info("Removing application '{}' from project '{}'", appName, p.getId());
               p.getConfig().getApplications().remove(appName);
-              p.getConfig()
-                  .getClusters()
-                  .forEach(
-                      c ->
-                          Optional.ofNullable(c.getApplications())
-                              .ifPresent(apps -> apps.remove(appName)));
+              Optional.ofNullable(p.getConfig().getClusters())
+                  .ifPresent(
+                      clusters ->
+                          clusters.forEach(
+                              c ->
+                                  Optional.ofNullable(c.getApplications())
+                                      .ifPresent(apps -> apps.remove((appName)))));
 
               // If the project doesn't have anymore applications, cascade the delete to projects.
               if (p.getConfig().getApplications().isEmpty()) {

@@ -142,7 +142,8 @@ class ApplicationServiceSpec extends Specification {
       new Project(id: "4", config: new Project.ProjectConfig(applications: ['app2', 'app3'], clusters: [
         new Project.ClusterConfig(applications: ['app2', 'app3'])])
       ),
-      new Project(id: "5", config: new Project.ProjectConfig(applications: ['app1'], clusters: []))
+      new Project(id: "5", config: new Project.ProjectConfig(applications: ['app1', 'app2'], clusters: null)),
+      new Project(id: "6", config: new Project.ProjectConfig(applications: ['app1'], clusters: []))
     ]
 
     when:
@@ -154,7 +155,8 @@ class ApplicationServiceSpec extends Specification {
     1 * projectDAO.all() >> projects
     1 * projectDAO.update("1", { it.config.applications == ['app2'] && it.config.clusters == []})
     1 * projectDAO.update("2", { it.config.applications == ['app2'] && it.config.clusters.applications == [ ['app2'], ['app2'], [] ]})
-    1 * projectDAO.delete("5")
+    1 * projectDAO.update("5", { it.config.applications == ['app2'] && it.config.clusters == null})
+    1 * projectDAO.delete("6")
     1 * notificationDAO.delete(HierarchicalLevel.APPLICATION, "app1")
     1 * pipelineDAO.getPipelinesByApplication("app1") >> []
     1 * pipelineStrategyDAO.getPipelinesByApplication("app1") >> []
