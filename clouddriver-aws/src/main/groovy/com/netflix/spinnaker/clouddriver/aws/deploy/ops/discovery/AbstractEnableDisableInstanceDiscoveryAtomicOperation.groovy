@@ -68,7 +68,7 @@ abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements 
         return
       }
 
-      def status = isEnable() ? AbstractEurekaSupport.DiscoveryStatus.Enable : AbstractEurekaSupport.DiscoveryStatus.Disable
+      def status = isEnable() ? AbstractEurekaSupport.DiscoveryStatus.UP : AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE
       discoverySupport.updateDiscoveryStatusForInstances(
           description, task, phaseName, status, instancesInAsg*.instanceId, true
       )

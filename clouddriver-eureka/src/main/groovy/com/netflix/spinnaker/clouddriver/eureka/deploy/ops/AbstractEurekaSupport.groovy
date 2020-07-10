@@ -73,27 +73,30 @@ abstract class AbstractEurekaSupport {
 
     def eureka = getEureka(description.credentials, description.region)
     def random = new Random()
+    def instanceDetails = null
     def applicationName = null
     def targetHealthyDeployPercentage = description.targetHealthyDeployPercentage != null ? description.targetHealthyDeployPercentage : 100
+
     if (targetHealthyDeployPercentage < 0 || targetHealthyDeployPercentage > 100) {
       throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
     } else if (targetHealthyDeployPercentage < 100) {
       AbstractEurekaSupport.log.info("Marking ${description.asgName} instances ${discoveryStatus.value} with targetHealthyDeployPercentage ${targetHealthyDeployPercentage}")
     }
+
     try {
-      applicationName = retry(task, phaseName, findApplicationNameRetryMax) { retryCount ->
+      (applicationName, instanceDetails) = retry(task, phaseName, findApplicationNameRetryMax) { retryCount ->
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
         task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId (attempt: $retryCount)"
 
-        def instanceDetails = eureka.getInstanceInfo(instanceId)
-        def appName = instanceDetails?.instance?.app
+        def details = eureka.getInstanceInfo(instanceId)
+        def appName = details?.instance?.app
         if (!appName) {
           throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId} (attempt: $retryCount)")
         }
-        return appName
+        return [appName, details]
       }
     } catch (e) {
-      if (discoveryStatus == DiscoveryStatus.Enable || verifyInstanceAndAsgExist(description.credentials, description.region, null, description.asgName)) {
+      if (discoveryStatus == DiscoveryStatus.UP || verifyInstanceAndAsgExist(description.credentials, description.region, null, description.asgName)) {
         throw e
       }
     }
@@ -113,7 +116,7 @@ abstract class AbstractEurekaSupport {
         sleep eurekaSupportConfigurationProperties.throttleMillis
       }
 
-      if (discoveryStatus == DiscoveryStatus.Disable) {
+      if (discoveryStatus == DiscoveryStatus.OUT_OF_SERVICE) {
         if (index % eurekaSupportConfigurationProperties.attemptShortCircuitEveryNInstances == 0) {
           try {
             def hasUpInstances = doesCachedClusterContainDiscoveryStatus(
@@ -139,10 +142,18 @@ abstract class AbstractEurekaSupport {
 
           Response resp
 
-          if (discoveryStatus == DiscoveryStatus.Disable) {
+          if (discoveryStatus == DiscoveryStatus.OUT_OF_SERVICE) {
             resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
           } else {
-            resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.Disable.value)
+            // If we're trying to set the status to UP, and the instance is already UP (or hasn't registered yet),
+            // skip it.
+            if (instanceDetails.instance.status == DiscoveryStatus.OUT_OF_SERVICE.value) {
+              resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.OUT_OF_SERVICE.value)
+            } else {
+              log.debug("Instance {} is {} in discovery, no override to remove", instanceId, instanceDetails.instance.status)
+              skipped.add(instanceId)
+              return
+            }
           }
 
           if (resp.status != 200) {
@@ -150,7 +161,7 @@ abstract class AbstractEurekaSupport {
           }
         }
       } catch (RetrofitError retrofitError) {
-        if (discoveryStatus == DiscoveryStatus.Disable) {
+        if (discoveryStatus == DiscoveryStatus.OUT_OF_SERVICE) {
           def alwaysSkippable = retrofitError.response?.status == 404
           def willSkip = alwaysSkippable || !strict
           def skippingOrNot = willSkip ? "skipping" : "not skipping"
@@ -172,6 +183,7 @@ abstract class AbstractEurekaSupport {
       } catch (ex) {
         errors[instanceId] = ex
       }
+
       if (errors[instanceId]) {
         if (verifyInstanceAndAsgExist(description.credentials, description.region, instanceId, description.asgName)) {
           fatals.add(instanceId)
@@ -179,8 +191,10 @@ abstract class AbstractEurekaSupport {
           task.updateStatus phaseName, "Instance '${instanceId}' does not exist and will not be marked as '${discoveryStatus.value}'"
         }
       }
+
       index++
     }
+
     if (fatals) {
       Integer requiredInstances = Math.ceil(instanceIds.size() * targetHealthyDeployPercentage / 100D) as Integer
       if (instanceIds.size() - fatals.size() >= requiredInstances) {
@@ -192,6 +206,7 @@ abstract class AbstractEurekaSupport {
         AbstractEurekaSupport.log.info("[$phaseName] - Failed marking discovery $discoveryStatus.value for instances ${errors}")
       }
     }
+
     if (!skipped.isEmpty()) {
       task.addResultObjects([
         ["discoverySkippedInstanceIds": instanceIds]
@@ -336,8 +351,8 @@ abstract class AbstractEurekaSupport {
   }
 
   enum DiscoveryStatus {
-    Enable('UP'),
-    Disable('OUT_OF_SERVICE')
+    UP('UP'),
+    OUT_OF_SERVICE('OUT_OF_SERVICE')
 
     String value
 

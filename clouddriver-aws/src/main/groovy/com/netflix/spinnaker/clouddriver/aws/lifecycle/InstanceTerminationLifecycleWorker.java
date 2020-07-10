@@ -215,7 +215,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     while (retry < properties.getEurekaUpdateStatusRetryMax()) {
       retry++;
       try {
-        eureka.updateInstanceStatus(app, instanceId, DiscoveryStatus.Disable.getValue());
+        eureka.updateInstanceStatus(app, instanceId, DiscoveryStatus.OUT_OF_SERVICE.getValue());
         return true;
       } catch (RetrofitError e) {
         final String recoverableMessage =

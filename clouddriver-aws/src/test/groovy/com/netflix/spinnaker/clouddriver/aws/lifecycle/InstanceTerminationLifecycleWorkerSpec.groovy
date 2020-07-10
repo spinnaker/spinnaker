@@ -136,7 +136,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
     1 * accountCredentialsProvider.getAll() >> [mgmtCredentials, testCredentials]
     1 * awsEurekaSupportProvider.get() >> awsEurekaSupport
     1 * awsEurekaSupport.getEureka(_, 'us-west-2') >> eureka
-    1 * eureka.updateInstanceStatus('clouddriver', 'i-1234', DiscoveryStatus.Disable.value)
+    1 * eureka.updateInstanceStatus('clouddriver', 'i-1234', DiscoveryStatus.OUT_OF_SERVICE.value)
   }
 
   def 'should process both sns and sqs messages'() {

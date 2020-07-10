@@ -70,8 +70,8 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
 
     where:
     operation                                                   || expectedDiscoveryStatus
-    new EnableInstancesInDiscoveryAtomicOperation(description)  || DiscoveryStatus.Enable
-    new DisableInstancesInDiscoveryAtomicOperation(description) || DiscoveryStatus.Disable
+    new EnableInstancesInDiscoveryAtomicOperation(description)  || DiscoveryStatus.UP
+    new DisableInstancesInDiscoveryAtomicOperation(description) || DiscoveryStatus.OUT_OF_SERVICE
   }
 
   @Unroll
