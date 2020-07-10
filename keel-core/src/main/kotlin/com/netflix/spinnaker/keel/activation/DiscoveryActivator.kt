@@ -1,13 +1,13 @@
-package com.netflix.spinnaker.keel.eureka
+package com.netflix.spinnaker.keel.activation
 
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
-import com.netflix.spinnaker.keel.activation.ApplicationDown
-import com.netflix.spinnaker.keel.activation.ApplicationUp
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
+import com.netflix.spinnaker.kork.discovery.InstanceStatus.UP
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ApplicationListener
+import org.springframework.stereotype.Component
 
+@Component
 class DiscoveryActivator(
   private val publisher: ApplicationEventPublisher
 ) : ApplicationListener<RemoteStatusChangedEvent> {
