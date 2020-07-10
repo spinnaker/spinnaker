@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
 
+  private static final String DEFAULT_PLUGIN_EVENT_TYPE = "PUBLISHED";
   private static final String PLUGIN_TRIGGER_TYPE = "plugin";
   private static final List<String> SUPPORTED_TYPES =
       Collections.singletonList(PLUGIN_TRIGGER_TYPE);
@@ -45,16 +46,26 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
 
   @Override
   protected Predicate<Trigger> matchTriggerFor(PluginEvent event) {
-    return trigger -> trigger.getType().equals(PLUGIN_TRIGGER_TYPE);
+    return trigger -> {
+      String eventType = getPluginEventType(event);
+      String triggerType =
+          Optional.ofNullable(trigger.getPluginEventType()).orElse(DEFAULT_PLUGIN_EVENT_TYPE);
+
+      return trigger.getType().equals(PLUGIN_TRIGGER_TYPE)
+          && eventType.equalsIgnoreCase(triggerType);
+    };
+  }
+
+  private String getPluginEventType(PluginEvent event) {
+    return Optional.ofNullable(event.getDetails().getAttributes())
+        .map(attributes -> attributes.get("pluginEventType"))
+        .orElse(DEFAULT_PLUGIN_EVENT_TYPE);
   }
 
   @Override
   protected Function<Trigger, Trigger> buildTrigger(PluginEvent event) {
     return trigger -> {
-      String pluginEventType =
-          Optional.ofNullable(event.getDetails().getAttributes())
-              .map(attributes -> attributes.get("pluginEventType"))
-              .orElse("PUBLISHED");
+      String pluginEventType = getPluginEventType(event);
 
       return trigger
           .toBuilder()
