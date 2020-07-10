@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.databind.InjectableValues
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -21,13 +23,14 @@ import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.propertiesAreEqualTo
 
 internal class ClusterSpecTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     context("a spec with multiple regions and minimal configuration") {
-      fixture { Fixture }
+      fixture { Fixture() }
 
       mapOf(
         "YAML" to configuredTestYamlMapper().registerKeelEc2ApiModule(),
@@ -97,20 +100,36 @@ internal class ClusterSpecTests : JUnit5Minutests {
             .isEqualTo(spec.overrides["us-east-1"]?.health?.healthCheckType)
         }
       }
+
+      derivedContext<Pair<ClusterSpec?, SubnetAwareLocations>>("a spec with location specified at the environment level") {
+        deriveFixture {
+          with(configuredTestObjectMapper().registerKeelEc2ApiModule()) {
+            val tree = valueToTree<ObjectNode>(spec)
+              .without<ObjectNode>("locations")
+            val text = writeValueAsString(tree)
+            copy().run {
+              injectableValues = InjectableValues.Std(mapOf("locations" to spec.locations))
+              readValue<ClusterSpec>(text)
+            }
+          } to spec.locations
+        }
+
+        test("locations from the surrounding context are applied to the spec") {
+          expectThat(first)
+            .isNotNull()
+            .get(ClusterSpec::locations)
+            .isEqualTo(second)
+        }
+      }
     }
   }
 }
 
-object Fixture {
-  val usEastServerGroup
-    get() = result.first { it.location.region == "us-east-1" }
-  val usWestServerGroup
-    get() = result.first { it.location.region == "us-west-2" }
-
-  val appVersion = "fnord-1.0.0"
-  val baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
-  val usEastImageId = "ami-6874986"
-  val usWestImageId = "ami-6271051"
+data class Fixture(
+  val appVersion: String = "fnord-1.0.0",
+  val baseImageVersion: String = "nflx-base-5.308.0-h1044.b4b3f78",
+  val usEastImageId: String = "ami-6874986",
+  val usWestImageId: String = "ami-6271051",
 
   val spec: ClusterSpec = ClusterSpec(
     moniker = Moniker(
@@ -184,6 +203,11 @@ object Fixture {
       )
     )
   )
+) {
+  val usEastServerGroup
+    get() = result.first { it.location.region == "us-east-1" }
+  val usWestServerGroup
+    get() = result.first { it.location.region == "us-west-2" }
 
   fun resolve(): Set<ServerGroup> = spec.resolve()
 

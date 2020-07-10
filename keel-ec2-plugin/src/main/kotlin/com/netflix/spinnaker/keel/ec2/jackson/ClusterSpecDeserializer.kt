@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.ec2.jackson
 
 import com.fasterxml.jackson.core.TreeNode
+import com.fasterxml.jackson.databind.BeanProperty
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.netflix.spinnaker.keel.api.RedBlack
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 
@@ -16,7 +18,7 @@ class ClusterSpecDeserializer : StdNodeBasedDeserializer<ClusterSpec>(ClusterSpe
         moniker = treeToValue(root.get("moniker")) ?: error("moniker is required"),
         imageProvider = treeToValue(root.get("imageProvider")),
         deployWith = treeToValue(root.get("deployWith")) ?: RedBlack(),
-        locations = treeToValue(root.get("locations")) ?: error("locations is required"),
+        locations = treeToValue(root.get("locations")) ?: findInjectableLocations() ?: error("locations is required"),
         _defaults = ServerGroupSpec(
           launchConfiguration = treeToValue(root.get("launchConfiguration")),
           capacity = treeToValue(root.get("capacity")),
@@ -34,6 +36,9 @@ class ClusterSpecDeserializer : StdNodeBasedDeserializer<ClusterSpec>(ClusterSpe
           ?: emptyMap()
       )
     }
+
+  private fun DeserializationContext.findInjectableLocations() =
+    findInjectableValue("locations", BeanProperty.Bogus(), null) as SubnetAwareLocations?
 
   private inline fun <reified T> DeserializationContext.treeToValue(node: TreeNode?): T? =
     if (node == null) null else parser.codec.treeToValue(node, T::class.java)
