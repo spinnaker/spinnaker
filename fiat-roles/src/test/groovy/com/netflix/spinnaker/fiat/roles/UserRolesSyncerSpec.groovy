@@ -18,8 +18,6 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.appinfo.InstanceInfo.InstanceStatus
-import com.netflix.discovery.DiscoveryClient
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
@@ -33,6 +31,7 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.lock.LockManager
@@ -140,7 +139,7 @@ class UserRolesSyncerSpec extends Specification {
 
     @Subject
     def syncer = new UserRolesSyncer(
-        Optional.ofNullable(null),
+        new DiscoveryStatusListener(true),
         registry,
         lockManager,
         repo,
@@ -213,7 +212,7 @@ class UserRolesSyncerSpec extends Specification {
     given:
     def lockManager = Mock(LockManager)
     def userRolesSyncer = new UserRolesSyncer(
-        Optional.ofNullable(discoveryClient),
+        new DiscoveryStatusListener(discoveryStatusEnabled),
         registry,
         lockManager,
         null,
@@ -227,25 +226,15 @@ class UserRolesSyncerSpec extends Specification {
     )
 
     when:
-    userRolesSyncer.onApplicationEvent(null)
     userRolesSyncer.schedule()
 
     then:
     (shouldAcquireLock ? 1 : 0) * lockManager.acquireLock(_, _)
 
     where:
-    discoveryClient                                || shouldAcquireLock
-    null                                           || true
-    discoveryClient(InstanceStatus.UP)             || true
-    discoveryClient(InstanceStatus.OUT_OF_SERVICE) || false
-    discoveryClient(InstanceStatus.DOWN)           || false
-    discoveryClient(InstanceStatus.STARTING)       || false
-  }
-
-  DiscoveryClient discoveryClient(InstanceStatus instanceStatus) {
-    return Mock(DiscoveryClient) {
-      1 * getInstanceRemoteStatus() >> { return instanceStatus }
-    }
+    discoveryStatusEnabled                         || shouldAcquireLock
+    true                                           || true
+    false                                          || false
   }
 
   class AlwaysUpHealthIndicator extends ResourceProvidersHealthIndicator {
