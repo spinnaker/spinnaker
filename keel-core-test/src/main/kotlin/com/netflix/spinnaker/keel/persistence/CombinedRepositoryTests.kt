@@ -163,7 +163,7 @@ abstract class CombinedRepositoryTests<D : DeliveryConfigRepository, R : Resourc
 
       context("delivery config was deleted") {
         before {
-          subject.deleteDeliveryConfig(configName)
+          subject.deleteDeliveryConfigByApplication(deliveryConfig.application)
         }
         test("everything is deleted") {
           expectThrows<NoSuchDeliveryConfigException> { deliveryConfigRepository.get(configName) }

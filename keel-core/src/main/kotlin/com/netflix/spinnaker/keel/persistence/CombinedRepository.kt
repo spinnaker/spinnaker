@@ -61,7 +61,8 @@ class CombinedRepository(
     val new = DeliveryConfig(
       name = submittedDeliveryConfig.safeName,
       application = submittedDeliveryConfig.application,
-      serviceAccount = submittedDeliveryConfig.serviceAccount ?: error("No service account specified, and no default applied"),
+      serviceAccount = submittedDeliveryConfig.serviceAccount
+        ?: error("No service account specified, and no default applied"),
       artifacts = submittedDeliveryConfig.artifacts.transform(submittedDeliveryConfig.safeName),
       environments = submittedDeliveryConfig.environments.mapTo(mutableSetOf()) { env ->
         Environment(
@@ -123,40 +124,16 @@ class CombinedRepository(
   }
 
   /**
-   * Fetches delivery config by name, then deletes everything in it.
+   * Deletes a config and everything in it and about it
    */
-  @Transactional(propagation = REQUIRED)
-  override fun deleteDeliveryConfig(deliveryConfigName: String): DeliveryConfig =
-    deleteDeliveryConfigFull(deliveryConfigRepository.get(deliveryConfigName))
+  override fun deleteDeliveryConfigByApplication(application: String) =
+    deliveryConfigRepository.delete(application)
 
   /**
-   * Fetches delivery config by application, then deletes everything in it.
+   * Deletes a config and everything in it and about it
    */
-  @Transactional(propagation = REQUIRED)
-  override fun deleteDeliveryConfigByApplication(application: String): DeliveryConfig =
-    deleteDeliveryConfigFull(deliveryConfigRepository.getByApplication(application))
-
-  /**
-   * Deletes a delivery config and everything in it.
-   */
-  @Transactional(propagation = REQUIRED)
-  internal fun deleteDeliveryConfigFull(deliveryConfig: DeliveryConfig): DeliveryConfig {
-    deliveryConfig.environments.forEach { environment ->
-      environment.resources.forEach { resource ->
-        // resources must be removed from the environment then deleted
-        deliveryConfigRepository.deleteResourceFromEnv(deliveryConfig.name, environment.name, resource.id)
-        deleteResource(resource.id)
-      }
-      deliveryConfigRepository.deleteEnvironment(deliveryConfig.name, environment.name)
-    }
-
-    deliveryConfig.artifacts.forEach { artifact ->
-      artifactRepository.delete(artifact)
-    }
-
-    deliveryConfigRepository.delete(deliveryConfig.name)
-
-    return deliveryConfig
+  override fun deleteDeliveryConfigByName(name: String) {
+    deliveryConfigRepository.deleteByName(name)
   }
 
   /**

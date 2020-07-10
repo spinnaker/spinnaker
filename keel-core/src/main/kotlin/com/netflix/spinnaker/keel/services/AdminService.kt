@@ -20,8 +20,7 @@ class AdminService(
 
   fun deleteApplicationData(application: String) {
     log.debug("Deleting all data for application: $application")
-    val config = repository.getDeliveryConfigForApplication(application)
-    repository.deleteDeliveryConfig(config.name)
+    repository.deleteDeliveryConfigByApplication(application)
   }
 
   fun getPausedApplications() = actuationPauser.pausedApplications()

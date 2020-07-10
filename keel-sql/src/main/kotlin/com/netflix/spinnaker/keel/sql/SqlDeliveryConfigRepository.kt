@@ -29,11 +29,14 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_A
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_CONSTRAINT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VETO
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_WITH_METADATA
 import com.netflix.spinnaker.keel.resources.ResourceSpecIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -78,87 +81,6 @@ class SqlDeliveryConfigRepository(
             .attachDependents(uid)
         }
     } ?: throw NoDeliveryConfigForApplication(application)
-
-  override fun deleteByApplication(application: String): Int {
-
-    val deliveryConfigUIDs = getUIDsByApplication(application)
-    val environmentUIDs = getEnvironmentUIDs(deliveryConfigUIDs)
-
-    deliveryConfigUIDs.forEach { uid ->
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(DELIVERY_CONFIG)
-          .where(DELIVERY_CONFIG.UID.eq(uid))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(DELIVERY_CONFIG_ARTIFACT)
-          .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(DELIVERY_CONFIG_LAST_CHECKED)
-          .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(uid))
-          .execute()
-      }
-    }
-    environmentUIDs.forEach { uid ->
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(ENVIRONMENT)
-          .where(ENVIRONMENT.UID.eq(uid))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(uid))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq.deleteFrom(ENVIRONMENT_RESOURCE)
-          .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
-          .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
-        jooq
-          .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
-          .from(CURRENT_CONSTRAINT)
-          .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(uid))
-          .fetch { (application, type) ->
-            jooq.deleteFrom(CURRENT_CONSTRAINT)
-              .where(
-                CURRENT_CONSTRAINT.APPLICATION.eq(application),
-                CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(uid),
-                CURRENT_CONSTRAINT.TYPE.eq(type))
-              .execute()
-          }
-        jooq
-          .deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(uid))
-          .execute()
-      }
-    }
-    return deliveryConfigUIDs.size
-  }
-
-  override fun delete(name: String) {
-    sqlRetry.withRetry(WRITE) {
-      jooq.transaction { config ->
-        val txn = DSL.using(config)
-        val deliveryConfigUid: String = txn
-          .select(DELIVERY_CONFIG.UID)
-          .from(DELIVERY_CONFIG)
-          .where(DELIVERY_CONFIG.NAME.eq(name))
-          .fetchOne(DELIVERY_CONFIG.UID)
-        txn
-          .deleteFrom(DELIVERY_CONFIG)
-          .where(DELIVERY_CONFIG.NAME.eq(name))
-          .execute()
-        txn
-          .deleteFrom(DELIVERY_CONFIG_LAST_CHECKED)
-          .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
-          .execute()
-      }
-    }
-  }
 
   override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String) {
     sqlRetry.withRetry(WRITE) {
@@ -248,13 +170,97 @@ class SqlDeliveryConfigRepository(
       }
   }
 
-  private fun getUIDsByApplication(application: String): List<String> =
+  override fun deleteByName(name: String) {
+    val application = sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_CONFIG.NAME)
+        .from(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.NAME.eq(name))
+        .fetchOne(DELIVERY_CONFIG.NAME)
+    }
+    delete(application)
+  }
+
+  override fun delete(application: String) {
+    val configUid = getUIDByApplication(application)
+    val envUids = getEnvironmentUIDs(listOf(configUid))
+    val resourceUids = getResourceUIDs(envUids)
+    val artifactUids = getArtifactUIDs(configUid)
+
+    sqlRetry.withRetry(WRITE) {
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        // remove resources from environment
+        txn.deleteFrom(ENVIRONMENT_RESOURCE)
+          .where(
+            ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.`in`(envUids),
+            ENVIRONMENT_RESOURCE.RESOURCE_UID.`in`(resourceUids))
+          .execute()
+        // delete resources
+        txn.deleteFrom(RESOURCE)
+          .where(RESOURCE.UID.`in`(resourceUids))
+          .execute()
+        // delete from resource last checked
+        txn.deleteFrom(RESOURCE_LAST_CHECKED)
+          .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.`in`(resourceUids))
+          .execute()
+        // delete environment
+        txn.deleteFrom(ENVIRONMENT)
+          .where(ENVIRONMENT.UID.`in`(envUids))
+          .execute()
+        // remove from env artifact versions
+        txn.deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.`in`(envUids))
+          .execute()
+        // delete constraints
+        txn.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.`in`(envUids))
+          .execute()
+        // delete current constraints
+        txn.deleteFrom(CURRENT_CONSTRAINT)
+          .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.`in`(envUids))
+          .execute()
+        // delete from pin
+        txn.deleteFrom(ENVIRONMENT_ARTIFACT_PIN)
+          .where(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.`in`(envUids))
+          .execute()
+        // delete from veto
+        txn.deleteFrom(ENVIRONMENT_ARTIFACT_VETO)
+          .where(ENVIRONMENT_ARTIFACT_VETO.ENVIRONMENT_UID.`in`(envUids))
+          .execute()
+        // delete from queued approval
+        txn.deleteFrom(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL)
+          .where(ENVIRONMENT_ARTIFACT_QUEUED_APPROVAL.ENVIRONMENT_UID.`in`(envUids))
+          .execute()
+        // remove artifact from delivery config
+        txn.deleteFrom(DELIVERY_CONFIG_ARTIFACT)
+          .where(
+            DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(configUid),
+            DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.`in`(artifactUids))
+          .execute()
+        // delete artifact
+        txn.deleteFrom(DELIVERY_ARTIFACT)
+          .where(DELIVERY_ARTIFACT.UID.`in`(artifactUids))
+          .execute()
+        // delete delivery config
+        txn.deleteFrom(DELIVERY_CONFIG)
+          .where(DELIVERY_CONFIG.UID.eq(configUid))
+          .execute()
+        // delete from delivery config last checked
+        txn.deleteFrom(DELIVERY_CONFIG_LAST_CHECKED)
+          .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(configUid))
+          .execute()
+      }
+    }
+  }
+
+  private fun getUIDByApplication(application: String): String =
     sqlRetry.withRetry(READ) {
       jooq
         .select(DELIVERY_CONFIG.UID)
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-        .fetch(DELIVERY_CONFIG.UID)
+        .fetchOne(DELIVERY_CONFIG.UID)
     }
 
   private fun getEnvironmentUIDs(deliveryConfigUIDs: List<String>): List<String> =
@@ -264,6 +270,24 @@ class SqlDeliveryConfigRepository(
         .from(ENVIRONMENT)
         .where(ENVIRONMENT.DELIVERY_CONFIG_UID.`in`(deliveryConfigUIDs))
         .fetch(ENVIRONMENT.UID)
+    }
+
+  private fun getResourceUIDs(environmentUids: List<String>): List<String> =
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
+        .from(ENVIRONMENT_RESOURCE)
+        .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.`in`(environmentUids))
+        .fetch(ENVIRONMENT_RESOURCE.RESOURCE_UID)
+    }
+
+  private fun getArtifactUIDs(deliveryConfigUid: String): List<String> =
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID)
+        .from(DELIVERY_CONFIG_ARTIFACT)
+        .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
+        .fetch(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID)
     }
 
   // todo: queries in this function aren't inherently retryable because of the cross-repository interactions

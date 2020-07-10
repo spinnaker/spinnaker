@@ -78,14 +78,12 @@ interface KeelRepository {
   /**
    * Deletes a delivery config and everything in it.
    */
-  @Transactional(propagation = Propagation.REQUIRED)
-  fun deleteDeliveryConfig(deliveryConfigName: String): DeliveryConfig
+  fun deleteDeliveryConfigByApplication(application: String)
 
   /**
    * Deletes a delivery config and everything in it.
    */
-  @Transactional(propagation = Propagation.REQUIRED)
-  fun deleteDeliveryConfigByApplication(application: String): DeliveryConfig
+  fun deleteDeliveryConfigByName(name: String)
 
   /**
    * Removes artifacts, environments, and resources that were present in the [old]
