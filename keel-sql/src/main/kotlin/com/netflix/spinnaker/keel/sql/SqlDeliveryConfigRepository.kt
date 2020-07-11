@@ -173,15 +173,15 @@ class SqlDeliveryConfigRepository(
   override fun deleteByName(name: String) {
     val application = sqlRetry.withRetry(READ) {
       jooq
-        .select(DELIVERY_CONFIG.NAME)
+        .select(DELIVERY_CONFIG.APPLICATION)
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.NAME.eq(name))
-        .fetchOne(DELIVERY_CONFIG.NAME)
+        .fetchOne(DELIVERY_CONFIG.APPLICATION)
     }
-    delete(application)
+    deleteByApplication(application)
   }
 
-  override fun delete(application: String) {
+  override fun deleteByApplication(application: String) {
     val configUid = getUIDByApplication(application)
     val envUids = getEnvironmentUIDs(listOf(configUid))
     val resourceUids = getResourceUIDs(envUids)

@@ -127,7 +127,7 @@ class CombinedRepository(
    * Deletes a config and everything in it and about it
    */
   override fun deleteDeliveryConfigByApplication(application: String) =
-    deliveryConfigRepository.delete(application)
+    deliveryConfigRepository.deleteByApplication(application)
 
   /**
    * Deletes a config and everything in it and about it

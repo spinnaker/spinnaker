@@ -40,17 +40,17 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun getByApplication(application: String): DeliveryConfig
 
   /**
-   * Deletes a delivery config and everything in it
+   * Deletes a delivery config and everything in it, based on the application name.
    */
-  fun delete(application: String)
+  fun deleteByApplication(application: String)
 
   /**
-   * Deletes a delivery config and everything in it
+   * Deletes a delivery config and everything in it.
    */
   fun deleteByName(name: String)
 
   /**
-   * Removes a resource from an environment
+   * Removes a resource from an environment.
    */
   fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String)
 
