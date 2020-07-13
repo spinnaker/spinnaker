@@ -19,7 +19,6 @@ dependencies {
   implementation(project(":keel-titus-plugin"))
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-  implementation("com.netflix.spinnaker.kork:kork-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("com.netflix.spinnaker.kork:kork-artifacts")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -32,6 +31,15 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-kotlin:1.2.34")
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("com.netflix.spinnaker.kork:kork-plugins")
+
+  runtimeOnly("com.netflix.spinnaker.kork:kork-runtime") {
+    // these dependencies weren't previously being included, keeping them out for now, if there
+    // is a need for them in the future these excludes are easy enough to delete...
+    exclude(mapOf("group" to "com.netflix.spinnaker.kork", "module" to "kork-swagger"))
+    exclude(mapOf("group" to "com.netflix.spinnaker.kork", "module" to "kork-stackdriver"))
+    exclude(mapOf("group" to "com.netflix.spinnaker.kork", "module" to "kork-secrets-aws"))
+    exclude(mapOf("group" to "com.netflix.spinnaker.kork", "module" to "kork-secrets-gcp"))
+  }
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-test"))
