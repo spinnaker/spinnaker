@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
+import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.resources.SpecMigrator
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component
 @Component
 class KeelConfigurationFinalizer(
   private val baseImageCache: BaseImageCache? = null,
+  private val instanceIdSupplier: InstanceIdSupplier,
   private val kinds: List<SupportedKind<*>> = emptyList(),
   private val resourceHandlers: List<ResourceHandler<*, *>> = emptyList(),
   private val specMigrators: List<SpecMigrator<*, *>> = emptyList(),
@@ -95,7 +97,8 @@ class KeelConfigurationFinalizer(
   @PostConstruct
   fun initialStatus() {
     sequenceOf(
-      BaseImageCache::class to baseImageCache?.javaClass
+      BaseImageCache::class to baseImageCache?.javaClass,
+      InstanceIdSupplier::class to instanceIdSupplier.javaClass
     )
       .forEach { (type, implementation) ->
         log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)

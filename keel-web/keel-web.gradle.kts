@@ -7,6 +7,7 @@ plugins {
 dependencies {
   api(project(":keel-core"))
   api(project(":keel-clouddriver"))
+  api(project(":keel-eureka"))
   api(project(":keel-artifact"))
   api(project(":keel-sql"))
   api(project(":keel-docker"))

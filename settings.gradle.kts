@@ -36,6 +36,7 @@ include(
   "keel-ec2-api",
   "keel-ec2-plugin",
   "keel-echo",
+  "keel-eureka",
   "keel-front50",
   "keel-igor",
   "keel-orca",
