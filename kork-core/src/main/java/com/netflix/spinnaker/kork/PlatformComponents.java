@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork;
 
-import com.netflix.spinnaker.kork.discovery.DiscoveryAutoConfiguration;
 import com.netflix.spinnaker.kork.dynamicconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
@@ -34,7 +33,6 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({
-  DiscoveryAutoConfiguration.class,
   TransientConfigConfiguration.class,
   SpectatorConfiguration.class,
 })

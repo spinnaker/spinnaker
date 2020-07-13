@@ -21,47 +21,37 @@ import com.netflix.config.AbstractPollingScheduler;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicConfiguration;
 import com.netflix.config.FixedDelayPollingScheduler;
-import com.netflix.spinnaker.kork.exceptions.SystemException;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.CompositeConfiguration;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.ResourcePropertySource;
 
 @Configuration
 @ConditionalOnProperty("archaius.enabled")
-public class ArchaiusConfiguration {
+@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE + 10)
+public class ArchaiusAutoConfiguration {
 
-  /** This is a BeanPostProcessor to ensure early initialization only. */
-  static class ArchaiusInitializingBeanPostProcessor implements BeanPostProcessor, Ordered {
+  static class ArchaiusInitializer {
     private final ConfigurableApplicationContext applicationContext;
     private final AbstractPollingScheduler pollingScheduler;
     private final SpringEnvironmentPolledConfigurationSource polledConfigurationSource;
-    private final List<ClasspathPropertySource> propertyBindings;
     private final DynamicConfiguration configurationInstance;
 
-    public ArchaiusInitializingBeanPostProcessor(
+    public ArchaiusInitializer(
         ConfigurableApplicationContext applicationContext,
         AbstractPollingScheduler pollingScheduler,
-        SpringEnvironmentPolledConfigurationSource polledConfigurationSource,
-        List<ClasspathPropertySource> propertyBindings) {
+        SpringEnvironmentPolledConfigurationSource polledConfigurationSource) {
       this.applicationContext = Objects.requireNonNull(applicationContext, "applicationContext");
       this.pollingScheduler = Objects.requireNonNull(pollingScheduler, "pollingScheduler");
       this.polledConfigurationSource =
           Objects.requireNonNull(polledConfigurationSource, "polledConfigurationSource");
-      this.propertyBindings = propertyBindings != null ? propertyBindings : Collections.emptyList();
-      initPropertyBindings();
 
       DynamicConfiguration installedConfiguration = null;
       if (!ConfigurationManager.isConfigurationInstalled()) {
@@ -90,60 +80,10 @@ public class ArchaiusConfiguration {
             .removeConfiguration(configurationInstance);
       }
     }
-
-    private void initPropertyBindings() {
-      MutablePropertySources sources = applicationContext.getEnvironment().getPropertySources();
-      Set<String> activeProfiles =
-          new HashSet<>(Arrays.asList(applicationContext.getEnvironment().getActiveProfiles()));
-      for (ClasspathPropertySource binding : propertyBindings) {
-        for (String profile : activeProfiles) {
-          if (binding.supportsProfile(profile)) {
-            res(binding.getBaseName(), profile).ifPresent(sources::addLast);
-          }
-        }
-        res(binding.getBaseName(), null).ifPresent(sources::addLast);
-      }
-    }
-
-    private Optional<ResourcePropertySource> res(String base, String profile) {
-      String name = base;
-      String res = "/" + base;
-      if (profile != null && !profile.isEmpty()) {
-        name += ": " + profile;
-        res += "-" + profile;
-      }
-      res += ".properties";
-      Resource r = applicationContext.getResource(res);
-      if (r.exists()) {
-        try {
-          return Optional.of(new ResourcePropertySource(name, r));
-        } catch (IOException ioe) {
-          throw new SystemException("Error loading property source [" + name + "]: " + res, ioe);
-        }
-      }
-      return Optional.empty();
-    }
-
-    @Override
-    public int getOrder() {
-      return Ordered.HIGHEST_PRECEDENCE + 10;
-    }
-
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName)
-        throws BeansException {
-      return bean;
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName)
-        throws BeansException {
-      return bean;
-    }
   }
 
   @Bean
-  static AbstractPollingScheduler pollingScheduler(
+  public AbstractPollingScheduler pollingScheduler(
       ConfigurableApplicationContext applicationContext) {
     int initialDelayMillis =
         applicationContext
@@ -160,21 +100,16 @@ public class ArchaiusConfiguration {
   }
 
   @Bean
-  static SpringEnvironmentPolledConfigurationSource polledConfigurationSource(
+  public SpringEnvironmentPolledConfigurationSource polledConfigurationSource(
       ConfigurableApplicationContext applicationContext) {
     return new SpringEnvironmentPolledConfigurationSource(applicationContext.getEnvironment());
   }
 
   @Bean
-  static ArchaiusInitializingBeanPostProcessor archaiusInitializingBeanPostProcessor(
+  public ArchaiusInitializer archaiusInitializer(
       ConfigurableApplicationContext applicationContext,
-      Optional<List<ClasspathPropertySource>> propertyBindings,
       AbstractPollingScheduler pollingScheduler,
       SpringEnvironmentPolledConfigurationSource polledConfigurationSource) {
-    return new ArchaiusInitializingBeanPostProcessor(
-        applicationContext,
-        pollingScheduler,
-        polledConfigurationSource,
-        propertyBindings.orElse(Collections.emptyList()));
+    return new ArchaiusInitializer(applicationContext, pollingScheduler, polledConfigurationSource);
   }
 }

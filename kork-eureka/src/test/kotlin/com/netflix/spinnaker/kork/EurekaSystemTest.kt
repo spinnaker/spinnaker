@@ -16,8 +16,10 @@
  */
 package com.netflix.spinnaker.kork
 
+import com.netflix.spinnaker.kork.archaius.ArchaiusAutoConfiguration
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusPublisher
 import com.netflix.spinnaker.kork.discovery.NoDiscoveryStatusPublisher
+import com.netflix.spinnaker.kork.eureka.EurekaAutoConfiguration
 import com.netflix.spinnaker.kork.eureka.EurekaStatusSubscriber
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -43,7 +45,8 @@ class EurekaSystemTest : JUnit5Minutests {
         ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(
             TestConfiguration::class.java,
-            EurekaDiscoveryAutoConfiguration::class.java
+            ArchaiusAutoConfiguration::class.java,
+            EurekaAutoConfiguration::class.java
           ))
       }
 
@@ -68,7 +71,8 @@ class EurekaSystemTest : JUnit5Minutests {
           .withConfiguration(AutoConfigurations.of(
             TestConfiguration::class.java,
             HealthEndpointAutoConfiguration::class.java,
-            EurekaDiscoveryAutoConfiguration::class.java
+            ArchaiusAutoConfiguration::class.java,
+            EurekaAutoConfiguration::class.java
           ))
       }
 

@@ -1,5 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.netflix.spinnaker.kork.PlatformComponents
+  com.netflix.spinnaker.kork.PlatformComponents,\
+  com.netflix.spinnaker.kork.discovery.DiscoveryAutoConfiguration
 
 
 org.springframework.context.ApplicationListener=\
