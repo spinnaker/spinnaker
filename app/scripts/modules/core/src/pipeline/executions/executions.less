@@ -5,7 +5,7 @@
 }
 .executions-section {
   display: flex;
-  flex: 1 1 auto;
+  width: 100%;
   margin-top: 6px;
 
   .insight {
@@ -13,6 +13,7 @@
     margin-top: 6px;
     display: flex;
     flex-direction: row;
+    width: 100%;
 
     .nav {
       flex-shrink: 0;
@@ -21,8 +22,7 @@
 
     .nav-content {
       margin-left: 12px;
-      // override
-      max-width: unset;
+      max-width: 80%;
 
       .execution-groups-header {
         margin-left: -8px;
@@ -62,6 +62,9 @@
   .insight.filters-collapsed {
     .execution-groups-header {
       margin-left: 84px;
+    }
+    .nav-content {
+      max-width: 100%;
     }
   }
 
