@@ -2,6 +2,9 @@ package com.netflix.spinnaker.kork.expressions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,6 +33,86 @@ class ExpressionTransformTest {
 
     assertThat(evaluated).isEqualTo("group:artifact:100");
     assertThat(summary.getFailureCount()).isEqualTo(0);
+  }
+
+  @Test
+  void evaluateMap() {
+    Map<String, Object> input = Collections.singletonMap("key", "value");
+
+    Map<String, Object> evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformMap(
+                input, new StandardEvaluationContext(), new ExpressionEvaluationSummary());
+
+    assertThat(evaluated).isEqualTo(input);
+  }
+
+  @Test
+  void evaluateNestedMap() {
+    Map<String, Object> input =
+        Collections.singletonMap("key", Collections.singletonMap("inner", "value"));
+
+    Map<String, Object> evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformMap(
+                input, new StandardEvaluationContext(), new ExpressionEvaluationSummary());
+
+    assertThat(evaluated).isEqualTo(input);
+  }
+
+  @Test
+  void evaluateMapWithNestedList() {
+    Map<String, Object> input = Collections.singletonMap("key", Collections.singletonList("value"));
+
+    Map<String, Object> evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformMap(
+                input, new StandardEvaluationContext(), new ExpressionEvaluationSummary());
+
+    assertThat(evaluated).isEqualTo(input);
+  }
+
+  @Test
+  void evaluateList() {
+    List<Object> input = Collections.singletonList("value");
+
+    List<?> evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformList(
+                input,
+                new StandardEvaluationContext(),
+                new ExpressionEvaluationSummary(),
+                Collections.emptyMap());
+
+    assertThat(evaluated).isEqualTo(input);
+  }
+
+  @Test
+  void evaluateNestedList() {
+    ExpressionEvaluationSummary summary = new ExpressionEvaluationSummary();
+
+    List<Object> input = Collections.singletonList(Collections.singletonList("value"));
+
+    List<?> evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformList(input, new StandardEvaluationContext(), summary, Collections.emptyMap());
+
+    assertThat(evaluated).isEqualTo(input);
+  }
+
+  @Test
+  void evaluateListWithNestedMap() {
+    List<Object> input = Collections.singletonList(Collections.singletonMap("key", "value"));
+
+    List<?> evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformList(
+                input,
+                new StandardEvaluationContext(),
+                new ExpressionEvaluationSummary(),
+                Collections.emptyMap());
+
+    assertThat(evaluated).isEqualTo(input);
   }
 
   @AllArgsConstructor

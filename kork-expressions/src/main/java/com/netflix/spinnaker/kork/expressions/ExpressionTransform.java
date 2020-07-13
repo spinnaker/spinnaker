@@ -132,7 +132,7 @@ public class ExpressionTransform {
       if (obj instanceof Map) {
         result.add(transformMap((Map<String, Object>) obj, evaluationContext, summary));
       } else if (obj instanceof List) {
-        result.addAll(transformList((List) obj, evaluationContext, summary, additionalContext));
+        result.add(transformList((List) obj, evaluationContext, summary, additionalContext));
       } else {
         result.add(transform(obj, evaluationContext, summary, additionalContext));
       }
