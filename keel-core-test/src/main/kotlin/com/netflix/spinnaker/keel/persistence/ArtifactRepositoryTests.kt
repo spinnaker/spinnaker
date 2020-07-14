@@ -566,8 +566,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           )
           expectThat(envArtifactSummary)
             .isNotNull()
-            .get { isPinned }
-            .isFalse()
+            .get { pinned }
+            .isNull()
         }
 
         context("once pinned") {
@@ -610,7 +610,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             )
             expect {
               that(envArtifactSummary).isNotNull()
-              that(envArtifactSummary?.isPinned).isTrue()
               that(envArtifactSummary?.pinned).isEqualTo(ActionMetadata(by = pin1.pinnedBy, at = clock.instant(), comment = pin1.comment))
             }
           }
@@ -695,7 +694,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         )
         expect {
           that(envArtifactSummary).isNotNull()
-          that(envArtifactSummary?.isVetoed).isTrue()
           that(envArtifactSummary?.vetoed).isEqualTo(ActionMetadata(by = "tester", at = clock.instant(), comment = "you bad"))
         }
       }
@@ -718,7 +716,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
         expect {
           that(envArtifactSummary).isNotNull()
-          that(envArtifactSummary?.isVetoed).isFalse()
           that(envArtifactSummary?.vetoed).isNull()
         }
       }
