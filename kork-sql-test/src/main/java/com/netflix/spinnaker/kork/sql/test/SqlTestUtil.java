@@ -44,16 +44,24 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 public class SqlTestUtil {
 
   public static String tcJdbcUrl = "jdbc:tc:mysql:5.7.22://somehostname:someport/somedb";
 
+  public static String tcPgJdbcUrl = "jdbc:tc:postgres:10.13:///test";
+
+  /** @deprecated Please use the TestContainers db initializers where possible, instead of H2 */
+  @Deprecated
   public static TestDatabase initDatabase() {
     return initDatabase("jdbc:h2:mem:test;MODE=MYSQL");
   }
 
+  /** @deprecated Please use the TestContainers db initializers where possible, instead of H2 */
+  @Deprecated
   public static TestDatabase initPreviousDatabase() {
     return initDatabase("jdbc:h2:mem:test_previous;MODE=MYSQL");
   }
@@ -62,6 +70,27 @@ public class SqlTestUtil {
     // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
     // overridden to "test" by the driver.
     return initDatabase(tcJdbcUrl, SQLDialect.MYSQL);
+  }
+
+  public static TestDatabase initTcPostgresDatabase() {
+    // The container defaults to a DB named "postgres", and Hikari explodes on purpose if it sees
+    // that name
+    // So, we need to manually start a container here, since Testcontainers does not honor the db
+    // name in the JDBC url
+    // when implicitly starting a container from a testcontainers-driver-prefixed JDBC URL
+    PostgreSQLContainer container =
+        new PostgreSQLContainer<>("postgres:10.13")
+            .withDatabaseName("test")
+            .withUsername("test")
+            .withPassword("test");
+
+    container.start();
+
+    String fullJDBCUrl =
+        container.getJdbcUrl()
+            + String.format(
+                "&user=%s&password=%s", container.getUsername(), container.getPassword());
+    return initDatabase(fullJDBCUrl, SQLDialect.POSTGRES, container.getDatabaseName());
   }
 
   @Deprecated
@@ -83,21 +112,52 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initDualTcMysqlDatabases() {
-    MySQLContainer container =
-        new MySQLContainer("mysql:5.7.22")
-            .withDatabaseName("current")
-            .withUsername("test")
-            .withPassword("test");
+    return initDualTcDatabases("mysql:5.7.22", SQLDialect.MYSQL);
+  }
+
+  public static TestDatabase initDualTcPostgresDatabases() {
+    return initDualTcDatabases("postgres:10.13", SQLDialect.POSTGRES);
+  }
+
+  private static TestDatabase initDualTcDatabases(String imageName, SQLDialect dialect) {
+    JdbcDatabaseContainer container;
+    String rootUser;
+    String grantCommand;
+
+    switch (dialect) {
+      case MYSQL:
+        container = new MySQLContainer(imageName);
+        rootUser = "root";
+        grantCommand = "grant all privileges on previous.* to 'test'@'%'";
+        break;
+      case POSTGRES:
+        container = new PostgreSQLContainer(imageName);
+        // Testcontainers sets the PG superuser credentials to the container user/pass
+        // Since we're always superuser, we also don't need grants
+        rootUser = "test";
+        grantCommand = null;
+        break;
+      default:
+        throw new RuntimeException("Unsupported SQL dialect: " + dialect.getName());
+    }
+
+    container = container.withDatabaseName("current").withUsername("test").withPassword("test");
     container.start();
+
+    // PostgreSQLContainer has a default query param already added to the JDBC URL
+    String queryStart = container.getJdbcUrl().contains("?") ? "&" : "?";
 
     String rootJdbcUrl =
         String.format(
-            "%s?user=%s&password=%s", container.getJdbcUrl(), "root", container.getPassword());
+            "%s%suser=%s&password=%s",
+            container.getJdbcUrl(), queryStart, rootUser, container.getPassword());
 
     try {
       Connection rootCon = DriverManager.getConnection(rootJdbcUrl);
       rootCon.createStatement().executeUpdate("create database previous");
-      rootCon.createStatement().executeUpdate("grant all privileges on previous.* to 'test'@'%'");
+      if (grantCommand != null) {
+        rootCon.createStatement().executeUpdate(grantCommand);
+      }
       rootCon.close();
     } catch (SQLException e) {
       throw new RuntimeException("Error setting up testcontainer database", e);
@@ -105,13 +165,13 @@ public class SqlTestUtil {
 
     String currentJdbcUrl =
         String.format(
-            "%s?user=%s&password=%s",
-            container.getJdbcUrl(), container.getUsername(), container.getPassword());
+            "%s%suser=%s&password=%s",
+            container.getJdbcUrl(), queryStart, container.getUsername(), container.getPassword());
 
     String previousJdbcUrl = currentJdbcUrl.replace("/current", "/previous");
 
-    TestDatabase currentTDB = initDatabase(currentJdbcUrl, SQLDialect.MYSQL, "current");
-    TestDatabase previousTDB = initDatabase(previousJdbcUrl, SQLDialect.MYSQL, "previous");
+    TestDatabase currentTDB = initDatabase(currentJdbcUrl, dialect, "current");
+    TestDatabase previousTDB = initDatabase(previousJdbcUrl, dialect, "previous");
 
     return new TestDatabase(
         currentTDB.dataSource,
@@ -193,7 +253,9 @@ public class SqlTestUtil {
     GlobalConfiguration configuration =
         LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class);
 
-    context.execute("set foreign_key_checks=0");
+    if (context.dialect() == SQLDialect.MYSQL) {
+      context.execute("set foreign_key_checks=0");
+    }
     context.meta().getTables().stream()
         .filter(
             table ->
@@ -205,7 +267,9 @@ public class SqlTestUtil {
             table -> {
               context.truncate(table.getName()).execute();
             });
-    context.execute("set foreign_key_checks=1");
+    if (context.dialect() == SQLDialect.MYSQL) {
+      context.execute("set foreign_key_checks=1");
+    }
   }
 
   public static class TestDatabase implements Closeable {
@@ -243,6 +307,10 @@ public class SqlTestUtil {
     @Override
     public void close() {
       dataSource.close();
+
+      if (previousDataSource != null) {
+        previousDataSource.close();
+      }
     }
   }
 

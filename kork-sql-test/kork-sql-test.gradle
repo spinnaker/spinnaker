@@ -5,6 +5,7 @@ dependencies {
   api project(":kork-sql")
 
   api("org.testcontainers:mysql")
+  api("org.testcontainers:postgresql")
 
   runtimeOnly "com.h2database:h2"
 }
