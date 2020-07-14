@@ -15,13 +15,13 @@
  */
 package com.netflix.kayenta.orca.controllers;
 
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+import static com.netflix.spinnaker.kork.discovery.InstanceStatus.STARTING;
+import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UP;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.discovery.StatusChangeEvent;
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent;
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
@@ -84,7 +84,8 @@ public class PipelineController {
       Health health = healthIndicator.health();
       if (health.getStatus() == Status.UP) {
         upAtLeastOnce = true;
-        context.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)));
+        context.publishEvent(
+            new RemoteStatusChangedEvent(new DiscoveryStatusChangeEvent(STARTING, UP)));
         // Cancel the scheduled task.
         postProcessor.postProcessBeforeDestruction(this, null);
         log.info("Health indicators are all reporting UP; starting orca queue processing");

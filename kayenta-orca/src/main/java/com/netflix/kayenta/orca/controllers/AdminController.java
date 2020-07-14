@@ -16,13 +16,13 @@
 
 package com.netflix.kayenta.orca.controllers;
 
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+import static com.netflix.spinnaker.kork.discovery.InstanceStatus.OUT_OF_SERVICE;
+import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UNKNOWN;
+import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UP;
 
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.discovery.StatusChangeEvent;
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.discovery.DiscoveryStatusChangeEvent;
+import com.netflix.spinnaker.kork.discovery.InstanceStatus;
+import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,10 +58,11 @@ public class AdminController {
   }
 
   private void setInstanceEnabled(boolean enabled) {
-    InstanceInfo.InstanceStatus currentStatus = enabled ? UP : OUT_OF_SERVICE;
-    InstanceInfo.InstanceStatus previousStatus = currentStatus == OUT_OF_SERVICE ? UP : UNKNOWN;
+    InstanceStatus currentStatus = enabled ? UP : OUT_OF_SERVICE;
+    InstanceStatus previousStatus = currentStatus == OUT_OF_SERVICE ? UP : UNKNOWN;
 
     publisher.publishEvent(
-        new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, currentStatus)));
+        new RemoteStatusChangedEvent(
+            new DiscoveryStatusChangeEvent(previousStatus, currentStatus)));
   }
 }
