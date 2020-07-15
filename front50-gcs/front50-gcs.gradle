@@ -22,12 +22,14 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.springframework:spring-web"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-google-common:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "org.apache.commons:commons-lang3"
   implementation "com.google.apis:google-api-services-storage"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "net.logstash.logback:logstash-logback-encoder"
   implementation "io.reactivex:rxjava"
+  implementation "io.github.resilience4j:resilience4j-circuitbreaker"
   implementation "com.netflix.spectator:spectator-api"
 
   testImplementation project(":front50-test")

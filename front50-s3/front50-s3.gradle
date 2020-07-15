@@ -25,6 +25,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "com.amazonaws:aws-java-sdk-s3"
   implementation "com.amazonaws:aws-java-sdk-sts"
+  implementation "com.netflix.eureka:eureka-client"
 
   testImplementation project(":front50-test")
 }

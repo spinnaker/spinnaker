@@ -26,7 +26,7 @@ class HasValidRequiresFieldsValidatorSpec extends Specification {
   HasValidRequiresFieldsValidator subject = new HasValidRequiresFieldsValidator()
 
   @Unroll
-  def "requires release with valid requires field formatting"() {
+  def "requires release with valid requires field formatting #requiresValue has errors #hasErrors"() {
     setup:
     def pluginInfo = new PluginInfo(
       releases: [new PluginInfo.Release(requires: requiresValue)]
@@ -35,6 +35,7 @@ class HasValidRequiresFieldsValidatorSpec extends Specification {
 
     when:
     subject.validate(pluginInfo, errors)
+    println errors
 
     then:
     errors.hasErrors() == hasErrors
@@ -45,8 +46,8 @@ class HasValidRequiresFieldsValidatorSpec extends Specification {
     "gate<=1.0.0, echo>=1.0.0" || false
     "gate>=1.0.0"              || false
     "gate<1.0.0"               || false
-    "hello-world=1.0.0"        || true
-    "gate=1.0.0"               || true
+    "hello-world=1.0.0"        || false
+    "gate=1.0.0"               || false
     "gate=foo"                 || true
   }
 }

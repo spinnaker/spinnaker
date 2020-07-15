@@ -17,7 +17,6 @@ package com.netflix.spinnaker.front50.validator;
 
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser;
-import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.IllegalVersionRequirementsOperator;
 import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.InvalidPluginVersionRequirementException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -38,10 +37,6 @@ public class HasValidRequiresFieldsValidator implements PluginInfoValidator {
                 validationErrors.reject(
                     "pluginInfo.id.invalidPluginVersionRequirement",
                     invalidPluginVersionRequirement.getMessage());
-              } catch (IllegalVersionRequirementsOperator illegalVersionRequirementOperator) {
-                validationErrors.reject(
-                    "pluginInfo.id.illegalVersionRequirementOperator",
-                    illegalVersionRequirementOperator.getMessage());
               }
             });
   }
