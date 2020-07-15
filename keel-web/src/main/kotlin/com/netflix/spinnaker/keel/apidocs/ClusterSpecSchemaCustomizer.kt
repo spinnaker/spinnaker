@@ -25,7 +25,6 @@ class ClusterSpecSchemaCustomizer : AbstractSchemaCustomizer() {
       "_defaults",
       "artifactName",
       "artifactReference",
-      "artifactType",
       "artifactVersion",
       "defaults",
       "id"

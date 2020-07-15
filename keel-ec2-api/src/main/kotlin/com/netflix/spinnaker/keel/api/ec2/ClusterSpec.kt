@@ -111,12 +111,8 @@ data class ClusterSpec(
   override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
   override val overrides: Map<String, ServerGroupSpec> = emptyMap(),
-  override val artifactType: ArtifactType? = DEBIAN,
   private val _artifactName: String? = null, // Custom backing field for artifactName, used by resolvers
-  override val artifactVersion: String? = null,
-  override val maxDiffCount: Int? = 2,
-  // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
-  override val unhappyWaitTime: Duration? = null
+  override val artifactVersion: String? = null
 ) : ComputeResourceSpec, Monikered, Locatable<SubnetAwareLocations>, OverrideableClusterDependencyContainer<ServerGroupSpec>, UnhappyControl {
   override val id = "${locations.account}:$moniker"
 
@@ -129,6 +125,8 @@ data class ClusterSpec(
    */
   override val defaults: ServerGroupSpec
     get() = _defaults
+
+  override val artifactType: ArtifactType? = DEBIAN
 
   // Returns the artifact name set by resolvers, or attempts to find the artifact name from the image provider.
   override val artifactName: String?
@@ -145,6 +143,10 @@ data class ClusterSpec(
       is ReferenceArtifactImageProvider -> imageProvider.reference
       else -> null
     }
+
+  override val maxDiffCount: Int? = 2
+  // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
+  override val unhappyWaitTime: Duration? = null
 
   data class ServerGroupSpec(
     val launchConfiguration: LaunchConfigurationSpec? = null,
