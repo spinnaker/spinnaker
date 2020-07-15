@@ -195,7 +195,8 @@ public class ManifestEvaluator implements CloudProviderAware {
             contextParameterProcessor.buildExecutionContext(stage),
             /* allowUnknownKeys= */ true);
 
-    if (processorResult.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
+    if ((boolean) stage.getContext().getOrDefault("failOnFailedExpressions", false)
+        && processorResult.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
       throw new IllegalStateException(
           String.format(
               "Failure evaluating manifest expressions: %s",
