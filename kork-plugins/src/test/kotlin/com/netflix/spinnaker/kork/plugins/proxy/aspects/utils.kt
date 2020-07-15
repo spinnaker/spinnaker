@@ -64,11 +64,4 @@ internal class SomeExtension : SpinnakerExtensionPoint {
   fun notAnnotatedPublicMethod(): String {
     return "Not annotated public method"
   }
-
-  /**
-   * Private helloWorld method, exists to test private method instrumentation (or lack thereof).
-   */
-  private fun privateHelloWorld(): String {
-    return "Hello Private World!"
-  }
 }

@@ -108,7 +108,8 @@ class MetricInvocationAspect(
   }
 
   /**
-   * Looks for methods annotated with [Metered] and skips private methods.
+   * Looks for methods annotated with [Metered].
+   *
    * Performs a [Cache] `get` which retrieves the cached data or else creates the data and then
    * inserts it into the cache.
    */
@@ -118,42 +119,38 @@ class MetricInvocationAspect(
     descriptor: SpinnakerPluginDescriptor,
     registry: Registry
   ): MetricIds? {
-    if (!MethodInstrumentation.isMethodAllowed(method)) {
-      return null
-    } else {
-      return this.get(target.javaClass.getMethod(method.name, *method.parameterTypes)) { m ->
-        m.declaredAnnotations
-          .find { it is Metered }
-          .let { metered ->
-            if (metered != null) {
-              (metered as Metered)
+    return this.get(target.javaClass.getMethod(method.name, *method.parameterTypes)) { m ->
+      m.declaredAnnotations
+        .find { it is Metered }
+        .let { metered ->
+          if (metered != null) {
+            (metered as Metered)
 
-              if (metered.ignore) {
-                null
-              } else {
-                val defaultTags = mapOf(
-                  Pair("pluginVersion", descriptor.version),
-                  Pair("pluginExtension", target.javaClass.simpleName.toString())
-                )
-                val tags = MethodInstrumentation.coalesceTags(target,
-                  method, defaultTags, metered.tags)
-
-                val metricIds = MetricIds(
-                  timingId = registry.createId(toMetricId(m, descriptor.pluginId, metered.metricName, TIMING), tags))
-
-                for (mutableEntry in this.asMap()) {
-                  if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
-                    throw MethodInstrumentation.MetricNameCollisionException(target,
-                      metricIds.timingId.name(), mutableEntry.key, m)
-                  }
-                }
-                metricIds
-              }
-            } else {
+            if (metered.ignore) {
               null
+            } else {
+              val defaultTags = mapOf(
+                Pair("pluginVersion", descriptor.version),
+                Pair("pluginExtension", target.javaClass.simpleName.toString())
+              )
+              val tags = MethodInstrumentation.coalesceTags(target,
+                method, defaultTags, metered.tags)
+
+              val metricIds = MetricIds(
+                timingId = registry.createId(toMetricId(m, descriptor.pluginId, metered.metricName, TIMING), tags))
+
+              for (mutableEntry in this.asMap()) {
+                if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
+                  throw MethodInstrumentation.MetricNameCollisionException(target,
+                    metricIds.timingId.name(), mutableEntry.key, m)
+                }
+              }
+              metricIds
             }
+          } else {
+            null
           }
-      }
+        }
     }
   }
 
