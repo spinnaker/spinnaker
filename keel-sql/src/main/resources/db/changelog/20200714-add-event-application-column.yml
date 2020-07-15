@@ -1,0 +1,37 @@
+databaseChangeLog:
+- changeSet:
+    id: add-event-application-column
+    author: fletch
+    changes:
+    - sql:
+        sql: |
+          alter table event add column application varchar(255) generated always as (json ->> '$.application');
+    - createIndex:
+        tableName: event
+        indexName: event_scope_application_timestamp_idx
+        columns:
+        - column:
+            name: scope
+        - column:
+            name: application
+        - column:
+            name: timestamp
+            descending: true
+    - createIndex:
+        tableName: event
+        indexName: event_scope_ref_timestamp_idx
+        columns:
+        - column:
+            name: scope
+        - column:
+            name: ref
+        - column:
+            name: timestamp
+            descending: true
+    - dropIndex:
+        tableName: event
+        indexName: event_uid_scope_timestamp_idx
+    rollback:
+    - sql:
+        sql: |
+          alter table event drop column application;

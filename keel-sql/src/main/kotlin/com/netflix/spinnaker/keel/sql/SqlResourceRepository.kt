@@ -36,7 +36,6 @@ import java.time.Instant.EPOCH
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 
@@ -48,10 +47,6 @@ open class SqlResourceRepository(
   private val objectMapper: ObjectMapper,
   private val sqlRetry: SqlRetry
 ) : ResourceRepository {
-
-  companion object {
-    val EVENT_JSON_APPLICATION: Field<String> = field("json->'$.application'")
-  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -209,7 +204,7 @@ open class SqlResourceRepository(
         )
         // ...or application events that match the application as they apply to all resources
         .or(EVENT.SCOPE.eq(Scope.APPLICATION.name)
-          .and(EVENT_JSON_APPLICATION.eq(resource.application))
+          .and(EVENT.APPLICATION.eq(resource.application))
         )
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
@@ -248,7 +243,7 @@ open class SqlResourceRepository(
           )
           // ...or application events that match the application as they apply to all resources
           .or(EVENT.SCOPE.eq(Scope.APPLICATION.name)
-            .and(EVENT_JSON_APPLICATION.eq(event.application))
+            .and(EVENT.APPLICATION.eq(event.application))
           )
           .orderBy(EVENT.TIMESTAMP.desc())
           .limit(1)
