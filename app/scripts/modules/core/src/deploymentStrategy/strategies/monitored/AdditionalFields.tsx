@@ -107,11 +107,11 @@ export class AdditionalFields extends React.Component<
               clearable={false}
               required={true}
               options={this.state.deploymentMonitors.map(deploymentMonitor => ({
-                label: deploymentMonitor.name,
-                value: deploymentMonitor.id,
+                label: deploymentMonitor?.name || '',
+                value: deploymentMonitor?.id || '',
               }))}
               placeholder="select deployment monitor"
-              value={command.deploymentMonitor.id || ''}
+              value={command.deploymentMonitor?.id || ''}
               onChange={this.handleDeploymentMonitorChange}
             />
           </div>
