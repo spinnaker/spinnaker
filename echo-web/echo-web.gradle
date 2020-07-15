@@ -40,6 +40,8 @@ dependencies {
     implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "com.netflix.spinnaker.kork:kork-artifacts"
+    implementation "com.netflix.spinnaker.kork:kork-core"
     implementation "com.netflix.spinnaker.kork:kork-config"
     implementation "com.netflix.spinnaker.kork:kork-web"
     implementation "com.squareup.retrofit:retrofit"

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.plugins.test
 import com.netflix.spinnaker.echo.Application
 import com.netflix.spinnaker.echo.plugins.EchoPlugin
 import com.netflix.spinnaker.echo.plugins.EventListenerExtension
+import com.netflix.spinnaker.echo.plugins.NotificationAgentExtension
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.internal.PluginJar
 import com.netflix.spinnaker.kork.plugins.tck.PluginsTckFixture
@@ -40,7 +41,8 @@ class EchoPluginsFixture : PluginsTckFixture, EchoTestService() {
   final override val versionNotSupportedPlugin: PluginJar
 
   override val extensionClassNames: MutableList<String> = mutableListOf(
-    EventListenerExtension::class.java.name
+    EventListenerExtension::class.java.name,
+    NotificationAgentExtension::class.java.name
   )
 
   final override fun buildPlugin(pluginId: String, systemVersionRequirement: String): PluginJar {

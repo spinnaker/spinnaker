@@ -18,11 +18,18 @@ package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.echo.api.events.EventListener;
+import com.netflix.spinnaker.echo.api.events.NotificationAgent;
 import com.netflix.spinnaker.echo.events.EventPropagator;
+import com.netflix.spinnaker.echo.notification.ExtensionNotificationAgent;
 import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory;
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjavaFactory;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -47,9 +54,17 @@ public class EchoCoreConfig {
   }
 
   @Bean
-  public EventPropagator propagator() {
+  public EventPropagator propagator(Optional<List<NotificationAgent>> notificationAgents) {
+
     EventPropagator instance = new EventPropagator();
     for (EventListener e : context.getBeansOfType(EventListener.class).values()) {
+      instance.addListener(e);
+    }
+    val extensionNotificationAgents =
+        notificationAgents.orElseGet(ArrayList::new).stream()
+            .map(ExtensionNotificationAgent::new)
+            .collect(Collectors.toList());
+    for (ExtensionNotificationAgent e : extensionNotificationAgents) {
       instance.addListener(e);
     }
     return instance;
