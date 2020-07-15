@@ -16,26 +16,24 @@
  */
 package com.netflix.spinnaker.kork
 
+import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.kork.archaius.ArchaiusAutoConfiguration
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusPublisher
-import com.netflix.spinnaker.kork.discovery.NoDiscoveryStatusPublisher
 import com.netflix.spinnaker.kork.eureka.EurekaAutoConfiguration
 import com.netflix.spinnaker.kork.eureka.EurekaStatusSubscriber
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry
-import org.springframework.boot.actuate.autoconfigure.health.HealthContributorAutoConfiguration
 import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import java.util.*
 
 class EurekaSystemTest : JUnit5Minutests {
 
@@ -73,7 +71,7 @@ class EurekaSystemTest : JUnit5Minutests {
             HealthEndpointAutoConfiguration::class.java,
             ArchaiusAutoConfiguration::class.java,
             EurekaAutoConfiguration::class.java
-          ))
+          )).withUserConfiguration(UserConfiguration::class.java)
       }
 
       test("configures eureka components") {
@@ -82,6 +80,12 @@ class EurekaSystemTest : JUnit5Minutests {
             that(ctx.getBeansOfType(DiscoveryStatusPublisher::class.java)).and {
               get { size }.isEqualTo(1)
               get { values.first() }.isA<EurekaStatusSubscriber>()
+            }
+          }
+          expect {
+            that(ctx.getBeansOfType(EurekaClientConsumer::class.java)).and {
+              get { size }.isEqualTo(1)
+              get { values.first() }.isA<EurekaClientConsumer>()
             }
           }
         }
@@ -96,3 +100,19 @@ private open class TestConfiguration {
   @Bean
   open fun meterRegistry() = LoggingMeterRegistry()
 }
+
+/**
+ * This configuration will trigger direct initialization of the beans in EurekaAutoConfiguration
+ * and will fail if ArchaiusAutoConfiguration hasn't happened first because the EurekaConfig
+ * won't pick up the properties from the spring test environment.
+ *
+ * Ensures we don't have a startup order regression.
+ */
+@Configuration
+private open class UserConfiguration {
+
+  @Bean
+  open fun eurekaClientConsumer(eurekaClient: Optional<EurekaClient>) = EurekaClientConsumer(eurekaClient)
+}
+
+private open class EurekaClientConsumer(val eurekaClient: Optional<EurekaClient>)

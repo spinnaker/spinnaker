@@ -21,11 +21,15 @@ import com.netflix.config.AbstractPollingScheduler;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicConfiguration;
 import com.netflix.config.FixedDelayPollingScheduler;
+import com.netflix.spinnaker.kork.eureka.EurekaAutoConfiguration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.CompositeConfiguration;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,22 +40,31 @@ import org.springframework.core.Ordered;
 @Configuration
 @ConditionalOnProperty("archaius.enabled")
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE + 10)
+@AutoConfigureBefore(EurekaAutoConfiguration.class)
 public class ArchaiusAutoConfiguration {
 
-  static class ArchaiusInitializer {
-    private final ConfigurableApplicationContext applicationContext;
+  /**
+   * This is a BeanPostProcessor only to cause early initialization before any of the beans in
+   * EurekaAutoConfiguration.
+   *
+   * <p>We can't rely on the AutoConfiguration ordering annotations for bean instantiation ordering,
+   * they only serve to ensure bean definitions are registered so Conditional annotations work as
+   * expected.
+   *
+   * <p>Since we don't have a direct dependency between the Eureka beans and these ones, we are at
+   * the mercy of the context if someone directly asks for a EurekaClient.
+   */
+  static class ArchaiusInitializer implements BeanPostProcessor {
     private final AbstractPollingScheduler pollingScheduler;
-    private final SpringEnvironmentPolledConfigurationSource polledConfigurationSource;
     private final DynamicConfiguration configurationInstance;
 
     public ArchaiusInitializer(
         ConfigurableApplicationContext applicationContext,
         AbstractPollingScheduler pollingScheduler,
         SpringEnvironmentPolledConfigurationSource polledConfigurationSource) {
-      this.applicationContext = Objects.requireNonNull(applicationContext, "applicationContext");
+      Objects.requireNonNull(applicationContext, "applicationContext");
       this.pollingScheduler = Objects.requireNonNull(pollingScheduler, "pollingScheduler");
-      this.polledConfigurationSource =
-          Objects.requireNonNull(polledConfigurationSource, "polledConfigurationSource");
+      Objects.requireNonNull(polledConfigurationSource, "polledConfigurationSource");
 
       DynamicConfiguration installedConfiguration = null;
       if (!ConfigurationManager.isConfigurationInstalled()) {
@@ -80,10 +93,22 @@ public class ArchaiusAutoConfiguration {
             .removeConfiguration(configurationInstance);
       }
     }
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName)
+        throws BeansException {
+      return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName)
+        throws BeansException {
+      return bean;
+    }
   }
 
   @Bean
-  public AbstractPollingScheduler pollingScheduler(
+  public static AbstractPollingScheduler pollingScheduler(
       ConfigurableApplicationContext applicationContext) {
     int initialDelayMillis =
         applicationContext
@@ -100,13 +125,13 @@ public class ArchaiusAutoConfiguration {
   }
 
   @Bean
-  public SpringEnvironmentPolledConfigurationSource polledConfigurationSource(
+  public static SpringEnvironmentPolledConfigurationSource polledConfigurationSource(
       ConfigurableApplicationContext applicationContext) {
     return new SpringEnvironmentPolledConfigurationSource(applicationContext.getEnvironment());
   }
 
   @Bean
-  public ArchaiusInitializer archaiusInitializer(
+  public static ArchaiusInitializer archaiusInitializer(
       ConfigurableApplicationContext applicationContext,
       AbstractPollingScheduler pollingScheduler,
       SpringEnvironmentPolledConfigurationSource polledConfigurationSource) {
