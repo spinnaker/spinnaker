@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import java.util.concurrent.Executor
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -86,10 +87,11 @@ class CancelStageHandler(
             // for the time being we execute this off-thread as some cancel
             // routines may run long enough to cause message acknowledgment to
             // time out.
-            executor.execute {
+            val cancellationClosure = AuthenticatedRequest.propagate {
               stage.withAuth {
                 builder.cancel(stage)
               }
+
               // Special case for PipelineStage to ensure prompt cancellation of
               // child pipelines and deployment strategies regardless of task backoff
               if (stage.type.equals("pipeline", true) && stage.context.containsKey("executionId")) {
@@ -99,6 +101,9 @@ class CancelStageHandler(
                   queue.push(RescheduleExecution(child))
                 }
               }
+            }
+            executor.execute {
+              cancellationClosure.call()
             }
           }
         }
