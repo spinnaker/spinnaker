@@ -160,7 +160,7 @@ open class ExecutionCopier(
 
       // Step 2: Copy all executions
       executionRows.forEach { r ->
-        r.set(DSL.field("partition"), peeredId)
+        r.set(DSL.field(DSL.name("partition")), peeredId)
         latestUpdatedAt = max(latestUpdatedAt, r.get("updated_at", Long::class.java))
       }
       destDB.loadRecords(getExecutionTable(executionType).name, executionRows)

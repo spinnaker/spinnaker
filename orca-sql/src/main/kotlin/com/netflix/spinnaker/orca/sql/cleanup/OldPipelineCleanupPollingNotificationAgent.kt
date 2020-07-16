@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.table
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -84,7 +85,7 @@ class OldPipelineCleanupPollingNotificationAgent(
         if (orcaSqlProperties.partitionName != null) {
           queryBuilder = queryBuilder
             .and(
-              field("`partition`").eq(orcaSqlProperties.partitionName))
+              field(name("partition")).eq(orcaSqlProperties.partitionName))
         }
 
         val pipelineConfigsWithOldExecutions = queryBuilder
@@ -145,7 +146,7 @@ class OldPipelineCleanupPollingNotificationAgent(
     if (orcaSqlProperties.partitionName != null) {
       queryBuilder = queryBuilder
         .and(
-          field("`partition`").eq(orcaSqlProperties.partitionName))
+          field(name("partition")).eq(orcaSqlProperties.partitionName))
     }
 
     val executionsToRemove = queryBuilder

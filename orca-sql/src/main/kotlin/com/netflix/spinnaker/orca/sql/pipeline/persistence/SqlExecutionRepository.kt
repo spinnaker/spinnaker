@@ -54,6 +54,7 @@ import org.jooq.DSLContext
 import org.jooq.DatePart
 import org.jooq.Field
 import org.jooq.Record
+import org.jooq.SQLDialect
 import org.jooq.SelectConditionStep
 import org.jooq.SelectConnectByStep
 import org.jooq.SelectForUpdateStep
@@ -601,7 +602,7 @@ class SqlExecutionRepository(
 
   override fun countActiveExecutions(): ActiveExecutionsReport {
     withPool(poolName) {
-      val partitionPredicate = if (partitionName != null) field("`partition`").eq(partitionName) else value(1).eq(value(1))
+      val partitionPredicate = if (partitionName != null) field(name("partition")).eq(partitionName) else value(1).eq(value(1))
 
       val orchestrationsQuery = jooq.selectCount()
         .from(ORCHESTRATION.tableName)
@@ -748,28 +749,34 @@ class SqlExecutionRepository(
 
       val (executionId, legacyId) = mapLegacyId(ctx, tableName, execution.id, execution.startTime)
 
-      val insertPairs = mapOf(
+      val insertPairs = mutableMapOf(
         field("id") to executionId,
         field("legacy_id") to legacyId,
         field(name("partition")) to partitionName,
         field("status") to status,
         field("application") to execution.application,
         field("build_time") to (execution.buildTime ?: currentTimeMillis()),
-        field("start_time") to execution.startTime,
         field("canceled") to execution.isCanceled,
         field("updated_at") to currentTimeMillis(),
         field("body") to body
       )
 
-      val updatePairs = mapOf(
+      val updatePairs = mutableMapOf(
         field("status") to status,
         field("body") to body,
         field(name("partition")) to partitionName,
         // won't have started on insert
-        field("start_time") to execution.startTime,
         field("canceled") to execution.isCanceled,
         field("updated_at") to currentTimeMillis()
       )
+
+      // Set startTime only if it is not null
+      // jooq has some issues casting nulls when updating in the Postgres dialect
+      val startTime = execution.startTime
+      if (startTime != null) {
+        insertPairs[field("start_time")] = startTime
+        updatePairs[field("start_time")] = startTime
+      }
 
       when (execution.type) {
         PIPELINE -> upsert(
@@ -881,9 +888,21 @@ class SqlExecutionRepository(
       try {
         ctx.insertInto(table, *insertPairs.keys.toTypedArray())
           .values(insertPairs.values)
-          .onDuplicateKeyUpdate()
-          .set(updatePairs)
-          .execute()
+          .run {
+            when (jooq.dialect()) {
+              SQLDialect.POSTGRES -> {
+                onConflict(DSL.field("id"))
+                  .doUpdate()
+                  .set(updatePairs)
+                  .execute()
+              }
+              else -> {
+                onDuplicateKeyUpdate()
+                  .set(updatePairs)
+                  .execute()
+              }
+            }
+          }
       } catch (e: SQLDialectNotSupportedException) {
         log.debug("Falling back to primitive upsert logic: ${e.message}")
         val exists = ctx.fetchExists(ctx.select().from(table).where(field("id").eq(updateId)).forUpdate())
@@ -990,7 +1009,7 @@ class SqlExecutionRepository(
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
   ) =
     select(fields)
-      .from(type.tableName.forceIndex(usingIndex))
+      .from(if (jooq.dialect() == SQLDialect.MYSQL) type.tableName.forceIndex(usingIndex) else type.tableName)
       .let { conditions(it) }
       .let { seek(it) }
 
@@ -999,7 +1018,7 @@ class SqlExecutionRepository(
       .from(type.tableName)
 
   private fun selectFields() =
-    listOf(field("id"), field("body"), field("`partition`"))
+    listOf(field("id"), field("body"), field(name("partition")))
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
     ExecutionMapper(mapper, stageReadSize).map(fetch().intoResultSet(), jooq)

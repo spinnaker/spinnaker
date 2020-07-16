@@ -40,15 +40,15 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initPreviousTcMysqlDatabase
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDualTcMysqlDatabases
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDualTcPostgresDatabases
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_ASC
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
-import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 
 class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<ExecutionRepository> {
 
@@ -69,13 +69,12 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
   TestDatabase previousDatabase
 
   def setupSpec() {
-    currentDatabase = initTcMysqlDatabase()
-    previousDatabase = initPreviousTcMysqlDatabase()
+    currentDatabase = initDualTcMysqlDatabases()
   }
 
   def cleanup() {
     cleanupDb(currentDatabase.context)
-    cleanupDb(previousDatabase.context)
+    cleanupDb(currentDatabase.previousContext)
   }
 
   @Override
@@ -85,7 +84,7 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
 
   @Override
   ExecutionRepository createExecutionRepositoryPrevious() {
-    new SqlExecutionRepository("test", previousDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null)
+    new SqlExecutionRepository("test", currentDatabase.previousContext, mapper, new RetryProperties(), 10, 100, "poolName", null)
   }
 
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
@@ -154,7 +153,7 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
 
     currentDatabase.context
       .update(DSL.table("pipelines"))
-      .set(DSL.field("`partition`"), DSL.value("foreign"))
+      .set(DSL.field(DSL.name("partition")), DSL.value("foreign"))
       .execute()
 
     when:
@@ -200,7 +199,7 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
 
     currentDatabase.context
         .update(DSL.table("pipelines"))
-        .set(DSL.field("`partition`"), DSL.value("foreign"))
+        .set(DSL.field(DSL.name("partition")), DSL.value("foreign"))
         .execute()
 
     when:
@@ -665,5 +664,11 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
       5L,
       new ExecutionCriteria().setPageSize(1).setSortType(BUILD_TIME_ASC)
     ).size() == 0
+  }
+}
+
+class PgSqlPipelineExecutionRepositorySpec extends SqlPipelineExecutionRepositorySpec {
+  def setupSpec() {
+    currentDatabase = initDualTcPostgresDatabases()
   }
 }

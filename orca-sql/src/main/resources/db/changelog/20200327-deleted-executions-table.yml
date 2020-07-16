@@ -2,10 +2,38 @@ databaseChangeLog:
   - changeSet:
       id: create-deleted-executions-table
       author: mvulfson
+      validCheckSum:
+        # Original changeset checksum
+        - 8:847dd443c55dcb0a47a9576b891ad5ef
       changes:
+        - createTable:
+            tableName: deleted_executions
+            columns:
+            - column:
+                name: id
+                type: int
+                autoIncrement: true
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: execution_id
+                type: varchar(26)
+                constraints:
+                  nullable: false
+            - column:
+                name: deleted_at
+                type: datetime
+                constraints:
+                  nullable: false
+            - column:
+                name: execution_type
+                type: varchar(26)
+                constraints:
+                  nullable: false
         - sql:
             dbms: mysql
-            sql: CREATE TABLE `deleted_executions` (id INT AUTO_INCREMENT, execution_id char(26) NOT NULL, execution_type ENUM("pipeline", "orchestration") NOT NULL, deleted_at DATETIME NOT NULL, CONSTRAINT deleted_executions_pk PRIMARY KEY (id))
+            sql: ALTER TABLE `deleted_executions` MODIFY COLUMN `execution_type` ENUM("pipeline", "orchestration") NOT NULL
     rollback:
       - dropTable:
           tableName: deleted_executions

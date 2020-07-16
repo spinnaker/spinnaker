@@ -45,8 +45,10 @@ dependencies {
   testImplementation("dev.minutest:minutest")
   testImplementation("com.nhaarman:mockito-kotlin")
   testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:postgresql")
 
   testRuntimeOnly("mysql:mysql-connector-java")
+  testRuntimeOnly("org.postgresql:postgresql")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")

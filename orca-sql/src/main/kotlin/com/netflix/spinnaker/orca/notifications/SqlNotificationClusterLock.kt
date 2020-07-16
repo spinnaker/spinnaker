@@ -23,6 +23,7 @@ import io.vavr.control.Try
 import java.time.Clock
 import java.time.Duration
 import org.jooq.DSLContext
+import org.jooq.SQLDialect
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
@@ -52,8 +53,19 @@ class SqlNotificationClusterLock(
       jooq.insertInto(lockTable)
         .set(lockField, notificationType)
         .set(expiryField, now.plusSeconds(lockTimeoutSeconds).toEpochMilli())
-        .onDuplicateKeyIgnore()
-        .execute()
+        .run {
+          when (jooq.dialect()) {
+            SQLDialect.POSTGRES -> {
+              onConflict(DSL.field("lock_name"))
+                .doNothing()
+                .execute()
+            }
+            else -> {
+              onDuplicateKeyIgnore()
+                .execute()
+            }
+          }
+        }
     }
 
     if (changed == 0) {

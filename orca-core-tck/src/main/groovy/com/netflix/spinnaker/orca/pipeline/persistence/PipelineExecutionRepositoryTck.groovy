@@ -149,6 +149,8 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
       buildTime = 0
       trigger = new DefaultTrigger("manual")
     }
+    // our ULID implementation isn't monotonic
+    sleep(5)
     def succeededExecution = orchestration {
       status = SUCCEEDED
       buildTime = 0
@@ -157,8 +159,6 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
 
     when:
     repository.store(runningExecution)
-    // our ULID implementation isn't monotonic
-    sleep(5)
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application,

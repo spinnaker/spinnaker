@@ -2,6 +2,9 @@ databaseChangeLog:
   - changeSet:
       id: create-notification-lock-table
       author: afeldman
+      validCheckSum:
+        # Original changeset checksum
+        - 8:4f24acc265a458e399dc36f607a74f90
       changes:
         - createTable:
             tableName: notification_lock
@@ -14,6 +17,6 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: expiry
-                  type: bigint(13)
+                  type: bigint
                   constraints:
                     nullable: false

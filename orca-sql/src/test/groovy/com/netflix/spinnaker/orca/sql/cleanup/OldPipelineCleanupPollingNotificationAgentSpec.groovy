@@ -38,6 +38,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcPostgresDatabase
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initTcMysqlDatabase
 import static java.time.temporal.ChronoUnit.DAYS
@@ -142,5 +143,12 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     e.stages.add(new StageExecutionImpl(e, "wait", "wait stage", [waitTime: 10]))
 
     return e
+  }
+}
+
+class PgOldPipelineCleanupPollingNotificationAgentSpec extends OldPipelineCleanupPollingNotificationAgentSpec {
+  def setupSpec() {
+    currentDatabase = initTcPostgresDatabase()
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null)
   }
 }
