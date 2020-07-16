@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kork.plugins.api.spring;
 
-import com.netflix.spinnaker.kork.annotations.Alpha;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import org.pf4j.Plugin;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -31,7 +32,7 @@ import org.springframework.context.ApplicationContext;
  * <p>This can be used in plugins that want to wire themselves into the application's Spring
  * Context.
  */
-@Alpha
+@Beta
 public abstract class PrivilegedSpringPlugin extends Plugin {
 
   /**
@@ -44,6 +45,12 @@ public abstract class PrivilegedSpringPlugin extends Plugin {
     super(wrapper);
   }
 
+  /**
+   * Provides the opportunity to register bean definitions from the plugin into the application's
+   * registry.
+   *
+   * @param registry
+   */
   public abstract void registerBeanDefinitions(BeanDefinitionRegistry registry);
 
   protected BeanDefinition beanDefinitionFor(Class beanClass) {

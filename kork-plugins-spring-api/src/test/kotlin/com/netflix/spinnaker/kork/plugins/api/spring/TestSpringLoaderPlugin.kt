@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Armory, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-apply plugin: "java-library"
-apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+package com.netflix.spinnaker.kork.plugins.api.spring
 
-dependencies {
-  implementation(platform(project(":spinnaker-dependencies")))
+import org.pf4j.PluginWrapper
 
-  api project(":kork-plugins-api")
-  api "org.springframework.boot:spring-boot-starter-web"
-  api "org.springframework.boot:spring-boot-actuator"
+internal class TestSpringLoaderPlugin(wrapper: PluginWrapper) : SpringLoaderPlugin(wrapper) {
 
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
+
+  override fun getPackagesToScan(): List<String?>? {
+    return listOf("io.armory.plugin.example.spring")
+  }
+
+  override fun getClassesToRegister(): List<Class<*>?>? {
+    return listOf(MyService::class.java)
+  }
+
+  internal class MyService
 }

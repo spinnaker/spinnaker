@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Armory, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-apply plugin: "java-library"
-apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+package com.netflix.spinnaker.kork.plugins.api.spring;
 
-dependencies {
-  implementation(platform(project(":spinnaker-dependencies")))
-
-  api project(":kork-plugins-api")
-  api "org.springframework.boot:spring-boot-starter-web"
-  api "org.springframework.boot:spring-boot-actuator"
-
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
+public interface BeanPromoter {
+  void promote(String beanName, Object bean, Class beanClass, boolean isPrimary);
 }
