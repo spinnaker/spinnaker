@@ -36,8 +36,8 @@ import static java.util.Collections.unmodifiableSet
 @Slf4j
 class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, AgentIntervalAware {
   static final Set<AgentDataType> types = unmodifiableSet([
-    AgentDataType.Authority.INFORMATIVE.forType(Keys.Namespace.TAGGED_IMAGE.ns),
-    AgentDataType.Authority.INFORMATIVE.forType(Keys.Namespace.IMAGE_ID.ns)
+    AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.TAGGED_IMAGE.ns),
+    AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.IMAGE_ID.ns)
   ] as Set)
 
   private DockerRegistryCredentials credentials
