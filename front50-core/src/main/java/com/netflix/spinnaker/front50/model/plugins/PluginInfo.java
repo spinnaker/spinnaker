@@ -15,17 +15,21 @@
  */
 package com.netflix.spinnaker.front50.model.plugins;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Splitter;
 import com.netflix.spinnaker.front50.model.Timestamped;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.validation.Valid;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.URL;
 
 /**
@@ -35,6 +39,7 @@ import org.hibernate.validator.constraints.URL;
  * install, as well as the specific releases that should be installed.
  */
 @Data
+@Slf4j
 @Valid
 public class PluginInfo implements Timestamped {
   /**
@@ -85,6 +90,7 @@ public class PluginInfo implements Timestamped {
   /** A singular {@code PluginInfo} release. */
   @Data
   public static class Release {
+    private static final Splitter REQUIRES_SPLITTER = Splitter.on(",");
     public static final String VERSION_PATTERN = "^[0-9]\\d*\\.\\d+\\.\\d+(?:-[a-zA-Z0-9]+)?$";
     public static final Pattern SUPPORTS_PATTERN =
         Pattern.compile(
@@ -122,6 +128,26 @@ public class PluginInfo implements Timestamped {
      */
     private String requires;
 
+    @JsonIgnore
+    public List<ServiceRequirement> getParsedRequires() {
+      List<String> requirements =
+          REQUIRES_SPLITTER.splitToList(this.requires != null ? this.requires : "");
+
+      return requirements.stream()
+          .map(
+              r -> {
+                Matcher m = SUPPORTS_PATTERN.matcher(r);
+                if (!m.matches()) {
+                  log.error("Failed parsing plugin requires field '{}'", r);
+                  return null;
+                }
+                return new ServiceRequirement(
+                    m.group("service"), m.group("operator"), m.group("version"));
+              })
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+    }
+
     /** The absolute path of the plugin artifact binary. */
     private String url;
 
@@ -153,16 +179,15 @@ public class PluginInfo implements Timestamped {
      * @return Whether or not the plugin supports the given service
      */
     public boolean supportsService(@Nonnull String service) {
-      return Arrays.stream(requires.split(","))
-          .anyMatch(
-              it -> {
-                Matcher m = SUPPORTS_PATTERN.matcher(it.trim());
-                if (m.matches()) {
-                  return m.group(SUPPORTS_PATTERN_SERVICE_GROUP).equals(service);
-                }
-                return false;
-              });
+      return getParsedRequires().stream().anyMatch(it -> it.getService().equalsIgnoreCase(service));
     }
+  }
+
+  @Data
+  public static class ServiceRequirement {
+    private final String service;
+    private final String operator;
+    private final String version;
   }
 
   @Data

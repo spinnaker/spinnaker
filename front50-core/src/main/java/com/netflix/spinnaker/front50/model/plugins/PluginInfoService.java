@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.front50.model.plugins;
 
 import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
+import com.netflix.spinnaker.front50.echo.EchoService;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
@@ -30,23 +31,29 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
 @ConditionalOnAnyProviderExceptRedisIsEnabled
+@Slf4j
 public class PluginInfoService {
 
   private final PluginInfoRepository repository;
   private final Optional<PluginBinaryStorageService> storageService;
+  private final Optional<EchoService> echoService;
   private final List<PluginInfoValidator> validators;
 
   public PluginInfoService(
       PluginInfoRepository repository,
       Optional<PluginBinaryStorageService> storageService,
+      Optional<EchoService> echoService,
       List<PluginInfoValidator> validators) {
     this.repository = repository;
     this.storageService = storageService;
+    this.echoService = echoService;
     this.validators = validators;
   }
 
@@ -62,9 +69,48 @@ public class PluginInfoService {
     return repository.findById(pluginId);
   }
 
-  public PluginInfo upsert(@Nonnull PluginInfo pluginInfo) {
+  /** Upserts the PluginInfo to the repository and sends Plugin Events to Echo */
+  private PluginInfo savePluginInfo(PluginInfo pluginInfo) {
     validate(pluginInfo);
 
+    PluginInfo oldPluginInfo;
+    try {
+      oldPluginInfo = findById(pluginInfo.getId());
+    } catch (NotFoundException e) {
+      oldPluginInfo = null;
+    }
+
+    if (oldPluginInfo == null) {
+      repository.create(pluginInfo.getId(), pluginInfo);
+    } else {
+      repository.update(pluginInfo.getId(), pluginInfo);
+    }
+
+    PluginInfoDelta delta = new PluginInfoDelta(pluginInfo, oldPluginInfo);
+
+    delta.addedReleases.forEach(
+        release -> postEvent(PluginEventType.PUBLISHED, pluginInfo, release));
+
+    String newVersion =
+        Optional.ofNullable(delta.newPreferredRelease)
+            .map(PluginInfo.Release::getVersion)
+            .orElse(null);
+
+    String oldVersion =
+        Optional.ofNullable(delta.oldPreferredRelease)
+            .map(PluginInfo.Release::getVersion)
+            .orElse(null);
+
+    if ((newVersion == null && oldVersion != null
+        || (newVersion != null && !newVersion.equals(oldVersion)))) {
+      postEvent(PluginEventType.PREFERRED_VERSION_UPDATED, pluginInfo, delta.newPreferredRelease);
+    }
+
+    return pluginInfo;
+  }
+
+  /** Upserts a *partial* PluginInfo. Validates that no Releases being upserted already existed */
+  public PluginInfo upsert(@Nonnull PluginInfo pluginInfo) {
     try {
       PluginInfo currentPluginInfo = repository.findById(pluginInfo.getId());
       List<PluginInfo.Release> newReleases = new ArrayList<>(pluginInfo.getReleases());
@@ -86,10 +132,9 @@ public class PluginInfoService {
       Stream.of(oldReleases, newReleases).forEach(allReleases::addAll);
       pluginInfo.setReleases(allReleases);
 
-      repository.update(pluginInfo.getId(), pluginInfo);
-      return pluginInfo;
-    } catch (NotFoundException e) {
-      return repository.create(pluginInfo.getId(), pluginInfo);
+      return savePluginInfo(pluginInfo);
+    } catch (NotFoundException ignored) {
+      return savePluginInfo(pluginInfo);
     }
   }
 
@@ -114,76 +159,92 @@ public class PluginInfoService {
 
     PluginInfo pluginInfo = repository.findById(id);
     pluginInfo.getReleases().add(release);
-    cleanupPreferredReleases(pluginInfo, release);
 
-    validate(pluginInfo);
-    repository.update(pluginInfo.getId(), pluginInfo);
-    return pluginInfo;
+    if (release.isPreferred()) {
+      preferRelease(pluginInfo, release);
+    }
+
+    return savePluginInfo(pluginInfo);
   }
 
+  /**
+   * Updates (not upserts) a release. Releases are effectively immutable, but this method can be
+   * used to fixup data
+   */
   public PluginInfo upsertRelease(@Nonnull String id, @Nonnull PluginInfo.Release release) {
     release.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     release.setLastModified(Instant.now());
     PluginInfo pluginInfo = repository.findById(id);
-    Optional<PluginInfo.Release> existingRelease =
-        pluginInfo.getReleaseByVersion(release.getVersion());
 
-    return existingRelease
-        .map(
-            r -> {
-              pluginInfo.getReleases().remove(r);
-              pluginInfo.getReleases().add(release);
-              cleanupPreferredReleases(pluginInfo, release);
-              validate(pluginInfo);
-              repository.update(pluginInfo.getId(), pluginInfo);
-              return pluginInfo;
-            })
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    String.format(
-                        "Plugin %s with release %s version not found. ",
-                        id, release.getVersion())));
+    PluginInfo.Release existingRelease =
+        pluginInfo
+            .getReleaseByVersion(release.getVersion())
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        String.format(
+                            "Plugin %s with release %s version not found. ",
+                            id, release.getVersion())));
+
+    pluginInfo.getReleases().remove(existingRelease);
+    pluginInfo.getReleases().add(release);
+
+    if (release.isPreferred()) {
+      preferRelease(pluginInfo, release);
+    }
+
+    return savePluginInfo(pluginInfo);
   }
 
   public PluginInfo deleteRelease(@Nonnull String id, @Nonnull String releaseVersion) {
     PluginInfo pluginInfo = repository.findById(id);
 
-    new ArrayList<>(pluginInfo.getReleases())
-        .forEach(
-            release -> {
-              if (release.getVersion().equals(releaseVersion)) {
-                pluginInfo.getReleases().remove(release);
-              }
-            });
-    repository.update(pluginInfo.getId(), pluginInfo);
+    Optional<PluginInfo.Release> release = pluginInfo.getReleaseByVersion(releaseVersion);
+    release.ifPresent(it -> pluginInfo.getReleases().remove(it));
+
+    savePluginInfo(pluginInfo);
+
     storageService.ifPresent(it -> it.delete(it.getKey(id, releaseVersion)));
     return pluginInfo;
+  }
+
+  /** Prefers the given release and sets all other releases to preferred = false; does not save. */
+  private void preferRelease(@Nonnull PluginInfo pluginInfo, @Nullable PluginInfo.Release release) {
+    String preferredVersion =
+        Optional.ofNullable(release).map(PluginInfo.Release::getVersion).orElse(null);
+    Instant now = Instant.now();
+    String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+
+    List<PluginInfo.Release> releases = new ArrayList<>(pluginInfo.getReleases());
+    releases.forEach(
+        it -> {
+          boolean wasPreferredRelease = it.isPreferred();
+          boolean isPreferredRelease = it.getVersion().equals(preferredVersion);
+
+          if (isPreferredRelease != wasPreferredRelease) {
+            it.setPreferred(isPreferredRelease);
+            it.setLastModified(now);
+            it.setLastModifiedBy(user);
+          }
+        });
   }
 
   /** Set the preferred release. If preferred is true, sets previous preferred release to false. */
   public PluginInfo.Release preferReleaseVersion(
       @Nonnull String id, @Nonnull String releaseVersion, boolean preferred) {
     PluginInfo pluginInfo = repository.findById(id);
-    Optional<PluginInfo.Release> release = pluginInfo.getReleaseByVersion(releaseVersion);
+    PluginInfo.Release release = pluginInfo.getReleaseByVersion(releaseVersion).orElse(null);
 
-    Instant now = Instant.now();
-    String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
+    // If preferred = false and the releaseVersion is currently preferred, unset all preferred flags
+    if (!preferred && release != null && release.isPreferred()) {
+      preferRelease(pluginInfo, null);
+    } else if (preferred) {
+      preferRelease(pluginInfo, release);
+    }
 
-    return release
-        .map(
-            r -> {
-              r.setPreferred(preferred);
-              r.setLastModified(now);
-              r.setLastModifiedBy(user);
+    savePluginInfo(pluginInfo);
 
-              pluginInfo.setReleaseByVersion(releaseVersion, r);
-              cleanupPreferredReleases(pluginInfo, r);
-
-              repository.update(pluginInfo.getId(), pluginInfo);
-              return r;
-            })
-        .orElse(null);
+    return release;
   }
 
   private void validate(PluginInfo pluginInfo) {
@@ -194,19 +255,13 @@ public class PluginInfoService {
     }
   }
 
-  private void cleanupPreferredReleases(PluginInfo pluginInfo, PluginInfo.Release release) {
-    if (release.isPreferred()) {
-      Instant now = Instant.now();
-      String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
-
-      pluginInfo.getReleases().stream()
-          .filter(it -> !it.getVersion().equals(release.getVersion()))
-          .forEach(
-              it -> {
-                it.setPreferred(false);
-                it.setLastModified(now);
-                it.setLastModifiedBy(user);
-              });
+  private void postEvent(PluginEventType type, PluginInfo pluginInfo, PluginInfo.Release release) {
+    if (!echoService.isPresent()) {
+      log.warn("Cannot send new plugin notification: Echo is not configured");
+    } else if (release != null) {
+      AuthenticatedRequest.allowAnonymous(
+          () -> echoService.get().postEvent(new PluginEvent(type, pluginInfo, release)));
+      log.debug("{} event posted", release);
     }
   }
 
