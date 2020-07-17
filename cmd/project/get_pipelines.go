@@ -34,7 +34,7 @@ var (
 	getProjectExample = "usage: spin project get-pipelines [options] project-name"
 )
 
-func NewGetCmd(prjOptions *projectOptions) *cobra.Command {
+func NewGetPipelinesCmd(prjOptions *projectOptions) *cobra.Command {
 	options := &getOptions{
 		projectOptions: prjOptions,
 		expand:         false,
@@ -46,14 +46,14 @@ func NewGetCmd(prjOptions *projectOptions) *cobra.Command {
 		Long:    getProjectLong,
 		Example: getProjectExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return getProject(cmd, options, args)
+			return getProjectPipelines(cmd, options, args)
 		},
 	}
 
 	return cmd
 }
 
-func getProject(cmd *cobra.Command, options *getOptions, args []string) error {
+func getProjectPipelines(cmd *cobra.Command, options *getOptions, args []string) error {
 	projectName, err := util.ReadArgsOrStdin(args)
 	if err != nil {
 		return err
