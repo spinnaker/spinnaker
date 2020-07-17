@@ -105,7 +105,7 @@ public class CacheRepository {
     CloudFoundryCluster cluster =
         objectMapper.convertValue(
             clusterData.getAttributes().get("resource"), CloudFoundryCluster.class);
-    if (detail.equals(Detail.NONE)) {
+    if (detail.equals(Detail.NONE) || detail.equals(Detail.NAMES_ONLY)) {
       return cluster.withServerGroups(emptySet());
     }
     return cluster.withServerGroups(
