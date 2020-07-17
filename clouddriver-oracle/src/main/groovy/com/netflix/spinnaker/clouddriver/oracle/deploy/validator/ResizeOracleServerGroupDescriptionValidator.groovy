@@ -13,14 +13,13 @@ import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.ResizeOracleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @OracleOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeOracleServerGroupDescriptionValidator")
 class ResizeOracleServerGroupDescriptionValidator extends StandardOracleAttributeValidator<ResizeOracleServerGroupDescription> {
 
   @Override
-  void validate(List priorDescriptions, ResizeOracleServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, ResizeOracleServerGroupDescription description, ValidationErrors errors) {
     context = "resizeServerGroupDescription"
     validateNotEmptyString(errors, description.serverGroupName, "serverGroupName")
     validateNotEmptyString(errors, description.region, "region")

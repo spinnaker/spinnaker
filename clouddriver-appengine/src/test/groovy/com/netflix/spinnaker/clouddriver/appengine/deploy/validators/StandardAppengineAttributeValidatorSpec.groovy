@@ -22,10 +22,10 @@ import com.netflix.spinnaker.clouddriver.appengine.model.AppengineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -63,7 +63,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "validate non-empty valid"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errors)
       def label = "attribute"
 
@@ -90,7 +90,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "validate non-empty invalid"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errors)
       def label = "attribute"
 
@@ -112,7 +112,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "validate by regex valid"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errors)
       def label = "attribute"
 
@@ -124,7 +124,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "validate by regex invalid"() {
     setup:
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def validator = new StandardAppengineAttributeValidator(DECORATOR, errors)
     def label = "attribute"
     def regex = /\w{3}-\w{6}/
@@ -137,7 +137,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "credentials reject (empty)"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
@@ -155,7 +155,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "credentials reject (unknown)"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
@@ -167,7 +167,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "credentials accept"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
@@ -178,7 +178,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "git credentials reject"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
@@ -192,7 +192,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "git credentials reject (empty)"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
@@ -204,7 +204,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "git credentials accept"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
 
     when:
@@ -216,7 +216,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "details accept"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "label"
 
@@ -243,7 +243,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "details reject"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "label"
 
@@ -274,7 +274,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "application accept"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "label"
 
@@ -296,7 +296,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "application reject"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "label"
 
@@ -321,7 +321,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "stack accept"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "label"
 
@@ -343,7 +343,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "stack reject"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "label"
 
@@ -363,7 +363,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
   @Unroll
   void "allocations accept"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "allocations"
 
@@ -382,7 +382,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
   @Unroll
   void "allocations reject (wrong number of decimal places)"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "allocations"
 
@@ -400,7 +400,7 @@ class StandardAppengineAttributeValidatorSpec extends Specification {
 
   void "allocations reject (does not sum to 1)"() {
     setup:
-      def errorsMock = Mock(Errors)
+      def errorsMock = Mock(ValidationErrors)
       def validator = new StandardAppengineAttributeValidator(DECORATOR, errorsMock)
       def label = "allocations"
 

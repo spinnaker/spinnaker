@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -52,7 +52,7 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           region: REGION,
           loadBalancerType: GoogleLoadBalancerType.NETWORK,
           accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -68,7 +68,7 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           region: REGION,
           loadBalancerType: GoogleLoadBalancerType.NETWORK,
           accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -85,7 +85,7 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           region: null,
           loadBalancerType: GoogleLoadBalancerType.NETWORK,
           accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -97,7 +97,7 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new DeleteGoogleLoadBalancerDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

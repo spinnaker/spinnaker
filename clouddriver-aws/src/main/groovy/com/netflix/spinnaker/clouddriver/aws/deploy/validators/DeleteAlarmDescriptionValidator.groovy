@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAlarmDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("deleteAlarmDescriptionValidator")
 class DeleteAlarmDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAlarmDescription> {
   @Override
-  void validate(List priorDescriptions, DeleteAlarmDescription description, Errors errors) {
+  void validate(List priorDescriptions, DeleteAlarmDescription description, ValidationErrors errors) {
     validateRegions(description, [description.region], "deleteAlarmDescription", errors)
 
     if (!description.names) {
@@ -32,7 +32,7 @@ class DeleteAlarmDescriptionValidator extends AmazonDescriptionValidationSupport
 
   }
 
-  static void rejectNull(String field, Errors errors) {
+  static void rejectNull(String field, ValidationErrors errors) {
     errors.rejectValue(field, "deleteAlarmDescription.${field}.not.nullable")
   }
 }

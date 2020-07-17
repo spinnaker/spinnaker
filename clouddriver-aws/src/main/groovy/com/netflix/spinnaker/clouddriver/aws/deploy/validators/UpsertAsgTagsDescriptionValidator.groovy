@@ -18,15 +18,15 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgTagsDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AmazonOperation(AtomicOperations.UPSERT_SERVER_GROUP_TAGS)
 @Component("upsertAsgTagsDescriptionValidator")
 class UpsertAsgTagsDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAsgTagsDescription> {
   @Override
-  void validate(List priorDescriptions, UpsertAsgTagsDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertAsgTagsDescription description, ValidationErrors errors) {
     validateAsgs description, errors
     if (!description.tags) {
       errors.rejectValue("tags", "upsertAsgTagsDescription.tags.empty")

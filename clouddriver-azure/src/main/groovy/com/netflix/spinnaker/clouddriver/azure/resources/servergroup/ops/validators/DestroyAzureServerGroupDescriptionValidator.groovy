@@ -20,11 +20,11 @@ import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.EnableDisableDestroyAzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AzureOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component("DestroyAzureServerGroupDescriptionValidator")
@@ -34,7 +34,7 @@ class DestroyAzureServerGroupDescriptionValidator extends
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, EnableDisableDestroyAzureServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableDestroyAzureServerGroupDescription description, ValidationErrors errors) {
     def helper = new StandardAzureAttributeValidator("EnableDisableDestroyAzureServerGroupDescription", errors)
 
     helper.validateCredentials(description.credentials, accountCredentialsProvider)

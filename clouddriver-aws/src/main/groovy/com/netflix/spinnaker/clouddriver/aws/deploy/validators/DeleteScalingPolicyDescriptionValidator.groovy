@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteScalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("deleteScalingPolicyDescriptionValidator")
 class DeleteScalingPolicyDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteScalingPolicyDescription> {
   @Override
-  void validate(List priorDescriptions, DeleteScalingPolicyDescription description, Errors errors) {
+  void validate(List priorDescriptions, DeleteScalingPolicyDescription description, ValidationErrors errors) {
     validateRegions(description, [description.region], "deleteScalingPolicyDescription", errors)
 
     if (!description.serverGroupName && !description.asgName) {
@@ -36,7 +36,7 @@ class DeleteScalingPolicyDescriptionValidator extends AmazonDescriptionValidatio
 
   }
 
-  static void rejectNull(String field, Errors errors) {
+  static void rejectNull(String field, ValidationErrors errors) {
     errors.rejectValue(field, "deleteScalingPolicyDescription.${field}.not.nullable")
   }
 }

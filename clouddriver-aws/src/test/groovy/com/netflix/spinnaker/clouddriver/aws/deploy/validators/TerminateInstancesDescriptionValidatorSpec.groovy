@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.TerminateInstancesDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class TerminateInstancesDescriptionValidatorSpec extends Specification {
   void "invalid instanceIds fail validation"() {
     setup:
     def description = new TerminateInstancesDescription(instanceIds: [""])
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -49,7 +49,7 @@ class TerminateInstancesDescriptionValidatorSpec extends Specification {
     setup:
     def description = new TerminateInstancesDescription(credentials: TestCredential.named('test'))
     description.region = "us-west-5"
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -57,7 +57,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                region: REGION,
                                                                                accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -76,7 +76,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
                                                                                tags: TAGS,
                                                                                network: NETWORK,
                                                                                accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -88,7 +88,7 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
   void "null input fails validation"() {
     setup:
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

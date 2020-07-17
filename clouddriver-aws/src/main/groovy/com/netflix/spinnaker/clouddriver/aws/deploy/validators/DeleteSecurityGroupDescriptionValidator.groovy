@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteSecurityGroupDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AmazonOperation(AtomicOperations.DELETE_SECURITY_GROUP)
 @Component("deleteSecurityGroupDescriptionValidator")
@@ -32,7 +32,7 @@ class DeleteSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
     AmazonClientProvider amazonClientProvider
 
     @Override
-    void validate(List priorDescriptions, DeleteSecurityGroupDescription description, Errors errors) {
+    void validate(List priorDescriptions, DeleteSecurityGroupDescription description, ValidationErrors errors) {
         validateRegions(description, description.regions, "deleteSecurityGroupDescription", errors)
         if (!description.securityGroupName) {
             errors.rejectValue "securityGroupName", "deleteSecurityGroupDescription.securityGroupName.empty"

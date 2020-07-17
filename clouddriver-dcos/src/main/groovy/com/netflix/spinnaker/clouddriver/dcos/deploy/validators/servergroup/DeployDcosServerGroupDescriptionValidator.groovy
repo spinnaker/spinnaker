@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component
 @DcosOperation(AtomicOperations.CREATE_SERVER_GROUP)
@@ -38,7 +37,7 @@ class DeployDcosServerGroupDescriptionValidator extends AbstractDcosDescriptionV
   }
 
   @Override
-  void validate(List priorDescriptions, DeployDcosServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, DeployDcosServerGroupDescription description, ValidationErrors errors) {
     super.validate(priorDescriptions, description, errors)
 
     if (!description.region || description.region.empty) {

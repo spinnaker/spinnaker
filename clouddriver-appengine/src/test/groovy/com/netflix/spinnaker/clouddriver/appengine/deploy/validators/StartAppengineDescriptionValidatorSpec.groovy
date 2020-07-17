@@ -23,9 +23,9 @@ import com.netflix.spinnaker.clouddriver.appengine.model.ScalingPolicyType
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineClusterProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -66,7 +66,7 @@ class StartAppengineDescriptionValidatorSpec extends Specification {
         serverGroupName: SERVER_GROUP_NAME,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
       validator.appengineClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
@@ -92,7 +92,7 @@ class StartAppengineDescriptionValidatorSpec extends Specification {
         serverGroupName: SERVER_GROUP_NAME,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
       validator.appengineClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
@@ -119,7 +119,7 @@ class StartAppengineDescriptionValidatorSpec extends Specification {
         serverGroupName: SERVER_GROUP_NAME,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       validator.appengineClusterProvider = Mock(AppengineClusterProvider)
       validator.appengineClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> null
 
@@ -135,7 +135,7 @@ class StartAppengineDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new StartStopAppengineDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

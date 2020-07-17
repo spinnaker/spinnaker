@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.validator.servergroup;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RESIZE_SERVER_GROUP;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.servergroup.KubernetesResizeServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @KubernetesOperation(RESIZE_SERVER_GROUP)
 @Component
@@ -37,7 +37,9 @@ public class KubernetesResizeServerGroupValidator
 
   @Override
   public void validate(
-      List priorDescriptions, KubernetesResizeServerGroupDescription description, Errors errors) {
+      List priorDescriptions,
+      KubernetesResizeServerGroupDescription description,
+      ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("deployKubernetesManifest", errors);
     if (!util.validateV2Credentials(

@@ -20,12 +20,12 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonSnapshotDescription;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @AmazonOperation(AtomicOperations.DELETE_SNAPSHOT)
 @Component
@@ -42,7 +42,9 @@ public class DeleteAmazonSnapshotDescriptionValidator
 
   @Override
   public void validate(
-      List priorDescriptions, DeleteAmazonSnapshotDescription description, Errors errors) {
+      List priorDescriptions,
+      DeleteAmazonSnapshotDescription description,
+      ValidationErrors errors) {
     String key = DeleteAmazonSnapshotDescription.class.getSimpleName();
     validateRegion(description, description.getRegion(), key, errors);
 

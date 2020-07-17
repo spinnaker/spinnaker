@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -37,7 +37,7 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     setup:
     def description = getDescription()
     description.credentials = TestCredential.named('test')
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -53,7 +53,7 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     description.asgs = [new AsgDescription(
       region: "us-east-5"
     )]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

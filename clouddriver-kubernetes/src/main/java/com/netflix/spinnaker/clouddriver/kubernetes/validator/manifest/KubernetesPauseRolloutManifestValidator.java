@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.validator.manifest;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.PAUSE_ROLLOUT_MANIFEST;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesPauseRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @KubernetesOperation(PAUSE_ROLLOUT_MANIFEST)
 @Component
@@ -39,7 +39,7 @@ public class KubernetesPauseRolloutManifestValidator
   public void validate(
       List priorDescriptions,
       KubernetesPauseRolloutManifestDescription description,
-      Errors errors) {
+      ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("pauseRolloutKubernetesManifest", errors);
     if (!util.validateV2Credentials(

@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.orchestration
 
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -172,7 +172,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
   @TestProviderOperation("operationDescription")
   static class TestValidator extends DescriptionValidator {
     @Override
-    void validate(List priorDescriptions, Object description, Errors errors) {
+    void validate(List priorDescriptions, Object description, ValidationErrors errors) {
     }
   }
 

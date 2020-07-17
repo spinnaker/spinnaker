@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AdjustmentType
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertScalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("upsertScalingPolicyDescriptionValidator")
 class UpsertScalingPolicyDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertScalingPolicyDescription> {
   @Override
-  void validate(List priorDescriptions, UpsertScalingPolicyDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertScalingPolicyDescription description, ValidationErrors errors) {
     validateRegions(description, [description.region], "upsertScalingPolicyDescription", errors)
 
     if (!description.serverGroupName && !description.asgName) {
@@ -48,7 +48,7 @@ class UpsertScalingPolicyDescriptionValidator extends AmazonDescriptionValidatio
     }
   }
 
-  static void rejectNull(String field, Errors errors) {
+  static void rejectNull(String field, ValidationErrors errors) {
     errors.rejectValue(field, "upsertScalingPolicyDescription.${field}.not.nullable")
   }
 }

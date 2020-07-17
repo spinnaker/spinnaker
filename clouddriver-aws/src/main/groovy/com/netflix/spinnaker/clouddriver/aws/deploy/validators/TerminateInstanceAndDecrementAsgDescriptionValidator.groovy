@@ -17,16 +17,16 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.TerminateInstanceAndDecrementAsgDescription
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AmazonOperation(AtomicOperations.TERMINATE_INSTANCE_AND_DECREMENT)
 @Component("terminateInstanceAndDecrementAsgDescriptionValidator")
 class TerminateInstanceAndDecrementAsgDescriptionValidator extends AmazonDescriptionValidationSupport<TerminateInstanceAndDecrementAsgDescription> {
   @Override
-  void validate(List priorDescriptions, TerminateInstanceAndDecrementAsgDescription description, Errors errors) {
+  void validate(List priorDescriptions, TerminateInstanceAndDecrementAsgDescription description, ValidationErrors errors) {
     def key = TerminateInstanceAndDecrementAsgDescription.class.simpleName
 
     validateAsgName description, errors

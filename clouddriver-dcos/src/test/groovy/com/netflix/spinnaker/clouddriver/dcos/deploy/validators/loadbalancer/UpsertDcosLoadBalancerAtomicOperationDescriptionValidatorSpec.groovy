@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.dcos.deploy.validators.loadbalancer
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.loadbalancer.UpsertDcosLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Subject
 
@@ -59,7 +59,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -83,7 +83,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -106,7 +106,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -131,7 +131,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -156,7 +156,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -183,7 +183,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -207,7 +207,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)
@@ -233,7 +233,7 @@ class UpsertDcosLoadBalancerAtomicOperationDescriptionValidatorSpec extends Base
       it
     }
 
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errorsMock)

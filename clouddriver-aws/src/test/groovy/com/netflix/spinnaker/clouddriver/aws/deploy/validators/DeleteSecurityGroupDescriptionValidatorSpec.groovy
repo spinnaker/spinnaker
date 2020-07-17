@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteSecurityGroupDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,7 +38,7 @@ class DeleteSecurityGroupDescriptionValidatorSpec extends Specification {
 
   void "should fail validation with invalid security group name"() {
     setup:
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def description = new DeleteSecurityGroupDescription(regions: ["us-east-1"], credentials: Stub(NetflixAmazonCredentials))
     validator.amazonClientProvider = amazonClientProvider
 
@@ -54,7 +54,7 @@ class DeleteSecurityGroupDescriptionValidatorSpec extends Specification {
     def creds = TestCredential.named('test')
     def description = new DeleteSecurityGroupDescription(securityGroupName: "foo", credentials: creds)
     description.regions = ["us-east-5"]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

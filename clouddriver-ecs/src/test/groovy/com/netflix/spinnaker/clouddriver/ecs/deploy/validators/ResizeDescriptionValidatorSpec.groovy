@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.AbstractECSDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ResizeServiceDescription
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import org.springframework.validation.Errors
 
 class ResizeDescriptionValidatorSpec extends AbstractValidatorSpec {
 
@@ -29,7 +29,7 @@ class ResizeDescriptionValidatorSpec extends AbstractValidatorSpec {
     given:
     def description = (ResizeServiceDescription) getDescription()
     description.capacity = null
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -42,7 +42,7 @@ class ResizeDescriptionValidatorSpec extends AbstractValidatorSpec {
     given:
     def description = (ResizeServiceDescription) getDescription()
     description.capacity.setDesired(9001)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -55,7 +55,7 @@ class ResizeDescriptionValidatorSpec extends AbstractValidatorSpec {
     given:
     def description = (ResizeServiceDescription) getDescription()
     description.capacity.setDesired(0)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

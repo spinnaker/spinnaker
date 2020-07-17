@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 import com.amazonaws.services.ecs.model.PlacementStrategy;
 import com.amazonaws.services.ecs.model.PlacementStrategyType;
 import com.google.common.collect.Sets;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @EcsOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("ecsCreateServerGroupDescriptionValidator")
@@ -50,7 +50,7 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
   }
 
   @Override
-  public void validate(List priorDescriptions, Object description, Errors errors) {
+  public void validate(List priorDescriptions, Object description, ValidationErrors errors) {
     CreateServerGroupDescription createServerGroupDescription =
         (CreateServerGroupDescription) description;
 
@@ -175,7 +175,7 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
   }
 
   private void validateTargetGroupMappings(
-      CreateServerGroupDescription createServerGroupDescription, Errors errors) {
+      CreateServerGroupDescription createServerGroupDescription, ValidationErrors errors) {
     if (createServerGroupDescription.getTargetGroupMappings() != null
         && !createServerGroupDescription.getTargetGroupMappings().isEmpty()) {
 

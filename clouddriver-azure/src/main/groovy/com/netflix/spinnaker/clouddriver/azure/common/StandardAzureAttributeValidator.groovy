@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.azure.common
 
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 
 class StandardAzureAttributeValidator {
   /**
@@ -29,7 +29,7 @@ class StandardAzureAttributeValidator {
   /**
    * Bound at construction, this is used to collect validation errors.
    */
-  Errors errors
+  ValidationErrors errors
 
   /**
    * Constructs validator for standard attributes added by GCE.
@@ -37,7 +37,7 @@ class StandardAzureAttributeValidator {
    * @param context The owner of the attributes to be validated is typically a {@code *Description} class.
    * @param errors  Accumulates and reports on the validation errors over the lifetime of this validator.
    */
-  StandardAzureAttributeValidator(String context, Errors errors) {
+  StandardAzureAttributeValidator(String context, ValidationErrors errors) {
     this.context = context
     this.errors = errors
   }

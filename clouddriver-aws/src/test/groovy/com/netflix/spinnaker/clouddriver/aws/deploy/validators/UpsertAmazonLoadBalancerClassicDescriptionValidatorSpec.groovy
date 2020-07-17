@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -39,7 +39,7 @@ class UpsertAmazonLoadBalancerClassicDescriptionValidatorSpec extends Specificat
 
   void "empty parameters fails validation"() {
     setup:
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -53,7 +53,7 @@ class UpsertAmazonLoadBalancerClassicDescriptionValidatorSpec extends Specificat
   void "unconfigured region is rejected"() {
     setup:
     description.availabilityZones = ["us-west-5": ["us-west-5a"]]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -65,7 +65,7 @@ class UpsertAmazonLoadBalancerClassicDescriptionValidatorSpec extends Specificat
   void "availability zone not configured for account is rejected"() {
     setup:
     description.availabilityZones = ["us-west-1": ["us-west-1c"]]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -78,7 +78,7 @@ class UpsertAmazonLoadBalancerClassicDescriptionValidatorSpec extends Specificat
   void "subnetType supercedes availabilityZones"() {
     setup:
     description.subnetType = "internal"
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -90,7 +90,7 @@ class UpsertAmazonLoadBalancerClassicDescriptionValidatorSpec extends Specificat
   void "availabilityZones if not subnetType"() {
     setup:
     description.availabilityZones = ["us-west-1": ["us-west-1a"]]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

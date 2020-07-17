@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component
 @DcosOperation(AtomicOperations.TERMINATE_INSTANCE_AND_DECREMENT)
@@ -37,7 +36,7 @@ class TerminateDcosInstanceAndDecrementDescriptionValidator extends AbstractDcos
   }
 
   @Override
-  void validate(List priorDescriptions, TerminateDcosInstancesAndDecrementDescription description, Errors errors) {
+  void validate(List priorDescriptions, TerminateDcosInstancesAndDecrementDescription description, ValidationErrors errors) {
     super.validate(priorDescriptions, description, errors)
     if (!description.instanceIds) {
       errors.rejectValue "instanceIds", "${descriptionName}.instanceIds.empty"

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 
 abstract class AbstractDcosDescriptionValidatorSupport<T extends AbstractDcosCredentialsDescription> extends DescriptionValidator<T> {
 
@@ -35,7 +34,7 @@ abstract class AbstractDcosDescriptionValidatorSupport<T extends AbstractDcosCre
   }
 
   @Override
-  void validate(List priorDescriptions, T description, Errors errors) {
+  void validate(List priorDescriptions, T description, ValidationErrors errors) {
     if (!description.dcosCluster || description.dcosCluster.trim().empty) {
       errors.rejectValue "dcosCluster", "${descriptionName}.dcosCluster.empty"
     }

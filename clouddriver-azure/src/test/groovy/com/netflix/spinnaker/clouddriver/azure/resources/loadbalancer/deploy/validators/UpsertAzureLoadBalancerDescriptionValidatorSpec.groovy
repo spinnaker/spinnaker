@@ -20,12 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.validators.UpsertAzureLoadBalancerDescriptionValidator
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -149,7 +149,7 @@ class UpsertAzureLoadBalancerDescriptionValidatorSpec extends Specification {
 
       def description = converter.convertDescription(input)
       description.credentials = azureCredentials
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

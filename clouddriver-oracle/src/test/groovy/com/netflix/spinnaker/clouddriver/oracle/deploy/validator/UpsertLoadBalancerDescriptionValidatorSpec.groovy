@@ -22,17 +22,16 @@ import com.oracle.bmc.loadbalancer.LoadBalancerClient
 import com.oracle.bmc.loadbalancer.model.CreateLoadBalancerDetails
 import com.oracle.bmc.loadbalancer.requests.CreateLoadBalancerRequest
 import com.oracle.bmc.loadbalancer.responses.CreateLoadBalancerResponse
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
 class UpsertLoadBalancerDescriptionValidatorSpec extends Specification {
-  
+
   @Shared ObjectMapper mapper = new ObjectMapper()
   @Shared UpsertOracleLoadBalancerAtomicOperationConverter converter
   @Shared UpsertLoadBalancerDescriptionValidator validator
   @Shared String context = 'upsertLoadBalancerDescriptionValidator.'
-  
+
 
   def setupSpec() {
     this.converter = new UpsertOracleLoadBalancerAtomicOperationConverter(objectMapper: mapper)
@@ -45,17 +44,17 @@ class UpsertLoadBalancerDescriptionValidatorSpec extends Specification {
     setup:
     def req = read('createLoadBalancer_invalidCert.json')
     def desc = converter.convertDescription(req[0].upsertLoadBalancer)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], desc, errors)
 
     then:
-    2 * errors.rejectValue('certificate.privateKey', 
+    2 * errors.rejectValue('certificate.privateKey',
       context + 'certificate.privateKey.empty')
-    2 * errors.rejectValue('certificate.certificateName', 
+    2 * errors.rejectValue('certificate.certificateName',
       context + 'certificate.certificateName.empty')
-    1 * errors.rejectValue('certificate.publicCertificate', 
+    1 * errors.rejectValue('certificate.publicCertificate',
       context + 'certificate.publicCertificate.empty')
   }
 
@@ -63,41 +62,41 @@ class UpsertLoadBalancerDescriptionValidatorSpec extends Specification {
     setup:
     def req = read('createLoadBalancer_invalidListener.json')
     def desc = converter.convertDescription(req[0].upsertLoadBalancer)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], desc, errors)
 
     then:
-    3 * errors.rejectValue('listener.defaultBackendSetName', 
+    3 * errors.rejectValue('listener.defaultBackendSetName',
       context + 'listener.defaultBackendSetName.empty')
-    2 * errors.rejectValue('listener.protocol', 
+    2 * errors.rejectValue('listener.protocol',
       context + 'listener.protocol.empty')
-    1 * errors.rejectValue('listener.port', 
+    1 * errors.rejectValue('listener.port',
       context + 'listener.port.null')
   }
-  
+
   def "Create LoadBalancer with invalid BackendSet"() {
     setup:
     def req = read('createLoadBalancer_invalidBackendSet.json')
     def desc = converter.convertDescription(req[0].upsertLoadBalancer)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], desc, errors)
 
     then:
-    2 * errors.rejectValue('backendSet.name', 
+    2 * errors.rejectValue('backendSet.name',
       context + 'backendSet.name.exceedsLimit')
-    1 * errors.rejectValue('backendSet.healthChecker', 
+    1 * errors.rejectValue('backendSet.healthChecker',
       context + 'backendSet.healthChecker.null')
-    1 * errors.rejectValue('backendSet.policy', 
+    1 * errors.rejectValue('backendSet.policy',
       context + 'backendSet.policy.empty')
-    1 * errors.rejectValue('backendSet.healthChecker.protocol', 
+    1 * errors.rejectValue('backendSet.healthChecker.protocol',
       context + 'backendSet.healthChecker.protocol.empty')
-    1 * errors.rejectValue('backendSet.healthChecker.urlPath', 
+    1 * errors.rejectValue('backendSet.healthChecker.urlPath',
       context + 'backendSet.healthChecker.urlPath.empty')
-    1 * errors.rejectValue('backendSet.healthChecker.port', 
+    1 * errors.rejectValue('backendSet.healthChecker.port',
       context + 'backendSet.healthChecker.port.null')
   }
 

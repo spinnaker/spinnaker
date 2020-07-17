@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.validator.manifest;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.SCALE_MANIFEST;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesScaleManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @KubernetesOperation(SCALE_MANIFEST)
 @Component
@@ -37,7 +37,9 @@ public class KubernetesScaleManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions, KubernetesScaleManifestDescription description, Errors errors) {
+      List priorDescriptions,
+      KubernetesScaleManifestDescription description,
+      ValidationErrors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("scaleKubernetesManifest", errors);
     if (!util.validateV2Credentials(
         provider,

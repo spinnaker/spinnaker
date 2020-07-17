@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGr
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +32,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
   @Subject validator = new UpsertSecurityGroupDescriptionValidator()
 
   SecurityGroupService securityGroupService = Mock(SecurityGroupService)
-  Errors errors = Mock(Errors)
+  ValidationErrors errors = Mock(ValidationErrors)
 
   final description = new UpsertSecurityGroupDescription(
     credentials: TestCredential.named('test'),
@@ -50,7 +50,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
 
   def setup() {
     securityGroupService = Mock(SecurityGroupService)
-    errors = Mock(Errors)
+    errors = Mock(ValidationErrors)
     def regionScopedProviderFactory = Mock(RegionScopedProviderFactory)
     def regionScopedProvider = Mock(RegionScopedProviderFactory.RegionScopedProvider)
     regionScopedProvider.getSecurityGroupService() >> securityGroupService

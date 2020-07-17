@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import org.springframework.validation.Errors
 
 /**
  * Common validation routines for standard description attributes.
@@ -77,7 +77,7 @@ class StandardGceAttributeValidator {
   /**
    * Bound at construction, this is used to collect validation errors.
    */
-  Errors errors
+  ValidationErrors errors
 
   /**
    * Constructs validator for standard attributes added by GCE.
@@ -85,7 +85,7 @@ class StandardGceAttributeValidator {
    * @param context The owner of the attributes to be validated is typically a {@code *Description} class.
    * @param errors  Accumulates and reports on the validation errors over the lifetime of this validator.
    */
-  StandardGceAttributeValidator(String context, Errors errors) {
+  StandardGceAttributeValidator(String context, ValidationErrors errors) {
     this.context = context
     this.errors = errors
   }
@@ -311,7 +311,7 @@ class StandardGceAttributeValidator {
     def vCpuCount = customTypeMatcher.group(2).toDouble()
     def memory = customTypeMatcher.group(3).toDouble()
     def memoryInGbs = memory / 1024
-    
+
     // Memory per vCPU must be between .5 GB and 8 GB
     def maxMemory = vCpuCount * 8
     def minMemory = Math.ceil((0.5 * vCpuCount) * 4) / 4

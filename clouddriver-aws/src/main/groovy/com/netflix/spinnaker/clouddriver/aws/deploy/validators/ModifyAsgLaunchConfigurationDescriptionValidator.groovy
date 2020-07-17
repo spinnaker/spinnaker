@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AmazonOperation(AtomicOperations.UPDATE_LAUNCH_CONFIG)
 @Component("modifyAsgLaunchConfigurationDescriptionValidator")
@@ -33,7 +33,7 @@ class ModifyAsgLaunchConfigurationDescriptionValidator extends AmazonDescription
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, ModifyAsgLaunchConfigurationDescription description, Errors errors) {
+  void validate(List priorDescriptions, ModifyAsgLaunchConfigurationDescription description, ValidationErrors errors) {
     def key = ModifyAsgLaunchConfigurationDescription.class.simpleName
     validateRegion(description, description.region, key, errors)
 

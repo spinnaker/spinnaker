@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AttachClassicLinkVpcDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -34,7 +34,7 @@ class AttachClassicLinkVpcDescriptionValidatorSpec extends Specification {
   void "invalid instanceId fails validation"() {
     setup:
     def description = new AttachClassicLinkVpcDescription(vpcId: "vpc-123")
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -46,7 +46,7 @@ class AttachClassicLinkVpcDescriptionValidatorSpec extends Specification {
   void "invalid vpcId fails validation"() {
     setup:
     def description = new AttachClassicLinkVpcDescription(instanceId: "i-123")
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -59,7 +59,7 @@ class AttachClassicLinkVpcDescriptionValidatorSpec extends Specification {
     setup:
     def description = new AttachClassicLinkVpcDescription(credentials: TestCredential.named('test'))
     description.region = "us-west-5"
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

@@ -9,7 +9,6 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.ResizeOracleServerGroupDescription
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -24,7 +23,7 @@ class ResizeOracleServerGroupDescriptionValidatorSpec extends Specification {
   void "invalid description fails validation"() {
     setup:
     def description = new ResizeOracleServerGroupDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -43,7 +42,7 @@ class ResizeOracleServerGroupDescriptionValidatorSpec extends Specification {
       accountName: "DEFAULT"
     )
 
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

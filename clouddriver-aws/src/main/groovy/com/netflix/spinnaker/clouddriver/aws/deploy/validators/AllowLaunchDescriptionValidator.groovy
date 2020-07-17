@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("allowLaunchDescriptionValidator")
 class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDescription> {
@@ -29,7 +29,7 @@ class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDe
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, AllowLaunchDescription description, Errors errors) {
+  void validate(List priorDescriptions, AllowLaunchDescription description, ValidationErrors errors) {
     if (!description.amiName) {
       errors.rejectValue("amiName", "allowLaunchDescription.amiName.empty")
     }

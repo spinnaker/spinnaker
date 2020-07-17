@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -26,7 +27,6 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("basicAmazonDeployDescriptionValidator")
 @AmazonOperation(AtomicOperations.CREATE_SERVER_GROUP)
@@ -35,7 +35,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, BasicAmazonDeployDescription description, Errors errors) {
+  void validate(List priorDescriptions, BasicAmazonDeployDescription description, ValidationErrors errors) {
     def credentials = null
 
     if (!description.credentials) {
@@ -76,19 +76,19 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
   }
 
   enum BlockDeviceRules {
-    deviceNameNotNull({ AmazonBlockDevice device, Errors errors ->
+    deviceNameNotNull({ AmazonBlockDevice device, ValidationErrors errors ->
       if (!device.deviceName) {
         errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.not.named", [] as String[], "Device name is required for block device"
       }
     }),
 
-    ephemeralConfigWrong({ AmazonBlockDevice device, Errors errors ->
+    ephemeralConfigWrong({ AmazonBlockDevice device, ValidationErrors errors ->
       if (device.virtualName && (device.deleteOnTermination != null || device.iops || device.size || device.snapshotId || device.volumeType)) {
         errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ephemeral.config", [device.virtualName] as String[], "Ephemeral block device $device.deviceName with EBS configuration parameters"
       }
     }),
 
-    ebsConfigWrong({ AmazonBlockDevice device, Errors errors ->
+    ebsConfigWrong({ AmazonBlockDevice device, ValidationErrors errors ->
       if (!device.virtualName && !device.size) {
         errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ebs.config", [device.deviceName] as String[], "EBS device $device.deviceName missing required value size"
       }
@@ -103,11 +103,11 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       this.validationRule = validationRule
     }
 
-    void validateDevice(AmazonBlockDevice device, Errors errors) {
+    void validateDevice(AmazonBlockDevice device, ValidationErrors errors) {
       validationRule(device, errors)
     }
 
-    static void validate(AmazonBlockDevice device, Errors errors) {
+    static void validate(AmazonBlockDevice device, ValidationErrors errors) {
       for (rule in values()) {
         rule.validateDevice device, errors
       }

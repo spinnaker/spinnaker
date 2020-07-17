@@ -18,12 +18,12 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.validator
 
 import com.google.common.collect.ImmutableList
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -33,7 +33,7 @@ class KubernetesValidationUtilSpec extends Specification {
   @Unroll
   void "wiring of kind/namespace validation"() {
     given:
-    Errors errors = Mock(Errors)
+    ValidationErrors errors = Mock(ValidationErrors)
     String kubernetesAccount = "testAccount"
     def namespaces = ImmutableList.of("test-namespace")
     def omitNamespaces = ImmutableList.of("omit-namespace")
@@ -70,7 +70,7 @@ class KubernetesValidationUtilSpec extends Specification {
   @Unroll
   void "validation of namespaces"() {
     given:
-    Errors errors = Mock(Errors)
+    ValidationErrors errors = Mock(ValidationErrors)
     KubernetesV2Credentials credentials = Mock(KubernetesV2Credentials)
     KubernetesValidationUtil kubernetesValidationUtil = new KubernetesValidationUtil("currentContext", errors);
 

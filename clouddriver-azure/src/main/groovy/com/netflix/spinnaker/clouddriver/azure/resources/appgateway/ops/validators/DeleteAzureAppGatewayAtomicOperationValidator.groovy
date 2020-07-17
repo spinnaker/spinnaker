@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops.validat
 import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("deleteAzureAppGatewayDescriptionValidator")
 class DeleteAzureAppGatewayAtomicOperationValidator extends
@@ -32,7 +32,7 @@ class DeleteAzureAppGatewayAtomicOperationValidator extends
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, AzureAppGatewayDescription description, Errors errors) {
+  void validate(List priorDescriptions, AzureAppGatewayDescription description, ValidationErrors errors) {
     def helper = new StandardAzureAttributeValidator("deletetAzureAppGatewayDescriptionValidator", errors)
 
     helper.validateCredentials(description.credentials, accountCredentialsProvider)

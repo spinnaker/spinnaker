@@ -21,7 +21,7 @@ import org.springframework.validation.Errors
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 
-class DescriptionValidationErrors extends AbstractErrors {
+class DescriptionValidationErrors extends AbstractErrors implements ValidationErrors {
   Object description
   List<ObjectError> globalErrors = new ArrayList<ObjectError>();
   List<FieldError> fieldErrors = new ArrayList<FieldError>();

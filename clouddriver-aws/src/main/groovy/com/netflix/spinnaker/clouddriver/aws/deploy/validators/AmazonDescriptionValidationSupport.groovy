@@ -20,13 +20,13 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCr
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 
 public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {
 
-  abstract void validate(List priorDescriptions, T description, Errors errors)
+  abstract void validate(List priorDescriptions, T description, ValidationErrors errors)
 
-  void validateAsgs(T description, Errors errors) {
+  void validateAsgs(T description, ValidationErrors errors) {
     if (!description.asgs) {
       errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
     } else {
@@ -36,7 +36,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  void validateAsgDescription(T description, AsgDescription asgDescription, Errors errors) {
+  void validateAsgDescription(T description, AsgDescription asgDescription, ValidationErrors errors) {
     def key = description.getClass().simpleName
     if (!asgDescription.serverGroupName) {
       errors.rejectValue("serverGroupName", "${key}.serverGroupName.empty")
@@ -49,7 +49,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  void validateAsgsWithCapacity(T description, Errors errors) {
+  void validateAsgsWithCapacity(T description, ValidationErrors errors) {
     if (!description.asgs) {
       errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
     } else {
@@ -59,23 +59,23 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  void validateAsgDescriptionWithCapacity(T description, ResizeAsgDescription.AsgTargetDescription asgDescription, Errors errors) {
+  void validateAsgDescriptionWithCapacity(T description, ResizeAsgDescription.AsgTargetDescription asgDescription, ValidationErrors errors) {
     validateAsgDescription description, asgDescription, errors
     validateCapacity asgDescription, errors
   }
 
-  void validateAsgName(T description, Errors errors) {
+  void validateAsgName(T description, ValidationErrors errors) {
     def key = description.getClass().simpleName
     if (!description.asgName) {
       errors.rejectValue("asgName", "${key}.asgName.empty")
     }
   }
 
-  void validateRegion(T description, String regionName, String errorKey, Errors errors) {
+  void validateRegion(T description, String regionName, String errorKey, ValidationErrors errors) {
     validateRegions(description, regionName ? [regionName] : [], errorKey, errors, "region")
   }
 
-  void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
+  void validateRegions(T description, Collection<String> regionNames, String errorKey, ValidationErrors errors, String attributeName = "regions") {
     if (!regionNames) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.empty")
     } else {
@@ -86,7 +86,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
+  void validateAsgNameAndRegionAndInstanceIds(T description, ValidationErrors errors) {
     def key = description.class.simpleName
     if (description.asgName) {
       validateAsgName(description, errors)
@@ -104,7 +104,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  static void validateCapacity(def description, Errors errors) {
+  static void validateCapacity(def description, ValidationErrors errors) {
     Integer min = description.capacity.min
     Integer max = description.capacity.max
     Integer desired = description.capacity.desired

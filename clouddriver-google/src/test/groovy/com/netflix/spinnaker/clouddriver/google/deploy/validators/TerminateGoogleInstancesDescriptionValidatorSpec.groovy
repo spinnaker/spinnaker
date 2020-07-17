@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -49,7 +49,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -64,7 +64,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
                                                                 serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -78,7 +78,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
       def description = new TerminateGoogleInstancesDescription(serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -90,7 +90,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
   void "fail validation without managed instance group and no zone"() {
     setup:
       def description = new TerminateGoogleInstancesDescription(instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -102,7 +102,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
   void "invalid instanceIds fail validation"() {
     setup:
       def description = new TerminateGoogleInstancesDescription(instanceIds: [""])
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -114,7 +114,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new TerminateGoogleInstancesDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

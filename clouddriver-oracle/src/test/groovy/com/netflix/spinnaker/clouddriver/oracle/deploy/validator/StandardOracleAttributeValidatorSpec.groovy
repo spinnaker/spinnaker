@@ -9,21 +9,20 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
-import org.springframework.validation.Errors
 import spock.lang.Specification
 
 class StandardOracleAttributeValidatorSpec extends Specification {
 
   void "validateNotEmptyString ok"() {
     setup:
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def validator = new StandardOracleAttributeValidator() {
       @Override
-      void validate(List priorDescriptions, def description, Errors err) {
+      void validate(List priorDescriptions, def description, ValidationErrors err) {
         context = "standardOracleAttributeValidator"
       }
     }
-    
+
     when:
     validator.validateNotEmptyString(errors, "DEFAULT", "accountName")
     then:

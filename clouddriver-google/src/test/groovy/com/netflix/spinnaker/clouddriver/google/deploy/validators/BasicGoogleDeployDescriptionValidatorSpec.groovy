@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -83,7 +83,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                          region: region,
                                                          zone: zone,
                                                          accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -108,7 +108,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                          instanceType: INSTANCE_TYPE,
                                                          zone: ZONE,
                                                          accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -128,7 +128,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                          zone: ZONE,
                                                          tags: TAGS,
                                                          accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
      validator.validate([], description, errors)
@@ -148,7 +148,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                          zone: ZONE,
                                                          tags: TAGS,
                                                          accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -169,7 +169,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                          regional: true,
                                                          region: REGION,
                                                          accountName: ACCOUNT_NAME)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -190,7 +190,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   void "invalid targetSize fails validation"() {
     setup:
       def description = new BasicGoogleDeployDescription(targetSize: -1)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -203,7 +203,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   void "invalid capacity (min: #min, max: #max, desired: #desired) fails validation"() {
     setup:
       def description = new BasicGoogleDeployDescription(capacity: [min: min, max: max, desired: desired])
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def matchingCalls = 0
 
     when:
@@ -233,7 +233,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "invalid disk sizeGb fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_NO_SIZE]), errors)
@@ -274,7 +274,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "missing disk type fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_NO_TYPE]), errors)
@@ -285,7 +285,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "invalid number of persistent disks fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_LOCAL_SSD]), errors)
@@ -306,7 +306,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "source image specified directly on boot persistent disk fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD_WITH_SOURCE_IMAGE]), errors)
@@ -335,7 +335,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "missing source image on non-boot persistent disk fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD, DISK_PD_STANDARD_2]), errors)
@@ -370,7 +370,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "invalid local ssd settings fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_LOCAL_SSD_NO_AUTO_DELETE]), errors)
@@ -393,7 +393,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new BasicGoogleDeployDescription(regional: regional)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -417,7 +417,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "nonsensical autoscaling policy min, max or cooldown fails validation"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(autoscalingPolicy: [minNumReplicas: -5]), errors)

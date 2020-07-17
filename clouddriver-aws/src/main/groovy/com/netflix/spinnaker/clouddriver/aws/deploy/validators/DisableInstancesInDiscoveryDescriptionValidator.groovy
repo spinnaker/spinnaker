@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("disableInstancesInDiscoveryDescriptionValidator")
 class DisableInstancesInDiscoveryDescriptionValidator
     extends AmazonDescriptionValidationSupport<EnableDisableInstanceDiscoveryDescription> {
   @Override
-  void validate(List priorDescriptions, EnableDisableInstanceDiscoveryDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableInstanceDiscoveryDescription description, ValidationErrors errors) {
     def key = description.class.simpleName
     validateAsgNameAndRegionAndInstanceIds(description, errors)
 

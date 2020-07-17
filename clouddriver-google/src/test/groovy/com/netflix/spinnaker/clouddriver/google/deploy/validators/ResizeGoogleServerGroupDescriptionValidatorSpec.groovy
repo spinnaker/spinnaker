@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -50,7 +50,7 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
                                                                targetSize: TARGET_SIZE,
                                                                region: REGION,
                                                                accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -62,7 +62,7 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
   void "invalid targetSize fails validation"() {
     setup:
       def description = new ResizeGoogleServerGroupDescription(targetSize: -1)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -74,7 +74,7 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new ResizeGoogleServerGroupDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -92,7 +92,7 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
           region: REGION,
           accountName: ACCOUNT_NAME
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       // no description.capacity set.
@@ -128,7 +128,7 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
       def description = new UpsertGoogleAutoscalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                      region: REGION,
                                                                      accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

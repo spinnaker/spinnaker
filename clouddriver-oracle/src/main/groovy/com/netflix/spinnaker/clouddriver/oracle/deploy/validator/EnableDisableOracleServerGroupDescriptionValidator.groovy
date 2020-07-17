@@ -11,13 +11,12 @@ package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.EnableDisableOracleServerGroupDescription
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("enableDisableOracleServerGroupDescriptionValidator")
 class EnableDisableOracleServerGroupDescriptionValidator extends StandardOracleAttributeValidator<EnableDisableOracleServerGroupDescription> {
 
   @Override
-  void validate(List priorDescriptions, EnableDisableOracleServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableOracleServerGroupDescription description, ValidationErrors errors) {
     context = "enableDisableServerGroupDescription"
     validateNotEmptyString(errors, description.region, "region")
     validateNotEmptyString(errors, description.accountName, "accountName")

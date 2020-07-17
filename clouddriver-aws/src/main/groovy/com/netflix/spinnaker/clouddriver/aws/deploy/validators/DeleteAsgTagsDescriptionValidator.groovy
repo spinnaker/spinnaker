@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAsgTagsDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("deleteAsgTagsDescriptionValidator")
 class DeleteAsgTagsDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAsgTagsDescription> {
   @Override
-  void validate(List priorDescriptions, DeleteAsgTagsDescription description, Errors errors) {
+  void validate(List priorDescriptions, DeleteAsgTagsDescription description, ValidationErrors errors) {
     validateAsgs description, errors
     description.tagKeys.each {
       if (!it) {

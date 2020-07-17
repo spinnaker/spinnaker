@@ -17,17 +17,17 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.validation.Errors
 
 abstract class AbstractEnableDisableGoogleServerGroupDescriptionValidator extends DescriptionValidator<EnableDisableGoogleServerGroupDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, EnableDisableGoogleServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableGoogleServerGroupDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("enableDisableGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)

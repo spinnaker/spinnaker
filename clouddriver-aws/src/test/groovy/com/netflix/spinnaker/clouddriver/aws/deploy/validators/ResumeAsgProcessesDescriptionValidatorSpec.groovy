@@ -17,7 +17,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResumeAsgProcessesDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Specification
 
 class ResumeAsgProcessesDescriptionValidatorSpec extends Specification {
@@ -38,7 +38,7 @@ class ResumeAsgProcessesDescriptionValidatorSpec extends Specification {
       ],
       processes: ["Launch", "Terminate"]
     )
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -61,7 +61,7 @@ class ResumeAsgProcessesDescriptionValidatorSpec extends Specification {
       ],
       processes: ["Laugh", "Terminate"]
     )
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -47,7 +47,7 @@ class DeleteGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
     def description = new DeleteGoogleAutoscalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
       accountName: ACCOUNT_NAME,
       region: REGION)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -59,7 +59,7 @@ class DeleteGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
   void "null input fails validation"() {
     setup:
     def description = new DeleteGoogleAutoscalingPolicyDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

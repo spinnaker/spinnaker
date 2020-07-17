@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.validators.UpsertAmazonDNSDe
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonDNSDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -35,7 +35,7 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
   void "empty description fails validation"() {
     setup:
     def description = new UpsertAmazonDNSDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -51,7 +51,7 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
     setup:
     def description = new UpsertAmazonDNSDescription()
     description.target = "foo"
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -70,7 +70,7 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
     setup:
     def elbDescription = new UpsertAmazonLoadBalancerDescription()
     def description = new UpsertAmazonDNSDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([elbDescription], description, errors)
@@ -85,7 +85,7 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
     description.type = "CNAME"
     description.target = "foo.netflix.net."
     description.hostedZoneName = "netflix.net."
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def route53 = Mock(AmazonRoute53)
     validator.amazonClientProvider = Mock(AmazonClientProvider)
     validator.amazonClientProvider.getAmazonRoute53(_, _, true) >> route53

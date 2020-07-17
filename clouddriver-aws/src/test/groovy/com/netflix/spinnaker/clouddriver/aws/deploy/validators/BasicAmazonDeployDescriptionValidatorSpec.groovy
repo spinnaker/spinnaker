@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -48,7 +48,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], subnetType: "internal")
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -61,7 +61,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], associatePublicIpAddress: true)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -80,7 +80,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
     def description = new BasicAmazonDeployDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -98,7 +98,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []])
     description.capacity = [ min, max, desired ]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -127,7 +127,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   void "unconfigured region fails validation"() {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["eu-west-5": []])
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -139,7 +139,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   void "unconfigured account region fails validation"() {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-2": []])
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -153,7 +153,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: [blockDevice])
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -177,7 +177,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     ]
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: blockDevices)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

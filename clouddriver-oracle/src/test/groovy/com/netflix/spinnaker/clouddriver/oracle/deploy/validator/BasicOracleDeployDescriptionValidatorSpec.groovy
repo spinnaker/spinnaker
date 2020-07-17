@@ -11,7 +11,6 @@ package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.BasicOracleDeployDescription
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -26,7 +25,7 @@ class BasicOracleDeployDescriptionValidatorSpec extends Specification {
   void "invalid description fails validation"() {
     setup:
     def description = new BasicOracleDeployDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -49,7 +48,7 @@ class BasicOracleDeployDescriptionValidatorSpec extends Specification {
       application: "spinnaker-test-v000"
     )
 
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -70,7 +69,7 @@ class BasicOracleDeployDescriptionValidatorSpec extends Specification {
       capacity: new ServerGroup.Capacity(min: 3, max: 1)
     )
 
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -90,7 +89,7 @@ class BasicOracleDeployDescriptionValidatorSpec extends Specification {
       targetSize: -1
     )
 
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

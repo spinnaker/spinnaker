@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 
 abstract class AbstractEnableDisableAsgDescriptionValidator extends AmazonDescriptionValidationSupport<EnableDisableAsgDescription> {
   @Override
-  void validate(List priorDescriptions, EnableDisableAsgDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableAsgDescription description, ValidationErrors errors) {
     validateAsgs description, errors
   }
 }

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.MarathonPathId
 import com.netflix.spinnaker.clouddriver.dcos.deploy.validators.AbstractDcosDescriptionValidatorSupport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 
 abstract class AbstractDcosServerGroupValidator<T extends AbstractDcosServerGroupDescription> extends AbstractDcosDescriptionValidatorSupport<T> {
 
@@ -31,7 +30,7 @@ abstract class AbstractDcosServerGroupValidator<T extends AbstractDcosServerGrou
   }
 
   @Override
-  void validate(List priorDescriptions, AbstractDcosServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, AbstractDcosServerGroupDescription description, ValidationErrors errors) {
     super.validate(priorDescriptions, description, errors)
 
     if (!description.region || description.region.empty) {

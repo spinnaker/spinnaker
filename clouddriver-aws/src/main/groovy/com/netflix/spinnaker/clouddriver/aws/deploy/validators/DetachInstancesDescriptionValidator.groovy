@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DetachInstancesDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("detachInstancesDescriptionValidator")
 class DetachInstancesDescriptionValidator extends AmazonDescriptionValidationSupport<DetachInstancesDescription> {
   @Override
-  void validate(List priorDescriptions, DetachInstancesDescription description, Errors errors) {
+  void validate(List priorDescriptions, DetachInstancesDescription description, ValidationErrors errors) {
     def key = DetachInstancesDescription.class.simpleName
     description.instanceIds.each {
       if (!it) {

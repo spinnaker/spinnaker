@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
@@ -25,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -88,7 +88,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           ipAddress: "1.1.1.1",
           ipProtocol: "TCP",
           portRange: "80-82")
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -105,7 +105,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           region: REGION,
           accountName: ACCOUNT_NAME,
           instances: [INSTANCE])
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -133,7 +133,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
           ipAddress: "1.1.1.1",
           ipProtocol: "ABC",
           portRange: "80-82")
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -145,7 +145,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new UpsertGoogleLoadBalancerDescription(loadBalancerType: GoogleLoadBalancerType.NETWORK)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -199,7 +199,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ]
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -224,7 +224,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "hostRules"       : null,
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -276,7 +276,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ]
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -329,7 +329,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ]
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -359,7 +359,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -379,7 +379,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "backendService"  : null,
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -403,7 +403,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -427,7 +427,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -457,7 +457,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -481,7 +481,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -504,7 +504,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -523,7 +523,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         "backendService"  : null,
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -546,7 +546,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -569,7 +569,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -598,7 +598,7 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
         ],
       ]
       def description = converter.convertDescription(input)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

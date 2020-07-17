@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @GoogleOperation(AtomicOperations.UPSERT_SCALING_POLICY)
 @Component("upsertGoogleScalingPolicyDescriptionValidator")
@@ -34,7 +34,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidator extends
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, UpsertGoogleAutoscalingPolicyDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertGoogleAutoscalingPolicyDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("upsertGoogleScalingPolicyDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)

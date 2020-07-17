@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.valida
 import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("azureServerGroupDescriptionValidator")
 class AzureServerGroupDescriptionValidator extends
@@ -32,7 +32,7 @@ class AzureServerGroupDescriptionValidator extends
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, AzureServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, AzureServerGroupDescription description, ValidationErrors errors) {
     def helper = new StandardAzureAttributeValidator("azureServerGroupDescription", errors)
 
     helper.validateCredentials(description.credentials, accountCredentialsProvider)

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -65,7 +65,7 @@ class UpsertGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
           targetTags: [TARGET_TAG],
           accountName: ACCOUNT_NAME
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -81,7 +81,7 @@ class UpsertGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
           network: NETWORK_NAME,
           accountName: ACCOUNT_NAME
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -93,7 +93,7 @@ class UpsertGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new UpsertGoogleSecurityGroupDescription(network: "")
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

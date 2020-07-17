@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AmazonOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
 @Component("upsertSecurityGroupDescriptionValidator")
@@ -32,7 +32,7 @@ class UpsertSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
   RegionScopedProviderFactory regionScopedProviderFactory
 
   @Override
-  void validate(List priorDescriptions, UpsertSecurityGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertSecurityGroupDescription description, ValidationErrors errors) {
     if (!description.name) {
       errors.rejectValue("name", "upsertSecurityGroupDescription.name.not.nullable")
     }

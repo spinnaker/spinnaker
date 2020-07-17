@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators
 import com.amazonaws.services.ecs.model.PlacementStrategy
 import com.amazonaws.services.ecs.model.PlacementStrategyType
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.AbstractECSDescription
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import org.springframework.validation.Errors
 
 class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec {
 
@@ -31,7 +31,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.capacity = null
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -44,7 +44,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.capacity.setDesired(9001)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -57,7 +57,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.capacity.setDesired(0)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -70,7 +70,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.availabilityZones = ['us-west-1': ['us-west-1a'], 'us-west-2': ['us-west-2a']]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -83,7 +83,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.availabilityZones = ['us-west-1': []]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -96,7 +96,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = (CreateServerGroupDescription) getDescription()
     description.environmentVariables = ['SERVER_GROUP':'invalid', 'tag_1':'valid_tag']
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -109,7 +109,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = getDescription()
     description.environmentVariables = ['TAG_1':'valid_tag_1', 'TAG_2':'valid_tag_2']
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -123,7 +123,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     def description = getDescription()
     description.containerPort = null
     description.targetGroup = null
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -136,7 +136,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     given:
     def description = getDescription()
     description.useTaskDefinitionArtifact = true
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -151,7 +151,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.targetGroup = null
     description.loadBalancedContainer = 'load-balanced-container'
     description.useTaskDefinitionArtifact = true
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -173,7 +173,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.dockerImageAddress = null
     description.useTaskDefinitionArtifact = true
     description.targetGroupMappings = [targetGroupMappings]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -195,7 +195,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.dockerImageAddress = null
     description.useTaskDefinitionArtifact = true
     description.targetGroupMappings = [targetGroupMappings]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -215,7 +215,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.targetGroup = null
     description.containerPort = null
     description.targetGroupMappings = [targetGroupMappings]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -235,7 +235,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.targetGroup = null
     description.containerPort = null
     description.targetGroupMappings = [targetGroupMappings]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -255,7 +255,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.targetGroup = null
     description.containerPort = null
     description.targetGroupMappings = [targetGroupMappings]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

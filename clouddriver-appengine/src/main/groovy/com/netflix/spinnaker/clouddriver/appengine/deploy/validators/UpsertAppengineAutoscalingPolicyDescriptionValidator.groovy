@@ -20,11 +20,11 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineClusterProvider
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AppengineOperation(AtomicOperations.UPSERT_SCALING_POLICY)
 @Component
@@ -36,7 +36,7 @@ class UpsertAppengineAutoscalingPolicyDescriptionValidator extends DescriptionVa
   AppengineClusterProvider appengineClusterProvider
 
   @Override
-  void validate(List priorDescriptions, UpsertAppengineAutoscalingPolicyDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertAppengineAutoscalingPolicyDescription description, ValidationErrors errors) {
     def helper = new StandardAppengineAttributeValidator("upsertAppengineAutoscalingPolicyAtomicOperationDescription", errors)
 
     if (!helper.validateCredentials(description.accountName, accountCredentialsProvider)) {

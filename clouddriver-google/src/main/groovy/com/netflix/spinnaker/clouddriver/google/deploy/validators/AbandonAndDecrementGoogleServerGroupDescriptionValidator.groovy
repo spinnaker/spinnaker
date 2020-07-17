@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("abandonAndDecrementGoogleServerGroupDescriptionValidator")
 class AbandonAndDecrementGoogleServerGroupDescriptionValidator extends DescriptionValidator<AbandonAndDecrementGoogleServerGroupDescription> {
@@ -29,7 +29,7 @@ class AbandonAndDecrementGoogleServerGroupDescriptionValidator extends Descripti
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, AbandonAndDecrementGoogleServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, AbandonAndDecrementGoogleServerGroupDescription description, ValidationErrors errors) {
     StandardGceAttributeValidator helper = new StandardGceAttributeValidator("abandonAndDecrementGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)

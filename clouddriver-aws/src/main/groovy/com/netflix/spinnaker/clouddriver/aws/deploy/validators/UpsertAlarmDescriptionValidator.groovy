@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("upsertAlarmDescriptionValidator")
 class UpsertAlarmDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAlarmDescription> {
   @Override
-  void validate(List priorDescriptions, UpsertAlarmDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertAlarmDescription description, ValidationErrors errors) {
     validateRegions(description, [description.region], "upsertAlarmDescription", errors)
 
     if (!description.metricName) {
@@ -52,7 +52,7 @@ class UpsertAlarmDescriptionValidator extends AmazonDescriptionValidationSupport
 
   }
 
-  static void rejectNull(String field, Errors errors) {
+  static void rejectNull(String field, ValidationErrors errors) {
     errors.rejectValue(field, "upsertAlarmDescription.${field}.not.nullable")
   }
 }

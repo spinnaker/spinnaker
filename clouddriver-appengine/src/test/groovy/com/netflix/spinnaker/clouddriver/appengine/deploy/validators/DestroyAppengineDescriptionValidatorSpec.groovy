@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DestroyAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -53,7 +53,7 @@ class DestroyAppengineDescriptionValidatorSpec extends Specification {
   void "pass validation with proper description inputs"() {
     setup:
       def description = new DestroyAppengineDescription(accountName: ACCOUNT_NAME, serverGroupName: SERVER_GROUP_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -65,7 +65,7 @@ class DestroyAppengineDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new DestroyAppengineDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

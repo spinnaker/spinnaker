@@ -19,7 +19,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AwsNetworkInterface
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -47,7 +47,7 @@ class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       )
     )
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -59,7 +59,7 @@ class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
     def description = new CreateNetworkInterfaceDescription(credentials: credentials)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -74,7 +74,7 @@ class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
   void "unconfigured region fails validation"() {
     setup:
     def description = new CreateNetworkInterfaceDescription(credentials: credentials, availabilityZonesGroupedByRegion: ["eu-west-5": []])
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

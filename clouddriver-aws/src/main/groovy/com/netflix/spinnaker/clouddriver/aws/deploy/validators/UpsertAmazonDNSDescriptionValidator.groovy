@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonDNSDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("upsertAmazonDNSDescriptionValidator")
 class UpsertAmazonDNSDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonDNSDescription> {
@@ -31,7 +31,7 @@ class UpsertAmazonDNSDescriptionValidator extends AmazonDescriptionValidationSup
   AmazonClientProvider amazonClientProvider
 
   @Override
-  void validate(List priorDescriptions, UpsertAmazonDNSDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertAmazonDNSDescription description, ValidationErrors errors) {
     def upstreamElb = priorDescriptions.find { it instanceof UpsertAmazonLoadBalancerDescription }
     if (!upstreamElb && !description.target) {
       errors.rejectValue("target", "upsertAmazonDNSDescription.target.empty")

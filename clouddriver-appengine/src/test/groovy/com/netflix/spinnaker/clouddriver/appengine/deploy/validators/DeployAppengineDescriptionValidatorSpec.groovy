@@ -21,9 +21,9 @@ import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredent
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -74,7 +74,7 @@ class DeployAppengineDescriptionValidatorSpec extends Specification {
         stopPreviousVersion: true,
         credentials: credentials,
         gitCredentialType: AppengineGitCredentialType.NONE)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -93,7 +93,7 @@ class DeployAppengineDescriptionValidatorSpec extends Specification {
         configFilepaths: CONFIG_FILEPATHS,
         credentials: credentials,
         gitCredentialType: AppengineGitCredentialType.NONE)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -105,7 +105,7 @@ class DeployAppengineDescriptionValidatorSpec extends Specification {
   void "null input fails validation"() {
     setup:
       def description = new DeployAppengineDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

@@ -20,8 +20,8 @@ import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.job.RunDcosJobDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 import spock.lang.Subject
 
 class RunDcosJobValidatorSpec extends BaseSpecification {
@@ -39,7 +39,7 @@ class RunDcosJobValidatorSpec extends BaseSpecification {
     void "validate should give errors when given an empty RunDcosJobDescription"() {
         setup:
             def description = new RunDcosJobDescription(credentials: null, dcosCluster: null, general: null)
-            def errorsMock = Mock(Errors)
+            def errorsMock = Mock(ValidationErrors)
         when:
             validator.validate([], description, errorsMock)
         then:

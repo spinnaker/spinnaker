@@ -17,17 +17,17 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @AmazonOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteAmazonLoadBalancerDescriptionValidator")
 class DeleteAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAmazonLoadBalancerDescription> {
 
   @Override
-  void validate(List priorDescriptions, DeleteAmazonLoadBalancerDescription description, Errors errors) {
+  void validate(List priorDescriptions, DeleteAmazonLoadBalancerDescription description, ValidationErrors errors) {
     validateRegions(description, description.regions, "deleteAmazonLoadBalancerDescription", errors)
     if (!description.loadBalancerName) {
       errors.rejectValue "loadBalancerName", "deleteAmazonLoadBalancerDescription.loadBalancerName.empty"

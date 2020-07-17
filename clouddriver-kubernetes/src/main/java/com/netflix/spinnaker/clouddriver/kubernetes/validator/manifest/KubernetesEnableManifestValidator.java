@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.validator.manifest;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.ENABLE_MANIFEST;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesEnableDisableManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.validator.KubernetesValidationUtil;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @KubernetesOperation(ENABLE_MANIFEST)
 @Component
@@ -39,7 +39,7 @@ public class KubernetesEnableManifestValidator
   public void validate(
       List priorDescriptions,
       KubernetesEnableDisableManifestDescription description,
-      Errors errors) {
+      ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("enableKubernetesManifest", errors);
     if (!util.validateV2Credentials(

@@ -20,13 +20,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.validator.artifact;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.CLEANUP_ARTIFACTS;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.artifact.KubernetesCleanupArtifactsDescription;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @KubernetesOperation(CLEANUP_ARTIFACTS)
 @Component
@@ -36,5 +36,7 @@ public class KubernetesArtifactCleanupValidator
 
   @Override
   public void validate(
-      List priorDescriptions, KubernetesCleanupArtifactsDescription description, Errors errors) {}
+      List priorDescriptions,
+      KubernetesCleanupArtifactsDescription description,
+      ValidationErrors errors) {}
 }

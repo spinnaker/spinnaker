@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.StartStopAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineClusterProvider
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.validation.Errors
 
 
 abstract class AbstractStartStopAppengineDescriptionValidator extends DescriptionValidator<StartStopAppengineDescription> {
@@ -34,7 +34,7 @@ abstract class AbstractStartStopAppengineDescriptionValidator extends Descriptio
   abstract String getDescriptionName()
 
   @Override
-  void validate(List priorDescriptions, StartStopAppengineDescription description, Errors errors) {
+  void validate(List priorDescriptions, StartStopAppengineDescription description, ValidationErrors errors) {
     def helper = new StandardAppengineAttributeValidator(descriptionName, errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)

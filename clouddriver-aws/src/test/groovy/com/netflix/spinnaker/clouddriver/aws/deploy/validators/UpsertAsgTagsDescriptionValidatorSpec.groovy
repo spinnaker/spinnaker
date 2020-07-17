@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgTagsDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 
 class UpsertAsgTagsDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
 
@@ -35,7 +35,7 @@ class UpsertAsgTagsDescriptionValidatorSpec extends AbstractConfiguredRegionsVal
   void "empty tags fails validation"() {
     setup:
     def description = new UpsertAsgTagsDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -48,7 +48,7 @@ class UpsertAsgTagsDescriptionValidatorSpec extends AbstractConfiguredRegionsVal
     setup:
     def description = new UpsertAsgTagsDescription()
     description.tags = ["tag": null]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

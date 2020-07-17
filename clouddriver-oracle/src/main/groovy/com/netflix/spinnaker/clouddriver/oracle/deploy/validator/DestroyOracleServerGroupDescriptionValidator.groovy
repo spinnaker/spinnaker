@@ -13,14 +13,13 @@ import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.DestroyOracleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @OracleOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component("destroyOracleServerGroupDescriptionValidator")
 class DestroyOracleServerGroupDescriptionValidator extends StandardOracleAttributeValidator<DestroyOracleServerGroupDescription> {
 
   @Override
-  void validate(List priorDescriptions, DestroyOracleServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, DestroyOracleServerGroupDescription description, ValidationErrors errors) {
     context = "destroyServerGroupDescription"
     validateNotEmptyString(errors, description.accountName, "accountName")
     validateNotEmptyString(errors, description.region, "region")

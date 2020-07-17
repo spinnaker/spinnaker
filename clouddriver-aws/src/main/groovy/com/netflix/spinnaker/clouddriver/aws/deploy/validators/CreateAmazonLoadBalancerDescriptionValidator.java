@@ -24,13 +24,13 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoad
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("createAmazonLoadBalancerDescriptionValidator")
@@ -40,7 +40,7 @@ class CreateAmazonLoadBalancerDescriptionValidator
       List<UpsertAmazonLoadBalancerV2Description.Action> actions,
       Set<String> allTargetGroupNames,
       Set<String> unusedTargetGroupNames,
-      Errors errors) {
+      ValidationErrors errors) {
     for (UpsertAmazonLoadBalancerV2Description.Action action : actions) {
       if (action.getType().equals("forward")) {
         String targetGroupName = action.getTargetGroupName();
@@ -63,7 +63,9 @@ class CreateAmazonLoadBalancerDescriptionValidator
 
   @Override
   public void validate(
-      List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
+      List priorDescriptions,
+      UpsertAmazonLoadBalancerDescription description,
+      ValidationErrors errors) {
     // Common fields to validate
     if (description.getName() == null && description.getClusterName() == null) {
       errors.rejectValue(
@@ -183,7 +185,7 @@ class CreateAmazonLoadBalancerDescriptionValidator
   private void validateLambdaTargetGroup(
       UpsertAmazonLoadBalancerV2Description albDescription,
       UpsertAmazonLoadBalancerV2Description.TargetGroup targetGroup,
-      Errors errors) {
+      ValidationErrors errors) {
     // Add lambda specific validation, if required.
     if (!AmazonLoadBalancerType.APPLICATION
         .toString()

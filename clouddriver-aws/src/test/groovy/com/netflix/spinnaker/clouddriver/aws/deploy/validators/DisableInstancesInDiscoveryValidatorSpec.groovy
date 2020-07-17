@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 
 class DisableInstancesInDiscoveryValidatorSpec extends AbstractConfiguredRegionAndInstanceIdsValidatorSpec {
   @Override
@@ -42,7 +42,7 @@ class DisableInstancesInDiscoveryValidatorSpec extends AbstractConfiguredRegionA
     description.instanceIds = ["i-123456"]
     description.credentials = TestCredential.named('test')
 
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     getDescriptionValidator().validate([], description, errors)

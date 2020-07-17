@@ -20,6 +20,7 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.SetStatefulDiskDescription;
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
@@ -28,8 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
@@ -60,7 +59,7 @@ public class SetStatefulDiskDescriptionValidatorTest {
     description.setServerGroupName("testapp-v000");
     description.setDeviceName("testapp-v000-1");
 
-    Errors errors = new BeanPropertyBindingResult(description, "description");
+    DescriptionValidationErrors errors = new DescriptionValidationErrors(description);
 
     validator.validate(ImmutableList.of(), description, errors);
 
@@ -71,7 +70,7 @@ public class SetStatefulDiskDescriptionValidatorTest {
   public void testNoFields() {
     SetStatefulDiskDescription description = new SetStatefulDiskDescription();
 
-    Errors errors = new BeanPropertyBindingResult(description, "description");
+    DescriptionValidationErrors errors = new DescriptionValidationErrors(description);
 
     validator.validate(ImmutableList.of(), description, errors);
 
@@ -89,7 +88,7 @@ public class SetStatefulDiskDescriptionValidatorTest {
     description.setServerGroupName("testapp-v000");
     description.setDeviceName("testapp-v000-1");
 
-    Errors errors = new BeanPropertyBindingResult(description, "description");
+    DescriptionValidationErrors errors = new DescriptionValidationErrors(description);
 
     validator.validate(ImmutableList.of(), description, errors);
 

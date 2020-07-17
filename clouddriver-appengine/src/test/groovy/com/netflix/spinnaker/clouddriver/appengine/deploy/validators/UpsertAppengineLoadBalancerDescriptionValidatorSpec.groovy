@@ -23,9 +23,9 @@ import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineClusterProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -94,7 +94,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
         split: validSplit,
         migrateTraffic: MIGRATE_TRAFFIC,
         credentials: credentials)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -114,7 +114,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
         split: validSplit,
         migrateTraffic: MIGRATE_TRAFFIC,
         credentials: credentials)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -134,7 +134,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
         migrateTraffic: true,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -173,7 +173,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
         migrateTraffic: migrateTraffic,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -209,7 +209,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
         migrateTraffic: MIGRATE_TRAFFIC,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -229,7 +229,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
         split: invalidSplit,
         migrateTraffic: MIGRATE_TRAFFIC,
         credentials: credentials)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -243,7 +243,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
   void "null input fails validation"() {
     setup:
       def description = new UpsertAppengineLoadBalancerDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

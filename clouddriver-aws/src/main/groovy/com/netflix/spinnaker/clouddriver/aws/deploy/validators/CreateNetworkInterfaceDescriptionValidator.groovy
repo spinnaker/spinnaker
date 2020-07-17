@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.CreateNetworkInterfaceDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("createNetworkInterfaceDescriptionValidator")
 class CreateNetworkInterfaceDescriptionValidator extends AmazonDescriptionValidationSupport<CreateNetworkInterfaceDescription> {
   @Override
-  void validate(List priorDescriptions, CreateNetworkInterfaceDescription description, Errors errors) {
+  void validate(List priorDescriptions, CreateNetworkInterfaceDescription description, ValidationErrors errors) {
     Set<String> regions = description.availabilityZonesGroupedByRegion?.keySet()
     if (!regions) {
       errors.rejectValue "regions", "createNetworkInterfaceDescription.regions.not.supplied"

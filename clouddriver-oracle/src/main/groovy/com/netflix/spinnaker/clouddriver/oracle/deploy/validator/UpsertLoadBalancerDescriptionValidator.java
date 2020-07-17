@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @OracleOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertLoadBalancerDescriptionValidator")
@@ -28,7 +27,7 @@ class UpsertLoadBalancerDescriptionValidator
   @SuppressWarnings("rawtypes")
   @Override
   public void validate(
-      List priorDescriptions, UpsertLoadBalancerDescription description, Errors errors) {
+      List priorDescriptions, UpsertLoadBalancerDescription description, ValidationErrors errors) {
     context = "upsertLoadBalancerDescriptionValidator";
     validateNotEmptyString(errors, description.getApplication(), "application");
     if (description.getLoadBalancerId() == null) {

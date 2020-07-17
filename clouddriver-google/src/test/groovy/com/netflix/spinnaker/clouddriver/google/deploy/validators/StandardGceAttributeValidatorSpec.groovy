@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
@@ -26,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -100,7 +100,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "generic non-empty ok"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def label = "testAttribute"
 
@@ -130,7 +130,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
   @Unroll
   void "expect non-empty ok with numeric values"() {
     setup:
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def validator = new StandardGceAttributeValidator(DECORATOR, errors)
     def label = "testAttribute"
 
@@ -145,7 +145,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "expect non-empty to fail with empty"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def label = "testAttribute"
 
@@ -164,7 +164,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "nonNegativeInt ok if non-negative"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def label = "testAttribute"
 
@@ -186,7 +186,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "nonNegativeInt invalid if negative"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def label = "testAttribute"
 
@@ -199,7 +199,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid generic name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -216,7 +216,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
   void "invalid generic name"() {
     setup:
       def label = "label"
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -228,7 +228,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "validate simple account name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -239,7 +239,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "empty account name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -257,7 +257,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "unknown account name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -270,7 +270,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid server group name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -286,7 +286,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid server group name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -298,7 +298,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid region name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -309,7 +309,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid region name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -333,7 +333,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid zone name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -344,7 +344,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid zone name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -368,7 +368,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid network name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -384,7 +384,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid network name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -396,7 +396,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid image name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -417,7 +417,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid image name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -435,7 +435,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid image artifact"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def artifact = Artifact.ArtifactBuilder.newInstance().type("gce/image").build()
 
@@ -447,7 +447,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "missing image artifact"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -459,7 +459,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid image artifact type"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def artifact = Artifact.ArtifactBuilder.newInstance().type("github/file").build()
 
@@ -472,7 +472,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid instance name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -488,7 +488,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid instance name"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -500,7 +500,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid instance type"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -516,7 +516,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid instance type"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -528,7 +528,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid custom instance type"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -559,7 +559,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid custom instance type"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -608,7 +608,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid name list"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -629,7 +629,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid name list"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -647,7 +647,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "mixed valid/invalid name list"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -666,7 +666,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid instance ids"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -687,7 +687,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid instance ids"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -705,7 +705,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "mixed valid/invalid instance ids"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -724,7 +724,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid in range exclusive"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def label = "testAttribute"
 
@@ -738,7 +738,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid in range exclusive"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def label = "testAttribute"
 
@@ -752,7 +752,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid basic scaling policy"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
       def scalingPolicy = new GoogleAutoscalingPolicy(
         minNumReplicas: 1,
@@ -769,7 +769,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "valid complex scaling policy"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
       def scalingPolicy = new GoogleAutoscalingPolicy(
@@ -791,7 +791,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid autoscaler min, max or cooldown"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -827,7 +827,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid autoscaler loadBalancingUtilization or cpuUtilization"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -851,7 +851,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid autoscaler customMetricUtilizations" () {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -878,7 +878,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
   @Unroll
   void "valid autoHealer maxUnavailable with fixed=#fixed and percent=#percent"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
@@ -903,7 +903,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
 
   void "invalid autoHealer maxUnavailable"() {
     setup:
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:

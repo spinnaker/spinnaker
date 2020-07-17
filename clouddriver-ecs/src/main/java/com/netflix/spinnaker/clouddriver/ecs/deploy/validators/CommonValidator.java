@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.validation.Errors;
 
 abstract class CommonValidator extends DescriptionValidator {
   String errorKey;
@@ -35,7 +35,7 @@ abstract class CommonValidator extends DescriptionValidator {
   void validateRegions(
       AbstractAmazonCredentialsDescription credentialsDescription,
       Collection<String> regionNames,
-      Errors errors,
+      ValidationErrors errors,
       String attributeName) {
     if (regionNames.isEmpty()) {
       rejectValue(errors, attributeName, "empty");
@@ -53,7 +53,7 @@ abstract class CommonValidator extends DescriptionValidator {
 
   boolean validateCredentials(
       AbstractAmazonCredentialsDescription credentialsDescription,
-      Errors errors,
+      ValidationErrors errors,
       String attributeName) {
     if (credentialsDescription.getCredentials() == null) {
       rejectValue(errors, attributeName, "not.nullable");
@@ -62,7 +62,7 @@ abstract class CommonValidator extends DescriptionValidator {
     return true;
   }
 
-  void validateCapacity(Errors errors, ServerGroup.Capacity capacity) {
+  void validateCapacity(ValidationErrors errors, ServerGroup.Capacity capacity) {
     if (capacity != null) {
       boolean desiredNotNull = capacity.getDesired() != null;
       boolean minNotNull = capacity.getMin() != null;
@@ -101,12 +101,12 @@ abstract class CommonValidator extends DescriptionValidator {
     }
   }
 
-  void rejectValue(Errors errors, String field, String reason) {
+  void rejectValue(ValidationErrors errors, String field, String reason) {
     errors.rejectValue(field, errorKey + "." + field + "." + reason);
   }
 
   private void positivityCheck(
-      boolean isNotNull, Integer capacity, String fieldName, Errors errors) {
+      boolean isNotNull, Integer capacity, String fieldName, ValidationErrors errors) {
     if (isNotNull && capacity < 0) {
       rejectValue(errors, "capacity." + fieldName, "invalid");
     }

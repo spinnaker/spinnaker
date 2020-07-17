@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -47,7 +47,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
     setup:
       def description = new TerminateAndDecrementGoogleServerGroupDescription(
           region: REGION, serverGroupName: SERVER_GROUP_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -59,7 +59,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
   void "invalid instanceIds fail validation"() {
     setup:
       def description = new TerminateAndDecrementGoogleServerGroupDescription(instanceIds: [""], serverGroupName: SERVER_GROUP_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -71,7 +71,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
   void "null input fails validation"() {
     setup:
       def description = new TerminateAndDecrementGoogleServerGroupDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

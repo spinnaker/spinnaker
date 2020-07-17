@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
@@ -23,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.EnableDisableServerGroupDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component
 @TitusOperation(AtomicOperations.DISABLE_SERVER_GROUP)
@@ -35,7 +35,7 @@ class DisableTitusServerGroupDescriptionValidator extends AbstractTitusDescripti
   }
 
   @Override
-  void validate(List priorDescriptions, EnableDisableServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableServerGroupDescription description, ValidationErrors errors) {
 
     super.validate(priorDescriptions, description, errors)
 

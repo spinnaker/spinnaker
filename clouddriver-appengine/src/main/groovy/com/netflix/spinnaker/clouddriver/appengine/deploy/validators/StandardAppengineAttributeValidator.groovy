@@ -29,17 +29,17 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineInstan
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 
 class StandardAppengineAttributeValidator {
   static final namePattern = /^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
 
   String context
-  Errors errors
+  ValidationErrors errors
 
-  StandardAppengineAttributeValidator(String context, Errors errors) {
+  StandardAppengineAttributeValidator(String context, ValidationErrors errors) {
     this.context = context
     this.errors = errors
   }

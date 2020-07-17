@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @GoogleOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("basicGoogleDeployDescriptionValidator")
@@ -36,7 +36,7 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
 
   @Override
-  void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
+  void validate(List priorDescriptions, BasicGoogleDeployDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("basicGoogleDeployDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)

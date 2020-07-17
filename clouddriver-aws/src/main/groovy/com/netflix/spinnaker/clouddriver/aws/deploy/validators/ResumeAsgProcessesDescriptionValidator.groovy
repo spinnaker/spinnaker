@@ -17,13 +17,13 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResumeAsgProcessesDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component
 class ResumeAsgProcessesDescriptionValidator extends AmazonDescriptionValidationSupport<ResumeAsgProcessesDescription> {
   @Override
-  void validate(List priorDescriptions, ResumeAsgProcessesDescription description, Errors errors) {
+  void validate(List priorDescriptions, ResumeAsgProcessesDescription description, ValidationErrors errors) {
     validateAsgs description, errors
     def invalidProcessTypes = description.processes.findAll { !AutoScalingProcessType.parse(it) }
     if (invalidProcessTypes) {

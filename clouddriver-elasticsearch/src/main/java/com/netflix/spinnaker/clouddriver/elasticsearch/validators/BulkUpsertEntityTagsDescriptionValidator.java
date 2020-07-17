@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.clouddriver.elasticsearch.validators;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.BulkUpsertEntityTagsDescription;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
 
 @Component("bulkUpsertEntityTagsDescriptionValidator")
 public class BulkUpsertEntityTagsDescriptionValidator
@@ -32,7 +32,9 @@ public class BulkUpsertEntityTagsDescriptionValidator
 
   @Override
   public void validate(
-      List priorDescriptions, BulkUpsertEntityTagsDescription description, Errors errors) {
+      List priorDescriptions,
+      BulkUpsertEntityTagsDescription description,
+      ValidationErrors errors) {
     if (description.entityTags != null && description.entityTags.size() > maxConcurrentBulkTags) {
       errors.rejectValue(
           "entityTags.length",

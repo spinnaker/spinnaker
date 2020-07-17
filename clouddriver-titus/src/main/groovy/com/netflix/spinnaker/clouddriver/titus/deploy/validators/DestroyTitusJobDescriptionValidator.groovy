@@ -17,13 +17,13 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusJobDescription
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component
 @TitusOperation(AtomicOperations.DESTROY_JOB)
@@ -34,7 +34,7 @@ class DestroyTitusJobDescriptionValidator extends AbstractTitusDescriptionValida
   }
 
   @Override
-  void validate(List priorDescriptions, DestroyTitusJobDescription description, Errors errors) {
+  void validate(List priorDescriptions, DestroyTitusJobDescription description, ValidationErrors errors) {
     super.validate(priorDescriptions, description, errors)
 
     if (!description.region) {

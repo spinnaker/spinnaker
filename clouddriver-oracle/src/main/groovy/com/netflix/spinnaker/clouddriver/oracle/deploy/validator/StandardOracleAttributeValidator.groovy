@@ -9,15 +9,13 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
-import org.springframework.validation.Errors
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
-import com.netflix.spinnaker.clouddriver.orchestration.VersionedCloudProviderOperation
 
 abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<T> {
 
   protected String context
 
-  def validateNotEmptyString(Errors errors, String value, String attribute) {
+  def validateNotEmptyString(ValidationErrors errors, String value, String attribute) {
     if (!value) {
       errors.rejectValue(attribute, "${context}.${attribute}.empty")
       return false
@@ -25,7 +23,7 @@ abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<
     return true
   }
 
-  def validateNonNegative(Errors errors, int value, String attribute) {
+  def validateNonNegative(ValidationErrors errors, int value, String attribute) {
     def result
     if (value >= 0) {
       result = true
@@ -36,7 +34,7 @@ abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<
     result
   }
 
-  def validatePositive(Errors errors, int value, String attribute) {
+  def validatePositive(ValidationErrors errors, int value, String attribute) {
     def result
     if (value > 0) {
       result = true
@@ -46,8 +44,8 @@ abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<
     }
     result
   }
-  
-  def validateCapacity(Errors errors, Integer min, Integer max, Integer desired) {
+
+  def validateCapacity(ValidationErrors errors, Integer min, Integer max, Integer desired) {
     if (min != null && max != null && min > max) {
       errors.rejectValue "capacity", "${context}.capacity.transposed",
         [min, max] as String[],
@@ -61,8 +59,8 @@ abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<
       }
     }
   }
-  
-  def validateLimit(Errors errors, String value, int limit, String attribute) {
+
+  def validateLimit(ValidationErrors errors, String value, int limit, String attribute) {
     if (!value) {
       errors.rejectValue(attribute, "${context}.${attribute}.empty")
       return false
@@ -72,7 +70,7 @@ abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<
     return true
   }
 
-  def validateNotNull(Errors errors, Object value, String attribute) {
+  def validateNotNull(ValidationErrors errors, Object value, String attribute) {
     if (!value) {
       errors.rejectValue(attribute, "${context}.${attribute}.null")
       return false

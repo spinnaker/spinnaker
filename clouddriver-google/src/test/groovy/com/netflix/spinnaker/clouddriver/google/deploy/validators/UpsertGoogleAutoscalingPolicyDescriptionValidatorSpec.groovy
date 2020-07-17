@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -76,7 +76,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
       autoscalingPolicy: GOOGLE_SCALING_POLICY,
       autoHealingPolicy: GOOGLE_AUTOHEALING_POLICY,
       accountName: ACCOUNT_NAME)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -91,7 +91,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
       region: REGION,
       serverGroupName: SERVER_GROUP_NAME,
       accountName: ACCOUNT_NAME)
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -104,7 +104,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
   void "null input fails validation"() {
     setup:
     def description = new UpsertGoogleAutoscalingPolicyDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

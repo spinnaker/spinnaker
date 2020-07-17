@@ -18,13 +18,14 @@
 package com.netflix.spinnaker.clouddriver.deploy;
 
 import com.netflix.spinnaker.clouddriver.orchestration.VersionedCloudProviderOperation;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import java.util.List;
-import org.springframework.validation.Errors;
 
+@Beta
 public abstract class DescriptionValidator<T> implements VersionedCloudProviderOperation {
   public static String getValidatorName(String description) {
     return description + "Validator";
   }
 
-  public abstract void validate(List priorDescriptions, T description, Errors errors);
+  public abstract void validate(List priorDescriptions, T description, ValidationErrors errors);
 }

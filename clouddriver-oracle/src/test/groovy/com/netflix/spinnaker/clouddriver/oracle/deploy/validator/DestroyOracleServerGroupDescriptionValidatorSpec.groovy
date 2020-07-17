@@ -9,7 +9,6 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.DestroyOracleServerGroupDescription
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -25,7 +24,7 @@ class DestroyOracleServerGroupDescriptionValidatorSpec extends Specification {
   void "invalid description fails validation"() {
     setup:
     def description = new DestroyOracleServerGroupDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -44,7 +43,7 @@ class DestroyOracleServerGroupDescriptionValidatorSpec extends Specification {
       serverGroupName: "my-group-01"
     )
 
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

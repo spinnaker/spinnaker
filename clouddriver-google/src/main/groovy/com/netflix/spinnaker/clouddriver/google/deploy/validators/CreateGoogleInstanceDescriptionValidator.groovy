@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("createGoogleInstanceDescriptionValidator")
 class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<CreateGoogleInstanceDescription> {
@@ -33,7 +33,7 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
 
   @Override
-  void validate(List priorDescriptions, CreateGoogleInstanceDescription description, Errors errors) {
+  void validate(List priorDescriptions, CreateGoogleInstanceDescription description, ValidationErrors errors) {
     def helper = new StandardGceAttributeValidator("createGoogleInstanceDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)

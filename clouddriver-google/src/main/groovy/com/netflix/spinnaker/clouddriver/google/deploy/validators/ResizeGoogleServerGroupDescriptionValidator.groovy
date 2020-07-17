@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @GoogleOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeGoogleServerGroupDescriptionValidator")
@@ -32,7 +32,7 @@ class ResizeGoogleServerGroupDescriptionValidator extends DescriptionValidator<O
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, def description, Errors errors) {
+  void validate(List priorDescriptions, def description, ValidationErrors errors) {
     // If the target server group has an Autoscaler configured the converter will return an
     // UpsertGoogleAutoscalingPolicyDescription instead of a ResizeGoogleServerGroupDescription.
     if (description in UpsertGoogleAutoscalingPolicyDescription) {

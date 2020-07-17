@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.validators
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.AbstractECSDescription
-import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -58,7 +58,7 @@ abstract class AbstractValidatorSpec extends Specification {
     def description = getDescription()
     description.credentials = TestCredential.named('test')
     description.region = 'wrong-region-test'
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     if(testRegion) {
@@ -75,7 +75,7 @@ abstract class AbstractValidatorSpec extends Specification {
     given:
     def description = getNulledDescription()
     def descriptionName = getDescriptionName()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def nullProperties = notNullableProperties()
 
     when:
@@ -91,7 +91,7 @@ abstract class AbstractValidatorSpec extends Specification {
     given:
     def description = getInvalidDescription()
     def descriptionName = getDescriptionName()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     def invalidFields = invalidProperties()
 
@@ -107,7 +107,7 @@ abstract class AbstractValidatorSpec extends Specification {
   void 'should pass validation'() {
     given:
     def description = getDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

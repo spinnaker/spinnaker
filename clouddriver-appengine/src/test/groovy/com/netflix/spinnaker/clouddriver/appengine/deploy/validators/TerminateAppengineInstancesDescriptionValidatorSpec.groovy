@@ -21,9 +21,9 @@ import com.netflix.spinnaker.clouddriver.appengine.model.AppengineInstance
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineInstanceProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -74,7 +74,7 @@ class TerminateAppengineInstancesDescriptionValidatorSpec extends Specification 
         instanceIds: INSTANCE_IDS,
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -90,7 +90,7 @@ class TerminateAppengineInstancesDescriptionValidatorSpec extends Specification 
         instanceIds: ["instance-does-not-exist"],
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -108,7 +108,7 @@ class TerminateAppengineInstancesDescriptionValidatorSpec extends Specification 
         instanceIds: ["instance-missing-fields"],
         credentials: credentials
       )
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -122,7 +122,7 @@ class TerminateAppengineInstancesDescriptionValidatorSpec extends Specification 
   void "null input fails validation"() {
     setup:
      def description = new TerminateAppengineInstancesDescription()
-     def errors = Mock(Errors)
+     def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

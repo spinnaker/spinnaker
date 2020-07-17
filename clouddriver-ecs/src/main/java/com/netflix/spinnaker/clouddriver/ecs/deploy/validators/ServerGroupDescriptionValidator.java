@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.validation.Errors;
 
 public class ServerGroupDescriptionValidator extends CommonValidator {
 
@@ -28,7 +28,7 @@ public class ServerGroupDescriptionValidator extends CommonValidator {
   }
 
   @Override
-  public void validate(List priorDescriptions, Object description, Errors errors) {
+  public void validate(List priorDescriptions, Object description, ValidationErrors errors) {
     ModifyServiceDescription typeDescription = (ModifyServiceDescription) description;
 
     boolean validCredentials = validateCredentials(typeDescription, errors, "credentials");

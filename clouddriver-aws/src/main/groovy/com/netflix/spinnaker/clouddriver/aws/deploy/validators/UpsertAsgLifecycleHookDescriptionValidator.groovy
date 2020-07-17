@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgLifecycleHookDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("upsertAsgLifecycleHookDescriptionValidator")
 class UpsertAsgLifecycleHookDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAsgLifecycleHookDescription> {
 
   @Override
-  void validate(List priorDescriptions, UpsertAsgLifecycleHookDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertAsgLifecycleHookDescription description, ValidationErrors errors) {
     validateRegions(description, [description.region], "upsertAsgLifecycleHookDescription", errors)
 
     if (!description.serverGroupName) {
@@ -48,7 +48,7 @@ class UpsertAsgLifecycleHookDescriptionValidator extends AmazonDescriptionValida
     }
   }
 
-  static void rejectNull(String field, Errors errors) {
+  static void rejectNull(String field, ValidationErrors errors) {
     errors.rejectValue(field, "upsertAsgLifecycleHookDescription.${field}.not.nullable")
   }
 }

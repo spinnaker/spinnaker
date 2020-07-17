@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -29,7 +29,7 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "should fail validation with invalid load balancer name"() {
     setup:
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
     def description = new DeleteAmazonLoadBalancerDescription(regions: ["us-east-1"], credentials: Stub(NetflixAmazonCredentials))
 
     when:
@@ -44,7 +44,7 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     def creds = TestCredential.named('test')
     def description = new DeleteAmazonLoadBalancerDescription(loadBalancerName: "foo--frontend", credentials: creds)
     description.regions = ["us-east-5"]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.TerminateInstanceAndDecrementAsgDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -34,7 +34,7 @@ class TerminateInstanceAndDecrementAsgDescriptionValidatorSpec extends Specifica
   void "empty description fails validation"() {
     setup:
     def description = new TerminateInstanceAndDecrementAsgDescription()
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -49,7 +49,7 @@ class TerminateInstanceAndDecrementAsgDescriptionValidatorSpec extends Specifica
     setup:
     def description = new TerminateInstanceAndDecrementAsgDescription(credentials: TestCredential.named('test'))
     description.region = "us-west-5"
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

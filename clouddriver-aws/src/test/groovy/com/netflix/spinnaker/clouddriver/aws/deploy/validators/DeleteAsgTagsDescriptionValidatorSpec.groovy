@@ -17,7 +17,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAsgTagsDescription
-import org.springframework.validation.Errors
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 
 class DeleteAsgTagsDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
 
@@ -35,7 +35,7 @@ class DeleteAsgTagsDescriptionValidatorSpec extends AbstractConfiguredRegionsVal
     setup:
     def description = new DeleteAsgTagsDescription()
     description.tagKeys = [null]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

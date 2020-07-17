@@ -24,9 +24,9 @@ import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineCluste
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -73,7 +73,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
         credentials: credentials
       )
 
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
       def loadBalancerWithValidAllocationsForDescription = new AppengineLoadBalancer(
         split: new AppengineTrafficSplit(allocations: [(SERVER_GROUP_NAME): 0.5, "another-server-group": 0.5])
@@ -102,7 +102,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
         credentials: credentials
       )
 
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
       def loadBalancerWithInvalidAllocationsForDescription = new AppengineLoadBalancer(
         split: new AppengineTrafficSplit(allocations: [(SERVER_GROUP_NAME): 1])
@@ -134,7 +134,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
         credentials: credentials
       )
 
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -160,7 +160,7 @@ class DisableAppengineDescriptionValidatorSpec extends Specification {
         credentials: credentials
       )
 
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)

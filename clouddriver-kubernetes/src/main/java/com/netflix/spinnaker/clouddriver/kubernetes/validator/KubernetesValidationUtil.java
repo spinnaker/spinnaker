@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.validator;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
@@ -30,14 +31,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.Errors;
 
 @Slf4j
 public class KubernetesValidationUtil {
   private final String context;
-  private final Errors errors;
+  private final ValidationErrors errors;
 
-  public KubernetesValidationUtil(String context, Errors errors) {
+  public KubernetesValidationUtil(String context, ValidationErrors errors) {
     this.context = context;
     this.errors = errors;
   }

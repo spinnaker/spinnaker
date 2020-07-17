@@ -20,8 +20,8 @@ import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -40,7 +40,7 @@ class ResizeAsgDescriptionValidatorSpec extends Specification {
       )],
       credentials: Stub(NetflixAmazonCredentials)
     )
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -60,7 +60,7 @@ class ResizeAsgDescriptionValidatorSpec extends Specification {
     setup:
     def description = new ResizeAsgDescription()
     description.credentials = TestCredential.named('test')
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)
@@ -76,7 +76,7 @@ class ResizeAsgDescriptionValidatorSpec extends Specification {
     description.asgs = [new ResizeAsgDescription.AsgTargetDescription(
       region: "us-east-5"
     )]
-    def errors = Mock(Errors)
+    def errors = Mock(ValidationErrors)
 
     when:
     validator.validate([], description, errors)

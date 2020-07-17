@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.dcos.deploy.validators.servergroup
 
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.DeployDcosServerGroupDescription
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.validation.Errors
 import spock.lang.Subject
 
 class DeployDcosServerGroupDescriptionValidatorSpec extends BaseSpecification {
@@ -38,7 +38,7 @@ class DeployDcosServerGroupDescriptionValidatorSpec extends BaseSpecification {
     setup:
     def description = new DeployDcosServerGroupDescription(account: null, dcosCluster: null, credentials: null, application: null, desiredCapacity: -1,
                                                            cpus: -1, mem: -1, disk: -1, gpus: -1)
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
     when:
     validator.validate([], description, errorsMock)
     then:
@@ -60,7 +60,7 @@ class DeployDcosServerGroupDescriptionValidatorSpec extends BaseSpecification {
     setup:
     def description = new DeployDcosServerGroupDescription(region: '-iNv.aLiD-', credentials: defaultCredentialsBuilder().account(BAD_ACCOUNT).build(),
                                                            application: '-iNv.aLiD-', dcosCluster: "", desiredCapacity: 1, cpus: 1, mem: 512, disk: 0, gpus: 0)
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
     when:
     validator.validate([], description, errorsMock)
     then:
@@ -82,7 +82,7 @@ class DeployDcosServerGroupDescriptionValidatorSpec extends BaseSpecification {
     setup:
     def description = new DeployDcosServerGroupDescription(region: DEFAULT_REGION, dcosCluster: DEFAULT_REGION, credentials: testCredentials, application: "test",
                                                            desiredCapacity: 1, cpus: 1, mem: 512, disk: 0, gpus: 0)
-    def errorsMock = Mock(Errors)
+    def errorsMock = Mock(ValidationErrors)
     when:
     validator.validate([], description, errorsMock)
     then:

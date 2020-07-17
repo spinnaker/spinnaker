@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -49,7 +49,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
                                                                    region: REGION,
                                                                    tags: TAGS,
                                                                    accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -64,7 +64,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
                                                                    region: REGION,
                                                                    tags: [],
                                                                    accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -79,7 +79,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
                                                                    region: REGION,
                                                                    tags: null,
                                                                    accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -94,7 +94,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
                                                                    region: REGION,
                                                                    tags: TAGS + "",
                                                                    accountName: ACCOUNT_NAME)
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
@@ -106,7 +106,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidatorSpec extends Specification 
   void "null input fails validation"() {
     setup:
       def description = new UpsertGoogleServerGroupTagsDescription()
-      def errors = Mock(Errors)
+      def errors = Mock(ValidationErrors)
 
     when:
       validator.validate([], description, errors)
