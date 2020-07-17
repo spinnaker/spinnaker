@@ -29,9 +29,9 @@ type getProjectPipelinesOptions struct {
 }
 
 var (
-	getProjectShort   = "Get the pipelines for the specified project"
-	getProjectLong    = "Get the pipelines for the specified project"
-	getProjectExample = "usage: spin project get-pipelines [options] project-name"
+	getPipelinesProjectShort   = "Get the pipelines for the specified project"
+	getPipelinesProjectLong    = "Get the pipelines for the specified project"
+	getPipelinesProjectExample = "usage: spin project get-pipelines [options] project-name"
 )
 
 func NewGetPipelinesCmd(prjOptions *projectOptions) *cobra.Command {
@@ -42,9 +42,9 @@ func NewGetPipelinesCmd(prjOptions *projectOptions) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "get-pipelines",
-		Short:   getProjectShort,
-		Long:    getProjectLong,
-		Example: getProjectExample,
+		Short:   getPipelinesProjectShort,
+		Long:    getPipelinesProjectLong,
+		Example: getPipelinesProjectExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return getProjectPipelines(cmd, options, args)
 		},
