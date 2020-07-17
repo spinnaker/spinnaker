@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type getOptions struct {
+type getProjectPipelinesOptions struct {
 	*projectOptions
 	expand bool
 }
@@ -35,7 +35,7 @@ var (
 )
 
 func NewGetPipelinesCmd(prjOptions *projectOptions) *cobra.Command {
-	options := &getOptions{
+	options := &getProjectPipelinesOptions{
 		projectOptions: prjOptions,
 		expand:         false,
 	}
@@ -53,7 +53,7 @@ func NewGetPipelinesCmd(prjOptions *projectOptions) *cobra.Command {
 	return cmd
 }
 
-func getProjectPipelines(cmd *cobra.Command, options *getOptions, args []string) error {
+func getProjectPipelines(cmd *cobra.Command, options *getProjectPipelinesOptions, args []string) error {
 	projectName, err := util.ReadArgsOrStdin(args)
 	if err != nil {
 		return err
