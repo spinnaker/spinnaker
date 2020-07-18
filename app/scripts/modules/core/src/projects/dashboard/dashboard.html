@@ -1,6 +1,6 @@
 <div ng-if="!vm.project.notFound" class="project-dashboard container">
   <div class="row">
-    <div class="col-md-7">
+    <div class="col-md-7 project-column">
       <h3>
         Application Status
         <component-refresher
@@ -17,7 +17,7 @@
       <h4 ng-if="!vm.project.config.clusters.length">No clusters configured</h4>
       <h4 ng-if="vm.state.clusters.error">There was a problem loading the clusters for this project.</h4>
     </div>
-    <div class="col-md-5">
+    <div class="col-md-5 project-column">
       <h3>
         Pipeline Status
         <component-refresher
