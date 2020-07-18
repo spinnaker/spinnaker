@@ -28,7 +28,7 @@ auth:
     authUrl: https://accounts.google.com/o/oauth2/auth
     tokenUrl: https://accounts.google.com/o/oauth2/token
 
-    # See https://www.spinnaker.io/setup/security/authentication/oauth/providers/
+    # See https://spinnaker.io/setup/security/authentication/oauth/#oauth-20-providers
     # for examples acquiring clientId/clientSecret.
     clientId:
     clientSecret:
