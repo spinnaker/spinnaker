@@ -23,37 +23,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type getOptions struct {
+type getProjectPipelinesOptions struct {
 	*projectOptions
 	expand bool
 }
 
 var (
-	getProjectShort   = "Get the pipelines for the specified project"
-	getProjectLong    = "Get the pipelines for the specified project"
-	getProjectExample = "usage: spin project get-pipelines [options] project-name"
+	getPipelinesProjectShort   = "Get the pipelines for the specified project"
+	getPipelinesProjectLong    = "Get the pipelines for the specified project"
+	getPipelinesProjectExample = "usage: spin project get-pipelines [options] project-name"
 )
 
-func NewGetCmd(prjOptions *projectOptions) *cobra.Command {
-	options := &getOptions{
+func NewGetPipelinesCmd(prjOptions *projectOptions) *cobra.Command {
+	options := &getProjectPipelinesOptions{
 		projectOptions: prjOptions,
 		expand:         false,
 	}
 
 	cmd := &cobra.Command{
 		Use:     "get-pipelines",
-		Short:   getProjectShort,
-		Long:    getProjectLong,
-		Example: getProjectExample,
+		Short:   getPipelinesProjectShort,
+		Long:    getPipelinesProjectLong,
+		Example: getPipelinesProjectExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return getProject(cmd, options, args)
+			return getProjectPipelines(cmd, options, args)
 		},
 	}
 
 	return cmd
 }
 
-func getProject(cmd *cobra.Command, options *getOptions, args []string) error {
+func getProjectPipelines(cmd *cobra.Command, options *getProjectPipelinesOptions, args []string) error {
 	projectName, err := util.ReadArgsOrStdin(args)
 	if err != nil {
 		return err
