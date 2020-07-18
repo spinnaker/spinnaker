@@ -1,0 +1,51 @@
+pull_request_rules:
+  - name: Automatically merge on CI success and review
+    conditions:
+      - base=master
+      - status-success=build
+      - 'label=ready to merge'
+      - 'approved-reviews-by=@oss-approvers'
+    actions:
+      merge:
+        method: squash
+        strict: smart
+  - name: Automatically self merge on CI success
+    conditions:
+      - base=master
+      - status-success=build
+      - 'label=ready to merge'
+      - 'label=self merge'
+    actions:
+      merge:
+        method: squash
+        strict: smart
+  - name: Automatically rebase and merge on CI success and review
+    conditions:
+      - base=master
+      - status-success=build
+      - 'label=ready to rebase'
+      - 'approved-reviews-by=@oss-approvers'
+    actions:
+      merge:
+        method: rebase
+        strict: smart
+  - name: Automatically rebase and self merge on CI success
+    conditions:
+      - base=master
+      - status-success=build
+      - 'label=ready to rebase'
+      - 'label=self merge'
+    actions:
+      merge:
+        method: rebase
+        strict: smart
+  - name: Automatically merge release branch changes on Travis CI success and release manager review
+    conditions:
+      - base~=^release-
+      - status-success=build
+      - 'label=ready to merge'
+      - 'approved-reviews-by=@release-managers'
+    actions:
+      merge:
+        method: squash
+        strict: smart
