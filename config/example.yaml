@@ -36,6 +36,14 @@ auth:
       - scope1
       - scope2
 
+    # To set a cached token, follow the following format:
+    # note that the tags below must follow the upstream oauth package json tags given in https://godoc.org/golang.org/x/oauth2#Token
+    # and cachedToken must follow the yaml tags set authconfig.go
+    cachedToken:
+      access_token: <token>
+      token_type: bearer
+      refresh_token: <token>
+
   iap:
     # check detailed config in https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
     # The following three entries are mandatory.
