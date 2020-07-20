@@ -132,7 +132,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 	updatedConfig := false
 	updatedMessage := ""
 
-	if gateClient.Config.Auth.OAuth2 != nil {
+	if gateClient.Config.Auth != nil && gateClient.Config.Auth.OAuth2 != nil {
 		updatedConfig, err = authenticateOAuth2(ui.Output, httpClient, gateClient.GateEndpoint(), gateClient.Config.Auth)
 		if err != nil {
 			ui.Error("OAuth2 Authentication failed.")
@@ -141,7 +141,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		updatedMessage = "Caching oauth2 token."
 	}
 
-	if gateClient.Config.Auth.GoogleServiceAccount != nil {
+	if gateClient.Config.Auth != nil && gateClient.Config.Auth.GoogleServiceAccount != nil {
 		updatedConfig, err = authenticateGoogleServiceAccount(httpClient, gateClient.GateEndpoint(), gateClient.Config.Auth)
 		if err != nil {
 			ui.Error(fmt.Sprintf("Google service account authentication failed: %v", err))
@@ -155,7 +155,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		_ = gateClient.writeYAMLConfig()
 	}
 
-	if gateClient.Config.Auth.Ldap != nil {
+	if gateClient.Config.Auth != nil && gateClient.Config.Auth.Ldap != nil {
 		if err = authenticateLdap(ui.Output, httpClient, gateClient.GateEndpoint(), gateClient.Config.Auth); err != nil {
 			ui.Error("LDAP Authentication Failed")
 			return nil, unwrapErr(ui, err)
