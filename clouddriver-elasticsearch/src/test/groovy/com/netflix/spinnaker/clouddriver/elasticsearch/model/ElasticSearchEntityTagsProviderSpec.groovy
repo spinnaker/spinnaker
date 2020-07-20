@@ -24,8 +24,10 @@ import com.netflix.spinnaker.config.ElasticSearchConfig
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
 import io.searchbox.client.JestClient
+import io.searchbox.client.JestResult
 import io.searchbox.indices.CreateIndex
 import io.searchbox.indices.DeleteIndex
+import io.searchbox.indices.Refresh
 import io.searchbox.indices.template.PutTemplate
 import org.springframework.context.ApplicationContext
 import org.testcontainers.elasticsearch.ElasticsearchContainer
@@ -85,7 +87,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     "index": {
       "number_of_shards": "1",
       "number_of_replicas": "1",
-      "refresh_interval": "1s"
+      "refresh_interval": "-1"
     }
   },
   "mappings": {
@@ -185,6 +187,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     given:
     def entityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1", "tag2": "value2"])
     entityTagsProvider.index(entityTags)
+    refreshIndices()
     entityTagsProvider.verifyIndex(entityTags)
 
     expect:
@@ -202,6 +205,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     entityTags.entityRef.application = application
 
     entityTagsProvider.index(entityTags)
+    refreshIndices()
     entityTagsProvider.verifyIndex(entityTags)
 
     expect:
@@ -219,10 +223,12 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     given:
     def entityTags = buildEntityTags("aws:cluster:clouddriver-main:myaccount:*", ["tag3": "value3"])
     entityTagsProvider.index(entityTags)
+    refreshIndices()
     entityTagsProvider.verifyIndex(entityTags)
 
     def moreEntityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1"])
     entityTagsProvider.index(moreEntityTags)
+    refreshIndices()
     entityTagsProvider.verifyIndex(moreEntityTags)
 
     expect:
@@ -286,6 +292,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
 
     when:
     entityTagsProvider.reindex()
+    refreshIndices()
 
     then:
     1 * front50Service.getAllEntityTags(true) >> { return allEntityTags }
@@ -304,11 +311,13 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     ]
     allEntityTags.each {
       entityTagsProvider.index(it)
+      refreshIndices()
       entityTagsProvider.verifyIndex(it)
     }
 
     when:
     entityTagsProvider.bulkDelete(allEntityTags)
+    refreshIndices()
 
     then:
     verifyNotIndexed(allEntityTags[0])
@@ -326,6 +335,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     ]
     allEntityTags.each {
       entityTagsProvider.index(it)
+      refreshIndices()
       entityTagsProvider.verifyIndex(it)
     }
 
@@ -353,7 +363,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
 
     when:
     entityTagsProvider.deleteByNamespace("my_namespace", false, false) // remove from elasticsearch (only!)
-    Thread.sleep(1000)
+    refreshIndices()
 
     def allIndexedEntityTags = entityTagsProvider.getAll(
       null, null, null, null, null, null, null, null, [:], 100
@@ -383,14 +393,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   }
 
   boolean verifyNotIndexed(EntityTags entityTags) {
-    return (1..5).any {
-      if (!entityTagsProvider.get(entityTags.id).isPresent()) {
-        return true
-      }
-
-      Thread.sleep(500)
-      return false
-    }
+    return !entityTagsProvider.get(entityTags.id).isPresent()
   }
 
   private static EntityTags buildEntityTags(String id, Map<String, String> tags, String namespace = "default") {
@@ -406,5 +409,13 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
         entityId: idSplit[2]
       )
     )
+  }
+
+  private void refreshIndices() {
+    JestResult result = jestClient.execute(new Refresh.Builder().build())
+    if (!result.isSucceeded()) {
+      throw new ElasticSearchException(
+        String.format("Failed to refresh index: %s", result.getErrorMessage()))
+    }
   }
 }
