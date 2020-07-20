@@ -1,5 +1,6 @@
 import com.adarshr.gradle.testlogger.TestLoggerExtension
 import com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -18,8 +19,8 @@ buildscript {
 plugins {
   id("nebula.kotlin") version "1.3.72" apply false
   id("org.jetbrains.kotlin.plugin.allopen") version "1.3.72" apply false
-  id("com.adarshr.test-logger") version "2.0.0" apply false
-  id("com.github.ben-manes.versions") version "0.28.0" apply false
+  id("com.adarshr.test-logger") version "2.1.0" apply false
+  id("com.github.ben-manes.versions") version "0.28.0"
   jacoco
 }
 
@@ -118,7 +119,6 @@ subprojects {
   }
 }
 
-
 // Based on https://gist.github.com/tsjensen/d8b9ab9e6314ae2f63f4955c44399dad#gistcomment-3220383
 fun codeCoverageProjects() = subprojects + project
 
@@ -171,6 +171,15 @@ task<JacocoReport>("jacocoAggregateReport") {
     logger.debug("Adding jacoco report directories from: ${reportTasks.mapNotNull { ":${it.project.name}:${it.name}" }}")
     classDirectories.from(project.files(reportTasks.mapNotNull { it.classDirectories }))
     sourceDirectories.from(project.files(reportTasks.mapNotNull { it.sourceDirectories }))
+  }
+}
+
+tasks.withType<DependencyUpdatesTask> {
+  revision = "release"
+  checkConstraints = true
+  gradleReleaseChannel = "current"
+  rejectVersionIf {
+    candidate.version.contains(Regex("""-(M|eap|rc|alpha|beta)-?[\d-]+$"""))
   }
 }
 
