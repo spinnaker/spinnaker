@@ -909,29 +909,31 @@ const Rules = SortableContainer((props: IRulesProps) => (
         />
       </td>
     </tr>
-    {props.listener.rules.map((rule, index) => (
-      <Rule
-        key={index}
-        rule={rule}
-        addCondition={props.addCondition}
-        handleConditionFieldChanged={props.handleConditionFieldChanged}
-        handleConditionValueChanged={props.handleConditionValueChanged}
-        handleRuleActionTargetChanged={props.handleRuleActionTargetChanged}
-        handleRuleActionTypeChanged={props.handleRuleActionTypeChanged}
-        oidcConfigChanged={props.oidcConfigChanged}
-        redirectConfigChanged={props.redirectConfigChanged}
-        removeCondition={props.removeCondition}
-        authenticateRuleToggle={props.authenticateRuleToggle}
-        removeRule={props.removeRule}
-        targetGroups={props.targetGroups}
-        oidcConfigs={props.oidcConfigs}
-        listener={props.listener}
-        index={index}
-        ruleIndex={index}
-        configureOidcClient={props.configureOidcClient}
-        configureRedirect={props.configureRedirect}
-      />
-    ))}
+    {props.listener.rules
+      .sort((a, b) => (a.priority as number) - (b.priority as number))
+      .map((rule, index) => (
+        <Rule
+          key={index}
+          rule={rule}
+          addCondition={props.addCondition}
+          handleConditionFieldChanged={props.handleConditionFieldChanged}
+          handleConditionValueChanged={props.handleConditionValueChanged}
+          handleRuleActionTargetChanged={props.handleRuleActionTargetChanged}
+          handleRuleActionTypeChanged={props.handleRuleActionTypeChanged}
+          oidcConfigChanged={props.oidcConfigChanged}
+          redirectConfigChanged={props.redirectConfigChanged}
+          removeCondition={props.removeCondition}
+          authenticateRuleToggle={props.authenticateRuleToggle}
+          removeRule={props.removeRule}
+          targetGroups={props.targetGroups}
+          oidcConfigs={props.oidcConfigs}
+          listener={props.listener}
+          index={index}
+          ruleIndex={index}
+          configureOidcClient={props.configureOidcClient}
+          configureRedirect={props.configureRedirect}
+        />
+      ))}
     <tr className="not-sortable">
       <td colSpan={5}>
         <button type="button" className="add-new col-md-12" onClick={() => props.addRule(props.listener)}>
