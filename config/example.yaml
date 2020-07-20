@@ -28,13 +28,20 @@ auth:
     authUrl: https://accounts.google.com/o/oauth2/auth
     tokenUrl: https://accounts.google.com/o/oauth2/token
 
-    # See https://www.spinnaker.io/setup/security/authentication/oauth/providers/
+    # See https://spinnaker.io/setup/security/authentication/oauth/#oauth-20-providers
     # for examples acquiring clientId/clientSecret.
     clientId:
     clientSecret:
     scopes:
       - scope1
       - scope2
+
+    # To set a cached token, follow the following format:
+    # note that these yaml keys must match the golang struct tags exactly because of yaml.UnmarshalStrict
+    cachedToken:
+      access_token: <token>
+      token_type: bearer
+      refresh_token: <token>
 
   iap:
     # check detailed config in https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
