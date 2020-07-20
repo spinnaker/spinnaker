@@ -169,50 +169,52 @@ class SqlStorageService(
     // using a lower `chunkSize` to avoid exceeding default packet size limits.
     allItems.chunked(100).forEach { items ->
       try {
-        jooq.transactional(sqlRetryProperties.transactions) { ctx ->
-          try {
-            ctx.batch(
-              items.map { item ->
-                val insertPairs = definitionsByType[objectType]!!.getInsertPairs(
-                  objectMapper, item.id.toLowerCase(), item
-                )
-                val updatePairs = definitionsByType[objectType]!!.getUpdatePairs(insertPairs)
-
-                ctx.insertInto(
-                  table(definitionsByType[objectType]!!.tableName),
-                  *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
-                )
-                  .values(insertPairs.values)
-                  .onDuplicateKeyUpdate()
-                  .set(updatePairs.mapKeys { DSL.field(it.key) })
-              }
-            ).execute()
-          } catch (e: SQLDialectNotSupportedException) {
-            for (item in items) {
-              storeSingleObject(objectType, item.id.toLowerCase(), item)
-            }
-          }
-
-          if (definitionsByType[objectType]!!.supportsHistory) {
+        withPool(poolName) {
+          jooq.transactional(sqlRetryProperties.transactions) { ctx ->
             try {
               ctx.batch(
                 items.map { item ->
-                  val historyPairs = definitionsByType[objectType]!!.getHistoryPairs(
-                    objectMapper, clock, item.id.toLowerCase(), item
+                  val insertPairs = definitionsByType[objectType]!!.getInsertPairs(
+                    objectMapper, item.id.toLowerCase(), item
                   )
+                  val updatePairs = definitionsByType[objectType]!!.getUpdatePairs(insertPairs)
 
-                  ctx
-                    .insertInto(
-                      table(definitionsByType[objectType]!!.historyTableName),
-                      *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
-                    )
-                    .values(historyPairs.values)
-                    .onDuplicateKeyIgnore()
+                  ctx.insertInto(
+                    table(definitionsByType[objectType]!!.tableName),
+                    *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
+                  )
+                    .values(insertPairs.values)
+                    .onDuplicateKeyUpdate()
+                    .set(updatePairs.mapKeys { DSL.field(it.key) })
                 }
               ).execute()
             } catch (e: SQLDialectNotSupportedException) {
               for (item in items) {
-                storeSingleObjectHistory(objectType, item.id.toLowerCase(), item)
+                storeSingleObject(objectType, item.id.toLowerCase(), item)
+              }
+            }
+
+            if (definitionsByType[objectType]!!.supportsHistory) {
+              try {
+                ctx.batch(
+                  items.map { item ->
+                    val historyPairs = definitionsByType[objectType]!!.getHistoryPairs(
+                      objectMapper, clock, item.id.toLowerCase(), item
+                    )
+
+                    ctx
+                      .insertInto(
+                        table(definitionsByType[objectType]!!.historyTableName),
+                        *historyPairs.keys.map { DSL.field(it) }.toTypedArray()
+                      )
+                      .values(historyPairs.values)
+                      .onDuplicateKeyIgnore()
+                  }
+                ).execute()
+              } catch (e: SQLDialectNotSupportedException) {
+                for (item in items) {
+                  storeSingleObjectHistory(objectType, item.id.toLowerCase(), item)
+                }
               }
             }
           }
