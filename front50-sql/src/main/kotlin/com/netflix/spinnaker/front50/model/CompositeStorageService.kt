@@ -27,7 +27,7 @@ class CompositeStorageService(
   private val registry: Registry,
   private val primary: StorageService,
   private val previous: StorageService
-) : StorageService {
+) : StorageService, BulkStorageService, AdminOperations {
 
   companion object {
     private val log = LoggerFactory.getLogger(CompositeStorageService::class.java)
@@ -244,4 +244,22 @@ class CompositeStorageService(
       "spinnaker.migration.compositeStorageService.reads.$type",
       false
     )
+
+  override fun <T : Timestamped?> storeObjects(objectType: ObjectType?, items: MutableCollection<T>?) {
+    if (previous is BulkStorageService) {
+      previous.storeObjects(objectType, items)
+    }
+    if (primary is BulkStorageService) {
+      primary.storeObjects(objectType, items)
+    }
+  }
+
+  override fun recover(operation: AdminOperations.Recover?) {
+    if (previous is AdminOperations) {
+      previous.recover(operation)
+    }
+    if (primary is AdminOperations) {
+      primary.recover(operation)
+    }
+  }
 }

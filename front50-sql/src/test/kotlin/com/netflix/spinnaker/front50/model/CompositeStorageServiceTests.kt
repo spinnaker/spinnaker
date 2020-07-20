@@ -28,16 +28,20 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifyAll
+import io.mockk.verifyOrder
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 
 internal object CompositeStorageServiceTests : JUnit5Minutests {
   val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true)
-  val primary: StorageService = mockk(relaxUnitFun = true)
-  val previous: StorageService = mockk(relaxUnitFun = true)
+  val primary: SqlStorageService = mockk(relaxUnitFun = true)
+  val previous: SqlStorageService = mockk(relaxUnitFun = true)
 
   val subject = CompositeStorageService(dynamicConfigService, NoopRegistry(), primary, previous)
+
+  val application: Application = Application()
+  val operation: AdminOperations.Recover = AdminOperations.Recover()
 
   fun tests() = rootContext {
     after {
@@ -127,6 +131,24 @@ internal object CompositeStorageServiceTests : JUnit5Minutests {
           primary.loadObject<Timestamped>(ObjectType.APPLICATION, "application001")
           previous wasNot Called
         }
+      }
+    }
+
+    test("should call both 'primary' and 'secondary' for bulk store objects") {
+      subject.storeObjects(ObjectType.APPLICATION, mutableListOf(application))
+
+      verifyOrder {
+        previous.storeObjects(ObjectType.APPLICATION, mutableListOf(application))
+        primary.storeObjects(ObjectType.APPLICATION, mutableListOf(application))
+      }
+    }
+
+    test("should call both 'primary' and 'secondary' for restore operations") {
+      subject.recover(operation)
+
+      verifyOrder {
+        previous.recover(operation)
+        primary.recover(operation)
       }
     }
   }
