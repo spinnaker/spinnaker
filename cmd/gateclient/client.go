@@ -227,8 +227,8 @@ func userConfig(gateClient *GatewayClient, configLocation string) error {
 
 	yamlFile, err := ioutil.ReadFile(gateClient.configLocation)
 	// Please note that https://github.com/spinnaker/spin/pull/243 introduced better coding standards and
-	// as a result, your auth config needs to match the yaml tags through all the config structs
-	// e.g. the yaml tags for oauth in the config are set in the local oauth package here
+	// as a result, your auth config needs to match the struct tags through all the config structs
+	// e.g. the struct tags for oauth in the config are set in the local oauth package here
 	// but unmarshal to an upstream oauth package, so the cached token needs to match
 	// https://godoc.org/golang.org/x/oauth2#Token
 	if yamlFile != nil {
