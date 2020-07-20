@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.api.events.Event
+import com.netflix.spinnaker.echo.api.events.NotificationAgent
+import com.netflix.spinnaker.echo.api.events.NotificationParameter
 import com.netflix.spinnaker.echo.controller.NotificationController
 import com.netflix.spinnaker.echo.notification.InteractiveNotificationCallbackHandler.SpinnakerService
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -53,8 +56,9 @@ class NotificationControllerSpec extends Specification {
       Mock(Environment)
     )
     notificationController = new NotificationController(
-      notificationServices: [ interactiveNotificationService, notificationService ],
-      interactiveNotificationCallbackHandler: interactiveNotificationCallbackHandler
+      [interactiveNotificationService, notificationService],
+      interactiveNotificationCallbackHandler,
+      Optional.of([new MyNotificationAgent()]),
     )
   }
 
@@ -176,7 +180,40 @@ class NotificationControllerSpec extends Specification {
     response == expectedResponse
   }
 
+  void 'serves notification agent metadata'() {
+    when:
+    def response = notificationController.getNotificationTypeMetadata()
+
+    then:
+    response.size() == 1
+    response[0] instanceof MyNotificationAgent
+  }
+
   static Response mockResponse() {
     new Response("url", 200, "nothing", emptyList(), new TypedByteArray("application/json", "response".bytes))
+  }
+
+  static class MyNotificationAgent implements NotificationAgent {
+    @Override
+    List<NotificationParameter> getParameters() {
+      return [[
+                type        : "string",
+                name        : "my-parameter",
+                description : "This is an extension notification parameter",
+                label       : "My Parameter",
+                defaultValue: "wow!"
+              ] as NotificationParameter]
+    }
+
+    @Override
+    String getNotificationType() {
+      return "my-notification-agent"
+    }
+
+    @Override
+    void sendNotifications(Map<String, Object> notificationConfig,
+                           String application,
+                           Event event,
+                           String status) {}
   }
 }

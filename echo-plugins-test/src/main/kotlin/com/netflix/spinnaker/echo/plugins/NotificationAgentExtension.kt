@@ -18,10 +18,12 @@ package com.netflix.spinnaker.echo.plugins
 
 import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.api.events.NotificationAgent
+import com.netflix.spinnaker.echo.api.events.NotificationParameter
 import org.pf4j.Extension
 
 @Extension
 class NotificationAgentExtension : NotificationAgent {
   override fun getNotificationType() = "extension_notification"
   override fun sendNotifications(notification: MutableMap<String, Any>, application: String, event: Event, status: String) {}
+  override fun getParameters() = emptyList<NotificationParameter>()
 }

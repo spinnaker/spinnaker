@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.api.events;
 
 import com.netflix.spinnaker.kork.annotations.Alpha;
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 
@@ -40,4 +41,11 @@ public interface NotificationAgent extends SpinnakerExtensionPoint {
       @Nonnull String application,
       @Nonnull Event event,
       @Nonnull String status);
+
+  /**
+   * Notification parameter definitions. Users set these values via Spinnaker's UI; the parameters
+   * will be passed through {@link NotificationAgent#sendNotifications} as key-value pairs.
+   */
+  @Nonnull
+  List<NotificationParameter> getParameters();
 }
