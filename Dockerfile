@@ -6,8 +6,6 @@ COPY ./ ./
 
 RUN ./build.sh --go-os linux --go-arch amd64 --version "${VERSION:-}"
 
-
-
 FROM alpine
 
 RUN apk update \
