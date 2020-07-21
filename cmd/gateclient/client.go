@@ -546,7 +546,7 @@ func authenticateLdap(output func(string), httpClient *http.Client, endpoint str
 	return nil
 }
 
-// writeYAMLConfig writes an updated YAML configuration file to the reciever's config file location.
+// writeYAMLConfig writes an updated YAML configuration file to the receiver's config file location.
 // It returns an error, but the error may be ignored.
 func (m *GatewayClient) writeYAMLConfig() error {
 	// Write updated config file with u=rw,g=,o= permissions by default.
