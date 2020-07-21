@@ -18,11 +18,13 @@ package com.netflix.spinnaker.config;
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory;
 import com.netflix.spinnaker.kork.plugins.sdk.serde.SerdeServiceSdkFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SerdeSdkConfiguration {
 
+  @Bean
   public static SdkFactory serdeServiceSdkFactory(ApplicationContext applicationContext) {
     return new SerdeServiceSdkFactory(applicationContext);
   }

@@ -50,11 +50,11 @@ class LogInvocationAspect : InvocationAspect<LogInvocationState> {
       methodName = method.name
     )
 
-    log.trace("Invoking method={} on extension={}", logInvocationState.methodName,
-      logInvocationState.extensionName)
-
     setOrRemoveMdc(Header.PLUGIN_ID.header, descriptor.pluginId)
     setOrRemoveMdc(Header.PLUGIN_EXTENSION.header, logInvocationState.extensionName)
+
+    log.trace("Invoking method={} on extension={}", logInvocationState.methodName,
+      logInvocationState.extensionName)
 
     return logInvocationState
   }
