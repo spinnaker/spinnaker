@@ -160,8 +160,10 @@ export const ClusterFilters = ({ app }: IClusterFiltersProps) => {
   };
 
   React.useEffect(() => {
-    updateClusterGroups();
-  }, [serverGroupData.length, tags.length]);
+    if (clustersLoaded) {
+      updateClusterGroups();
+    }
+  }, [clustersLoaded, tags.length]);
 
   return (
     <div className="insight-filter-content">

@@ -130,8 +130,10 @@ export const SecurityGroupFilters = ({ app }: ISecurityGroupFiltersProps) => {
   };
 
   React.useEffect(() => {
-    updateSecurityGroups();
-  }, [securityGroupData.length, tags.length]);
+    if (securityGroupsLoaded) {
+      updateSecurityGroups();
+    }
+  }, [securityGroupsLoaded, tags.length]);
 
   return (
     <div className="insight-filter-content">
