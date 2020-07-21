@@ -73,7 +73,7 @@ function process_args() {
         ;;
       *)
         echo "ERROR: Unknown argument '$key'"
-        exit -1
+        exit 1
     esac
   done
 }
@@ -232,51 +232,10 @@ usage: $0 [-y] [--version=<version>] [--user=<user>]
 EOF
 }
 
-function install_java() {
-  set +e
-  local java_version=$(java -version 2>&1 head -1)
-  set -e
+function check_java() {
 
-  if [[ "$java_version" == *1.8* ]]; then
-    echo "Java is already installed & at the right version"
-    return 0;
-  fi
-
-  if [ ! -f /etc/os-release ]; then
-    >&2 "Unable to determine OS platform (no /etc/os-release file)"
-    exit 1
-  fi
-
-  source /etc/os-release
-
-  if [ "$ID" = "ubuntu" ]; then
-    echo "Running ubuntu $VERSION_ID"
-    # Java 8
-    # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-    add-apt-repository -y ppa:openjdk-r/ppa
-    apt-get update ||:
-
-    apt-get install -y --force-yes openjdk-8-jre
-
-    # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
-    # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
-    # the JRE relies on the ca-certificates-java package, which itself relies on the JRE. D'oh!
-    # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
-    # failure in Clouddriver.
-    dpkg --purge --force-depends ca-certificates-java
-    apt-get install -y ca-certificates-java
-  elif [ "$ID" = "debian" ] && [ "$VERSION_ID" = "8" ]; then
-    echo "Running debian 8 (jessie)"
-    apt install -yt jessie-backports openjdk-8-jre-headless ca-certificates-java
-  elif [ "$ID" = "debian" ] && [ "$VERSION_ID" = "9" ]; then
-    echo "Running debian 9 (stretch)"
-    apt install -yt stretch-backports openjdk-8-jre-headless ca-certificates-java
-  elif [ "$ID" = "arch" ] || [ "$ID_LIKE" = "arch" ]; then
-    echo "Running Arch Linux based distro ($PRETTY_NAME)"
-    pacman -Sy --noconfirm java-runtime=8 ca-certificates-utils
-  else
-    >&2 echo "Distribution $PRETTY_NAME is not supported yet - please file an issue"
-    >&2 echo "  https://github.com/spinnaker/halyard/issues"
+  if ! which java 2>&1 > /dev/null; then
+    echo "Couldn't find a 'java' binary in your \$PATH. Halyard requires Java to run."
     exit 1
   fi
 }
@@ -380,7 +339,7 @@ check_migration_needed
 process_args $@
 configure_defaults
 
-install_java
+check_java
 install_halyard
 
 su -l -c "hal -v" -s /bin/bash $HAL_USER
