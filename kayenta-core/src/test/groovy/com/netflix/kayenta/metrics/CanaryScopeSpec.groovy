@@ -17,10 +17,9 @@
 package com.netflix.kayenta.metrics
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties
 import com.netflix.kayenta.canary.CanaryScope
 import com.netflix.kayenta.config.KayentaConfiguration
-import com.netflix.kayenta.retrofit.config.RetrofitClientConfiguration
-import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -58,7 +57,7 @@ class CanaryScopeSpec extends Specification {
 
   private ObjectMapper myObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
-    KayentaConfiguration.configureObjectMapperFeatures(objectMapper);
+    KayentaConfiguration.configureObjectMapperFeatures(objectMapper, new KayentaSerializationConfigurationProperties());
     return objectMapper;
   }
 

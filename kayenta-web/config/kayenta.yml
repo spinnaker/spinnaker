@@ -157,6 +157,11 @@ kayenta:
       attempts: 10
       backoffPeriodMultiplierMs: 1000
 
+  # Set the serialization options for springboot.jackson
+  serialization:
+    writeDatesAsTimestamps: false
+    writeDurationsAsTimestamps: false
+
 management.endpoints.web.exposure.include: '*'
 management.endpoint.health.show-details: always
 

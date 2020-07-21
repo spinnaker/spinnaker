@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
+import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MapBackedMetricsServiceRepository;
 import com.netflix.kayenta.metrics.MetricSetMixerService;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -114,15 +116,24 @@ public class KayentaConfiguration {
 
   @Autowired
   public void objectMapper(
-      ObjectMapper mapper, List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators) {
-    configureObjectMapper(mapper, subtypeLocators);
+      ObjectMapper mapper,
+      List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
+      KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
+    configureObjectMapper(mapper, subtypeLocators, kayentaSerializationConfigurationProperties);
   }
 
-  public static void configureObjectMapperFeatures(ObjectMapper objectMapper) {
+  public static void configureObjectMapperFeatures(
+      ObjectMapper objectMapper,
+      KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
     objectMapper
         .setSerializationInclusion(NON_NULL)
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        .configure(
+            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
+            kayentaSerializationConfigurationProperties.isWriteDatesAsTimestamps())
+        .configure(
+            SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS,
+            kayentaSerializationConfigurationProperties.isWriteDurationsAsTimestamps());
 
     JavaTimeModule module = new JavaTimeModule();
     objectMapper.registerModule(module);
@@ -130,8 +141,15 @@ public class KayentaConfiguration {
 
   private void configureObjectMapper(
       ObjectMapper objectMapper,
-      List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators) {
+      List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
+      KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
     new ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators);
-    configureObjectMapperFeatures(objectMapper);
+    configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "kayenta.serialization")
+  KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties() {
+    return new KayentaSerializationConfigurationProperties();
   }
 }
