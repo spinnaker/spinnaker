@@ -64,3 +64,6 @@ spinnaker:
       front50:
         enabled: true
         url: https://front50.net
+
+retrofit:
+  enabled: false
