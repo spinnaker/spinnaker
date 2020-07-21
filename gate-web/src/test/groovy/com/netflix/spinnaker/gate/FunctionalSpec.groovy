@@ -94,6 +94,8 @@ class FunctionalSpec extends Specification {
     System.setProperty("saml.enabled", "false")
     System.setProperty('spring.session.store-type', 'NONE')
     System.setProperty("spring.main.allow-bean-definition-overriding", "true")
+    System.setProperty("spring.profiles.active", "test")
+    System.setProperty("retrofit.enabled", "false")
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration] as Set)
     ctx = spring.run()
