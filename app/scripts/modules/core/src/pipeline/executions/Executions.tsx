@@ -46,7 +46,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private insightFilterStateModel = ReactInjector.insightFilterStateModel;
   private activeRefresher: IScheduler;
 
-  private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50];
+  private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50, 100, 200];
 
   constructor(props: IExecutionsProps) {
     super(props);
