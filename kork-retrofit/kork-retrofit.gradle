@@ -1,0 +1,19 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/kotlin-test.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  implementation project(":kork-web")
+
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
+  implementation "com.squareup.retrofit:converter-jackson"
+
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+}

@@ -6,4 +6,5 @@ dependencies {
   runtimeOnly(project(":kork-stackdriver"))
   runtimeOnly(project(":kork-swagger"))
   runtimeOnly(project(":kork-eureka"))
+  runtimeOnly(project(":kork-retrofit"))
 }
