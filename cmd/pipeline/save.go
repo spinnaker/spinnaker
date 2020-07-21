@@ -80,26 +80,34 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	if !valid {
 		return fmt.Errorf("Submitted pipeline is invalid: %s\n", pipelineJson)
 	}
+
 	application := pipelineJson["application"].(string)
 	pipelineName := pipelineJson["name"].(string)
+	pipelineID, pipelineIDExists := pipelineJson["id"].(string)
 
 	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context, application, pipelineName)
+	if queryResp.StatusCode == http.StatusNotFound {
+		// must be a new pipeline, let's go ahead and create it
+		if pipelineIDExists {
+			delete(pipelineJson, "id")
+		}
+	} else {
+		// it's exists already, make sure we're updating the same one
+		if queryResp.StatusCode == http.StatusOK && len(foundPipeline) > 0 {
+			foundId := foundPipeline["id"].(string)
+			if pipelineIDExists && pipelineID != foundId {
+				return fmt.Errorf(`pipeline ID "%s" does not match the found pipeline "%s" in application "%s" with ID "%s"`, pipelineID, pipelineName, application, foundId)
+			}
 
-	_, exists := pipelineJson["id"].(string)
-	var foundPipelineId string
-	if queryResp.StatusCode == http.StatusOK && len(foundPipeline) > 0 {
-		foundPipelineId = foundPipeline["id"].(string)
-	}
-	if !exists && foundPipelineId != "" {
-		pipelineJson["id"] = foundPipelineId
+			pipelineJson["id"] = foundId
+		}
 	}
 
 	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, pipelineJson)
 
 	if saveErr != nil {
 		return saveErr
-	}
-	if saveResp.StatusCode != http.StatusOK {
+	} else if saveResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
 	}
 
