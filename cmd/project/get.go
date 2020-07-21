@@ -27,7 +27,7 @@ type getProjectOptions struct {
 	*projectOptions
 }
 
-var (
+const (
 	getProjectShort   = "Get the config for the specified project"
 	getProjectLong    = "Get the config for the specified project"
 	getProjectExample = "usage: spin project [options] project-name"

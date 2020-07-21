@@ -81,4 +81,3 @@ func deleteProject(cmd *cobra.Command, options *saveOptions) error {
 	options.Ui.Success("Project delete succeeded")
 	return nil
 }
-

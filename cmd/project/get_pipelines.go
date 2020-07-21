@@ -28,7 +28,7 @@ type getProjectPipelinesOptions struct {
 	expand bool
 }
 
-var (
+const (
 	getPipelinesProjectShort   = "Get the pipelines for the specified project"
 	getPipelinesProjectLong    = "Get the pipelines for the specified project"
 	getPipelinesProjectExample = "usage: spin project get-pipelines [options] project-name"

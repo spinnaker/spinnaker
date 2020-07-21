@@ -31,7 +31,7 @@ type saveOptions struct {
 	ownerEmail  string
 }
 
-var (
+const (
 	saveProjectShort = "Save the provided project"
 	saveOrojectLong  = "Save the specified project"
 )

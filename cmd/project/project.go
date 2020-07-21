@@ -23,7 +23,7 @@ type projectOptions struct {
 	*cmd.RootOptions
 }
 
-var (
+const (
 	projectShort   = ""
 	projectLong    = ""
 	projectExample = ""
@@ -35,17 +35,17 @@ func NewProjectCmd(rootOptions *cmd.RootOptions) *cobra.Command {
 	}
 	cmd := &cobra.Command{
 		Use:     "project",
-		Aliases: []string{"project", "prj"},
+		Aliases: []string{"prj"},
 		Short:   projectShort,
 		Long:    projectLong,
 		Example: projectExample,
 	}
 
 	// create subcommands
-  	cmd.AddCommand(NewListCmd(options))
-  	cmd.AddCommand(NewGetCmd(options))
-  	cmd.AddCommand(NewGetPipelinesCmd(options))
-  	cmd.AddCommand(NewSaveCmd(options))
-  	cmd.AddCommand(NewDeleteCmd(options))
+	cmd.AddCommand(NewListCmd(options))
+	cmd.AddCommand(NewGetCmd(options))
+	cmd.AddCommand(NewGetPipelinesCmd(options))
+	cmd.AddCommand(NewSaveCmd(options))
+	cmd.AddCommand(NewDeleteCmd(options))
 	return cmd
 }
