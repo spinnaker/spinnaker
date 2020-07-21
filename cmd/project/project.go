@@ -42,9 +42,10 @@ func NewProjectCmd(rootOptions *cmd.RootOptions) *cobra.Command {
 	}
 
 	// create subcommands
-  cmd.AddCommand(NewListCmd(options))
-	cmd.AddCommand(NewGetCmd(options))
-  cmd.AddCommand(NewGetPipelinesCmd(options))
-  cmd.AddCommand(NewSaveCmd(options))
+  	cmd.AddCommand(NewListCmd(options))
+  	cmd.AddCommand(NewGetCmd(options))
+  	cmd.AddCommand(NewGetPipelinesCmd(options))
+  	cmd.AddCommand(NewSaveCmd(options))
+  	cmd.AddCommand(NewDeleteCmd(options))
 	return cmd
 }
