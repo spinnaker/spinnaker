@@ -64,7 +64,9 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
 
       if (!app.isStandalone) {
         // augment with target group healthcheck data
-        const targetGroups = getAllTargetGroups(app.loadBalancers.data);
+        const targetGroups = getAllTargetGroups(app.loadBalancers.data.filter(function(loadBalancer) {
+          return loadBalancer.cloudProvider === 'aws';
+        }));
         applyHealthCheckInfoToTargetGroups(displayableMetrics, targetGroups, instance.account);
       }
 
