@@ -489,7 +489,12 @@ class LoadBalancerV2UpsertHandler {
         List<Action> actions = getAmazonActionsFromDescription(rule.actions, existingTargetGroups, amazonErrors)
 
         List<RuleCondition> conditions = rule.conditions.collect { condition ->
-          new RuleCondition().withField(condition.field).withValues(condition.values)
+          if (condition.field == 'http-request-method') {
+            HttpRequestMethodConditionConfig httpRequestMethodConditionConfig = new HttpRequestMethodConditionConfig().withValues(condition.values)
+            new RuleCondition().withField(condition.field).withHttpRequestMethodConfig(httpRequestMethodConditionConfig)
+          } else {
+            new RuleCondition().withField(condition.field).withValues(condition.values)
+          }
         }
 
         rules.add(new Rule().withActions(actions).withConditions(conditions).withPriority(rule.priority))
