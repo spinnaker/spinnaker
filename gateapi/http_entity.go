@@ -10,6 +10,5 @@
 package swagger
 
 type HttpEntity struct {
-
 	Body *interface{} `json:"body,omitempty"`
 }

@@ -10,12 +10,13 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -25,21 +26,20 @@ var (
 
 type CiControllerApiService service
 
-
 /* CiControllerApiService getBuilds
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param projectKey projectKey
- @param repoSlug repoSlug
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "completionStatus" (string) completionStatus
- @return []interface{}*/
-func (a *CiControllerApiService) GetBuildsUsingGET1(ctx context.Context, projectKey string, repoSlug string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param projectKey projectKey
+@param repoSlug repoSlug
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "completionStatus" (string) completionStatus
+@return []interface{}*/
+func (a *CiControllerApiService) GetBuildsUsingGET1(ctx context.Context, projectKey string, repoSlug string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -59,7 +59,7 @@ func (a *CiControllerApiService) GetBuildsUsingGET1(ctx context.Context, project
 	localVarQueryParams.Add("projectKey", parameterToString(projectKey, ""))
 	localVarQueryParams.Add("repoSlug", parameterToString(repoSlug, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -70,7 +70,7 @@ func (a *CiControllerApiService) GetBuildsUsingGET1(ctx context.Context, project
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -96,7 +96,5 @@ func (a *CiControllerApiService) GetBuildsUsingGET1(ctx context.Context, project
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

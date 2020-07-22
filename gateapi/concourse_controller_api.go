@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,20 +27,19 @@ var (
 
 type ConcourseControllerApiService service
 
-
 /* ConcourseControllerApiService Retrieve the list of job names for a given pipeline available to triggers
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param pipeline pipeline
- @param team team
- @return []interface{}*/
-func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildMaster string, pipeline string, team string) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param pipeline pipeline
+@param team team
+@return []interface{}*/
+func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildMaster string, pipeline string, team string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -52,9 +52,8 @@ func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildM
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -65,7 +64,7 @@ func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildM
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -91,22 +90,21 @@ func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildM
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ConcourseControllerApiService Retrieve the list of pipeline names for a given team available to triggers
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param team team
- @return []interface{}*/
-func (a *ConcourseControllerApiService) PipelinesUsingGET(ctx context.Context, buildMaster string, team string) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param team team
+@return []interface{}*/
+func (a *ConcourseControllerApiService) PipelinesUsingGET(ctx context.Context, buildMaster string, team string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -118,9 +116,8 @@ func (a *ConcourseControllerApiService) PipelinesUsingGET(ctx context.Context, b
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -131,7 +128,7 @@ func (a *ConcourseControllerApiService) PipelinesUsingGET(ctx context.Context, b
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -157,23 +154,22 @@ func (a *ConcourseControllerApiService) PipelinesUsingGET(ctx context.Context, b
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ConcourseControllerApiService Retrieve the list of resource names for a given pipeline available to the Concourse stage
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param pipeline pipeline
- @param team team
- @return []interface{}*/
-func (a *ConcourseControllerApiService) ResourcesUsingGET(ctx context.Context, buildMaster string, pipeline string, team string) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param buildMaster buildMaster
+@param pipeline pipeline
+@param team team
+@return []interface{}*/
+func (a *ConcourseControllerApiService) ResourcesUsingGET(ctx context.Context, buildMaster string, pipeline string, team string) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -186,9 +182,8 @@ func (a *ConcourseControllerApiService) ResourcesUsingGET(ctx context.Context, b
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -199,7 +194,7 @@ func (a *ConcourseControllerApiService) ResourcesUsingGET(ctx context.Context, b
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -225,7 +220,5 @@ func (a *ConcourseControllerApiService) ResourcesUsingGET(ctx context.Context, b
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

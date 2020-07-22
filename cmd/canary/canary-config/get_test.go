@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/andreyvit/diff"
+
 	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/cmd/canary"
 	"github.com/spinnaker/spin/util"

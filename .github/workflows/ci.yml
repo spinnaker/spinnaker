@@ -8,6 +8,16 @@ on:
     - release-*
 
 jobs:
+  lint-go:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Ensure code formatting and style is consistent
+      uses: golangci/golangci-lint-action@v1
+      with:
+        version: v1.29
+
   build:
     runs-on: ubuntu-latest
 

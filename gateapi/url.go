@@ -10,7 +10,6 @@
 package swagger
 
 type Url struct {
-
 	Authority string `json:"authority,omitempty"`
 
 	Content *interface{} `json:"content,omitempty"`

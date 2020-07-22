@@ -10,7 +10,6 @@
 package swagger
 
 type Uri struct {
-
 	Absolute bool `json:"absolute,omitempty"`
 
 	Authority string `json:"authority,omitempty"`

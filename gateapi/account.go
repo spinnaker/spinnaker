@@ -10,7 +10,6 @@
 package swagger
 
 type Account struct {
-
 	AccountId string `json:"accountId,omitempty"`
 
 	Name string `json:"name,omitempty"`

@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,32 +27,31 @@ var (
 
 type CredentialsControllerApiService service
 
-
 /* CredentialsControllerApiService Retrieve an account&#39;s details
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param account account
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
-     @param "accountNonExpired" (bool) 
-     @param "accountNonLocked" (bool) 
-     @param "allowedAccounts" ([]string) 
-     @param "authorities0Authority" (string) 
-     @param "credentialsNonExpired" (bool) 
-     @param "email" (string) 
-     @param "enabled" (bool) 
-     @param "firstName" (string) 
-     @param "lastName" (string) 
-     @param "password" (string) 
-     @param "roles" ([]string) 
-     @param "username" (string) 
- @return AccountDetails*/
-func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context, account string, localVarOptionals map[string]interface{}) (AccountDetails,  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param account account
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+    @param "accountNonExpired" (bool)
+    @param "accountNonLocked" (bool)
+    @param "allowedAccounts" ([]string)
+    @param "authorities0Authority" (string)
+    @param "credentialsNonExpired" (bool)
+    @param "email" (string)
+    @param "enabled" (bool)
+    @param "firstName" (string)
+    @param "lastName" (string)
+    @param "password" (string)
+    @param "roles" ([]string)
+    @param "username" (string)
+@return AccountDetails*/
+func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context, account string, localVarOptionals map[string]interface{}) (AccountDetails, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  AccountDetails
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     AccountDetails
 	)
 
 	// create path and map variables
@@ -133,7 +133,7 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 		localVarQueryParams.Add("username", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -144,7 +144,7 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -173,34 +173,33 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* CredentialsControllerApiService Retrieve a list of accounts
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "accountNonExpired" (bool) 
-     @param "accountNonLocked" (bool) 
-     @param "allowedAccounts" ([]string) 
-     @param "authorities0Authority" (string) 
-     @param "credentialsNonExpired" (bool) 
-     @param "email" (string) 
-     @param "enabled" (bool) 
-     @param "expand" (bool) expand
-     @param "firstName" (string) 
-     @param "lastName" (string) 
-     @param "password" (string) 
-     @param "roles" ([]string) 
-     @param "username" (string) 
- @return []Account*/
-func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]Account,  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "accountNonExpired" (bool)
+    @param "accountNonLocked" (bool)
+    @param "allowedAccounts" ([]string)
+    @param "authorities0Authority" (string)
+    @param "credentialsNonExpired" (bool)
+    @param "email" (string)
+    @param "enabled" (bool)
+    @param "expand" (bool) expand
+    @param "firstName" (string)
+    @param "lastName" (string)
+    @param "password" (string)
+    @param "roles" ([]string)
+    @param "username" (string)
+@return []Account*/
+func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]Account, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []Account
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []Account
 	)
 
 	// create path and map variables
@@ -284,7 +283,7 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 		localVarQueryParams.Add("username", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -295,7 +294,7 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -321,7 +320,5 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

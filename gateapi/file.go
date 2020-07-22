@@ -14,7 +14,6 @@ import (
 )
 
 type File struct {
-
 	Absolute bool `json:"absolute,omitempty"`
 
 	AbsoluteFile **os.File `json:"absoluteFile,omitempty"`

@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,20 +27,19 @@ var (
 
 type DeckPluginsControllerApiService service
 
-
 /* DeckPluginsControllerApiService Retrieve a single plugin asset by version
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param asset asset
- @param pluginId pluginId
- @param pluginVersion pluginVersion
- @return string*/
-func (a *DeckPluginsControllerApiService) GetPluginAssetUsingGET(ctx context.Context, asset string, pluginId string, pluginVersion string) (string,  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param asset asset
+@param pluginId pluginId
+@param pluginVersion pluginVersion
+@return string*/
+func (a *DeckPluginsControllerApiService) GetPluginAssetUsingGET(ctx context.Context, asset string, pluginId string, pluginVersion string) (string, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  string
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     string
 	)
 
 	// create path and map variables
@@ -52,9 +52,8 @@ func (a *DeckPluginsControllerApiService) GetPluginAssetUsingGET(ctx context.Con
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -65,7 +64,7 @@ func (a *DeckPluginsControllerApiService) GetPluginAssetUsingGET(ctx context.Con
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -91,20 +90,19 @@ func (a *DeckPluginsControllerApiService) GetPluginAssetUsingGET(ctx context.Con
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* DeckPluginsControllerApiService Retrieve a plugin manifest
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []DeckPluginVersion*/
-func (a *DeckPluginsControllerApiService) GetPluginManifestUsingGET(ctx context.Context) ([]DeckPluginVersion,  *http.Response, error) {
+func (a *DeckPluginsControllerApiService) GetPluginManifestUsingGET(ctx context.Context) ([]DeckPluginVersion, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []DeckPluginVersion
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []DeckPluginVersion
 	)
 
 	// create path and map variables
@@ -114,9 +112,8 @@ func (a *DeckPluginsControllerApiService) GetPluginManifestUsingGET(ctx context.
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -127,7 +124,7 @@ func (a *DeckPluginsControllerApiService) GetPluginManifestUsingGET(ctx context.
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -153,7 +150,5 @@ func (a *DeckPluginsControllerApiService) GetPluginManifestUsingGET(ctx context.
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-

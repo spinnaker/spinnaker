@@ -17,14 +17,16 @@ package account
 import (
 	"bytes"
 	"fmt"
-	"github.com/nsf/jsondiff"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/nsf/jsondiff"
+
 	"github.com/andreyvit/diff"
+
 	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/util"
 )

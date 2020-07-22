@@ -10,6 +10,5 @@
 package swagger
 
 type GrantedAuthority struct {
-
 	Authority string `json:"authority,omitempty"`
 }

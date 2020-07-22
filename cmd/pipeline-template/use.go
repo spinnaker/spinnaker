@@ -23,8 +23,9 @@ import (
 
 	"github.com/spf13/cobra"
 	//"github.com/spinnaker/spin/cmd/output"
-	"github.com/spinnaker/spin/util"
 	"sigs.k8s.io/yaml"
+
+	"github.com/spinnaker/spin/util"
 )
 
 type useOptions struct {

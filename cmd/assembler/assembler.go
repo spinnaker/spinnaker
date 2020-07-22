@@ -16,6 +16,7 @@ package assembler
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/spinnaker/spin/cmd"
 	"github.com/spinnaker/spin/cmd/account"
 	"github.com/spinnaker/spin/cmd/application"

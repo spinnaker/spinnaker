@@ -14,7 +14,6 @@ import (
 )
 
 type Resource struct {
-
 	Description string `json:"description,omitempty"`
 
 	File **os.File `json:"file,omitempty"`

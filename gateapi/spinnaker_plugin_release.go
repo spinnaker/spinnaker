@@ -14,7 +14,6 @@ import (
 )
 
 type SpinnakerPluginRelease struct {
-
 	Date time.Time `json:"date,omitempty"`
 
 	Preferred bool `json:"preferred,omitempty"`

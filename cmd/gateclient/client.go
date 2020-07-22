@@ -37,16 +37,17 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"sigs.k8s.io/yaml"
+
 	"github.com/spinnaker/spin/cmd/output"
 	"github.com/spinnaker/spin/config"
 	"github.com/spinnaker/spin/config/auth"
 	iap "github.com/spinnaker/spin/config/auth/iap"
 	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/version"
-	"golang.org/x/crypto/ssh/terminal"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"sigs.k8s.io/yaml"
 )
 
 const (

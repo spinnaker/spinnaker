@@ -29,7 +29,7 @@ func TestOutputMarshalToJson(t *testing.T) {
 
 	expected := strings.TrimSpace(testJsonStr)
 	recieved := strings.TrimSpace(string(jsonBytes))
-  if expected != recieved {
+	if expected != recieved {
 		t.Fatalf("Unexpected formatted yaml output (want- get+):\n%s", diff.LineDiff(expected, recieved))
 	}
 }

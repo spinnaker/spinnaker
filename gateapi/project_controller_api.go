@@ -10,13 +10,14 @@
 package swagger
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,21 +27,20 @@ var (
 
 type ProjectControllerApiService service
 
-
 /* ProjectControllerApiService Get all pipelines for project
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "limit" (int32) limit
-     @param "statuses" (string) statuses
- @return []interface{}*/
-func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param id id
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "limit" (int32) limit
+    @param "statuses" (string) statuses
+@return []interface{}*/
+func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -65,7 +65,7 @@ func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context
 		localVarQueryParams.Add("statuses", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -76,7 +76,7 @@ func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -102,20 +102,19 @@ func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ProjectControllerApiService Get all projects
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []interface{}*/
-func (a *ProjectControllerApiService) AllUsingGET3(ctx context.Context) ([]interface{},  *http.Response, error) {
+func (a *ProjectControllerApiService) AllUsingGET3(ctx context.Context) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -125,9 +124,8 @@ func (a *ProjectControllerApiService) AllUsingGET3(ctx context.Context) ([]inter
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -138,7 +136,7 @@ func (a *ProjectControllerApiService) AllUsingGET3(ctx context.Context) ([]inter
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -164,23 +162,22 @@ func (a *ProjectControllerApiService) AllUsingGET3(ctx context.Context) ([]inter
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ProjectControllerApiService Get a project&#39;s clusters
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return []interface{}*/
-func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param id id
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "xRateLimitApp" (string) X-RateLimit-App
+@return []interface{}*/
+func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     []interface{}
 	)
 
 	// create path and map variables
@@ -196,7 +193,7 @@ func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, 
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -207,7 +204,7 @@ func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -236,21 +233,20 @@ func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ProjectControllerApiService Get a project
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @return map[string]interface{}*/
-func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id string) (map[string]interface{},  *http.Response, error) {
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param id id
+@return map[string]interface{}*/
+func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id string) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     map[string]interface{}
 	)
 
 	// create path and map variables
@@ -261,9 +257,8 @@ func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id strin
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -274,7 +269,7 @@ func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id strin
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -300,7 +295,5 @@ func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id strin
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-
