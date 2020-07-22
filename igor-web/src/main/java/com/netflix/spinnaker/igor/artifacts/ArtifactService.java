@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.igor.model.ArtifactServiceProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
@@ -33,9 +34,19 @@ public interface ArtifactService {
 
   /** Used to populate the manual trigger dropdown with options */
   @Nonnull
-  List<String> getArtifactVersions(@Nonnull String name, String releaseStatus);
+  default List<String> getArtifactVersions(
+      @Nonnull String type, @Nonnull String name, String releaseStatus) {
+    List<String> releaseStatuses = new ArrayList<>();
+    releaseStatuses.add(releaseStatus);
+    return getArtifactVersions(type, name, releaseStatuses);
+  }
+
+  /** Used to populate the manual trigger dropdown with options */
+  @Nonnull
+  List<String> getArtifactVersions(
+      @Nonnull String type, @Nonnull String name, List<String> releaseStatuses);
 
   /** Used to fetch a specific artifact for decorating a trigger */
   @Nonnull
-  Artifact getArtifact(@Nonnull String name, @Nonnull String version);
+  Artifact getArtifact(@Nonnull String type, @Nonnull String name, @Nonnull String version);
 }

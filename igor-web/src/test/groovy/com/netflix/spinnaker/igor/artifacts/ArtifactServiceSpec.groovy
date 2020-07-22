@@ -27,13 +27,13 @@ class ArtifactServiceSpec extends Specification {
 
   @Subject
   ArtifactServices artifactServices = new ArtifactServices()
-  
+
   void setup() {
     Map<String, ArtifactService> services = new HashMap<>()
     services.put("artifactory", new TestArtifactService())
     artifactServices.addServices(services)
   }
-  
+
   def "finds matching service"() {
     when:
     def service = artifactServices.getService("artifactory")
@@ -53,7 +53,7 @@ class ArtifactServiceSpec extends Specification {
   def "service finds artifact versions"() {
     when:
     def service = artifactServices.getService("artifactory")
-    def versions = service.getArtifactVersions("test", null)
+    def versions = service.getArtifactVersions("deb","test", null)
 
     then:
     assertThat(versions).isNotNull()
@@ -64,7 +64,7 @@ class ArtifactServiceSpec extends Specification {
   def "service finds only snapshot artifacts"() {
     when:
     def service = artifactServices.getService("artifactory")
-    def versions = service.getArtifactVersions("test", "snapshot")
+    def versions = service.getArtifactVersions("deb","test", "snapshot")
 
     then:
     assertThat(versions).isNotNull()
@@ -75,7 +75,7 @@ class ArtifactServiceSpec extends Specification {
   def "service finds artifact"() {
     when:
     def service = artifactServices.getService("artifactory")
-    def artifact = service.getArtifact("test", "v0.4.0")
+    def artifact = service.getArtifact("deb","test", "v0.4.0")
 
     then:
     assertThat(artifact).isNotNull()
@@ -86,7 +86,7 @@ class ArtifactServiceSpec extends Specification {
   def "versions list is empty when no versions found"() {
     when:
     def service = artifactServices.getService("artifactory")
-    def versions = service.getArtifactVersions("blah", "")
+    def versions = service.getArtifactVersions("deb","blah", "")
 
     then:
     assertThat(versions).isNotNull()
@@ -96,10 +96,10 @@ class ArtifactServiceSpec extends Specification {
   def "404 is thrown when artifact not found"() {
     when:
     def service = artifactServices.getService("artifactory")
-    service.getArtifact("blah","v0.0.1")
+    service.getArtifact("deb","blah","v0.0.1")
 
     then:
     thrown(NotFoundException)
   }
-  
+
 }
