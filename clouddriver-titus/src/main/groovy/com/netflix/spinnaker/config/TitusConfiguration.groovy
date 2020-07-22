@@ -63,7 +63,7 @@ class TitusConfiguration {
     List<NetflixTitusCredentials> accounts = new ArrayList<>()
     for (TitusCredentialsConfig.Account account in titusCredentialsConfig.accounts) {
       List<TitusRegion> regions = account.regions.collect {
-        new TitusRegion(it.name, account.name, it.endpoint, it.autoscalingEnabled, it.loadBalancingEnabled, it.applicationName, it.url, it.port, it.featureFlags)
+        new TitusRegion(it.name, account.name, it.endpoint, it.autoscalingEnabled, it.loadBalancingEnabled, it.applicationName, it.url, it.port, it.featureFlags, it.eurekaName , it.eurekaRegion)
       }
       if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
         account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
@@ -148,6 +148,8 @@ class TitusConfiguration {
       String url
       Integer port
       List<String> featureFlags
+      String eurekaName
+      String eurekaRegion
     }
   }
 

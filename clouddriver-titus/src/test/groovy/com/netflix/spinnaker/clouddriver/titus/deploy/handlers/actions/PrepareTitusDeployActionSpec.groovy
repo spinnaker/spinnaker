@@ -63,7 +63,9 @@ class PrepareTitusDeployActionSpec extends Specification {
         fixture.moniker.app,
         mimicker.text().word(),
         mimicker.network().port,
-        []
+        [],
+        null,
+        null
       )
     ],
     'http://bastion', // TODO(rz): mimicker.network().url
