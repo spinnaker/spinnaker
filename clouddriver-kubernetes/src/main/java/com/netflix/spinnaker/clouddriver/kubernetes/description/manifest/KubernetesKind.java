@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NonnullByDefault
@@ -105,9 +106,9 @@ public class KubernetesKind {
   // kind is not in spinnaker's registry
   public static final KubernetesKind NONE = createWithAlias("none", null, KubernetesApiGroup.NONE);
 
-  private final String name;
+  @Getter private final String name;
   @EqualsAndHashCode.Include private final String lcName;
-  private final KubernetesApiGroup apiGroup;
+  @Getter private final KubernetesApiGroup apiGroup;
   @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
 
   private KubernetesKind(String name, @Nullable KubernetesApiGroup apiGroup) {
