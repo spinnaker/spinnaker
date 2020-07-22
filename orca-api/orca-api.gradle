@@ -17,6 +17,7 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/dokka.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
+apply plugin: "java-library"
 
 sourceSets {
   sample
