@@ -135,9 +135,10 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 	if gateClient.Config.Auth != nil && gateClient.Config.Auth.OAuth2 != nil {
 		updatedConfig, err = authenticateOAuth2(ui.Output, httpClient, gateClient.GateEndpoint(), gateClient.Config.Auth)
 		if err != nil {
-			ui.Error("OAuth2 Authentication failed.")
+			ui.Error(fmt.Sprintf("OAuth2 Authentication failed: %v", err))
 			return nil, unwrapErr(ui, err)
 		}
+
 		updatedMessage = "Caching oauth2 token."
 	}
 
@@ -157,7 +158,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 
 	if gateClient.Config.Auth != nil && gateClient.Config.Auth.Ldap != nil {
 		if err = authenticateLdap(ui.Output, httpClient, gateClient.GateEndpoint(), gateClient.Config.Auth); err != nil {
-			ui.Error("LDAP Authentication Failed")
+			ui.Error(fmt.Sprintf("LDAP Authentication failed: %v", err))
 			return nil, unwrapErr(ui, err)
 		}
 	}
