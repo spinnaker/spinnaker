@@ -88,7 +88,7 @@ class JarDiffsTask implements DiffTask {
         targetInstances = oortHelper.getInstancesForCluster(stage.context, targetAsg, false, false)
         sourceInstances = oortHelper.getInstancesForCluster(stage.context, sourceAsg, false, false)
       } catch (Exception e) {
-        log.error("Unable to fetch instances (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg}), reason: ${e.message}")
+        log.warn("Unable to fetch instances (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg}), reason: ${e.message}", e)
       }
 
       if (!targetInstances || !sourceInstances) {
@@ -108,7 +108,7 @@ class JarDiffsTask implements DiffTask {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([jarDiffs: jarDiffs]).build()
     } catch (Exception e) {
       // return success so we don't break pipelines
-      log.error("error while fetching jar diffs, retrying", e)
+      log.warn("error while fetching jar diffs, retrying", e)
       return TaskResult.builder(ExecutionStatus.RUNNING).context([jarDiffsRetriesRemaining: --retriesRemaining]).build()
     }
   }

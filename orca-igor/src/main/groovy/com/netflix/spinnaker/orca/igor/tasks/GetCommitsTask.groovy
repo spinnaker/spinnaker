@@ -126,21 +126,21 @@ class GetCommitsTask implements DiffTask {
     } catch (RetrofitError e) {
       if (e.kind == RetrofitError.Kind.UNEXPECTED) {
         // give up on internal errors
-        log.error("internal error while talking to igor : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:$sourceInfo targetCommit: $targetInfo]")
+        log.warn("internal error while talking to igor : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:$sourceInfo targetCommit: $targetInfo]", e)
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
       } else if (e.response?.status == 404) {
         // just give up on 404
-        log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]")
+        log.warn("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]", e)
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
       } else { // retry on other status codes
-        log.error("retrofit error (${e.message}) for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying")
+        log.warn("retrofit error (${e.message}) for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", e)
         return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
       }
     } catch (Exception f) { // retry on everything else
-      log.error("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", f)
+      log.warn("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", f)
       return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
     } catch (Throwable g) {
-      log.error("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", g)
+      log.warn("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", g)
       return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
     }
   }
