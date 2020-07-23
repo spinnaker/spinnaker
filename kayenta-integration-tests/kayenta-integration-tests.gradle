@@ -16,8 +16,8 @@ test.testLogging {
 
 gradle.taskGraph.whenReady {
     tasks.test.enabled = (
-      properties.getOrDefault('ENABLE_INTEGRATION_TESTS', 'false') == 'true'
-        || System.getProperty('ENABLE_INTEGRATION_TESTS', 'false') == 'true'
-        || System.getenv().getOrDefault('ENABLE_INTEGRATION_TESTS', 'false') == 'true'
+      properties.getOrDefault('DISABLE_INTEGRATION_TESTS', 'false') != 'true'
+        || System.getProperty('DISABLE_INTEGRATION_TESTS', 'false') != 'true'
+        || System.getenv().getOrDefault('DISABLE_INTEGRATION_TESTS', 'false') != 'true'
     )
 }

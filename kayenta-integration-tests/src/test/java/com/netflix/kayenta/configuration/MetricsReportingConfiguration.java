@@ -20,6 +20,8 @@ import com.netflix.kayenta.metrics.MetricsGenerator;
 import com.netflix.kayenta.metrics.PercentilePrecisionMeterConfigurationFilter;
 import com.netflix.kayenta.metrics.RandomProvider;
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
+import com.netflix.spectator.api.DefaultRegistry;
+import com.netflix.spectator.api.Registry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.MeterFilter;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +32,14 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(CanaryAnalysisCasesConfigurationProperties.class)
 @Configuration
 public class MetricsReportingConfiguration {
+
+  /**
+   * Override the spectator registry so that the spring composite micrometer registry gets created.
+   */
+  @Bean
+  Registry registry() {
+    return new DefaultRegistry();
+  }
 
   @Bean
   public RandomProvider randomProvider() {
