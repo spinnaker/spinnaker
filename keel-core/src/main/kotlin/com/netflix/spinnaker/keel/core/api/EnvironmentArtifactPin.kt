@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.core.api
 
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.core.validateComment
 import java.time.Instant
 
 data class EnvironmentArtifactPin(
@@ -9,7 +10,11 @@ data class EnvironmentArtifactPin(
   val version: String,
   val pinnedBy: String?,
   val comment: String?
-)
+) {
+  init {
+    validateComment(comment)
+  }
+}
 
 data class PinnedEnvironment(
   val deliveryConfigName: String,
@@ -19,4 +24,8 @@ data class PinnedEnvironment(
   val pinnedBy: String?,
   val pinnedAt: Instant?,
   val comment: String?
-)
+) {
+  init {
+    validateComment(comment)
+  }
+}

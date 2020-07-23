@@ -61,6 +61,15 @@ internal class ApplicationControllerTests : JUnit5Minutests {
     const val user = "keel@keel.io"
   }
 
+  val payloadWithLongComment =
+    """{
+        |  "version": "master-h22.0e0310f",
+        |  "reference": "my-artifact",
+        |  "targetEnvironment": "testing",
+        |  "comment": "Bacon ipsum dolor amet turducken prosciutto shoulder ground round hamburger, flank frankfurter rump ham hock sirloin leberkas meatloaf shankle landjaeger pig.  Shoulder shankle doner ball tip burgdoggen kevin alcatra bresaola.  Leberkas alcatra cow, sausage picanha chislic tongue hamburger turkey tail chicken flank.",
+        |}"""
+      .trimMargin()
+
   fun tests() = rootContext {
     after {
       clearAllMocks()
@@ -175,6 +184,22 @@ internal class ApplicationControllerTests : JUnit5Minutests {
               "currentEnvironmentConstraints",
               "resources"
             )
+        }
+
+        test("returns bad request for pinned request with comment length > 256") {
+          val request = post("/application/$application/pin")
+            .content(payloadWithLongComment)
+            .accept(APPLICATION_JSON_VALUE)
+          mvc.perform(request)
+            .andExpect(status().isBadRequest)
+        }
+
+        test("returns bad request for veto request with comment length > 256") {
+          val request = post("/application/$application/veto")
+            .content(payloadWithLongComment)
+            .accept(APPLICATION_JSON_VALUE)
+          mvc.perform(request)
+            .andExpect(status().isBadRequest)
         }
       }
 

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.core.api
 
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.core.validateComment
 
 /**
  * The request body of an artifact veto
@@ -11,7 +12,11 @@ data class EnvironmentArtifactVeto(
   val version: String,
   val vetoedBy: String?,
   val comment: String?
-)
+) {
+  init {
+    validateComment(comment)
+  }
+}
 
 data class EnvironmentArtifactVetoes(
   val deliveryConfigName: String,
