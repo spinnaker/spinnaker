@@ -245,6 +245,36 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
           expectThrows<NotFoundException> {
             sqlStorageService.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags001")
           }
+
+          // Verify we can store more than object
+          sqlStorageService.storeObjects(
+            ObjectType.ENTITY_TAGS,
+            listOf(
+              EntityTags().apply {
+                id = "id-entitytags1of1"
+                lastModified = 100
+                lastModifiedBy = "anonymous"
+                entityRef = EntityTags.EntityRef().apply {
+                  entityId = "application001"
+                }
+              },
+              EntityTags().apply {
+                id = "id-entitytags1of2"
+                lastModified = 100
+                lastModifiedBy = "anonymous"
+                entityRef = EntityTags.EntityRef().apply {
+                  entityId = "application001"
+                }
+              }
+
+            )
+          )
+          // Retrieve tags saved above
+          entityTags = sqlStorageService.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags1of1")
+          expectThat(entityTags.id).isEqualTo("id-entitytags1of1")
+
+          entityTags = sqlStorageService.loadObject<EntityTags>(ObjectType.ENTITY_TAGS, "id-entitytags1of2")
+          expectThat(entityTags.id).isEqualTo("id-entitytags1of2")
         }
       }
     }
