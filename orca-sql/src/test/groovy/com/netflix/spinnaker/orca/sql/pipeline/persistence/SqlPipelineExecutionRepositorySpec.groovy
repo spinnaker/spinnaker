@@ -38,6 +38,7 @@ import rx.schedulers.Schedulers
 import de.huxhorn.sulky.ulid.ULID
 import spock.lang.AutoCleanup
 import spock.lang.Shared
+import spock.lang.Subject
 import spock.lang.Unroll
 
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -50,7 +51,7 @@ import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepositor
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
-class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<ExecutionRepository> {
+abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<ExecutionRepository> {
 
   @Shared
   ObjectMapper mapper = OrcaObjectMapper.newInstance().with {
@@ -61,6 +62,15 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
   def ulid = new ULID()
 
   @Shared
+  @Subject
+  ExecutionRepository repository
+
+  @Override
+  ExecutionRepository repository() {
+    return repository
+  }
+
+  @Shared
   @AutoCleanup("close")
   TestDatabase currentDatabase
 
@@ -68,23 +78,19 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
   @AutoCleanup("close")
   TestDatabase previousDatabase
 
+  abstract TestDatabase getDatabase()
+
   def setupSpec() {
-    currentDatabase = initDualTcMysqlDatabases()
+    currentDatabase = getDatabase()
+    repository = createExecutionRepository()
   }
 
   def cleanup() {
     cleanupDb(currentDatabase.context)
-    cleanupDb(currentDatabase.previousContext)
   }
 
-  @Override
   ExecutionRepository createExecutionRepository() {
     return createExecutionRepository("test")
-  }
-
-  @Override
-  ExecutionRepository createExecutionRepositoryPrevious() {
-    new SqlExecutionRepository("test", currentDatabase.previousContext, mapper, new RetryProperties(), 10, 100, "poolName", null)
   }
 
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
@@ -667,8 +673,16 @@ class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTck<
   }
 }
 
+class MySqlPipelineExecutionRepositorySpec extends SqlPipelineExecutionRepositorySpec {
+  @Override
+  TestDatabase getDatabase() {
+    return initDualTcMysqlDatabases()
+  }
+}
+
 class PgSqlPipelineExecutionRepositorySpec extends SqlPipelineExecutionRepositorySpec {
-  def setupSpec() {
-    currentDatabase = initDualTcPostgresDatabases()
+  @Override
+  TestDatabase getDatabase() {
+    return initDualTcPostgresDatabases()
   }
 }

@@ -19,7 +19,6 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.StageExecutionFactory
@@ -31,6 +30,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
+import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
@@ -56,9 +56,47 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
   @AutoCleanup("destroy")
   EmbeddedRedis embeddedRedisPrevious
 
+  @Shared
+  @Subject
+  RedisExecutionRepository repository
+
+  @Override
+  RedisExecutionRepository repository() {
+    return repository
+  }
+
+  @Shared
+  @Subject
+  RedisExecutionRepository previousRepository
+
+  RedisExecutionRepository previousRepository() {
+    return previousRepository
+  }
+
+  @Shared
+  Pool<Jedis> jedisPool
+
+  @Shared
+  Pool<Jedis> jedisPoolPrevious
+
+  @Shared
+  Jedis jedis
+
+  @Shared
+  RedisClientSelector redisClientSelector
+
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
     embeddedRedisPrevious = EmbeddedRedis.embed()
+    jedisPool = embeddedRedis.pool
+    jedisPoolPrevious = embeddedRedisPrevious.pool
+    jedis = jedisPool.resource
+    redisClientSelector = new RedisClientSelector([
+        new JedisClientDelegate("primaryDefault", jedisPool),
+        new JedisClientDelegate("previousDefault", jedisPoolPrevious)
+    ])
+    repository = createExecutionRepository()
+    previousRepository = createExecutionRepositoryPrevious()
   }
 
   def cleanup() {
@@ -66,26 +104,12 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     embeddedRedisPrevious.jedis.withCloseable { it.flushDB() }
   }
 
-  Pool<Jedis> jedisPool = embeddedRedis.pool
-  Pool<Jedis> jedisPoolPrevious = embeddedRedisPrevious.pool
-
-  RedisClientDelegate redisClientDelegate = new JedisClientDelegate("primaryDefault", jedisPool)
-  RedisClientDelegate previousRedisClientDelegate = new JedisClientDelegate("previousDefault", jedisPoolPrevious)
-  RedisClientSelector redisClientSelector = new RedisClientSelector([redisClientDelegate, previousRedisClientDelegate])
-
-  Registry registry = new NoopRegistry()
-
-  @AutoCleanup
-  def jedis = jedisPool.resource
-
-  @Override
   RedisExecutionRepository createExecutionRepository() {
-    return new RedisExecutionRepository(registry, redisClientSelector, 1, 50)
+    return new RedisExecutionRepository(new NoopRegistry(), redisClientSelector, 1, 50)
   }
 
-  @Override
   RedisExecutionRepository createExecutionRepositoryPrevious() {
-    return new RedisExecutionRepository(registry, new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
+    return new RedisExecutionRepository(new NoopRegistry(), new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
   }
 
 
