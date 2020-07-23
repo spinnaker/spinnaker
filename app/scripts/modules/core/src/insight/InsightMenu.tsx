@@ -1,6 +1,6 @@
 import React from 'react';
 import { IScope } from 'angular';
-import { DropdownButton, MenuItem } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
 
@@ -87,23 +87,35 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     );
 
     return (
-      <DropdownButton pullRight={true} title="Actions" id="insight-menu">
-        {createApp && (
-          <MenuItem href="javascript:void(0)" onClick={this.createApplication}>
-            Create Application
-          </MenuItem>
-        )}
+      <div id="insight-menu">
         {createProject && (
-          <MenuItem href="javascript:void(0)" onClick={this.createProject}>
+          <Button
+            bsStyle={createApp ? 'default' : 'primary'}
+            href="javascript:void(0)"
+            onClick={this.createProject}
+            style={{ marginRight: createApp ? '5px' : '' }}
+          >
             Create Project
-          </MenuItem>
+          </Button>
         )}
+
+        {createApp && (
+          <Button
+            bsStyle="primary"
+            href="javascript:void(0)"
+            onClick={this.createApplication}
+            style={{ marginRight: refreshCaches ? '5px' : '' }}
+          >
+            Create Application
+          </Button>
+        )}
+
         {refreshCaches && (
-          <MenuItem href="javascript:void(0)" onClick={this.refreshAllCaches}>
+          <Button href="javascript:void(0)" onClick={this.refreshAllCaches}>
             {refreshMarkup}
-          </MenuItem>
+          </Button>
         )}
-      </DropdownButton>
+      </div>
     );
   }
 }

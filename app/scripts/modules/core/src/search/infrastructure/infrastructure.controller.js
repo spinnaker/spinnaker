@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 import * as angular from 'angular';
 
+import { react2angular } from 'react2angular';
+
 import { FirewallLabels } from 'core/securityGroup/label';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
@@ -17,6 +19,7 @@ import { ClusterState } from 'core/state';
 
 import { SearchService } from '../search.service';
 import { ConfigureProjectModal } from 'core/projects';
+import { InsightMenu as SearchInsightMenu } from 'core/insight/InsightMenu';
 
 export const CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER = 'spinnaker.search.infrastructure.controller';
 export const name = CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER; // for backwards compatibility
@@ -31,6 +34,7 @@ angular
     RECENTLY_VIEWED_ITEMS_COMPONENT,
     SPINNER_COMPONENT,
   ])
+  .component('searchInsightMenu', react2angular(SearchInsightMenu, ['createApp', 'createProject', 'refreshCaches']))
   .controller('InfrastructureCtrl', [
     '$scope',
     'infrastructureSearchService',
@@ -142,12 +146,12 @@ angular
 
       this.menuActions = [
         {
-          displayName: 'Create Application',
-          action: this.createApplicationForTests,
-        },
-        {
           displayName: 'Create Project',
           action: this.createProject,
+        },
+        {
+          displayName: 'Create Application',
+          action: this.createApplicationForTests,
         },
       ];
 

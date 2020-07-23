@@ -4,7 +4,6 @@ describe('core: Create Application', () => {
   beforeEach(() => registerDefaultFixtures());
   it(`shows a config screen with required fields preventing creation until they're populated`, () => {
     cy.visit('#/applications');
-    cy.get('button:contains("Actions")').click();
     cy.get('a:contains("Create Application")').click();
 
     cy.get('button:contains("Create")').should('be.disabled');
@@ -20,7 +19,6 @@ describe('core: Create Application', () => {
     cy.route('/applications/testapp1?expand=false', 'fixture:core/create_application/testapp1.json');
 
     cy.visit('#/applications');
-    cy.get('button:contains("Actions")').click();
     cy.get('a:contains("Create Application")').click();
 
     cy.get('input[name=name]').type('testapp1');
