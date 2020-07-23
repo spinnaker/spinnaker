@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.IngressPorts
+import com.netflix.spinnaker.keel.api.ec2.InstanceProvider
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
@@ -41,6 +42,7 @@ import com.netflix.spinnaker.keel.ec2.jackson.mixins.ClusterSpecMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.CustomizedMetricSpecificationMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.HealthMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.HealthSpecMixin
+import com.netflix.spinnaker.keel.ec2.jackson.mixins.InstanceProviderMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.ScalingMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.SecurityGroupRuleMixin
 import com.netflix.spinnaker.keel.ec2.jackson.mixins.SecurityGroupSpecMixin
@@ -69,6 +71,7 @@ object KeelEc2ApiModule : SimpleModule("Keel EC2 API") {
       setMixInAnnotations<CustomizedMetricSpecification, CustomizedMetricSpecificationMixin>()
       setMixInAnnotations<Health, HealthMixin>()
       setMixInAnnotations<HealthSpec, HealthSpecMixin>()
+      setMixInAnnotations<InstanceProvider, InstanceProviderMixin>()
       setMixInAnnotations<Scaling, ScalingMixin>()
       setMixInAnnotations<SecurityGroupRule, SecurityGroupRuleMixin>()
       setMixInAnnotations<SecurityGroupSpec, SecurityGroupSpecMixin>()

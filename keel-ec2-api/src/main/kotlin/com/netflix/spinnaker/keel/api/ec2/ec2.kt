@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.ec2
+package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.old.ApplicationLoadBalancerV1Spec
 import com.netflix.spinnaker.keel.api.plugins.kind
 
