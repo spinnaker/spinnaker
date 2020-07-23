@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TA
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
-import com.netflix.spinnaker.keel.core.DEBIAN_VERSION_COMPARATOR
+import com.netflix.spinnaker.keel.core.NETFLIX_SEMVER_COMPARATOR
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -25,7 +25,7 @@ class ComparatorSortingTests : JUnit5Minutests {
   fun tests() = rootContext<Unit> {
     context("deb semantic version") {
       test("descending by default") {
-        expectThat(debianVersions.sortedWith(DEBIAN_VERSION_COMPARATOR).first()).isEqualTo("fnord-2.1.0-18ed1dc")
+        expectThat(debianVersions.sortedWith(NETFLIX_SEMVER_COMPARATOR).first()).isEqualTo("fnord-2.1.0-18ed1dc")
       }
     }
 

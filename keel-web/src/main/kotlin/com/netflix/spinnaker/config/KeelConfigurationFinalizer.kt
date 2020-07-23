@@ -74,7 +74,7 @@ class KeelConfigurationFinalizer(
   }
 
   @PostConstruct
-  fun registerArtifactPublisherSubtypes() {
+  fun registerArtifactSupplierSubtypes() {
     artifactSuppliers
       .map { it.supportedArtifact }
       .forEach { (name, artifactClass) ->

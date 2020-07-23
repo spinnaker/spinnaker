@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.persistence.ArtifactRepositoryTests
 import com.netflix.spinnaker.keel.persistence.DummyResourceSpecIdentifier
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
-import com.netflix.spinnaker.keel.test.defaultArtifactPublishers
+import com.netflix.spinnaker.keel.test.defaultArtifactSuppliers
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -23,11 +23,11 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
     DummyResourceSpecIdentifier,
     objectMapper,
     sqlRetry,
-    defaultArtifactPublishers()
+    defaultArtifactSuppliers()
   )
 
   override fun factory(clock: Clock): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactPublishers())
+    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry, defaultArtifactSuppliers())
 
   override fun SqlArtifactRepository.flush() {
     cleanupDb(jooq)

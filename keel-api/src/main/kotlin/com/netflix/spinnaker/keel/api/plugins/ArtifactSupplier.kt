@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 
 /**
@@ -34,11 +35,11 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    * persisted and evaluated for promotion into deployment environments.
    *
    * The default implementation of [publishArtifact] simply publishes the event via the [EventPublisher],
-   * and should *not* be overridden by implementors.
+   * and should typically *not* be overridden by implementors.
    */
   @JvmDefault
-  fun publishArtifact(artifactPublishedEvent: ArtifactPublishedEvent) =
-    eventPublisher.publishEvent(artifactPublishedEvent)
+  fun publishArtifact(artifact: PublishedArtifact) =
+    eventPublisher.publishEvent(artifact)
 
   /**
    * Returns the latest available version for the given [DeliveryArtifact], represented
@@ -90,4 +91,6 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
  */
 fun List<ArtifactSupplier<*, *>>.supporting(type: ArtifactType) =
   find { it.supportedArtifact.name.toLowerCase() == type.toLowerCase() }
-    ?: error("Artifact type '$type' is not supported.")
+    ?: throw UnsupportedArtifactException(type)
+
+class UnsupportedArtifactException(type: ArtifactType) : SystemException("Artifact type '$type' is not supported.")

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.artifact
+package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
@@ -10,8 +10,6 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
-import com.netflix.spinnaker.keel.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.artifacts.DockerVersioningStrategy
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.test.deliveryConfig
@@ -42,13 +40,13 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       reference = dockerArtifact.reference,
       version = versions.last()
     )
-    val dockerArtifactPublisher = DockerArtifactSupplier(eventBridge, clouddriverService)
+    val dockerArtifactSupplier = DockerArtifactSupplier(eventBridge, clouddriverService)
   }
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
 
-    context("DockerArtifactPublisher") {
+    context("DockerArtifactSupplier") {
       before {
         every {
           clouddriverService.findDockerTagsForImage("*", dockerArtifact.name, deliveryConfig.serviceAccount)
@@ -66,13 +64,13 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       }
 
       test("supports Docker artifacts") {
-        expectThat(dockerArtifactPublisher.supportedArtifact).isEqualTo(
+        expectThat(dockerArtifactSupplier.supportedArtifact).isEqualTo(
           SupportedArtifact(DOCKER, DockerArtifact::class.java)
         )
       }
 
       test("supports Docker versioning strategy") {
-        expectThat(dockerArtifactPublisher.supportedVersioningStrategy)
+        expectThat(dockerArtifactSupplier.supportedVersioningStrategy)
           .isEqualTo(
             SupportedVersioningStrategy(DOCKER, DockerVersioningStrategy::class.java)
           )
@@ -80,7 +78,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
 
       test("looks up latest artifact from igor") {
         val result = runBlocking {
-          dockerArtifactPublisher.getLatestArtifact(deliveryConfig, dockerArtifact)
+          dockerArtifactSupplier.getLatestArtifact(deliveryConfig, dockerArtifact)
         }
         expectThat(result).isEqualTo(latestArtifact)
         verify(exactly = 1) {
@@ -90,26 +88,26 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       }
 
       test("returns full version string equal to the plain version") {
-        expectThat(dockerArtifactPublisher.getFullVersionString(latestArtifact))
+        expectThat(dockerArtifactSupplier.getFullVersionString(latestArtifact))
           .isEqualTo(latestArtifact.version)
       }
 
       test("returns no release status for Docker artifacts") {
-        expectThat(dockerArtifactPublisher.getReleaseStatus(latestArtifact))
+        expectThat(dockerArtifactSupplier.getReleaseStatus(latestArtifact))
           .isNull()
       }
 
       test("returns git metadata based on tag when available") {
-        expectThat(dockerArtifactPublisher.getGitMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
+        expectThat(dockerArtifactSupplier.getGitMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
           .isEqualTo(GitMetadata(commit = "8a5b962"))
-        expectThat(dockerArtifactPublisher.getGitMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
+        expectThat(dockerArtifactSupplier.getGitMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
           .isNull()
       }
 
       test("returns build metadata based on tag when available") {
-        expectThat(dockerArtifactPublisher.getBuildMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
+        expectThat(dockerArtifactSupplier.getBuildMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
           .isEqualTo(BuildMetadata(id = 1182))
-        expectThat(dockerArtifactPublisher.getBuildMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
+        expectThat(dockerArtifactSupplier.getBuildMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
           .isNull()
       }
     }

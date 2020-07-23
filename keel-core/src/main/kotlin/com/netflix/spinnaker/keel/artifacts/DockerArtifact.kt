@@ -8,6 +8,9 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.artifacts.VersioningStrategy
 
+/**
+ * A [DeliveryArtifact] that describes Docker images.
+ */
 data class DockerArtifact(
   override val name: String,
   override val deliveryConfigName: String? = null,

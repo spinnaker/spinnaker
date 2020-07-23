@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.artifact
+package com.netflix.spinnaker.keel.artifacts
 
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.persistence.KeelRepository

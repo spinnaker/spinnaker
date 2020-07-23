@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.artifact
+package com.netflix.spinnaker.keel.artifacts
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

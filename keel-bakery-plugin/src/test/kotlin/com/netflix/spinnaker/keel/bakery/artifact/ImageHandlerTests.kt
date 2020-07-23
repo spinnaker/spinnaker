@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BaseLabel.RELEASE
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.StoreType.EBS
 import com.netflix.spinnaker.keel.api.artifacts.VirtualMachineOptions
@@ -172,7 +173,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         before {
           every { repository.artifactVersions(artifact) } throws NoSuchArtifactException(artifact)
           every { repository.isRegistered(artifact.name, artifact.type) } returns false
-          every { igorService.getVersions(any(), any()) } returns listOf(image.appVersion)
+          every { igorService.getVersions(any(), any(), DEBIAN) } returns listOf(image.appVersion)
 
           runHandler(artifact)
         }
@@ -195,16 +196,16 @@ internal class ImageHandlerTests : JUnit5Minutests {
           before {
             every { repository.artifactVersions(artifact) } returns emptyList()
             every { repository.isRegistered(artifact.name, artifact.type) } returns true
-            every { igorService.getVersions(any(), any()) } returns emptyList()
+            every { igorService.getVersions(any(), any(), DEBIAN) } returns emptyList()
 
             runHandler(artifact)
           }
 
           test("we do actually go check in Igor") {
             verify {
-              igorService.getVersions(
-                artifact.name,
-                artifact.statuses.map(ArtifactStatus::toString)
+              igorService.getVersions(artifact.name,
+                artifact.statuses.map(ArtifactStatus::toString),
+                DEBIAN
               )
             }
           }

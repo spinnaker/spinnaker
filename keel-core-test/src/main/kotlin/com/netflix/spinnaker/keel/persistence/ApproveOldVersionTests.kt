@@ -137,6 +137,10 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       )
     }
 
+    after {
+      flush()
+    }
+
     context("two versions of an artifact exist") {
       before {
         repository.register(artifact)

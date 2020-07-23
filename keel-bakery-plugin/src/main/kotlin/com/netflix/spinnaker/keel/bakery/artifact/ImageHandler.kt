@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
@@ -104,7 +105,7 @@ class ImageHandler(
 
     // even though the artifact isn't registered we should grab the latest version to use
     val versions = igorService
-      .getVersions(name, statuses.map { it.toString() })
+      .getVersions(name, statuses.map { it.toString() }, DEBIAN)
     log.debug("Finding latest version of $name: versions igor knows about = $versions")
     return versions
       .firstOrNull()

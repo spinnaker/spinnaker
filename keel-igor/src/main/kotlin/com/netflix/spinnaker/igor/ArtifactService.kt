@@ -10,13 +10,15 @@ interface ArtifactService {
 
   @GET("/artifacts/rocket/{packageName}/{version}")
   suspend fun getArtifact(
-    @Path("packageName") packageName: String,
-    @Path("version") version: String
+    @Path("packageName", encoded = true) packageName: String,
+    @Path("version") version: String,
+    @Query("type") artifactType: String
   ): PublishedArtifact
 
   @GET("/artifacts/rocket/{packageName}")
   suspend fun getVersions(
-    @Path("packageName") packageName: String,
-    @Query("releaseStatus") releaseStatus: List<String> = enumValues<ArtifactStatus>().toList().map { it.toString() }
+    @Path("packageName", encoded = true) packageName: String,
+    @Query("releaseStatus") releaseStatus: List<String> = enumValues<ArtifactStatus>().toList().map { it.toString() },
+    @Query("type") artifactType: String
   ): List<String> // sorted in descending order
 }

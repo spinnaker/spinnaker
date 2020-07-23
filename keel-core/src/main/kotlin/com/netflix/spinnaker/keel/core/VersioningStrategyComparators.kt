@@ -88,7 +88,7 @@ val INCREASING_COMPARATOR: Comparator<Int> = Comparator { a, b ->
 }
 
 // descending by default
-val DEBIAN_VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
+val NETFLIX_SEMVER_COMPARATOR: Comparator<String> = object : Comparator<String> {
   override fun compare(s1: String, s2: String) =
     debComparator.compare(s2.toVersion(), s1.toVersion())
 
