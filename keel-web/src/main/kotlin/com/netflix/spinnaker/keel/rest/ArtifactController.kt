@@ -35,9 +35,12 @@ class ArtifactController(
   )
   @ResponseStatus(ACCEPTED)
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
+    log.debug("Received artifact event: $echoArtifactEvent")
     echoArtifactEvent.payload.artifacts.forEach { artifact ->
       try {
+        log.debug("Processing artifact from event: $artifact")
         val artifactSupplier = artifactSuppliers.supporting(artifact.type.toLowerCase())
+        log.debug("Publishing artifact ${artifact.name} version ${artifact.version} via ${artifactSupplier::class.simpleName}")
         artifactSupplier.publishArtifact(artifact)
       } catch (e: UnsupportedArtifactException) {
         log.debug("Ignoring artifact event with unsupported type {}: {}", artifact.type, artifact)
