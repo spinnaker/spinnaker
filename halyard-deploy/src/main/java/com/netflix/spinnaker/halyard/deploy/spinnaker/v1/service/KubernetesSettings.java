@@ -31,6 +31,7 @@ public class KubernetesSettings {
   Map<String, String> podAnnotations = new HashMap<>();
   Map<String, String> podLabels = new HashMap<>();
   Map<String, String> serviceLabels = new HashMap<>();
+  Map<String, String> serviceAnnotations = new HashMap<>();
   List<ConfigSource> volumes = new ArrayList<>();
   String serviceAccountName = null;
   String serviceType = "ClusterIP";

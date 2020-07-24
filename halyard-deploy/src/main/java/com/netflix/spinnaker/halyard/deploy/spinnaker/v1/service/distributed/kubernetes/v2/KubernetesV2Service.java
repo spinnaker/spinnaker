@@ -146,6 +146,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T>, Kubernete
     service.addBinding("type", settings.getKubernetes().getServiceType());
     service.addBinding("nodePort", settings.getKubernetes().getNodePort());
     service.addBinding("serviceLabels", settings.getKubernetes().getServiceLabels());
+    service.addBinding("serviceAnnotations", settings.getKubernetes().getServiceAnnotations());
 
     return service.toString();
   }
