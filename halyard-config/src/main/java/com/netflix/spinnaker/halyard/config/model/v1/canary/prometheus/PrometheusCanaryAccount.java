@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import java.util.Collections;
 import java.util.Set;
@@ -34,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PrometheusCanaryAccount extends AbstractCanaryAccount implements Cloneable {
   private Endpoint endpoint;
   private String username;
-  private String password;
+  @Secret private String password;
 
   @LocalFile @SecretFile private String usernamePasswordFile;
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.huaweicloud;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -25,7 +26,7 @@ import lombok.EqualsAndHashCode;
 public class HuaweiCloudBakeryDefaults extends BakeryDefaults<HuaweiCloudBaseImage> {
   private String authUrl;
   private String username;
-  private String password;
+  @Secret private String password;
   private String projectName;
   private String domainName;
   private Boolean insecure;
