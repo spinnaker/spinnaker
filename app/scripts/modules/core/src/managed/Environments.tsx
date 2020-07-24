@@ -67,7 +67,7 @@ interface IEnvironmentsProps {
 export function Environments({ app }: IEnvironmentsProps) {
   const dataSource: ApplicationDataSource<IManagedApplicationEnvironmentSummary> = app.getDataSource('environments');
   const {
-    data: { environments, artifacts, resources, hasManagedResources },
+    data: { environments, artifacts, resources },
     status,
     loaded,
   } = useDataSource(dataSource);
@@ -124,7 +124,7 @@ export function Environments({ app }: IEnvironmentsProps) {
     );
   }
 
-  const unmanaged = loaded && !hasManagedResources;
+  const unmanaged = loaded && artifacts.length == 0 && resources.length == 0;
   const gettingStartedLink = SETTINGS.managedDelivery?.gettingStartedUrl || defaultGettingStartedUrl;
   if (unmanaged) {
     return (
