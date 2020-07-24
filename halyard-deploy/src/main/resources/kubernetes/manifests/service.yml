@@ -2,7 +2,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: spin-{{ name }}
-  namespace: {{ namespace }}
+  namespace: "{{ namespace }}"
   labels:
     app: spin
     cluster: spin-{{ name }}
