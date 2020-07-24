@@ -45,6 +45,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
+/**
+ * The core component in keel responsible for resource state monitoring and actuation.
+ *
+ * The [checkResource] method of this class is called periodically by [CheckScheduler]
+ * to check on the current state of a specific [Resource] via the [ResourceHandler.current] method
+ * of the corresponding [ResourceHandler] plugin, compare that with the desired state obtained
+ * from [ResourceHandler.desired], and finally call the appropriate resource CRUD method on
+ * the [ResourceHandler] if differences are detected.
+ */
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
@@ -91,8 +100,8 @@ class ResourceActuator(
           /**
            * [VersionedArtifactProvider] is a special [resource] sub-type. When a veto response sets
            * [VetoResponse.vetoArtifact] and the resource under evaluation is of type
-           * [VersionedArtifactProvider], denylist the desired artifact version from the environment
-           * containing [resource]. This ensures that the environment will be fully restored to
+           * [VersionedArtifactProvider], disallow the desired artifact version from being deployed to
+           * the environment containing [resource]. This ensures that the environment will be fully restored to
            * a prior good-state.
            */
           if (response.vetoArtifact && resource.spec is VersionedArtifactProvider) {

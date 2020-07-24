@@ -9,10 +9,25 @@ import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
+ * A [ResourceHandler] is a keel plugin that provides resource state monitoring and actuation capabilities
+ * for a specific type of [Resource]. The primary tasks of a [ResourceHandler] are to:
+ *
+ * 1. Translate the declarative definition of a [Resource], as represented by the matching [ResourceSpec]
+ *    (which can be arbitrarily abstract), into a concrete representation of the *desired state* of the resource
+ *    that the plugin itself can interpret and act upon. This is implemented in the [desired] method.
+ *
+ * 2. Provide the *current state* of a [Resource] as it exists in the real world, using the same concrete
+ *    representation as that used to represent desired state, so that keel can compare the two and look for
+ *    a drift (a.k.a. diff) between desired and current state. This is implemented in the [current] method.
+ *
+ * 3. Act to resolve the drift when requested by keel. This is done via the [create], [update] and [delete]
+ *    methods, which receive a [ResourceDiff] as a parameter.
+ *
  * @param S the spec type.
  * @param R the resolved model type.
  *
@@ -20,7 +35,7 @@ import org.slf4j.LoggerFactory
  */
 abstract class ResourceHandler<S : ResourceSpec, R : Any>(
   private val resolvers: List<Resolver<*>>
-) {
+) : SpinnakerExtensionPoint {
   val name: String
     get() = javaClass.simpleName
 
@@ -141,7 +156,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
 
   /**
    * Generates an artifact from a currently existing resource.
-   * Note: this only applies to clusters.
+   * Note: this only applies to resources that use artifacts, like clusters.
    */
   open suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact {
     TODO("Not implemented or not supported with this handler")
