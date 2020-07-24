@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -31,6 +32,7 @@ type executeOptions struct {
 	name          string
 	parameterFile string
 	artifactsFile string
+	parameters    []string
 }
 
 var (
@@ -56,6 +58,7 @@ func NewExecuteCmd(pipelineOptions *PipelineOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "name of the pipeline to execute")
 	cmd.PersistentFlags().StringVarP(&options.parameterFile, "parameter-file", "f", "", "file to load pipeline parameter values from")
 	cmd.PersistentFlags().StringVarP(&options.artifactsFile, "artifacts-file", "t", "", "file to load pipeline artifacts from")
+	cmd.PersistentFlags().StringSliceVarP(&options.parameters, "parameter", "p", []string{}, "parameter in the form of key=value. can be used repeatedly.")
 
 	return cmd
 }
@@ -65,13 +68,25 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
 
-	parameters, err := util.ParseJsonFromFile(options.parameterFile, true)
-	if err != nil {
-		return fmt.Errorf("Could not parse supplied pipeline parameters: %v.\n", err)
+	parameters := map[string]interface{}{}
+	if options.parameterFile != "" {
+		p, err := util.ParseJsonFromFile(options.parameterFile, true)
+		if err != nil {
+			return fmt.Errorf("Could not parse supplied pipeline parameters: %v.\n", err)
+		}
+		parameters = p
+	} else if len(options.parameters) > 0 {
+		for _, p := range options.parameters {
+			// split each passed parameter on =
+			kv := strings.SplitN(p, "=", 2)
+			if len(kv) == 2 {
+				parameters[kv[0]] = kv[1]
+			}
+		}
 	}
 
 	artifactsFile := map[string]interface{}{}
-	artifactsFile, err = util.ParseJsonFromFile(options.artifactsFile, true)
+	artifactsFile, err := util.ParseJsonFromFile(options.artifactsFile, true)
 	if err != nil {
 		return fmt.Errorf("Could not parse supplied artifacts: %v.\n", err)
 	}
