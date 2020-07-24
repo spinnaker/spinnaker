@@ -34,5 +34,6 @@ func NewPipelineCmd(rootOptions *cmd.RootOptions) (*cobra.Command, *PipelineOpti
 	cmd.AddCommand(NewDeleteCmd(options))
 	cmd.AddCommand(NewSaveCmd(options))
 	cmd.AddCommand(NewExecuteCmd(options))
+	cmd.AddCommand(NewUpdateCmd(options))
 	return cmd, options
 }
