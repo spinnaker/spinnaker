@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
  */
 data class ArtifactPublishedEvent(
   val artifacts: List<PublishedArtifact>,
-  val details: Map<String, Any>?
+  val details: Map<String, Any>? = emptyMap()
 )
 
 /**

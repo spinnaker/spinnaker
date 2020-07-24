@@ -39,7 +39,7 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    */
   @JvmDefault
   fun publishArtifact(artifact: PublishedArtifact) =
-    eventPublisher.publishEvent(artifact)
+    eventPublisher.publishEvent(ArtifactPublishedEvent(listOf(artifact)))
 
   /**
    * Returns the latest available version for the given [DeliveryArtifact], represented
