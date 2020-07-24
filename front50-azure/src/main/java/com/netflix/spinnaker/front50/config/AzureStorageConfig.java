@@ -27,7 +27,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @ConditionalOnExpression("${spinnaker.azs.enabled:false}")
 @EnableConfigurationProperties(AzureStorageProperties.class)
-public class AzureStorageConfig extends CommonStorageServiceDAOConfig {
+public class AzureStorageConfig {
   @Bean
   @ConditionalOnMissingBean(RestTemplate.class)
   public RestTemplate restTemplate() {

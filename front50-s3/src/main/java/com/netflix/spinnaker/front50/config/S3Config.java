@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnProperty("spinnaker.s3.enabled")
 @Import(BastionConfig.class)
 @EnableConfigurationProperties({S3MetadataStorageProperties.class, S3PluginStorageProperties.class})
-public class S3Config extends CommonStorageServiceDAOConfig {
+public class S3Config {
 
   @Bean
   @ConditionalOnProperty(value = "spinnaker.s3.storage-service.enabled", matchIfMissing = true)

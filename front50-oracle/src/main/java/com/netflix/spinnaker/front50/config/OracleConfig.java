@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @ConditionalOnExpression("${spinnaker.oracle.enabled:false}")
 @EnableConfigurationProperties(OracleProperties.class)
-public class OracleConfig extends CommonStorageServiceDAOConfig {
+public class OracleConfig {
 
   @Bean
   public OracleStorageService oracleStorageService(OracleProperties oracleProperties)

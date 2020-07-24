@@ -31,7 +31,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @ConditionalOnExpression("${spinnaker.swift.enabled:false}")
 @EnableConfigurationProperties(SwiftProperties.class)
-public class SwiftConfig extends CommonStorageServiceDAOConfig {
+public class SwiftConfig {
 
   @Autowired Registry registry;
 

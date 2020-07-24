@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.front50.config.CommonStorageServiceDAOConfig
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.migrations.StorageServiceMigrator
 import com.netflix.spinnaker.front50.model.CompositeStorageService
@@ -64,7 +65,7 @@ internal class CompositeStorageServiceConfigurationTests {
 }
 
 @SpringBootApplication
-@Import(CompositeStorageServiceConfiguration::class, SqlConfiguration::class)
+@Import(CommonStorageServiceDAOConfig::class, CompositeStorageServiceConfiguration::class, SqlConfiguration::class)
 @EnableConfigurationProperties(StorageServiceConfigurationProperties::class)
 internal class CompositeStorageServiceConfigurationTestApp {
   @Bean

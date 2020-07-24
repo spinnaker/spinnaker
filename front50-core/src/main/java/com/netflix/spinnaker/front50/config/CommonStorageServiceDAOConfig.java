@@ -50,8 +50,10 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.concurrent.Executors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import rx.schedulers.Schedulers;
 
+@Configuration
 public class CommonStorageServiceDAOConfig {
   @Bean
   @ConditionalOnMissingBean(ObjectKeyLoader.class)
@@ -79,6 +81,7 @@ public class CommonStorageServiceDAOConfig {
   }
 
   @Bean
+  @ConditionalOnMissingBean // GcsConfig overrides this
   ApplicationPermissionDAO applicationPermissionDAO(
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,

@@ -19,7 +19,9 @@ package com.netflix.spinnaker.front50.config;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.front50.model.*;
+import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader;
+import com.netflix.spinnaker.front50.model.GcsStorageService;
+import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -41,7 +43,8 @@ import rx.schedulers.Schedulers;
 @Configuration
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
 @EnableConfigurationProperties(GcsProperties.class)
-public class GcsConfig extends CommonStorageServiceDAOConfig {
+public class GcsConfig {
+
   @Value("${spinnaker.gcs.safe-retry.max-wait-interval-ms:60000}")
   int maxWaitInterval;
 
@@ -142,11 +145,9 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
     return new RestTemplate();
   }
 
-  @Override
+  @Bean
   public ApplicationPermissionDAO applicationPermissionDAO(
-      StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
-      ObjectKeyLoader objectKeyLoader,
       Registry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     GcsStorageService service =

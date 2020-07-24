@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.front50.config.CommonStorageServiceDAOConfig
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
@@ -34,7 +33,7 @@ import org.springframework.context.annotation.Import
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @Import(DefaultSqlConfiguration::class)
-class SqlConfiguration : CommonStorageServiceDAOConfig() {
+class SqlConfiguration {
 
   @Bean
   fun sqlStorageService(
