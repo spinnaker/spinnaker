@@ -30,12 +30,10 @@ import (
 	_ "net/http/pprof"
 	"net/url"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"syscall"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/oauth2"
@@ -47,6 +45,7 @@ import (
 	"github.com/spinnaker/spin/config/auth"
 	iap "github.com/spinnaker/spin/config/auth/iap"
 	gate "github.com/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spin/util"
 	"github.com/spinnaker/spin/version"
 )
 
@@ -210,19 +209,10 @@ func userConfig(gateClient *GatewayClient, configLocation string) error {
 	if configLocation != "" {
 		gateClient.configLocation = configLocation
 	} else {
-		userHome := ""
-		usr, err := user.Current()
+		userHome, err := os.UserHomeDir()
 		if err != nil {
-			// Fallback by trying to read $HOME
-			userHome = os.Getenv("HOME")
-			if userHome != "" {
-				err = nil
-			} else {
-				gateClient.ui.Error("Could not read current user from environment, failing.")
-				return err
-			}
-		} else {
-			userHome = usr.HomeDir
+			gateClient.ui.Error("Could not read current user home directory from environment, failing.")
+			return err
 		}
 		gateClient.configLocation = filepath.Join(userHome, ".spin", "config")
 	}
@@ -266,11 +256,11 @@ func InitializeHTTPClient(auth *auth.Config) (*http.Client, error) {
 		}
 
 		if X509.CertPath != "" && X509.KeyPath != "" {
-			certPath, err := homedir.Expand(X509.CertPath)
+			certPath, err := util.ExpandHomeDir(X509.CertPath)
 			if err != nil {
 				return nil, err
 			}
-			keyPath, err := homedir.Expand(X509.KeyPath)
+			keyPath, err := util.ExpandHomeDir(X509.KeyPath)
 			if err != nil {
 				return nil, err
 			}
