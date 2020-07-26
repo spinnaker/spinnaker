@@ -18,11 +18,13 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask
 import groovy.transform.Canonical
@@ -82,7 +84,7 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
         errors << 'Missing regions'
       }
       if (errors) {
-        throw new IllegalStateException("Invalid configuration " + errors.join(','))
+        throw new ConfigurationException("Invalid configuration " + errors.join(', '))
       }
     }
   }
@@ -131,7 +133,7 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
     }
 
     if (failures) {
-      throw new IllegalStateException("Precondition check failed: ${failures.join(', ')}")
+      throw new PreconditionFailureException("Precondition check failed: ${failures.join(', ')}")
     }
 
     return TaskResult.SUCCEEDED

@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.front50
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
+import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
@@ -74,7 +74,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     def json = objectMapper.writeValueAsString(pipelineConfig)
 
     if (pipelineConfig.disabled) {
-      throw new InvalidRequestException("Pipeline '${pipelineConfig.name}' is disabled and cannot be triggered")
+      throw new ConfigurationException("Pipeline '${pipelineConfig.name}' is disabled and cannot be triggered")
     }
 
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
@@ -134,7 +134,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
 
     if (pipelineConfig.errors != null) {
-      throw new ValidationException("Pipeline template is invalid", pipelineConfig.errors as List<Map<String, Object>>)
+      throw new PipelineTemplateValidationException("Pipeline template is invalid", pipelineConfig.errors as List<Map<String, Object>>)
     }
 
     // Process the raw trigger to resolve any expressions before converting it to a Trigger object, which will not be

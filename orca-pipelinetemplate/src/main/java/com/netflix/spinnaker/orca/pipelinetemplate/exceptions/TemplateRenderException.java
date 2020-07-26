@@ -15,10 +15,12 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.exceptions;
 
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 
-public class TemplateRenderException extends RuntimeException implements PipelineTemplateException {
+public class TemplateRenderException extends ConfigurationException
+    implements PipelineTemplateException {
 
   public static TemplateRenderException fromError(Error error) {
     return new TemplateRenderException(error.getMessage(), null, error);

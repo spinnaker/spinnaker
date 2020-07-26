@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks
 
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
@@ -79,7 +81,7 @@ class StageStatusPreconditionTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    thrown(IllegalArgumentException)
+    thrown(ConfigurationException)
 
     where:
     stageName | stageStatus
@@ -113,7 +115,7 @@ class StageStatusPreconditionTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    thrown(RuntimeException)
+    thrown(PreconditionFailureException)
 
     where:
     stageName | stageStatus

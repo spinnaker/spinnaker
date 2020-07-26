@@ -21,15 +21,15 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
+import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.front50.Front50Service
 
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.common.Header
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
@@ -567,7 +567,7 @@ class OperationsControllerSpec extends Specification {
     controller.orchestrate(pipelineConfig, response)
 
     then:
-    thrown(InvalidRequestException)
+    thrown(PipelineTemplateValidationException)
     1 * pipelineTemplateService.retrievePipelineOrNewestExecution("12345", null) >> {
       throw new ExecutionNotFoundException("Not found")
     }
@@ -594,7 +594,7 @@ class OperationsControllerSpec extends Specification {
     controller.orchestrate(pipelineConfig, response)
 
     then:
-    thrown(ValidationException)
+    thrown(PipelineTemplateValidationException)
     0 * executionLauncher.start(*_)
   }
 

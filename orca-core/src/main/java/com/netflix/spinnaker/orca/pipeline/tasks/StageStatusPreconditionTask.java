@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -38,12 +40,12 @@ public class StageStatusPreconditionTask implements PreconditionTask {
     String stageName = context.getStageName();
     String assertedStatus = context.getStageStatus();
     if (stageName == null) {
-      throw new IllegalArgumentException(
+      throw new ConfigurationException(
           String.format(
               "Stage name is required for preconditions of type %s.", getPreconditionType()));
     }
     if (assertedStatus == null) {
-      throw new IllegalArgumentException(
+      throw new ConfigurationException(
           String.format(
               "Stage status is required for preconditions of type %s.", getPreconditionType()));
     }
@@ -53,13 +55,13 @@ public class StageStatusPreconditionTask implements PreconditionTask {
             .findFirst()
             .orElseThrow(
                 () ->
-                    new IllegalArgumentException(
+                    new ConfigurationException(
                         String.format(
                             "Failed to find stage %s in execution. Please specify a valid stage name",
                             stageName)));
     String actualStatus = foundStage.getStatus().toString();
     if (!actualStatus.equals(assertedStatus)) {
-      throw new RuntimeException(
+      throw new PreconditionFailureException(
           String.format(
               "The status of stage %s was asserted to be %s, but was actually %s",
               stageName, assertedStatus, actualStatus));

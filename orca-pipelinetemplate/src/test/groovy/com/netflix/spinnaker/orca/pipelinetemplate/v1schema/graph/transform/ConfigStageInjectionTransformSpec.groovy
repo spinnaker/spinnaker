@@ -88,7 +88,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     ConfigStageInjectionTransform.createGraph(stages)
 
     then:
-    thrown(IllegalStateException)
+    thrown(IllegalTemplateConfigurationException)
   }
 
   def 'should inject stage into dag'() {
@@ -169,7 +169,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     )).visitPipelineTemplate(template)
 
     then:
-    thrown(IllegalStateException)
+    thrown(IllegalTemplateConfigurationException)
 
     when: 'injecting stage after another stage in dag'
     template = templateBuilder()

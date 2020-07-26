@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException
+
 import java.util.concurrent.atomic.AtomicInteger
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -109,7 +111,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
     then:
     1 * oortService.getCluster('foo', 'test', 'foo', 'aws') >> response
 
-    thrown(IllegalStateException)
+    thrown(PreconditionFailureException)
 
     where:
     credentials = 'test'

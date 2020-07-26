@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -70,11 +71,11 @@ class StartPipelineTask implements Task {
     Map<String, Object> pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (!pipelineConfig) {
-      throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId})")
+      throw new ConfigurationException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId})")
     }
 
     if (pipelineConfig.getOrDefault("disabled", false)) {
-      throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} is disabled")
+      throw new ConfigurationException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} is disabled")
     }
 
     if (V2Util.isV2Pipeline(pipelineConfig)) {

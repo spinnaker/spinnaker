@@ -243,7 +243,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       if (System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10) > Long.valueOf(taskStartTime.get())) {
         // expectation is reconciliation has happened within 10 minutes and that the
         // current server group capacity should be preferred
-        log.error(
+        log.warn(
           "Short circuiting initial target capacity determination after 10 minutes (serverGroup: {}, executionId: {})",
           "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
           stage.execution.id

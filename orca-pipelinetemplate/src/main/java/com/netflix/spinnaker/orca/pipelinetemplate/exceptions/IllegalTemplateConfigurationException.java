@@ -15,10 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.exceptions;
 
+import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 
-public class IllegalTemplateConfigurationException extends IllegalStateException
+public class IllegalTemplateConfigurationException extends UserException
     implements PipelineTemplateException {
 
   private Error error;

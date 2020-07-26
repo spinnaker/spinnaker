@@ -21,12 +21,14 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.OperationFailedException
+import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
@@ -240,7 +242,7 @@ class OperationsController {
     }
 
     if (pipeline.disabled) {
-      throw new InvalidRequestException("Pipeline is disabled and cannot be started.")
+      throw new ConfigurationException("Pipeline is disabled and cannot be started.")
     }
 
     def linear = pipeline.stages.every { it.refId == null }
@@ -249,7 +251,7 @@ class OperationsController {
     }
 
     if (pipeline.errors != null) {
-      throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
+      throw new PipelineTemplateValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
     }
     return pipeline
   }

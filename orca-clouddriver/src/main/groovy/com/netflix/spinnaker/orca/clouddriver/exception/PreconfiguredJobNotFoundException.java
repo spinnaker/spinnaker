@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.exception
+package com.netflix.spinnaker.orca.clouddriver.exception;
 
-class PreconfiguredJobNotFoundException extends RuntimeException {
-  PreconfiguredJobNotFoundException(String jobKey) {
-    super("Could not find a stage named '$jobKey'")
+import com.netflix.spinnaker.kork.exceptions.UserException;
+
+public class PreconfiguredJobNotFoundException extends UserException {
+  public PreconfiguredJobNotFoundException(String jobKey) {
+    super("Could not find a stage named '" + jobKey + "'");
   }
 }

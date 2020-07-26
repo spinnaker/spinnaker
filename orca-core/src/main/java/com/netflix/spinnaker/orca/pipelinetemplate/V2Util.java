@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -50,7 +50,7 @@ public class V2Util {
 
     List<Map<String, Object>> pipelineErrors = (List<Map<String, Object>>) pipeline.get("errors");
     if (pipelineErrors != null && !pipelineErrors.isEmpty()) {
-      throw new ValidationException("Pipeline template is invalid", pipelineErrors);
+      throw new PipelineTemplateValidationException("Pipeline template is invalid", pipelineErrors);
     }
 
     Map<String, Object> augmentedContext = new HashMap<>();
@@ -72,7 +72,7 @@ public class V2Util {
               .collect(Collectors.toList());
 
       if (failedTemplateVars.size() > 0) {
-        throw new ValidationException(
+        throw new PipelineTemplateValidationException(
             "Missing template variable values for the following variables: %s", failedTemplateVars);
       }
     }
