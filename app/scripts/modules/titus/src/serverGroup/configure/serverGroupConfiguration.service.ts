@@ -43,6 +43,7 @@ export interface ITitusServerGroupCommandViewState extends IServerGroupCommandVi
   regionChangedStream: Subject<{}>;
   groupsRemovedStream: Subject<{}>;
   dirty: IAmazonServerGroupCommandDirty;
+  defaultIamProfile: string;
 }
 
 export const defaultJobDisruptionBudget: IJobDisruptionBudget = {
@@ -97,6 +98,7 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
   labels: { [key: string]: string };
   containerAttributes: { [key: string]: string };
   env: { [key: string]: string };
+  iamProfile: string;
   migrationPolicy: {
     type: string;
   };
