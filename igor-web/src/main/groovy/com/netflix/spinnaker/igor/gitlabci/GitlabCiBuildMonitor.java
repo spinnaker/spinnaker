@@ -113,8 +113,7 @@ public class GitlabCiBuildMonitor
         kv("master", master));
 
     List<BuildDelta> delta = new ArrayList<>();
-    projects
-        .parallelStream()
+    projects.parallelStream()
         .forEach(
             project -> {
               List<Pipeline> pipelines =
@@ -149,9 +148,7 @@ public class GitlabCiBuildMonitor
     final GitlabCiService gitlabCiService =
         (GitlabCiService) buildServices.getService(delta.master);
 
-    delta
-        .items
-        .parallelStream()
+    delta.items.parallelStream()
         .forEach(
             item -> {
               log.info(

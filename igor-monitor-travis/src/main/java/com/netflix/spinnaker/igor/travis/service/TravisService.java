@@ -349,8 +349,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   }
 
   private List<V3Build> getBuildsForSpecificRepos(Collection<String> repositories) {
-    return repositories
-        .parallelStream()
+    return repositories.parallelStream()
         .map(this::fetchBuilds)
         .filter(Either::isLeft)
         .map(Either::getLeft)

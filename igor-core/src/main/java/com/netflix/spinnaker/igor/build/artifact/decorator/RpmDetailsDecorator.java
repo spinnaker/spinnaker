@@ -30,8 +30,7 @@ public class RpmDetailsDecorator implements ArtifactDetailsDecorator {
 
   @Override
   public GenericArtifact decorate(GenericArtifact genericArtifact) {
-    return genericArtifact
-        .toBuilder()
+    return genericArtifact.toBuilder()
         .name(extractName(genericArtifact.getFileName()))
         .version(extractVersion(genericArtifact.getFileName()))
         .type(packageType)

@@ -79,8 +79,11 @@ public class Plan {
   }
 
   public List<Resource> getResources() {
-    return Optional.ofNullable(plan.getOnFailure()).map(OnFailure::getStep).map(InnerPlan::getDoes)
-        .orElse(plan.getDoes()).stream()
+    return Optional.ofNullable(plan.getOnFailure())
+        .map(OnFailure::getStep)
+        .map(InnerPlan::getDoes)
+        .orElse(plan.getDoes())
+        .stream()
         .map(Op::getResource)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
