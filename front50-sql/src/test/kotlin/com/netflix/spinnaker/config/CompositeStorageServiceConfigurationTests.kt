@@ -40,7 +40,7 @@ import strikt.assertions.isA
 @SpringBootTest(
   classes = [CompositeStorageServiceConfigurationTestApp::class],
   properties = ["spring.application.name=front50"]
-  )
+)
 internal class CompositeStorageServiceConfigurationTests {
 
   @Autowired

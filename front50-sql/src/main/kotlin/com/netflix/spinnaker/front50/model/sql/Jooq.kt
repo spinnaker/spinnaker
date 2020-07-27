@@ -27,18 +27,24 @@ internal val retrySupport = RetrySupport()
  * Run the provided [fn] in a transaction.
  */
 internal fun DSLContext.transactional(retryProperties: RetryProperties, fn: (DSLContext) -> Unit) {
-  retrySupport.retry({
-    transaction { ctx ->
-      fn(DSL.using(ctx))
-    }
-  }, retryProperties.maxRetries, retryProperties.backoffMs, false)
+  retrySupport.retry(
+    {
+      transaction { ctx ->
+        fn(DSL.using(ctx))
+      }
+    },
+    retryProperties.maxRetries, retryProperties.backoffMs, false
+  )
 }
 
 /**
  * Run the provided [fn] with retry support.
  */
 internal fun <T> DSLContext.withRetry(retryProperties: RetryProperties, fn: (DSLContext) -> T): T {
-  return retrySupport.retry({
-    fn(this)
-  }, retryProperties.maxRetries, retryProperties.backoffMs, false)
+  return retrySupport.retry(
+    {
+      fn(this)
+    },
+    retryProperties.maxRetries, retryProperties.backoffMs, false
+  )
 }

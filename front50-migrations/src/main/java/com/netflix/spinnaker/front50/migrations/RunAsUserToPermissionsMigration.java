@@ -71,9 +71,7 @@ public class RunAsUserToPermissionsMigration implements Migration {
         serviceAccountDAO.all().stream()
             .collect(Collectors.toMap(ServiceAccount::getName, Function.identity()));
 
-    pipelineDAO
-        .all()
-        .parallelStream()
+    pipelineDAO.all().parallelStream()
         .filter(p -> p.getTriggers().stream().anyMatch(this::hasManualServiceUser))
         .forEach(pipeline -> migrate(pipeline, serviceAccounts));
 

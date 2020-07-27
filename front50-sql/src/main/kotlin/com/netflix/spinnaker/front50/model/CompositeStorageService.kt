@@ -185,7 +185,8 @@ class CompositeStorageService(
       try {
         return primary.listObjectVersions(objectType, objectKey, maxResults)
       } catch (e: NotFoundException) {
-        log.debug("{}.listObjectVersions({}, {}, {}) not found (primary)",
+        log.debug(
+          "{}.listObjectVersions({}, {}, {}) not found (primary)",
           primary.javaClass.simpleName,
           objectType,
           objectKey,

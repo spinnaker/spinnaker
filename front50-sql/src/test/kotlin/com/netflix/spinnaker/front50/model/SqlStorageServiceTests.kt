@@ -291,7 +291,7 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
   fun tests() = rootContext<JooqConfig> {
 
     fixture {
-        JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:5.7.22://somehostname:someport/databasename")
+      JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:5.7.22://somehostname:someport/databasename")
     }
 
     context("mysql CRUD operations") {

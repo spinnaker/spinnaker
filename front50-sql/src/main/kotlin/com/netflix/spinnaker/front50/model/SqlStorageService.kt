@@ -136,7 +136,8 @@ class SqlStorageService(
       )
     }
 
-    log.debug("Took {}ms to fetch {} objects for {}",
+    log.debug(
+      "Took {}ms to fetch {} objects for {}",
       timeToLoadObjects,
       objects.size,
       objectType
@@ -297,7 +298,8 @@ class SqlStorageService(
       objectKeys.put(resultSet.getString(1), resultSet.getLong(2))
     }
 
-    log.debug("Took {}ms to fetch {} object keys for {}",
+    log.debug(
+      "Took {}ms to fetch {} object keys for {}",
       System.currentTimeMillis() - startTime,
       objectKeys.size,
       objectType

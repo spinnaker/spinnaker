@@ -62,9 +62,7 @@ public class DeleteDanglingServiceAccountsMigration implements Migration {
         "Starting deletion of dangling service accounts ({})", this.getClass().getSimpleName());
 
     Set<String> serviceAccountsToKeep =
-        pipelineDAO
-            .all()
-            .parallelStream()
+        pipelineDAO.all().parallelStream()
             .flatMap(
                 pipeline ->
                     pipeline.getTriggers().stream()
@@ -73,9 +71,7 @@ public class DeleteDanglingServiceAccountsMigration implements Migration {
                         .distinct())
             .collect(Collectors.toSet());
 
-    serviceAccountDAO
-        .all()
-        .parallelStream()
+    serviceAccountDAO.all().parallelStream()
         .map(ServiceAccount::getName)
         .filter(isManagedServiceAccount())
         .filter(serviceAccount -> !serviceAccountsToKeep.contains(serviceAccount))
