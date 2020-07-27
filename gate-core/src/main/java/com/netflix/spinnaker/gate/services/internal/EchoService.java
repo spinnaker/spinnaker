@@ -40,4 +40,7 @@ public interface EchoService {
 
   @GET("/installedPlugins")
   List<SpinnakerPluginDescriptor> getInstalledPlugins();
+
+  @GET("/notifications/metadata")
+  List getNotificationTypeMetadata();
 }

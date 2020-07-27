@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import okhttp3.MediaType
@@ -47,14 +48,17 @@ import static retrofit.RetrofitError.Kind.HTTP
 class NotificationService {
 
   private Front50Service front50Service
+  private EchoService echoService
 
   private OkHttpClient okHttpClient
   private Endpoint echoEndpoint
 
   NotificationService(@Autowired(required = false) Front50Service front50Service,
                       @Autowired OkHttpClientProvider okHttpClientProvider,
-                      @Autowired ServiceConfiguration serviceConfiguration) {
+                      @Autowired ServiceConfiguration serviceConfiguration,
+                      @Autowired(required = false) EchoService echoService) {
     this.front50Service = front50Service
+    this.echoService = echoService
     // We use the "raw" OkHttpClient here instead of EchoService because retrofit messes up with the encoding
     // of the body for the x-www-form-urlencoded content type, which is what Slack uses. This allows us to pass
     // the original body unmodified along to echo.
@@ -72,6 +76,10 @@ class NotificationService {
 
   void deleteNotificationConfig(String type, String app) {
     front50Service.deleteNotificationConfig(type, app)
+  }
+
+  List getNotificationTypeMetadata() {
+    echoService.getNotificationTypeMetadata()
   }
 
   ResponseEntity<String> processNotificationCallback(String source, RequestEntity<String> request) {

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import okhttp3.Call
 import okhttp3.MediaType
@@ -43,6 +44,7 @@ class NotificationServiceSpec extends Specification {
   OkHttpClient okHttpClient = Mock()
   ServiceConfiguration serviceConfiguration = Mock()
   Front50Service front50Service = Mock()
+  EchoService echoService = Mock()
   Call echoCall = Mock()
 
   @Subject NotificationService notificationService
@@ -58,6 +60,7 @@ class NotificationServiceSpec extends Specification {
       front50Service,
       clientProvider,
       serviceConfiguration,
+      echoService,
     )
   }
 
