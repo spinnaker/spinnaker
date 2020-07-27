@@ -22,7 +22,7 @@ export function PipelineParametersExecutionDetails(props: IExecutionDetailsSecti
               .map(key => (
                 <React.Fragment key={key}>
                   <dt>{key}</dt>
-                  <dd>{parameters[key]}</dd>
+                  <dd>{parameters[key].toString()}</dd>
                 </React.Fragment>
               ))}
           </dl>
