@@ -32,26 +32,28 @@ class ExecutionArchivalListener(
   private val storageServiceRepository: StorageServiceRepository
 ) {
 
-    init {
-        log.info("Loaded ExecutionArchivalListener")
+  init {
+    log.info("Loaded ExecutionArchivalListener")
+  }
+
+  @EventListener
+  fun onApplicationEvent(event: CanaryExecutionCompletedEvent) {
+    val response = event.canaryExecutionStatusResponse
+    val storageAccountName = response.storageAccountName
+    if (storageAccountName != null) {
+      val resolvedStorageAccountName = accountCredentialsRepository.getRequiredOneBy(
+        storageAccountName,
+        AccountCredentials.Type.OBJECT_STORE
+      ).name
+
+      val storageService = storageServiceRepository
+        .getRequiredOne(resolvedStorageAccountName)
+
+      storageService.storeObject<CanaryExecutionStatusResponse>(resolvedStorageAccountName, ObjectType.CANARY_RESULT_ARCHIVE, response.pipelineId, response)
     }
+  }
 
-    @EventListener
-    fun onApplicationEvent(event: CanaryExecutionCompletedEvent) {
-        val response = event.canaryExecutionStatusResponse
-        val storageAccountName = response.storageAccountName
-        if (storageAccountName != null) {
-            val resolvedStorageAccountName = accountCredentialsRepository.getRequiredOneBy(storageAccountName,
-                    AccountCredentials.Type.OBJECT_STORE).name
-
-            val storageService = storageServiceRepository
-                    .getRequiredOne(resolvedStorageAccountName)
-
-            storageService.storeObject<CanaryExecutionStatusResponse>(resolvedStorageAccountName, ObjectType.CANARY_RESULT_ARCHIVE, response.pipelineId, response)
-        }
-    }
-
-    companion object {
-        private val log: Logger = getLogger(ExecutionArchivalListener::class.java)
-    }
+  companion object {
+    private val log: Logger = getLogger(ExecutionArchivalListener::class.java)
+  }
 }

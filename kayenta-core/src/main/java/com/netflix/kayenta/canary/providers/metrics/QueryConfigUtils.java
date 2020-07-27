@@ -186,8 +186,7 @@ public class QueryConfigUtils {
 
     if (escapedTemplates != null || escapedMetrics != null) {
       canaryConfig =
-          canaryConfig
-              .toBuilder()
+          canaryConfig.toBuilder()
               .templates(escapedTemplates)
               .clearMetrics()
               .metrics(escapedMetrics)

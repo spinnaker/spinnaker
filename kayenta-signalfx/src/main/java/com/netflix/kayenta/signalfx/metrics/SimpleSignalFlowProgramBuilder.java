@@ -63,7 +63,9 @@ public class SimpleSignalFlowProgramBuilder {
 
   public SimpleSignalFlowProgramBuilder withScope(SignalFxCanaryScope canaryScope) {
     scopeKeys.addAll(
-        Optional.ofNullable(canaryScope.getExtendedScopeParams()).orElse(new HashMap<>()).keySet()
+        Optional.ofNullable(canaryScope.getExtendedScopeParams())
+            .orElse(new HashMap<>())
+            .keySet()
             .stream()
             .filter(key -> !key.startsWith("_"))
             .collect(Collectors.toList()));

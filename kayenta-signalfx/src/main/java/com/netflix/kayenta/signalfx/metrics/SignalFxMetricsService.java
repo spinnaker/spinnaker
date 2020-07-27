@@ -213,9 +213,7 @@ public class SignalFxMetricsService implements MetricsService {
    */
   private LinkedList<ChannelMessage.DataMessage> extractDataMessages(
       SignalFlowExecutionResult signalFlowExecutionResult) {
-    return signalFlowExecutionResult
-        .getChannelMessages()
-        .parallelStream()
+    return signalFlowExecutionResult.getChannelMessages().parallelStream()
         .filter(channelMessage -> channelMessage.getType().equals(DATA_MESSAGE))
         .map((message) -> (ChannelMessage.DataMessage) message)
         .collect(Collectors.toCollection(LinkedList::new));
