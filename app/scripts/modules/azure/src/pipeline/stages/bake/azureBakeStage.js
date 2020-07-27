@@ -97,6 +97,7 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
           $scope.viewState.roscoMode =
             SETTINGS.feature.roscoMode ||
             (typeof SETTINGS.feature.roscoSelector === 'function' && SETTINGS.feature.roscoSelector($scope.stage));
+          $scope.showAdvancedOptions = showAdvanced();
           $scope.viewState.loading = false;
         });
       }
@@ -112,6 +113,15 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
         if (typeof SETTINGS.feature.roscoSelector === 'function') {
           $scope.viewState.roscoMode = SETTINGS.feature.roscoSelector($scope.stage);
         }
+      }
+
+      function showAdvanced() {
+        const stg = $scope.stage;
+        return !!(
+          stg.templateFileName ||
+          (stg.extendedAttributes && _.size(stg.extendedAttributes) > 0) ||
+          stg.varFileName
+        );
       }
 
       function deleteEmptyProperties() {
