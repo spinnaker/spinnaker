@@ -19,6 +19,7 @@ import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.JavaExtension
 import com.diffplug.gradle.spotless.KotlinExtension
 import com.diffplug.gradle.spotless.KotlinGradleExtension
+import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -42,22 +43,22 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
       project.rootProject.file(".git/hooks/pre-commit").executable = true
 
       project.plugins.apply(SpotlessPlugin)
-      project.plugins.withType(SpotlessPlugin) { SpotlessPlugin spotless ->
+      project.spotless { SpotlessExtension spotless ->
 
         // Instead of performing `spotlessCheck` on `check`, let's just `spotlessApply` instead, since devs will be
         // required to make the changes anyway. But don't do this if we're running in a CI build.
         if (!isRunningUnderContinuousIntegration()) {
-          spotless.extension.enforceCheck = false
+          spotless.enforceCheck = false
           project.getTasks()
             .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
             .all { it.dependsOn("spotlessApply") }
         }
 
-        spotless.extension.java(new Action<JavaExtension>() {
+        spotless.java(new Action<JavaExtension>() {
           @Override
           void execute(JavaExtension javaExtension) {
             javaExtension.target("src/**/*.java")
-            javaExtension.googleJavaFormat()
+            javaExtension.googleJavaFormat("1.8")
             javaExtension.removeUnusedImports()
             javaExtension.trimTrailingWhitespace()
             javaExtension.endWithNewline()
@@ -65,33 +66,37 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
         })
 
         if (hasKotlin(project)) {
-          spotless.extension.kotlin(new Action<KotlinExtension>() {
+
+          def ktlintData = [
+            indent_size             : '2',
+            continuation_indent_size: '2',
+            // import ordering now defaults to IntelliJ-style, with java.*
+            // and kotlin.* imports at the bottom. This is different than
+            // google-java-format, so let's keep it consistent.
+            kotlin_imports_layout   : 'ascii'
+          ]
+
+          spotless.kotlin(new Action<KotlinExtension>() {
             @Override
             void execute(KotlinExtension kotlinExtension) {
-              kotlinExtension.ktlint("0.36.0").userData([
-                indent_size: '2',
-                continuation_indent_size: '2'
-              ])
+              kotlinExtension.ktlint("0.37.2").userData(ktlintData)
               kotlinExtension.trimTrailingWhitespace()
               kotlinExtension.endWithNewline()
             }
           })
 
-          spotless.extension.kotlinGradle(new Action<KotlinGradleExtension>() {
+          spotless.kotlinGradle(new Action<KotlinGradleExtension>() {
             @Override
             void execute(KotlinGradleExtension kotlinGradleExtension) {
               kotlinGradleExtension.target("*.gradle.kts", "**/*.gradle.kts")
-              kotlinGradleExtension.ktlint("0.36.0").userData([
-                indent_size: '2',
-                continuation_indent_size: '2'
-              ])
+              kotlinGradleExtension.ktlint("0.37.2").userData(ktlintData)
               kotlinGradleExtension.trimTrailingWhitespace()
               kotlinGradleExtension.endWithNewline()
             }
           })
         }
 
-        spotless.extension.format(
+        spotless.format(
           'misc',
           new Action<FormatExtension>() {
             @Override
