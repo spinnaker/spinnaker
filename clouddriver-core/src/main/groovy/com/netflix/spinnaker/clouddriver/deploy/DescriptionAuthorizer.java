@@ -96,7 +96,8 @@ public class DescriptionAuthorizer<T> {
     if (description instanceof ApplicationNameable) {
       ApplicationNameable applicationNameable = (ApplicationNameable) description;
       applications.addAll(
-          Optional.ofNullable(applicationNameable.getApplications()).orElse(Collections.emptyList())
+          Optional.ofNullable(applicationNameable.getApplications())
+              .orElse(Collections.emptyList())
               .stream()
               .filter(Objects::nonNull)
               .collect(Collectors.toList()));
@@ -107,7 +108,8 @@ public class DescriptionAuthorizer<T> {
 
       applications.addAll(
           Optional.ofNullable(resourcesNameable.getResourceApplications())
-              .orElse(Collections.emptyList()).stream()
+              .orElse(Collections.emptyList())
+              .stream()
               .filter(Objects::nonNull)
               .collect(Collectors.toList()));
     }

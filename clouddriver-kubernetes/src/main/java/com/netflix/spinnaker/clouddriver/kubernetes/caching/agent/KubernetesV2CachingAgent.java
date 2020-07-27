@@ -88,8 +88,7 @@ public abstract class KubernetesV2CachingAgent
   @Nonnull
   private ImmutableList<KubernetesManifest> loadNamespaceScopedResources(
       @Nonnull Iterable<KubernetesKind> kubernetesKinds) {
-    return getNamespaces()
-        .parallelStream()
+    return getNamespaces().parallelStream()
         .map(n -> loadResources(kubernetesKinds, Optional.of(n)))
         .flatMap(Collection::stream)
         .collect(ImmutableList.toImmutableList());

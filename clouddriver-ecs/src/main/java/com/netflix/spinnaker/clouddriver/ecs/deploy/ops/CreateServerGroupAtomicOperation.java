@@ -410,8 +410,7 @@ public class CreateServerGroupAtomicOperation
             && description.getTaskDefinitionArtifactAccount() != null
             && !description.getTaskDefinitionArtifactAccount().isEmpty()) {
       taskDefArtifact =
-          taskDefArtifact
-              .toBuilder()
+          taskDefArtifact.toBuilder()
               .artifactAccount(description.getTaskDefinitionArtifactAccount())
               .build();
     }

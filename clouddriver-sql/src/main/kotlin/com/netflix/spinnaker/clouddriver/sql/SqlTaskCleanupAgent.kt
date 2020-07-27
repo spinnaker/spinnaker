@@ -53,8 +53,10 @@ class SqlTaskCleanupAgent(
           .from(taskStatesTable)
           .where(
             field("state").`in`(COMPLETED.toString(), FAILED.toString())
-              .and(field("created_at").lessOrEqual(
-                clock.instant().minusMillis(properties.completedTtlMs).toEpochMilli())
+              .and(
+                field("created_at").lessOrEqual(
+                  clock.instant().minusMillis(properties.completedTtlMs).toEpochMilli()
+                )
               )
           )
           .fetch()

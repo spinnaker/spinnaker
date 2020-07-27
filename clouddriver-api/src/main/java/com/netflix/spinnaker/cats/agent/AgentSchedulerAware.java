@@ -29,10 +29,12 @@ public abstract class AgentSchedulerAware {
   /** Set this object's agent scheduler. */
   public void setAgentScheduler(AgentScheduler agentScheduler) {
     this.agentScheduler = agentScheduler;
-  };
+  }
+  ;
 
   /** Get this object's agent scheduler. */
   public AgentScheduler getAgentScheduler() {
     return agentScheduler;
-  };
+  }
+  ;
 }

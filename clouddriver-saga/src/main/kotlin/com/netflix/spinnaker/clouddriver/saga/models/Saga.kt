@@ -125,8 +125,10 @@ class Saga(
 
   internal fun setSequence(appliedEventVersion: Long) {
     if (sequence > appliedEventVersion) {
-      throw SagaSystemException("Attempted to set Saga sequence to an event version in the past " +
-        "(current: $sequence, applying: $appliedEventVersion)")
+      throw SagaSystemException(
+        "Attempted to set Saga sequence to an event version in the past " +
+          "(current: $sequence, applying: $appliedEventVersion)"
+      )
     }
     sequence = appliedEventVersion
   }
@@ -148,10 +150,12 @@ class Saga(
   }
 
   fun log(message: String) {
-    addEvent(SagaLogAppended(
-      SagaLogAppended.Message(message, null),
-      null
-    ))
+    addEvent(
+      SagaLogAppended(
+        SagaLogAppended.Message(message, null),
+        null
+      )
+    )
   }
 
   fun log(message: String, vararg replacements: Any?) {

@@ -69,7 +69,8 @@ internal object ScatteredOkHttpCallFactorySpec : Spek({
     }
 
     given("an original servlet request with a body") {
-      val body = """{"hello": "world"}"""
+      val body =
+        """{"hello": "world"}"""
       val servletRequest = MockHttpServletRequest("POST", "/ops").apply {
         addHeader("Content-Type", "application/json")
         setContent(body.toByteArray())

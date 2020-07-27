@@ -129,10 +129,7 @@ public class Applications {
         newCloudFoundryAppList.stream().map(Application::getGuid).collect(toList());
 
     long invalidatedServerGroups =
-        serverGroupCache
-            .asMap()
-            .keySet()
-            .parallelStream()
+        serverGroupCache.asMap().keySet().parallelStream()
             .filter(appGuid -> !availableAppIds.contains(appGuid))
             .peek(appGuid -> log.trace("Evicting the following SG with id '{}'", appGuid))
             .peek(serverGroupCache::invalidate)
@@ -149,8 +146,7 @@ public class Applications {
       forkJoinPool
           .submit(
               () ->
-                  newCloudFoundryAppList
-                      .parallelStream()
+                  newCloudFoundryAppList.parallelStream()
                       .filter(
                           app -> {
                             CloudFoundryServerGroup cachedApp = findById(app.getGuid());
@@ -183,8 +179,7 @@ public class Applications {
               () ->
                   // execute health check on instances, set number of available instances and health
                   // status
-                  newCloudFoundryAppList
-                      .parallelStream()
+                  newCloudFoundryAppList.parallelStream()
                       .forEach(
                           a ->
                               serverGroupCache.put(
@@ -427,8 +422,10 @@ public class Applications {
       case STARTED:
         try {
           instances =
-              safelyCall(() -> api.instances(cloudFoundryServerGroup.getId())).orElse(emptyMap())
-                  .entrySet().stream()
+              safelyCall(() -> api.instances(cloudFoundryServerGroup.getId()))
+                  .orElse(emptyMap())
+                  .entrySet()
+                  .stream()
                   .map(
                       inst -> {
                         HealthState healthState = HealthState.Unknown;

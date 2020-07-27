@@ -56,14 +56,16 @@ internal fun Select<out Record>.fetchAggregates(): List<SqlAggregate> =
   fetch().intoResultSet().let { rs ->
     mutableListOf<SqlAggregate>().apply {
       while (rs.next()) {
-        add(SqlAggregate(
-          model = Aggregate(
-            type = rs.getString("aggregate_type"),
-            id = rs.getString("aggregate_id"),
-            version = rs.getLong("version")
-          ),
-          token = rs.getString("token")
-        ))
+        add(
+          SqlAggregate(
+            model = Aggregate(
+              type = rs.getString("aggregate_type"),
+              id = rs.getString("aggregate_id"),
+              version = rs.getLong("version")
+            ),
+            token = rs.getString("token")
+          )
+        )
       }
     }
   }

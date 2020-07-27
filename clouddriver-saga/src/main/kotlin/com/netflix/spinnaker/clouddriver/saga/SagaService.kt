@@ -106,14 +106,16 @@ class SagaService(
             handledException
           )
 
-          saga.addEvent(SagaActionErrorOccurred(
-            actionName = action.javaClass.simpleName,
-            error = handledException,
-            retryable = when (handledException) {
-              is SpinnakerException -> handledException.retryable ?: false
-              else -> false
-            }
-          ))
+          saga.addEvent(
+            SagaActionErrorOccurred(
+              actionName = action.javaClass.simpleName,
+              error = handledException,
+              retryable = when (handledException) {
+                is SpinnakerException -> handledException.retryable ?: false
+                else -> false
+              }
+            )
+          )
           sagaRepository.save(saga)
 
           registry
@@ -184,8 +186,8 @@ class SagaService(
 
   private fun invokeExceptionHandler(flow: SagaFlow, exception: Exception): Exception {
     flow.exceptionHandler?.let { exceptionHandler ->
-        val handler = applicationContext.getBean(exceptionHandler)
-        return handler.handle(exception)
+      val handler = applicationContext.getBean(exceptionHandler)
+      return handler.handle(exception)
     }
     return exception
   }

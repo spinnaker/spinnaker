@@ -72,13 +72,15 @@ class InMemoryEventRepository(
 
       newEvents.forEachIndexed { index, newEvent ->
         // TODO(rz): Plugin more metadata (provenance, serviceVersion, etc)
-        newEvent.setMetadata(EventMetadata(
-          id = UUID.randomUUID().toString(),
-          aggregateType = aggregateType,
-          aggregateId = aggregateId,
-          sequence = currentSequence + (index + 1),
-          originatingVersion = originatingVersion
-        ))
+        newEvent.setMetadata(
+          EventMetadata(
+            id = UUID.randomUUID().toString(),
+            aggregateType = aggregateType,
+            aggregateId = aggregateId,
+            sequence = currentSequence + (index + 1),
+            originatingVersion = originatingVersion
+          )
+        )
       }
 
       registry.counter(eventWriteCountId).increment(newEvents.size.toLong())
@@ -86,8 +88,10 @@ class InMemoryEventRepository(
       aggregate.version = aggregate.version + 1
     }
 
-    log.debug("Saved $aggregateType/$aggregateId@${aggregate.version}: " +
-      "[${newEvents.joinToString(",") { it.javaClass.simpleName }}]")
+    log.debug(
+      "Saved $aggregateType/$aggregateId@${aggregate.version}: " +
+        "[${newEvents.joinToString(",") { it.javaClass.simpleName }}]"
+    )
 
     newEvents.forEach { applicationEventPublisher.publishEvent(it) }
   }

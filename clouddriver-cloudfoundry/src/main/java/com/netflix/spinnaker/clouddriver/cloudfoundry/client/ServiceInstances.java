@@ -199,7 +199,8 @@ public class ServiceInstances {
   Void checkServiceShareable(
       String serviceInstanceName, CloudFoundryServiceInstance serviceInstance) {
     ConfigFeatureFlag featureFlag =
-        Optional.ofNullable(configApi.getConfigFeatureFlags()).orElse(Collections.emptySet())
+        Optional.ofNullable(configApi.getConfigFeatureFlags())
+            .orElse(Collections.emptySet())
             .stream()
             .filter(it -> it.getName() == SERVICE_INSTANCE_SHARING)
             .findFirst()

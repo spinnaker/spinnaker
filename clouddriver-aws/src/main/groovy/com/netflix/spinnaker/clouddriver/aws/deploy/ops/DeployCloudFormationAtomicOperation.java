@@ -218,7 +218,8 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   private String getStackId(AmazonCloudFormation amazonCloudFormation) {
     return amazonCloudFormation
         .describeStacks(new DescribeStacksRequest().withStackName(description.getStackName()))
-        .getStacks().stream()
+        .getStacks()
+        .stream()
         .findFirst()
         .orElseThrow(
             () ->

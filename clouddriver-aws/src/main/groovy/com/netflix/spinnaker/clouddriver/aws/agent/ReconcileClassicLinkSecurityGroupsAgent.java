@@ -187,7 +187,8 @@ public class ReconcileClassicLinkSecurityGroupsAgent
             .describeSecurityGroups(
                 new DescribeSecurityGroupsRequest()
                     .withFilters(new Filter("vpc-id").withValues(classicLinkVpcId)))
-            .getSecurityGroups().stream()
+            .getSecurityGroups()
+            .stream()
             .collect(Collectors.toMap(SecurityGroup::getGroupName, SecurityGroup::getGroupId));
 
     reconcileInstances(ec2, groupNamesToIds, classicLinkInstances.values());

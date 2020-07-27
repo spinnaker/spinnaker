@@ -41,13 +41,15 @@ class TestingSagaRepository : SagaRepository {
     saga.getPendingEvents()
       .plus(additionalEvents)
       .forEachIndexed { index, event ->
-        event.setMetadata(EventMetadata(
-          id = UUID.randomUUID().toString(),
-          aggregateType = saga.name,
-          aggregateId = saga.id,
-          sequence = currentSequence + index + 1,
-          originatingVersion = originatingVersion
-        ))
+        event.setMetadata(
+          EventMetadata(
+            id = UUID.randomUUID().toString(),
+            aggregateType = saga.name,
+            aggregateId = saga.id,
+            sequence = currentSequence + index + 1,
+            originatingVersion = originatingVersion
+          )
+        )
         saga.addEventForTest(event)
       }
   }

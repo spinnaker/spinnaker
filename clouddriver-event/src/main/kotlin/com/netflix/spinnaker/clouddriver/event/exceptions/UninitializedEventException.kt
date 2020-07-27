@@ -21,9 +21,11 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException
  * Thrown when an event's metadata is attempted to be retrieved before it has been initialized
  * by the library.
  */
-class UninitializedEventException : IntegrationException(
-  "Cannot access event metadata before initialization"
-), EventingException {
+class UninitializedEventException :
+  IntegrationException(
+    "Cannot access event metadata before initialization"
+  ),
+  EventingException {
   init {
     retryable = false
   }

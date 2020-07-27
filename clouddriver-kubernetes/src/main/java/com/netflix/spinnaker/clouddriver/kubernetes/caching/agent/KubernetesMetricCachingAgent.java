@@ -75,8 +75,7 @@ public class KubernetesMetricCachingAgent extends KubernetesV2CachingAgent
 
     log.info(getAgentType() + ": agent is starting");
     List<KubernetesPodMetric> podMetrics =
-        getNamespaces()
-            .parallelStream()
+        getNamespaces().parallelStream()
             .map(n -> credentials.topPod(n, null))
             .flatMap(Collection::stream)
             .filter(Objects::nonNull)

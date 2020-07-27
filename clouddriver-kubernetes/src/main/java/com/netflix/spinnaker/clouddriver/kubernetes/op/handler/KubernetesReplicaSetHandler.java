@@ -202,7 +202,8 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
   public List<KubernetesManifest> pods(
       KubernetesV2Credentials credentials, KubernetesManifest object) {
     KubernetesManifestSelector selector = object.getManifestSelector();
-    return credentials.list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList())
+    return credentials
+        .list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList())
         .stream()
         .filter(
             p ->

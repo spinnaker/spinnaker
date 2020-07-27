@@ -154,14 +154,16 @@ class SqlEventRepository(
     } catch (e: AggregateChangeRejectedException) {
       registry.counter(
         eventErrorCountId
-          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName))
+          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName)
+      )
         .increment()
       throw e
     } catch (e: Exception) {
       // This is totally handling it...
       registry.counter(
         eventErrorCountId
-          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName))
+          .withTags("aggregateType", aggregateType, "exception", e.javaClass.simpleName)
+      )
         .increment()
       throw SqlEventSystemException("Failed saving new events", e)
     }
@@ -193,14 +195,16 @@ class SqlEventRepository(
     }
 
     // timestamp is calculated on the SQL server
-    setMetadata(EventMetadata(
-      id = UUID.randomUUID().toString(),
-      aggregateType = aggregateType,
-      aggregateId = aggregateId,
-      sequence = nextSequence ?: -1,
-      originatingVersion = originatingVersion,
-      serviceVersion = serviceVersion.resolve()
-    ))
+    setMetadata(
+      EventMetadata(
+        id = UUID.randomUUID().toString(),
+        aggregateType = aggregateType,
+        aggregateId = aggregateId,
+        sequence = nextSequence ?: -1,
+        originatingVersion = originatingVersion,
+        serviceVersion = serviceVersion.resolve()
+      )
+    )
 
     if (this is CompositeSpinnakerEvent) {
       this.getComposedEvents().forEach { event ->
@@ -218,8 +222,10 @@ class SqlEventRepository(
   override fun list(aggregateType: String, aggregateId: String): List<SpinnakerEvent> {
     return withPool(POOL_NAME) {
       jooq.select().from(EVENTS_TABLE)
-        .where(field("aggregate_type").eq(aggregateType)
-          .and(field("aggregate_id").eq(aggregateId)))
+        .where(
+          field("aggregate_type").eq(aggregateType)
+            .and(field("aggregate_id").eq(aggregateId))
+        )
         .orderBy(field("sequence").asc())
         .fetchEvents(objectMapper)
     }

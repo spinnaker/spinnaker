@@ -199,22 +199,24 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       // Update resource table from Authoritative sources only
       when {
         // OnDemand agents should only be treated as authoritative and don't use standard eviction logic
-        source.contains(ON_DEMAND.ns, ignoreCase = true) -> cacheResult.cacheResults
-          // And OnDemand agents shouldn't update other resource type tables
-          .filter {
-            it.key.contains(ON_DEMAND.ns, ignoreCase = true)
-          }
-          .forEach {
-            cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
-          }
-        authoritativeTypes.isNotEmpty() -> cacheResult.cacheResults
-          .filter {
-            authoritativeTypes.contains(it.key)
-          }
-          .forEach {
-            cacheDataType(it.key, source, it.value, authoritative = true)
-            cachedTypes.add(it.key)
-          }
+        source.contains(ON_DEMAND.ns, ignoreCase = true) ->
+          cacheResult.cacheResults
+            // And OnDemand agents shouldn't update other resource type tables
+            .filter {
+              it.key.contains(ON_DEMAND.ns, ignoreCase = true)
+            }
+            .forEach {
+              cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
+            }
+        authoritativeTypes.isNotEmpty() ->
+          cacheResult.cacheResults
+            .filter {
+              authoritativeTypes.contains(it.key)
+            }
+            .forEach {
+              cacheDataType(it.key, source, it.value, authoritative = true)
+              cachedTypes.add(it.key)
+            }
         else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
           cacheResult.cacheResults
             .forEach {
@@ -240,7 +242,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
         }
       }
     } finally {
-        MDC.remove("agentClass")
+      MDC.remove("agentClass")
     }
   }
 
@@ -271,7 +273,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
           cacheDataType(it.key, source, it.value, authoritative = false, cleanup = false)
         }
     } finally {
-        MDC.remove("agentClass")
+      MDC.remove("agentClass")
     }
   }
 
@@ -280,7 +282,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       MDC.put("agentClass", "putCacheData")
       backingStore.merge(type, cacheData)
     } finally {
-        MDC.remove("agentClass")
+      MDC.remove("agentClass")
     }
   }
 

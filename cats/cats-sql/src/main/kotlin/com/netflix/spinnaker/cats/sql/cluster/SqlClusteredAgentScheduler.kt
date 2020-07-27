@@ -185,12 +185,17 @@ class SqlClusteredAgentScheduler(
         if (now > existingLocks.getLong("lock_expiry")) {
           try {
             jooq.deleteFrom(table(lockTable))
-              .where(field("agent_name").eq(existingLocks.getString("agent_name"))
-                .and(field("lock_expiry").eq(existingLocks.getString("lock_expiry"))))
+              .where(
+                field("agent_name").eq(existingLocks.getString("agent_name"))
+                  .and(field("lock_expiry").eq(existingLocks.getString("lock_expiry")))
+              )
               .execute()
           } catch (e: SQLException) {
-            log.error("Failed deleting agent lock ${existingLocks.getString("agent_name")} with expiry " +
-              existingLocks.getString("lock_expiry"), e)
+            log.error(
+              "Failed deleting agent lock ${existingLocks.getString("agent_name")} with expiry " +
+                existingLocks.getString("lock_expiry"),
+              e
+            )
 
             candidateAgentLocks.remove(existingLocks.getString("agent_name"))
           }

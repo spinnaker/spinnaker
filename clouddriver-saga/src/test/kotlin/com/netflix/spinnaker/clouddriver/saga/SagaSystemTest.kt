@@ -36,10 +36,12 @@ class SagaSystemTest : JUnit5Minutests {
   fun tests() = rootContext<ApplicationContextRunner> {
     fixture {
       ApplicationContextRunner()
-        .withConfiguration(AutoConfigurations.of(
-          SagaAutoConfiguration::class.java,
-          EventSourceAutoConfiguration::class.java
-        ))
+        .withConfiguration(
+          AutoConfigurations.of(
+            SagaAutoConfiguration::class.java,
+            EventSourceAutoConfiguration::class.java
+          )
+        )
     }
 
     test("supports no config") {

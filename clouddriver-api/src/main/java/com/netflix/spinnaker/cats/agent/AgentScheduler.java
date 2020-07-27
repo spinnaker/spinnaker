@@ -26,7 +26,8 @@ public interface AgentScheduler<T extends AgentLock> {
       AgentExecution agentExecution,
       ExecutionInstrumentation executionInstrumentation);
 
-  default void unschedule(Agent agent) {};
+  default void unschedule(Agent agent) {}
+  ;
 
   /**
    * @return True iff this scheduler supports synchronization between LoadData and OnDemand cache
@@ -34,7 +35,8 @@ public interface AgentScheduler<T extends AgentLock> {
    */
   default boolean isAtomic() {
     return false;
-  };
+  }
+  ;
 
   /**
    * @param agent The agent being locked.
@@ -43,7 +45,8 @@ public interface AgentScheduler<T extends AgentLock> {
    */
   default T tryLock(Agent agent) {
     return null;
-  };
+  }
+  ;
 
   /**
    * @param lock The lock being released.
@@ -51,7 +54,8 @@ public interface AgentScheduler<T extends AgentLock> {
    */
   default boolean tryRelease(T lock) {
     return false;
-  };
+  }
+  ;
 
   /**
    * @param lock The lock being checked for validity.
@@ -59,5 +63,6 @@ public interface AgentScheduler<T extends AgentLock> {
    */
   default boolean lockValid(T lock) {
     return false;
-  };
+  }
+  ;
 }

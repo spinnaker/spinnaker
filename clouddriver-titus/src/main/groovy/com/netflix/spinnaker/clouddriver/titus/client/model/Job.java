@@ -148,7 +148,11 @@ public class Job {
     jobGroupDetail = grpcJob.getJobDescriptor().getJobGroupInfo().getDetail();
     environment = grpcJob.getJobDescriptor().getContainer().getEnvMap();
     securityGroups =
-        grpcJob.getJobDescriptor().getContainer().getSecurityProfile().getSecurityGroupsList()
+        grpcJob
+            .getJobDescriptor()
+            .getContainer()
+            .getSecurityProfile()
+            .getSecurityGroupsList()
             .stream()
             .collect(Collectors.toList());
     iamProfile = grpcJob.getJobDescriptor().getContainer().getSecurityProfile().getIamRole();
@@ -216,7 +220,11 @@ public class Job {
 
   // Add SignedAddressAllocationsList from grpc to Job.signedAddressAllocations
   private void addSignedAllocationList(com.netflix.titus.grpc.protogen.Job grpcJob) {
-    grpcJob.getJobDescriptor().getContainer().getResources().getSignedAddressAllocationsList()
+    grpcJob
+        .getJobDescriptor()
+        .getContainer()
+        .getResources()
+        .getSignedAddressAllocationsList()
         .stream()
         .map(this::addSignedAddressAllocations)
         .forEach(signedAddressAllocation -> signedAddressAllocations.add(signedAddressAllocation));

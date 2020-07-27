@@ -53,8 +53,7 @@ public final class KeyBasedSorter {
    */
   public static <T, U> List<T> sort(
       Collection<T> input, Function<T, U> extractor, Comparator<U> comparator) {
-    return input
-        .parallelStream()
+    return input.parallelStream()
         .map(t -> new ElementWithComparisonField<>(t, extractor.apply(t)))
         .sorted(Comparator.comparing(ElementWithComparisonField::getComparisonField, comparator))
         .map(ElementWithComparisonField::getElement)

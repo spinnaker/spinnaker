@@ -46,7 +46,8 @@ public class GcsStorageService {
 
   public static interface VisitorOperation {
     void visit(StorageObject storageObj) throws IOException;
-  };
+  }
+  ;
 
   public static class Factory {
     private String applicationName_;
@@ -92,7 +93,8 @@ public class GcsStorageService {
       }
       return credentials;
     }
-  };
+  }
+  ;
 
   private Storage storage_;
 

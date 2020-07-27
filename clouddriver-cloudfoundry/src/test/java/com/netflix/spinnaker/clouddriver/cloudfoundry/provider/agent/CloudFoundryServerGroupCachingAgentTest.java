@@ -115,7 +115,8 @@ class CloudFoundryServerGroupCachingAgentTest {
             .readValue(
                 cacheData.getAttributes().get("cacheResults").toString(),
                 new TypeReference<Map<String, Collection<ResourceCacheData>>>() {})
-            .get("serverGroups").stream()
+            .get("serverGroups")
+            .stream()
             .findFirst()
             .get();
 

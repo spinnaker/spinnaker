@@ -63,8 +63,10 @@ class SqlCache(
     private const val onDemandType = "onDemand"
 
     private val schemaVersion = SqlSchemaVersion.current()
-    private val useRegexp = """.*[\?\[].*""".toRegex()
-    private val cleanRegexp = """\.+\*""".toRegex()
+    private val useRegexp =
+      """.*[\?\[].*""".toRegex()
+    private val cleanRegexp =
+      """\.+\*""".toRegex()
 
     private val log = LoggerFactory.getLogger(SqlCache::class.java)
   }
@@ -852,10 +854,14 @@ class SqlCache(
     if (!createdTables.contains(type)) {
       try {
         withRetry(RetryCategory.WRITE) {
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${sqlNames.resourceTableName(type)} " +
-            "LIKE cats_v${schemaVersion}_resource_template")
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${sqlNames.relTableName(type)} " +
-            "LIKE cats_v${schemaVersion}_rel_template")
+          jooq.execute(
+            "CREATE TABLE IF NOT EXISTS ${sqlNames.resourceTableName(type)} " +
+              "LIKE cats_v${schemaVersion}_resource_template"
+          )
+          jooq.execute(
+            "CREATE TABLE IF NOT EXISTS ${sqlNames.relTableName(type)} " +
+              "LIKE cats_v${schemaVersion}_rel_template"
+          )
         }
 
         createdTables.add(type)
@@ -867,10 +873,14 @@ class SqlCache(
       // TODO not sure if best schema for onDemand
       try {
         withRetry(RetryCategory.WRITE) {
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${sqlNames.resourceTableName(onDemandType)} " +
-            "LIKE cats_v${schemaVersion}_resource_template")
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${sqlNames.relTableName(onDemandType)} " +
-            "LIKE cats_v${schemaVersion}_rel_template")
+          jooq.execute(
+            "CREATE TABLE IF NOT EXISTS ${sqlNames.resourceTableName(onDemandType)} " +
+              "LIKE cats_v${schemaVersion}_resource_template"
+          )
+          jooq.execute(
+            "CREATE TABLE IF NOT EXISTS ${sqlNames.relTableName(onDemandType)} " +
+              "LIKE cats_v${schemaVersion}_rel_template"
+          )
         }
 
         createdTables.add(onDemandType)
@@ -1136,8 +1146,8 @@ class SqlCache(
     relationshipPrefixes: List<String>
   ):
     DataWithRelationshipPointersResult {
-    return getDataWithRelationships(type, emptyList(), relationshipPrefixes)
-  }
+      return getDataWithRelationships(type, emptyList(), relationshipPrefixes)
+    }
 
   private fun getDataWithRelationships(
     type: String,

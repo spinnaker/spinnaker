@@ -32,10 +32,12 @@ import org.springframework.context.annotation.Configuration
 class SqlAgentSchedulerConfiguration {
 
   @Bean
-  @ConditionalOnProperty(value = [
-    "sql.enabled",
-    "sql.scheduler.enabled"
-  ])
+  @ConditionalOnProperty(
+    value = [
+      "sql.enabled",
+      "sql.scheduler.enabled"
+    ]
+  )
   fun sqlAgentScheduler(
     jooq: DSLContext,
     agentIntervalProvider: AgentIntervalProvider,

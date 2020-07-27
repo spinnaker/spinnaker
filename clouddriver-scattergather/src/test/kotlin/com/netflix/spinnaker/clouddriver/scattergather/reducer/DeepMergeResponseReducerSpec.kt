@@ -37,7 +37,9 @@ internal object DeepMergeResponseReducerSpec : Spek({
     val subject = DeepMergeResponseReducer()
 
     given("successful responses with bodies") {
-      val response1 = createResponse(200, """
+      val response1 = createResponse(
+        200,
+        """
           {
             "obj": {
               "one": "one"
@@ -63,8 +65,11 @@ internal object DeepMergeResponseReducerSpec : Spek({
             "one": "one",
             "conflict": "one"
           }
-        """.trimIndent())
-      val response2 = createResponse(200, """
+        """.trimIndent()
+      )
+      val response2 = createResponse(
+        200,
+        """
           {
             "obj": {
               "two": "two"
@@ -90,12 +95,14 @@ internal object DeepMergeResponseReducerSpec : Spek({
             "two": "two",
             "conflict": "two"
           }
-        """.trimIndent())
+        """.trimIndent()
+      )
 
       it("returns a reduced response") {
         val result = subject.reduce(listOf(response1, response2))
 
-        val expectedBody = normalizeJson("""
+        val expectedBody = normalizeJson(
+          """
           {
             "obj": {
               "one": "one",
@@ -130,7 +137,8 @@ internal object DeepMergeResponseReducerSpec : Spek({
             "conflict": "two",
             "two": "two"
           }
-        """.trimIndent())
+          """.trimIndent()
+        )
 
         expectThat(result) {
           get { status }.isEqualTo(200)
@@ -144,7 +152,9 @@ internal object DeepMergeResponseReducerSpec : Spek({
     }
 
     given("highest failure response body is propagated") {
-      val response1 = createResponse(200, """
+      val response1 = createResponse(
+        200,
+        """
         {
           "obj": {
             "one": "one"
@@ -170,21 +180,27 @@ internal object DeepMergeResponseReducerSpec : Spek({
           "one": "one",
           "conflict": "one"
         }
-        """.trimIndent())
-      val response2 = createResponse(500, """
+        """.trimIndent()
+      )
+      val response2 = createResponse(
+        500,
+        """
         {
           "isEverythingTheWorst": true
         }
-        """.trimIndent())
+        """.trimIndent()
+      )
 
       it("returns a reduced response") {
         val result = subject.reduce(listOf(response1, response2))
 
-        val expectedBody = normalizeJson("""
+        val expectedBody = normalizeJson(
+          """
             {
               "isEverythingTheWorst": true
             }
-        """.trimIndent())
+          """.trimIndent()
+        )
 
         expectThat(result) {
           get { status }.isEqualTo(502)
@@ -262,9 +278,11 @@ private fun createResponseBody(body: String): ResponseBody =
 private fun createResponse(code: Int, body: String?): Response {
   return Response.Builder()
     .let {
-      it.request(Request.Builder()
-        .url("http://localhost/hello")
-        .build())
+      it.request(
+        Request.Builder()
+          .url("http://localhost/hello")
+          .build()
+      )
       it.protocol(Protocol.HTTP_1_1)
       it.code(code)
       if (body != null) {

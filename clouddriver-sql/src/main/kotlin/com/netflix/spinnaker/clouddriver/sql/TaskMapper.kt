@@ -45,16 +45,17 @@ class TaskMapper(
 
     while (rs.next()) {
       when {
-        rs.getString("owner_id") != null -> SqlTask(
-          rs.getString("task_id"),
-          rs.getString("owner_id"),
-          rs.getString("request_id"),
-          rs.getLong("created_at"),
-          sagaIds(rs.getString("saga_ids")),
-          sqlTaskRepository
-        ).let {
-          tasks[it.id] = it
-        }
+        rs.getString("owner_id") != null ->
+          SqlTask(
+            rs.getString("task_id"),
+            rs.getString("owner_id"),
+            rs.getString("request_id"),
+            rs.getLong("created_at"),
+            sagaIds(rs.getString("saga_ids")),
+            sqlTaskRepository
+          ).let {
+            tasks[it.id] = it
+          }
         rs.getString("body") != null -> {
           try {
             if (!results.containsKey(rs.getString("task_id"))) {
@@ -74,11 +75,13 @@ class TaskMapper(
           if (!history.containsKey(rs.getString("task_id"))) {
             history[rs.getString("task_id")] = mutableListOf()
           }
-          history[rs.getString("task_id")]!!.add(DefaultTaskStatus.create(
-            rs.getString("phase"),
-            rs.getString("status"),
-            TaskState.valueOf(rs.getString("state"))
-          ))
+          history[rs.getString("task_id")]!!.add(
+            DefaultTaskStatus.create(
+              rs.getString("phase"),
+              rs.getString("status"),
+              TaskState.valueOf(rs.getString("state"))
+            )
+          )
         }
       }
     }

@@ -4,6 +4,6 @@ enum class SqlSchemaVersion(val version: Int) {
   V1(1);
 
   companion object {
-      fun current(): Int = V1.version
+    fun current(): Int = V1.version
   }
 }

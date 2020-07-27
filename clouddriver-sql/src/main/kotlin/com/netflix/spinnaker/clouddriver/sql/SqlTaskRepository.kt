@@ -148,11 +148,13 @@ class SqlTaskRepository(
 
         resultIdPairs.forEach { result ->
           ctx.insertInto(taskResultsTable, listOf(field("id"), field("task_id"), field("body")))
-            .values(listOf(
-              result.key,
-              task.id,
-              mapper.writeValueAsString(result.value)
-            ))
+            .values(
+              listOf(
+                result.key,
+                task.id,
+                mapper.writeValueAsString(result.value)
+              )
+            )
             .execute()
         }
       }

@@ -51,12 +51,18 @@ class SqlNamesTest : JUnit5Minutests {
     listOf(
       Pair(null, null),
       Pair("myagent", "myagent"),
-      Pair("abcdefghij".repeat(20),
-        "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdebb43b982e477772faa2e899f65d0a86b"),
-      Pair("abcdefghij".repeat(10) + ":" + "abcdefghij".repeat(10),
-        "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij:20f5a9d8d3f4f18cfec8a40eda"),
-      Pair("abcdefghij:" + "abcdefghij".repeat(20),
-        "abcdefghij:abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcd5bfa5c163877f247769cd6b488dff339")
+      Pair(
+        "abcdefghij".repeat(20),
+        "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdebb43b982e477772faa2e899f65d0a86b"
+      ),
+      Pair(
+        "abcdefghij".repeat(10) + ":" + "abcdefghij".repeat(10),
+        "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij:20f5a9d8d3f4f18cfec8a40eda"
+      ),
+      Pair(
+        "abcdefghij:" + "abcdefghij".repeat(20),
+        "abcdefghij:abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcd5bfa5c163877f247769cd6b488dff339"
+      )
     ).forEach { test ->
       test("max length of table name is checked: ${test.first}") {
         expectThat(checkAgentName(test.first))
@@ -66,8 +72,10 @@ class SqlNamesTest : JUnit5Minutests {
 
     test("do not accept types that are too long") {
       expect {
-        that(kotlin.runCatching { checkAgentName("abcdefghij".repeat(20) + ":abcdefghij") }
-          .exceptionOrNull()).isA<IllegalArgumentException>()
+        that(
+          kotlin.runCatching { checkAgentName("abcdefghij".repeat(20) + ":abcdefghij") }
+            .exceptionOrNull()
+        ).isA<IllegalArgumentException>()
       }
     }
   }

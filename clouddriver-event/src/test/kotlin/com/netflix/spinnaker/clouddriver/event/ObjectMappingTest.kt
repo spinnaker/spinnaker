@@ -39,13 +39,15 @@ class ObjectMappingTest : JUnit5Minutests {
 
     test("can serialize and deserialize events") {
       val event = MyEvent("world")
-      event.setMetadata(EventMetadata(
-        id = "myid",
-        aggregateType = "type",
-        aggregateId = "id",
-        sequence = 999,
-        originatingVersion = 100
-      ))
+      event.setMetadata(
+        EventMetadata(
+          id = "myid",
+          aggregateType = "type",
+          aggregateId = "id",
+          sequence = 999,
+          originatingVersion = 100
+        )
+      )
 
       val serialized = writeValueAsString(event)
 

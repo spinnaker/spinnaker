@@ -19,9 +19,12 @@ import com.netflix.spinnaker.clouddriver.event.exceptions.EventingException
 import com.netflix.spinnaker.clouddriver.sql.exceptions.SqlException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 
-class SqlEventSystemException(message: String, cause: Throwable?) : SystemException(
-  message,
-  cause
-), EventingException, SqlException {
+class SqlEventSystemException(message: String, cause: Throwable?) :
+  SystemException(
+    message,
+    cause
+  ),
+  EventingException,
+  SqlException {
   constructor(message: String) : this(message, null)
 }

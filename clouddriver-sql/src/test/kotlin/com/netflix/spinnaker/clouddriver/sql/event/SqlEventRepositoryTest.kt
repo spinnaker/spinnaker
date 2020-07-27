@@ -56,12 +56,12 @@ class SqlEventRepositoryTest : JUnit5Minutests {
         expectThat(subject.listAggregates(ListAggregatesCriteria()))
           .isA<ListAggregatesResult>()
           .get { aggregates }.isNotEmpty()
-            .get { first() }
-              .and {
-                get { type }.isEqualTo("agg")
-                get { id }.isEqualTo("1")
-                get { version }.isEqualTo(1)
-              }
+          .get { first() }
+          .and {
+            get { type }.isEqualTo("agg")
+            get { id }.isEqualTo("1")
+            get { version }.isEqualTo(1)
+          }
 
         subject.save("agg", "1", 1, listOf(MyEvent("two"), MyEvent("three")))
 
@@ -94,8 +94,8 @@ class SqlEventRepositoryTest : JUnit5Minutests {
 
         expectThat(subject.list("agg", "1"))
           .get { map { it.getMetadata().sequence } }
-            .isA<List<Long>>()
-            .containsExactly(1, 2, 3, 4)
+          .isA<List<Long>>()
+          .containsExactly(1, 2, 3, 4)
       }
 
       context("listing aggregates") {

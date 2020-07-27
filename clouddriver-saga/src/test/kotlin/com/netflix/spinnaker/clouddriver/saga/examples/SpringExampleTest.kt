@@ -48,10 +48,12 @@ class SpringExampleTest : JUnit5Minutests {
     context("a saga flow") {
       fixture {
         ApplicationContextRunner()
-          .withConfiguration(AutoConfigurations.of(
-            SagaAutoConfiguration::class.java,
-            EventSourceAutoConfiguration::class.java
-          ))
+          .withConfiguration(
+            AutoConfigurations.of(
+              SagaAutoConfiguration::class.java,
+              EventSourceAutoConfiguration::class.java
+            )
+          )
       }
 
       val flow = SagaFlow()

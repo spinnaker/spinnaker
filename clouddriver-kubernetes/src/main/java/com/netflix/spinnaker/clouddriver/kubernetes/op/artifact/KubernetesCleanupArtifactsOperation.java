@@ -113,7 +113,8 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
 
     List<Artifact> artifacts =
         artifactProvider
-            .getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation()).stream()
+            .getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation())
+            .stream()
             .filter(a -> accountName.equals(a.getMetadata("account")))
             .collect(Collectors.toList());
 

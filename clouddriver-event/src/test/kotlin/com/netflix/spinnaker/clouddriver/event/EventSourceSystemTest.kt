@@ -34,9 +34,11 @@ class EventSourceSystemTest : JUnit5Minutests {
   fun tests() = rootContext<ApplicationContextRunner> {
     fixture {
       ApplicationContextRunner()
-      .withConfiguration(AutoConfigurations.of(
-        EventSourceAutoConfiguration::class.java
-      ))
+        .withConfiguration(
+          AutoConfigurations.of(
+            EventSourceAutoConfiguration::class.java
+          )
+        )
     }
 
     test("supports no config") {

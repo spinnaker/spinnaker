@@ -59,8 +59,10 @@ public class GoogleApiException extends IOException {
 
     static ErrorDetails fromGoogleJsonException(GoogleJsonResponseException e) {
       Optional<ErrorInfo> optionalErrorInfo =
-          Optional.ofNullable(e.getDetails()).map(GoogleJsonError::getErrors)
-              .orElse(ImmutableList.of()).stream()
+          Optional.ofNullable(e.getDetails())
+              .map(GoogleJsonError::getErrors)
+              .orElse(ImmutableList.of())
+              .stream()
               .findFirst();
 
       if (optionalErrorInfo.isPresent()) {

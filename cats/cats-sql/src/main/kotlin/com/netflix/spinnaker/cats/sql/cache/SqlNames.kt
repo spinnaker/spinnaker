@@ -105,6 +105,7 @@ class SqlNames(
 
   companion object {
     private val schemaVersion = SqlSchemaVersion.current()
-    private val typeSanitization = """[^A-Za-z0-9_]""".toRegex()
+    private val typeSanitization =
+      """[^A-Za-z0-9_]""".toRegex()
   }
 }
