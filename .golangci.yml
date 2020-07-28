@@ -1,5 +1,7 @@
 run:
   modules-download-mode: readonly
+  skip-dirs:
+      - gateapi
 linters:
   disable-all: true
   enable:
