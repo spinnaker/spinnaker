@@ -20,6 +20,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
@@ -114,6 +116,15 @@ public class ServiceSettings {
     Map<String, String> fullEnvironment = new HashMap<>(other.getEnv());
     fullEnvironment.putAll(this.getEnv());
     this.setEnv(fullEnvironment);
+  }
+
+  public void decryptSecrets(SecretSessionManager secretSessionManager) {
+    if (EncryptedSecret.isEncryptedSecret(password)) {
+      password = secretSessionManager.decrypt(password);
+    }
+
+    env.replaceAll(
+        (k, v) -> EncryptedSecret.isEncryptedSecret(v) ? secretSessionManager.decrypt(v) : v);
   }
 
   public String getBaseUrl() {
