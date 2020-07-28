@@ -300,6 +300,12 @@ function install_halyard() {
 
 
   if which systemd-sysusers &>/dev/null; then
+    if [ ! -d "/usr/lib/sysusers.d" ]; then
+      if [ ! -L "/usr/lib/sysusers.d" ]; then
+        echo "Creating /usr/lib/sysusers.d directory."
+        install -dm755 -o root -g root /usr/lib/sysusers.d
+      fi
+    fi
     cat > /usr/lib/sysusers.d/halyard.conf <<EOL
 g halyard - -
 g spinnaker - -
