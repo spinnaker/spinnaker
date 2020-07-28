@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,19 +26,20 @@ var (
 
 type PipelineControllerApiService service
 
+
 /* PipelineControllerApiService Cancel a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "force" (bool) force
-    @param "reason" (string) reason
-@return */
-func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Context, id string, localVarOptionals map[string]interface{}) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "force" (bool) force
+     @param "reason" (string) reason
+ @return */
+func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Context, id string, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -64,7 +64,7 @@ func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Conte
 		localVarQueryParams.Add("reason", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -75,7 +75,7 @@ func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Conte
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -101,16 +101,16 @@ func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Conte
 }
 
 /* PipelineControllerApiService Delete a pipeline definition
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param pipelineName pipelineName
-@return */
-func (a *PipelineControllerApiService) DeletePipelineUsingDELETE(ctx context.Context, application string, pipelineName string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param pipelineName pipelineName
+ @return */
+func (a *PipelineControllerApiService) DeletePipelineUsingDELETE(ctx context.Context, application string, pipelineName string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -122,8 +122,9 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE(ctx context.Con
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -134,7 +135,7 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE(ctx context.Con
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -160,16 +161,16 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE(ctx context.Con
 }
 
 /* PipelineControllerApiService Delete a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Context, id string) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Context, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -180,8 +181,9 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Co
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -192,7 +194,7 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Co
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -218,22 +220,23 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Co
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param expression expression
-@param id id
-@param stageId stageId
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingGET(ctx context.Context, expression string, id string, stageId string) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingGET(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -245,9 +248,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsin
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	localVarQueryParams.Add("expression", parameterToString(expression, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -258,7 +262,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsin
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -284,21 +288,22 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsin
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param expression expression
-@param id id
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ctx context.Context, expression string, id string) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -309,9 +314,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ct
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	localVarQueryParams.Add("expression", parameterToString(expression, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -322,7 +328,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ct
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -348,21 +354,22 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ct
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@param pipelineExpression pipelineExpression
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression interface{}) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param pipelineExpression pipelineExpression
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -373,8 +380,9 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -385,7 +393,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -413,24 +421,25 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Evaluate variables same as Evaluate Variables stage using the provided execution as context
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param executionId Execution id to run against
-@param expressions List of variables/expressions to evaluate
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "requisiteStageRefIds" (string) Comma separated list of requisite stage IDs for the evaluation stage
-    @param "spelVersion" (string) Version of SpEL evaluation logic to use (v3 or v4)
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateVariablesUsingPOST(ctx context.Context, executionId string, expressions []Mapstringstring, localVarOptionals map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param executionId Execution id to run against
+ @param expressions List of variables/expressions to evaluate
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "requisiteStageRefIds" (string) Comma separated list of requisite stage IDs for the evaluation stage
+     @param "spelVersion" (string) Version of SpEL evaluation logic to use (v3 or v4)
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateVariablesUsingPOST(ctx context.Context, executionId string, expressions []Mapstringstring, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -455,7 +464,7 @@ func (a *PipelineControllerApiService) EvaluateVariablesUsingPOST(ctx context.Co
 		localVarQueryParams.Add("spelVersion", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -466,7 +475,7 @@ func (a *PipelineControllerApiService) EvaluateVariablesUsingPOST(ctx context.Co
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -494,20 +503,21 @@ func (a *PipelineControllerApiService) EvaluateVariablesUsingPOST(ctx context.Co
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Retrieve a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@return interface{}*/
-func (a *PipelineControllerApiService) GetPipelineUsingGET(ctx context.Context, id string) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @return interface{}*/
+func (a *PipelineControllerApiService) GetPipelineUsingGET(ctx context.Context, id string) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -518,8 +528,9 @@ func (a *PipelineControllerApiService) GetPipelineUsingGET(ctx context.Context, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -530,7 +541,7 @@ func (a *PipelineControllerApiService) GetPipelineUsingGET(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -556,22 +567,23 @@ func (a *PipelineControllerApiService) GetPipelineUsingGET(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Trigger a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param pipelineNameOrId pipelineNameOrId
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "trigger" (interface{}) trigger
-@return */
-func (a *PipelineControllerApiService) InvokePipelineConfigUsingPOST1(ctx context.Context, application string, pipelineNameOrId string, localVarOptionals map[string]interface{}) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param pipelineNameOrId pipelineNameOrId
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "trigger" (interface{}) trigger
+ @return */
+func (a *PipelineControllerApiService) InvokePipelineConfigUsingPOST1(ctx context.Context, application string, pipelineNameOrId string, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -583,8 +595,9 @@ func (a *PipelineControllerApiService) InvokePipelineConfigUsingPOST1(ctx contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -595,7 +608,7 @@ func (a *PipelineControllerApiService) InvokePipelineConfigUsingPOST1(ctx contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -625,19 +638,19 @@ func (a *PipelineControllerApiService) InvokePipelineConfigUsingPOST1(ctx contex
 }
 
 /* PipelineControllerApiService Trigger a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param pipelineNameOrId pipelineNameOrId
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "trigger" (interface{}) trigger
-@return interface{}*/
-func (a *PipelineControllerApiService) InvokePipelineConfigViaEchoUsingPOST(ctx context.Context, application string, pipelineNameOrId string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param pipelineNameOrId pipelineNameOrId
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "trigger" (interface{}) trigger
+ @return interface{}*/
+func (a *PipelineControllerApiService) InvokePipelineConfigViaEchoUsingPOST(ctx context.Context, application string, pipelineNameOrId string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -649,8 +662,9 @@ func (a *PipelineControllerApiService) InvokePipelineConfigViaEchoUsingPOST(ctx 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -661,7 +675,7 @@ func (a *PipelineControllerApiService) InvokePipelineConfigViaEchoUsingPOST(ctx 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -691,19 +705,20 @@ func (a *PipelineControllerApiService) InvokePipelineConfigViaEchoUsingPOST(ctx 
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Pause a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@return */
-func (a *PipelineControllerApiService) PausePipelineUsingPUT(ctx context.Context, id string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @return */
+func (a *PipelineControllerApiService) PausePipelineUsingPUT(ctx context.Context, id string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -714,8 +729,9 @@ func (a *PipelineControllerApiService) PausePipelineUsingPUT(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -726,7 +742,7 @@ func (a *PipelineControllerApiService) PausePipelineUsingPUT(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -752,15 +768,15 @@ func (a *PipelineControllerApiService) PausePipelineUsingPUT(ctx context.Context
 }
 
 /* PipelineControllerApiService Rename a pipeline definition
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param renameCommand renameCommand
-@return */
-func (a *PipelineControllerApiService) RenamePipelineUsingPOST(ctx context.Context, renameCommand interface{}) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param renameCommand renameCommand
+ @return */
+func (a *PipelineControllerApiService) RenamePipelineUsingPOST(ctx context.Context, renameCommand interface{}) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -770,8 +786,9 @@ func (a *PipelineControllerApiService) RenamePipelineUsingPOST(ctx context.Conte
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -782,7 +799,7 @@ func (a *PipelineControllerApiService) RenamePipelineUsingPOST(ctx context.Conte
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -810,18 +827,18 @@ func (a *PipelineControllerApiService) RenamePipelineUsingPOST(ctx context.Conte
 }
 
 /* PipelineControllerApiService Restart a stage execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param context context
-@param id id
-@param stageId stageId
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context, context interface{}, id string, stageId string) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param context context
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context, context interface{}, id string, stageId string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -833,8 +850,9 @@ func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context,
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -845,7 +863,7 @@ func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -873,20 +891,21 @@ func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Resume a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) ResumePipelineUsingPUT(ctx context.Context, id string) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) ResumePipelineUsingPUT(ctx context.Context, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -897,8 +916,9 @@ func (a *PipelineControllerApiService) ResumePipelineUsingPUT(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -909,7 +929,7 @@ func (a *PipelineControllerApiService) ResumePipelineUsingPUT(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -935,19 +955,20 @@ func (a *PipelineControllerApiService) ResumePipelineUsingPUT(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Save a pipeline definition
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param pipeline pipeline
-@return */
-func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context, pipeline interface{}) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param pipeline pipeline
+ @return */
+func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context, pipeline interface{}) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -957,8 +978,9 @@ func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -969,7 +991,7 @@ func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -997,16 +1019,16 @@ func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context
 }
 
 /* PipelineControllerApiService Initiate a pipeline execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param map_ map
-@return ResponseEntity*/
-func (a *PipelineControllerApiService) StartUsingPOST(ctx context.Context, map_ interface{}) (ResponseEntity, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param map_ map
+ @return ResponseEntity*/
+func (a *PipelineControllerApiService) StartUsingPOST(ctx context.Context, map_ interface{}) (ResponseEntity,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     ResponseEntity
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  ResponseEntity
 	)
 
 	// create path and map variables
@@ -1016,8 +1038,9 @@ func (a *PipelineControllerApiService) StartUsingPOST(ctx context.Context, map_ 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1028,7 +1051,7 @@ func (a *PipelineControllerApiService) StartUsingPOST(ctx context.Context, map_ 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1056,21 +1079,22 @@ func (a *PipelineControllerApiService) StartUsingPOST(ctx context.Context, map_ 
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Update a pipeline definition
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@param pipeline pipeline
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) UpdatePipelineUsingPUT(ctx context.Context, id string, pipeline interface{}) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param pipeline pipeline
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) UpdatePipelineUsingPUT(ctx context.Context, id string, pipeline interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -1081,8 +1105,9 @@ func (a *PipelineControllerApiService) UpdatePipelineUsingPUT(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1093,7 +1118,7 @@ func (a *PipelineControllerApiService) UpdatePipelineUsingPUT(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1121,22 +1146,23 @@ func (a *PipelineControllerApiService) UpdatePipelineUsingPUT(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* PipelineControllerApiService Update a stage execution
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param context context
-@param id id
-@param stageId stageId
-@return map[string]interface{}*/
-func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context, context interface{}, id string, stageId string) (map[string]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param context context
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context, context interface{}, id string, stageId string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Patch")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string]interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
 	)
 
 	// create path and map variables
@@ -1148,8 +1174,9 @@ func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1160,7 +1187,7 @@ func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1188,5 +1215,7 @@ func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

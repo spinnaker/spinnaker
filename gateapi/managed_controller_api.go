@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,17 +26,18 @@ var (
 
 type ManagedControllerApiService service
 
+
 /* ManagedControllerApiService Create a pin for an artifact in an environment
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param pin pin
-@return */
-func (a *ManagedControllerApiService) CreatePinUsingPOST(ctx context.Context, application string, pin EnvironmentArtifactPin) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param pin pin
+ @return */
+func (a *ManagedControllerApiService) CreatePinUsingPOST(ctx context.Context, application string, pin EnvironmentArtifactPin) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -48,8 +48,9 @@ func (a *ManagedControllerApiService) CreatePinUsingPOST(ctx context.Context, ap
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -60,7 +61,7 @@ func (a *ManagedControllerApiService) CreatePinUsingPOST(ctx context.Context, ap
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -88,16 +89,16 @@ func (a *ManagedControllerApiService) CreatePinUsingPOST(ctx context.Context, ap
 }
 
 /* ManagedControllerApiService Delete a delivery config manifest for an application
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@return DeliveryConfig*/
-func (a *ManagedControllerApiService) DeleteManifestByAppUsingDELETE(ctx context.Context, application string) (DeliveryConfig, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @return DeliveryConfig*/
+func (a *ManagedControllerApiService) DeleteManifestByAppUsingDELETE(ctx context.Context, application string) (DeliveryConfig,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     DeliveryConfig
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  DeliveryConfig
 	)
 
 	// create path and map variables
@@ -108,8 +109,9 @@ func (a *ManagedControllerApiService) DeleteManifestByAppUsingDELETE(ctx context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -120,7 +122,7 @@ func (a *ManagedControllerApiService) DeleteManifestByAppUsingDELETE(ctx context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -146,20 +148,21 @@ func (a *ManagedControllerApiService) DeleteManifestByAppUsingDELETE(ctx context
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Delete a delivery config manifest
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param name name
-@return DeliveryConfig*/
-func (a *ManagedControllerApiService) DeleteManifestUsingDELETE(ctx context.Context, name string) (DeliveryConfig, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param name name
+ @return DeliveryConfig*/
+func (a *ManagedControllerApiService) DeleteManifestUsingDELETE(ctx context.Context, name string) (DeliveryConfig,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     DeliveryConfig
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  DeliveryConfig
 	)
 
 	// create path and map variables
@@ -170,8 +173,9 @@ func (a *ManagedControllerApiService) DeleteManifestUsingDELETE(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -182,7 +186,7 @@ func (a *ManagedControllerApiService) DeleteManifestUsingDELETE(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -208,22 +212,23 @@ func (a *ManagedControllerApiService) DeleteManifestUsingDELETE(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Unpin one or more artifact(s) in an environment. If the &#x60;reference&#x60; parameter is specified, only the corresponding artifact will be unpinned. If it&#39;s omitted, all pinned artifacts in the environment will be unpinned.
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param targetEnvironment targetEnvironment
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "reference" (string) reference
-@return */
-func (a *ManagedControllerApiService) DeletePinUsingDELETE(ctx context.Context, application string, targetEnvironment string, localVarOptionals map[string]interface{}) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param targetEnvironment targetEnvironment
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "reference" (string) reference
+ @return */
+func (a *ManagedControllerApiService) DeletePinUsingDELETE(ctx context.Context, application string, targetEnvironment string, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -243,7 +248,7 @@ func (a *ManagedControllerApiService) DeletePinUsingDELETE(ctx context.Context, 
 		localVarQueryParams.Add("reference", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -254,7 +259,7 @@ func (a *ManagedControllerApiService) DeletePinUsingDELETE(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -280,18 +285,18 @@ func (a *ManagedControllerApiService) DeletePinUsingDELETE(ctx context.Context, 
 }
 
 /* ManagedControllerApiService Veto an artifact version in an environment
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param reference reference
-@param targetEnvironment targetEnvironment
-@param version version
-@return */
-func (a *ManagedControllerApiService) DeleteVetoUsingDELETE(ctx context.Context, application string, reference string, targetEnvironment string, version string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param reference reference
+ @param targetEnvironment targetEnvironment
+ @param version version
+ @return */
+func (a *ManagedControllerApiService) DeleteVetoUsingDELETE(ctx context.Context, application string, reference string, targetEnvironment string, version string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -305,8 +310,9 @@ func (a *ManagedControllerApiService) DeleteVetoUsingDELETE(ctx context.Context,
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -317,7 +323,7 @@ func (a *ManagedControllerApiService) DeleteVetoUsingDELETE(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -343,16 +349,16 @@ func (a *ManagedControllerApiService) DeleteVetoUsingDELETE(ctx context.Context,
 }
 
 /* ManagedControllerApiService Ad-hoc validate and diff a config manifest
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param manifest manifest
-@return interface{}*/
-func (a *ManagedControllerApiService) DiffManifestUsingPOST(ctx context.Context, manifest DeliveryConfig) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param manifest manifest
+ @return interface{}*/
+func (a *ManagedControllerApiService) DiffManifestUsingPOST(ctx context.Context, manifest DeliveryConfig) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -362,8 +368,9 @@ func (a *ManagedControllerApiService) DiffManifestUsingPOST(ctx context.Context,
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json", "application/x-yaml"}
+	localVarHttpContentTypes := []string{ "application/json", "application/x-yaml",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -374,7 +381,7 @@ func (a *ManagedControllerApiService) DiffManifestUsingPOST(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -402,20 +409,21 @@ func (a *ManagedControllerApiService) DiffManifestUsingPOST(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Ad-hoc validate and diff a resource
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param resource resource
-@return interface{}*/
-func (a *ManagedControllerApiService) DiffResourceUsingPOST(ctx context.Context, resource Resource) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param resource resource
+ @return interface{}*/
+func (a *ManagedControllerApiService) DiffResourceUsingPOST(ctx context.Context, resource Resource) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -425,8 +433,9 @@ func (a *ManagedControllerApiService) DiffResourceUsingPOST(ctx context.Context,
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json", "application/x-yaml"}
+	localVarHttpContentTypes := []string{ "application/json", "application/x-yaml",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -437,7 +446,7 @@ func (a *ManagedControllerApiService) DiffResourceUsingPOST(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -465,22 +474,23 @@ func (a *ManagedControllerApiService) DiffResourceUsingPOST(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Generates an artifact definition based on the artifact used in a running cluster
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param cloudProvider cloudProvider
-@param clusterName clusterName
-@return interface{}*/
-func (a *ManagedControllerApiService) ExportResourceUsingGET(ctx context.Context, account string, cloudProvider string, clusterName string) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param cloudProvider cloudProvider
+ @param clusterName clusterName
+ @return interface{}*/
+func (a *ManagedControllerApiService) ExportResourceUsingGET(ctx context.Context, account string, cloudProvider string, clusterName string) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -493,8 +503,9 @@ func (a *ManagedControllerApiService) ExportResourceUsingGET(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -505,7 +516,7 @@ func (a *ManagedControllerApiService) ExportResourceUsingGET(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -531,24 +542,25 @@ func (a *ManagedControllerApiService) ExportResourceUsingGET(ctx context.Context
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Generate a keel resource definition for a deployed cloud resource
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param cloudProvider cloudProvider
-@param name name
-@param serviceAccount serviceAccount
-@param type_ type
-@return Resource*/
-func (a *ManagedControllerApiService) ExportResourceUsingGET1(ctx context.Context, account string, cloudProvider string, name string, serviceAccount string, type_ string) (Resource, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param cloudProvider cloudProvider
+ @param name name
+ @param serviceAccount serviceAccount
+ @param type_ type
+ @return Resource*/
+func (a *ManagedControllerApiService) ExportResourceUsingGET1(ctx context.Context, account string, cloudProvider string, name string, serviceAccount string, type_ string) (Resource,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     Resource
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  Resource
 	)
 
 	// create path and map variables
@@ -562,9 +574,10 @@ func (a *ManagedControllerApiService) ExportResourceUsingGET1(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	localVarQueryParams.Add("serviceAccount", parameterToString(serviceAccount, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -575,7 +588,7 @@ func (a *ManagedControllerApiService) ExportResourceUsingGET1(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -601,19 +614,20 @@ func (a *ManagedControllerApiService) ExportResourceUsingGET1(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService getApiDocs
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return interface{}*/
-func (a *ManagedControllerApiService) GetApiDocsUsingGET(ctx context.Context) (interface{}, *http.Response, error) {
+func (a *ManagedControllerApiService) GetApiDocsUsingGET(ctx context.Context) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -623,8 +637,9 @@ func (a *ManagedControllerApiService) GetApiDocsUsingGET(ctx context.Context) (i
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -635,7 +650,7 @@ func (a *ManagedControllerApiService) GetApiDocsUsingGET(ctx context.Context) (i
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -661,23 +676,24 @@ func (a *ManagedControllerApiService) GetApiDocsUsingGET(ctx context.Context) (i
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Get managed details about an application
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "entities" ([]string) entities
-    @param "includeDetails" (bool) includeDetails
-@return interface{}*/
-func (a *ManagedControllerApiService) GetApplicationDetailsUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "entities" ([]string) entities
+     @param "includeDetails" (bool) includeDetails
+ @return interface{}*/
+func (a *ManagedControllerApiService) GetApplicationDetailsUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -699,7 +715,7 @@ func (a *ManagedControllerApiService) GetApplicationDetailsUsingGET(ctx context.
 		localVarQueryParams.Add("includeDetails", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -710,7 +726,7 @@ func (a *ManagedControllerApiService) GetApplicationDetailsUsingGET(ctx context.
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -736,20 +752,21 @@ func (a *ManagedControllerApiService) GetApplicationDetailsUsingGET(ctx context.
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Get the delivery config associated with an application
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@return DeliveryConfig*/
-func (a *ManagedControllerApiService) GetConfigByUsingGET(ctx context.Context, application string) (DeliveryConfig, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @return DeliveryConfig*/
+func (a *ManagedControllerApiService) GetConfigByUsingGET(ctx context.Context, application string) (DeliveryConfig,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     DeliveryConfig
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  DeliveryConfig
 	)
 
 	// create path and map variables
@@ -760,8 +777,9 @@ func (a *ManagedControllerApiService) GetConfigByUsingGET(ctx context.Context, a
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -772,7 +790,7 @@ func (a *ManagedControllerApiService) GetConfigByUsingGET(ctx context.Context, a
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -798,23 +816,24 @@ func (a *ManagedControllerApiService) GetConfigByUsingGET(ctx context.Context, a
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService List up-to {limit} current constraint states for an environment
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param environment environment
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "limit" (string) limit
-@return ConstraintState*/
-func (a *ManagedControllerApiService) GetConstraintStateUsingGET(ctx context.Context, application string, environment string, localVarOptionals map[string]interface{}) (ConstraintState, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param environment environment
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "limit" (string) limit
+ @return ConstraintState*/
+func (a *ManagedControllerApiService) GetConstraintStateUsingGET(ctx context.Context, application string, environment string, localVarOptionals map[string]interface{}) (ConstraintState,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     ConstraintState
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  ConstraintState
 	)
 
 	// create path and map variables
@@ -834,7 +853,7 @@ func (a *ManagedControllerApiService) GetConstraintStateUsingGET(ctx context.Con
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -845,7 +864,7 @@ func (a *ManagedControllerApiService) GetConstraintStateUsingGET(ctx context.Con
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -871,20 +890,21 @@ func (a *ManagedControllerApiService) GetConstraintStateUsingGET(ctx context.Con
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Get the status of each version of each artifact in each environment
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param name name
-@return []interface{}*/
-func (a *ManagedControllerApiService) GetManifestArtifactsUsingGET(ctx context.Context, name string) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param name name
+ @return []interface{}*/
+func (a *ManagedControllerApiService) GetManifestArtifactsUsingGET(ctx context.Context, name string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -895,8 +915,9 @@ func (a *ManagedControllerApiService) GetManifestArtifactsUsingGET(ctx context.C
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -907,7 +928,7 @@ func (a *ManagedControllerApiService) GetManifestArtifactsUsingGET(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -933,20 +954,21 @@ func (a *ManagedControllerApiService) GetManifestArtifactsUsingGET(ctx context.C
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Get a delivery config manifest
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param name name
-@return DeliveryConfig*/
-func (a *ManagedControllerApiService) GetManifestUsingGET(ctx context.Context, name string) (DeliveryConfig, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param name name
+ @return DeliveryConfig*/
+func (a *ManagedControllerApiService) GetManifestUsingGET(ctx context.Context, name string) (DeliveryConfig,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     DeliveryConfig
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  DeliveryConfig
 	)
 
 	// create path and map variables
@@ -957,8 +979,9 @@ func (a *ManagedControllerApiService) GetManifestUsingGET(ctx context.Context, n
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -969,7 +992,7 @@ func (a *ManagedControllerApiService) GetManifestUsingGET(ctx context.Context, n
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -995,20 +1018,21 @@ func (a *ManagedControllerApiService) GetManifestUsingGET(ctx context.Context, n
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Get status of a resource
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param resourceId resourceId
-@return interface{}*/
-func (a *ManagedControllerApiService) GetResourceStatusUsingGET(ctx context.Context, resourceId string) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param resourceId resourceId
+ @return interface{}*/
+func (a *ManagedControllerApiService) GetResourceStatusUsingGET(ctx context.Context, resourceId string) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -1019,8 +1043,9 @@ func (a *ManagedControllerApiService) GetResourceStatusUsingGET(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1031,7 +1056,7 @@ func (a *ManagedControllerApiService) GetResourceStatusUsingGET(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1057,20 +1082,21 @@ func (a *ManagedControllerApiService) GetResourceStatusUsingGET(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Get a resource
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param resourceId resourceId
-@return Resource*/
-func (a *ManagedControllerApiService) GetResourceUsingGET(ctx context.Context, resourceId string) (Resource, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param resourceId resourceId
+ @return Resource*/
+func (a *ManagedControllerApiService) GetResourceUsingGET(ctx context.Context, resourceId string) (Resource,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     Resource
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  Resource
 	)
 
 	// create path and map variables
@@ -1081,8 +1107,9 @@ func (a *ManagedControllerApiService) GetResourceUsingGET(ctx context.Context, r
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1093,7 +1120,7 @@ func (a *ManagedControllerApiService) GetResourceUsingGET(ctx context.Context, r
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1119,19 +1146,20 @@ func (a *ManagedControllerApiService) GetResourceUsingGET(ctx context.Context, r
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Pause management of an entire application
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@return */
-func (a *ManagedControllerApiService) PauseApplicationUsingPOST(ctx context.Context, application string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @return */
+func (a *ManagedControllerApiService) PauseApplicationUsingPOST(ctx context.Context, application string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -1142,8 +1170,9 @@ func (a *ManagedControllerApiService) PauseApplicationUsingPOST(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1154,7 +1183,7 @@ func (a *ManagedControllerApiService) PauseApplicationUsingPOST(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1180,15 +1209,15 @@ func (a *ManagedControllerApiService) PauseApplicationUsingPOST(ctx context.Cont
 }
 
 /* ManagedControllerApiService Pause management of a resource
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param resourceId resourceId
-@return */
-func (a *ManagedControllerApiService) PauseResourceUsingPOST(ctx context.Context, resourceId string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param resourceId resourceId
+ @return */
+func (a *ManagedControllerApiService) PauseResourceUsingPOST(ctx context.Context, resourceId string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -1199,8 +1228,9 @@ func (a *ManagedControllerApiService) PauseResourceUsingPOST(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1211,7 +1241,7 @@ func (a *ManagedControllerApiService) PauseResourceUsingPOST(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1237,15 +1267,15 @@ func (a *ManagedControllerApiService) PauseResourceUsingPOST(ctx context.Context
 }
 
 /* ManagedControllerApiService Resume management of an entire application
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@return */
-func (a *ManagedControllerApiService) ResumeApplicationUsingDELETE(ctx context.Context, application string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @return */
+func (a *ManagedControllerApiService) ResumeApplicationUsingDELETE(ctx context.Context, application string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -1256,8 +1286,9 @@ func (a *ManagedControllerApiService) ResumeApplicationUsingDELETE(ctx context.C
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1268,7 +1299,7 @@ func (a *ManagedControllerApiService) ResumeApplicationUsingDELETE(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1294,15 +1325,15 @@ func (a *ManagedControllerApiService) ResumeApplicationUsingDELETE(ctx context.C
 }
 
 /* ManagedControllerApiService Resume management of a resource
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param resourceId resourceId
-@return */
-func (a *ManagedControllerApiService) ResumeResourceUsingDELETE(ctx context.Context, resourceId string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param resourceId resourceId
+ @return */
+func (a *ManagedControllerApiService) ResumeResourceUsingDELETE(ctx context.Context, resourceId string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -1313,8 +1344,9 @@ func (a *ManagedControllerApiService) ResumeResourceUsingDELETE(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1325,7 +1357,7 @@ func (a *ManagedControllerApiService) ResumeResourceUsingDELETE(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1351,17 +1383,17 @@ func (a *ManagedControllerApiService) ResumeResourceUsingDELETE(ctx context.Cont
 }
 
 /* ManagedControllerApiService Update the status of an environment constraint
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param environment environment
-@param status status
-@return */
-func (a *ManagedControllerApiService) UpdateConstraintStatusUsingPOST(ctx context.Context, application string, environment string, status ConstraintStatus) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param environment environment
+ @param status status
+ @return */
+func (a *ManagedControllerApiService) UpdateConstraintStatusUsingPOST(ctx context.Context, application string, environment string, status ConstraintStatus) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -1373,8 +1405,9 @@ func (a *ManagedControllerApiService) UpdateConstraintStatusUsingPOST(ctx contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1385,7 +1418,7 @@ func (a *ManagedControllerApiService) UpdateConstraintStatusUsingPOST(ctx contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1413,16 +1446,16 @@ func (a *ManagedControllerApiService) UpdateConstraintStatusUsingPOST(ctx contex
 }
 
 /* ManagedControllerApiService Create or update a delivery config manifest
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param manifest manifest
-@return DeliveryConfig*/
-func (a *ManagedControllerApiService) UpsertManifestUsingPOST(ctx context.Context, manifest DeliveryConfig) (DeliveryConfig, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param manifest manifest
+ @return DeliveryConfig*/
+func (a *ManagedControllerApiService) UpsertManifestUsingPOST(ctx context.Context, manifest DeliveryConfig) (DeliveryConfig,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     DeliveryConfig
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  DeliveryConfig
 	)
 
 	// create path and map variables
@@ -1432,8 +1465,9 @@ func (a *ManagedControllerApiService) UpsertManifestUsingPOST(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json", "application/x-yaml"}
+	localVarHttpContentTypes := []string{ "application/json", "application/x-yaml",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1444,7 +1478,7 @@ func (a *ManagedControllerApiService) UpsertManifestUsingPOST(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1472,20 +1506,21 @@ func (a *ManagedControllerApiService) UpsertManifestUsingPOST(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Validate a delivery config manifest
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param manifest manifest
-@return interface{}*/
-func (a *ManagedControllerApiService) ValidateManifestUsingPOST(ctx context.Context, manifest DeliveryConfig) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param manifest manifest
+ @return interface{}*/
+func (a *ManagedControllerApiService) ValidateManifestUsingPOST(ctx context.Context, manifest DeliveryConfig) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -1495,8 +1530,9 @@ func (a *ManagedControllerApiService) ValidateManifestUsingPOST(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json", "application/x-yaml"}
+	localVarHttpContentTypes := []string{ "application/json", "application/x-yaml",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1508,7 +1544,7 @@ func (a *ManagedControllerApiService) ValidateManifestUsingPOST(ctx context.Cont
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
 		"application/x-yaml",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1536,20 +1572,21 @@ func (a *ManagedControllerApiService) ValidateManifestUsingPOST(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* ManagedControllerApiService Veto an artifact version in an environment
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@param veto veto
-@return */
-func (a *ManagedControllerApiService) VetoUsingPOST(ctx context.Context, application string, veto EnvironmentArtifactVeto) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @param veto veto
+ @return */
+func (a *ManagedControllerApiService) VetoUsingPOST(ctx context.Context, application string, veto EnvironmentArtifactVeto) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -1560,8 +1597,9 @@ func (a *ManagedControllerApiService) VetoUsingPOST(ctx context.Context, applica
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1572,7 +1610,7 @@ func (a *ManagedControllerApiService) VetoUsingPOST(ctx context.Context, applica
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1598,3 +1636,4 @@ func (a *ManagedControllerApiService) VetoUsingPOST(ctx context.Context, applica
 
 	return localVarHttpResponse, err
 }
+

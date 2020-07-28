@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,19 +26,20 @@ var (
 
 type V2CanaryConfigControllerApiService service
 
+
 /* V2CanaryConfigControllerApiService Create a canary configuration
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param config config
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "configurationAccountName" (string) configurationAccountName
-@return interface{}*/
-func (a *V2CanaryConfigControllerApiService) CreateCanaryConfigUsingPOST(ctx context.Context, config interface{}, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param config config
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryConfigControllerApiService) CreateCanaryConfigUsingPOST(ctx context.Context, config interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -57,7 +57,7 @@ func (a *V2CanaryConfigControllerApiService) CreateCanaryConfigUsingPOST(ctx con
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -68,7 +68,7 @@ func (a *V2CanaryConfigControllerApiService) CreateCanaryConfigUsingPOST(ctx con
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -96,21 +96,22 @@ func (a *V2CanaryConfigControllerApiService) CreateCanaryConfigUsingPOST(ctx con
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* V2CanaryConfigControllerApiService Delete a canary configuration
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "configurationAccountName" (string) configurationAccountName
-@return */
-func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx context.Context, id string, localVarOptionals map[string]interface{}) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "configurationAccountName" (string) configurationAccountName
+ @return */
+func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx context.Context, id string, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -129,7 +130,7 @@ func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx c
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -140,7 +141,7 @@ func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx c
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -166,18 +167,18 @@ func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx c
 }
 
 /* V2CanaryConfigControllerApiService Retrieve a canary configuration by id
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param id id
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "configurationAccountName" (string) configurationAccountName
-@return interface{}*/
-func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -196,7 +197,7 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -207,7 +208,7 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -233,22 +234,23 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* V2CanaryConfigControllerApiService Retrieve a list of canary configurations
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "application" (string) application
-    @param "configurationAccountName" (string) configurationAccountName
-@return []interface{}*/
-func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "application" (string) application
+     @param "configurationAccountName" (string) configurationAccountName
+ @return []interface{}*/
+func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -272,7 +274,7 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx contex
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -283,7 +285,7 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -309,23 +311,24 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* V2CanaryConfigControllerApiService Update a canary configuration
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param config config
-@param id id
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "configurationAccountName" (string) configurationAccountName
-@return interface{}*/
-func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx context.Context, config interface{}, id string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param config config
+ @param id id
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx context.Context, config interface{}, id string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -344,7 +347,7 @@ func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx cont
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -355,7 +358,7 @@ func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -383,5 +386,7 @@ func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

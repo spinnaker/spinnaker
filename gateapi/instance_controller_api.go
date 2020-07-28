@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,22 +26,23 @@ var (
 
 type InstanceControllerApiService service
 
+
 /* InstanceControllerApiService Retrieve an instance&#39;s console output
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param instanceId instanceId
-@param region region
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-    @param "provider" (string) provider
-@return interface{}*/
-func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Context, account string, instanceId string, region string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param instanceId instanceId
+ @param region region
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
+ @return interface{}*/
+func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Context, account string, instanceId string, region string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -66,7 +66,7 @@ func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Cont
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -77,7 +77,7 @@ func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -106,24 +106,25 @@ func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* InstanceControllerApiService Retrieve an instance&#39;s details
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param account account
-@param instanceId instanceId
-@param region region
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "xRateLimitApp" (string) X-RateLimit-App
-@return interface{}*/
-func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Context, account string, instanceId string, region string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param account account
+ @param instanceId instanceId
+ @param region region
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return interface{}*/
+func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Context, account string, instanceId string, region string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -141,7 +142,7 @@ func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Co
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -152,7 +153,7 @@ func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Co
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -181,5 +182,7 @@ func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Co
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

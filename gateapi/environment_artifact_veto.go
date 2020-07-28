@@ -10,6 +10,7 @@
 package swagger
 
 type EnvironmentArtifactVeto struct {
+
 	Comment string `json:"comment,omitempty"`
 
 	Reference string `json:"reference,omitempty"`

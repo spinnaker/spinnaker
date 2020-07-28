@@ -10,6 +10,7 @@
 package swagger
 
 type DeliveryConfig struct {
+
 	ApiVersion string `json:"apiVersion,omitempty"`
 
 	Application string `json:"application,omitempty"`

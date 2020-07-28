@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,17 +26,18 @@ var (
 
 type AmazonInfrastructureControllerApiService service
 
+
 /* AmazonInfrastructureControllerApiService Get application functions
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param application application
-@return []interface{}*/
-func (a *AmazonInfrastructureControllerApiService) ApplicationFunctionsUsingGET(ctx context.Context, application string) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param application application
+ @return []interface{}*/
+func (a *AmazonInfrastructureControllerApiService) ApplicationFunctionsUsingGET(ctx context.Context, application string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -48,8 +48,9 @@ func (a *AmazonInfrastructureControllerApiService) ApplicationFunctionsUsingGET(
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -60,7 +61,7 @@ func (a *AmazonInfrastructureControllerApiService) ApplicationFunctionsUsingGET(
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -86,23 +87,24 @@ func (a *AmazonInfrastructureControllerApiService) ApplicationFunctionsUsingGET(
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* AmazonInfrastructureControllerApiService Get functions
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "account" (string) account
-    @param "functionName" (string) functionName
-    @param "region" (string) region
-@return []interface{}*/
-func (a *AmazonInfrastructureControllerApiService) FunctionsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "account" (string) account
+     @param "functionName" (string) functionName
+     @param "region" (string) region
+ @return []interface{}*/
+func (a *AmazonInfrastructureControllerApiService) FunctionsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -132,7 +134,7 @@ func (a *AmazonInfrastructureControllerApiService) FunctionsUsingGET(ctx context
 		localVarQueryParams.Add("region", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -143,7 +145,7 @@ func (a *AmazonInfrastructureControllerApiService) FunctionsUsingGET(ctx context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -169,19 +171,20 @@ func (a *AmazonInfrastructureControllerApiService) FunctionsUsingGET(ctx context
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* AmazonInfrastructureControllerApiService Get instance types
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []interface{}*/
-func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx context.Context) ([]interface{}, *http.Response, error) {
+func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -191,8 +194,9 @@ func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx con
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -203,7 +207,7 @@ func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx con
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -229,19 +233,20 @@ func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx con
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* AmazonInfrastructureControllerApiService Get subnets
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []interface{}*/
-func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.Context) ([]interface{}, *http.Response, error) {
+func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -251,8 +256,9 @@ func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.C
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -263,7 +269,7 @@ func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -289,19 +295,20 @@ func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.C
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* AmazonInfrastructureControllerApiService Get VPCs
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []interface{}*/
-func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Context) ([]interface{}, *http.Response, error) {
+func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -311,8 +318,9 @@ func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -323,7 +331,7 @@ func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -349,5 +357,7 @@ func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

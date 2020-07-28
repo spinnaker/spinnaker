@@ -10,13 +10,12 @@
 package swagger
 
 import (
-	"encoding/json"
 	"io/ioutil"
-	"net/http"
 	"net/url"
+	"net/http"
 	"strings"
-
 	"golang.org/x/net/context"
+	"encoding/json"
 )
 
 // Linger please
@@ -26,16 +25,17 @@ var (
 
 type PubsubSubscriptionControllerApiService service
 
+
 /* PubsubSubscriptionControllerApiService Retrieve the list of pub/sub subscriptions configured in Echo.
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return []Mapstringstring*/
-func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Context) ([]Mapstringstring, *http.Response, error) {
+func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Context) ([]Mapstringstring,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     []Mapstringstring
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []Mapstringstring
 	)
 
 	// create path and map variables
@@ -45,8 +45,9 @@ func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -57,7 +58,7 @@ func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -83,5 +84,7 @@ func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

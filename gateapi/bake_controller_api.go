@@ -10,14 +10,13 @@
 package swagger
 
 import (
+	"io/ioutil"
+	"net/url"
+	"net/http"
+	"strings"
+	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -27,17 +26,18 @@ var (
 
 type BakeControllerApiService service
 
+
 /* BakeControllerApiService Retrieve a list of available bakery base images for a given cloud provider
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param cloudProvider cloudProvider
-@return interface{}*/
-func (a *BakeControllerApiService) BakeOptionsUsingGET(ctx context.Context, cloudProvider string) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param cloudProvider cloudProvider
+ @return interface{}*/
+func (a *BakeControllerApiService) BakeOptionsUsingGET(ctx context.Context, cloudProvider string) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -48,8 +48,9 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET(ctx context.Context, clou
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -60,7 +61,7 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET(ctx context.Context, clou
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -86,19 +87,20 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET(ctx context.Context, clou
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BakeControllerApiService Retrieve a list of available bakery base images, grouped by cloud provider
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @return interface{}*/
-func (a *BakeControllerApiService) BakeOptionsUsingGET1(ctx context.Context) (interface{}, *http.Response, error) {
+func (a *BakeControllerApiService) BakeOptionsUsingGET1(ctx context.Context) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -108,8 +110,9 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET1(ctx context.Context) (in
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -120,7 +123,7 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET1(ctx context.Context) (in
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -146,21 +149,22 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET1(ctx context.Context) (in
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
 
 /* BakeControllerApiService Retrieve the logs for a given bake
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param region region
-@param statusId statusId
-@return interface{}*/
-func (a *BakeControllerApiService) LookupLogsUsingGET(ctx context.Context, region string, statusId string) (interface{}, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param region region
+ @param statusId statusId
+ @return interface{}*/
+func (a *BakeControllerApiService) LookupLogsUsingGET(ctx context.Context, region string, statusId string) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     interface{}
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -172,8 +176,9 @@ func (a *BakeControllerApiService) LookupLogsUsingGET(ctx context.Context, regio
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -184,7 +189,7 @@ func (a *BakeControllerApiService) LookupLogsUsingGET(ctx context.Context, regio
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -210,5 +215,7 @@ func (a *BakeControllerApiService) LookupLogsUsingGET(ctx context.Context, regio
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

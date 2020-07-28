@@ -10,14 +10,13 @@
 package swagger
 
 import (
-	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
-	"os"
+	"net/http"
 	"strings"
-
 	"golang.org/x/net/context"
+	"os"
+	"fmt"
 )
 
 // Linger please
@@ -27,19 +26,20 @@ var (
 
 type PluginPublishControllerApiService service
 
+
 /* PluginPublishControllerApiService Publish a plugin binary and the plugin info metadata.
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param plugin plugin
-@param pluginId pluginId
-@param pluginInfo pluginInfo
-@param pluginVersion pluginVersion
-@return */
-func (a *PluginPublishControllerApiService) PublishPluginUsingPOST(ctx context.Context, plugin *os.File, pluginId string, pluginInfo string, pluginVersion string) (*http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param plugin plugin
+ @param pluginId pluginId
+ @param pluginInfo pluginInfo
+ @param pluginVersion pluginVersion
+ @return */
+func (a *PluginPublishControllerApiService) PublishPluginUsingPOST(ctx context.Context, plugin *os.File, pluginId string, pluginInfo string, pluginVersion string) ( *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
 	)
 
 	// create path and map variables
@@ -51,8 +51,9 @@ func (a *PluginPublishControllerApiService) PublishPluginUsingPOST(ctx context.C
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"multipart/form-data"}
+	localVarHttpContentTypes := []string{ "multipart/form-data",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -63,7 +64,7 @@ func (a *PluginPublishControllerApiService) PublishPluginUsingPOST(ctx context.C
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -94,3 +95,4 @@ func (a *PluginPublishControllerApiService) PublishPluginUsingPOST(ctx context.C
 
 	return localVarHttpResponse, err
 }
+

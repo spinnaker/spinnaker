@@ -10,13 +10,12 @@
 package swagger
 
 import (
-	"encoding/json"
 	"io/ioutil"
-	"net/http"
 	"net/url"
+	"net/http"
 	"strings"
-
 	"golang.org/x/net/context"
+	"encoding/json"
 )
 
 // Linger please
@@ -26,18 +25,19 @@ var (
 
 type PluginsInstalledControllerApiService service
 
+
 /* PluginsInstalledControllerApiService Get all installed Spinnaker plugins
-* @param ctx context.Context for authentication, logging, tracing, etc.
-@param optional (nil or map[string]interface{}) with one or more of:
-    @param "service" (string) service
-@return map[string][]SpinnakerPluginDescriptor*/
-func (a *PluginsInstalledControllerApiService) GetInstalledPluginsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) (map[string][]SpinnakerPluginDescriptor, *http.Response, error) {
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "service" (string) service
+ @return map[string][]SpinnakerPluginDescriptor*/
+func (a *PluginsInstalledControllerApiService) GetInstalledPluginsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) (map[string][]SpinnakerPluginDescriptor,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		successPayload     map[string][]SpinnakerPluginDescriptor
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string][]SpinnakerPluginDescriptor
 	)
 
 	// create path and map variables
@@ -55,7 +55,7 @@ func (a *PluginsInstalledControllerApiService) GetInstalledPluginsUsingGET(ctx c
 		localVarQueryParams.Add("service", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{}
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -66,7 +66,7 @@ func (a *PluginsInstalledControllerApiService) GetInstalledPluginsUsingGET(ctx c
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"*/*",
-	}
+		}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -92,5 +92,7 @@ func (a *PluginsInstalledControllerApiService) GetInstalledPluginsUsingGET(ctx c
 		return successPayload, localVarHttpResponse, err
 	}
 
+
 	return successPayload, localVarHttpResponse, err
 }
+

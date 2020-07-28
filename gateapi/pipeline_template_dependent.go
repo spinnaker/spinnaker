@@ -10,6 +10,7 @@
 package swagger
 
 type PipelineTemplateDependent struct {
+
 	Application string `json:"application,omitempty"`
 
 	PipelineConfigId string `json:"pipelineConfigId,omitempty"`

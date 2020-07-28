@@ -10,6 +10,7 @@
 package swagger
 
 type SpinnakerPluginDescriptor struct {
+
 	Dependencies []PluginDependency `json:"dependencies,omitempty"`
 
 	License string `json:"license,omitempty"`
