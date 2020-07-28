@@ -31,7 +31,7 @@ export const NavItem = ({ app, dataSource, isActive }: INavItemProps) => {
   return (
     <div className="nav-category flex-container-h middle sp-padding-s-yaxis">
       <div className={badgeClassNames}>{runningCount > 0 ? runningCount : ''}</div>
-      <div className="nav-item">
+      <div className="nav-row-item">
         {iconName &&
           (!isExpanded ? (
             <Tooltip value={dataSource.label} placement="right">
@@ -43,7 +43,7 @@ export const NavItem = ({ app, dataSource, isActive }: INavItemProps) => {
             <Icon className="nav-icon" name={iconName} size="medium" color={isActive ? 'primary' : 'accent'} />
           ))}
       </div>
-      <div className="nav-item nav-name">{' ' + dataSource.label}</div>
+      <div className="nav-row-item nav-name">{' ' + dataSource.label}</div>
       <DataSourceNotifications tags={tags} application={app} tabName={label} />
     </div>
   );
