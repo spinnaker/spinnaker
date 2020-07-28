@@ -85,6 +85,7 @@ export interface ICacheConfig {
   maxAge?: number;
   onReset?: Function[];
   version?: number;
+  storageMode?: 'memory' | 'localStorage' | 'sessionStorage';
 }
 
 export interface ICacheMap {
@@ -170,18 +171,20 @@ export class DeckCacheFactory {
     };
   }
 
-  private static addLocalStorageCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): ICache {
+  public static createCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): ICache {
     const key: string = DeckCacheFactory.buildCacheKey(namespace, cacheId);
     const cacheFactory: CacheFactory = cacheConfig.cacheFactory || this.cacheFactory;
     const currentVersion: number = cacheConfig.version || 1;
 
     DeckCacheFactory.clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory);
+
+    const storageMode = cacheConfig.storageMode ?? 'localStorage';
     cacheFactory.createCache(key, {
       deleteOnExpire: 'aggressive',
       maxAge: cacheConfig.maxAge || Duration.fromObject({ days: 2 }).as('milliseconds'),
       recycleFreq: Duration.fromObject({ seconds: 5 }).as('milliseconds'),
-      storageImpl: new SelfClearingLocalStorage(this.cacheProxy),
-      storageMode: 'localStorage',
+      storageMode,
+      storageImpl: storageMode === 'localStorage' ? new SelfClearingLocalStorage(this.cacheProxy) : null,
       storagePrefix: DeckCacheFactory.getStoragePrefix(key, currentVersion),
     });
     const cache = cacheFactory.get(key) as ICache;
@@ -196,10 +199,6 @@ export class DeckCacheFactory {
       this.caches[key].destroy();
       this.createCache(namespace, key, this.caches[key].config);
     }
-  }
-
-  public static createCache(namespace: string, cacheId: string, config: ICacheConfig): ICache {
-    return this.addLocalStorageCache(namespace, cacheId, config);
   }
 
   public static getCache(namespace: string = null, cacheId: string = null): ICache {

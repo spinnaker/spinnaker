@@ -1,23 +1,18 @@
-export interface IMaxAgeConfig {
-  maxAge: number;
-}
-
-export interface IVersionConfig {
-  version: number;
-}
+import { ICacheConfig } from './deckCacheFactory';
 
 export interface IInfrastructureCacheConfig {
   [key: string]: any;
-  securityGroups: IVersionConfig;
-  healthChecks: IVersionConfig;
-  certificates: IVersionConfig;
-  backendServices: IVersionConfig;
-  addresses: IVersionConfig;
+  securityGroups: ICacheConfig;
+  healthChecks: ICacheConfig;
+  certificates: ICacheConfig;
+  backendServices: ICacheConfig;
+  addresses: ICacheConfig;
 }
 
 export const INFRASTRUCTURE_CACHE_CONFIG: IInfrastructureCacheConfig = {
   securityGroups: {
-    version: 3, // increment to force refresh of cache on next page load - can be added to any cache
+    version: 4, // increment to force refresh of cache on next page load - can be added to any cache
+    storageMode: 'memory',
   },
   healthChecks: {
     version: 2,
