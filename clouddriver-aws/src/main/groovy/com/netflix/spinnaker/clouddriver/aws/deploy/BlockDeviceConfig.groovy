@@ -95,6 +95,16 @@ class BlockDeviceConfig {
       "c6g.16xlarge" : sizedBlockDevicesForEbs(120),
       "c6g.metal"    : sizedBlockDevicesForEbs(120),
 
+      "c6gd.medium"   : enumeratedBlockDevicesWithVirtualName(1),
+      "c6gd.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "c6gd.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "c6gd.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c6gd.4xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c6gd.8xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c6gd.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "c6gd.16xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "c6gd.metal"    : enumeratedBlockDevicesWithVirtualName(2),
+
       "cc2.8xlarge" : enumeratedBlockDevicesWithVirtualName(4),
 
       "cg1.4xlarge" : sizedBlockDevicesForEbs(120),
@@ -242,6 +252,16 @@ class BlockDeviceConfig {
       "m6g.16xlarge" : sizedBlockDevicesForEbs(120),
       "m6g.metal"    : sizedBlockDevicesForEbs(120),
 
+      "m6gd.medium"   : enumeratedBlockDevicesWithVirtualName(1),
+      "m6gd.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "m6gd.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "m6gd.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "m6gd.4xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "m6gd.8xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "m6gd.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "m6gd.16xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "m6gd.metal"    : enumeratedBlockDevicesWithVirtualName(2),
+
       "r3.large"    : enumeratedBlockDevicesWithVirtualName(1),
       "r3.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
       "r3.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
@@ -316,6 +336,16 @@ class BlockDeviceConfig {
       "r6g.12xlarge" : sizedBlockDevicesForEbs(120),
       "r6g.16xlarge" : sizedBlockDevicesForEbs(120),
       "r6g.metal"    : sizedBlockDevicesForEbs(120),
+
+      "r6gd.medium"   : enumeratedBlockDevicesWithVirtualName(1),
+      "r6gd.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "r6gd.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "r6gd.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "r6gd.4xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "r6gd.8xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "r6gd.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "r6gd.16xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "r6gd.metal"    : enumeratedBlockDevicesWithVirtualName(2),
 
       "p2.xlarge"   : sizedBlockDevicesForEbs(80),
       "p2.8xlarge"  : sizedBlockDevicesForEbs(120),
