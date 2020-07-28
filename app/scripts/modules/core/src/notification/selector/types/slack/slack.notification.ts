@@ -1,9 +1,9 @@
-import { Registry } from 'core/registry';
+import { INotificationTypeConfig } from 'core/domain';
 
 import { SlackNotificationType } from './SlackNotificationType';
 
-Registry.pipeline.registerNotification({
+export const slackNotification: INotificationTypeConfig = {
   component: SlackNotificationType,
   key: 'slack',
   label: 'Slack',
-});
+};

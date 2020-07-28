@@ -2,7 +2,7 @@ import React from 'react';
 import { FormikFormField, TextInput, Validators } from 'core/presentation';
 import { INotificationTypeCustomConfig } from 'core/domain';
 
-export class BearychatNoficationType extends React.Component<INotificationTypeCustomConfig> {
+export class BearychatNotificationType extends React.Component<INotificationTypeCustomConfig> {
   public render() {
     const { fieldName } = this.props;
     return (

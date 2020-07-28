@@ -1,9 +1,9 @@
-import { Registry } from 'core/registry';
+import { INotificationTypeConfig } from 'core/domain';
 
 import { GithubNotificationType } from './GithubNotificationType';
 
-Registry.pipeline.registerNotification({
+export const githubstatusNotification: INotificationTypeConfig = {
   component: GithubNotificationType,
   key: 'githubStatus',
   label: 'Github Status',
-});
+};

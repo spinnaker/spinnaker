@@ -1,9 +1,9 @@
-import { Registry } from 'core/registry';
+import { INotificationTypeConfig } from 'core/domain';
 
 import { EmailNotificationType } from './EmailNotificationType';
 
-Registry.pipeline.registerNotification({
+export const emailNotification: INotificationTypeConfig = {
   component: EmailNotificationType,
   key: 'email',
   label: 'Email',
-});
+};

@@ -1,9 +1,8 @@
-import { Registry } from 'core/registry';
-
+import { INotificationTypeConfig } from 'core/domain';
 import { SmsNotificationType } from './SmsNotificationType';
 
-Registry.pipeline.registerNotification({
+export const smsNotification: INotificationTypeConfig = {
   component: SmsNotificationType,
   key: 'sms',
   label: 'SMS',
-});
+};

@@ -1,9 +1,9 @@
-import { Registry } from 'core/registry';
+import { INotificationTypeConfig } from 'core/domain';
 
 import { PubsubNotificationType } from './PubsubNotificationType';
 
-Registry.pipeline.registerNotification({
+export const pubsubNotification: INotificationTypeConfig = {
   component: PubsubNotificationType,
   key: 'pubsub',
   label: 'Pubsub',
-});
+};

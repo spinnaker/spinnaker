@@ -67,17 +67,7 @@ export class PipelineRegistry {
   }
 
   public registerNotification(notificationConfig: INotificationTypeConfig): void {
-    if (SETTINGS.notifications) {
-      const notificationSetting: { enabled: boolean; botName?: string } =
-        SETTINGS.notifications?.[notificationConfig.key];
-      if (notificationSetting && notificationSetting.enabled) {
-        const config = cloneDeep(notificationConfig);
-        config.config = { ...notificationSetting };
-        this.notificationTypes.push(config);
-      }
-    } else {
-      this.notificationTypes.push(notificationConfig);
-    }
+    this.notificationTypes.push(notificationConfig);
   }
 
   public registerTrigger(triggerConfig: ITriggerTypeConfig): void {

@@ -1,9 +1,9 @@
-import { Registry } from 'core/registry';
+import { INotificationTypeConfig } from 'core/domain';
 
 import { GooglechatNotificationType } from './GooglechatNotificationType';
 
-Registry.pipeline.registerNotification({
+export const googlechatNotification: INotificationTypeConfig = {
   component: GooglechatNotificationType,
   key: 'googlechat',
   label: 'GoogleChat',
-});
+};

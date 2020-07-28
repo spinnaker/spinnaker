@@ -1,9 +1,9 @@
-import { Registry } from 'core/registry';
+import { INotificationTypeConfig } from 'core/domain';
 
-import { BearychatNoficationType } from './BearychatNotificationType';
+import { BearychatNotificationType } from './BearychatNotificationType';
 
-Registry.pipeline.registerNotification({
-  component: BearychatNoficationType,
+export const bearyChatNotification: INotificationTypeConfig = {
+  component: BearychatNotificationType,
   key: 'bearychat',
   label: 'Bearychat',
-});
+};
