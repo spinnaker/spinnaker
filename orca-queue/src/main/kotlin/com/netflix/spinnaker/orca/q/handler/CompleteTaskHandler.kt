@@ -128,7 +128,8 @@ class CompleteTaskHandler(
       "task.completions.duration" to commonTags + BasicTag("application", stage.execution.application),
       "task.completions.duration.withType" to commonTags + detailedTags
     ).forEach {
-      name, tags -> registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      name, tags ->
+      registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
     }
   }
 }

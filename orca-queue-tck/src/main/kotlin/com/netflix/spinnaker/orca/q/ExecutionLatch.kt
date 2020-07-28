@@ -47,9 +47,11 @@ class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>) :
 }
 
 fun ConfigurableApplicationContext.runToCompletion(execution: PipelineExecution, launcher: (PipelineExecution) -> Unit, repository: ExecutionRepository) {
-  val latch = ExecutionLatch(Predicate {
-    it.executionId == execution.id
-  })
+  val latch = ExecutionLatch(
+    Predicate {
+      it.executionId == execution.id
+    }
+  )
   addApplicationListener(latch)
   launcher.invoke(execution)
   assert(latch.await()) { "Pipeline did not complete" }
@@ -71,9 +73,11 @@ fun ConfigurableApplicationContext.runParentToCompletion(
   launcher: (PipelineExecution) -> Unit,
   repository: ExecutionRepository
 ) {
-  val latch = ExecutionLatch(Predicate {
-    it.executionId == parent.id
-  })
+  val latch = ExecutionLatch(
+    Predicate {
+      it.executionId == parent.id
+    }
+  )
 
   addApplicationListener(latch)
   launcher.invoke(child)
@@ -85,9 +89,11 @@ fun ConfigurableApplicationContext.runParentToCompletion(
 
 fun ConfigurableApplicationContext.restartAndRunToCompletion(stage: StageExecution, launcher: (PipelineExecution, String) -> Unit, repository: ExecutionRepository) {
   val execution = stage.execution
-  val latch = ExecutionLatch(Predicate {
-    it.executionId == execution.id
-  })
+  val latch = ExecutionLatch(
+    Predicate {
+      it.executionId == execution.id
+    }
+  )
   addApplicationListener(latch)
   launcher.invoke(execution, stage.id)
   assert(latch.await()) { "Pipeline did not complete after restarting" }

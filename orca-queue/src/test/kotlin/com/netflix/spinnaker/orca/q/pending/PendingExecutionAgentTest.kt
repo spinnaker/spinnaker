@@ -87,9 +87,12 @@ internal object PendingExecutionAgentTest : SubjectSpek<PendingExecutionAgent>({
 
       beforeGroup {
         whenever(pendingExecutionService.pendingIds()) doReturn listOf(runningPipeline.pipelineConfigId)
-        whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-          runningPipeline.pipelineConfigId,
-          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING))) doReturn Observable.just(runningPipeline)
+        whenever(
+          executionRepository.retrievePipelinesForPipelineConfigId(
+            runningPipeline.pipelineConfigId,
+            ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING)
+          )
+        ) doReturn Observable.just(runningPipeline)
       }
 
       on("agent tick") {
@@ -110,12 +113,18 @@ internal object PendingExecutionAgentTest : SubjectSpek<PendingExecutionAgent>({
     }
     beforeGroup {
       whenever(pendingExecutionService.pendingIds()) doReturn listOf(completedPipeline.pipelineConfigId)
-      whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-        completedPipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING))) doReturn Observable.empty<PipelineExecution>()
-      whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-        completedPipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.COMPLETED.map { it.toString() }))) doReturn Observable.just(completedPipeline)
+      whenever(
+        executionRepository.retrievePipelinesForPipelineConfigId(
+          completedPipeline.pipelineConfigId,
+          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING)
+        )
+      ) doReturn Observable.empty<PipelineExecution>()
+      whenever(
+        executionRepository.retrievePipelinesForPipelineConfigId(
+          completedPipeline.pipelineConfigId,
+          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.COMPLETED.map { it.toString() })
+        )
+      ) doReturn Observable.just(completedPipeline)
     }
 
     on("agent tick") {
@@ -135,12 +144,18 @@ internal object PendingExecutionAgentTest : SubjectSpek<PendingExecutionAgent>({
     }
     beforeGroup {
       whenever(pendingExecutionService.pendingIds()) doReturn listOf(completedPipeline.pipelineConfigId)
-      whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-        completedPipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING))) doReturn Observable.empty<PipelineExecution>()
-      whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-        completedPipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.COMPLETED.map { it.toString() }))) doReturn Observable.just(completedPipeline)
+      whenever(
+        executionRepository.retrievePipelinesForPipelineConfigId(
+          completedPipeline.pipelineConfigId,
+          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING)
+        )
+      ) doReturn Observable.empty<PipelineExecution>()
+      whenever(
+        executionRepository.retrievePipelinesForPipelineConfigId(
+          completedPipeline.pipelineConfigId,
+          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.COMPLETED.map { it.toString() })
+        )
+      ) doReturn Observable.just(completedPipeline)
     }
 
     on("agent tick") {
@@ -155,12 +170,18 @@ internal object PendingExecutionAgentTest : SubjectSpek<PendingExecutionAgent>({
   describe("pushes pending message when execution is pending and no prior executions") {
     beforeGroup {
       whenever(pendingExecutionService.pendingIds()) doReturn listOf("ID1")
-      whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-        "ID1",
-        ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING))) doReturn Observable.empty<PipelineExecution>()
-      whenever(executionRepository.retrievePipelinesForPipelineConfigId(
-        "ID1",
-        ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.COMPLETED.map { it.toString() }))) doReturn Observable.empty<PipelineExecution>()
+      whenever(
+        executionRepository.retrievePipelinesForPipelineConfigId(
+          "ID1",
+          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.RUNNING)
+        )
+      ) doReturn Observable.empty<PipelineExecution>()
+      whenever(
+        executionRepository.retrievePipelinesForPipelineConfigId(
+          "ID1",
+          ExecutionRepository.ExecutionCriteria().setPageSize(1).setStatuses(ExecutionStatus.COMPLETED.map { it.toString() })
+        )
+      ) doReturn Observable.empty<PipelineExecution>()
     }
 
     on("agent tick") {

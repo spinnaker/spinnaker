@@ -186,11 +186,13 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
 
       context("with optional stage context missing") {
         test("uses defaults to fill in the blanks") {
-          val result = execute(manifestLocation.toMap().also {
-            it.remove("directory")
-            it.remove("manifest")
-            it.remove("ref")
-          })
+          val result = execute(
+            manifestLocation.toMap().also {
+              it.remove("directory")
+              it.remove("manifest")
+              it.remove("ref")
+            }
+          )
           expectThat(result.status).isEqualTo(ExecutionStatus.SUCCEEDED)
           verify(exactly = 1) {
             scmService.getDeliveryConfigManifest(
@@ -239,11 +241,13 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
 
       context("with some missing information in stage context") {
         test("uses trigger information to fill in the blanks") {
-          val result = execute(manifestLocation.toMap().also {
-            it.remove("projectKey")
-            it.remove("repositorySlug")
-            it.remove("ref")
-          })
+          val result = execute(
+            manifestLocation.toMap().also {
+              it.remove("projectKey")
+              it.remove("repositorySlug")
+              it.remove("ref")
+            }
+          )
           expectThat(result.status).isEqualTo(ExecutionStatus.SUCCEEDED)
           verify(exactly = 1) {
             scmService.getDeliveryConfigManifest(
@@ -295,9 +299,11 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError("http://igor",
+            } throws RetrofitError.httpError(
+              "http://igor",
               Response("http://igor", 404, "", emptyList(), null),
-              null, null)
+              null, null
+            )
           }
         }
 
@@ -319,9 +325,11 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError("http://igor",
+            } throws RetrofitError.httpError(
+              "http://igor",
               Response("http://igor", 401, "", emptyList(), null),
-              null, null)
+              null, null
+            )
           }
         }
 
@@ -344,9 +352,14 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError("http://keel",
-              Response("http://keel", 403, "", emptyList(),
-                JacksonConverter(objectMapper).toBody(accessDeniedError) as TypedInput), null, null)
+            } throws RetrofitError.httpError(
+              "http://keel",
+              Response(
+                "http://keel", 403, "", emptyList(),
+                JacksonConverter(objectMapper).toBody(accessDeniedError) as TypedInput
+              ),
+              null, null
+            )
           }
         }
 
@@ -369,9 +382,14 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError("http://keel",
-              Response("http://keel", 400, "", emptyList(),
-                JacksonConverter(objectMapper).toBody(parsingError) as TypedInput), null, null)
+            } throws RetrofitError.httpError(
+              "http://keel",
+              Response(
+                "http://keel", 400, "", emptyList(),
+                JacksonConverter(objectMapper).toBody(parsingError) as TypedInput
+              ),
+              null, null
+            )
           }
         }
 
@@ -394,9 +412,11 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError("http://igor",
+            } throws RetrofitError.httpError(
+              "http://igor",
               Response("http://igor", 503, "", emptyList(), null),
-              null, null)
+              null, null
+            )
           }
         }
 

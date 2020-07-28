@@ -42,12 +42,14 @@ class QueueAdminController(
     @QueryParam("startMs") startMs: Long?,
     @QueryParam("endMs") endMs: Long?
   ): HydrateQueueOutput =
-    hydrateCommand(HydrateQueueInput(
-      executionId,
-      if (startMs != null) Instant.ofEpochMilli(startMs) else null,
-      if (endMs != null) Instant.ofEpochMilli(endMs) else null,
-      dryRun ?: true
-    ))
+    hydrateCommand(
+      HydrateQueueInput(
+        executionId,
+        if (startMs != null) Instant.ofEpochMilli(startMs) else null,
+        if (endMs != null) Instant.ofEpochMilli(endMs) else null,
+        dryRun ?: true
+      )
+    )
 
   /**
    * Posts StartWaitingExecutions message for the given pipeline message into the queue.

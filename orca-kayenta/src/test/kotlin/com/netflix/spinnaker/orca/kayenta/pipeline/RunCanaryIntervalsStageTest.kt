@@ -54,12 +54,14 @@ object RunCanaryIntervalsStageTest : Spek({
           name = "Run Kayenta Canary"
           context["canaryConfig"] = mapOf(
             "canaryConfigId" to "MySampleStackdriverCanaryConfig",
-            "scopes" to listOf(mapOf(
-              "controlScope" to "myapp-v010",
-              "experimentScope" to "myapp-v021",
-              "startTimeIso" to clock.instant().toString(),
-              "endTimeIso" to clock.instant().plus(4, HOURS).toString()
-            )),
+            "scopes" to listOf(
+              mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021",
+                "startTimeIso" to clock.instant().toString(),
+                "endTimeIso" to clock.instant().plus(4, HOURS).toString()
+              )
+            ),
             "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
             "beginCanaryAnalysisAfterMins" to beginCanaryAnalysisAfterMins
           )
@@ -101,12 +103,14 @@ object RunCanaryIntervalsStageTest : Spek({
           name = "Run Kayenta Canary"
           context["canaryConfig"] = mapOf(
             "canaryConfigId" to "MySampleStackdriverCanaryConfig",
-            "scopes" to listOf(mapOf(
-              "controlScope" to "myapp-v010",
-              "experimentScope" to "myapp-v021",
-              "startTimeIso" to clock.instant().toString(),
-              "endTimeIso" to clock.instant().plus(4, HOURS).toString()
-            )),
+            "scopes" to listOf(
+              mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021",
+                "startTimeIso" to clock.instant().toString(),
+                "endTimeIso" to clock.instant().plus(4, HOURS).toString()
+              )
+            ),
             "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
             "beginCanaryAnalysisAfterMins" to warmupMins,
             "canaryAnalysisIntervalMins" to intervalMins,
@@ -163,10 +167,12 @@ object RunCanaryIntervalsStageTest : Spek({
             name = "Run Kayenta Canary"
             context["canaryConfig"] = mapOf(
               "canaryConfigId" to "MySampleStackdriverCanaryConfig",
-              "scopes" to listOf(mapOf(
-                "controlScope" to "myapp-v010",
-                "experimentScope" to "myapp-v021"
-              )),
+              "scopes" to listOf(
+                mapOf(
+                  "controlScope" to "myapp-v010",
+                  "experimentScope" to "myapp-v021"
+                )
+              ),
               "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
               "lifetimeHours" to "1",
               "beginCanaryAnalysisAfterMins" to warmupMins
@@ -231,10 +237,12 @@ object RunCanaryIntervalsStageTest : Spek({
           name = "Run Kayenta Canary"
           context["canaryConfig"] = mapOf(
             "canaryConfigId" to "MySampleStackdriverCanaryConfig",
-            "scopes" to listOf(mapOf(
-              "controlScope" to "myapp-v010",
-              "experimentScope" to "myapp-v021"
-            )),
+            "scopes" to listOf(
+              mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021"
+              )
+            ),
             "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
             "beginCanaryAnalysisAfterMins" to warmupMins,
             "canaryAnalysisIntervalMins" to intervalMins,
@@ -316,10 +324,12 @@ object RunCanaryIntervalsStageTest : Spek({
             name = "Run Kayenta Canary"
             context["canaryConfig"] = mapOf(
               "canaryConfigId" to "MySampleStackdriverCanaryConfig",
-              "scopes" to listOf(mapOf(
-                "controlScope" to "myapp-v010",
-                "experimentScope" to "myapp-v021"
-              )),
+              "scopes" to listOf(
+                mapOf(
+                  "controlScope" to "myapp-v010",
+                  "experimentScope" to "myapp-v021"
+                )
+              ),
               "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
               "lifetimeHours" to "1",
               "baselineAnalysisOffsetInMins" to baselineOffsetMins,
@@ -357,12 +367,14 @@ object RunCanaryIntervalsStageTest : Spek({
             name = "Run Kayenta Canary"
             context["canaryConfig"] = mapOf(
               "canaryConfigId" to "MySampleStackdriverCanaryConfig",
-              "scopes" to listOf(mapOf(
-                "controlScope" to "myapp-v010",
-                "experimentScope" to "myapp-v021",
-                "startTimeIso" to clock.instant().toString(),
-                "endTimeIso" to clock.instant().plus(4, HOURS).toString()
-              )),
+              "scopes" to listOf(
+                mapOf(
+                  "controlScope" to "myapp-v010",
+                  "experimentScope" to "myapp-v021",
+                  "startTimeIso" to clock.instant().toString(),
+                  "endTimeIso" to clock.instant().plus(4, HOURS).toString()
+                )
+              ),
               "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
               "lifetimeHours" to "1",
               "baselineAnalysisOffsetInMins" to baselineOffsetMins,
@@ -395,12 +407,14 @@ object RunCanaryIntervalsStageTest : Spek({
         context["canaryConfig"] = mapOf(
           "metricsAccountName" to "atlas-acct-1",
           "canaryConfigId" to "MySampleAtlasCanaryConfig",
-          "scopes" to listOf(mapOf(
-            "controlScope" to "some.host.node",
-            "experimentScope" to "some.other.host.node",
-            "step" to 60,
-            "extendedScopeParams" to attributes
-          )),
+          "scopes" to listOf(
+            mapOf(
+              "controlScope" to "some.host.node",
+              "experimentScope" to "some.other.host.node",
+              "step" to 60,
+              "extendedScopeParams" to attributes
+            )
+          ),
           "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
           "canaryAnalysisIntervalMins" to 6.hoursInMinutes,
           "lifetimeHours" to "12"

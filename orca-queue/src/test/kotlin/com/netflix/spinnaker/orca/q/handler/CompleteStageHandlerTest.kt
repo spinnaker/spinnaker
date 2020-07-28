@@ -261,10 +261,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("updates the stage state") {
-            verify(repository).storeStage(check {
-              assertThat(it.status).isEqualTo(taskStatus)
-              assertThat(it.endTime).isEqualTo(clock.millis())
-            })
+            verify(repository).storeStage(
+              check {
+                assertThat(it.status).isEqualTo(taskStatus)
+                assertThat(it.endTime).isEqualTo(clock.millis())
+              }
+            )
           }
 
           it("completes the execution") {
@@ -276,12 +278,14 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("publishes an event") {
-            verify(publisher).publishEvent(check<StageComplete> {
-              assertThat(it.executionType).isEqualTo(pipeline.type)
-              assertThat(it.executionId).isEqualTo(pipeline.id)
-              assertThat(it.stageId).isEqualTo(message.stageId)
-              assertThat(it.status).isEqualTo(taskStatus)
-            })
+            verify(publisher).publishEvent(
+              check<StageComplete> {
+                assertThat(it.executionType).isEqualTo(pipeline.type)
+                assertThat(it.executionId).isEqualTo(pipeline.id)
+                assertThat(it.stageId).isEqualTo(message.stageId)
+                assertThat(it.status).isEqualTo(taskStatus)
+              }
+            )
           }
         }
 
@@ -313,19 +317,23 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("updates the stage state") {
-            verify(repository).storeStage(check {
-              assertThat(it.status).isEqualTo(taskStatus)
-              assertThat(it.endTime).isEqualTo(clock.millis())
-            })
+            verify(repository).storeStage(
+              check {
+                assertThat(it.status).isEqualTo(taskStatus)
+                assertThat(it.endTime).isEqualTo(clock.millis())
+              }
+            )
           }
 
           it("runs the next stage") {
-            verify(queue).push(StartStage(
-              message.executionType,
-              message.executionId,
-              message.application,
-              pipeline.stages.last().id
-            ))
+            verify(queue).push(
+              StartStage(
+                message.executionType,
+                message.executionId,
+                message.application,
+                pipeline.stages.last().id
+              )
+            )
           }
 
           it("does not run any tasks") {
@@ -556,10 +564,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
 
       it("just marks the stage as SKIPPED") {
-        verify(repository).storeStage(check {
-          assertThat(it.id).isEqualTo(message.stageId)
-          assertThat(it.status).isEqualTo(SKIPPED)
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.id).isEqualTo(message.stageId)
+            assertThat(it.status).isEqualTo(SKIPPED)
+          }
+        )
       }
 
       it("starts anything downstream") {
@@ -598,10 +608,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("updates the stage state") {
-          verify(repository).storeStage(check {
-            assertThat(it.status).isEqualTo(taskStatus)
-            assertThat(it.endTime).isEqualTo(clock.millis())
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(it.status).isEqualTo(taskStatus)
+              assertThat(it.endTime).isEqualTo(clock.millis())
+            }
+          )
         }
 
         it("does not run any downstream stages") {
@@ -609,11 +621,13 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("fails the execution") {
-          verify(queue).push(CompleteExecution(
-            message.executionType,
-            message.executionId,
-            message.application
-          ))
+          verify(queue).push(
+            CompleteExecution(
+              message.executionType,
+              message.executionId,
+              message.application
+            )
+          )
         }
 
         it("runs the stage's cancellation routine") {
@@ -621,12 +635,14 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("publishes an event") {
-          verify(publisher).publishEvent(check<StageComplete> {
-            assertThat(it.executionType).isEqualTo(pipeline.type)
-            assertThat(it.executionId).isEqualTo(pipeline.id)
-            assertThat(it.stageId).isEqualTo(message.stageId)
-            assertThat(it.status).isEqualTo(taskStatus)
-          })
+          verify(publisher).publishEvent(
+            check<StageComplete> {
+              assertThat(it.executionType).isEqualTo(pipeline.type)
+              assertThat(it.executionId).isEqualTo(pipeline.id)
+              assertThat(it.stageId).isEqualTo(message.stageId)
+              assertThat(it.status).isEqualTo(taskStatus)
+            }
+          )
         }
       }
     }
@@ -661,10 +677,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
 
       it("updates the stage state") {
-        verify(repository).storeStage(check {
-          assertThat(it.status).isEqualTo(TERMINAL)
-          assertThat(it.endTime).isEqualTo(clock.millis())
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(TERMINAL)
+            assertThat(it.endTime).isEqualTo(clock.millis())
+          }
+        )
       }
 
       it("does not run any downstream stages") {
@@ -672,11 +690,13 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
 
       it("fails the execution") {
-        verify(queue).push(CompleteExecution(
-          message.executionType,
-          message.executionId,
-          message.application
-        ))
+        verify(queue).push(
+          CompleteExecution(
+            message.executionType,
+            message.executionId,
+            message.application
+          )
+        )
       }
 
       it("runs the stage's cancellation routine") {
@@ -684,12 +704,14 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<StageComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.stageId).isEqualTo(message.stageId)
-          assertThat(it.status).isEqualTo(TERMINAL)
-        })
+        verify(publisher).publishEvent(
+          check<StageComplete> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.stageId).isEqualTo(message.stageId)
+            assertThat(it.status).isEqualTo(TERMINAL)
+          }
+        )
       }
     }
 
@@ -773,10 +795,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("updates the stage state") {
-            verify(repository).storeStage(check {
-              assertThat(it.status).isEqualTo(failureStatus)
-              assertThat(it.endTime).isEqualTo(clock.millis())
-            })
+            verify(repository).storeStage(
+              check {
+                assertThat(it.status).isEqualTo(failureStatus)
+                assertThat(it.endTime).isEqualTo(clock.millis())
+              }
+            )
           }
         }
       }
@@ -813,10 +837,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("updates the stage state") {
-          verify(repository).storeStage(check {
-            assertThat(it.status).isEqualTo(FAILED_CONTINUE)
-            assertThat(it.endTime).isEqualTo(clock.millis())
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(it.status).isEqualTo(FAILED_CONTINUE)
+              assertThat(it.endTime).isEqualTo(clock.millis())
+            }
+          )
         }
 
         it("does not do anything silly like running the after stage again") {
@@ -946,9 +972,11 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("runs the next synthetic stage") {
-            verify(queue).push(StartStage(
-              pipeline.stageByRef("1<2")
-            ))
+            verify(queue).push(
+              StartStage(
+                pipeline.stageByRef("1<2")
+              )
+            )
           }
         }
 
@@ -972,10 +1000,13 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("signals the parent stage to run") {
-            verify(queue).ensure(ContinueParentStage(
-              pipeline.stageByRef("1"),
-              STAGE_BEFORE
-            ), ZERO)
+            verify(queue).ensure(
+              ContinueParentStage(
+                pipeline.stageByRef("1"),
+                STAGE_BEFORE
+              ),
+              ZERO
+            )
           }
         }
       }
@@ -1011,12 +1042,14 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("runs the next synthetic stage") {
-            verify(queue).push(StartStage(
-              message.executionType,
-              message.executionId,
-              message.application,
-              pipeline.stages.last().id
-            ))
+            verify(queue).push(
+              StartStage(
+                message.executionType,
+                message.executionId,
+                message.application,
+                pipeline.stages.last().id
+              )
+            )
           }
         }
 
@@ -1041,10 +1074,13 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           it("tells the parent stage to continue") {
             verify(queue)
-              .ensure(ContinueParentStage(
-                pipeline.stageById(message.stageId).parent!!,
-                STAGE_AFTER
-              ), ZERO)
+              .ensure(
+                ContinueParentStage(
+                  pipeline.stageById(message.stageId).parent!!,
+                  STAGE_AFTER
+                ),
+                ZERO
+              )
           }
         }
       }

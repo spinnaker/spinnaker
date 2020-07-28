@@ -50,7 +50,8 @@ import rx.schedulers.Schedulers
  */
 @Component
 @ConditionalOnExpression(
-  "\${queue.zombie-check.enabled:false}")
+  "\${queue.zombie-check.enabled:false}"
+)
 @ConditionalOnBean(MonitorableQueue::class)
 class ZombieExecutionCheckingAgent
 @Autowired constructor(

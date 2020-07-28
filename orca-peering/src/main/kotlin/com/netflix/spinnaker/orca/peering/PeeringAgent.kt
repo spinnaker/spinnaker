@@ -94,7 +94,8 @@ class PeeringAgent(
 
   override fun tick() {
     if (dynamicConfigService.isEnabled("pollers.peering", true) &&
-      dynamicConfigService.isEnabled("pollers.peering.$peeredId", true)) {
+      dynamicConfigService.isEnabled("pollers.peering.$peeredId", true)
+    ) {
       peeringMetrics.recordOverallLag {
         peerExecutions(ExecutionType.PIPELINE)
         peerExecutions(ExecutionType.ORCHESTRATION)

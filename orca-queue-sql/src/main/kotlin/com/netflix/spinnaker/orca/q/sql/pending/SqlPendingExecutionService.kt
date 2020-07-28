@@ -77,8 +77,10 @@ class SqlPendingExecutionService(
          * Other message types can be safely dropped.
          */
         if (message is StartExecution) {
-          log.warn("Canceling execution ${message.executionId} for pipeline $pipelineConfigId due to pending " +
-            "depth of $queued executions")
+          log.warn(
+            "Canceling execution ${message.executionId} for pipeline $pipelineConfigId due to pending " +
+              "depth of $queued executions"
+          )
           registry.counter(cancelId).increment()
 
           try {
@@ -157,8 +159,11 @@ class SqlPendingExecutionService(
         }
       }
     } catch (e: Exception) {
-      log.error("Failed popping pending execution for pipeline $pipelineConfigId, attempting to requeue " +
-        "StartWaitingExecutions message", e)
+      log.error(
+        "Failed popping pending execution for pipeline $pipelineConfigId, attempting to requeue " +
+          "StartWaitingExecutions message",
+        e
+      )
 
       val purge = (sortField.order == SortOrder.DESC)
       queue.push(StartWaitingExecutions(pipelineConfigId, purge), Duration.ofSeconds(10))
@@ -202,8 +207,11 @@ class SqlPendingExecutionService(
   )
 
   private fun <T> withRetry(fn: (Any) -> T): T {
-    return retrySupport.retry({
-      fn(this)
-    }, retryProperties.maxRetries, retryProperties.backoffMs, false)
+    return retrySupport.retry(
+      {
+        fn(this)
+      },
+      retryProperties.maxRetries, retryProperties.backoffMs, false
+    )
   }
 }

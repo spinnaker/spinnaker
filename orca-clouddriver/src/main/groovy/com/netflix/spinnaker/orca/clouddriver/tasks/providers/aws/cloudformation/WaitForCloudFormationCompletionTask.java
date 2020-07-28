@@ -139,7 +139,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
     String changeSetName = (String) context.get("changeSetName");
     log.debug("Getting change set status from stack for changeset {}: {}", changeSetName, stack);
     return Optional.ofNullable((List<Map<String, ?>>) stack.get("changeSets"))
-        .orElse(Collections.emptyList()).stream()
+        .orElse(Collections.emptyList())
+        .stream()
         .filter(changeSet -> changeSet.get("name").equals(changeSetName))
         .findFirst()
         .map(changeSet -> (String) changeSet.get(field))

@@ -48,7 +48,8 @@ public class OracleImageFinder implements ImageFinder {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
     List<OracleImage> allMatchedImages =
-        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(freeformTags))
+        oortService
+            .findImage(getCloudProvider(), packageName, null, null, prefixTags(freeformTags))
             .stream()
             .map(imageAsMap -> objectMapper.convertValue(imageAsMap, OracleImage.class))
             .sorted()

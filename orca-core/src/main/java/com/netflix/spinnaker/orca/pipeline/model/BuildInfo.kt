@@ -9,6 +9,6 @@ abstract class BuildInfo<A>(
   open val scm: List<SourceControl>? = emptyList(),
   open val building: Boolean = false
 ) {
-    var fullDisplayName: String? = null
-        get() = field ?: "$name#$number"
+  var fullDisplayName: String? = null
+    get() = field ?: "$name#$number"
 }

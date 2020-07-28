@@ -84,28 +84,30 @@ open class ExecutionCopier(
     log.info("Kicking off migration with (chunk size: $chunkSize, threadCount: $effectiveThreadCount)")
 
     val futures = MutableList<Future<MigrationChunkResult>>(effectiveThreadCount) { threadIndex ->
-      executor.submit(Callable<MigrationChunkResult> {
-        var latestUpdatedAt = 0L
-        var hadErrors = false
+      executor.submit(
+        Callable<MigrationChunkResult> {
+          var latestUpdatedAt = 0L
+          var hadErrors = false
 
-        do {
-          val chunkToProcess = queue.poll() ?: break
+          do {
+            val chunkToProcess = queue.poll() ?: break
 
-          val result = copyExecutionChunk(executionType, chunkToProcess, state)
-          hadErrors = hadErrors || result.hadErrors
-          val migrated = migratedCount.addAndGet(result.count)
-          latestUpdatedAt = max(latestUpdatedAt, result.latestUpdatedAt)
+            val result = copyExecutionChunk(executionType, chunkToProcess, state)
+            hadErrors = hadErrors || result.hadErrors
+            val migrated = migratedCount.addAndGet(result.count)
+            latestUpdatedAt = max(latestUpdatedAt, result.latestUpdatedAt)
 
-          if (threadIndex == 0) {
-            // Only dump status logs for one of the threads - it's informational only anyway
-            val elapsedTime = Duration.between(startTime, Instant.now()).toMillis()
-            val etaMillis = (((idsToMigrate.size.toDouble() / migrated) * elapsedTime) - elapsedTime).toLong()
-            log.info("Migrated $migrated of ${idsToMigrate.size}, ETA: ${Duration.ofMillis(etaMillis)}")
-          }
-        } while (true)
+            if (threadIndex == 0) {
+              // Only dump status logs for one of the threads - it's informational only anyway
+              val elapsedTime = Duration.between(startTime, Instant.now()).toMillis()
+              val etaMillis = (((idsToMigrate.size.toDouble() / migrated) * elapsedTime) - elapsedTime).toLong()
+              log.info("Migrated $migrated of ${idsToMigrate.size}, ETA: ${Duration.ofMillis(etaMillis)}")
+            }
+          } while (true)
 
-        return@Callable MigrationChunkResult(latestUpdatedAt, 0, hadErrors)
-      })
+          return@Callable MigrationChunkResult(latestUpdatedAt, 0, hadErrors)
+        }
+      )
     }
 
     var latestUpdatedAt = 0L

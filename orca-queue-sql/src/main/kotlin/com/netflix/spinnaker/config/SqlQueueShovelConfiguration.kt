@@ -86,6 +86,7 @@ class SqlQueueShovelConfiguration {
       registry = registry,
       activator = activator,
       config = config,
-      executionRepository = executionRepository)
+      executionRepository = executionRepository
+    )
   }
 }

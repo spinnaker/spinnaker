@@ -55,7 +55,8 @@ class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
 
       test("Stage defintion builder for extension is resolved to the correct type") {
         val stageDefinitionBuilder = stageResolver.getStageDefinitionBuilder(
-          StageDefinitionBuilderExtension::class.java.simpleName, "extensionStage")
+          StageDefinitionBuilderExtension::class.java.simpleName, "extensionStage"
+        )
 
         expect {
           that(stageDefinitionBuilder.type).isEqualTo(StageDefinitionBuilderExtension().type)
@@ -64,7 +65,8 @@ class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
 
       test("Simple stage extension is resolved to the correct type") {
         val stageDefinitionBuilder = stageResolver.getStageDefinitionBuilder(
-          SimpleStageExtension::class.java.simpleName, "simpleStage")
+          SimpleStageExtension::class.java.simpleName, "simpleStage"
+        )
 
         expect {
           that(stageDefinitionBuilder.type).isEqualTo("simple")

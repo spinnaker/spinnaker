@@ -57,7 +57,8 @@ constructor(
     return try {
       log.debug("Retrieving keel manifest at $manifestLocation")
       val deliveryConfig = scmService.getDeliveryConfigManifest(
-        context.repoType, context.projectKey, context.repositorySlug, context.directory, context.manifest, context.ref)
+        context.repoType, context.projectKey, context.repositorySlug, context.directory, context.manifest, context.ref
+      )
 
       log.debug("Publishing manifest ${context.manifest} to keel on behalf of $user")
       keelService.publishDeliveryConfig(deliveryConfig, user)
@@ -118,8 +119,10 @@ constructor(
     return when {
       error.kind == RetrofitError.Kind.NETWORK -> {
         // retry if unable to connect
-        buildRetry(context,
-          "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${error.friendlyMessage}")
+        buildRetry(
+          context,
+          "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${error.friendlyMessage}"
+        )
       }
       error.response?.status in 400..499 -> {
         val response = error.response!!
@@ -142,8 +145,10 @@ constructor(
       }
       else -> {
         // retry on other status codes
-        buildRetry(context,
-          "Retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}")
+        buildRetry(
+          context,
+          "Retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}"
+        )
       }
     }
   }

@@ -118,10 +118,12 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       }
 
       it("updates the stage state") {
-        verify(repository).storeStage(check {
-          assertThat(it.status).isEqualTo(SKIPPED)
-          assertThat(it.endTime).isEqualTo(clock.millis())
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(SKIPPED)
+            assertThat(it.endTime).isEqualTo(clock.millis())
+          }
+        )
       }
 
       it("completes the execution") {
@@ -133,12 +135,14 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<StageComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.stageId).isEqualTo(message.stageId)
-          assertThat(it.status).isEqualTo(SKIPPED)
-        })
+        verify(publisher).publishEvent(
+          check<StageComplete> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.stageId).isEqualTo(message.stageId)
+            assertThat(it.status).isEqualTo(SKIPPED)
+          }
+        )
       }
     }
 
@@ -169,19 +173,23 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       }
 
       it("updates the stage state") {
-        verify(repository).storeStage(check {
-          assertThat(it.status).isEqualTo(SKIPPED)
-          assertThat(it.endTime).isEqualTo(clock.millis())
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(SKIPPED)
+            assertThat(it.endTime).isEqualTo(clock.millis())
+          }
+        )
       }
 
       it("runs the next stage") {
-        verify(queue).push(StartStage(
-          message.executionType,
-          message.executionId,
-          "foo",
-          pipeline.stages.last().id
-        ))
+        verify(queue).push(
+          StartStage(
+            message.executionType,
+            message.executionId,
+            "foo",
+            pipeline.stages.last().id
+          )
+        )
       }
 
       it("does not run any tasks") {

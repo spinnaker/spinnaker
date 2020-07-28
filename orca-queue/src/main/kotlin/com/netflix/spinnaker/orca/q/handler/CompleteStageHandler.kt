@@ -86,8 +86,10 @@ class CompleteStageHandler(
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
         var status = stage.determineStatus()
         if (stage.shouldFailOnFailedExpressionEvaluation()) {
-          log.warn("Stage ${stage.id} (${stage.type}) of ${stage.execution.id} " +
-            "is set to fail because of failed expressions.")
+          log.warn(
+            "Stage ${stage.id} (${stage.type}) of ${stage.execution.id} " +
+              "is set to fail because of failed expressions."
+          )
           status = TERMINAL
         }
 

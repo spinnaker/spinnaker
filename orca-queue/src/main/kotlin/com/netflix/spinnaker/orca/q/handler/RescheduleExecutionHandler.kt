@@ -43,11 +43,14 @@ class RescheduleExecutionHandler(
           stage.tasks
             .filter { it.status == ExecutionStatus.RUNNING }
             .forEach {
-              queue.reschedule(RunTask(message,
-                stage.id,
-                it.id,
-                taskResolver.getTaskClass(it.implementingClass)
-              ))
+              queue.reschedule(
+                RunTask(
+                  message,
+                  stage.id,
+                  it.id,
+                  taskResolver.getTaskClass(it.implementingClass)
+                )
+              )
             }
         }
     }

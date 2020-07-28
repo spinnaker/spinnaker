@@ -112,7 +112,8 @@ public class EvaluateConditionTask implements RetryableTask {
           suppliers.stream()
               .flatMap(
                   supplier ->
-                      supplier.getConditions(ctx.getCluster(), ctx.getRegion(), ctx.getAccount())
+                      supplier
+                          .getConditions(ctx.getCluster(), ctx.getRegion(), ctx.getAccount())
                           .stream())
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());

@@ -145,12 +145,15 @@ interface ExpressionAware {
     }
 
     if (shouldContinueProcessing) {
-      return StageContext(stage, contextParameterProcessor.process(
-        stage.context,
-        contextParameterProcessor.buildExecutionContext(stage),
-        true,
-        summary
-      ))
+      return StageContext(
+        stage,
+        contextParameterProcessor.process(
+          stage.context,
+          contextParameterProcessor.buildExecutionContext(stage),
+          true,
+          summary
+        )
+      )
     }
 
     return StageContext(stage, stage.context)

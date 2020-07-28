@@ -96,7 +96,8 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
                             task -> Optional.ofNullable(task.results).orElse(emptyList()).stream())
                         .flatMap(
                             result ->
-                                Optional.ofNullable(result.deployments).orElse(emptyList())
+                                Optional.ofNullable(result.deployments)
+                                    .orElse(emptyList())
                                     .stream())
                         .collect(Collectors.toList());
                 deployDetails.put("deployments", deployments);

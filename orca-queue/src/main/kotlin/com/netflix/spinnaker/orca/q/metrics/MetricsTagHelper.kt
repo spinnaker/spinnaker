@@ -41,9 +41,13 @@ class MetricsTagHelper : CloudProviderAware {
         BasicTag("account", helper.getCredentials(stage).valueOrNa()),
 
         // sorting regions to reduce the metrics cardinality
-        BasicTag("region", helper.getRegions(stage).let {
-          if (it.isEmpty()) { "n_a" } else { it.sorted().joinToString(",") }
-        }))
+        BasicTag(
+          "region",
+          helper.getRegions(stage).let {
+            if (it.isEmpty()) { "n_a" } else { it.sorted().joinToString(",") }
+          }
+        )
+      )
 
     private fun String?.valueOrNa(): String {
       return if (this == null || isBlank()) {

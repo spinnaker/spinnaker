@@ -196,7 +196,7 @@ class RunTaskHandler(
       "task.invocations.duration.withType" to commonTags + detailedTags
     ).forEach {
       name, tags ->
-        registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -245,7 +245,8 @@ class RunTaskHandler(
       dynamicConfigService.getConfig(
         Long::class.java,
         "tasks.global.backOffPeriod",
-        dynamicBackOffPeriod)
+        dynamicBackOffPeriod
+      )
     )
 
     if (this is CloudProviderAware && hasCloudProvider(stage)) {
@@ -349,12 +350,14 @@ class RunTaskHandler(
   ) =
     counter(
       createId("queue.task.timeouts")
-        .withTags(mapOf(
-          "executionType" to executionType.toString(),
-          "application" to application,
-          "stageType" to stageType,
-          "taskType" to taskType
-        ))
+        .withTags(
+          mapOf(
+            "executionType" to executionType.toString(),
+            "application" to application,
+            "stageType" to stageType,
+            "taskType" to taskType
+          )
+        )
     )
 
   private fun PipelineExecution.pausedDurationRelativeTo(instant: Instant?): Duration {

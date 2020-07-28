@@ -49,7 +49,8 @@ public class AliCloudImageFinder implements ImageFinder {
       Map<String, String> tags,
       List<String> warningsCollector) {
     List<AliCloudImage> allMatchedImages =
-        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
+        oortService
+            .findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
             .stream()
             .map(image -> objectMapper.convertValue(image, AliCloudImage.class))
             .sorted()

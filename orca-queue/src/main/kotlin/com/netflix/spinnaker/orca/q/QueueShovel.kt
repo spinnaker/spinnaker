@@ -86,8 +86,10 @@ class QueueShovel(
         registry.counter(shoveledMessageId).increment()
       } catch (e: ExecutionNotFoundException) {
         // no need to log the stack trace on ExecutionNotFoundException, which can be somewhat expected
-        log.error("Failed shoveling message from previous queue to active (message: $message) " +
-          "because of exception $e")
+        log.error(
+          "Failed shoveling message from previous queue to active (message: $message) " +
+            "because of exception $e"
+        )
         registry.counter(shovelErrorId).increment()
       } catch (e: Throwable) {
         log.error("Failed shoveling message from previous queue to active (message: $message)", e)
@@ -111,8 +113,10 @@ class QueueShovel(
     val execution = executionRepository.retrieve(message.executionType, message.executionId)
     val isForeign = !executionRepository.handlesPartition(execution.partition)
     if (isForeign) {
-      log.info("Taking ownership of foreign execution ${execution.id} with partition '${execution.partition}'. " +
-        "Setting partition to '${executionRepository.partition}'")
+      log.info(
+        "Taking ownership of foreign execution ${execution.id} with partition '${execution.partition}'. " +
+          "Setting partition to '${executionRepository.partition}'"
+      )
       execution.partition = executionRepository.partition
       executionRepository.store(execution)
     }

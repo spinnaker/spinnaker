@@ -26,10 +26,12 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
-@ComponentScan(basePackages = [
-  "com.netflix.spinnaker.orca.q",
-  "com.netflix.spinnaker.orca.q.handler"
-])
+@ComponentScan(
+  basePackages = [
+    "com.netflix.spinnaker.orca.q",
+    "com.netflix.spinnaker.orca.q.handler"
+  ]
+)
 @EnableScheduling
 class OrcaQueueConfiguration {
   @Bean

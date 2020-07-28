@@ -40,13 +40,13 @@ class RunCanaryPipelineStage(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun taskGraph(stage: StageExecution, builder: TaskNode.Builder) {
-      val context = stage.mapTo<RunCanaryContext>()
-      if (context.canaryConfigId.isNullOrEmpty()) {
-        if (context.canaryConfigName.isNullOrEmpty()) {
-          throw IllegalArgumentException("Canary config must be specified as either UUID or name string")
-        }
-        builder.withTask<ResolveKayentaConfigIdTask>("resolveKayentaConfigId")
+    val context = stage.mapTo<RunCanaryContext>()
+    if (context.canaryConfigId.isNullOrEmpty()) {
+      if (context.canaryConfigName.isNullOrEmpty()) {
+        throw IllegalArgumentException("Canary config must be specified as either UUID or name string")
       }
+      builder.withTask<ResolveKayentaConfigIdTask>("resolveKayentaConfigId")
+    }
     builder
       .withTask<RunKayentaCanaryTask>("runCanary")
       .withTask<MonitorKayentaCanaryTask>("monitorCanary")

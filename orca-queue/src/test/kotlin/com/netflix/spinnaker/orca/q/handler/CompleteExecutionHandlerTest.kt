@@ -95,11 +95,13 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.status).isEqualTo(stageStatus)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionComplete> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.status).isEqualTo(stageStatus)
+          }
+        )
       }
 
       it("does not queue any other commands") {
@@ -210,11 +212,13 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.status).isEqualTo(stageStatus)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionComplete> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.status).isEqualTo(stageStatus)
+          }
+        )
       }
 
       it("cancels other stages") {
@@ -259,11 +263,13 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     }
 
     it("publishes an event") {
-      verify(publisher).publishEvent(check<ExecutionComplete> {
-        assertThat(it.executionType).isEqualTo(pipeline.type)
-        assertThat(it.executionId).isEqualTo(pipeline.id)
-        assertThat(it.status).isEqualTo(TERMINAL)
-      })
+      verify(publisher).publishEvent(
+        check<ExecutionComplete> {
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.status).isEqualTo(TERMINAL)
+        }
+      )
     }
 
     it("does not queue any other commands") {
@@ -305,11 +311,13 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     }
 
     it("publishes an event") {
-      verify(publisher).publishEvent(check<ExecutionComplete> {
-        assertThat(it.executionType).isEqualTo(pipeline.type)
-        assertThat(it.executionId).isEqualTo(pipeline.id)
-        assertThat(it.status).isEqualTo(SUCCEEDED)
-      })
+      verify(publisher).publishEvent(
+        check<ExecutionComplete> {
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.status).isEqualTo(SUCCEEDED)
+        }
+      )
     }
 
     it("does not queue any other commands") {

@@ -56,38 +56,40 @@ class TriggerDeserializer :
           get("repository").textValue(),
           get("tag").textValue()
         )
-        looksLikeConcourse() -> ConcourseTrigger(
-                get("type").textValue(),
-                get("correlationId")?.textValue(),
-                get("user")?.textValue() ?: "[anonymous]",
-                get("parameters")?.mapValue(parser) ?: mutableMapOf(),
-                get("artifacts")?.listValue(parser) ?: mutableListOf(),
-                get("notifications")?.listValue(parser) ?: mutableListOf(),
-                get("rebake")?.booleanValue() == true,
-                get("dryRun")?.booleanValue() == true,
-                get("strategy")?.booleanValue() == true
-        ).apply {
-          buildInfo = get("buildInfo")?.parseValue(parser)
-          properties = get("properties")?.parseValue(parser) ?: mutableMapOf()
-        }
-        looksLikeJenkins() -> JenkinsTrigger(
-          get("type").textValue(),
-          get("correlationId")?.textValue(),
-          get("user")?.textValue() ?: "[anonymous]",
-          get("parameters")?.mapValue(parser) ?: mutableMapOf(),
-          get("artifacts")?.listValue(parser) ?: mutableListOf(),
-          get("notifications")?.listValue(parser) ?: mutableListOf(),
-          get("rebake")?.booleanValue() == true,
-          get("dryRun")?.booleanValue() == true,
-          get("strategy")?.booleanValue() == true,
-          get("master").textValue(),
-          get("job").textValue(),
-          get("buildNumber").intValue(),
-          get("propertyFile")?.textValue()
-        ).apply {
-          buildInfo = get("buildInfo")?.parseValue(parser)
-          properties = get("properties")?.mapValue(parser) ?: mutableMapOf()
-        }
+        looksLikeConcourse() ->
+          ConcourseTrigger(
+            get("type").textValue(),
+            get("correlationId")?.textValue(),
+            get("user")?.textValue() ?: "[anonymous]",
+            get("parameters")?.mapValue(parser) ?: mutableMapOf(),
+            get("artifacts")?.listValue(parser) ?: mutableListOf(),
+            get("notifications")?.listValue(parser) ?: mutableListOf(),
+            get("rebake")?.booleanValue() == true,
+            get("dryRun")?.booleanValue() == true,
+            get("strategy")?.booleanValue() == true
+          ).apply {
+            buildInfo = get("buildInfo")?.parseValue(parser)
+            properties = get("properties")?.parseValue(parser) ?: mutableMapOf()
+          }
+        looksLikeJenkins() ->
+          JenkinsTrigger(
+            get("type").textValue(),
+            get("correlationId")?.textValue(),
+            get("user")?.textValue() ?: "[anonymous]",
+            get("parameters")?.mapValue(parser) ?: mutableMapOf(),
+            get("artifacts")?.listValue(parser) ?: mutableListOf(),
+            get("notifications")?.listValue(parser) ?: mutableListOf(),
+            get("rebake")?.booleanValue() == true,
+            get("dryRun")?.booleanValue() == true,
+            get("strategy")?.booleanValue() == true,
+            get("master").textValue(),
+            get("job").textValue(),
+            get("buildNumber").intValue(),
+            get("propertyFile")?.textValue()
+          ).apply {
+            buildInfo = get("buildInfo")?.parseValue(parser)
+            properties = get("properties")?.mapValue(parser) ?: mutableMapOf()
+          }
         looksLikePipeline() -> PipelineTrigger(
           get("type").textValue(),
           get("correlationId")?.textValue(),

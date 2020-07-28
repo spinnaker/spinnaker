@@ -101,10 +101,12 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionStarted> {
-          assertThat(it.executionType).isEqualTo(message.executionType)
-          assertThat(it.executionId).isEqualTo(message.executionId)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionStarted> {
+            assertThat(it.executionType).isEqualTo(message.executionType)
+            assertThat(it.executionId).isEqualTo(message.executionId)
+          }
+        )
       }
     }
 
@@ -129,11 +131,13 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(message.executionType)
-          assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.status).isEqualTo(CANCELED)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionComplete> {
+            assertThat(it.executionType).isEqualTo(message.executionType)
+            assertThat(it.executionId).isEqualTo(message.executionId)
+            assertThat(it.status).isEqualTo(CANCELED)
+          }
+        )
       }
 
       it("pushes no messages to the queue") {
@@ -162,11 +166,13 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(message.executionType)
-          assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.status).isEqualTo(NOT_STARTED)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionComplete> {
+            assertThat(it.executionType).isEqualTo(message.executionType)
+            assertThat(it.executionId).isEqualTo(message.executionId)
+            assertThat(it.status).isEqualTo(NOT_STARTED)
+          }
+        )
       }
 
       it("pushes no messages to the queue") {
@@ -260,11 +266,13 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("publishes an event with TERMINAL status") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(message.executionType)
-          assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.status).isEqualTo(TERMINAL)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionComplete> {
+            assertThat(it.executionType).isEqualTo(message.executionType)
+            assertThat(it.executionId).isEqualTo(message.executionId)
+            assertThat(it.status).isEqualTo(TERMINAL)
+          }
+        )
       }
     }
 
@@ -288,11 +296,13 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("cancels the execution") {
-        verify(queue).push(CancelExecution(
-          pipeline,
-          "spinnaker",
-          "Could not begin execution before start time expiry"
-        ))
+        verify(queue).push(
+          CancelExecution(
+            pipeline,
+            "spinnaker",
+            "Could not begin execution before start time expiry"
+          )
+        )
       }
     }
 

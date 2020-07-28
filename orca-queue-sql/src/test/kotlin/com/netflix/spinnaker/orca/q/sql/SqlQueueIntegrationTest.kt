@@ -82,10 +82,12 @@ class SqlTestConfig {
       )
       disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
-      SpringObjectMapperConfigurer(objectMapperSubtypeProperties.apply {
-        messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
-        attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
-      }).registerSubtypes(this)
+      SpringObjectMapperConfigurer(
+        objectMapperSubtypeProperties.apply {
+          messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
+          attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
+        }
+      ).registerSubtypes(this)
     }
   }
 
@@ -138,7 +140,8 @@ class SqlTestConfig {
     clock: Clock,
     registry: Registry
   ) =
-    SqlPendingExecutionService("test",
+    SqlPendingExecutionService(
+      "test",
       jooq,
       queue,
       repository,
@@ -182,6 +185,7 @@ class SqlTestConfig {
     "keiko.queue.sql.enabled=true",
     "sql.enabled=true",
     "spring.application.name=orcaTest"
-  ])
+  ]
+)
 
 class SqlQueueIntegrationTest : QueueIntegrationTest()

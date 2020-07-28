@@ -42,7 +42,8 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnProperty(
   value = ["keiko.queue.sql.enabled"],
   havingValue = "true",
-  matchIfMissing = false)
+  matchIfMissing = false
+)
 class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
 
   @Autowired
@@ -60,10 +61,12 @@ class SqlOrcaQueueConfiguration : SqlQueueConfiguration() {
       )
       disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
-      SpringObjectMapperConfigurer(objectMapperSubtypeProperties.apply {
-        messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
-        attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
-      }).registerSubtypes(this)
+      SpringObjectMapperConfigurer(
+        objectMapperSubtypeProperties.apply {
+          messagePackages = messagePackages + listOf("com.netflix.spinnaker.orca.q")
+          attributePackages = attributePackages + listOf("com.netflix.spinnaker.orca.q")
+        }
+      ).registerSubtypes(this)
     }
   }
 

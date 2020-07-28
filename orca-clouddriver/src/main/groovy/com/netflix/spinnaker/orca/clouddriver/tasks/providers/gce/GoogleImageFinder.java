@@ -47,7 +47,8 @@ public class GoogleImageFinder implements ImageFinder {
       Map<String, String> tags,
       List<String> warningsCollector) {
     List<GoogleImage> allMatchedImages =
-        oortService.findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
+        oortService
+            .findImage(getCloudProvider(), packageName, null, null, prefixTags(tags))
             .stream()
             .map(image -> objectMapper.convertValue(image, GoogleImage.class))
             .sorted()

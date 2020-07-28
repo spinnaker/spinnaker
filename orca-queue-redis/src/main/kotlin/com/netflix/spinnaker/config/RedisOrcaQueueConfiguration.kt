@@ -49,7 +49,8 @@ import redis.clients.jedis.util.Pool
 @ConditionalOnProperty(
   value = ["keiko.queue.redis.enabled"],
   havingValue = "true",
-  matchIfMissing = true)
+  matchIfMissing = true
+)
 class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Autowired
@@ -67,10 +68,12 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
       )
       disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
-      SpringObjectMapperConfigurer(objectMapperSubtypeProperties.apply {
-        messagePackages += listOf("com.netflix.spinnaker.orca.q")
-        attributePackages += listOf("com.netflix.spinnaker.orca.q")
-      }).registerSubtypes(this)
+      SpringObjectMapperConfigurer(
+        objectMapperSubtypeProperties.apply {
+          messagePackages += listOf("com.netflix.spinnaker.orca.q")
+          attributePackages += listOf("com.netflix.spinnaker.orca.q")
+        }
+      ).registerSubtypes(this)
     }
   }
 

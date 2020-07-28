@@ -70,7 +70,8 @@ class SqlRedisQueueShovelConfiguration {
         timeoutMs = timeout
         poolConfig = redisPoolConfig
       },
-      redisPoolConfig)
+      redisPoolConfig
+    )
 
     val previousQueue = RedisQueue(
       queueName = redisQueueProperties.queueName,
@@ -79,7 +80,8 @@ class SqlRedisQueueShovelConfiguration {
       deadMessageHandlers = emptyList(),
       publisher = publisher,
       mapper = mapper,
-      serializationMigrator = serializationMigrator)
+      serializationMigrator = serializationMigrator
+    )
 
     return QueueShovel(
       queue = queue,
@@ -87,7 +89,8 @@ class SqlRedisQueueShovelConfiguration {
       registry = registry,
       activator = discoveryActivator,
       config = dynamicConfigService,
-      executionRepository = null)
+      executionRepository = null
+    )
   }
 
   @Bean
@@ -121,7 +124,8 @@ class SqlRedisQueueShovelConfiguration {
       registry = registry,
       activator = discoveryActivator,
       config = dynamicConfigService,
-      executionRepository = null)
+      executionRepository = null
+    )
   }
 
   /**
@@ -153,7 +157,8 @@ class SqlRedisQueueShovelConfiguration {
       serializationMigrator = serializationMigrator,
       deadMessageHandlers = emptyList(),
       publisher = publisher,
-      sqlRetryProperties = sqlQueueProperties.retries)
+      sqlRetryProperties = sqlQueueProperties.retries
+    )
 
     return QueueShovel(
       queue = queue,
@@ -161,6 +166,7 @@ class SqlRedisQueueShovelConfiguration {
       registry = registry,
       activator = discoveryActivator,
       config = dynamicConfigService,
-      executionRepository = null)
+      executionRepository = null
+    )
   }
 }

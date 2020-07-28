@@ -70,12 +70,14 @@ object PauseTaskHandlerTest : SubjectSpek<PauseTaskHandler>({
     }
 
     it("updates the task state in the stage") {
-      verify(repository).storeStage(check {
-        it.tasks.first().apply {
-          assertThat(status).isEqualTo(PAUSED)
-          assertThat(endTime).isNull()
+      verify(repository).storeStage(
+        check {
+          it.tasks.first().apply {
+            assertThat(status).isEqualTo(PAUSED)
+            assertThat(endTime).isNull()
+          }
         }
-      })
+      )
     }
 
     it("pauses the stage") {

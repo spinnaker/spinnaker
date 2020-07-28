@@ -46,30 +46,40 @@ class AggregateCanaryResultsTask : Task {
     val finalCanaryScore = runCanaryScores[runCanaryScores.size - 1]
 
     return if (canaryConfig.scoreThresholds?.marginal == null && canaryConfig.scoreThresholds?.pass == null) {
-      TaskResult.builder(SUCCEEDED).context(mapOf(
-        "canaryScores" to runCanaryScores,
-        "canaryScoreMessage" to "No score thresholds were specified."
-      )).build()
+      TaskResult.builder(SUCCEEDED).context(
+        mapOf(
+          "canaryScores" to runCanaryScores,
+          "canaryScoreMessage" to "No score thresholds were specified."
+        )
+      ).build()
     } else if (canaryConfig.scoreThresholds.marginal != null && finalCanaryScore <= canaryConfig.scoreThresholds.marginal) {
-      TaskResult.builder(TERMINAL).context(mapOf(
-        "canaryScores" to runCanaryScores,
-        "canaryScoreMessage" to "Final canary score $finalCanaryScore is not above the marginal score threshold."
-      )).build()
+      TaskResult.builder(TERMINAL).context(
+        mapOf(
+          "canaryScores" to runCanaryScores,
+          "canaryScoreMessage" to "Final canary score $finalCanaryScore is not above the marginal score threshold."
+        )
+      ).build()
     } else if (canaryConfig.scoreThresholds.pass == null) {
-      TaskResult.builder(SUCCEEDED).context(mapOf(
-        "canaryScores" to runCanaryScores,
-        "canaryScoreMessage" to "No pass score threshold was specified."
-      )).build()
+      TaskResult.builder(SUCCEEDED).context(
+        mapOf(
+          "canaryScores" to runCanaryScores,
+          "canaryScoreMessage" to "No pass score threshold was specified."
+        )
+      ).build()
     } else if (finalCanaryScore < canaryConfig.scoreThresholds.pass) {
-      TaskResult.builder(TERMINAL).context(mapOf(
-        "canaryScores" to runCanaryScores,
-        "canaryScoreMessage" to "Final canary score $finalCanaryScore is below the pass score threshold."
-      )).build()
+      TaskResult.builder(TERMINAL).context(
+        mapOf(
+          "canaryScores" to runCanaryScores,
+          "canaryScoreMessage" to "Final canary score $finalCanaryScore is below the pass score threshold."
+        )
+      ).build()
     } else {
-      TaskResult.builder(SUCCEEDED).context(mapOf(
-        "canaryScores" to runCanaryScores,
-        "canaryScoreMessage" to "Final canary score $finalCanaryScore met or exceeded the pass score threshold."
-      )).build()
+      TaskResult.builder(SUCCEEDED).context(
+        mapOf(
+          "canaryScores" to runCanaryScores,
+          "canaryScoreMessage" to "Final canary score $finalCanaryScore met or exceeded the pass score threshold."
+        )
+      ).build()
     }
   }
 }

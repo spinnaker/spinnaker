@@ -39,17 +39,20 @@ object TaskTypeDeserializerTest : Spek({
   }
 
   describe("when 'taskType' is deserialized") {
-    val canonicalJson = """{ "taskType" : "${DummyTask::class.java.canonicalName}" }"""
+    val canonicalJson =
+      """{ "taskType" : "${DummyTask::class.java.canonicalName}" }"""
     Assertions.assertThat(
       objectMapper.readValue(canonicalJson, Target::class.java).taskType
     ).isEqualTo(DummyTask::class.java)
 
-    val aliasedJson = """{ "taskType" : "anotherTaskAlias" }"""
+    val aliasedJson =
+      """{ "taskType" : "anotherTaskAlias" }"""
     Assertions.assertThat(
       objectMapper.readValue(aliasedJson, Target::class.java).taskType
     ).isEqualTo(DummyTask::class.java)
 
-    val notTaskTypeJson = """{ "notTaskType" : "java.lang.String" }"""
+    val notTaskTypeJson =
+      """{ "notTaskType" : "java.lang.String" }"""
     Assertions.assertThat(
       objectMapper.readValue(notTaskTypeJson, Target::class.java).notTaskType
     ).isEqualTo(String::class.java)

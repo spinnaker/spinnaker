@@ -38,11 +38,13 @@ object KayentaCanaryStageTest : Spek({
         context["canaryConfig"] = mapOf(
           "metricsAccountName" to "atlas-acct-1",
           "canaryConfigId" to "MySampleAtlasCanaryConfig",
-          "scopes" to listOf(mapOf(
-            "controlScope" to "some.host.node",
-            "experimentScope" to "some.other.host.node",
-            "step" to 60
-          )),
+          "scopes" to listOf(
+            mapOf(
+              "controlScope" to "some.host.node",
+              "experimentScope" to "some.other.host.node",
+              "step" to 60
+            )
+          ),
           "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
           "canaryAnalysisIntervalMins" to 6.hoursInMinutes,
           "lifetimeHours" to "12"

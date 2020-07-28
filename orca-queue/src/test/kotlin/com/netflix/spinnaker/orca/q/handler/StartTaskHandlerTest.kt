@@ -85,23 +85,27 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     }
 
     it("marks the task as running") {
-      verify(repository).storeStage(check {
-        it.tasks.first().apply {
-          assertThat(status).isEqualTo(RUNNING)
-          assertThat(startTime).isEqualTo(clock.millis())
+      verify(repository).storeStage(
+        check {
+          it.tasks.first().apply {
+            assertThat(status).isEqualTo(RUNNING)
+            assertThat(startTime).isEqualTo(clock.millis())
+          }
         }
-      })
+      )
     }
 
     it("runs the task") {
-      verify(queue).push(RunTask(
-        message.executionType,
-        message.executionId,
-        "foo",
-        message.stageId,
-        message.taskId,
-        DummyTask::class.java
-      ))
+      verify(queue).push(
+        RunTask(
+          message.executionType,
+          message.executionId,
+          "foo",
+          message.stageId,
+          message.taskId,
+          DummyTask::class.java
+        )
+      )
     }
 
     it("publishes an event") {

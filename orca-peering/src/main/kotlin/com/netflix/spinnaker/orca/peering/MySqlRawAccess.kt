@@ -50,9 +50,11 @@ open class MySqlRawAccess(
         jooq
           .select(field("id"), field("updated_at"))
           .from(getExecutionTable(executionType))
-          .where(field("status").`in`(*completedStatuses.toTypedArray())
-            .and(field("updated_at").gt(updatedAfter))
-            .and(partitionConstraint))
+          .where(
+            field("status").`in`(*completedStatuses.toTypedArray())
+              .and(field("updated_at").gt(updatedAfter))
+              .and(partitionConstraint)
+          )
           .fetchInto(ExecutionDiffKey::class.java)
       }
     }
@@ -69,8 +71,10 @@ open class MySqlRawAccess(
       jooq
         .select(field("id"))
         .from(getExecutionTable(executionType))
-        .where(field("status").`in`(*activeStatuses.toTypedArray())
-          .and(partitionConstraint))
+        .where(
+          field("status").`in`(*activeStatuses.toTypedArray())
+            .and(partitionConstraint)
+        )
         .fetch(field("id"), String::class.java)
     }
   }

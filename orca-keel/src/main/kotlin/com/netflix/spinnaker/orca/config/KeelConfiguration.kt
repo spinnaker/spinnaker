@@ -63,6 +63,6 @@ class KeelConfiguration {
 
   @Bean fun keelObjectMapper() =
     OrcaObjectMapper.newInstance()
-    .registerModule(KotlinModule())
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .registerModule(KotlinModule())
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 }

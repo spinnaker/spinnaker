@@ -50,7 +50,7 @@ class PipelineTemplateServiceSpec : JUnit5Minutests {
                 it.contains("Private message - don't read me!") -> fail()
                 else -> pass()
               }
-          }
+            }
         }
       }
     }

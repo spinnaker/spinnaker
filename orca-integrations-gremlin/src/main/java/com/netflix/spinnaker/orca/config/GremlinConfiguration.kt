@@ -39,7 +39,8 @@ class GremlinConfiguration {
     val mapper = OrcaObjectMapper
       .newInstance()
       .setPropertyNamingStrategy(
-        PropertyNamingStrategy.SNAKE_CASE)
+        PropertyNamingStrategy.SNAKE_CASE
+      )
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
     return RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)

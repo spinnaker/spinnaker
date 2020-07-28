@@ -63,8 +63,10 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
     val canaryConfig = parent.mapTo<KayentaCanaryContext>("/canaryConfig")
 
     val lifetime: Duration = if (canaryConfig.endTime != null) {
-      Duration.ofMinutes((canaryConfig.startTime ?: Instant.now(clock))
-        .until(canaryConfig.endTime, ChronoUnit.MINUTES))
+      Duration.ofMinutes(
+        (canaryConfig.startTime ?: Instant.now(clock))
+          .until(canaryConfig.endTime, ChronoUnit.MINUTES)
+      )
     } else if (canaryConfig.lifetime != null) {
       canaryConfig.lifetime
     } else {
@@ -227,12 +229,12 @@ data class DeployedServerGroupContext @JsonCreator constructor(
   companion object {
     fun from(data: Map<String, String>): DeployedServerGroupContext {
       return DeployedServerGroupContext(
-              data["controlLocation"].orEmpty(),
-              data["controlScope"].orEmpty(),
-              data["controlAccountId"],
-              data["experimentLocation"].orEmpty(),
-              data["experimentScope"].orEmpty(),
-              data["experimentAccountId"]
+        data["controlLocation"].orEmpty(),
+        data["controlScope"].orEmpty(),
+        data["controlAccountId"],
+        data["experimentLocation"].orEmpty(),
+        data["experimentScope"].orEmpty(),
+        data["experimentAccountId"]
       )
     }
   }

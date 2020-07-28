@@ -56,7 +56,8 @@ class DelegatingApplicationEventMulticaster(
       return true
     }
     if (listener is InspectableApplicationListenerMethodAdapter &&
-      listener.getMethod().getAnnotation(Sync::class.java) != null) {
+      listener.getMethod().getAnnotation(Sync::class.java) != null
+    ) {
       return true
     }
     return false

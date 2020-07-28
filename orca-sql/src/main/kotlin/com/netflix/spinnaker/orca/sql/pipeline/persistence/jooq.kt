@@ -31,11 +31,14 @@ internal fun DSLContext.transactional(
   retrySupport: RetrySupport,
   fn: (DSLContext) -> Unit
 ) {
-  retrySupport.retry({
-    transaction { ctx ->
-      fn(DSL.using(ctx))
-    }
-  }, 5, 100, false)
+  retrySupport.retry(
+    {
+      transaction { ctx ->
+        fn(DSL.using(ctx))
+      }
+    },
+    5, 100, false
+  )
 }
 
 /**

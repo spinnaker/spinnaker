@@ -66,12 +66,14 @@ class CompleteExecutionHandler(
           publisher.publishEvent(
             ExecutionComplete(this, message.executionType, message.executionId, status)
           )
-          registry.counter(completedId.withTags(
-            "status", status.name,
-            "executionType", execution.type.name,
-            "application", execution.application,
-            "origin", execution.origin ?: "unknown"
-          )).increment()
+          registry.counter(
+            completedId.withTags(
+              "status", status.name,
+              "executionType", execution.type.name,
+              "application", execution.application,
+              "origin", execution.origin ?: "unknown"
+            )
+          ).increment()
           if (status != SUCCEEDED) {
             execution.topLevelStages.filter { it.status == RUNNING }.forEach {
               queue.push(CancelStage(it))

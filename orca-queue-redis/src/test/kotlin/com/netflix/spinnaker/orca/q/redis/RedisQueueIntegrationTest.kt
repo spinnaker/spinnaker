@@ -70,5 +70,6 @@ class RedisTestConfig {
     "logging.level.com.netflix.spinnaker=FATAL",
     "execution-repository.redis.enabled=true",
     "spring.application.name=orcaTest"
-])
+  ]
+)
 class RedisQueueIntegrationTest : QueueIntegrationTest()

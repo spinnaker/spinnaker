@@ -172,23 +172,27 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("updates the stage status") {
-        verify(repository, times(2)).storeStage(check {
-          assertThat(it.status).isEqualTo(RUNNING)
-          assertThat(it.startTime).isEqualTo(clock.millis())
-        })
+        verify(repository, times(2)).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(RUNNING)
+            assertThat(it.startTime).isEqualTo(clock.millis())
+          }
+        )
       }
 
       it("attaches tasks to the stage") {
-        verify(repository, times(2)).storeStage(check {
-          assertThat(it.tasks.size).isEqualTo(1)
-          it.tasks.first().apply {
-            assertThat(id).isEqualTo("1")
-            assertThat(name).isEqualTo("dummy")
-            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
-            assertThat(isStageStart).isEqualTo(true)
-            assertThat(isStageEnd).isEqualTo(true)
+        verify(repository, times(2)).storeStage(
+          check {
+            assertThat(it.tasks.size).isEqualTo(1)
+            it.tasks.first().apply {
+              assertThat(id).isEqualTo("1")
+              assertThat(name).isEqualTo("dummy")
+              assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+              assertThat(isStageStart).isEqualTo(true)
+              assertThat(isStageEnd).isEqualTo(true)
+            }
           }
-        })
+        )
       }
 
       it("starts the first task") {
@@ -196,11 +200,13 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<StageStarted> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.stageId).isEqualTo(message.stageId)
-        })
+        verify(publisher).publishEvent(
+          check<StageStarted> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.stageId).isEqualTo(message.stageId)
+          }
+        )
       }
     }
 
@@ -226,10 +232,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("updates the stage status") {
-          verify(repository, times(2)).storeStage(check {
-            assertThat(it.status).isEqualTo(RUNNING)
-            assertThat(it.startTime).isEqualTo(clock.millis())
-          })
+          verify(repository, times(2)).storeStage(
+            check {
+              assertThat(it.status).isEqualTo(RUNNING)
+              assertThat(it.startTime).isEqualTo(clock.millis())
+            }
+          )
         }
 
         it("immediately completes the stage") {
@@ -238,11 +246,13 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("publishes an event") {
-          verify(publisher).publishEvent(check<StageStarted> {
-            assertThat(it.executionType).isEqualTo(pipeline.type)
-            assertThat(it.executionId).isEqualTo(pipeline.id)
-            assertThat(it.stageId).isEqualTo(message.stageId)
-          })
+          verify(publisher).publishEvent(
+            check<StageStarted> {
+              assertThat(it.executionType).isEqualTo(pipeline.type)
+              assertThat(it.executionId).isEqualTo(pipeline.id)
+              assertThat(it.stageId).isEqualTo(message.stageId)
+            }
+          )
         }
       }
 
@@ -267,10 +277,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("updates the stage status") {
-          verify(repository, times(2)).storeStage(check {
-            assertThat(it.status).isEqualTo(RUNNING)
-            assertThat(it.startTime).isEqualTo(clock.millis())
-          })
+          verify(repository, times(2)).storeStage(
+            check {
+              assertThat(it.status).isEqualTo(RUNNING)
+              assertThat(it.startTime).isEqualTo(clock.millis())
+            }
+          )
         }
 
         it("completes the stage") {
@@ -279,11 +291,13 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("publishes an event") {
-          verify(publisher).publishEvent(check<StageStarted> {
-            assertThat(it.executionType).isEqualTo(pipeline.type)
-            assertThat(it.executionId).isEqualTo(pipeline.id)
-            assertThat(it.stageId).isEqualTo(message.stageId)
-          })
+          verify(publisher).publishEvent(
+            check<StageStarted> {
+              assertThat(it.executionType).isEqualTo(pipeline.type)
+              assertThat(it.executionId).isEqualTo(pipeline.id)
+              assertThat(it.stageId).isEqualTo(message.stageId)
+            }
+          )
         }
       }
     }
@@ -308,40 +322,44 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       afterGroup(::resetMocks)
 
       it("attaches tasks to the stage") {
-        verify(repository, times(2)).storeStage(check {
-          assertThat(it.tasks.size).isEqualTo(3)
-          it.tasks[0].apply {
-            assertThat(id).isEqualTo("1")
-            assertThat(name).isEqualTo("dummy1")
-            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
-            assertThat(isStageStart).isEqualTo(true)
-            assertThat(isStageEnd).isEqualTo(false)
+        verify(repository, times(2)).storeStage(
+          check {
+            assertThat(it.tasks.size).isEqualTo(3)
+            it.tasks[0].apply {
+              assertThat(id).isEqualTo("1")
+              assertThat(name).isEqualTo("dummy1")
+              assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+              assertThat(isStageStart).isEqualTo(true)
+              assertThat(isStageEnd).isEqualTo(false)
+            }
+            it.tasks[1].apply {
+              assertThat(id).isEqualTo("2")
+              assertThat(name).isEqualTo("dummy2")
+              assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+              assertThat(isStageStart).isEqualTo(false)
+              assertThat(isStageEnd).isEqualTo(false)
+            }
+            it.tasks[2].apply {
+              assertThat(id).isEqualTo("3")
+              assertThat(name).isEqualTo("dummy3")
+              assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+              assertThat(isStageStart).isEqualTo(false)
+              assertThat(isStageEnd).isEqualTo(true)
+            }
           }
-          it.tasks[1].apply {
-            assertThat(id).isEqualTo("2")
-            assertThat(name).isEqualTo("dummy2")
-            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
-            assertThat(isStageStart).isEqualTo(false)
-            assertThat(isStageEnd).isEqualTo(false)
-          }
-          it.tasks[2].apply {
-            assertThat(id).isEqualTo("3")
-            assertThat(name).isEqualTo("dummy3")
-            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
-            assertThat(isStageStart).isEqualTo(false)
-            assertThat(isStageEnd).isEqualTo(true)
-          }
-        })
+        )
       }
 
       it("starts the first task") {
-        verify(queue).push(StartTask(
-          message.executionType,
-          message.executionId,
-          "foo",
-          message.stageId,
-          "1"
-        ))
+        verify(queue).push(
+          StartTask(
+            message.executionType,
+            message.executionId,
+            "foo",
+            message.stageId,
+            "1"
+          )
+        )
       }
     }
 
@@ -366,19 +384,23 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         afterGroup(::resetMocks)
 
         it("attaches the synthetic stage to the pipeline") {
-          verify(repository, times(2)).addStage(check {
-            assertThat(it.parentStageId).isEqualTo(message.stageId)
-            assertThat(it.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
-          })
+          verify(repository, times(2)).addStage(
+            check {
+              assertThat(it.parentStageId).isEqualTo(message.stageId)
+              assertThat(it.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
+            }
+          )
         }
 
         it("raises an event to indicate the synthetic stage is starting") {
-          verify(queue).push(StartStage(
-            message.executionType,
-            message.executionId,
-            "foo",
-            pipeline.stages.first().id
-          ))
+          verify(queue).push(
+            StartStage(
+              message.executionType,
+              message.executionId,
+              "foo",
+              pipeline.stages.first().id
+            )
+          )
         }
       }
 
@@ -406,13 +428,15 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("raises an event to indicate the first task is starting") {
-          verify(queue).push(StartTask(
-            message.executionType,
-            message.executionId,
-            "foo",
-            message.stageId,
-            "1"
-          ))
+          verify(queue).push(
+            StartTask(
+              message.executionType,
+              message.executionId,
+              "foo",
+              message.stageId,
+              "1"
+            )
+          )
         }
       }
     }
@@ -570,9 +594,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("starts the 'wait for execution window' stage") {
-          verify(queue).push(check<StartStage> {
-            assertThat(it.stageId).isEqualTo(pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id)
-          })
+          verify(queue).push(
+            check<StartStage> {
+              assertThat(it.stageId).isEqualTo(pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id)
+            }
+          )
           verifyNoMoreInteractions(queue)
         }
       }
@@ -617,9 +643,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("starts the 'wait for execution window' stage") {
-          verify(queue).push(check<StartStage> {
-            assertThat(it.stageId).isEqualTo(pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id)
-          })
+          verify(queue).push(
+            check<StartStage> {
+              assertThat(it.stageId).isEqualTo(pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id)
+            }
+          )
           verifyNoMoreInteractions(queue)
         }
       }
@@ -646,24 +674,28 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("starts the stage") {
-        verify(repository, times(2)).storeStage(check {
-          assertThat(it.type).isEqualTo("bar")
-          assertThat(it.status).isEqualTo(RUNNING)
-          assertThat(it.startTime).isEqualTo(clock.millis())
-        })
+        verify(repository, times(2)).storeStage(
+          check {
+            assertThat(it.type).isEqualTo("bar")
+            assertThat(it.status).isEqualTo(RUNNING)
+            assertThat(it.startTime).isEqualTo(clock.millis())
+          }
+        )
       }
 
       it("attaches a task to the stage") {
-        verify(repository, times(2)).storeStage(check {
-          assertThat(it.tasks.size).isEqualTo(1)
-          it.tasks.first().apply {
-            assertThat(id).isEqualTo("1")
-            assertThat(name).isEqualTo("createWebhook")
-            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
-            assertThat(isStageStart).isEqualTo(true)
-            assertThat(isStageEnd).isEqualTo(true)
+        verify(repository, times(2)).storeStage(
+          check {
+            assertThat(it.tasks.size).isEqualTo(1)
+            it.tasks.first().apply {
+              assertThat(id).isEqualTo("1")
+              assertThat(name).isEqualTo("createWebhook")
+              assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+              assertThat(isStageStart).isEqualTo(true)
+              assertThat(isStageEnd).isEqualTo(true)
+            }
           }
-        })
+        )
       }
     }
 
@@ -689,9 +721,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("cancels the stage") {
-        verify(queue).push(SkipStage(
-          pipeline.stageByRef("bar")
-        ))
+        verify(queue).push(
+          SkipStage(
+            pipeline.stageByRef("bar")
+          )
+        )
       }
     }
 
@@ -731,9 +765,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           }
 
           it("attaches the exception to the stage context") {
-            verify(repository, times(2)).storeStage(check {
-              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
-            })
+            verify(repository, times(2)).storeStage(
+              check {
+                assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
+              }
+            )
           }
         }
 
@@ -761,15 +797,19 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           }
 
           it("attaches the exception to the stage context") {
-            verify(repository, times(2)).storeStage(check {
-              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
-            })
+            verify(repository, times(2)).storeStage(
+              check {
+                assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
+              }
+            )
           }
 
           it("attaches flag to the stage context to indicate that before stage planning failed") {
-            verify(repository, times(2)).storeStage(check {
-              assertThat(it.context["beforeStagePlanningFailed"]).isEqualTo(true)
-            })
+            verify(repository, times(2)).storeStage(
+              check {
+                assertThat(it.context["beforeStagePlanningFailed"]).isEqualTo(true)
+              }
+            )
           }
         }
 
@@ -797,15 +837,19 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           }
 
           it("attaches the exception to the stage context") {
-            verify(repository, times(2)).storeStage(check {
-              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
-            })
+            verify(repository, times(2)).storeStage(
+              check {
+                assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
+              }
+            )
           }
 
           it("attaches flag to the stage context to indicate that before stage planning failed") {
-            verify(repository, times(2)).storeStage(check {
-              assertThat(it.context["beforeStagePlanningFailed"]).isEqualTo(true)
-            })
+            verify(repository, times(2)).storeStage(
+              check {
+                assertThat(it.context["beforeStagePlanningFailed"]).isEqualTo(true)
+              }
+            )
           }
         }
       }
@@ -882,9 +926,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("runs the parallel stages") {
-        verify(queue, times(3)).push(check<StartStage> {
-          assertThat(pipeline.stageById(it.stageId).parentStageId).isEqualTo(message.stageId)
-        })
+        verify(queue, times(3)).push(
+          check<StartStage> {
+            assertThat(pipeline.stageById(it.stageId).parentStageId).isEqualTo(message.stageId)
+          }
+        )
       }
     }
 
@@ -964,9 +1010,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("runs the parallel stages") {
-        verify(queue).push(check<StartTask> {
-          assertThat(it.taskId).isEqualTo("1")
-        })
+        verify(queue).push(
+          check<StartTask> {
+            assertThat(it.taskId).isEqualTo("1")
+          }
+        )
       }
     }
   }

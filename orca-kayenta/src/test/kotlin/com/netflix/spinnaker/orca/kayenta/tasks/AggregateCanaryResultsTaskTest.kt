@@ -83,10 +83,12 @@ object AggregateCanaryResultsTaskSpec : Spek({
           name = "kayentaCanary"
           context["canaryConfig"] = mapOf(
             "canaryConfigId" to UUID.randomUUID().toString(),
-            "scopes" to listOf(mapOf(
-              "controlScope" to "myapp-v010",
-              "experimentScope" to "myapp-v021"
-            )),
+            "scopes" to listOf(
+              mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021"
+              )
+            ),
             "scoreThresholds" to scoreThresholds,
             "lifetimeDuration" to Duration.parse("PT1H")
           )
@@ -132,10 +134,12 @@ object AggregateCanaryResultsTaskSpec : Spek({
           name = "kayentaCanary"
           context["canaryConfig"] = mapOf(
             "canaryConfigId" to UUID.randomUUID().toString(),
-            "scopes" to listOf(mapOf(
-              "controlScope" to "myapp-v010",
-              "experimentScope" to "myapp-v021"
-            )),
+            "scopes" to listOf(
+              mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021"
+              )
+            ),
             "scoreThresholds" to scoreThresholds,
             "lifetimeDuration" to Duration.parse("PT1H")
           )
@@ -159,10 +163,12 @@ object AggregateCanaryResultsTaskSpec : Spek({
           name = "kayentaCanary"
           context["canaryConfig"] = mapOf(
             "canaryConfigId" to UUID.randomUUID().toString(),
-            "scopes" to listOf(mapOf(
-              "controlScope" to "myapp-v010",
-              "experimentScope" to "myapp-v021"
-            )),
+            "scopes" to listOf(
+              mapOf(
+                "controlScope" to "myapp-v010",
+                "experimentScope" to "myapp-v021"
+              )
+            ),
             "scoreThresholds" to scoreThresholds,
             "lifetimeDuration" to Duration.parse("PT1H")
           )

@@ -206,8 +206,10 @@ class SqlExecutionRepository(
     doForeignAware(PauseInterlinkEvent(type, id, user)) {
       execution, dslContext ->
       if (execution.status != RUNNING) {
-        throw UnpausablePipelineException("Unable to pause pipeline that is not RUNNING " +
-          "(executionId: ${execution.id}, currentStatus: ${execution.status})")
+        throw UnpausablePipelineException(
+          "Unable to pause pipeline that is not RUNNING " +
+            "(executionId: ${execution.id}, currentStatus: ${execution.status})"
+        )
       }
       execution.status = PAUSED
       execution.paused = PipelineExecution.PausedDetails().apply {
@@ -227,8 +229,10 @@ class SqlExecutionRepository(
     doForeignAware(ResumeInterlinkEvent(type, id, user, ignoreCurrentStatus)) {
       execution, dslContext ->
       if (!ignoreCurrentStatus && execution.status != PAUSED) {
-        throw UnresumablePipelineException("Unable to resume pipeline that is not PAUSED " +
-          "(executionId: ${execution.id}, currentStatus: ${execution.status}")
+        throw UnresumablePipelineException(
+          "Unable to resume pipeline that is not PAUSED " +
+            "(executionId: ${execution.id}, currentStatus: ${execution.status}"
+        )
       }
       execution.status = RUNNING
       execution.paused?.resumedBy = user
@@ -357,9 +361,11 @@ class SqlExecutionRepository(
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
-    Observable.from(fetchExecutions { pageSize, cursor ->
-      selectExecutions(type, pageSize, cursor)
-    })
+    Observable.from(
+      fetchExecutions { pageSize, cursor ->
+        selectExecutions(type, pageSize, cursor)
+      }
+    )
 
   override fun retrieve(type: ExecutionType, criteria: ExecutionCriteria): Observable<PipelineExecution> {
     return retrieve(type, criteria, null)
@@ -387,7 +393,8 @@ class SqlExecutionRepository(
                 this
               }
             }
-        })
+        }
+      )
 
       return Observable.from(select.fetchExecutions())
     }
@@ -395,11 +402,13 @@ class SqlExecutionRepository(
 
   override fun retrievePipelinesForApplication(application: String): Observable<PipelineExecution> =
     withPool(poolName) {
-      Observable.from(fetchExecutions { pageSize, cursor ->
-        selectExecutions(PIPELINE, pageSize, cursor) {
-          it.where(field("application").eq(application))
+      Observable.from(
+        fetchExecutions { pageSize, cursor ->
+          selectExecutions(PIPELINE, pageSize, cursor) {
+            it.where(field("application").eq(application))
+          }
         }
-      })
+      )
     }
 
   override fun retrievePipelinesForPipelineConfigId(
@@ -493,14 +502,16 @@ class SqlExecutionRepository(
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): PipelineExecution {
     withPool(poolName) {
       val execution = jooq.selectExecution(ORCHESTRATION)
-        .where(field("id").eq(
-          field(
-            jooq.select(field("c.orchestration_id"))
-              .from(table("correlation_ids").`as`("c"))
-              .where(field("c.id").eq(correlationId))
-              .limit(1)
-          ) as Any
-        ))
+        .where(
+          field("id").eq(
+            field(
+              jooq.select(field("c.orchestration_id"))
+                .from(table("correlation_ids").`as`("c"))
+                .where(field("c.id").eq(correlationId))
+                .limit(1)
+            ) as Any
+          )
+        )
         .fetchExecution()
 
       if (execution != null) {
@@ -519,14 +530,16 @@ class SqlExecutionRepository(
   override fun retrievePipelineForCorrelationId(correlationId: String): PipelineExecution {
     withPool(poolName) {
       val execution = jooq.selectExecution(PIPELINE)
-        .where(field("id").eq(
-          field(
-            jooq.select(field("c.pipeline_id"))
-              .from(table("correlation_ids").`as`("c"))
-              .where(field("c.id").eq(correlationId))
-              .limit(1)
-          ) as Any
-        ))
+        .where(
+          field("id").eq(
+            field(
+              jooq.select(field("c.pipeline_id"))
+                .from(table("correlation_ids").`as`("c"))
+                .where(field("c.id").eq(correlationId))
+                .limit(1)
+            ) as Any
+          )
+        )
         .fetchExecution()
 
       if (execution != null) {
@@ -983,11 +996,14 @@ class SqlExecutionRepository(
    * Run the provided [fn] in a transaction.
    */
   private fun DSLContext.transactional(fn: (DSLContext) -> Unit) {
-    retrySupport.retry({
-      transaction { ctx ->
-        fn(DSL.using(ctx))
-      }
-    }, retryProperties.maxRetries, retryProperties.backoffMs, false)
+    retrySupport.retry(
+      {
+        transaction { ctx ->
+          fn(DSL.using(ctx))
+        }
+      },
+      retryProperties.maxRetries, retryProperties.backoffMs, false
+    )
   }
 
   private fun DSLContext.selectExecutions(

@@ -562,12 +562,14 @@ abstract class QueueIntegrationTest {
           "restrictExecutionDuringTimeWindow" to true,
           "restrictedExecutionWindow" to mapOf(
             "days" to (1..7).toList(),
-            "whitelist" to listOf(mapOf(
-              "startHour" to now.hour,
-              "startMin" to 0,
-              "endHour" to now.plus(1, HOURS).hour,
-              "endMin" to 0
-            ))
+            "whitelist" to listOf(
+              mapOf(
+                "startHour" to now.hour,
+                "startMin" to 0,
+                "endHour" to now.plus(1, HOURS).hour,
+                "endMin" to 0
+              )
+            )
           )
         )
       }
@@ -600,12 +602,14 @@ abstract class QueueIntegrationTest {
           "restrictExecutionDuringTimeWindow" to true,
           "restrictedExecutionWindow" to mapOf(
             "days" to (1..7).toList(),
-            "whitelist" to listOf(mapOf(
-              "startHour" to now.hour,
-              "startMin" to 0,
-              "endHour" to now.plus(1, HOURS).hour,
-              "endMin" to 0
-            ))
+            "whitelist" to listOf(
+              mapOf(
+                "startHour" to now.hour,
+                "startMin" to 0,
+                "endHour" to now.plus(1, HOURS).hour,
+                "endMin" to 0
+              )
+            )
           )
         )
       }
@@ -627,7 +631,8 @@ abstract class QueueIntegrationTest {
           "dummy",
           "dummy",
           "dummy",
-          "parallel")
+          "parallel"
+        )
         assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
       }
     }
@@ -657,11 +662,13 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    verify(dummyTask).execute(check {
-      // expressions should be resolved in the stage passes to tasks
-      assertThat(it.context["expr"]).isEqualTo(true)
-      assertThat((it.context["key"] as Map<String, Any>)["expr"]).isEqualTo(true)
-    })
+    verify(dummyTask).execute(
+      check {
+        // expressions should be resolved in the stage passes to tasks
+        assertThat(it.context["expr"]).isEqualTo(true)
+        assertThat((it.context["key"] as Map<String, Any>)["expr"]).isEqualTo(true)
+      }
+    )
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
       assertThat(status).isEqualTo(SUCCEEDED)

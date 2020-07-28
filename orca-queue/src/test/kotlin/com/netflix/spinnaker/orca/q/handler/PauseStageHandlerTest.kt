@@ -78,10 +78,12 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
     }
 
     it("updates the stage state") {
-      verify(repository).storeStage(check {
-        assertThat(it.status).isEqualTo(PAUSED)
-        assertThat(it.endTime).isNull()
-      })
+      verify(repository).storeStage(
+        check {
+          assertThat(it.status).isEqualTo(PAUSED)
+          assertThat(it.endTime).isNull()
+        }
+      )
     }
 
     it("does not take any further action") {

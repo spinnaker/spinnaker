@@ -43,7 +43,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
 ) : AbstractCleanupPollingAgent(
   clusterLock,
   configurationProperties.intervalMs,
-  registry) {
+  registry
+) {
 
   override fun performCleanup() {
     // We don't have an index on partition/application so a query on a given partition is very expensive.
@@ -60,11 +61,13 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
       val applicationsWithLotsOfOrchestrations = jooq
         .select(DSL.field("application"))
         .from(DSL.table("orchestrations"))
-        .where(if (orcaSqlProperties.partitionName == null) {
-          DSL.noCondition()
-        } else {
-          DSL.field(name("partition")).eq(orcaSqlProperties.partitionName)
-        })
+        .where(
+          if (orcaSqlProperties.partitionName == null) {
+            DSL.noCondition()
+          } else {
+            DSL.field(name("partition")).eq(orcaSqlProperties.partitionName)
+          }
+        )
         .and(DSL.field("application").`in`(*chunk.toTypedArray()))
         .groupBy(DSL.field("application"))
         .having(DSL.count(DSL.field("id")).gt(configurationProperties.threshold))

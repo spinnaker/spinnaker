@@ -79,10 +79,12 @@ object ResumeTaskHandlerTest : SubjectSpek<ResumeTaskHandler>({
     }
 
     it("sets the stage status to running") {
-      verify(repository).storeStage(check {
-        assertThat(it.id).isEqualTo(message.stageId)
-        assertThat(it.tasks.first().status).isEqualTo(RUNNING)
-      })
+      verify(repository).storeStage(
+        check {
+          assertThat(it.id).isEqualTo(message.stageId)
+          assertThat(it.tasks.first().status).isEqualTo(RUNNING)
+        }
+      )
     }
 
     it("resumes all paused tasks") {

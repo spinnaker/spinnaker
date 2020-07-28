@@ -163,7 +163,8 @@ val stageWithParallelBranches = object : StageDefinitionBuilder {
         StageExecutionFactory.newStage(parent.execution, singleTaskStage.type, "run in $region", parent.context + mapOf("region" to region), parent, STAGE_BEFORE)
       }
       .forEach { stage ->
-        graph.add(stage) }
+        graph.add(stage)
+      }
   }
 
   override fun taskGraph(stage: StageExecution, builder: Builder) {

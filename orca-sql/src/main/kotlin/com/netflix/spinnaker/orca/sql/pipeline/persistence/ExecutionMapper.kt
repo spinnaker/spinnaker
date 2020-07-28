@@ -44,7 +44,8 @@ class ExecutionMapper(
     while (rs.next()) {
       mapper.readValue<PipelineExecution>(rs.getString("body"))
         .also {
-          execution -> results.add(execution)
+          execution ->
+          results.add(execution)
           execution.partition = rs.getString("partition")
 
           if (rs.getString("id") != execution.id) {

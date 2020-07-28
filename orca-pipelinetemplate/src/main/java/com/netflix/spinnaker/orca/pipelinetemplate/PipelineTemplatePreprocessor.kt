@@ -60,7 +60,8 @@ class PipelineTemplatePreprocessor
     //
     // We also need to ensure that 'type' and 'schema' are set properly upstream when saving v2 template configs.
     if (pipeline.getOrDefault(V2PipelineTemplate.SCHEMA, null) == V2PipelineTemplate.V2_SCHEMA_VERSION &&
-      pipeline.get("template") != null) {
+      pipeline.get("template") != null
+    ) {
       val templateConfig = HashMap(pipeline)
       templateConfig.remove("trigger") // template configurations don't have a 'trigger' field.
       pipeline.put("config", templateConfig)
@@ -108,11 +109,15 @@ class PipelineTemplatePreprocessor
   }
 
   private fun recordRequest(context: PipelineTemplateContext, success: Boolean) {
-    registry.counter(requestsId.withTags(listOf(
-      BasicTag("status", if (success) "success" else "failure"),
-      BasicTag("schema", context.getRequest().schema ?: "unknown"),
-      BasicTag("plan", context.getRequest().plan.toString())
-    ))).increment()
+    registry.counter(
+      requestsId.withTags(
+        listOf(
+          BasicTag("status", if (success) "success" else "failure"),
+          BasicTag("schema", context.getRequest().schema ?: "unknown"),
+          BasicTag("plan", context.getRequest().plan.toString())
+        )
+      )
+    ).increment()
   }
 }
 

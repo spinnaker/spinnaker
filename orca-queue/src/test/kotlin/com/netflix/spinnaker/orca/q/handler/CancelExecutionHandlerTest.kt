@@ -87,11 +87,13 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       }
 
       it("publishes an execution complete event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.status).isEqualTo(CANCELED)
-        })
+        verify(publisher).publishEvent(
+          check<ExecutionComplete> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.status).isEqualTo(CANCELED)
+          }
+        )
       }
 
       it("does not send any further messages") {

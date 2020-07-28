@@ -41,12 +41,12 @@ class V2SchemaHandlerGroup
 
   override fun getHandlers(): List<Handler> =
     listOf(
-    V2TemplateLoaderHandler(templateLoader, contextParameterProcessor, objectMapper),
-    V2ConfigurationValidationHandler(),
-    V2TemplateValidationHandler(),
-    V2GraphMutatorHandler(),
-    V2PipelineGenerator(artifactUtils)
-  )
+      V2TemplateLoaderHandler(templateLoader, contextParameterProcessor, objectMapper),
+      V2ConfigurationValidationHandler(),
+      V2TemplateValidationHandler(),
+      V2GraphMutatorHandler(),
+      V2PipelineGenerator(artifactUtils)
+    )
 }
 
 class V2GraphMutatorHandler : Handler {

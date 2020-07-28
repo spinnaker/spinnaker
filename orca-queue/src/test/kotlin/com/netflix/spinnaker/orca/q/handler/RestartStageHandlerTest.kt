@@ -192,29 +192,37 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       }
 
       it("resets the stage's status") {
-        verify(repository).storeStage(check {
-          assertThat(it.id).isEqualTo(message.stageId)
-          assertThat(it.status).isEqualTo(NOT_STARTED)
-          assertThat(it.startTime).isNull()
-          assertThat(it.endTime).isNull()
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.id).isEqualTo(message.stageId)
+            assertThat(it.status).isEqualTo(NOT_STARTED)
+            assertThat(it.startTime).isNull()
+            assertThat(it.endTime).isNull()
+          }
+        )
       }
 
       it("removes the stage's tasks") {
-        verify(repository).storeStage(check {
-          assertThat(it.tasks).isEmpty()
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.tasks).isEmpty()
+          }
+        )
       }
 
       it("adds restart details to the stage context") {
-        verify(repository).storeStage(check {
-          assertThat(it.context.keys).doesNotContain("exception")
-          assertThat(it.context["restartDetails"]).isEqualTo(mapOf(
-            "restartedBy" to "fzlem@netflix.com",
-            "restartTime" to clock.millis(),
-            "previousException" to "o noes"
-          ))
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.context.keys).doesNotContain("exception")
+            assertThat(it.context["restartDetails"]).isEqualTo(
+              mapOf(
+                "restartedBy" to "fzlem@netflix.com",
+                "restartTime" to clock.millis(),
+                "previousException" to "o noes"
+              )
+            )
+          }
+        )
       }
 
       it("removes the stage's synthetic stages") {
@@ -257,12 +265,14 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       }
 
       it("runs the stage") {
-        verify(queue).push(check<StartStage> {
-          assertThat(it.executionType).isEqualTo(message.executionType)
-          assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.application).isEqualTo(message.application)
-          assertThat(it.stageId).isEqualTo(message.stageId)
-        })
+        verify(queue).push(
+          check<StartStage> {
+            assertThat(it.executionType).isEqualTo(message.executionType)
+            assertThat(it.executionId).isEqualTo(message.executionId)
+            assertThat(it.application).isEqualTo(message.application)
+            assertThat(it.stageId).isEqualTo(message.stageId)
+          }
+        )
       }
     }
   }
@@ -437,14 +447,16 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     }
 
     it("runs the parent stage") {
-      verify(queue).push(check<StartStage> {
-        assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
-        assertThat(it.stageId).isNotEqualTo(syntheticStage.id)
-        assertThat(it.stageId).isNotEqualTo(message.stageId)
-        assertThat(it.executionType).isEqualTo(message.executionType)
-        assertThat(it.executionId).isEqualTo(message.executionId)
-        assertThat(it.application).isEqualTo(message.application)
-      })
+      verify(queue).push(
+        check<StartStage> {
+          assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
+          assertThat(it.stageId).isNotEqualTo(syntheticStage.id)
+          assertThat(it.stageId).isNotEqualTo(message.stageId)
+          assertThat(it.executionType).isEqualTo(message.executionType)
+          assertThat(it.executionId).isEqualTo(message.executionId)
+          assertThat(it.application).isEqualTo(message.application)
+        }
+      )
     }
   }
 })

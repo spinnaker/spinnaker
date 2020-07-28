@@ -44,20 +44,20 @@ class InMemoryExecutionRepository : ExecutionRepository {
 
   override fun retrieveAllApplicationNames(executionType: ExecutionType?): MutableList<String> {
     return if (executionType == null) {
-        pipelines.values + orchestrations.values
-      } else {
-        storageFor(executionType).values
-      }
+      pipelines.values + orchestrations.values
+    } else {
+      storageFor(executionType).values
+    }
       .map { it.application }
       .toMutableList()
   }
 
   override fun retrieveAllApplicationNames(executionType: ExecutionType?, minExecutions: Int): MutableList<String> {
     return if (executionType == null) {
-        pipelines.values + orchestrations.values
-      } else {
-        storageFor(executionType).values
-      }
+      pipelines.values + orchestrations.values
+    } else {
+      storageFor(executionType).values
+    }
       .groupBy { it.application }
       .filter { it.value.size >= minExecutions }
       .keys
@@ -88,8 +88,10 @@ class InMemoryExecutionRepository : ExecutionRepository {
   override fun resume(type: ExecutionType, id: String, user: String?, ignoreCurrentStatus: Boolean) {
     retrieve(type, id).also {
       if (!ignoreCurrentStatus && it.status != ExecutionStatus.PAUSED) {
-        throw UnresumablePipelineException("Unable to resume pipeline that is not PAUSED " +
-          "(executionId: ${it.id}, currentStatus: ${it.status}")
+        throw UnresumablePipelineException(
+          "Unable to resume pipeline that is not PAUSED " +
+            "(executionId: ${it.id}, currentStatus: ${it.status}"
+        )
       }
       it.status = ExecutionStatus.RUNNING
       it.paused?.resumedBy = user
@@ -135,8 +137,10 @@ class InMemoryExecutionRepository : ExecutionRepository {
   override fun pause(type: ExecutionType, id: String, user: String?) {
     retrieve(type, id).also {
       if (it.status != ExecutionStatus.RUNNING) {
-        throw UnpausablePipelineException("Unable to pause pipeline that is not RUNNING " +
-          "(executionId: ${it.id}, currentStatus: ${it.status})")
+        throw UnpausablePipelineException(
+          "Unable to pause pipeline that is not RUNNING " +
+            "(executionId: ${it.id}, currentStatus: ${it.status})"
+        )
       }
       it.status = ExecutionStatus.PAUSED
       it.paused = PipelineExecution.PausedDetails().apply {

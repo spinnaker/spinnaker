@@ -58,24 +58,28 @@ class MonitorKayentaCanaryTask(
 
       return if (canaryScore <= context.scoreThresholds.marginal) {
         val resultStatus = if (stage.context["continuePipeline"] == true) FAILED_CONTINUE else TERMINAL
-        TaskResult.builder(resultStatus).context(mapOf(
-          "canaryPipelineStatus" to SUCCEEDED,
-          "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
-          "lastUpdatedIso" to canaryResults.endTimeIso,
-          "durationString" to canaryResults.result.canaryDuration.toString(),
-          "canaryScore" to canaryScore,
-          "canaryScoreMessage" to "Canary score is not above the marginal score threshold.",
-          "warnings" to warnings
-        )).build()
+        TaskResult.builder(resultStatus).context(
+          mapOf(
+            "canaryPipelineStatus" to SUCCEEDED,
+            "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
+            "lastUpdatedIso" to canaryResults.endTimeIso,
+            "durationString" to canaryResults.result.canaryDuration.toString(),
+            "canaryScore" to canaryScore,
+            "canaryScoreMessage" to "Canary score is not above the marginal score threshold.",
+            "warnings" to warnings
+          )
+        ).build()
       } else {
-        TaskResult.builder(SUCCEEDED).context(mapOf(
-          "canaryPipelineStatus" to SUCCEEDED,
-          "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
-          "lastUpdatedIso" to canaryResults.endTimeIso,
-          "durationString" to canaryResults.result.canaryDuration.toString(),
-          "canaryScore" to canaryScore,
-          "warnings" to warnings
-        )).build()
+        TaskResult.builder(SUCCEEDED).context(
+          mapOf(
+            "canaryPipelineStatus" to SUCCEEDED,
+            "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
+            "lastUpdatedIso" to canaryResults.endTimeIso,
+            "durationString" to canaryResults.result.canaryDuration.toString(),
+            "canaryScore" to canaryScore,
+            "warnings" to warnings
+          )
+        ).build()
       }
     }
 

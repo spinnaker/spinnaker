@@ -215,11 +215,13 @@ class DualExecutionRepository(
         buildTimeEndBoundary,
         executionCriteria
       )
-      .plus(previous.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
-        pipelineConfigIds,
-        buildTimeStartBoundary,
-        buildTimeEndBoundary,
-        executionCriteria)
+      .plus(
+        previous.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+          pipelineConfigIds,
+          buildTimeStartBoundary,
+          buildTimeEndBoundary,
+          executionCriteria
+        )
       ).distinctBy { it.id }
   }
 
@@ -235,11 +237,13 @@ class DualExecutionRepository(
         buildTimeStartBoundary,
         buildTimeEndBoundary,
         executionCriteria
-      ).plus(previous.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
-        pipelineConfigIds,
-        buildTimeStartBoundary,
-        buildTimeEndBoundary,
-        executionCriteria)
+      ).plus(
+        previous.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+          pipelineConfigIds,
+          buildTimeStartBoundary,
+          buildTimeEndBoundary,
+          executionCriteria
+        )
       ).distinctBy { it.id }
   }
 

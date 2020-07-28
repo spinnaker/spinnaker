@@ -39,15 +39,17 @@ interface AuthenticationAware {
     }
 
     try {
-      ExecutionContext.set(ExecutionContext(
-        execution.application,
-        currentUser.username,
-        execution.type.name.toLowerCase(),
-        execution.id,
-        this.id,
-        execution.origin,
-        this.startTime
-      ))
+      ExecutionContext.set(
+        ExecutionContext(
+          execution.application,
+          currentUser.username,
+          execution.type.name.toLowerCase(),
+          execution.id,
+          this.id,
+          execution.origin,
+          this.startTime
+        )
+      )
       AuthenticatedRequest.propagate(block, false, currentUser).call()
     } finally {
       ExecutionContext.clear()

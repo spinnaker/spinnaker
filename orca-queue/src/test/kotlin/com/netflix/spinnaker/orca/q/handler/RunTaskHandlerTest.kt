@@ -169,9 +169,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("completes the task") {
-          verify(queue).push(check<CompleteTask> {
-            assertThat(it.status).isEqualTo(SUCCEEDED)
-          })
+          verify(queue).push(
+            check<CompleteTask> {
+              assertThat(it.status).isEqualTo(SUCCEEDED)
+            }
+          )
         }
 
         it("does not update the stage or global context") {
@@ -198,9 +200,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("updates the stage context") {
-          verify(repository).storeStage(check {
-            assertThat(stageOutputs).isEqualTo(it.context)
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(stageOutputs).isEqualTo(it.context)
+            }
+          )
         }
       }
 
@@ -223,9 +227,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("updates the stage outputs") {
-          verify(repository).storeStage(check {
-            assertThat(it.outputs).isEqualTo(outputs)
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(it.outputs).isEqualTo(outputs)
+            }
+          )
         }
       }
 
@@ -251,11 +257,13 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("does not write stageTimeoutMs to outputs") {
-          verify(repository).storeStage(check {
-            assertThat(it.outputs)
-              .containsKey("foo")
-              .doesNotContainKey("stageTimeoutMs")
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(it.outputs)
+                .containsKey("foo")
+                .doesNotContainKey("stageTimeoutMs")
+            }
+          )
         }
       }
     }
@@ -296,9 +304,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("completes the task") {
-          verify(queue).push(check<CompleteTask> {
-            assertThat(it.status).isEqualTo(SUCCEEDED)
-          })
+          verify(queue).push(
+            check<CompleteTask> {
+              assertThat(it.status).isEqualTo(SUCCEEDED)
+            }
+          )
         }
 
         it("does not update the stage or global context") {
@@ -325,9 +335,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("updates the stage context") {
-          verify(repository).storeStage(check {
-            assertThat(stageOutputs).isEqualTo(it.context)
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(stageOutputs).isEqualTo(it.context)
+            }
+          )
         }
       }
 
@@ -350,9 +362,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("updates the stage outputs") {
-          verify(repository).storeStage(check {
-            assertThat(it.outputs).isEqualTo(outputs)
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(it.outputs).isEqualTo(outputs)
+            }
+          )
         }
       }
 
@@ -378,11 +392,13 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("does not write stageTimeoutMs to outputs") {
-          verify(repository).storeStage(check {
-            assertThat(it.outputs)
-              .containsKey("foo")
-              .doesNotContainKey("stageTimeoutMs")
-          })
+          verify(repository).storeStage(
+            check {
+              assertThat(it.outputs)
+                .containsKey("foo")
+                .doesNotContainKey("stageTimeoutMs")
+            }
+          )
         }
       }
     }
@@ -457,9 +473,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("marks the task $taskStatus") {
-            verify(queue).push(check<CompleteTask> {
-              assertThat(it.status).isEqualTo(taskStatus)
-            })
+            verify(queue).push(
+              check<CompleteTask> {
+                assertThat(it.status).isEqualTo(taskStatus)
+              }
+            )
           }
         }
 
@@ -482,9 +500,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("marks the task STOPPED") {
-            verify(queue).push(check<CompleteTask> {
-              assertThat(it.status).isEqualTo(STOPPED)
-            })
+            verify(queue).push(
+              check<CompleteTask> {
+                assertThat(it.status).isEqualTo(STOPPED)
+              }
+            )
           }
         }
 
@@ -507,9 +527,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("marks the task FAILED_CONTINUE") {
-            verify(queue).push(check<CompleteTask> {
-              assertThat(it.status).isEqualTo(FAILED_CONTINUE)
-            })
+            verify(queue).push(
+              check<CompleteTask> {
+                assertThat(it.status).isEqualTo(FAILED_CONTINUE)
+              }
+            )
           }
         }
       }
@@ -556,15 +578,19 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("marks the task as terminal") {
-            verify(queue).push(check<CompleteTask> {
-              assertThat(it.status).isEqualTo(TERMINAL)
-            })
+            verify(queue).push(
+              check<CompleteTask> {
+                assertThat(it.status).isEqualTo(TERMINAL)
+              }
+            )
           }
 
           it("attaches the exception to the stage context") {
-            verify(repository).storeStage(check {
-              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
-            })
+            verify(repository).storeStage(
+              check {
+                assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
+              }
+            )
           }
         }
 
@@ -590,9 +616,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("marks the task STOPPED") {
-            verify(queue).push(check<CompleteTask> {
-              assertThat(it.status).isEqualTo(STOPPED)
-            })
+            verify(queue).push(
+              check<CompleteTask> {
+                assertThat(it.status).isEqualTo(STOPPED)
+              }
+            )
           }
         }
 
@@ -618,9 +646,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("marks the task FAILED_CONTINUE") {
-            verify(queue).push(check<CompleteTask> {
-              assertThat(it.status).isEqualTo(FAILED_CONTINUE)
-            })
+            verify(queue).push(
+              check<CompleteTask> {
+                assertThat(it.status).isEqualTo(FAILED_CONTINUE)
+              }
+            )
           }
         }
       }
@@ -682,15 +712,17 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("emits an event indicating that the task was canceled") {
-        verify(queue).push(CompleteTask(
-          message.executionType,
-          message.executionId,
-          "foo",
-          message.stageId,
-          message.taskId,
-          CANCELED,
-          CANCELED
-        ))
+        verify(queue).push(
+          CompleteTask(
+            message.executionType,
+            message.executionId,
+            "foo",
+            message.stageId,
+            message.taskId,
+            CANCELED,
+            CANCELED
+          )
+        )
       }
 
       it("does not execute the task") {
@@ -728,15 +760,17 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("marks the task as canceled") {
-        verify(queue).push(CompleteTask(
-          message.executionType,
-          message.executionId,
-          "foo",
-          message.stageId,
-          message.taskId,
-          CANCELED,
-          CANCELED
-        ))
+        verify(queue).push(
+          CompleteTask(
+            message.executionType,
+            message.executionId,
+            "foo",
+            message.stageId,
+            message.taskId,
+            CANCELED,
+            CANCELED
+          )
+        )
       }
 
       it("it tries to cancel the task") {
@@ -1478,9 +1512,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("parses the expression") {
-          verify(task).execute(check {
-            assertThat(it.context["expr"]).isEqualTo(expected)
-          })
+          verify(task).execute(
+            check {
+              assertThat(it.context["expr"]).isEqualTo(expected)
+            }
+          )
         }
       }
     }
@@ -1523,9 +1559,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
 
           it("evaluates the expression") {
-            verify(task).execute(check {
-              assertThat(it.context["expr"]).isEqualTo(expected)
-            })
+            verify(task).execute(
+              check {
+                assertThat(it.context["expr"]).isEqualTo(expected)
+              }
+            )
           }
         }
       }
@@ -1577,9 +1615,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("resolves deployed server groups") {
-        verify(task).execute(check {
-          assertThat(it.context["command"]).isEqualTo("serverGroupDetails.groovy mgmttest us-west-1 spindemo-test-v008")
-        })
+        verify(task).execute(
+          check {
+            assertThat(it.context["command"]).isEqualTo("serverGroupDetails.groovy mgmttest us-west-1 spindemo-test-v008")
+          }
+        )
       }
     }
 
@@ -1617,9 +1657,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("does not overwrite the stage's parameters with the pipeline's") {
-        verify(task).execute(check {
-          assertThat(it.context["parameters"]).isEqualTo(mapOf("message" to "o hai"))
-        })
+        verify(task).execute(
+          check {
+            assertThat(it.context["parameters"]).isEqualTo(mapOf("message" to "o hai"))
+          }
+        )
       }
     }
 
@@ -1659,9 +1701,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       }
 
       it("passes the decoded expression to the task") {
-        verify(task).execute(check {
-          assertThat(it.context["expression"]).isEqualTo("bar")
-        })
+        verify(task).execute(
+          check {
+            assertThat(it.context["expression"]).isEqualTo("bar")
+          }
+        )
       }
     }
   }

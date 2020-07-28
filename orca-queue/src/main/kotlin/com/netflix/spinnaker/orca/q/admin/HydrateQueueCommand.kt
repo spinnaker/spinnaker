@@ -119,11 +119,13 @@ class HydrateQueueCommand(
 
     val leafStages = execution.stages.filter { it.downstreamStages().isEmpty() }
     if (leafStages.all { it.status.isComplete }) {
-      actions.add(Action(
-        description = "All leaf stages are complete but execution is still running",
-        message = CompleteExecution(execution),
-        context = ActionContext()
-      ))
+      actions.add(
+        Action(
+          description = "All leaf stages are complete but execution is still running",
+          message = CompleteExecution(execution),
+          context = ActionContext()
+        )
+      )
     }
 
     return ProcessedExecution(
@@ -135,17 +137,21 @@ class HydrateQueueCommand(
   private fun processStage(stage: StageExecution): List<Action> {
     if (stage.status == NOT_STARTED) {
       if (stage.allUpstreamStagesComplete()) {
-        return listOf(Action(
-          description = "Stage is not started but all upstream stages are complete",
-          message = StartStage(stage),
-          context = stage.toActionContext()
-        ))
+        return listOf(
+          Action(
+            description = "Stage is not started but all upstream stages are complete",
+            message = StartStage(stage),
+            context = stage.toActionContext()
+          )
+        )
       } else if (stage.isInitial()) {
-        return listOf(Action(
-          description = "Stage is not started but is an initial stage",
-          message = StartStage(stage),
-          context = stage.toActionContext()
-        ))
+        return listOf(
+          Action(
+            description = "Stage is not started but is an initial stage",
+            message = StartStage(stage),
+            context = stage.toActionContext()
+          )
+        )
       }
     } else if (stage.status == RUNNING) {
       val actions = mutableListOf<Action>()
@@ -164,12 +170,15 @@ class HydrateQueueCommand(
 
       if (stage.allBeforeStagesSuccessful() &&
         stage.tasks.all { it.status.isComplete } &&
-        stage.allAfterStagesSuccessful()) {
-        actions.add(Action(
-          description = "All tasks and known synthetic stages are complete",
-          message = CompleteStage(stage),
-          context = stage.toActionContext()
-        ))
+        stage.allAfterStagesSuccessful()
+      ) {
+        actions.add(
+          Action(
+            description = "All tasks and known synthetic stages are complete",
+            message = CompleteStage(stage),
+            context = stage.toActionContext()
+          )
+        )
       }
 
       return actions.toList()

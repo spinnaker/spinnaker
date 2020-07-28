@@ -55,10 +55,12 @@ class V1TemplateLoaderHandler(
     if (config.pipeline.template == null) {
       template = PipelineTemplate().apply {
         variables = config.pipeline.variables.entries.stream()
-          .map { PipelineTemplate.Variable().apply {
-            name = it.key
-            defaultValue = it.value
-          } }
+          .map {
+            PipelineTemplate.Variable().apply {
+              name = it.key
+              defaultValue = it.value
+            }
+          }
           .collect(Collectors.toList())
       }
     } else {
@@ -74,10 +76,12 @@ class V1TemplateLoaderHandler(
     val renderContext = RenderUtil.createDefaultRenderContext(template, config, trigger)
     renderTemplateVariables(renderContext, template)
 
-    context.setSchemaContext(V1PipelineTemplateContext(
-      config,
-      template
-    ))
+    context.setSchemaContext(
+      V1PipelineTemplateContext(
+        config,
+        template
+      )
+    )
   }
 
   private fun renderTemplateVariables(renderContext: RenderContext, pipelineTemplate: PipelineTemplate) {

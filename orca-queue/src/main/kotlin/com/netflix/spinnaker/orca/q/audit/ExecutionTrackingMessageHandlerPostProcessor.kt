@@ -48,17 +48,20 @@ class ExecutionTrackingMessageHandlerPostProcessor : BeanPostProcessor {
           is TaskLevel -> {
             MDC.put(
               Header.EXECUTION_ID.header,
-              "${message.executionId}:${message.stageId}:${message.taskId}")
+              "${message.executionId}:${message.stageId}:${message.taskId}"
+            )
           }
           is StageLevel -> {
             MDC.put(
               Header.EXECUTION_ID.header,
-              "${message.executionId}:${message.stageId}")
+              "${message.executionId}:${message.stageId}"
+            )
           }
           is ExecutionLevel -> {
             MDC.put(
               Header.EXECUTION_ID.header,
-              message.executionId)
+              message.executionId
+            )
           }
         }
 

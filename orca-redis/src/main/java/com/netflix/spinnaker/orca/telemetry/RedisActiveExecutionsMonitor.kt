@@ -178,11 +178,16 @@ class RedisActiveExecutionsMonitor(
     }
 
     redisClientDelegate.withCommandsClient { redis ->
-      redis.hset(redisKey, execution.id, objectMapper.writeValueAsString(ActiveExecution(
-        id = execution.id,
-        type = execution.type,
-        application = execution.application
-      )))
+      redis.hset(
+        redisKey, execution.id,
+        objectMapper.writeValueAsString(
+          ActiveExecution(
+            id = execution.id,
+            type = execution.type,
+            application = execution.application
+          )
+        )
+      )
     }
   }
 

@@ -110,15 +110,15 @@ constructor(
   @param:JsonProperty("building") override var building: Boolean = false,
   @param:JsonProperty("timestamp") val timestamp: Long?
 ) :
-    BuildInfo<JenkinsArtifact>(name, number, url, result, artifacts, scm, building) {
+  BuildInfo<JenkinsArtifact>(name, number, url, result, artifacts, scm, building) {
 
-    @JvmOverloads
-    constructor(
-      name: String,
-      number: Int,
-      url: String,
-      result: String,
-      artifacts: List<JenkinsArtifact> = emptyList(),
-      scm: List<SourceControl> = emptyList()
-    ) : this(name, number, url, result, artifacts, scm, false, null)
+  @JvmOverloads
+  constructor(
+    name: String,
+    number: Int,
+    url: String,
+    result: String,
+    artifacts: List<JenkinsArtifact> = emptyList(),
+    scm: List<SourceControl> = emptyList()
+  ) : this(name, number, url, result, artifacts, scm, false, null)
 }

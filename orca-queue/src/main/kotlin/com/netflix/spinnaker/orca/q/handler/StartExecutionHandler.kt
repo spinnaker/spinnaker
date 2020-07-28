@@ -72,17 +72,21 @@ class StartExecutionHandler(
 
   private fun start(execution: PipelineExecution) {
     if (execution.isAfterStartTimeExpiry()) {
-      log.warn("Execution (type ${execution.type}, id {}, application: {}) start was canceled because" +
-        "start time would be after defined start time expiry (now: ${clock.millis()}, expiry: ${execution.startTimeExpiry})",
+      log.warn(
+        "Execution (type ${execution.type}, id {}, application: {}) start was canceled because" +
+          "start time would be after defined start time expiry (now: ${clock.millis()}, expiry: ${execution.startTimeExpiry})",
         value("executionId", execution.id),
-        value("application", execution.application))
-      queue.push(CancelExecution(
-        execution.type,
-        execution.id,
-        execution.application,
-        "spinnaker",
-        "Could not begin execution before start time expiry"
-      ))
+        value("application", execution.application)
+      )
+      queue.push(
+        CancelExecution(
+          execution.type,
+          execution.id,
+          execution.application,
+          "spinnaker",
+          "Could not begin execution before start time expiry"
+        )
+      )
     } else {
       val initialStages = execution.initialStages()
       if (initialStages.isEmpty()) {
@@ -104,10 +108,12 @@ class StartExecutionHandler(
         queue.push(StartWaitingExecutions(it, purgeQueue = !execution.isKeepWaitingPipelines))
       }
     } else {
-      log.warn("Execution (type: ${execution.type}, id: {}, status: ${execution.status}, application: {})" +
-        " cannot be started unless state is NOT_STARTED. Ignoring StartExecution message.",
+      log.warn(
+        "Execution (type: ${execution.type}, id: {}, status: ${execution.status}, application: {})" +
+          " cannot be started unless state is NOT_STARTED. Ignoring StartExecution message.",
         value("executionId", execution.id),
-        value("application", execution.application))
+        value("application", execution.application)
+      )
     }
   }
 

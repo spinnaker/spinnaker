@@ -109,33 +109,39 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         }
 
         it("updates the task state in the stage") {
-          verify(repository).storeStage(check {
-            it.tasks.first().apply {
-              assertThat(status).isEqualTo(successfulStatus)
-              assertThat(endTime).isEqualTo(clock.millis())
+          verify(repository).storeStage(
+            check {
+              it.tasks.first().apply {
+                assertThat(status).isEqualTo(successfulStatus)
+                assertThat(endTime).isEqualTo(clock.millis())
+              }
             }
-          })
+          )
         }
 
         it("runs the next task") {
           verify(queue)
-            .push(StartTask(
-              message.executionType,
-              message.executionId,
-              message.application,
-              message.stageId,
-              "2"
-            ))
+            .push(
+              StartTask(
+                message.executionType,
+                message.executionId,
+                message.application,
+                message.stageId,
+                "2"
+              )
+            )
         }
 
         it("publishes an event") {
-          verify(publisher).publishEvent(check<TaskComplete> {
-            assertThat(it.executionType).isEqualTo(pipeline.type)
-            assertThat(it.executionId).isEqualTo(pipeline.id)
-            assertThat(it.stageId).isEqualTo(message.stageId)
-            assertThat(it.taskId).isEqualTo(message.taskId)
-            assertThat(it.status).isEqualTo(successfulStatus)
-          })
+          verify(publisher).publishEvent(
+            check<TaskComplete> {
+              assertThat(it.executionType).isEqualTo(pipeline.type)
+              assertThat(it.executionId).isEqualTo(pipeline.id)
+              assertThat(it.stageId).isEqualTo(message.stageId)
+              assertThat(it.taskId).isEqualTo(message.taskId)
+              assertThat(it.status).isEqualTo(successfulStatus)
+            }
+          )
         }
       }
 
@@ -167,22 +173,26 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         }
 
         it("updates the task state in the stage") {
-          verify(repository).storeStage(check {
-            it.tasks.last().apply {
-              assertThat(status).isEqualTo(SUCCEEDED)
-              assertThat(endTime).isEqualTo(clock.millis())
+          verify(repository).storeStage(
+            check {
+              it.tasks.last().apply {
+                assertThat(status).isEqualTo(SUCCEEDED)
+                assertThat(endTime).isEqualTo(clock.millis())
+              }
             }
-          })
+          )
         }
 
         it("emits an event to signal the stage is complete") {
           verify(queue)
-            .push(CompleteStage(
-              message.executionType,
-              message.executionId,
-              message.application,
-              message.stageId
-            ))
+            .push(
+              CompleteStage(
+                message.executionType,
+                message.executionId,
+                message.application,
+                message.stageId
+              )
+            )
         }
       }
 
@@ -223,15 +233,19 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           }
 
           it("repeats the loop") {
-            verify(queue).push(check<StartTask> {
-              assertThat(it.taskId).isEqualTo("2")
-            })
+            verify(queue).push(
+              check<StartTask> {
+                assertThat(it.taskId).isEqualTo("2")
+              }
+            )
           }
 
           it("resets the status of the loop tasks") {
-            verify(repository).storeStage(check {
-              assertThat(it.tasks[1..3].map(TaskExecution::getStatus)).allMatch { it == NOT_STARTED }
-            })
+            verify(repository).storeStage(
+              check {
+                assertThat(it.tasks[1..3].map(TaskExecution::getStatus)).allMatch { it == NOT_STARTED }
+              }
+            )
           }
 
           it("does not publish an event") {
@@ -271,21 +285,25 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       }
 
       it("updates the task state in the stage") {
-        verify(repository).storeStage(check {
-          it.tasks.first().apply {
-            assertThat(status).isEqualTo(status)
-            assertThat(endTime).isEqualTo(clock.millis())
+        verify(repository).storeStage(
+          check {
+            it.tasks.first().apply {
+              assertThat(status).isEqualTo(status)
+              assertThat(endTime).isEqualTo(clock.millis())
+            }
           }
-        })
+        )
       }
 
       it("fails the stage") {
-        verify(queue).push(CompleteStage(
-          message.executionType,
-          message.executionId,
-          message.application,
-          message.stageId
-        ))
+        verify(queue).push(
+          CompleteStage(
+            message.executionType,
+            message.executionId,
+            message.application,
+            message.stageId
+          )
+        )
       }
 
       it("does not run the next task") {
@@ -293,13 +311,15 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       }
 
       it("publishes an event") {
-        verify(publisher).publishEvent(check<TaskComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.stageId).isEqualTo(message.stageId)
-          assertThat(it.taskId).isEqualTo(message.taskId)
-          assertThat(it.status).isEqualTo(status)
-        })
+        verify(publisher).publishEvent(
+          check<TaskComplete> {
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.stageId).isEqualTo(message.stageId)
+            assertThat(it.taskId).isEqualTo(message.taskId)
+            assertThat(it.status).isEqualTo(status)
+          }
+        )
       }
     }
   }

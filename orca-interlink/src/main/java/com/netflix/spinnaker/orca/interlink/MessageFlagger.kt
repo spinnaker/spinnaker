@@ -71,13 +71,15 @@ class MessageFlagger(val clock: Clock, val props: FlaggerProperties) {
       mutex.lock()
       val matches = queue.filter { it.timestamp.isAfter(timeCutoff) && it.hash == hash }
       if (matches.count() >= props.threshold) {
-        throw MessageFlaggedException("Event '$event' with fingerprint '${event.fingerprint}' has been encountered " +
-          "${matches.count()} times in the last ${props.lookbackSeconds}s")
+        throw MessageFlaggedException(
+          "Event '$event' with fingerprint '${event.fingerprint}' has been encountered " +
+            "${matches.count()} times in the last ${props.lookbackSeconds}s"
+        )
       }
 
       queue.add(TimestampedHash(now, hash))
     } finally {
-        mutex.unlock()
+      mutex.unlock()
     }
   }
 

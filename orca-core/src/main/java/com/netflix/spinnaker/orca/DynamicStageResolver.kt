@@ -95,19 +95,19 @@ class DynamicStageResolver(
    */
   private fun validatePreferences(duplicates: Map<String, MutableList<StageDefinitionBuilder>>) {
     duplicates.forEach { duplicate ->
-        val pref = getPreference(duplicate.key)
+      val pref = getPreference(duplicate.key)
 
-        if (pref == NO_PREFERENCE) {
-          throw NoPreferenceConfigPresentException(duplicate.key)
-        }
+      if (pref == NO_PREFERENCE) {
+        throw NoPreferenceConfigPresentException(duplicate.key)
+      }
 
-        // Ensure the preference is actually valid: Is there a StageDefinitionBuilder with a matching canonical name?
-        duplicate.value.map { it.extensionClass.canonicalName }.let {
-          if (!it.contains(pref)) {
-            throw InvalidStageDefinitionBuilderPreference(duplicate.key, pref, it)
-          }
+      // Ensure the preference is actually valid: Is there a StageDefinitionBuilder with a matching canonical name?
+      duplicate.value.map { it.extensionClass.canonicalName }.let {
+        if (!it.contains(pref)) {
+          throw InvalidStageDefinitionBuilderPreference(duplicate.key, pref, it)
         }
       }
+    }
   }
 
   /**

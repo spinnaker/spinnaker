@@ -117,10 +117,12 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       }
 
       it("marks the stage as TERMINAL") {
-        verify(repository).storeStage(check {
-          assertThat(it.status).isEqualTo(TERMINAL)
-          assertThat(it.endTime).isEqualTo(clock.instant().toEpochMilli())
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(TERMINAL)
+            assertThat(it.endTime).isEqualTo(clock.instant().toEpochMilli())
+          }
+        )
       }
 
       it("cancels the stage") {
@@ -132,9 +134,11 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       }
 
       it("emits an event") {
-        verify(publisher).publishEvent(check<StageComplete> {
-          assertThat(it.status).isEqualTo(TERMINAL)
-        })
+        verify(publisher).publishEvent(
+          check<StageComplete> {
+            assertThat(it.status).isEqualTo(TERMINAL)
+          }
+        )
       }
     }
 
@@ -167,10 +171,12 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       }
 
       it("marks the stage as TERMINAL") {
-        verify(repository).storeStage(check {
-          assertThat(it.status).isEqualTo(TERMINAL)
-          assertThat(it.endTime).isEqualTo(clock.instant().toEpochMilli())
-        })
+        verify(repository).storeStage(
+          check {
+            assertThat(it.status).isEqualTo(TERMINAL)
+            assertThat(it.endTime).isEqualTo(clock.instant().toEpochMilli())
+          }
+        )
       }
 
       it("cancels the stage") {
@@ -182,9 +188,11 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       }
 
       it("emits an event") {
-        verify(publisher).publishEvent(check<StageComplete> {
-          assertThat(it.status).isEqualTo(TERMINAL)
-        })
+        verify(publisher).publishEvent(
+          check<StageComplete> {
+            assertThat(it.status).isEqualTo(TERMINAL)
+          }
+        )
       }
     }
   }

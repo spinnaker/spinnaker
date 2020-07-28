@@ -115,6 +115,7 @@ internal class PluginTestConfiguration {
   @Primary
   fun queue(clock: Clock?, publisher: EventPublisher?): Queue {
     return InMemoryQueue(
-      clock!!, Duration.ofMinutes(1), emptyList(), false, publisher!!)
+      clock!!, Duration.ofMinutes(1), emptyList(), false, publisher!!
+    )
   }
 }

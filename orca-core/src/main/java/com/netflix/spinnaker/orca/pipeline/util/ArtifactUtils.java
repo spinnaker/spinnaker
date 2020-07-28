@@ -286,8 +286,13 @@ public class ArtifactUtils {
 
   private Optional<PipelineExecution> getExecutionForPipelineId(
       String pipelineId, ExecutionCriteria criteria) {
-    return executionRepository.retrievePipelinesForPipelineConfigId(pipelineId, criteria)
-        .subscribeOn(Schedulers.io()).toList().toBlocking().single().stream()
+    return executionRepository
+        .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
+        .subscribeOn(Schedulers.io())
+        .toList()
+        .toBlocking()
+        .single()
+        .stream()
         .min(startTimeOrId);
   }
 

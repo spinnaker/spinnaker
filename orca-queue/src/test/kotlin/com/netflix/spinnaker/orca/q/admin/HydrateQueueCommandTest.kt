@@ -118,11 +118,13 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
       afterGroup(::resetMocks)
 
       on("invoking") {
-        subject.invoke(HydrateQueueInput(
-          start = Instant.ofEpochMilli(1500002000),
-          end = Instant.ofEpochMilli(1500004000),
-          dryRun = false
-        ))
+        subject.invoke(
+          HydrateQueueInput(
+            start = Instant.ofEpochMilli(1500002000),
+            end = Instant.ofEpochMilli(1500004000),
+            dryRun = false
+          )
+        )
 
         it("does nothing") {
           verifyZeroInteractions(queue)
@@ -180,9 +182,11 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         subject.invoke(HydrateQueueInput(dryRun = false))
 
         it("adds messages to the queue") {
-          verify(queue, times(1)).push(check<StartStage> {
-            assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
-          })
+          verify(queue, times(1)).push(
+            check<StartStage> {
+              assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
+            }
+          )
           verifyNoMoreInteractions(queue)
         }
       }
@@ -390,10 +394,12 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         subject.invoke(HydrateQueueInput(dryRun = false))
 
         it("adds messages to the queue") {
-          verify(queue, times(1)).push(check<StartTask> {
-            assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
-            assertThat(it.taskId).isEqualTo(pipeline.stageByRef("1").taskById("t1").id)
-          })
+          verify(queue, times(1)).push(
+            check<StartTask> {
+              assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
+              assertThat(it.taskId).isEqualTo(pipeline.stageByRef("1").taskById("t1").id)
+            }
+          )
           verifyNoMoreInteractions(queue)
         }
       }
@@ -425,9 +431,11 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         subject.invoke(HydrateQueueInput(dryRun = false))
 
         it("adds messages to the queue") {
-          verify(queue, times(1)).push(check<CompleteStage> {
-            assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
-          })
+          verify(queue, times(1)).push(
+            check<CompleteStage> {
+              assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
+            }
+          )
           verifyNoMoreInteractions(queue)
         }
       }
