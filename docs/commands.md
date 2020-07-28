@@ -133,6 +133,7 @@
  * [**hal config canary datadog account get**](#hal-config-canary-datadog-account-get)
  * [**hal config canary datadog account list**](#hal-config-canary-datadog-account-list)
  * [**hal config canary datadog disable**](#hal-config-canary-datadog-disable)
+ * [**hal config canary datadog edit**](#hal-config-canary-datadog-edit)
  * [**hal config canary datadog enable**](#hal-config-canary-datadog-enable)
  * [**hal config canary disable**](#hal-config-canary-disable)
  * [**hal config canary edit**](#hal-config-canary-edit)
@@ -2806,6 +2807,7 @@ hal config canary datadog [parameters] [subcommands]
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the Datadog service integration's canary accounts.
  * `disable`: Set Spinnaker's canary analysis Datadog service integration to disabled.
+ * `edit`: Edit Spinnaker's canary analysis Datadog service integration settings.
  * `enable`: Set Spinnaker's canary analysis Datadog service integration to enabled.
 
 ---
@@ -2927,6 +2929,22 @@ hal config canary datadog disable [parameters]
 
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog edit
+
+Edit Spinnaker's canary analysis Datadog service integration settings.
+
+#### Usage
+```
+hal config canary datadog edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--metadata-caching-interval-ms`: Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`).
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 

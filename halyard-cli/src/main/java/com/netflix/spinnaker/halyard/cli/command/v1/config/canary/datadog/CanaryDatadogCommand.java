@@ -39,6 +39,7 @@ public class CanaryDatadogCommand extends AbstractConfigCommand {
       "Configure your canary analysis Datadog service integration settings for Spinnaker.";
 
   public CanaryDatadogCommand() {
+    registerSubcommand(new EditCanaryDatadogCommand());
     registerSubcommand(
         new EnableDisableCanaryServiceIntegrationCommandBuilder()
             .setName("Datadog")

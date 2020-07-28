@@ -31,4 +31,5 @@ public class DatadogCanaryServiceIntegration
   public static final String NAME = "datadog";
 
   String name = NAME;
+  private Long metadataCachingIntervalMS;
 }
