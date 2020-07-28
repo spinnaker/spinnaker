@@ -89,13 +89,14 @@ public class LocalDiskProfileReader implements ProfileReader {
   public InputStream readArchiveProfile(String artifactName, String version, String profileName)
       throws IOException {
     version = version.substring("local:".length());
+    String fileName = profileName + ".tar.gz";
 
     try {
-      Path profilePath = Paths.get(profilePath(artifactName, version, profileName));
+      Path profilePath = Paths.get(profilePath(artifactName, version, fileName));
       return readArchiveProfileFrom(profilePath);
     } catch (IOException e) {
       log.debug("Failed to get archive profile, retrying default location", e);
-      Path profilePath = Paths.get(defaultProfilePath(artifactName, profileName));
+      Path profilePath = Paths.get(defaultProfilePath(artifactName, fileName));
       return readArchiveProfileFrom(profilePath);
     }
   }

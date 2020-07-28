@@ -42,5 +42,10 @@ class SpringProfileFactorySpec extends Specification {
         "release-1.19.x-20200503040016"       | true
         "release-1.19.x-latest-validated"     | true
         "release-1.7.x-latest-validated"      | false
+        "local:1.7.5"                         | false
+        "local:1.19.3"                        | false
+        "local:1.19.11"                       | true
+        "branch:master-20191121162350"        | false
+        "branch:master-20200503040016"        | false
     }
 }

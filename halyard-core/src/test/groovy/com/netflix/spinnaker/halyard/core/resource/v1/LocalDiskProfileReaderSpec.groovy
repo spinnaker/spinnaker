@@ -86,7 +86,7 @@ class LocalDiskProfileReaderSpec extends Specification {
             localDiskProfileReader.localBomPath = new File(".").getCanonicalPath() + "/src/test/resources/profiles"
             String artifactName = "test-artifact"
             String version = "local:test-version"
-            String profileName = "test-artifact.tar.gz"
+            String profileName = "test-artifact"
         when:
             def archiveProfileStream = localDiskProfileReader.readArchiveProfile(artifactName, version, profileName)
             TarArchiveInputStream tis
@@ -105,7 +105,7 @@ class LocalDiskProfileReaderSpec extends Specification {
             } catch (IOException e) {
                     throw new HalException(Problem.Severity.FATAL, "Failed to read profile entry", e)
             }
-            def fileInputStream =  localDiskProfileReader.readProfile(artifactName, version, profileName)
+            def fileInputStream =  localDiskProfileReader.readProfile(artifactName, version, profileName + ".tar.gz")
             def fileContents = IOUtils.toString(fileInputStream)
         then:
             tarContents == fileContents

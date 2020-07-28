@@ -71,11 +71,14 @@ public class Versions {
     }
 
     static SemVer fromString(String version) {
+      String versionExpression = version;
       if (isBranch(version)) {
         return null;
+      } else if (isLocal(version)) {
+        versionExpression = fromLocal(version);
       }
 
-      String[] parts = truncateToHyphen(version).split(Pattern.quote("."));
+      String[] parts = truncateToHyphen(versionExpression).split(Pattern.quote("."));
       if (parts.length != 3) {
         throw new IllegalArgumentException("Versions must satisfy the X.Y.Z naming convention");
       }
@@ -139,27 +142,38 @@ public class Versions {
   }
 
   public static String toMajorMinor(String fullVersion) {
-    int lastDot = fullVersion.lastIndexOf(".");
+    String version = removePrefixes(fullVersion);
+    int lastDot = version.lastIndexOf(".");
     if (lastDot < 0) {
       return null;
     }
 
-    return fullVersion.substring(0, lastDot);
+    return version.substring(0, lastDot);
   }
 
   public static String toMajorMinorPatch(String fullVersion) {
-    int lastDash = fullVersion.indexOf("-");
+    String version = removePrefixes(fullVersion);
+    int lastDash = version.indexOf("-");
     if (lastDash < 0) {
-      return fullVersion;
+      return version;
     }
 
-    return fullVersion.substring(0, lastDash);
+    return version.substring(0, lastDash);
+  }
+
+  private static String removePrefixes(String fullVersion) {
+    if (isBranch(fullVersion)) {
+      return fromBranch(fullVersion);
+    } else if (isLocal(fullVersion)) {
+      return fromLocal(fullVersion);
+    }
+    return fullVersion;
   }
 
   public static Comparator<String> orderBySemVer() {
     Comparator<SemVer> comparator = Comparator.nullsLast(SemVer.comparator());
     return Comparator.comparing(SemVer::fromString, comparator)
-        .thenComparing(Comparator.naturalOrder());
+        .thenComparing(Versions::toMajorMinorPatch, Comparator.naturalOrder());
   }
 
   public static boolean lessThan(String v1, String v2) {

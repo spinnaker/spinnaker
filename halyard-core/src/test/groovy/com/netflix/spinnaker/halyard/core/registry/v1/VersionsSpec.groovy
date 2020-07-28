@@ -24,12 +24,25 @@ class VersionsSpec extends Specification {
         Versions.lessThan(a, b) == result
 
         where:
-        a        | b                        | result
-        "1.0.0"  | "1.0.0"                  | false
-        "1.0.0"  | "1.0.1"                  | true
-        "1.0.1"  | "1.0.0"                  | false
-        "2.0.0"  | "10.0.0"                 | true
-        "1.0.0"  | "branch:upstream/master" | true
+        a              | b                        | result
+        "1.0.0"        | "1.0.0"                  | false
+        "1.0.0"        | "1.0.1"                  | true
+        "1.0.1"        | "1.0.0"                  | false
+        "2.0.0"        | "10.0.0"                 | true
+        "1.0.0"        | "branch:upstream/master" | true
+        "local:1.0.0"  | "1.0.0"                  | false
+        "1.0.0"        | "local:1.0.0"            | false
+        "local:1.0.0"  | "local:1.0.0"            | false
+        "local:1.0.0"  | "1.0.1"                  | true
+        "1.0.0"        | "local:1.0.1"            | true
+        "local:1.0.0"  | "local:1.0.1"            | true
+        "local:1.0.1"  | "1.0.0"                  | false
+        "1.0.1"        | "local:1.0.0"            | false
+        "local:1.0.1"  | "local:1.0.0"            | false
+        "local:2.0.0"  | "10.0.0"                 | true
+        "2.0.0"        | "local:10.0.0"           | true
+        "local:2.0.0"  | "10.0.0"                 | true
+        "local:1.0.0"  | "branch:upstream/master" | true
     }
 
     def "lessThan looks up to the first hyphen"() {
@@ -37,10 +50,21 @@ class VersionsSpec extends Specification {
         Versions.lessThan(a, b) == result
 
         where:
-        a              | b                        | result
-        "1.0.0-99999"  | "1.0.0-00000"            | false
-        "1.0.0-12345"  | "1.0.1-99999"            | true
-        "1.0.0-12345"  | "branch:upstream/master" | true
+        a                    | b                        | result
+        "1.0.0-99999"        | "1.0.0-00000"            | false
+        "1.0.0-00000"        | "1.0.0-99999"            | false
+        "1.0.0-12345"        | "1.0.1-99999"            | true
+        "1.0.0-12345"        | "branch:upstream/master" | true
+        "local:1.0.0-99999"  | "1.0.0-00000"            | false
+        "1.0.0-99999"        | "local:1.0.0-00000"      | false
+        "local:1.0.0-99999"  | "local:1.0.0-00000"      | false
+        "local:1.0.0-00000"  | "1.0.0-99999"            | false
+        "1.0.0-00000"        | "local:1.0.0-99999"      | false
+        "local:1.0.0-00000"  | "local:1.0.0-99999"      | false
+        "local:1.0.0-12345"  | "1.0.1-99999"            | true
+        "1.0.0-12345"        | "local:1.0.1-99999"      | true
+        "local:1.0.0-12345"  | "local:1.0.1-99999"      | true
+        "local:1.0.0-12345"  | "branch:upstream/master" | true
     }
 
     def "lessThan throws an exception for invalid versions"() {
@@ -51,34 +75,34 @@ class VersionsSpec extends Specification {
         thrown Exception
 
         where:
-        badVersion << ["1.0", "1.0.0.0", "1.a.b", "zzz"]
+        badVersion << ["1.0", "1.0.0.0", "1.a.b", "zzz", "local:foo", "local:1.0.0.0"]
     }
 
     def "orderBySemVer sorts versions"() {
         when:
-        def versions = ["1.1.0", "2.1.1", "1.1.1"]
+        def versions = ["1.1.0", "2.1.1", "local:1.1.1"]
         Collections.sort(versions, Versions.orderBySemVer());
 
         then:
-        versions == ["1.1.0", "1.1.1", "2.1.1"]
+        versions == ["1.1.0", "local:1.1.1", "2.1.1"]
     }
 
     def "orderBySemVer sorts each part as an integer"() {
         when:
-        def versions = ["2.2.2", "10.0.0", "0.10.0", "0.0.10"]
+        def versions = ["2.2.2", "local:10.0.0", "local:0.10.0", "0.0.10"]
         Collections.sort(versions, Versions.orderBySemVer())
 
         then:
-        versions == ["0.0.10", "0.10.0", "2.2.2", "10.0.0"]
+        versions == ["0.0.10", "local:0.10.0", "2.2.2", "local:10.0.0"]
     }
 
     def "orderBySemVer sorts branches to the end"() {
         when:
-        def versions = ["1.0.0", "branch:upstream/master", "1.1.0"]
+        def versions = ["local:1.0.0", "branch:upstream/master", "1.1.0"]
         Collections.sort(versions, Versions.orderBySemVer())
 
         then:
-        versions == ["1.0.0", "1.1.0", "branch:upstream/master"]
+        versions == ["local:1.0.0", "1.1.0", "branch:upstream/master"]
     }
 
     def "orderBySemVer breaks ties with string sort"() {
@@ -99,6 +123,6 @@ class VersionsSpec extends Specification {
         thrown Exception
 
         where:
-        badVersion << ["1.0", "1.0.0.0", "1.a.b", "zzz"]
+        badVersion << ["1.0", "1.0.0.0", "1.a.b", "zzz", "local:foo", "local:1.0.0.0"]
     }
 }
