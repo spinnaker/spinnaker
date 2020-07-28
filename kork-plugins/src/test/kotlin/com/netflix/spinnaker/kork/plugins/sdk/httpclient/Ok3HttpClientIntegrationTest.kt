@@ -46,13 +46,15 @@ class Ok3HttpClientIntegrationTest : JUnit5Minutests {
     }
 
     test("can read response") {
-      stubFor(get("/hello")
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("{\"message\": \"hello world!\"}")
-        ))
+      stubFor(
+        get("/hello")
+          .willReturn(
+            aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withStatus(200)
+              .withBody("{\"message\": \"hello world!\"}")
+          )
+      )
 
       expectThat(subject.get(Request("helloworld", "/hello")))
         .and {

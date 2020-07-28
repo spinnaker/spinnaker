@@ -41,7 +41,8 @@ class SpinnakerPluginDescriptor(
   version,
   requires ?: "",
   provider,
-  license) {
+  license
+) {
 
   // Jackson compatible private setter
   private fun setDependencies(dependencies: List<PluginDependency>) {
@@ -67,6 +68,7 @@ class SpinnakerPluginDescriptor(
 
   override fun hashCode(): Int {
     return Objects.hash(
-      unsafe, pluginId, pluginDescription, pluginClass, version, requires, provider, license)
+      unsafe, pluginId, pluginDescription, pluginClass, version, requires, provider, license
+    )
   }
 }

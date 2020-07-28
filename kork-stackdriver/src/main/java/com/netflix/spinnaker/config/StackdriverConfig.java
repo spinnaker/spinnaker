@@ -224,4 +224,5 @@ public class StackdriverConfig {
 
     return stackdriver;
   }
-};
+}
+;

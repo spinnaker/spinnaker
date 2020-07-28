@@ -76,16 +76,20 @@ class Front50UpdateRepository(
   }
 
   override fun getPlugin(id: String): SpinnakerPluginInfo {
-    return plugins.getOrPut(id,
+    return plugins.getOrPut(
+      id,
       {
         val response = front50Service.getById(id).execute()
         if (!response.isSuccessful) {
-          throw SystemException("Unable to get the requested plugin info `$id` from front50",
-            response.message())
+          throw SystemException(
+            "Unable to get the requested plugin info `$id` from front50",
+            response.message()
+          )
         }
 
         response.body()!!
-    })
+      }
+    )
   }
 
   override fun getFileVerifier(): FileVerifier {

@@ -40,9 +40,11 @@ class ProcessFileDownloaderTest : JUnit5Minutests {
         .and {
           get { directory().exists() }.isTrue()
           get { environment()["hello"] }.isEqualTo("world")
-          get { command() }.isEqualTo(listOf(
-            "my-downloader-script", "-s", "--foo=bar", "https://localhost/something.zip"
-          ))
+          get { command() }.isEqualTo(
+            listOf(
+              "my-downloader-script", "-s", "--foo=bar", "https://localhost/something.zip"
+            )
+          )
         }
     }
 

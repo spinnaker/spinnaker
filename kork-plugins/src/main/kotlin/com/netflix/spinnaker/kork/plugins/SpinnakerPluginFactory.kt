@@ -52,11 +52,11 @@ class SpinnakerPluginFactory(
     }
 
     return pluginClass.createWithConstructor(
-        ClassKind.PLUGIN,
-        pluginSdkFactories,
-        configFactory,
-        pluginWrapper
-      ) as Plugin?
+      ClassKind.PLUGIN,
+      pluginSdkFactories,
+      configFactory,
+      pluginWrapper
+    ) as Plugin?
   }
 
   /**
@@ -65,7 +65,8 @@ class SpinnakerPluginFactory(
   private fun Class<*>.isValidPlugin(): Boolean {
     val modifiers = modifiers
     if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers) ||
-      !Plugin::class.java.isAssignableFrom(this)) {
+      !Plugin::class.java.isAssignableFrom(this)
+    ) {
       return false
     }
     return true

@@ -69,7 +69,8 @@ class AggregatePluginInfoReleaseProviderTest : JUnit5Minutests {
   private class Fixture {
     val pluginInfoList = mutableListOf(plugin1, plugin2, plugin3, pluginNoReleases)
     val pluginInfoReleaseSources: List<PluginInfoReleaseSource> = mutableListOf(
-      FirstPluginInfoReleaseSource(), SecondPluginInfoReleaseSource(), LastPluginInfoReleaseSource())
+      FirstPluginInfoReleaseSource(), SecondPluginInfoReleaseSource(), LastPluginInfoReleaseSource()
+    )
     val pluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider = mockk(relaxed = true)
     val subject = AggregatePluginInfoReleaseProvider(pluginInfoReleaseSources, pluginLoaderStatusProvider)
   }

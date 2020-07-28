@@ -251,7 +251,8 @@ public class ConfigParams {
       }
       return credential;
     }
-  };
+  }
+  ;
 
   /** The Stackdriver namespace containing Custom Metric Descriptor types. */
   public String getCustomTypeNamespace() {
@@ -292,4 +293,5 @@ public class ConfigParams {
   public long getCounterStartTime() {
     return counterStartTime;
   }
-};
+}
+;

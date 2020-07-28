@@ -72,7 +72,8 @@ public class StackdriverWriterTest {
     public MonitoredResource peekMonitoredResource() {
       return monitoredResource;
     }
-  };
+  }
+  ;
 
   static final long START_TIME_MILLIS =
       TimeUnit.MILLISECONDS.convert(1472394000L, TimeUnit.SECONDS);
@@ -357,7 +358,8 @@ public class StackdriverWriterTest {
         found += eq ? 1 : 0;
         return eq;
       }
-    };
+    }
+    ;
 
     MatchN match200 = new MatchN(200);
     MatchN match1 = new MatchN(1);

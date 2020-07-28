@@ -32,7 +32,8 @@ import java.util.regex.Pattern
 object VersionRequirementsParser {
 
   private val SUPPORTS_PATTERN = Pattern.compile(
-    "^(?<service>[\\w\\-]+)(?<constraint>.*[><=]{1,2}[0-9]+\\.[0-9]+\\.[0-9]+.*)$")
+    "^(?<service>[\\w\\-]+)(?<constraint>.*[><=]{1,2}[0-9]+\\.[0-9]+\\.[0-9]+.*)$"
+  )
   private val CONSTRAINT_VALIDATOR = Version.valueOf("0.0.0")
 
   private const val SUPPORTS_PATTERN_SERVICE_GROUP = "service"

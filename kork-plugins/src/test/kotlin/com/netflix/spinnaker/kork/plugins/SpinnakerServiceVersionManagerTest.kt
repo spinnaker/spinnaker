@@ -31,44 +31,58 @@ class SpinnakerServiceVersionManagerTest : JUnit5Minutests {
     }
 
     test("Service version satisfies plugin requirement constraint") {
-      val satisfiedConstraint = subject.checkVersionConstraint("0.0.9",
-        "$serviceName<=1.0.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "0.0.9",
+        "$serviceName<=1.0.0"
+      )
       expectThat(satisfiedConstraint).isTrue()
     }
 
     test("Service version does not satisfies plugin requirement constraint with upper limit") {
-      val satisfiedConstraint = subject.checkVersionConstraint("1.0.1",
-        "$serviceName<=1.0.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "1.0.1",
+        "$serviceName<=1.0.0"
+      )
       expectThat(satisfiedConstraint).isFalse()
     }
 
     test("Service version does not satisfy plugin requirement constraint with lower limit") {
-      val satisfiedConstraint = subject.checkVersionConstraint("0.0.9",
-        "$serviceName>=1.0.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "0.0.9",
+        "$serviceName>=1.0.0"
+      )
       expectThat(satisfiedConstraint).isFalse()
     }
 
     test("Service version satisfy plugin requirement constraint") {
-      val satisfiedConstraint = subject.checkVersionConstraint("1.0.0",
-        "$serviceName>=1.0.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "1.0.0",
+        "$serviceName>=1.0.0"
+      )
       expectThat(satisfiedConstraint).isTrue()
     }
 
     test("Service version satisfy plugin requirement constraint range") {
-      val satisfiedConstraint = subject.checkVersionConstraint("1.0.5",
-        "$serviceName>=1.0.0 & <1.1.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "1.0.5",
+        "$serviceName>=1.0.0 & <1.1.0"
+      )
       expectThat(satisfiedConstraint).isTrue()
     }
 
     test("Service version does not satisfy plugin requirement constraint range with upper limit") {
-      val satisfiedConstraint = subject.checkVersionConstraint("1.1.0",
-        "$serviceName>=1.0.0 & <1.1.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "1.1.0",
+        "$serviceName>=1.0.0 & <1.1.0"
+      )
       expectThat(satisfiedConstraint).isFalse()
     }
 
     test("Service version does not satisfy plugin requirement constraint range with lower limit") {
-      val satisfiedConstraint = subject.checkVersionConstraint("0.0.9",
-        "$serviceName>=1.0.0 & <1.1.0")
+      val satisfiedConstraint = subject.checkVersionConstraint(
+        "0.0.9",
+        "$serviceName>=1.0.0 & <1.1.0"
+      )
       expectThat(satisfiedConstraint).isFalse()
     }
 

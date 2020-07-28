@@ -32,11 +32,14 @@ class FileDownloaderProviderTest : JUnit5Minutests {
       }
 
       test("creates the ProcessFileDownloader with custom config") {
-        expectThat(get(
-          PluginsConfigurationProperties.PluginRepositoryProperties.FileDownloaderProperties().apply {
-            className = ProcessFileDownloader::class.java.canonicalName
-            config = ProcessFileDownloaderConfig("curl -O")
-          }))
+        expectThat(
+          get(
+            PluginsConfigurationProperties.PluginRepositoryProperties.FileDownloaderProperties().apply {
+              className = ProcessFileDownloader::class.java.canonicalName
+              config = ProcessFileDownloaderConfig("curl -O")
+            }
+          )
+        )
           .isA<ProcessFileDownloader>()
           .get { config.command }.isEqualTo("curl -O")
       }

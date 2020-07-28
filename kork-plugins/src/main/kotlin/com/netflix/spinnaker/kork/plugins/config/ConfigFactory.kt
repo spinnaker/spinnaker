@@ -50,7 +50,9 @@ class ConfigFactory(
   private fun resolveConfiguration(coordinates: ConfigCoordinates, configClass: Class<*>): Any? {
     return configClass
       .let { configResolver.resolve(coordinates, it) }
-      ?: throw SystemException("Could not resolve configuration '${configClass.simpleName}' with " +
-        "coordinates '${coordinates.toPointer()}'")
+      ?: throw SystemException(
+        "Could not resolve configuration '${configClass.simpleName}' with " +
+          "coordinates '${coordinates.toPointer()}'"
+      )
   }
 }

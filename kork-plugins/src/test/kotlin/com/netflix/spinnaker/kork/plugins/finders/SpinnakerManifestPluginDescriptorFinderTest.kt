@@ -58,17 +58,19 @@ class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
     }
 
     private fun getPlugin1Manifest(): Manifest {
-      return PluginJar.createManifest(mapOf(
-        ManifestPluginDescriptorFinder.PLUGIN_ID to "pf4j.test-plugin-1",
-        ManifestPluginDescriptorFinder.PLUGIN_CLASS to TestPlugin::class.java.name,
-        ManifestPluginDescriptorFinder.PLUGIN_VERSION to "0.0.1",
-        ManifestPluginDescriptorFinder.PLUGIN_DESCRIPTION to "Test Plugin 1",
-        ManifestPluginDescriptorFinder.PLUGIN_PROVIDER to "Decebal Suiu",
-        ManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "foo.test-plugin-2,foo.test-plugin-3@~1.0",
-        ManifestPluginDescriptorFinder.PLUGIN_REQUIRES to "*",
-        ManifestPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
-        SpinnakerManifestPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
-      ))
+      return PluginJar.createManifest(
+        mapOf(
+          ManifestPluginDescriptorFinder.PLUGIN_ID to "pf4j.test-plugin-1",
+          ManifestPluginDescriptorFinder.PLUGIN_CLASS to TestPlugin::class.java.name,
+          ManifestPluginDescriptorFinder.PLUGIN_VERSION to "0.0.1",
+          ManifestPluginDescriptorFinder.PLUGIN_DESCRIPTION to "Test Plugin 1",
+          ManifestPluginDescriptorFinder.PLUGIN_PROVIDER to "Decebal Suiu",
+          ManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "foo.test-plugin-2,foo.test-plugin-3@~1.0",
+          ManifestPluginDescriptorFinder.PLUGIN_REQUIRES to "*",
+          ManifestPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
+          SpinnakerManifestPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
+        )
+      )
     }
 
     private fun storeManifestToPath(manifest: Manifest, pluginPath: Path) {

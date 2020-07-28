@@ -153,11 +153,13 @@ class DefaultSqlConfiguration {
     properties: SqlProperties
   ): DefaultConfiguration =
     DefaultConfiguration().apply {
-      set(*DefaultExecuteListenerProvider.providers(
-        JooqToSpringExceptionTransformer(),
-        JooqSqlCommentAppender(),
-        JooqSlowQueryLogger()
-      ))
+      set(
+        *DefaultExecuteListenerProvider.providers(
+          JooqToSpringExceptionTransformer(),
+          JooqSqlCommentAppender(),
+          JooqSlowQueryLogger()
+        )
+      )
       set(connectionProvider)
       setSQLDialect(properties.getDefaultConnectionPoolProperties().dialect)
     }
@@ -178,11 +180,13 @@ class DefaultSqlConfiguration {
       .values
       .first()
     val secondaryJooqConfig: DefaultConfiguration = DefaultConfiguration().apply {
-      set(*DefaultExecuteListenerProvider.providers(
-        JooqToSpringExceptionTransformer(),
-        JooqSqlCommentAppender(),
-        JooqSlowQueryLogger()
-      ))
+      set(
+        *DefaultExecuteListenerProvider.providers(
+          JooqToSpringExceptionTransformer(),
+          JooqSqlCommentAppender(),
+          JooqSlowQueryLogger()
+        )
+      )
       set(connectionProvider)
       setSQLDialect(secondaryPool.dialect)
     }

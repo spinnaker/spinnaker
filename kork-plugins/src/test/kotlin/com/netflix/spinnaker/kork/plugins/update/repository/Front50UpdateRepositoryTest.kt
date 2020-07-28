@@ -72,11 +72,11 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     val front50Url = URL("https://front50.com")
 
     val subject = Front50UpdateRepository(
-            repositoryName,
-            front50Url,
-            SimpleFileDownloader(),
-            CompoundVerifier(),
-            front50Service
+      repositoryName,
+      front50Url,
+      SimpleFileDownloader(),
+      CompoundVerifier(),
+      front50Service
     )
 
     val plugin = SpinnakerPluginInfo()

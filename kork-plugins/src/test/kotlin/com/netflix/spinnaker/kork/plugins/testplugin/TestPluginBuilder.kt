@@ -119,7 +119,8 @@ class TestPluginBuilder(
       rootDir = tempDir.toFile(),
       pluginFile = pluginFile.toFile(),
       extensionFile = extensionFile.toFile(),
-      extensionConfigFile = extensionConfigFile.toFile())
+      extensionConfigFile = extensionConfigFile.toFile()
+    )
   }
 
   private fun systemClasspath(): Iterable<File> =
@@ -150,7 +151,8 @@ class TestPluginBuilder(
     val javaFiles = sfm.getJavaFileObjects(generated.pluginFile, generated.extensionFile)
     return CompilerSetup(
       task = compiler.getTask(null, sfm, diag, null, null, javaFiles),
-      diagnostics = diag)
+      diagnostics = diag
+    )
   }
 
   private val pluginSrc =

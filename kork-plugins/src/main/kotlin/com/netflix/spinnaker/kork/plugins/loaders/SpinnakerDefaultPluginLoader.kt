@@ -34,8 +34,10 @@ class SpinnakerDefaultPluginLoader(
 
   override fun createPluginClassLoader(pluginPath: Path, pluginDescriptor: PluginDescriptor): PluginClassLoader {
     if (pluginDescriptor !is SpinnakerPluginDescriptor) {
-      log.debug("Descriptor for ${pluginDescriptor.pluginId} is not SpinnakerPluginDescriptor: " +
-        "Falling back to default behavior")
+      log.debug(
+        "Descriptor for ${pluginDescriptor.pluginId} is not SpinnakerPluginDescriptor: " +
+          "Falling back to default behavior"
+      )
       return super.createPluginClassLoader(pluginPath, pluginDescriptor)
     }
 

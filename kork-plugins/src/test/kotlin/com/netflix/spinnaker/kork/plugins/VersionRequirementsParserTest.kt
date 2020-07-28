@@ -65,10 +65,12 @@ class VersionRequirementsParserTest : JUnit5Minutests {
     }
 
     test("converts a list of requirements to a string") {
-      val result = VersionRequirementsParser.stringify(listOf(
-        VersionRequirements("clouddriver", ">1.0.0"),
-        VersionRequirements("orca", ">3.0.0")
-      ))
+      val result = VersionRequirementsParser.stringify(
+        listOf(
+          VersionRequirements("clouddriver", ">1.0.0"),
+          VersionRequirements("orca", ">3.0.0")
+        )
+      )
       expectThat(result).isEqualTo("clouddriver>1.0.0,orca>3.0.0")
     }
 

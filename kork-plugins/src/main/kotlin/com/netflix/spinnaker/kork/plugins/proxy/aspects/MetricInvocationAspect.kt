@@ -133,16 +133,21 @@ class MetricInvocationAspect(
                 Pair("pluginVersion", descriptor.version),
                 Pair("pluginExtension", target.javaClass.simpleName.toString())
               )
-              val tags = MethodInstrumentation.coalesceTags(target,
-                method, defaultTags, metered.tags)
+              val tags = MethodInstrumentation.coalesceTags(
+                target,
+                method, defaultTags, metered.tags
+              )
 
               val metricIds = MetricIds(
-                timingId = registry.createId(toMetricId(m, descriptor.pluginId, metered.metricName, TIMING), tags))
+                timingId = registry.createId(toMetricId(m, descriptor.pluginId, metered.metricName, TIMING), tags)
+              )
 
               for (mutableEntry in this.asMap()) {
                 if (mutableEntry.value.timingId.name() == metricIds.timingId.name()) {
-                  throw MethodInstrumentation.MetricNameCollisionException(target,
-                    metricIds.timingId.name(), mutableEntry.key, m)
+                  throw MethodInstrumentation.MetricNameCollisionException(
+                    target,
+                    metricIds.timingId.name(), mutableEntry.key, m
+                  )
                 }
               }
               metricIds

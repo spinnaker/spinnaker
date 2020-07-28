@@ -74,10 +74,12 @@ class Front50PluginInfoReleaseSourceTest : JUnit5Minutests {
 
       val call: Call<PinnedVersions> = mockk(relaxed = true)
       every { front50Service.pinVersions(eq("orca-v000"), eq("orca"), eq("us-west-2"), any()) } returns call
-      every { call.execute() } returns Response.success(mapOf(
-        "foo" to SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.0" },
-        "bar" to SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.1" }
-      ))
+      every { call.execute() } returns Response.success(
+        mapOf(
+          "foo" to SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.0" },
+          "bar" to SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply { version = "1.0.1" }
+        )
+      )
 
       subject.processReleases(releases)
 

@@ -65,8 +65,10 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       subject.downloadPluginReleases(releases)
 
       expect {
-        that(pluginManager.pluginsRoot.contains(
-          paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.1.zip"))
+        that(
+          pluginManager.pluginsRoot.contains(
+            paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.1.zip")
+          )
         )
       }
     }
@@ -84,8 +86,10 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       subject.downloadPluginReleases(releases)
 
       expect {
-        that(pluginManager.pluginsRoot.contains(
-          paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.2.zip"))
+        that(
+          pluginManager.pluginsRoot.contains(
+            paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.2.zip")
+          )
         )
       }
 
@@ -106,8 +110,10 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       subject.downloadPluginReleases(releases)
 
       expect {
-        that(pluginManager.pluginsRoot.contains(
-          paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.1.zip"))
+        that(
+          pluginManager.pluginsRoot.contains(
+            paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.1.zip")
+          )
         )
       }
 
@@ -134,8 +140,12 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       PluginBundleExtractor(mockk(relaxed = true))
     )
 
-    val repositories = listOf(DefaultUpdateRepository("testing",
-      paths.repository.toUri().toURL()))
+    val repositories = listOf(
+      DefaultUpdateRepository(
+        "testing",
+        paths.repository.toUri().toURL()
+      )
+    )
     val subject = SpinnakerUpdateManager(applicationEventPublisher, pluginManager, repositories)
 
     private fun setupTestPluginInfra(): TestPaths {

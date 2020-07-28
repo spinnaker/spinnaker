@@ -116,7 +116,8 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
           ExtensionInvocationProxy.proxy(
             extensionClassInstance,
             invocationAspects as List<InvocationAspect<InvocationState>>,
-            plugin.descriptor as SpinnakerPluginDescriptor)
+            plugin.descriptor as SpinnakerPluginDescriptor
+          )
         } else {
           extensionClassInstance
         }

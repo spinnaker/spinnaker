@@ -46,9 +46,11 @@ class PluginSystemTest : JUnit5Minutests {
           .withPropertyValues(
             "spring.application.name=kork"
           )
-          .withConfiguration(AutoConfigurations.of(
-            PluginsAutoConfiguration::class.java
-          ))
+          .withConfiguration(
+            AutoConfigurations.of(
+              PluginsAutoConfiguration::class.java
+            )
+          )
       }
 
       test("supports no configuration") {
@@ -120,10 +122,13 @@ class PluginSystemTest : JUnit5Minutests {
         "spring.application.name=kork",
         "spinnaker.extensibility.plugins-root-path=${pluginsDir.toAbsolutePath()}",
         "spinnaker.extensibility.plugins.${descriptor.pluginId}.enabled=true",
-        "spinnaker.extensibility.plugins.spinnaker.pluginsystemtesttestplugin.extensions.spinnaker.pluginsystemtest-test-extension.config.foo=foo")
-      .withConfiguration(AutoConfigurations.of(
-        PluginsAutoConfiguration::class.java
-      ))
+        "spinnaker.extensibility.plugins.spinnaker.pluginsystemtesttestplugin.extensions.spinnaker.pluginsystemtest-test-extension.config.foo=foo"
+      )
+      .withConfiguration(
+        AutoConfigurations.of(
+          PluginsAutoConfiguration::class.java
+        )
+      )
   }
 
   // companion to avoid generating a plugin per test case

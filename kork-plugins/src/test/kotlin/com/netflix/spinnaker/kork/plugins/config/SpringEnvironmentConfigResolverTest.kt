@@ -43,10 +43,12 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     }
 
     test("plugin config with shortened config path") {
-      expectThat(subject.resolve(
-        PluginConfigCoordinates("netflix.sweet-plugin", "some-config"),
-        TestPluginConfig::class.java
-      ))
+      expectThat(
+        subject.resolve(
+          PluginConfigCoordinates("netflix.sweet-plugin", "some-config"),
+          TestPluginConfig::class.java
+        )
+      )
         .isA<TestPluginConfig>()
         .and {
           get { somestring }.isEqualTo("overridden default")
@@ -54,10 +56,12 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     }
 
     test("plugin extension with shortened config path") {
-      expectThat(subject.resolve(
-        ExtensionConfigCoordinates("netflix.sweet-plugin", "netflix.foo"),
-        TestExtensionConfig::class.java
-      ))
+      expectThat(
+        subject.resolve(
+          ExtensionConfigCoordinates("netflix.sweet-plugin", "netflix.foo"),
+          TestExtensionConfig::class.java
+        )
+      )
         .isA<TestExtensionConfig>()
         .and {
           get { somestring }.isEqualTo("overridden default")
@@ -76,18 +80,22 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
         )
       }.isSuccess()
 
-      expectThat(subject.resolve(
-        ExtensionConfigCoordinates("netflix.sweet-plugin", "config.nonexistent"),
-        MissingNoArgConstructor::class.java
-      ))
+      expectThat(
+        subject.resolve(
+          ExtensionConfigCoordinates("netflix.sweet-plugin", "config.nonexistent"),
+          MissingNoArgConstructor::class.java
+        )
+      )
         .isA<MissingNoArgConstructor>()
     }
 
     test("plugin extension with expanded path") {
-      expectThat(subject.resolve(
-        ExtensionConfigCoordinates("netflix.very-important", "orca.stage"),
-        TestExtensionConfig::class.java
-      ))
+      expectThat(
+        subject.resolve(
+          ExtensionConfigCoordinates("netflix.very-important", "orca.stage"),
+          TestExtensionConfig::class.java
+        )
+      )
         .isA<TestExtensionConfig>()
         .and {
           get { somestring }.isEqualTo("default")
@@ -98,10 +106,12 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     }
 
     test("system extension config path") {
-      expectThat(subject.resolve(
-        SystemExtensionConfigCoordinates("netflix.bar"),
-        TestExtensionConfig::class.java
-      ))
+      expectThat(
+        subject.resolve(
+          SystemExtensionConfigCoordinates("netflix.bar"),
+          TestExtensionConfig::class.java
+        )
+      )
         .isA<TestExtensionConfig>()
         .and {
           get { somestring }.isEqualTo("default")
@@ -116,10 +126,12 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     }
 
     test("loading repository configs") {
-      expectThat(subject.resolve(
-        RepositoryConfigCoordinates(),
-        object : TypeReference<HashMap<String, PluginRepositoryProperties>>() {}
-      ))
+      expectThat(
+        subject.resolve(
+          RepositoryConfigCoordinates(),
+          object : TypeReference<HashMap<String, PluginRepositoryProperties>>() {}
+        )
+      )
         .isA<Map<String, PluginRepositoryProperties>>()
         .and {
           get { get("foo") }

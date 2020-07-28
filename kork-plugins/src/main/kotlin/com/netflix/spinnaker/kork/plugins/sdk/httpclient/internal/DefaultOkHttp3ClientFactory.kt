@@ -71,14 +71,16 @@ class DefaultOkHttp3ClientFactory(
       }
       .also {
         if (config.logging.level != LoggingLevel.NONE) {
-          it.addInterceptor(HttpLoggingInterceptor().apply {
-            level = when (config.logging.level) {
-              LoggingLevel.BASIC -> HttpLoggingInterceptor.Level.BASIC
-              LoggingLevel.HEADERS -> HttpLoggingInterceptor.Level.HEADERS
-              LoggingLevel.BODY -> HttpLoggingInterceptor.Level.BODY
-              else -> throw SystemException("Unsupported logging level: ${config.logging.level}")
+          it.addInterceptor(
+            HttpLoggingInterceptor().apply {
+              level = when (config.logging.level) {
+                LoggingLevel.BASIC -> HttpLoggingInterceptor.Level.BASIC
+                LoggingLevel.HEADERS -> HttpLoggingInterceptor.Level.HEADERS
+                LoggingLevel.BODY -> HttpLoggingInterceptor.Level.BODY
+                else -> throw SystemException("Unsupported logging level: ${config.logging.level}")
+              }
             }
-          })
+          )
         }
       }
       .build()

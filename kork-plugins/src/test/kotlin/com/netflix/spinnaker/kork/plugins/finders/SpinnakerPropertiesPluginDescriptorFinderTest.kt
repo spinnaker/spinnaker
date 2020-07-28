@@ -61,17 +61,19 @@ class SpinnakerPropertiesPluginDescriptorFinderTest : JUnit5Minutests {
     }
 
     private fun getPlugin1Properties(): Properties {
-      return PluginZip.createProperties(mapOf(
-        PropertiesPluginDescriptorFinder.PLUGIN_ID to "pf4j.test-plugin-1",
-        PropertiesPluginDescriptorFinder.PLUGIN_CLASS to TestPlugin::class.java.name,
-        PropertiesPluginDescriptorFinder.PLUGIN_VERSION to "0.0.1",
-        PropertiesPluginDescriptorFinder.PLUGIN_DESCRIPTION to "Test Plugin 1",
-        PropertiesPluginDescriptorFinder.PLUGIN_PROVIDER to "Decebal Suiu",
-        PropertiesPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "foo.test-plugin-2,foo.test-plugin-3@~1.0",
-        PropertiesPluginDescriptorFinder.PLUGIN_REQUIRES to ">=1",
-        PropertiesPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
-        SpinnakerPropertiesPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
-      ))
+      return PluginZip.createProperties(
+        mapOf(
+          PropertiesPluginDescriptorFinder.PLUGIN_ID to "pf4j.test-plugin-1",
+          PropertiesPluginDescriptorFinder.PLUGIN_CLASS to TestPlugin::class.java.name,
+          PropertiesPluginDescriptorFinder.PLUGIN_VERSION to "0.0.1",
+          PropertiesPluginDescriptorFinder.PLUGIN_DESCRIPTION to "Test Plugin 1",
+          PropertiesPluginDescriptorFinder.PLUGIN_PROVIDER to "Decebal Suiu",
+          PropertiesPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "foo.test-plugin-2,foo.test-plugin-3@~1.0",
+          PropertiesPluginDescriptorFinder.PLUGIN_REQUIRES to ">=1",
+          PropertiesPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
+          SpinnakerPropertiesPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
+        )
+      )
     }
 
     private fun storePropertiesToPath(properties: Properties, pluginPath: Path) {

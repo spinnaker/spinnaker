@@ -53,20 +53,26 @@ class LogInvocationAspect : InvocationAspect<LogInvocationState> {
     setOrRemoveMdc(Header.PLUGIN_ID.header, descriptor.pluginId)
     setOrRemoveMdc(Header.PLUGIN_EXTENSION.header, logInvocationState.extensionName)
 
-    log.trace("Invoking method={} on extension={}", logInvocationState.methodName,
-      logInvocationState.extensionName)
+    log.trace(
+      "Invoking method={} on extension={}", logInvocationState.methodName,
+      logInvocationState.extensionName
+    )
 
     return logInvocationState
   }
 
   override fun after(invocationState: LogInvocationState) {
-    log.trace("Successful execution of method={} on extension={}", invocationState.extensionName,
-      invocationState.methodName)
+    log.trace(
+      "Successful execution of method={} on extension={}", invocationState.extensionName,
+      invocationState.methodName
+    )
   }
 
   override fun error(e: InvocationTargetException, invocationState: LogInvocationState) {
-    log.error("Error invoking method={} on extension={}", invocationState.methodName,
-      invocationState.extensionName, e.cause)
+    log.error(
+      "Error invoking method={} on extension={}", invocationState.methodName,
+      invocationState.extensionName, e.cause
+    )
   }
 
   private fun setOrRemoveMdc(key: String, value: String?) {

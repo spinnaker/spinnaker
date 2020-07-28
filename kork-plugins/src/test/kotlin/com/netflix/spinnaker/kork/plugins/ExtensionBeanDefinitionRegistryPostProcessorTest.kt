@@ -123,8 +123,10 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
     val invocationAspects: List<InvocationAspect<*>> = mockk(relaxed = true)
     val pluginDescriptor: SpinnakerPluginDescriptor = mockk(relaxed = true)
 
-    val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, updateManager,
-      pluginInfoReleaseProvider, springPluginStatusProvider, applicationEventPublisher, invocationAspects)
+    val subject = ExtensionBeanDefinitionRegistryPostProcessor(
+      pluginManager, updateManager,
+      pluginInfoReleaseProvider, springPluginStatusProvider, applicationEventPublisher, invocationAspects
+    )
 
     init {
       every { extensionFactory.create(eq(FooExtension::class.java)) } returns FooExtension()

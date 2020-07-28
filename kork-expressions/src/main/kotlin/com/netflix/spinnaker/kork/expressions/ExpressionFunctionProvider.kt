@@ -89,7 +89,8 @@ interface ExpressionFunctionProvider : ExtensionPoint {
   ) {
     @Deprecated(
       "Please use the overload with description",
-      replaceWith = ReplaceWith("FunctionDefinition(name, \"\", functionParameters)"))
+      replaceWith = ReplaceWith("FunctionDefinition(name, \"\", functionParameters)")
+    )
     constructor(name: String, vararg functionParameters: FunctionParameter) :
       this(name, "", listOf(*functionParameters), null)
 

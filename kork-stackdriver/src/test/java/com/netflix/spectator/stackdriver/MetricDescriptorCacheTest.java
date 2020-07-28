@@ -66,7 +66,8 @@ public class MetricDescriptorCacheTest {
         return null; // Not Reached
       }
     }
-  };
+  }
+  ;
 
   private long millis = 12345L;
   private Clock clock =

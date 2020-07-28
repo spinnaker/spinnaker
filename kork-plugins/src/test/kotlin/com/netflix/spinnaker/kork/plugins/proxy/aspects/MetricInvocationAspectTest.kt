@@ -53,8 +53,11 @@ class MetricInvocationAspectTest : JUnit5Minutests {
           get { timingId }.isA<Id>().and {
             get { name() }.isEqualTo("$pluginId.helloWorld.timing")
             get { tags().iterator().asSequence().toList() }.isEqualTo(
-              listOf(BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
-                BasicTag("pluginVersion", pluginVersion)))
+              listOf(
+                BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
+                BasicTag("pluginVersion", pluginVersion)
+              )
+            )
           }
           get { extensionName }.isA<String>().isEqualTo(target.javaClass.simpleName.toString())
         }
@@ -69,8 +72,11 @@ class MetricInvocationAspectTest : JUnit5Minutests {
           get { timingId }.isA<Id>().and {
             get { name() }.isEqualTo("$pluginId.customId.timing")
             get { tags().iterator().asSequence().toList() }.isEqualTo(
-              listOf(BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
-                BasicTag("pluginVersion", pluginVersion)))
+              listOf(
+                BasicTag("pluginExtension", target.javaClass.simpleName.toString()),
+                BasicTag("pluginVersion", pluginVersion)
+              )
+            )
           }
           get { extensionName }.isA<String>().isEqualTo(target.javaClass.simpleName.toString())
         }

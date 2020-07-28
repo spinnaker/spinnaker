@@ -66,17 +66,20 @@ class SpringEnvironmentConfigResolver(
     }
 
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: TypeReference<T>): T =
-    resolveInternal(coordinates, {
-      // Yo, it's fine. Totally fine.
-      @Suppress("UNCHECKED_CAST")
-      val type = ((expectedType.type as ParameterizedType).rawType as Class<T>)
-      if (type.isInterface) {
-        // TODO(rz): Maybe this should be supported, but there's only one use at this point, and we can just call in
-        //  with HashMap instead of Map.
-        throw SystemConfigException("Expected type must be a concrete class, interface given")
+    resolveInternal(
+      coordinates,
+      {
+        // Yo, it's fine. Totally fine.
+        @Suppress("UNCHECKED_CAST")
+        val type = ((expectedType.type as ParameterizedType).rawType as Class<T>)
+        if (type.isInterface) {
+          // TODO(rz): Maybe this should be supported, but there's only one use at this point, and we can just call in
+          //  with HashMap instead of Map.
+          throw SystemConfigException("Expected type must be a concrete class, interface given")
+        }
+        mapper.convertValue(emptyMap<Any, Any>(), type)
       }
-      mapper.convertValue(emptyMap<Any, Any>(), type)
-    }) {
+    ) {
       mapper.readValue(it, expectedType)
     }
 

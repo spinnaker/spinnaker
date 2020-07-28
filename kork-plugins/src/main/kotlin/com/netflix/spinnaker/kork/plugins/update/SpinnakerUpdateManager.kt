@@ -75,14 +75,17 @@ class SpinnakerUpdateManager(
           // If a plugin was built without a version specified (via the Plugin-Version MANIFEST.MF
           // attribute), to be safe we always check for the configured plugin version.
           if (loadedPluginVersion == "unspecified" || pluginManager.versionManager.compareVersions(release.props.version, loadedPluginVersion) > 0) {
-            log.debug("Newer version '{}' of plugin '{}' found, deleting previous version '{}'",
-              release.props.version, release.pluginId, loadedPluginVersion)
+            log.debug(
+              "Newer version '{}' of plugin '{}' found, deleting previous version '{}'",
+              release.props.version, release.pluginId, loadedPluginVersion
+            )
             val deleted = pluginManager.deletePlugin(loadedPlugin.pluginId)
 
             if (!deleted) {
               throw IntegrationException(
                 "Unable to update plugin '${release.pluginId}' to version '${release.props.version}', " +
-                  "failed to delete previous version '$loadedPluginVersion}'")
+                  "failed to delete previous version '$loadedPluginVersion}'"
+              )
             }
           } else {
             return@release
@@ -99,7 +102,7 @@ class SpinnakerUpdateManager(
         )
 
         downloadedPlugins.add(downloadedPluginPath)
-    }
+      }
 
     return downloadedPlugins
   }
@@ -130,7 +133,8 @@ class SpinnakerUpdateManager(
     // If version is determined, check the version constraint explicitly to decide if the plugin is applicable or not.
     for (release in pluginInfo.releases) {
       if ((systemVersion == ServiceVersion.DEFAULT_VERSION && release.requires.contains(serviceName, ignoreCase = true)) ||
-          versionManager.checkVersionConstraint(systemVersion, release.requires)) {
+        versionManager.checkVersionConstraint(systemVersion, release.requires)
+      ) {
         if (lastPluginRelease[id] == null) {
           lastPluginRelease[id] = release
         } else if (versionManager.compareVersions(release.version, lastPluginRelease[id]!!.version) > 0) {
@@ -168,8 +172,10 @@ class SpinnakerUpdateManager(
         throw PluginRuntimeException(e, "Failed to write file '{}' to plugins folder", file)
       }
     } else {
-      throw UnsupportedOperationException("This operation is only supported on the specified " +
-        "plugins root directory.")
+      throw UnsupportedOperationException(
+        "This operation is only supported on the specified " +
+          "plugins root directory."
+      )
     }
   }
 
