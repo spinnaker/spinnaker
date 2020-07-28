@@ -254,6 +254,8 @@ public class ConcourseService implements BuildOperations, BuildProperties {
 
     if (!resources.isEmpty()) {
       setResourceMetadata(buildId, resources);
+    } else {
+      log.warn("No resources retrieved for buildId: {}", buildId);
     }
 
     return resources.values();

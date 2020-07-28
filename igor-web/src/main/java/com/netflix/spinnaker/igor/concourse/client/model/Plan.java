@@ -16,76 +16,55 @@
 
 package com.netflix.spinnaker.igor.concourse.client.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import java.util.Map.Entry;
+import java.util.stream.StreamSupport;
 import lombok.Data;
-import lombok.Setter;
 
 @Data
 public class Plan {
-  private InnerPlan plan;
-
-  @Data
-  public static class InnerPlan {
-    @JsonAlias("do")
-    private List<Op> does;
-
-    @Nullable private OnFailure onFailure;
-  }
-
-  @Setter
-  public static class Op {
-    private String id;
-
-    @Nullable private ResourceShape get;
-
-    @Nullable private ResourceShape put;
-
-    @Nullable private OnSuccess onSuccess;
-
-    @Nullable
-    public Resource getResource() {
-      String resourceId = id;
-      ResourceShape shape = get;
-      if (shape == null && onSuccess != null) {
-        shape = onSuccess.getStep().put;
-        resourceId = onSuccess.getStep().id;
-      }
-      if (shape == null) {
-        return null;
-      }
-      return new Resource(resourceId, shape.getName(), shape.getType());
-    }
-  }
-
-  @Data
-  private static class ResourceShape {
-    private String type;
-    private String name;
-  }
-
-  @Data
-  private static class OnSuccess {
-    private Op step;
-  }
-
-  @Data
-  private static class OnFailure {
-    private InnerPlan step;
-  }
+  private ObjectNode plan;
 
   public List<Resource> getResources() {
-    return Optional.ofNullable(plan.getOnFailure())
-        .map(OnFailure::getStep)
-        .map(InnerPlan::getDoes)
-        .orElse(plan.getDoes())
-        .stream()
-        .map(Op::getResource)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    return getResources(plan);
+  }
+
+  private List<Resource> getResources(ObjectNode o) {
+    if (o.hasNonNull("id")) {
+      if (o.hasNonNull("get")) {
+        return Collections.singletonList(parseResource(o.get("id").asText(), o.get("get")));
+      }
+      if (o.hasNonNull("put")) {
+        return Collections.singletonList(parseResource(o.get("id").asText(), o.get("put")));
+      }
+    }
+
+    List<Resource> res = new ArrayList<>();
+
+    Iterator<Entry<String, JsonNode>> fields = o.fields();
+    while (fields.hasNext()) {
+      Entry<String, JsonNode> f = fields.next();
+
+      if (f.getValue().isArray()) {
+        StreamSupport.stream(f.getValue().spliterator(), false)
+            .filter(JsonNode::isObject)
+            .map(jsonNode -> getResources((ObjectNode) jsonNode))
+            .forEach(res::addAll);
+
+      } else if (f.getValue().isObject()) {
+        res.addAll(getResources((ObjectNode) f.getValue()));
+      }
+    }
+
+    return res;
+  }
+
+  private Resource parseResource(String id, JsonNode res) {
+    return new Resource(id, res.get("name").asText(), res.get("type").asText());
   }
 }
