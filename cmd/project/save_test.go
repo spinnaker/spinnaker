@@ -21,8 +21,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-
-	// "os"
 	"strings"
 	"testing"
 
@@ -210,6 +208,7 @@ const testAppTaskRefJsonStr = `
  "ref": "/tasks/id"
 }
 `
+
 const testProjectTaskStatusJsonStr = `
 {
  "status": "SUCCEEDED"

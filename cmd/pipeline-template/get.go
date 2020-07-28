@@ -75,7 +75,6 @@ func getPipelineTemplate(cmd *cobra.Command, options *getOptions, args []string)
 
 	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context,
 		id, queryParams)
-
 	if err != nil {
 		return err
 	}

@@ -54,7 +54,6 @@ func NewListCmd(pipelineTemplateOptions *pipelineTemplateOptions) *cobra.Command
 func listPipelineTemplate(cmd *cobra.Command, options *listOptions) error {
 	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.ListUsingGET1(options.GateClient.Context,
 		map[string]interface{}{"scopes": options.scopes})
-
 	if err != nil {
 		return err
 	}

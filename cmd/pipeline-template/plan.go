@@ -63,7 +63,6 @@ func planPipelineTemplate(cmd *cobra.Command, options *planOptions) error {
 	}
 
 	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.PlanUsingPOST(options.GateClient.Context, configJson)
-
 	if err != nil {
 		return err
 	}

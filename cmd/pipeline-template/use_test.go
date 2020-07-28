@@ -26,10 +26,12 @@ import (
 	"github.com/spinnaker/spin/util"
 )
 
-var testAppName = "test-application"
-var testPipelineName = "test-pipeline"
-var testDescription = "test-description"
-var testVariables = "one=1,two=2,three=3,four=4"
+var (
+	testAppName      = "test-application"
+	testPipelineName = "test-pipeline"
+	testDescription  = "test-description"
+	testVariables    = "one=1,two=2,three=3,four=4"
+)
 
 func TestPipelineTemplateUse_basic(t *testing.T) {
 	ts := testGateVersionSuccess()

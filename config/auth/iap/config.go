@@ -14,7 +14,7 @@
 
 package config
 
-//Config mapping to the config file for IAP
+// Config mapping to the config file for IAP
 type Config struct {
 	OAuthClientId         string `yaml:"oauthClientId"`
 	OAuthClientSecret     string `yaml:"oauthClientSecret"`

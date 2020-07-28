@@ -54,7 +54,6 @@ func NewListCmd(canaryConfigOptions *canaryConfigOptions) *cobra.Command {
 func listCanaryConfig(cmd *cobra.Command, options *listOptions) error {
 	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigsUsingGET(
 		options.GateClient.Context, map[string]interface{}{"application": options.application})
-
 	if err != nil {
 		return err
 	}

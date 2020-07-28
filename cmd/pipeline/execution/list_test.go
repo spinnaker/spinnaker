@@ -42,7 +42,6 @@ func TestExecutionList_basic(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
-
 }
 
 func TestExecutionList_flags(t *testing.T) {

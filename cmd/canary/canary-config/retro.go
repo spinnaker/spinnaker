@@ -50,9 +50,7 @@ const (
 	retroTemplateLong  = "Retro the provided canary config"
 )
 
-var (
-	retrySleepCycle = 6 * time.Second
-)
+var retrySleepCycle = 6 * time.Second
 
 func NewRetroCmd(canaryConfigOptions *canaryConfigOptions) *cobra.Command {
 	options := &retroOptions{

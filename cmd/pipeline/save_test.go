@@ -159,6 +159,7 @@ func TestPipelineSave_accessdenied(t *testing.T) {
 		t.Fatalf("Command failed with: %s", err)
 	}
 }
+
 func TestPipelineSave_flags(t *testing.T) {
 	ts := testGateSuccess()
 	defer ts.Close()

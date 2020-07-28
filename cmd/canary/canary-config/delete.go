@@ -57,7 +57,6 @@ func deleteCanaryConfig(cmd *cobra.Command, options *deleteOptions, args []strin
 
 	resp, err := options.GateClient.V2CanaryConfigControllerApi.DeleteCanaryConfigUsingDELETE(
 		options.GateClient.Context, id, map[string]interface{}{})
-
 	if err != nil {
 		return err
 	}

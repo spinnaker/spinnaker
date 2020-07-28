@@ -23,7 +23,7 @@ type RootOptions struct {
 	GateClient *gateclient.GatewayClient
 }
 
-//TODO(karlkfi): Pipe stdin reader through NewCmdRoot for testing
+// TODO(karlkfi): Pipe stdin reader through NewCmdRoot for testing
 func NewCmdRoot(outWriter, errWriter io.Writer) (*cobra.Command, *RootOptions) {
 	options := &RootOptions{}
 

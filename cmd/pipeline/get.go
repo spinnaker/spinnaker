@@ -61,7 +61,6 @@ func getPipeline(cmd *cobra.Command, options *getOptions) error {
 	successPayload, resp, err := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context,
 		options.application,
 		options.name)
-
 	if err != nil {
 		return err
 	}

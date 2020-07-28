@@ -58,7 +58,6 @@ func cancelExecution(cmd *cobra.Command, options *cancelOptions, args []string) 
 	resp, err := options.GateClient.PipelineControllerApi.CancelPipelineUsingPUT1(options.GateClient.Context,
 		executionId,
 		map[string]interface{}{})
-
 	if err != nil {
 		return err
 	}

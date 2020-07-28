@@ -16,6 +16,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -25,8 +26,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"context"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -38,10 +37,8 @@ const (
 	serverStateTokenLen = 60
 )
 
-var (
-	// Configure the default request scopes, this can be overriden
-	oauthScopes = []string{oauthEmailScope}
-)
+// Configure the default request scopes, this can be overriden
+var oauthScopes = []string{oauthEmailScope}
 
 // Creates a new iapOAuthResponse object
 type iapOAuthResponse struct {
@@ -72,7 +69,6 @@ func (o *oauthReceiver) killWhenReady(n net.Conn, s http.ConnState) {
 
 // NewOAuthConfig creates a new OAuth config
 func (o *oauthReceiver) NewOAuthConfig() *oauth2.Config {
-
 	return &oauth2.Config{
 		ClientID:     o.clientId,
 		ClientSecret: o.clientSecret,
@@ -188,7 +184,7 @@ func RequestIapIDToken(token string, clientId string, clientSecret string, iapCl
 	}
 
 	// Create a one time response struct
-	var oauthResponse = &iapOAuthResponse{}
+	oauthResponse := &iapOAuthResponse{}
 	// Decode the response
 	err = json.NewDecoder(resp.Body).Decode(&oauthResponse)
 	if err != nil {

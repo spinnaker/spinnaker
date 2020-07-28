@@ -107,7 +107,6 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 		options.application,
 		options.name,
 		map[string]interface{}{"trigger": trigger})
-
 	if err != nil {
 		return fmt.Errorf("Execute pipeline failed with response: %v and error: %s\n", resp, err)
 	}

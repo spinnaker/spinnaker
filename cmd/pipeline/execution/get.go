@@ -60,7 +60,6 @@ func getExecution(cmd *cobra.Command, options *getOptions, args []string) error 
 
 	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIdsUsingGET(
 		options.GateClient.Context, query)
-
 	if err != nil {
 		return err
 	}
