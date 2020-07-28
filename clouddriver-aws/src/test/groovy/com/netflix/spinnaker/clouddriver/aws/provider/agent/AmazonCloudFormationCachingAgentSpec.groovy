@@ -262,4 +262,85 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     def onDemand = results.cacheResult.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set
     expected == onDemand
   }
+
+  void "should paginate through all stacks"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResultFirstPage = Mock(DescribeStacksResult)
+    def stackResultSecondPage = Mock(DescribeStacksResult)
+    def stack1 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
+    def stack2 = new Stack().withStackId("stack2").withStackStatus("CREATE_SUCCESS")
+    def stackChangeSetsResult = Mock(ListChangeSetsResult)
+    def nextPageToken = "test pagination token"
+
+    when:
+    def cache = agent.loadData(providerCache)
+    def results = cache.cacheResults[Keys.Namespace.STACKS.ns]
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+
+    // first page returns stack1
+    1 * amazonCloudFormation.describeStacks({ it.getNextToken() == null }) >> stackResultFirstPage
+    1 * stackResultFirstPage.stacks >> [stack1]
+    2 * stackResultFirstPage.getNextToken() >> nextPageToken
+
+    // second page returns stack2 and is the last one
+    1 * amazonCloudFormation.describeStacks({ it.getNextToken() == nextPageToken }) >> stackResultSecondPage
+    1 * stackResultSecondPage.stacks >> [stack2]
+    1 * stackResultSecondPage.getNextToken() >> null
+
+    // there are no ChangeSets
+    2 * amazonCloudFormation.listChangeSets(_) >> stackChangeSetsResult
+    2 * stackChangeSetsResult.getSummaries() >> new ArrayList()
+
+    results.size() == 2
+    results.find { it.id == Keys.getCloudFormationKey("stack1", "region", "accountName") }.attributes.'stackId' == stack1.stackId
+    results.find { it.id == Keys.getCloudFormationKey("stack2", "region", "accountName") }.attributes.'stackId' == stack2.stackId
+  }
+
+  void "should paginate through all changesets"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResult = Mock(DescribeStacksResult)
+    def stack = new Stack().withStackId("stack").withStackStatus("CREATE_SUCCESS")
+    def stackChangeSetsResultFirstPage = Mock(ListChangeSetsResult)
+    def stackChangeSetsResultSecondPage = Mock(ListChangeSetsResult)
+    def changeSet1 = new ChangeSetSummary().withChangeSetName("changeSet1")
+    def changeSet2 = new ChangeSetSummary().withChangeSetName("changeSet2")
+    def describeChangeSetResult = Mock(DescribeChangeSetResult)
+    def change = new Change().withType("type")
+    def nextPageToken = "test pagination token"
+
+    when:
+    def cache = agent.loadData(providerCache)
+    def results = cache.cacheResults[Keys.Namespace.STACKS.ns]
+    def cachedStack = results.find {
+      it.id == Keys.getCloudFormationKey("stack", "region", "accountName")
+    }
+    def cachedChangeSets = cachedStack.attributes.'changeSets'
+
+    then:
+    1 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    1 * amazonCloudFormation.describeStacks(_) >> stackResult
+    1 * stackResult.stacks >> [stack]
+
+    // first page returns changeSet1
+    1 * amazonCloudFormation.listChangeSets({ it.getNextToken() == null }) >> stackChangeSetsResultFirstPage
+    1 * stackChangeSetsResultFirstPage.getSummaries() >> [changeSet1]
+    2 * stackChangeSetsResultFirstPage.getNextToken() >> nextPageToken
+
+    // second page returns changeSet2 and is the last one
+    1 * amazonCloudFormation.listChangeSets({ it.getNextToken() == nextPageToken }) >> stackChangeSetsResultSecondPage
+    1 * stackChangeSetsResultSecondPage.getSummaries() >> [changeSet2]
+    1 * stackChangeSetsResultSecondPage.getNextToken() >> null
+
+    // return a Change for each ChangeSet
+    2 * amazonCloudFormation.describeChangeSet(_) >> describeChangeSetResult
+    2 * describeChangeSetResult.getChanges() >> [change]
+
+    cachedChangeSets.size() == 2
+    cachedChangeSets.any { it.name == changeSet1.getChangeSetName() }
+    cachedChangeSets.any { it.name == changeSet2.getChangeSetName() }
+  }
 }
