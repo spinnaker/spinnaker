@@ -60,7 +60,7 @@
     "es-to-primitive": "1.2.1",
     "formik": "^1.4.1",
     "human-readable-ids": "^1.0.4",
-    "jquery": "3.5.0",
+    "jquery": "3.5.1",
     "jquery-textcomplete": "1.6.1",
     "jquery-ui": "1.12.0",
     "js-worker-search": "^1.2.1",
