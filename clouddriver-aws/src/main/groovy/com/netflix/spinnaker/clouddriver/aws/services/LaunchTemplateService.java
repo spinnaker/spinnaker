@@ -114,6 +114,8 @@ public class LaunchTemplateService {
             .account(settings.getAccount())
             .environment(settings.getEnvironment())
             .accountType(settings.getAccountType())
+            .iamRole(settings.getIamRole())
+            .imageId(settings.getAmi())
             .build();
 
     request.withUserData(

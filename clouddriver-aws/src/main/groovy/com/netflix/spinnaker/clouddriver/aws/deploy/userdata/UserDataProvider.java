@@ -81,6 +81,8 @@ public interface UserDataProvider {
     String accountType;
     Boolean launchTemplate;
     Boolean legacyUdf;
+    String iamRole;
+    String imageId;
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class UserDataRequestBuilder {}
