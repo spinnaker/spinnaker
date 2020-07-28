@@ -618,8 +618,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     Set<String> healthyConsulInstances =
         consulEnabled
-            ? getConsulServerService().connectToPrimaryService(details, runtimeSettings)
-                .serviceHealth(getService().getCanonicalName(), true).stream()
+            ? getConsulServerService()
+                .connectToPrimaryService(details, runtimeSettings)
+                .serviceHealth(getService().getCanonicalName(), true)
+                .stream()
                 .map(s -> s != null && s.getNode() != null ? s.getNode().getNodeName() : null)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet())
