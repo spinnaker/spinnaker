@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.repository;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.artifactory.ArtifactoryCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.nexus.NexusCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -37,6 +38,7 @@ public class RepositoryCommand extends NestableCommand {
 
   public RepositoryCommand() {
     registerSubcommand(new ArtifactoryCommand());
+    registerSubcommand(new NexusCommand());
   }
 
   @Override

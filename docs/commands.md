@@ -545,6 +545,15 @@
  * [**hal config repository artifactory search edit**](#hal-config-repository-artifactory-search-edit)
  * [**hal config repository artifactory search get**](#hal-config-repository-artifactory-search-get)
  * [**hal config repository artifactory search list**](#hal-config-repository-artifactory-search-list)
+ * [**hal config repository nexus**](#hal-config-repository-nexus)
+ * [**hal config repository nexus disable**](#hal-config-repository-nexus-disable)
+ * [**hal config repository nexus enable**](#hal-config-repository-nexus-enable)
+ * [**hal config repository nexus search**](#hal-config-repository-nexus-search)
+ * [**hal config repository nexus search add**](#hal-config-repository-nexus-search-add)
+ * [**hal config repository nexus search delete**](#hal-config-repository-nexus-search-delete)
+ * [**hal config repository nexus search edit**](#hal-config-repository-nexus-search-edit)
+ * [**hal config repository nexus search get**](#hal-config-repository-nexus-search-get)
+ * [**hal config repository nexus search list**](#hal-config-repository-nexus-search-list)
  * [**hal config security**](#hal-config-security)
  * [**hal config security api**](#hal-config-security-api)
  * [**hal config security api edit**](#hal-config-security-api-edit)
@@ -10606,6 +10615,7 @@ hal config repository [subcommands]
 
 #### Subcommands
  * `artifactory`: Manage and view Spinnaker configuration for the artifactory repository
+ * `nexus`: Manage and view Spinnaker configuration for the nexus repository
 
 ---
 ## hal config repository artifactory
@@ -10770,6 +10780,174 @@ List the search names for artifactory.
 #### Usage
 ```
 hal config repository artifactory search list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository nexus
+
+Manage and view Spinnaker configuration for the nexus repository
+
+#### Usage
+```
+hal config repository nexus [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the nexus repository as disabled
+ * `enable`: Set the nexus repository as enabled
+ * `search`: Manage and view Spinnaker configuration for the nexus repository services's search
+
+---
+## hal config repository nexus disable
+
+Set the nexus repository as disabled
+
+#### Usage
+```
+hal config repository nexus disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository nexus enable
+
+Set the nexus repository as enabled
+
+#### Usage
+```
+hal config repository nexus enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository nexus search
+
+Manage and view Spinnaker configuration for the nexus repository services's search
+
+#### Usage
+```
+hal config repository nexus search SEARCH [parameters] [subcommands]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a search for the nexus repository service.
+ * `delete`: Delete a specific nexus search by name.
+ * `edit`: Edit a search for the nexus repository service.
+ * `get`: Get the specified search details for nexus.
+ * `list`: List the search names for nexus.
+
+---
+## hal config repository nexus search add
+
+Add a search for the nexus repository service.
+
+#### Usage
+```
+hal config repository nexus search add SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--base-url`: (*Required*) The base url your nexus search is reachable at.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--nodeId`: The optional node ID for the repo in your nexus to be searched. Used when repo name is ambiguous.
+ * `--password`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The password of the nexus user to authenticate as.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this build search or use it as a trigger source.
+ * `--repo`: (*Required*) The repo in your nexus to be searched.
+ * `--username`: (*Required*) The username of the nexus user to authenticate as.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to be able to run jobs on this build search.
+
+
+---
+## hal config repository nexus search delete
+
+Delete a specific nexus search by name.
+
+#### Usage
+```
+hal config repository nexus search delete SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository nexus search edit
+
+Edit a search for the nexus repository service.
+
+#### Usage
+```
+hal config repository nexus search edit SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--add-read-permission`: Add this permission to the list of read permissions.
+ * `--add-write-permission`: Add this permission to the list of write permissions.
+ * `--base-url`: The base url your nexus search is reachable at.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--nodeId`: The optional node ID for the repo in your nexus to be searched. Used when repo name is ambiguous.
+ * `--password`: The password of the nexus user to authenticate as.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this build search or use it as a trigger source.
+ * `--remove-read-permission`: Remove this permission from the list of read permissions.
+ * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--repo`: The repo in your nexus to be searched.
+ * `--username`: The username of the nexus user to authenticate as.
+ * `--write-permissions`: A user must have at least one of these roles in order to be able to run jobs on this build search.
+
+
+---
+## hal config repository nexus search get
+
+Get the specified search details for nexus.
+
+#### Usage
+```
+hal config repository nexus search get SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository nexus search list
+
+List the search names for nexus.
+
+#### Usage
+```
+hal config repository nexus search list [parameters]
 ```
 
 #### Parameters
