@@ -172,8 +172,8 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   }
 
   private void validateCacheThreads(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
-    if (account.getCacheThreads() < 1) {
-      psBuilder.addProblem(ERROR, "\"cacheThreads\" should be greater or equal to 1.");
+    if (account.getCacheThreads() < 0) {
+      psBuilder.addProblem(ERROR, "\"cacheThreads\" should be greater or equal to 0.");
     }
   }
 
