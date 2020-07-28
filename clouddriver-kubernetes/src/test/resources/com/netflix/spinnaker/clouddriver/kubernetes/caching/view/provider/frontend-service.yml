@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: frontend-ns
+    artifact.spinnaker.io/name: frontend
+    artifact.spinnaker.io/type: kubernetes/service
+    moniker.spinnaker.io/application: frontendapp
+    moniker.spinnaker.io/cluster: service frontend
+  creationTimestamp: "2020-07-24T18:41:17Z"
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: frontendapp
+  name: frontend
+  namespace: frontend-ns
+  resourceVersion: "84005141"
+  selfLink: /api/v1/namespaces/frontend-ns/services/frontend
+  uid: d7045409-18dc-4889-9b07-6126b0357435
+spec:
+  clusterIP: 10.117.5.201
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    load-balancer: frontend
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

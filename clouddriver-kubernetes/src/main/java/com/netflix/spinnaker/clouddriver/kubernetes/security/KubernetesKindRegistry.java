@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @NonnullByDefault
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
-final class KubernetesKindRegistry {
+public final class KubernetesKindRegistry {
   private final Map<KubernetesKind, KubernetesKindProperties> kindMap = new ConcurrentHashMap<>();
   private final GlobalKubernetesKindRegistry globalKindRegistry;
   private final Function<KubernetesKind, Optional<KubernetesKindProperties>> crdLookup;
@@ -109,7 +109,7 @@ final class KubernetesKindRegistry {
   public static class Factory {
     private final GlobalKubernetesKindRegistry globalKindRegistry;
 
-    Factory(GlobalKubernetesKindRegistry globalKindRegistry) {
+    public Factory(GlobalKubernetesKindRegistry globalKindRegistry) {
       this.globalKindRegistry = globalKindRegistry;
     }
 

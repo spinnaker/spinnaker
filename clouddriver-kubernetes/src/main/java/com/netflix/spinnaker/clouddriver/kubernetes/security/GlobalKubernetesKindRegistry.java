@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @NonnullByDefault
-final class GlobalKubernetesKindRegistry {
+public final class GlobalKubernetesKindRegistry {
   private final ImmutableMap<KubernetesKind, KubernetesKindProperties> nameMap;
 
   /**
@@ -44,7 +44,7 @@ final class GlobalKubernetesKindRegistry {
    * KubernetesKindProperties}.
    */
   @Autowired
-  GlobalKubernetesKindRegistry() {
+  public GlobalKubernetesKindRegistry() {
     this(KubernetesKindProperties.getGlobalKindProperties());
   }
 
@@ -52,7 +52,7 @@ final class GlobalKubernetesKindRegistry {
    * Creates a {@link GlobalKubernetesKindRegistry} populated with the supplied {@link
    * KubernetesKindProperties}.
    */
-  GlobalKubernetesKindRegistry(Iterable<KubernetesKindProperties> kubernetesKindProperties) {
+  public GlobalKubernetesKindRegistry(Iterable<KubernetesKindProperties> kubernetesKindProperties) {
     this.nameMap =
         StreamSupport.stream(kubernetesKindProperties.spliterator(), false)
             .collect(toImmutableMap(KubernetesKindProperties::getKubernetesKind, p -> p));
