@@ -75,7 +75,7 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
         ))}
       <div className="nav-section clickable">
         <div className="page-category flex-container-h middle text-semibold" onClick={pageApplicationOwner}>
-          <div className="nav-item sp-margin-xs-right">
+          <div className="nav-row-item sp-margin-xs-right">
             {!isExpanded ? (
               <Tooltip value="Page App Owner" placement="right">
                 <div>
