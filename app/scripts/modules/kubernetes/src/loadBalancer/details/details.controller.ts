@@ -1,11 +1,10 @@
-import { copy, IController, IScope, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
-import { Application, ILoadBalancer, IManifest } from '@spinnaker/core';
+import { Application, ILoadBalancer, IManifest, ManifestReader } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from './IKubernetesLoadBalancer';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 
@@ -18,7 +17,6 @@ interface ILoadBalancerFromStateParams {
 class KubernetesLoadBalancerDetailsController implements IController {
   public state = { loading: true };
   public manifest: IManifest;
-  private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IKubernetesLoadBalancer;
 
   public static $inject = ['$uibModal', '$state', '$scope', 'loadBalancer', 'app'];
@@ -29,25 +27,14 @@ class KubernetesLoadBalancerDetailsController implements IController {
     loadBalancer: ILoadBalancerFromStateParams,
     private app: Application,
   ) {
-    this.loadBalancerFromParams = loadBalancer;
-    this.app
-      .getDataSource('loadBalancers')
+    const dataSource = this.app.getDataSource('loadBalancers');
+    dataSource
       .ready()
       .then(() => {
-        this.extractLoadBalancer();
-        const unsubscribe = KubernetesManifestService.makeManifestRefresher(
-          this.app,
-          {
-            account: this.loadBalancerFromParams.accountId,
-            location: this.loadBalancerFromParams.region,
-            name: this.loadBalancerFromParams.name,
-          },
-          this,
-        );
-        this.$scope.$on('$destroy', () => {
-          unsubscribe();
-        });
-      });
+        this.extractLoadBalancer(loadBalancer);
+        dataSource.onRefresh(this.$scope, () => this.extractLoadBalancer(loadBalancer));
+      })
+      .catch(() => this.autoClose());
   }
 
   public deleteLoadBalancer(): void {
@@ -57,9 +44,9 @@ class KubernetesLoadBalancerDetailsController implements IController {
       controllerAs: 'ctrl',
       resolve: {
         coordinates: {
-          name: this.loadBalancerFromParams.name,
-          namespace: this.loadBalancerFromParams.region,
-          account: this.loadBalancerFromParams.accountId,
+          name: this.loadBalancer.name,
+          namespace: this.loadBalancer.namespace,
+          account: this.loadBalancer.account,
         },
         application: this.app,
         manifestController: (): string => null,
@@ -70,7 +57,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
   public editLoadBalancer(): void {
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.app,
-      this.loadBalancer.manifest,
+      this.manifest.manifest,
       this.loadBalancer.moniker,
       this.loadBalancer.account,
     ).then(builtCommand => {
@@ -78,27 +65,25 @@ class KubernetesLoadBalancerDetailsController implements IController {
     });
   }
 
-  private extractLoadBalancer(): void {
+  private extractLoadBalancer({ accountId, name, region }: ILoadBalancerFromStateParams): void {
     const rawLoadBalancer = this.app.getDataSource('loadBalancers').data.find((test: ILoadBalancer) => {
-      return (
-        test.name === this.loadBalancerFromParams.name &&
-        test.account === this.loadBalancerFromParams.accountId &&
-        test.region === this.loadBalancerFromParams.region
-      );
+      return test.name === name && test.account === accountId && test.region === region;
     });
 
-    if (rawLoadBalancer) {
-      this.state.loading = false;
-      this.loadBalancer = copy(rawLoadBalancer) as IKubernetesLoadBalancer;
-      this.loadBalancer.namespace = rawLoadBalancer.region;
-      this.loadBalancer.displayName = rawLoadBalancer.manifest.metadata.name;
-      this.loadBalancer.kind = rawLoadBalancer.manifest.kind;
-      this.loadBalancer.apiVersion = rawLoadBalancer.manifest.apiVersion;
-
-      this.app.getDataSource('loadBalancers').onRefresh(this.$scope, () => this.extractLoadBalancer());
-    } else {
-      this.autoClose();
+    if (!rawLoadBalancer) {
+      return this.autoClose();
     }
+
+    ManifestReader.getManifest(accountId, region, name).then((manifest: IManifest) => {
+      this.manifest = manifest;
+      this.loadBalancer = {
+        ...rawLoadBalancer,
+        apiVersion: manifest.manifest.apiVersion,
+        displayName: manifest.manifest.metadata.name,
+        namespace: rawLoadBalancer.region,
+      };
+      this.state.loading = false;
+    });
   }
 
   private autoClose(): void {

@@ -2,7 +2,14 @@ import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
-import { Application, ISecurityGroupDetail, SECURITY_GROUP_READER, SecurityGroupReader } from '@spinnaker/core';
+import {
+  Application,
+  IManifest,
+  ISecurityGroupDetail,
+  ManifestReader,
+  SECURITY_GROUP_READER,
+  SecurityGroupReader,
+} from '@spinnaker/core';
 
 import { IKubernetesSecurityGroup } from './IKubernetesSecurityGroup';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
@@ -16,8 +23,8 @@ interface ISecurityGroupFromStateParams {
 
 class KubernetesSecurityGroupDetailsController implements IController {
   public state = { loading: true };
-  private securityGroupFromParams: ISecurityGroupFromStateParams;
   public securityGroup: IKubernetesSecurityGroup;
+  public manifest: IManifest;
 
   public static $inject = ['$uibModal', '$state', '$scope', 'securityGroupReader', 'resolvedSecurityGroup', 'app'];
   constructor(
@@ -28,8 +35,14 @@ class KubernetesSecurityGroupDetailsController implements IController {
     resolvedSecurityGroup: ISecurityGroupFromStateParams,
     private app: Application,
   ) {
-    this.securityGroupFromParams = resolvedSecurityGroup;
-    this.extractSecurityGroup();
+    const dataSource = app.getDataSource('securityGroups');
+    dataSource
+      .ready()
+      .then(() => {
+        this.extractSecurityGroup(resolvedSecurityGroup);
+        dataSource.onRefresh(this.$scope, () => this.extractSecurityGroup(resolvedSecurityGroup));
+      })
+      .catch(() => this.autoClose());
   }
 
   public deleteSecurityGroup(): void {
@@ -39,9 +52,9 @@ class KubernetesSecurityGroupDetailsController implements IController {
       controllerAs: 'ctrl',
       resolve: {
         coordinates: {
-          name: this.securityGroupFromParams.name,
-          namespace: this.securityGroupFromParams.region,
-          account: this.securityGroupFromParams.accountId,
+          name: this.securityGroup.name,
+          namespace: this.securityGroup.region,
+          account: this.securityGroup.account,
         },
         application: this.app,
         manifestController: (): string => null,
@@ -52,34 +65,38 @@ class KubernetesSecurityGroupDetailsController implements IController {
   public editSecurityGroup(): void {
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.app,
-      this.securityGroup.manifest,
+      this.manifest.manifest,
       this.securityGroup.moniker,
-      this.securityGroupFromParams.accountId,
+      this.securityGroup.account,
     ).then(builtCommand => {
       ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }
 
-  private extractSecurityGroup(): void {
+  private extractSecurityGroup({ accountId, name, region }: ISecurityGroupFromStateParams): void {
     this.securityGroupReader
       .getSecurityGroupDetails(
         this.app,
-        this.securityGroupFromParams.accountId,
+        accountId,
         'kubernetes',
-        this.securityGroupFromParams.region,
+        region,
         '', // unused vpc id
-        this.securityGroupFromParams.name,
+        name,
       )
       .then((rawSecurityGroup: ISecurityGroupDetail) => {
-        this.securityGroup = rawSecurityGroup as IKubernetesSecurityGroup;
-        this.securityGroup.namespace = this.securityGroup.region;
-        this.securityGroup.displayName = this.securityGroup.manifest.metadata.name;
-        this.securityGroup.kind = this.securityGroup.manifest.kind;
-        this.securityGroup.apiVersion = this.securityGroup.manifest.apiVersion;
-        this.state.loading = false;
-      })
-      .catch(() => {
-        this.autoClose();
+        if (!rawSecurityGroup) {
+          return this.autoClose();
+        }
+        ManifestReader.getManifest(accountId, region, name).then((manifest: IManifest) => {
+          this.securityGroup = {
+            ...rawSecurityGroup,
+            apiVersion: manifest.manifest.apiVersion,
+            displayName: manifest.manifest.metadata.name,
+            namespace: rawSecurityGroup.region,
+          } as IKubernetesSecurityGroup;
+          this.manifest = manifest;
+          this.state.loading = false;
+        });
       });
   }
 

@@ -1,11 +1,18 @@
 import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { flattenDeep } from 'lodash';
+import { StateService } from '@uirouter/angularjs';
 
-import { Application, InstanceReader, RecentHistoryService, IManifest, ILoadBalancer } from '@spinnaker/core';
+import {
+  Application,
+  InstanceReader,
+  RecentHistoryService,
+  IManifest,
+  ILoadBalancer,
+  ManifestReader,
+} from '@spinnaker/core';
 
 import { IKubernetesInstance } from './IKubernetesInstance';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 
@@ -34,43 +41,22 @@ class KubernetesInstanceDetailsController implements IController {
   public manifest: IManifest;
   public consoleOutputInstance: IConsoleOutputInstance;
 
-  public static $inject = ['instance', '$uibModal', '$q', '$scope', 'app'];
+  public static $inject = ['instance', '$uibModal', '$q', '$scope', 'app', '$state'];
   constructor(
     instance: InstanceFromStateParams,
     private $uibModal: IModalService,
     private $q: IQService,
     private $scope: IScope,
     private app: Application,
+    private $state: StateService,
   ) {
     this.app
       .ready()
-      .then(() => this.retrieveInstance(instance))
-      .then(instanceDetails => {
-        this.instance = instanceDetails;
-        this.consoleOutputInstance = {
-          account: instanceDetails.account,
-          region: instanceDetails.region,
-          id: instanceDetails.humanReadableName,
-          provider: instanceDetails.provider,
-        };
-
-        const unsubscribe = KubernetesManifestService.makeManifestRefresher(
-          this.app,
-          {
-            account: this.instance.account,
-            location: this.instance.namespace,
-            name: this.instance.name,
-          },
-          this,
-        );
-        this.$scope.$on('$destroy', () => {
-          unsubscribe();
-        });
-        this.state.loading = false;
+      .then(() => {
+        this.extractInstance(instance);
+        this.app.onRefresh(this.$scope, () => this.extractInstance(instance));
       })
-      .catch(() => {
-        this.state.loading = false;
-      });
+      .catch(() => this.autoClose());
   }
 
   public deleteInstance(): void {
@@ -93,11 +79,34 @@ class KubernetesInstanceDetailsController implements IController {
   public editInstance(): void {
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.app,
-      this.instance.manifest,
+      this.manifest.manifest,
       this.instance.moniker,
       this.instance.account,
     ).then(builtCommand => {
       ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
+    });
+  }
+
+  private extractInstance(instanceFromState: InstanceFromStateParams): void {
+    this.retrieveInstance(instanceFromState).then((instance: IKubernetesInstance) => {
+      if (!instance) {
+        return this.autoClose();
+      }
+      ManifestReader.getManifest(instance.account, instance.namespace, instance.name).then((manifest: IManifest) => {
+        this.instance = {
+          ...instance,
+          apiVersion: manifest.manifest.apiVersion,
+          displayName: manifest.manifest.metadata.name,
+        };
+        this.manifest = manifest;
+        this.consoleOutputInstance = {
+          account: this.instance.account,
+          region: this.instance.region,
+          id: this.instance.humanReadableName,
+          provider: this.instance.provider,
+        };
+        this.state.loading = false;
+      });
     });
   }
 
@@ -132,11 +141,7 @@ class KubernetesInstanceDetailsController implements IController {
       RecentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
       return InstanceReader.getInstanceDetails(instanceManager.account, instanceManager.region, instance.name).then(
         (instanceDetails: IKubernetesInstance) => {
-          instanceDetails.account = instanceManager.account;
-          instanceDetails.namespace = instanceDetails.manifest.metadata.namespace;
-          instanceDetails.displayName = instanceDetails.manifest.metadata.name;
-          instanceDetails.kind = instanceDetails.manifest.kind;
-          instanceDetails.apiVersion = instanceDetails.manifest.apiVersion;
+          instanceDetails.namespace = instanceDetails.region;
           instanceDetails.id = instance.id;
           instanceDetails.name = instance.name;
           instanceDetails.provider = 'kubernetes';
@@ -145,6 +150,15 @@ class KubernetesInstanceDetailsController implements IController {
       );
     } else {
       return this.$q.reject();
+    }
+  }
+
+  private autoClose(): void {
+    if (this.$scope.$$destroyed) {
+      return;
+    } else {
+      this.$state.params.allowModalToStayOpen = true;
+      this.$state.go('^', null, { location: 'replace' });
     }
   }
 }

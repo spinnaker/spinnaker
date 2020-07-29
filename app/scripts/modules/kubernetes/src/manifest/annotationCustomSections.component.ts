@@ -59,7 +59,7 @@ class KubernetesAnnotationCustomSections implements IController {
       return null;
     }
     if (this.resource && content.includes('{{')) {
-      content = this.$interpolate(content)({ ...this.resource });
+      content = this.$interpolate(content)({ ...this.resource, manifest: this.manifest });
     }
     return {
       title: parsed.title.replace(/-/g, ' ').trim(),

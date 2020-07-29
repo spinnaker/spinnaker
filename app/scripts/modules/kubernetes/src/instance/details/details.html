@@ -51,7 +51,7 @@
         <dt>Kind</dt>
         <dd>{{ctrl.instance.kind}}</dd>
         <dt>QOS Class</dt>
-        <dd><kubernetes-manifest-qos manifest="ctrl.instance.manifest"></kubernetes-manifest-qos></dd>
+        <dd><kubernetes-manifest-qos manifest="ctrl.manifest.manifest"></kubernetes-manifest-qos></dd>
         <dt>Logs</dt>
         <dd>
           <console-output-link instance="ctrl.consoleOutputInstance" uses-multi-output="true"></console-output-link>
@@ -65,7 +65,7 @@
     </collapsible-section>
 
     <kubernetes-annotation-custom-sections
-      manifest="ctrl.instance.manifest"
+      manifest="ctrl.manifest.manifest"
       resource="ctrl.instance"
     ></kubernetes-annotation-custom-sections>
 
@@ -75,13 +75,13 @@
 
     <collapsible-section heading="Resources" expanded="true">
       <kubernetes-manifest-resources
-        manifest="ctrl.instance.manifest"
+        manifest="ctrl.manifest.manifest"
         metrics="ctrl.manifest.metrics"
       ></kubernetes-manifest-resources>
     </collapsible-section>
 
     <collapsible-section heading="Labels" expanded="true">
-      <kubernetes-manifest-labels manifest="ctrl.instance.manifest"></kubernetes-manifest-labels>
+      <kubernetes-manifest-labels manifest="ctrl.manifest.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
   </div>
 </div>

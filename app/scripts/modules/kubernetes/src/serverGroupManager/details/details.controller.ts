@@ -1,6 +1,7 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { orderBy } from 'lodash';
+import { StateService } from '@uirouter/angularjs';
 
 import {
   NameUtils,
@@ -10,10 +11,10 @@ import {
   IServerGroupManagerStateParams,
   ClusterTargetBuilder,
   IOwnerOption,
-  IEntityTags,
+  ManifestReader,
 } from '@spinnaker/core';
+
 import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 
@@ -23,30 +24,22 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   public manifest: IManifest;
   public entityTagTargets: IOwnerOption[];
 
-  public static $inject = ['serverGroupManager', '$scope', '$uibModal', 'app'];
+  public static $inject = ['serverGroupManager', '$scope', '$uibModal', 'app', '$state'];
   constructor(
     serverGroupManager: IServerGroupManagerStateParams,
     private $scope: IScope,
     private $uibModal: IModalService,
     public app: Application,
+    private $state: StateService,
   ) {
-    const unsubscribe = KubernetesManifestService.makeManifestRefresher(
-      this.app,
-      {
-        account: serverGroupManager.accountId,
-        location: serverGroupManager.region,
-        name: serverGroupManager.serverGroupManager,
-      },
-      this,
-    );
-    this.$scope.$on('$destroy', () => {
-      unsubscribe();
-    });
-
-    this.app.ready().then(() => {
-      this.extractServerGroupManager(serverGroupManager);
-      this.state.loading = false;
-    });
+    const dataSource = this.app.getDataSource('serverGroupManagers');
+    dataSource
+      .ready()
+      .then(() => {
+        this.extractServerGroupManager(serverGroupManager);
+        dataSource.onRefresh(this.$scope, () => this.extractServerGroupManager(serverGroupManager));
+      })
+      .catch(() => this.autoClose());
   }
 
   public pauseRolloutServerGroupManager(): void {
@@ -121,7 +114,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
           namespace: this.serverGroupManager.namespace,
           account: this.serverGroupManager.account,
         },
-        currentReplicas: this.serverGroupManager.manifest.spec.replicas,
+        currentReplicas: this.manifest.manifest.spec.replicas,
         application: this.app,
       },
     });
@@ -130,7 +123,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   public editServerGroupManager(): void {
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.app,
-      this.serverGroupManager.manifest,
+      this.manifest.manifest,
       this.serverGroupManager.moniker,
       this.serverGroupManager.account,
     ).then(builtCommand => {
@@ -155,49 +148,41 @@ class KubernetesServerGroupManagerDetailsController implements IController {
     });
   }
 
-  private transformServerGroupManager(serverGroupManagerDetails: IServerGroupManager): IKubernetesServerGroupManager {
+  private extractServerGroupManager({ accountId, region, serverGroupManager }: IServerGroupManagerStateParams): void {
+    const serverGroupManagerDetails = this.app
+      .getDataSource('serverGroupManagers')
+      .data.find(
+        (manager: IServerGroupManager) =>
+          manager.name === serverGroupManager && manager.region === region && manager.account === accountId,
+      );
+
     if (!serverGroupManagerDetails) {
-      return null;
+      return this.autoClose();
     }
 
-    const serverGroupManager = serverGroupManagerDetails as IKubernetesServerGroupManager;
-    const [kind, name] = serverGroupManager.name.split(' ');
-    serverGroupManager.displayName = name;
-    serverGroupManager.kind = kind;
-    serverGroupManager.namespace = serverGroupManagerDetails.region;
-    return serverGroupManager;
-  }
-
-  private extractServerGroupManager(stateParams: IServerGroupManagerStateParams): void {
-    this.serverGroupManager = this.transformServerGroupManager(
-      this.app
-        .getDataSource('serverGroupManagers')
-        .data.find(
-          (manager: IServerGroupManager) =>
-            manager.name === stateParams.serverGroupManager &&
-            manager.region === stateParams.region &&
-            manager.account === stateParams.accountId,
-        ),
-    );
-    this.entityTagTargets = this.configureEntityTagTargets();
-    this.serverGroupManager.entityTags = this.extractEntityTags();
+    ManifestReader.getManifest(accountId, region, serverGroupManager).then((manifest: IManifest) => {
+      this.manifest = manifest;
+      this.serverGroupManager = {
+        ...serverGroupManagerDetails,
+        displayName: manifest.manifest.metadata.name,
+        namespace: serverGroupManagerDetails.region,
+      };
+      this.entityTagTargets = this.configureEntityTagTargets();
+      this.state.loading = false;
+    });
   }
 
   private configureEntityTagTargets(): IOwnerOption[] {
     return ClusterTargetBuilder.buildManagerClusterTargets(this.serverGroupManager);
   }
 
-  private extractEntityTags(): IEntityTags {
-    for (const toCheck of this.app.serverGroupManagers.data) {
-      if (
-        toCheck.name === this.serverGroupManager.name &&
-        toCheck.account === this.serverGroupManager.account &&
-        toCheck.region === this.serverGroupManager.namespace
-      ) {
-        return toCheck.entityTags;
-      }
+  private autoClose(): void {
+    if (this.$scope.$$destroyed) {
+      return;
+    } else {
+      this.$state.params.allowModalToStayOpen = true;
+      this.$state.go('^', null, { location: 'replace' });
     }
-    return null;
   }
 }
 

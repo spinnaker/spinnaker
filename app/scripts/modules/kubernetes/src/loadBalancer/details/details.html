@@ -75,9 +75,9 @@
         <dt>Kind</dt>
         <dd>{{ctrl.loadBalancer.kind}}</dd>
         <dt>Service Type</dt>
-        <dd>{{ctrl.loadBalancer.manifest.spec.type}}</dd>
+        <dd>{{ctrl.manifest.manifest.spec.type}}</dd>
         <dt>Sess. Affinity</dt>
-        <dd>{{ctrl.loadBalancer.manifest.spec.sessionAffinity}}</dd>
+        <dd>{{ctrl.manifest.manifest.spec.sessionAffinity}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
@@ -106,79 +106,79 @@
             <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
           </dd>
         </div>
-        <div ng-if="ctrl.loadBalancer.manifest.spec.clusterIP">
+        <div ng-if="ctrl.manifest.manifest.spec.clusterIP">
           <dt>Cluster IP</dt>
           <dd>
-            <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.clusterIP}}">
-              {{ctrl.loadBalancer.manifest.spec.clusterIP}}
+            <a target="_blank" href="//{{ctrl.manifest.manifest.spec.clusterIP}}">
+              {{ctrl.manifest.manifest.spec.clusterIP}}
             </a>
             <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="ctrl.loadBalancer.manifest.spec.clusterIP"
+              text="ctrl.manifest.manifest.spec.clusterIP"
               tool-tip="'Copy Cluster IP to clipboard'"
             >
             </copy-to-clipboard>
           </dd>
         </div>
-        <div ng-if="ctrl.loadBalancer.manifest.spec.loadBalancerIP">
+        <div ng-if="ctrl.manifest.manifest.spec.loadBalancerIP">
           <dt>Load Balancer IP</dt>
           <dd>
-            <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}">
-              {{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}
+            <a target="_blank" href="//{{ctrl.manifest.manifest.spec.loadBalancerIP}}">
+              {{ctrl.manifest.manifest.spec.loadBalancerIP}}
             </a>
             <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="ctrl.loadBalancer.manifest.spec.loadBalancerIP"
+              text="ctrl.manifest.manifest.spec.loadBalancerIP"
               tool-tip="'Copy Load Balancer IP to clipboard'"
             >
             </copy-to-clipboard>
           </dd>
         </div>
-      </dl>
-      <dl ng-if="ctrl.loadBalancer.manifest.spec.rules.length">
-        <dt>Host Rules</dt>
-        <dd ng-repeat="ingressRule in ctrl.loadBalancer.manifest.spec.rules">
-          <a ng-if="ingressRule.host" target="_blank" href="//{{ingressRule.host}}">
-            {{ingressRule.host}}
-          </a>
-          <copy-to-clipboard
-            ng-if="ingressRule.host"
-            class="copy-to-clipboard copy-to-clipboard-sm"
-            text="ingressRule.host"
-            tool-tip="'Copy ingress rule host to clipboard'"
-          >
-          </copy-to-clipboard>
-        </dd>
-      </dl>
-      <dl ng-if="ctrl.loadBalancer.manifest.status.loadBalancer.ingress.length">
-        <dt>Ingress</dt>
-        <dd ng-repeat="ingress in ctrl.loadBalancer.manifest.status.loadBalancer.ingress">
-          <a ng-if="ingress.hostname" target="_blank" href="//{{ingress.hostname}}">
-            {{ingress.hostname}}
-          </a>
-          <copy-to-clipboard
-            ng-if="ingress.hostname"
-            class="copy-to-clipboard copy-to-clipboard-sm"
-            text="ingress.hostname"
-            tool-tip="'Copy Ingress hostname to clipboard'"
-          >
-          </copy-to-clipboard>
-          <a ng-if="ingress.ip" target="_blank" href="//{{ingress.ip}}">
-            {{ingress.ip}}
-          </a>
-          <copy-to-clipboard
-            ng-if="ingress.ip"
-            class="copy-to-clipboard copy-to-clipboard-sm"
-            text="ingress.ip"
-            tool-tip="'Copy Ingress IP to clipboard'"
-          >
-          </copy-to-clipboard>
-        </dd>
+        <div ng-if="ctrl.manifest.manifest.spec.rules.length">
+          <dt>Host Rules</dt>
+          <dd ng-repeat="ingressRule in ctrl.manifest.manifest.spec.rules">
+            <a ng-if="ingressRule.host" target="_blank" href="//{{ingressRule.host}}">
+              {{ingressRule.host}}
+            </a>
+            <copy-to-clipboard
+              ng-if="ingressRule.host"
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ingressRule.host"
+              tool-tip="'Copy ingress rule host to clipboard'"
+            >
+            </copy-to-clipboard>
+          </dd>
+        </div>
+        <div ng-if="ctrl.manifest.manifest.status.loadBalancer.ingress.length">
+          <dt>Ingress</dt>
+          <dd ng-repeat="ingress in ctrl.manifest.manifest.status.loadBalancer.ingress">
+            <a ng-if="ingress.hostname" target="_blank" href="//{{ingress.hostname}}">
+              {{ingress.hostname}}
+            </a>
+            <copy-to-clipboard
+              ng-if="ingress.hostname"
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ingress.hostname"
+              tool-tip="'Copy Ingress hostname to clipboard'"
+            >
+            </copy-to-clipboard>
+            <a ng-if="ingress.ip" target="_blank" href="//{{ingress.ip}}">
+              {{ingress.ip}}
+            </a>
+            <copy-to-clipboard
+              ng-if="ingress.ip"
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ingress.ip"
+              tool-tip="'Copy Ingress IP to clipboard'"
+            >
+            </copy-to-clipboard>
+          </dd>
+        </div>
       </dl>
     </collapsible-section>
 
     <kubernetes-annotation-custom-sections
-      manifest="ctrl.loadBalancer.manifest"
+      manifest="ctrl.manifest.manifest"
       resource="ctrl.loadBalancer"
     ></kubernetes-annotation-custom-sections>
 
@@ -187,7 +187,7 @@
     </collapsible-section>
 
     <collapsible-section heading="Labels" expanded="true">
-      <kubernetes-manifest-labels manifest="ctrl.loadBalancer.manifest"></kubernetes-manifest-labels>
+      <kubernetes-manifest-labels manifest="ctrl.manifest.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
   </div>
 </div>

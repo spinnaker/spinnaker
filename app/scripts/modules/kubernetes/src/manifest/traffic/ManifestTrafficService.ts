@@ -1,5 +1,4 @@
 import { IPromise } from 'angular';
-import { get } from 'lodash';
 
 import { IManifest, ITask, TaskExecutor, Application } from '@spinnaker/core';
 
@@ -8,7 +7,6 @@ import { IKubernetesServerGroup } from '../../serverGroup';
 export class ManifestTrafficService {
   public static readonly ENABLE_MANIFEST_OPERATION = 'enableManifest';
   public static readonly DISABLE_MANIFEST_OPERATION = 'disableManifest';
-  public static readonly TRAFFIC_ANNOTATION = 'traffic.spinnaker.io/load-balancers';
 
   public static enable = (manifest: IManifest, application: Application, reason?: string): IPromise<ITask> => {
     return TaskExecutor.executeTask({
@@ -46,7 +44,7 @@ export class ManifestTrafficService {
 
   public static canDisableServerGroup = (serverGroup: IKubernetesServerGroup): boolean => {
     return (
-      ManifestTrafficService.hasLoadBalancers(serverGroup.manifest) &&
+      ManifestTrafficService.hasLoadBalancers(serverGroup) &&
       !ManifestTrafficService.isManaged(serverGroup) &&
       !serverGroup.disabled
     );
@@ -54,17 +52,14 @@ export class ManifestTrafficService {
 
   public static canEnableServerGroup = (serverGroup: IKubernetesServerGroup): boolean => {
     return (
-      ManifestTrafficService.hasLoadBalancers(serverGroup.manifest) &&
+      ManifestTrafficService.hasLoadBalancers(serverGroup) &&
       !ManifestTrafficService.isManaged(serverGroup) &&
       serverGroup.disabled
     );
   };
 
-  private static hasLoadBalancers = (manifest: IManifest): boolean => {
-    const loadBalancers = JSON.parse(
-      get(manifest, ['metadata', 'annotations', ManifestTrafficService.TRAFFIC_ANNOTATION], '[]'),
-    );
-    return loadBalancers && loadBalancers.length > 0;
+  private static hasLoadBalancers = (serverGroup: IKubernetesServerGroup): boolean => {
+    return serverGroup.loadBalancers?.length > 0;
   };
 
   private static isManaged = (serverGroup: IKubernetesServerGroup): boolean => {

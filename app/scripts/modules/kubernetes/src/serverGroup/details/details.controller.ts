@@ -1,20 +1,20 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
+import { StateService } from '@uirouter/angularjs';
 
 import {
   Application,
   ClusterTargetBuilder,
-  IEntityTags,
   IManifest,
   IOwnerOption,
   IServerGroup,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
   ConfirmationModalService,
+  ManifestReader,
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from './IKubernetesServerGroup';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 import { ManifestTrafficService } from '../../manifest/traffic/ManifestTrafficService';
@@ -31,36 +31,26 @@ class KubernetesServerGroupDetailsController implements IController {
   public manifest: IManifest;
   public entityTagTargets: IOwnerOption[];
 
-  public static $inject = ['serverGroup', 'app', '$uibModal', '$scope'];
+  public static $inject = ['serverGroup', 'app', '$uibModal', '$scope', '$state'];
   constructor(
     serverGroup: IServerGroupFromStateParams,
     public app: Application,
     private $uibModal: IModalService,
     private $scope: IScope,
+    private $state: StateService,
   ) {
-    const unsubscribe = KubernetesManifestService.makeManifestRefresher(
-      this.app,
-      {
-        account: serverGroup.accountId,
-        location: serverGroup.region,
-        name: serverGroup.name,
-      },
-      this,
-    );
-    this.$scope.$on('$destroy', () => {
-      unsubscribe();
-    });
-
-    this.app
+    const dataSource = this.app.getDataSource('serverGroups');
+    dataSource
       .ready()
-      .then(() => this.extractServerGroup(serverGroup))
+      .then(() => {
+        this.extractServerGroup(serverGroup);
+        dataSource.onRefresh(this.$scope, () => this.extractServerGroup(serverGroup));
+      })
       .catch(() => this.autoClose());
-
-    this.app.getDataSource('serverGroups').onRefresh(this.$scope, () => this.extractServerGroup(serverGroup));
   }
 
   private ownerReferences(): any[] {
-    const manifest = this.serverGroup.manifest;
+    const manifest = this.manifest.manifest;
     if (
       manifest != null &&
       manifest.hasOwnProperty('metadata') &&
@@ -105,7 +95,7 @@ class KubernetesServerGroupDetailsController implements IController {
           namespace: this.serverGroup.namespace,
           account: this.serverGroup.account,
         },
-        currentReplicas: this.serverGroup.manifest.spec.replicas,
+        currentReplicas: this.manifest.manifest.spec.replicas,
         application: this.app,
       },
     });
@@ -118,7 +108,7 @@ class KubernetesServerGroupDetailsController implements IController {
   public editServerGroup(): void {
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.app,
-      this.serverGroup.manifest,
+      this.manifest.manifest,
       this.serverGroup.moniker,
       this.serverGroup.account,
     ).then(builtCommand => {
@@ -178,44 +168,33 @@ class KubernetesServerGroupDetailsController implements IController {
   };
 
   private autoClose(): void {
-    return;
-  }
-
-  private transformServerGroup(serverGroupDetails: IServerGroup): IKubernetesServerGroup {
-    const serverGroup = serverGroupDetails as IKubernetesServerGroup;
-    const [kind, name] = serverGroup.name.split(' ');
-    serverGroup.displayName = name;
-    serverGroup.kind = kind;
-    serverGroup.namespace = serverGroupDetails.region;
-    return serverGroup;
-  }
-
-  private extractServerGroup(fromParams: IServerGroupFromStateParams): ng.IPromise<void> {
-    return ServerGroupReader.getServerGroup(
-      this.app.name,
-      fromParams.accountId,
-      fromParams.region,
-      fromParams.name,
-    ).then((serverGroupDetails: IServerGroup) => {
-      this.serverGroup = this.transformServerGroup(serverGroupDetails);
-      this.serverGroup.account = fromParams.accountId;
-      this.state.loading = false;
-      this.serverGroup.entityTags = this.extractEntityTags();
-      this.entityTagTargets = this.configureEntityTagTargets();
-    });
-  }
-
-  private extractEntityTags(): IEntityTags {
-    for (const toCheck of this.app.serverGroups.data) {
-      if (
-        toCheck.name === this.serverGroup.name &&
-        toCheck.account === this.serverGroup.account &&
-        toCheck.region === this.serverGroup.region
-      ) {
-        return toCheck.entityTags;
-      }
+    if (this.$scope.$$destroyed) {
+      return;
+    } else {
+      this.$state.params.allowModalToStayOpen = true;
+      this.$state.go('^', null, { location: 'replace' });
     }
-    return null;
+  }
+
+  private extractServerGroup({ accountId, name, region }: IServerGroupFromStateParams): void {
+    ServerGroupReader.getServerGroup(this.app.name, accountId, region, name).then(
+      (serverGroupDetails: IServerGroup) => {
+        if (!serverGroupDetails) {
+          return this.autoClose();
+        }
+
+        ManifestReader.getManifest(accountId, region, name).then((manifest: IManifest) => {
+          this.manifest = manifest;
+          this.serverGroup = {
+            ...serverGroupDetails,
+            displayName: manifest.manifest.metadata.name,
+            namespace: serverGroupDetails.region,
+          } as IKubernetesServerGroup;
+          this.entityTagTargets = this.configureEntityTagTargets();
+          this.state.loading = false;
+        });
+      },
+    );
   }
 
   private configureEntityTagTargets(): IOwnerOption[] {
