@@ -350,4 +350,73 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
 
   }
 
+  void "should skip allow launch and tag syncing on resolved target AMI if owner account cannot be resolved"() {
+    setup:
+    def sourceCredentials = TestCredential.named('source')
+    def targetCredentials = TestCredential.named('target')
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+    def description = new AllowLaunchDescription(targetAccount: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: sourceCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = Mock(AmazonClientProvider)
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
+
+    when:
+    op.operate([])
+
+    then:
+    with(op.accountCredentialsProvider) {
+      1 * getCredentials('target') >> targetCredentials
+      1 * getAll() >> [sourceCredentials, targetCredentials]
+    }
+    with(op.amazonClientProvider) {
+      1 * getAmazonEC2(sourceCredentials, _, true) >> sourceAmazonEc2
+      1 * getAmazonEC2(targetCredentials, _, true) >> targetAmazonEc2
+    }
+    with(targetAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(
+        new Image()
+          .withImageId("ami-123456")
+          .withOwnerId('unknown')
+      )
+    }
+    0 * _
+  }
+
+  void "should throw exception when AMI is resolved in source but the owner account cannot be resolved"() {
+    setup:
+    def sourceCredentials = TestCredential.named('source')
+    def targetCredentials = TestCredential.named('target')
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+    def description = new AllowLaunchDescription(targetAccount: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: sourceCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = Mock(AmazonClientProvider)
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
+
+    when:
+    op.operate([])
+
+    then:
+    thrown IllegalArgumentException
+    with(op.accountCredentialsProvider) {
+      1 * getCredentials('target') >> targetCredentials
+      1 * getAll() >> [sourceCredentials, targetCredentials]
+    }
+    with(op.amazonClientProvider) {
+      1 * getAmazonEC2(sourceCredentials, _, true) >> sourceAmazonEc2
+      1 * getAmazonEC2(targetCredentials, _, true) >> targetAmazonEc2
+    }
+    with(targetAmazonEc2) {
+      3 * describeImages(_) >> new DescribeImagesResult()
+    }
+    with(sourceAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(
+        new Image()
+          .withImageId("ami-123456")
+          .withOwnerId('unknown')
+      )
+    }
+    0 * _
+  }
 }
