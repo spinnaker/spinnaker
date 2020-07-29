@@ -170,10 +170,10 @@ internal fun TitusClusterSpec.resolveCapacity(region: String) =
   overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
 
 internal fun TitusClusterSpec.resolveEnv(region: String) =
-  emptyMap<String, String>() + overrides[region]?.env + defaults.env
+  emptyMap<String, String>() + defaults.env + overrides[region]?.env
 
 internal fun TitusClusterSpec.resolveContainerAttributes(region: String) =
-  emptyMap<String, String>() + overrides[region]?.containerAttributes + defaults.containerAttributes
+  emptyMap<String, String>() + defaults.containerAttributes + overrides[region]?.containerAttributes
 
 internal fun TitusClusterSpec.resolveResources(region: String): Resources {
   val default by lazy { Resources() }
