@@ -48,4 +48,18 @@ public interface NotificationAgent extends SpinnakerExtensionPoint {
    */
   @Nonnull
   List<NotificationParameter> getParameters();
+
+  /**
+   * Return BASIC here to auto-generate a UI from the parameters defined in {@link
+   * Notification#getParameters}. Return CUSTOM to use a custom UI instead.
+   */
+  @Nonnull
+  default NotificationUIType getUiType() {
+    return NotificationUIType.BASIC;
+  }
+
+  public enum NotificationUIType {
+    BASIC,
+    CUSTOM;
+  }
 }
