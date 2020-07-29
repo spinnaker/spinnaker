@@ -26,6 +26,7 @@ import com.squareup.okhttp.internal.http.HttpMethod
 import java.net.SocketException
 import java.util.stream.Collectors
 import javax.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -47,6 +48,7 @@ class ProxyController(
   val registry: Registry,
   val proxyConfigurationProperties: ProxyConfigurationProperties
 ) {
+  private val log = LoggerFactory.getLogger(javaClass)
 
   val proxyInvocationsId = registry.createId("proxy.invocations")
 
@@ -62,13 +64,13 @@ class ProxyController(
   private fun request(
     proxy: String,
     requestParams: Map<String, String>,
-    httpServletRequest: HttpServletRequest
+    request: HttpServletRequest
   ): ResponseEntity<Any> {
     val proxyConfig = proxyConfigurationProperties
       .proxies
       .find { it.id.equals(proxy, true) } ?: throw InvalidRequestException("No proxy config found with id '$proxy'")
 
-    val proxyPath = httpServletRequest
+    val proxyPath = request
       .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)
       .toString()
       .substringAfter("/proxies/$proxy")
@@ -84,11 +86,12 @@ class ProxyController(
     var responseBody: String
 
     try {
-      val method = httpServletRequest.method
-      val body = if (HttpMethod.permitsRequestBody(method)) {
+      val method = request.method
+
+      val body = if (HttpMethod.permitsRequestBody(method) && request.contentType != null) {
         RequestBody.create(
-          com.squareup.okhttp.MediaType.parse(httpServletRequest.contentType),
-          httpServletRequest.reader.lines().collect(Collectors.joining(System.lineSeparator()))
+          com.squareup.okhttp.MediaType.parse(request.contentType),
+          request.reader.lines().collect(Collectors.joining(System.lineSeparator()))
         )
       } else {
         null
@@ -101,16 +104,18 @@ class ProxyController(
       contentType = response.header("Content-Type")
       responseBody = response.body().string()
     } catch (e: SocketException) {
+      log.error("Exception processing proxy request", e)
       statusCode = HttpStatus.GATEWAY_TIMEOUT.value()
       responseBody = e.toString()
     } catch (e: Exception) {
+      log.error("Exception processing proxy request", e)
       responseBody = e.toString()
     }
 
     registry.counter(
       proxyInvocationsId
         .withTag("proxy", proxy)
-        .withTag("method", httpServletRequest.method)
+        .withTag("method", request.method)
         .withTag("status", "${statusCode.toString()[0]}xx")
         .withTag("statusCode", statusCode.toString())
     ).increment()
