@@ -52,15 +52,16 @@ class DeckPluginsController(
     val pluginAsset = deckPluginService.getPluginAsset(pluginId, pluginVersion, asset) ?: throw NotFoundException("Unable to find asset for plugin version")
 
     return ResponseEntity.ok()
-        .header("Content-Type", pluginAsset.contentType)
-        .header("Cache-Control",
-            CacheControl
-                .maxAge(30, TimeUnit.DAYS)
-                .mustRevalidate()
-                .cachePrivate()
-                .headerValue
-        )
-        .body(pluginAsset.content)
+      .header("Content-Type", pluginAsset.contentType)
+      .header(
+        "Cache-Control",
+        CacheControl
+          .maxAge(30, TimeUnit.DAYS)
+          .mustRevalidate()
+          .cachePrivate()
+          .headerValue
+      )
+      .body(pluginAsset.content)
   }
 
   @ExceptionHandler(CacheNotReadyException::class)

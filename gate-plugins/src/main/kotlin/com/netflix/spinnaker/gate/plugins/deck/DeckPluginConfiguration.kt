@@ -41,8 +41,10 @@ class DeckPluginConfiguration {
     springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider,
     dynamicConfigService: DynamicConfigService
   ): DeckPluginCache {
-    val springPluginStatusProvider = SpringPluginStatusProvider(dynamicConfigService,
-      "spinnaker.extensibility.deck-proxy.plugins")
+    val springPluginStatusProvider = SpringPluginStatusProvider(
+      dynamicConfigService,
+      "spinnaker.extensibility.deck-proxy.plugins"
+    )
 
     val sources = listOf(
       LatestPluginInfoReleaseSource(updateManager, "deck"),
@@ -55,7 +57,8 @@ class DeckPluginConfiguration {
       springPluginStatusProvider,
       AggregatePluginInfoReleaseProvider(sources, springStrictPluginLoaderStatusProvider),
       registry,
-      springStrictPluginLoaderStatusProvider)
+      springStrictPluginLoaderStatusProvider
+    )
   }
 
   @Bean

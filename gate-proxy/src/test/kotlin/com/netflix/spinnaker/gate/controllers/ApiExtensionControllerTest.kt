@@ -56,13 +56,17 @@ class ApiExtensionControllerTest : JUnit5Minutests {
       }
 
       test("returns expected response") {
-        expectThat(subject.any(
-          firstApiExtension.id(), emptyMap(), mockk(relaxed = true)
-        ).body).isEqualTo("This is a result from ${firstApiExtension.id()}")
+        expectThat(
+          subject.any(
+            firstApiExtension.id(), emptyMap(), mockk(relaxed = true)
+          ).body
+        ).isEqualTo("This is a result from ${firstApiExtension.id()}")
 
-        expectThat(subject.any(
-          secondApiExtension.id(), emptyMap(), mockk(relaxed = true)
-        ).body).isEqualTo("This is a result from ${secondApiExtension.id()}")
+        expectThat(
+          subject.any(
+            secondApiExtension.id(), emptyMap(), mockk(relaxed = true)
+          ).body
+        ).isEqualTo("This is a result from ${secondApiExtension.id()}")
       }
     }
   }

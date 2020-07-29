@@ -73,10 +73,11 @@ class DeckPluginCache(
         .let { enabledPlugins -> pluginInfoReleaseProvider.getReleases(enabledPlugins) }
 
       val newCache = releases.mapNotNull { release ->
-            val plugin = DeckPluginVersion(release.pluginId, release.props.version)
-            getOrDownload(plugin.id, plugin.version)?.let {
-              path -> PluginCacheEntry(plugin, path)
-            }
+        val plugin = DeckPluginVersion(release.pluginId, release.props.version)
+        getOrDownload(plugin.id, plugin.version)?.let {
+          path ->
+          PluginCacheEntry(plugin, path)
+        }
       }
 
       cache.removeIf { !newCache.contains(it) }
@@ -114,7 +115,7 @@ class DeckPluginCache(
           log.info("Adding plugin '$pluginId@$pluginVersion' to local cache: $cachePath")
           Files.createDirectories(cachePath)
           Files.move(deckPluginPath, cachePath, StandardCopyOption.REPLACE_EXISTING)
-          }
+        }
       } catch (e: PluginRuntimeException) {
         log.warn("Unable to download plugin {}@{}", pluginId, pluginVersion)
         if (springStrictPluginLoaderStatusProvider.isStrictPluginLoading()) {

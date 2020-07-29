@@ -87,12 +87,15 @@ class PluginPublishController(
     AuthenticatedRequest.propagate {
       val request = Request.Builder()
         .url("$front50Url/pluginBinaries/$pluginId/$pluginVersion?sha512sum=$checksum")
-        .post(MultipartBody.Builder()
-          .addFormDataPart(
-            "plugin",
-            format("%s-%s.zip", pluginId, pluginVersion),
-            RequestBody.create(MediaType.parse("application/octet-stream"), body))
-          .build())
+        .post(
+          MultipartBody.Builder()
+            .addFormDataPart(
+              "plugin",
+              format("%s-%s.zip", pluginId, pluginVersion),
+              RequestBody.create(MediaType.parse("application/octet-stream"), body)
+            )
+            .build()
+        )
         .build()
 
       val response = okHttpClient.newCall(request).execute()
