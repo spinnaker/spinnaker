@@ -109,7 +109,9 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       Set<Role> existingRoles =
           redisClientDelegate.withCommandsClient(
               client -> {
-                return client.hgetAll(userKey(permission.getId(), ResourceType.ROLE)).values()
+                return client
+                    .hgetAll(userKey(permission.getId(), ResourceType.ROLE))
+                    .values()
                     .stream()
                     .map(
                         (ThrowingFunction<String, Role>)

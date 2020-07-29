@@ -163,8 +163,11 @@ public class AuthorizeController {
       method = RequestMethod.GET)
   public ServiceAccount.View getServiceAccount(
       @PathVariable String userId, @PathVariable String serviceAccountName) {
-    return getUserPermissionOrDefault(userId).orElseThrow(NotFoundException::new).getView()
-        .getServiceAccounts().stream()
+    return getUserPermissionOrDefault(userId)
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getServiceAccounts()
+        .stream()
         .filter(
             serviceAccount ->
                 serviceAccount
