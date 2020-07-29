@@ -715,6 +715,79 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
     }
 
+    describe("when a stage had skipped synthetics or tasks") {
+      given("some tasks were skipped") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = multiTaskStage.type
+            multiTaskStage.plan(this)
+            tasks[0].status = SUCCEEDED
+            tasks[1].status = SKIPPED
+            tasks[2].status = SUCCEEDED
+            status = RUNNING
+          }
+        }
+        val message = CompleteStage(pipeline.stageByRef("1"))
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving the message") {
+          subject.handle(message)
+        }
+
+        it("updates the stage state") {
+          verify(repository).storeStage(
+            check {
+              assertThat(it.status).isEqualTo(SUCCEEDED)
+              assertThat(it.endTime).isEqualTo(clock.millis())
+            }
+          )
+        }
+      }
+
+      given("some synthetic stages were skipped") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = stageWithSyntheticBefore.type
+            stageWithSyntheticBefore.buildBeforeStages(this)
+            stageWithSyntheticBefore.buildTasks(this)
+          }
+        }
+
+        val message = CompleteStage(pipeline.stageByRef("1"))
+
+        beforeGroup {
+          pipeline
+            .stages
+            .filter { it.syntheticStageOwner == STAGE_BEFORE }
+            .forEach { it.status = SKIPPED }
+          pipeline.stageById(message.stageId).tasks.forEach { it.status = SUCCEEDED }
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving the message") {
+          subject.handle(message)
+        }
+
+        it("updates the stage state") {
+          verify(repository).storeStage(
+            check {
+              assertThat(it.status).isEqualTo(SUCCEEDED)
+              assertThat(it.endTime).isEqualTo(clock.millis())
+            }
+          )
+        }
+      }
+    }
+
     given("a stage had no tasks or before stages") {
       but("does have after stages") {
         val pipeline = pipeline {
