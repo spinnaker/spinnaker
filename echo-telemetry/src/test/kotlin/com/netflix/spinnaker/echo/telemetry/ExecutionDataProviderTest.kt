@@ -41,7 +41,8 @@ class ExecutionDataProviderTest {
 
     val echoEvent = createLoggableEvent()
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.id).isEmpty()
     expectThat(statsEvent.execution.type).isEqualTo(Execution.Type.UNKNOWN)
@@ -59,7 +60,8 @@ class ExecutionDataProviderTest {
     val echoEvent = createEventWithExecutionData(executionData)
 
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.id).isNotEmpty()
     expectThat(statsEvent.execution.id).isNotEqualTo("myExecutionId")
@@ -74,7 +76,8 @@ class ExecutionDataProviderTest {
     val echoEvent = createEventWithExecutionData(executionData)
 
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.type).isEqualTo(Execution.Type.PIPELINE)
   }
@@ -88,7 +91,8 @@ class ExecutionDataProviderTest {
     val echoEvent = createEventWithExecutionData(executionData)
 
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.type).isEqualTo(Execution.Type.ORCHESTRATION)
   }
@@ -102,7 +106,8 @@ class ExecutionDataProviderTest {
     val echoEvent = createEventWithExecutionData(executionData)
 
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.type).isEqualTo(Execution.Type.UNKNOWN)
   }
@@ -120,7 +125,8 @@ class ExecutionDataProviderTest {
     val echoEvent = createEventWithExecutionData(executionData)
 
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.type).isEqualTo(Execution.Type.MANAGED_PIPELINE_TEMPLATE_V1)
   }
@@ -138,7 +144,8 @@ class ExecutionDataProviderTest {
     val echoEvent = createEventWithExecutionData(executionData)
 
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.type).isEqualTo(Execution.Type.MANAGED_PIPELINE_TEMPLATE_V2)
   }
@@ -154,7 +161,8 @@ class ExecutionDataProviderTest {
     )
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.status).isEqualTo(status)
   }
@@ -172,7 +180,8 @@ class ExecutionDataProviderTest {
     )
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.trigger.type).isEqualTo(triggerType)
   }
@@ -194,14 +203,16 @@ class ExecutionDataProviderTest {
 
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.stagesList).hasSize(1)
     val stage = statsEvent.execution.stagesList[0]
     expectThat(stage.status).isEqualTo(Status.BUFFERED)
     expectThat(stage.type).isEqualTo("myStageType")
     expectThat(stage.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.GCE).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.GCE).build()
+    )
   }
 
   @Test
@@ -235,7 +246,8 @@ class ExecutionDataProviderTest {
 
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.stagesList).hasSize(3)
 
@@ -243,19 +255,22 @@ class ExecutionDataProviderTest {
     expectThat(stage1.status).isEqualTo(Status.BUFFERED)
     expectThat(stage1.type).isEqualTo("myStageType1")
     expectThat(stage1.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.GCE).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.GCE).build()
+    )
 
     val stage2 = statsEvent.execution.stagesList[1]
     expectThat(stage2.status).isEqualTo(Status.REDIRECT)
     expectThat(stage2.type).isEqualTo("myStageType2")
     expectThat(stage2.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.AWS).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.AWS).build()
+    )
 
     val stage3 = statsEvent.execution.stagesList[2]
     expectThat(stage3.status).isEqualTo(Status.PAUSED)
     expectThat(stage3.type).isEqualTo("myStageType3")
     expectThat(stage3.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.APPENGINE).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.APPENGINE).build()
+    )
   }
 
   @Test
@@ -277,7 +292,8 @@ class ExecutionDataProviderTest {
 
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.stagesList).hasSize(3)
 
@@ -285,19 +301,22 @@ class ExecutionDataProviderTest {
     expectThat(stage1.status).isEqualTo(Status.BUFFERED)
     expectThat(stage1.type).isEqualTo("myStageType")
     expectThat(stage1.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.GCE).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.GCE).build()
+    )
 
     val stage2 = statsEvent.execution.stagesList[1]
     expectThat(stage2.status).isEqualTo(Status.BUFFERED)
     expectThat(stage2.type).isEqualTo("myStageType")
     expectThat(stage2.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.AWS).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.AWS).build()
+    )
 
     val stage3 = statsEvent.execution.stagesList[2]
     expectThat(stage3.status).isEqualTo(Status.BUFFERED)
     expectThat(stage3.type).isEqualTo("myStageType")
     expectThat(stage3.cloudProvider).isEqualTo(
-      CloudProvider.newBuilder().setId(CloudProvider.ID.APPENGINE).build())
+      CloudProvider.newBuilder().setId(CloudProvider.ID.APPENGINE).build()
+    )
   }
 
   @Test
@@ -314,7 +333,8 @@ class ExecutionDataProviderTest {
 
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.stagesList).hasSize(1)
     val stage = statsEvent.execution.stagesList[0]
@@ -335,7 +355,8 @@ class ExecutionDataProviderTest {
 
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.stagesList).hasSize(1)
     val stage = statsEvent.execution.stagesList[0]
@@ -351,13 +372,15 @@ class ExecutionDataProviderTest {
     val executionData = mapOf(
       "stages" to listOf(
         mapOf(
-          "context" to mapOf("cloudProvider" to cloudProviderId.toString()))
+          "context" to mapOf("cloudProvider" to cloudProviderId.toString())
+        )
       )
     )
 
     val echoEvent = createEventWithExecutionData(executionData)
     val statsEvent = ExecutionDataProvider().populateData(
-      echoEvent, StatsEvent.getDefaultInstance())
+      echoEvent, StatsEvent.getDefaultInstance()
+    )
 
     expectThat(statsEvent.execution.stagesList).hasSize(1)
     val stage = statsEvent.execution.stagesList[0]

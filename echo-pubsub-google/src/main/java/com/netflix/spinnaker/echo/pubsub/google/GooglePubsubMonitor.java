@@ -45,9 +45,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   @PreDestroy
   private void closeAsyncConnections() {
     log.info("Closing async connections for Google Pubsub subscribers");
-    pubsubSubscribers
-        .subscribersMatchingType(PubsubSystem.GOOGLE)
-        .parallelStream()
+    pubsubSubscribers.subscribersMatchingType(PubsubSystem.GOOGLE).parallelStream()
         .forEach(this::closeConnection);
   }
 
@@ -55,9 +53,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   public void onApplicationEvent(ContextRefreshedEvent event) {
     // TODO(jacobkiefer): Register Echo as enabled on startup.
     log.info("Starting async connections for Google Pubsub subscribers");
-    pubsubSubscribers
-        .subscribersMatchingType(PubsubSystem.GOOGLE)
-        .parallelStream()
+    pubsubSubscribers.subscribersMatchingType(PubsubSystem.GOOGLE).parallelStream()
         .forEach(this::openConnection);
   }
 

@@ -67,8 +67,7 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
     return trigger -> {
       String pluginEventType = getPluginEventType(event);
 
-      return trigger
-          .toBuilder()
+      return trigger.toBuilder()
           .pluginEventType(pluginEventType)
           .pluginId(event.getContent().getPluginId())
           .description(event.getContent().getDescription())

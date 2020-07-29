@@ -68,7 +68,8 @@ class PipelineCountsDataProviderTest {
 
     val result = dataProvider.populateData(
       echoEventForApplication("app2"),
-      StatsEvent.getDefaultInstance())
+      StatsEvent.getDefaultInstance()
+    )
 
     expectThat(result.spinnakerInstance.pipelineCount).isEqualTo(5)
     expectThat(result.application.pipelineCount).isEqualTo(3)
@@ -94,7 +95,8 @@ class PipelineCountsDataProviderTest {
 
     val result = dataProvider.populateData(
       echoEventForApplication("app2"),
-      StatsEvent.getDefaultInstance())
+      StatsEvent.getDefaultInstance()
+    )
 
     // I don't particularly care if it counts the broken pipeline or not.
     expectThat(result.spinnakerInstance.pipelineCount)

@@ -35,7 +35,8 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
 
   public boolean handles(String source) {
     return "gitlab".equals(source);
-  };
+  }
+  ;
 
   public boolean shouldSendEvent(Event event) {
     return true;

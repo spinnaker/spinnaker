@@ -72,7 +72,8 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
     return supportedTriggerTypes().stream()
         .flatMap(
             triggerType ->
-                Optional.ofNullable(triggers.get(triggerType)).orElse(Collections.emptyList())
+                Optional.ofNullable(triggers.get(triggerType))
+                    .orElse(Collections.emptyList())
                     .stream())
         .filter(this::isValidTrigger)
         .filter(matchTriggerFor(event))

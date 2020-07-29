@@ -68,5 +68,6 @@ class SpinnakerInstanceDataProvider(private val config: TelemetryConfigProps, pr
 
   private fun getProtoDeploymentType(type: String): DeploymentMethod.Type =
     DeploymentMethod.Type.valueOf(
-      DeploymentMethod.Type.getDescriptor().findMatchingValue(type))
+      DeploymentMethod.Type.getDescriptor().findMatchingValue(type)
+    )
 }
