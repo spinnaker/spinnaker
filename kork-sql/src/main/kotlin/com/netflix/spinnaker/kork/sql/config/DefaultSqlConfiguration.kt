@@ -64,13 +64,13 @@ class DefaultSqlConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(SpringLiquibase::class)
-  fun liquibase(properties: SqlProperties): SpringLiquibase =
-    SpringLiquibaseProxy(properties.migration)
+  fun liquibase(properties: SqlProperties, @Value("\${sql.read-only:false}") sqlReadOnly: Boolean): SpringLiquibase =
+    SpringLiquibaseProxy(properties.migration, sqlReadOnly)
 
   @Bean
   @ConditionalOnProperty("sql.secondary-migration.jdbc-url")
-  fun secondaryLiquibase(properties: SqlProperties): SpringLiquibase =
-    SpringLiquibaseProxy(properties.secondaryMigration)
+  fun secondaryLiquibase(properties: SqlProperties, @Value("\${sql.read-only:false}") sqlReadOnly: Boolean): SpringLiquibase =
+    SpringLiquibaseProxy(properties.secondaryMigration, sqlReadOnly)
 
   @Suppress("ReturnCount", "ThrowsCount")
   @DependsOn("liquibase")

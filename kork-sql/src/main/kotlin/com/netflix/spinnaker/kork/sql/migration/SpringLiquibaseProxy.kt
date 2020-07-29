@@ -34,6 +34,7 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource
  */
 class SpringLiquibaseProxy(
   private val sqlMigrationProperties: SqlMigrationProperties,
+  private val sqlReadOnly: Boolean,
   private val korkAdditionalChangelogs: List<String> = listOf("db/healthcheck.yml")
 ) : SpringLiquibase() {
 
@@ -57,6 +58,7 @@ class SpringLiquibaseProxy(
           changeLog = "classpath:$it"
           dataSource = createDataSource()
           resourceLoader = this@SpringLiquibaseProxy.resourceLoader
+          shouldRun = !sqlReadOnly
         }
       }
       .forEach {
