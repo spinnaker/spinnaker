@@ -20,23 +20,22 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
-import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestTraffic;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
-import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
-import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,26 +46,26 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Data;
+import javax.validation.constraints.Null;
 import lombok.EqualsAndHashCode;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Slf4j
-public class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
-  private Boolean disabled;
-  private Set<String> zones = new HashSet<>();
-  private Set<Instance> instances = new HashSet<>();
-  private Set<String> loadBalancers = new HashSet<>();
-  private Set<String> securityGroups = new HashSet<>();
-  private List<ServerGroupManagerSummary> serverGroupManagers = new ArrayList<>();
-  private Map<String, Object> launchConfig = new HashMap<>();
-  private Capacity capacity = new Capacity();
-  private ImageSummary imageSummary;
-  private ImagesSummary imagesSummary;
-  private KubernetesManifest manifest;
-  private Keys.InfrastructureCacheKey key;
+@Value
+public final class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
+  private final boolean disabled;
+  private final Set<KubernetesV2Instance> instances;
+  private final Set<String> loadBalancers;
+  private final List<ServerGroupManagerSummary> serverGroupManagers;
+  private final Capacity capacity;
+  private final KubernetesManifest manifest;
+  private final Keys.InfrastructureCacheKey key;
+
+  private final Set<String> zones = ImmutableSet.of();
+  private final Set<String> securityGroups = ImmutableSet.of();
+  private final Map<String, Object> launchConfig = ImmutableMap.of();
 
   @JsonIgnore
   private static final ArtifactReplacer dockerImageReplacer =
@@ -145,25 +144,14 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     this.capacity = Capacity.builder().desired(desired).build();
   }
 
-  private static KubernetesV2ServerGroup fromCacheData(
-      CacheData cd,
-      List<CacheData> instanceData,
-      List<CacheData> loadBalancerData,
-      List<Keys.InfrastructureCacheKey> serverGroupManagerKeys) {
-    if (cd == null) {
-      return null;
-    }
-
-    if (instanceData == null) {
-      instanceData = new ArrayList<>();
-    }
-
-    if (serverGroupManagerKeys == null) {
-      serverGroupManagerKeys = new ArrayList<>();
-    }
-
+  public static KubernetesV2ServerGroup fromCacheData(KubernetesV2ServerGroupCacheData cacheData) {
     List<ServerGroupManagerSummary> serverGroupManagers =
-        serverGroupManagerKeys.stream()
+        cacheData.getServerGroupManagerKeys().stream()
+            .map(Keys::parseKey)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .filter(k -> k instanceof InfrastructureCacheKey)
+            .map(k -> (InfrastructureCacheKey) k)
             .map(
                 k ->
                     ServerGroupManagerSummary.builder()
@@ -173,15 +161,16 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
                         .build())
             .collect(Collectors.toList());
 
-    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cd);
+    KubernetesManifest manifest =
+        KubernetesCacheDataConverter.getManifest(cacheData.getServerGroupData());
 
     if (manifest == null) {
-      log.warn("Cache data {} inserted without a manifest", cd.getId());
+      log.warn("Cache data {} inserted without a manifest", cacheData.getServerGroupData().getId());
       return null;
     }
 
     List<KubernetesV2Instance> instances =
-        instanceData.stream()
+        cacheData.getInstanceData().stream()
             .map(KubernetesV2Instance::fromCacheData)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
@@ -199,31 +188,27 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
             .collect(Collectors.toSet());
 
     Set<String> loadBalancers =
-        loadBalancerData.stream()
-            .map(CacheData::getId)
+        cacheData.getLoadBalancerKeys().stream()
             .map(Keys::parseKey)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .map(k -> (Keys.InfrastructureCacheKey) k)
+            .map(k -> (InfrastructureCacheKey) k)
             .map(k -> KubernetesManifest.getFullResourceName(k.getKubernetesKind(), k.getName()))
             .collect(Collectors.toSet());
 
-    Boolean disabled = loadBalancers.isEmpty() && !explicitLoadBalancers.isEmpty();
+    boolean disabled = loadBalancers.isEmpty() && !explicitLoadBalancers.isEmpty();
     loadBalancers.addAll(explicitLoadBalancers);
 
     return new KubernetesV2ServerGroup(
-        manifest, cd.getId(), instances, loadBalancers, serverGroupManagers, disabled);
+        manifest,
+        cacheData.getServerGroupData().getId(),
+        instances,
+        loadBalancers,
+        serverGroupManagers,
+        disabled);
   }
 
-  public static KubernetesV2ServerGroup fromCacheData(KubernetesV2ServerGroupCacheData cacheData) {
-    return fromCacheData(
-        cacheData.getServerGroupData(),
-        cacheData.getInstanceData(),
-        cacheData.getLoadBalancerData(),
-        cacheData.getServerGroupManagerKeys());
-  }
-
-  public ServerGroupSummary toServerGroupSummary() {
+  public KubernetesV2ServerGroupSummary toServerGroupSummary() {
     return KubernetesV2ServerGroupSummary.builder()
         .name(getName())
         .account(getAccount())
@@ -238,13 +223,20 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .detachedInstances(new HashSet<>())
         .instances(
             instances.stream()
-                .map(i -> ((KubernetesV2Instance) i).toLoadBalancerInstance())
+                .map(KubernetesV2Instance::toLoadBalancerInstance)
                 .collect(Collectors.toSet()))
         .name(getName())
         .region(getRegion())
         .isDisabled(isDisabled())
         .cloudProvider(KubernetesCloudProvider.ID)
         .build();
+  }
+
+  @Deprecated
+  @Null
+  @Override
+  public ImageSummary getImageSummary() {
+    return null;
   }
 
   @Override

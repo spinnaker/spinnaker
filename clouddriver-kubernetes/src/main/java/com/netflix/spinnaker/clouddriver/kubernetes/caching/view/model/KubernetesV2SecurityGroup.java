@@ -50,21 +50,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Slf4j
-public class KubernetesV2SecurityGroup extends ManifestBasedModel implements SecurityGroup {
+@Value
+public final class KubernetesV2SecurityGroup extends ManifestBasedModel implements SecurityGroup {
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
       ImmutableSet.of(EXTENSIONS_V1BETA1, NETWORKING_K8S_IO_V1BETA1, NETWORKING_K8S_IO_V1);
 
-  private KubernetesManifest manifest;
-  private Keys.InfrastructureCacheKey key;
-  private String id;
+  private final KubernetesManifest manifest;
+  private final Keys.InfrastructureCacheKey key;
+  private final String id;
 
-  private Set<Rule> inboundRules;
-  private Set<Rule> outboundRules;
+  private final Set<Rule> inboundRules;
+  private final Set<Rule> outboundRules;
 
   @Override
   public String getApplication() {

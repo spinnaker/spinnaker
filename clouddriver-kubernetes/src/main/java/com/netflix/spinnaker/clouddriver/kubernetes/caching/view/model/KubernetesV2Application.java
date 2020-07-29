@@ -24,7 +24,7 @@ import java.util.Set;
 import lombok.Value;
 
 @Value
-public class KubernetesV2Application implements Application {
+public final class KubernetesV2Application implements Application {
   private final String name;
   private final Map<String, Set<String>> clusterNames;
 

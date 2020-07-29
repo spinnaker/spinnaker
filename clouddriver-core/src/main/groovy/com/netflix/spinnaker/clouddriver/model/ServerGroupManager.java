@@ -33,7 +33,7 @@ public interface ServerGroupManager {
 
   Moniker getMoniker();
 
-  Set<ServerGroupSummary> getServerGroups();
+  Set<? extends ServerGroupSummary> getServerGroups();
 
   String getRegion();
 

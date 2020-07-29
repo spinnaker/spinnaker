@@ -17,17 +17,32 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
-import java.util.List;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
-@Data
-@Builder
+@NonnullByDefault
+@Value
 public class KubernetesV2ServerGroupManagerCacheData implements KubernetesV2CacheData {
-  private CacheData serverGroupManagerData;
-  private List<CacheData> serverGroupData;
+  private final CacheData serverGroupManagerData;
+  private final Collection<CacheData> serverGroupData;
 
+  @Builder
+  @ParametersAreNullableByDefault
+  private KubernetesV2ServerGroupManagerCacheData(
+      @Nonnull CacheData serverGroupManagerData, Collection<CacheData> serverGroupData) {
+    this.serverGroupManagerData = Objects.requireNonNull(serverGroupManagerData);
+    this.serverGroupData = Optional.ofNullable(serverGroupData).orElseGet(ImmutableList::of);
+  }
+
+  @Override
   public CacheData primaryData() {
     return serverGroupManagerData;
   }

@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.Kubernete
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2LoadBalancer;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroupManager;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroupSummary;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
@@ -66,7 +67,6 @@ import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider.Details;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
@@ -326,12 +326,11 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getApplicationsUnexpanded(SoftAssertions softly) {
-    Set<? extends Application> result = applicationProvider.getApplications(false);
+    Set<KubernetesV2Application> result = applicationProvider.getApplications(false);
     softly.assertThat(result).hasSize(2);
 
     Map<String, KubernetesV2Application> applicationLookup =
-        result.stream()
-            .collect(toImmutableMap(Application::getName, a -> (KubernetesV2Application) a));
+        result.stream().collect(toImmutableMap(Application::getName, a -> a));
 
     KubernetesV2Application frontendApplication = applicationLookup.get("frontendapp");
     softly.assertThat(frontendApplication).isNotNull();
@@ -349,12 +348,11 @@ final class KubernetesDataProviderIntegrationTest {
   @Test
   void getApplicationsExpanded(SoftAssertions softly) {
     // This is the same as the unexpanded test, as it seems like we ignore the flag.
-    Set<? extends Application> result = applicationProvider.getApplications(true);
+    Set<KubernetesV2Application> result = applicationProvider.getApplications(true);
     softly.assertThat(result).hasSize(2);
 
     Map<String, KubernetesV2Application> applicationLookup =
-        result.stream()
-            .collect(toImmutableMap(Application::getName, a -> (KubernetesV2Application) a));
+        result.stream().collect(toImmutableMap(Application::getName, a -> a));
 
     KubernetesV2Application frontendApplication = applicationLookup.get("frontendapp");
     softly.assertThat(frontendApplication).isNotNull();
@@ -371,8 +369,7 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getApplication(SoftAssertions softly) {
-    KubernetesV2Application result =
-        (KubernetesV2Application) applicationProvider.getApplication("backendapp");
+    KubernetesV2Application result = applicationProvider.getApplication("backendapp");
     assertThat(result).isNotNull();
     assertBackendApplication(softly, result);
   }
@@ -405,12 +402,11 @@ final class KubernetesDataProviderIntegrationTest {
 
   @Test
   void getLoadBalancersByName(SoftAssertions softly) {
-    List<Details> results =
+    List<KubernetesV2LoadBalancer> results =
         loadBalancerProvider.byAccountAndRegionAndName(
             ACCOUNT_NAME, "frontend-ns", "service frontend");
-    // TODO(ezimanyi): This is a bug; we are not properly looking up the load balancer, so always
-    // return null
-    assertThat(results).isNull();
+    assertThat(results).hasSize(1);
+    assertFrontendLoadBalancer(softly, results.iterator().next());
   }
 
   @Test
@@ -550,8 +546,7 @@ final class KubernetesDataProviderIntegrationTest {
       // finding all relationships to it). This should be fixed to return it only once.
       softly.assertThat(cluster.getLoadBalancers()).hasSize(4);
       if (!cluster.getLoadBalancers().isEmpty()) {
-        assertFrontendLoadBalancer(
-            softly, (KubernetesV2LoadBalancer) cluster.getLoadBalancers().iterator().next());
+        assertFrontendLoadBalancer(softly, cluster.getLoadBalancers().iterator().next());
       }
     } else {
       softly.assertThat(cluster.getServerGroups()).isEmpty();
@@ -560,7 +555,7 @@ final class KubernetesDataProviderIntegrationTest {
   }
 
   private void assertFrontendServerGroups(
-      SoftAssertions softly, Collection<? extends ServerGroup> serverGroups) {
+      SoftAssertions softly, Collection<KubernetesV2ServerGroup> serverGroups) {
     softly.assertThat(serverGroups).hasSize(2);
     softly
         .assertThat(serverGroups)
@@ -568,8 +563,7 @@ final class KubernetesDataProviderIntegrationTest {
         .containsExactlyInAnyOrder(
             "replicaSet frontend-5c6559f75f", "replicaSet frontend-64545c4c54");
     Map<String, KubernetesV2ServerGroup> serverGroupLookup =
-        serverGroups.stream()
-            .collect(toImmutableMap(ServerGroup::getName, sg -> (KubernetesV2ServerGroup) sg));
+        serverGroups.stream().collect(toImmutableMap(ServerGroup::getName, sg -> sg));
 
     KubernetesV2ServerGroup currentServerGroup =
         serverGroupLookup.get("replicaSet frontend-5c6559f75f");
@@ -663,11 +657,10 @@ final class KubernetesDataProviderIntegrationTest {
   }
 
   private void assertFrontendCurrentServerGroupInstances(
-      SoftAssertions softly, Collection<? extends Instance> instances) {
+      SoftAssertions softly, Collection<KubernetesV2Instance> instances) {
     softly.assertThat(instances).hasSize(2);
     Map<String, KubernetesV2Instance> instanceLookup =
-        instances.stream()
-            .collect(toImmutableMap(Instance::getName, i -> (KubernetesV2Instance) i));
+        instances.stream().collect(toImmutableMap(Instance::getName, i -> i));
 
     KubernetesV2Instance firstInstance = instanceLookup.get("477dcf19-be44-4853-88fd-1d9aedfcddba");
     softly.assertThat(firstInstance).isNotNull();
@@ -811,7 +804,7 @@ final class KubernetesDataProviderIntegrationTest {
   }
 
   private void assertFrontendServerGroupSummaries(
-      SoftAssertions softly, Collection<ServerGroupSummary> serverGroups) {
+      SoftAssertions softly, Collection<KubernetesV2ServerGroupSummary> serverGroups) {
     softly.assertThat(serverGroups).hasSize(2);
     Map<String, ServerGroupSummary> serverGroupLookup =
         serverGroups.stream().collect(toImmutableMap(ServerGroupSummary::getName, sg -> sg));
@@ -925,8 +918,7 @@ final class KubernetesDataProviderIntegrationTest {
       softly.assertThat(cluster.getLoadBalancers()).hasSize(1);
       // If soft assertion above already failed, don't try to further validate.
       if (!cluster.getLoadBalancers().isEmpty()) {
-        assertBackendLoadBalancer(
-            softly, (KubernetesV2LoadBalancer) cluster.getLoadBalancers().iterator().next());
+        assertBackendLoadBalancer(softly, cluster.getLoadBalancers().iterator().next());
       }
     } else {
       softly.assertThat(cluster.getServerGroups()).isEmpty();
@@ -935,15 +927,14 @@ final class KubernetesDataProviderIntegrationTest {
   }
 
   private void assertBackendServerGroups(
-      SoftAssertions softly, Collection<? extends ServerGroup> serverGroups) {
+      SoftAssertions softly, Collection<KubernetesV2ServerGroup> serverGroups) {
     softly.assertThat(serverGroups).hasSize(2);
     softly
         .assertThat(serverGroups)
         .extracting(ServerGroup::getName)
         .containsExactlyInAnyOrder("replicaSet backend-v014", "replicaSet backend-v015");
     Map<String, KubernetesV2ServerGroup> serverGroupLookup =
-        serverGroups.stream()
-            .collect(toImmutableMap(ServerGroup::getName, sg -> (KubernetesV2ServerGroup) sg));
+        serverGroups.stream().collect(toImmutableMap(ServerGroup::getName, sg -> sg));
 
     KubernetesV2ServerGroup currentServerGroup = serverGroupLookup.get("replicaSet backend-v015");
     softly.assertThat(currentServerGroup).isNotNull();
@@ -994,8 +985,7 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(serverGroup.getInstances()).hasSize(1);
     if (!serverGroup.getInstances().isEmpty()) {
-      assertBackendPriorServerGroupInstance(
-          softly, (KubernetesV2Instance) serverGroup.getInstances().iterator().next());
+      assertBackendPriorServerGroupInstance(softly, serverGroup.getInstances().iterator().next());
     }
   }
 
@@ -1031,8 +1021,7 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(serverGroup.getInstances()).hasSize(1);
     if (!serverGroup.getInstances().isEmpty()) {
-      assertBackendCurrentServerGroupInstance(
-          softly, (KubernetesV2Instance) serverGroup.getInstances().iterator().next());
+      assertBackendCurrentServerGroupInstance(softly, serverGroup.getInstances().iterator().next());
     }
   }
 

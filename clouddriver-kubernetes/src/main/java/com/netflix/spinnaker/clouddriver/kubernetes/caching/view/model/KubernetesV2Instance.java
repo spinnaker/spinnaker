@@ -31,24 +31,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.Data;
+import javax.validation.constraints.Null;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
-@NoArgsConstructor
 @Slf4j
-public class KubernetesV2Instance extends ManifestBasedModel implements Instance {
-  private Long launchTime;
-  private List<Map<String, Object>> health = new ArrayList<>();
-  private KubernetesManifest manifest;
-  private Keys.InfrastructureCacheKey key;
+@Value
+public final class KubernetesV2Instance extends ManifestBasedModel implements Instance {
+  private final List<Map<String, Object>> health;
+  private final KubernetesManifest manifest;
+  private final Keys.InfrastructureCacheKey key;
+
+  @Null
+  @Override
+  public Long getLaunchTime() {
+    return null;
+  }
 
   private KubernetesV2Instance(KubernetesManifest manifest, String key) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
+    this.health = new ArrayList<>();
 
     V1PodStatus status =
         KubernetesCacheDataConverter.getResource(this.manifest.getStatus(), V1PodStatus.class);

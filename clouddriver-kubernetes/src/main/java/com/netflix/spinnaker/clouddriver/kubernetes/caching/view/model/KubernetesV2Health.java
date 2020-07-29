@@ -23,12 +23,12 @@ import com.netflix.spinnaker.clouddriver.model.HealthState;
 import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1PodStatus;
 import java.util.Map;
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 // TODO(lwander): match spec described here
 // https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
-public class KubernetesV2Health implements Health {
+public final class KubernetesV2Health implements Health {
   private final HealthState state;
   private final String source;
   private final String type;

@@ -26,24 +26,24 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Slf4j
-public class KubernetesV2LoadBalancer extends ManifestBasedModel
+@Value
+public final class KubernetesV2LoadBalancer extends ManifestBasedModel
     implements LoadBalancer, LoadBalancerProvider.Details {
-  private Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
-  private KubernetesManifest manifest;
-  private Keys.InfrastructureCacheKey key;
+  private final Set<LoadBalancerServerGroup> serverGroups;
+  private final KubernetesManifest manifest;
+  private final Keys.InfrastructureCacheKey key;
 
   private KubernetesV2LoadBalancer(
       KubernetesManifest manifest, String key, Set<LoadBalancerServerGroup> serverGroups) {
@@ -55,7 +55,7 @@ public class KubernetesV2LoadBalancer extends ManifestBasedModel
   public static KubernetesV2LoadBalancer fromCacheData(
       CacheData cd,
       List<CacheData> serverGroupData,
-      Map<String, List<CacheData>> serverGroupToInstanceData) {
+      Map<String, ? extends Collection<CacheData>> serverGroupToInstanceData) {
     if (cd == null) {
       return null;
     }
@@ -75,7 +75,7 @@ public class KubernetesV2LoadBalancer extends ManifestBasedModel
                         KubernetesV2ServerGroupCacheData.builder()
                             .serverGroupData(d)
                             .instanceData(serverGroupToInstanceData.get(d.getId()))
-                            .loadBalancerData(ImmutableList.of(cd))
+                            .loadBalancerKeys(ImmutableList.of(cd.getId()))
                             .build()))
             .filter(Objects::nonNull)
             .map(KubernetesV2ServerGroup::toLoadBalancerServerGroup)

@@ -61,26 +61,24 @@ public class KubernetesCacheUtils {
   }
 
   public Collection<CacheData> getAllKeys(String type) {
-    return cleanupCollection(cache.getAll(type));
+    return cache.getAll(type);
   }
 
   public Collection<String> getAllKeysMatchingPattern(String type, String key) {
-    return cleanupCollection(cache.filterIdentifiers(type, key));
+    return cache.filterIdentifiers(type, key);
   }
 
   public Collection<CacheData> getAllDataMatchingPattern(String type, String key) {
-    return cleanupCollection(cache.getAll(type, getAllKeysMatchingPattern(type, key)));
+    return cache.getAll(type, getAllKeysMatchingPattern(type, key));
   }
 
   public Optional<CacheData> getSingleEntry(String type, String key) {
-    CacheData result = cache.get(type, key);
-    return result == null ? Optional.empty() : Optional.of(result);
+    return Optional.ofNullable(cache.get(type, key));
   }
 
   public Optional<CacheData> getSingleEntryWithRelationships(
       String type, String key, String... to) {
-    CacheData result = cache.get(type, key, RelationshipCacheFilter.include(to));
-    return Optional.ofNullable(result);
+    return Optional.ofNullable(cache.get(type, key, RelationshipCacheFilter.include(to)));
   }
 
   private Collection<String> aggregateRelationshipsBySpinnakerKind(
@@ -96,17 +94,16 @@ public class KubernetesCacheUtils {
   public Collection<CacheData> getTransitiveRelationship(
       String from, List<String> sourceKeys, String to) {
     Collection<CacheData> sourceData =
-        cleanupCollection(cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to)));
-    return cleanupCollection(
-        cache.getAll(
-            to,
-            sourceData.stream()
-                .map(CacheData::getRelationships)
-                .filter(Objects::nonNull)
-                .map(r -> r.get(to))
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList())));
+        cache.getAll(from, sourceKeys, RelationshipCacheFilter.include(to));
+    return cache.getAll(
+        to,
+        sourceData.stream()
+            .map(CacheData::getRelationships)
+            .filter(Objects::nonNull)
+            .map(r -> r.get(to))
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList()));
   }
 
   public Collection<CacheData> getAllRelationshipsOfSpinnakerKind(
@@ -125,7 +122,7 @@ public class KubernetesCacheUtils {
   public Collection<CacheData> loadRelationshipsFromCache(
       Collection<CacheData> sources, String relationshipType) {
     List<String> keys =
-        cleanupCollection(sources).stream()
+        sources.stream()
             .map(CacheData::getRelationships)
             .filter(Objects::nonNull)
             .map(r -> r.get(relationshipType))
@@ -133,15 +130,7 @@ public class KubernetesCacheUtils {
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
-    return cleanupCollection(cache.getAll(relationshipType, keys));
-  }
-
-  private <T> Collection<T> cleanupCollection(Collection<T> items) {
-    if (items == null) {
-      return new ArrayList<>();
-    }
-
-    return items.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    return cache.getAll(relationshipType, keys);
   }
 
   /*

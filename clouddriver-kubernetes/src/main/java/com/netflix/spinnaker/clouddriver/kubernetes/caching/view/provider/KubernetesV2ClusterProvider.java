@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalKind.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalKind.CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.INSTANCES;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.LOAD_BALANCERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUPS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUP_MANAGERS;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -40,7 +43,6 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,15 +68,14 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   @Override
   public Map<String, Set<KubernetesV2Cluster>> getClusters() {
-    return groupByAccountName(
-        translateClustersWithRelationships(cacheUtils.getAllKeys(CLUSTERS.toString())));
+    return groupByAccountName(loadClusters(cacheUtils.getAllKeys(CLUSTERS.toString())));
   }
 
   @Override
   public Map<String, Set<KubernetesV2Cluster>> getClusterSummaries(String application) {
     String applicationKey = Keys.ApplicationCacheKey.createKey(application);
     return groupByAccountName(
-        translateClusters(
+        loadClusterSummaries(
             cacheUtils.getTransitiveRelationship(
                 APPLICATIONS.toString(), ImmutableList.of(applicationKey), CLUSTERS.toString())));
   }
@@ -83,15 +84,13 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
   public Map<String, Set<KubernetesV2Cluster>> getClusterDetails(String application) {
     String clusterGlobKey = Keys.ClusterCacheKey.createKey("*", application, "*");
     return groupByAccountName(
-        translateClustersWithRelationships(
-            cacheUtils.getAllDataMatchingPattern(CLUSTERS.toString(), clusterGlobKey)));
+        loadClusters(cacheUtils.getAllDataMatchingPattern(CLUSTERS.toString(), clusterGlobKey)));
   }
 
   @Override
   public Set<KubernetesV2Cluster> getClusters(String application, String account) {
     String globKey = Keys.ClusterCacheKey.createKey(account, application, "*");
-    return translateClustersWithRelationships(
-        cacheUtils.getAllDataMatchingPattern(CLUSTERS.toString(), globKey));
+    return loadClusters(cacheUtils.getAllDataMatchingPattern(CLUSTERS.toString(), globKey));
   }
 
   @Override
@@ -109,9 +108,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
             entry -> {
               Collection<CacheData> clusterData = ImmutableList.of(entry);
               Set<KubernetesV2Cluster> result =
-                  includeDetails
-                      ? translateClustersWithRelationships(clusterData)
-                      : translateClusters(clusterData);
+                  includeDetails ? loadClusters(clusterData) : loadClusterSummaries(clusterData);
               return result.iterator().next();
             })
         .orElse(null);
@@ -156,20 +153,21 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
                       .flatMap(Collection::stream)
                       .collect(Collectors.toList());
 
-              List<CacheData> loadBalancerData =
+              List<String> loadBalancerKeys =
                   kindMap.translateSpinnakerKind(LOAD_BALANCERS).stream()
                       .map(
                           k ->
                               cacheUtils.loadRelationshipsFromCache(
                                   ImmutableList.of(cd), k.toString()))
                       .flatMap(Collection::stream)
+                      .map(CacheData::getId)
                       .collect(Collectors.toList());
 
               return cacheUtils.<KubernetesV2ServerGroup>resourceModelFromCacheData(
                   KubernetesV2ServerGroupCacheData.builder()
                       .serverGroupData(cd)
                       .instanceData(instanceData)
-                      .loadBalancerData(loadBalancerData)
+                      .loadBalancerKeys(loadBalancerKeys)
                       .build());
             })
         .orElse(null);
@@ -192,30 +190,16 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
   private Map<String, Set<KubernetesV2Cluster>> groupByAccountName(
       Collection<KubernetesV2Cluster> clusters) {
-    Map<String, Set<KubernetesV2Cluster>> result = new HashMap<>();
-    for (KubernetesV2Cluster cluster : clusters) {
-      String accountName = cluster.getAccountName();
-      Set<KubernetesV2Cluster> grouping = result.get(accountName);
-      if (grouping == null) {
-        grouping = new HashSet<>();
-      }
-
-      grouping.add(cluster);
-      result.put(accountName, grouping);
-    }
-
-    return result;
+    return clusters.stream().collect(groupingBy(KubernetesV2Cluster::getAccountName, toSet()));
   }
 
-  private Set<KubernetesV2Cluster> translateClusters(Collection<CacheData> clusterData) {
+  private Set<KubernetesV2Cluster> loadClusterSummaries(Collection<CacheData> clusterData) {
     return clusterData.stream()
-        .map(this::translateCluster)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+        .map(clusterDatum -> new KubernetesV2Cluster(clusterDatum.getId()))
+        .collect(toSet());
   }
 
-  private Set<KubernetesV2Cluster> translateClustersWithRelationships(
-      Collection<CacheData> clusterData) {
+  private Set<KubernetesV2Cluster> loadClusters(Collection<CacheData> clusterData) {
     // TODO(lwander) possible optimization: store lb relationships in cluster object to cut down on
     // number of loads here.
     List<CacheData> serverGroupData =
@@ -251,7 +235,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
       clusterToServerGroups.put(clusterKey, storedData);
     }
 
-    Map<String, List<InfrastructureCacheKey>> serverGroupToServerGroupManagerKeys = new HashMap<>();
+    Map<String, List<String>> serverGroupToServerGroupManagerKeys = new HashMap<>();
     for (CacheData serverGroupDatum : serverGroupData) {
       serverGroupToServerGroupManagerKeys.put(
           serverGroupDatum.getId(),
@@ -259,11 +243,6 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
               .map(kind -> serverGroupDatum.getRelationships().get(kind.toString()))
               .filter(Objects::nonNull)
               .flatMap(Collection::stream)
-              .map(Keys::parseKey)
-              .filter(Optional::isPresent)
-              .map(Optional::get)
-              .filter(k -> k instanceof Keys.InfrastructureCacheKey)
-              .map(k -> (Keys.InfrastructureCacheKey) k)
               .collect(Collectors.toList()));
     }
 
@@ -274,79 +253,52 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
     Map<String, List<CacheData>> loadBalancerToServerGroups =
         cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCERS);
 
-    Set<KubernetesV2Cluster> result = new HashSet<>();
-    for (CacheData clusterDatum : clusterData) {
-      List<CacheData> clusterServerGroups =
-          clusterToServerGroups.getOrDefault(clusterDatum.getId(), new ArrayList<>());
-
-      List<CacheData> clusterLoadBalancers =
-          clusterServerGroups.stream()
-              .map(CacheData::getId)
-              .map(id -> serverGroupToLoadBalancers.getOrDefault(id, new ArrayList<>()))
-              .flatMap(Collection::stream)
-              .collect(Collectors.toList());
-
-      List<KubernetesV2ServerGroup> serverGroups =
-          getServerGroups(
-              clusterServerGroups,
-              serverGroupToInstances,
-              serverGroupToLoadBalancers,
-              serverGroupToServerGroupManagerKeys);
-
-      List<KubernetesV2LoadBalancer> loadBalancers =
-          getLoadBalancers(
-              clusterLoadBalancers, serverGroupToInstances, loadBalancerToServerGroups);
-
-      result.add(new KubernetesV2Cluster(clusterDatum.getId(), serverGroups, loadBalancers));
-    }
-
-    return result.stream().filter(Objects::nonNull).collect(Collectors.toSet());
-  }
-
-  private KubernetesV2Cluster translateCluster(CacheData clusterDatum) {
-    if (clusterDatum == null) {
-      return null;
-    }
-
-    return new KubernetesV2Cluster(clusterDatum.getId());
-  }
-
-  private List<KubernetesV2ServerGroup> getServerGroups(
-      List<CacheData> serverGroupData,
-      Map<String, List<CacheData>> instanceDataByServerGroup,
-      Map<String, List<CacheData>> loadBalancerDataByServerGroup,
-      Map<String, List<InfrastructureCacheKey>> serverGroupToServerGroupManagerKeys) {
-    return serverGroupData.stream()
+    return clusterData.stream()
         .map(
-            cd ->
-                cacheUtils.<KubernetesV2ServerGroup>resourceModelFromCacheData(
-                    KubernetesV2ServerGroupCacheData.builder()
-                        .serverGroupData(cd)
-                        .instanceData(
-                            instanceDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()))
-                        .loadBalancerData(
-                            loadBalancerDataByServerGroup.getOrDefault(
-                                cd.getId(), new ArrayList<>()))
-                        .serverGroupManagerKeys(
-                            serverGroupToServerGroupManagerKeys.getOrDefault(
-                                cd.getId(), new ArrayList<>()))
-                        .build()))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
+            clusterDatum -> {
+              List<CacheData> clusterServerGroups =
+                  clusterToServerGroups.getOrDefault(clusterDatum.getId(), new ArrayList<>());
 
-  private List<KubernetesV2LoadBalancer> getLoadBalancers(
-      List<CacheData> loadBalancerData,
-      Map<String, List<CacheData>> instanceDataByServerGroup,
-      Map<String, List<CacheData>> serverGroupDataByLoadBalancer) {
-    return loadBalancerData.stream()
-        .map(
-            cd ->
-                KubernetesV2LoadBalancer.fromCacheData(
-                    cd,
-                    serverGroupDataByLoadBalancer.getOrDefault(cd.getId(), new ArrayList<>()),
-                    instanceDataByServerGroup))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+              List<KubernetesV2ServerGroup> serverGroups =
+                  clusterServerGroups.stream()
+                      .map(
+                          cd ->
+                              cacheUtils.<KubernetesV2ServerGroup>resourceModelFromCacheData(
+                                  KubernetesV2ServerGroupCacheData.builder()
+                                      .serverGroupData(cd)
+                                      .instanceData(
+                                          serverGroupToInstances.getOrDefault(
+                                              cd.getId(), new ArrayList<>()))
+                                      .loadBalancerKeys(
+                                          serverGroupToLoadBalancers
+                                              .getOrDefault(cd.getId(), new ArrayList<>())
+                                              .stream()
+                                              .map(CacheData::getId)
+                                              .collect(toImmutableList()))
+                                      .serverGroupManagerKeys(
+                                          serverGroupToServerGroupManagerKeys.getOrDefault(
+                                              cd.getId(), new ArrayList<>()))
+                                      .build()))
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toList());
+
+              List<KubernetesV2LoadBalancer> loadBalancers =
+                  clusterServerGroups.stream()
+                      .map(CacheData::getId)
+                      .map(id -> serverGroupToLoadBalancers.getOrDefault(id, new ArrayList<>()))
+                      .flatMap(Collection::stream)
+                      .map(
+                          cd ->
+                              KubernetesV2LoadBalancer.fromCacheData(
+                                  cd,
+                                  loadBalancerToServerGroups.getOrDefault(
+                                      cd.getId(), new ArrayList<>()),
+                                  serverGroupToInstances))
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toList());
+
+              return new KubernetesV2Cluster(clusterDatum.getId(), serverGroups, loadBalancers);
+            })
+        .collect(toSet());
   }
 }

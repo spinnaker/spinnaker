@@ -17,20 +17,40 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
-import java.util.List;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
-@Data
-@Builder
+@NonnullByDefault
+@Value
 public class KubernetesV2ServerGroupCacheData implements KubernetesV2CacheData {
-  private CacheData serverGroupData;
-  private List<CacheData> instanceData;
-  private List<CacheData> loadBalancerData;
-  private List<Keys.InfrastructureCacheKey> serverGroupManagerKeys;
+  private final CacheData serverGroupData;
+  private final Collection<CacheData> instanceData;
+  private final Collection<String> loadBalancerKeys;
+  private final Collection<String> serverGroupManagerKeys;
 
+  @Builder
+  @ParametersAreNullableByDefault
+  private KubernetesV2ServerGroupCacheData(
+      @Nonnull CacheData serverGroupData,
+      Collection<CacheData> instanceData,
+      Collection<String> loadBalancerKeys,
+      Collection<String> serverGroupManagerKeys) {
+    this.serverGroupData = Objects.requireNonNull(serverGroupData);
+    this.instanceData = Optional.ofNullable(instanceData).orElseGet(ImmutableList::of);
+    this.loadBalancerKeys = Optional.ofNullable(loadBalancerKeys).orElseGet(ImmutableList::of);
+    this.serverGroupManagerKeys =
+        Optional.ofNullable(serverGroupManagerKeys).orElseGet(ImmutableList::of);
+  }
+
+  @Override
   public CacheData primaryData() {
     return serverGroupData;
   }

@@ -22,7 +22,6 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalK
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ClusterCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Application;
-import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +42,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  public Set<? extends Application> getApplications(boolean expand) {
+  public Set<KubernetesV2Application> getApplications(boolean expand) {
     // TODO(lwander) performance optimization: rely on expand parameter to make a more
     // cache-efficient call
     String clusterGlobKey = ClusterCacheKey.createKey("*", "*", "*");
@@ -62,7 +61,7 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  public Application getApplication(String name) {
+  public KubernetesV2Application getApplication(String name) {
     String clusterGlobKey = ClusterCacheKey.createKey("*", name, "*");
     List<ClusterCacheKey> keys =
         cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
