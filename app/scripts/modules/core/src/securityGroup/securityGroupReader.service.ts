@@ -17,6 +17,7 @@ import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { IMoniker } from 'core/naming/IMoniker';
 import { IEntityTags } from 'core/domain/IEntityTags';
+import { cloneDeep } from 'lodash';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {
@@ -297,7 +298,7 @@ export class SecurityGroupReader {
     const cache = InfrastructureCaches.get('securityGroups');
     const cached = cache ? cache.get('allGroups') : null;
     if (cached) {
-      return this.$q.resolve(this.decompress(cached));
+      return this.$q.resolve(this.decompress(cloneDeep(cached)));
     }
     return API.one('securityGroups')
       .get()
