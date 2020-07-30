@@ -316,6 +316,9 @@ angular
           };
 
           ConfirmationModalService.confirm(confirmationModalParams)
+            // Wait for the confirmation modal to go away first to avoid react/angular bootstrap fighting
+            // over the body.modal-open class
+            .then(() => new Promise(resolve => setTimeout(resolve, 500)))
             .then(() => this.rollbackServerGroup())
             .catch(({ source }) => {
               // don't show the enable modal if the user cancels with the header button
