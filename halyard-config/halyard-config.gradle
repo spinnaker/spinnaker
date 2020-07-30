@@ -2,6 +2,7 @@ dependencies {
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
 
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"

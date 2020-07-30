@@ -4,6 +4,7 @@ dependencies {
 
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-core:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
