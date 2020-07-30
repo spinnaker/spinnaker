@@ -392,7 +392,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
     if (includeTasks) {
       List<String> jobIds = Collections.emptyList();
-      if (!titusRegion.getFeatureFlags().contains("jobIds")) {
+      if (titusRegion.getFeatureFlags().contains("jobIds")) {
         jobIds =
             grpcJobs.stream()
                 .map(com.netflix.titus.grpc.protogen.Job::getId)
