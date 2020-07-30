@@ -149,7 +149,16 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
         />
       );
     } else {
-      return <ReactSelectInput {...otherProps} clearable={false} required={true} options={options} />;
+      return (
+        <ReactSelectInput
+          {...otherProps}
+          clearable={false}
+          required={true}
+          options={options}
+          mode="PLAIN"
+          menuContainerStyle={{ minWidth: '150px' }}
+        />
+      );
     }
   }
 }
