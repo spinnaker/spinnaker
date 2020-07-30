@@ -1,7 +1,8 @@
 import React from 'react';
-import $ from 'jquery';
 
+import classNames from 'classnames';
 import { IInstance } from 'core/domain';
+import { Tooltip } from '../presentation';
 
 export interface IInstanceProps {
   instance: IInstance;
@@ -10,45 +11,27 @@ export interface IInstanceProps {
   onInstanceClicked(instance: IInstance): void;
 }
 
-export class Instance extends React.Component<IInstanceProps> {
-  private $tooltipElement: JQuery = null;
+export const Instance = React.memo(function Instance(props: IInstanceProps) {
+  const { instance, active, highlight, onInstanceClicked } = props;
+  const { name, id, healthState } = instance;
+  const [mouseOver, setMouseOver] = React.useState(false);
 
-  private handleClick = (event: React.MouseEvent<any>) => {
+  const handleClick = (event: React.MouseEvent<any>) => {
     event.preventDefault();
-    this.props.onInstanceClicked(this.props.instance);
+    onInstanceClicked(instance);
   };
 
-  public onMouseOver = (event: React.MouseEvent<any>) => {
-    this.$tooltipElement = $(event.target);
-    this.$tooltipElement.tooltip({ animation: false, container: 'body' } as JQueryUI.TooltipOptions).tooltip('show');
-  };
+  const className = classNames({ highlighted: highlight === id, active: active });
+  const anchor = (
+    <a
+      className={`instance health-status-${healthState} ${className}`}
+      title={name || id}
+      onMouseOver={() => setMouseOver(true)}
+      onMouseOut={() => setMouseOver(false)}
+      onClick={handleClick}
+    />
+  );
 
-  public shouldComponentUpdate(nextProps: IInstanceProps) {
-    const checkProps: Array<keyof IInstanceProps> = ['instance', 'active', 'highlight'];
-    return checkProps.some(key => this.props[key] !== nextProps[key]);
-  }
-
-  public componentWillUnmount() {
-    if (this.$tooltipElement) {
-      this.$tooltipElement.tooltip('destroy');
-    }
-  }
-
-  public render() {
-    const { instance, active, highlight } = this.props;
-    const { name, id, healthState } = instance;
-
-    const className = `instance health-status-${healthState} ${highlight === id ? 'highlighted' : ''} ${
-      active ? 'active' : ''
-    }`;
-    return (
-      <a
-        className={className}
-        title={name || id}
-        data-toggle="tooltip"
-        onMouseOver={this.onMouseOver}
-        onClick={this.handleClick}
-      />
-    );
-  }
-}
+  // Perf optimization: do not render the Tooltip component unless we received an onMouseOver event
+  return mouseOver ? <Tooltip value={name || id}>{anchor}</Tooltip> : anchor;
+});
