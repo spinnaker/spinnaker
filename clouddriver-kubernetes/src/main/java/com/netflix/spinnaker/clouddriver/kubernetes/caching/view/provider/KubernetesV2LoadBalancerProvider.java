@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalKind.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.INSTANCES;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.LOAD_BALANCERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUPS;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
@@ -35,7 +38,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -102,46 +104,34 @@ public class KubernetesV2LoadBalancerProvider
 
   @Override
   public Set<KubernetesV2LoadBalancer> getApplicationLoadBalancers(String application) {
-    List<CacheData> loadBalancerData =
-        kindMap.translateSpinnakerKind(LOAD_BALANCERS).stream()
-            .map(
-                kind ->
-                    cacheUtils.getTransitiveRelationship(
-                        APPLICATIONS.toString(),
-                        ImmutableList.of(ApplicationCacheKey.createKey(application)),
-                        kind.toString()))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
-
-    return fromLoadBalancerCacheData(loadBalancerData);
+    return cacheUtils
+        .getSingleEntry(APPLICATIONS.toString(), ApplicationCacheKey.createKey(application))
+        .map(
+            applicationData ->
+                fromLoadBalancerCacheData(
+                    kindMap.translateSpinnakerKind(LOAD_BALANCERS).stream()
+                        .map(kind -> cacheUtils.getRelationships(applicationData, kind.toString()))
+                        .flatMap(Collection::stream)
+                        .collect(toImmutableList())))
+        .orElseGet(ImmutableSet::of);
   }
 
   private Set<KubernetesV2LoadBalancer> fromLoadBalancerCacheData(
       List<CacheData> loadBalancerData) {
-    List<CacheData> serverGroupData =
-        kindMap.translateSpinnakerKind(SERVER_GROUPS).stream()
-            .map(kind -> cacheUtils.loadRelationshipsFromCache(loadBalancerData, kind.toString()))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+    Collection<CacheData> serverGroupData =
+        cacheUtils.getRelationships(loadBalancerData, SERVER_GROUPS);
+    Collection<CacheData> instanceData = cacheUtils.getRelationships(serverGroupData, INSTANCES);
 
-    List<CacheData> instanceData =
-        kindMap.translateSpinnakerKind(INSTANCES).stream()
-            .map(kind -> cacheUtils.loadRelationshipsFromCache(serverGroupData, kind.toString()))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
-
-    Map<String, List<CacheData>> loadBalancerToServerGroups =
+    ImmutableMultimap<String, CacheData> loadBalancerToServerGroups =
         cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCERS);
-    Map<String, List<CacheData>> serverGroupToInstances =
+    ImmutableMultimap<String, CacheData> serverGroupToInstances =
         cacheUtils.mapByRelationship(instanceData, SERVER_GROUPS);
 
     return loadBalancerData.stream()
         .map(
             cd ->
                 KubernetesV2LoadBalancer.fromCacheData(
-                    cd,
-                    loadBalancerToServerGroups.getOrDefault(cd.getId(), new ArrayList<>()),
-                    serverGroupToInstances))
+                    cd, loadBalancerToServerGroups.get(cd.getId()), serverGroupToInstances))
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }

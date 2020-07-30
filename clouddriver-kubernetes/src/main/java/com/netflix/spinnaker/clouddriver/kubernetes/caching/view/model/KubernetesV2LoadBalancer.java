@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
@@ -27,8 +28,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,8 +53,8 @@ public final class KubernetesV2LoadBalancer extends ManifestBasedModel
 
   public static KubernetesV2LoadBalancer fromCacheData(
       CacheData cd,
-      List<CacheData> serverGroupData,
-      Map<String, ? extends Collection<CacheData>> serverGroupToInstanceData) {
+      Collection<CacheData> serverGroupData,
+      Multimap<String, CacheData> serverGroupToInstanceData) {
     if (cd == null) {
       return null;
     }

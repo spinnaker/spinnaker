@@ -22,8 +22,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import lombok.Value;
 
@@ -43,8 +43,8 @@ public final class KubernetesV2Cluster implements Cluster {
 
   public KubernetesV2Cluster(
       String rawKey,
-      List<KubernetesV2ServerGroup> serverGroups,
-      List<KubernetesV2LoadBalancer> loadBalancers) {
+      Collection<KubernetesV2ServerGroup> serverGroups,
+      Collection<KubernetesV2LoadBalancer> loadBalancers) {
     Keys.ClusterCacheKey key = (Keys.ClusterCacheKey) Keys.parseKey(rawKey).get();
     this.name = key.getName();
     this.accountName = key.getAccount();

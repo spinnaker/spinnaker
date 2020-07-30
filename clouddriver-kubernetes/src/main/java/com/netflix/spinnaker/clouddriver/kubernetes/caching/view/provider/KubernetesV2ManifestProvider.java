@@ -113,7 +113,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .getSingleEntry(CLUSTERS.toString(), Keys.ClusterCacheKey.createKey(account, app, cluster))
         .map(
             c ->
-                cacheUtils.loadRelationshipsFromCache(c, kind).stream()
+                cacheUtils.getRelationships(c, kind).stream()
                     .map(cd -> fromCacheData(cd, credentials, false))
                     .filter(m -> m.getLocation().equals(location))
                     .sorted(
@@ -129,14 +129,10 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
     String namespace = manifest.getNamespace();
     KubernetesKind kind = manifest.getKind();
-    String key = data.getId();
 
     List<KubernetesManifest> events =
         includeEvents
-            ? cacheUtils
-                .getTransitiveRelationship(
-                    kind.toString(), ImmutableList.of(key), KubernetesKind.EVENT.toString())
-                .stream()
+            ? cacheUtils.getRelationships(data, KubernetesKind.EVENT.toString()).stream()
                 .map(KubernetesCacheDataConverter::getManifest)
                 .collect(Collectors.toList())
             : ImmutableList.of();
