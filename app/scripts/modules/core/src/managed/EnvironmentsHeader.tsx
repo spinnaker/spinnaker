@@ -45,7 +45,7 @@ export const EnvironmentsHeader = ({ app, resourceInfo: { managed, total } }: IE
   return (
     <div className="EnvironmentsHeader">
       <div className="flex-container-h sp-padding-l">
-        <div style={{ minWidth: 145 }}>
+        <div style={{ width: 145 }}>
           <Illustration name={icon} />
         </div>
         <div className="flex-container-v sp-padding-xl-top sp-margin-m-left sp-margin-m-top">
