@@ -162,11 +162,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
 
     ManifestReader.getManifest(accountId, region, serverGroupManager).then((manifest: IManifest) => {
       this.manifest = manifest;
-      this.serverGroupManager = {
-        ...serverGroupManagerDetails,
-        displayName: manifest.manifest.metadata.name,
-        namespace: serverGroupManagerDetails.region,
-      };
+      this.serverGroupManager = serverGroupManagerDetails;
       this.entityTagTargets = this.configureEntityTagTargets();
       this.state.loading = false;
     });

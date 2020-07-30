@@ -83,17 +83,12 @@ class KubernetesSecurityGroupDetailsController implements IController {
         '', // unused vpc id
         name,
       )
-      .then((rawSecurityGroup: ISecurityGroupDetail) => {
-        if (!rawSecurityGroup) {
+      .then((securityGroup: ISecurityGroupDetail) => {
+        if (!securityGroup) {
           return this.autoClose();
         }
         ManifestReader.getManifest(accountId, region, name).then((manifest: IManifest) => {
-          this.securityGroup = {
-            ...rawSecurityGroup,
-            apiVersion: manifest.manifest.apiVersion,
-            displayName: manifest.manifest.metadata.name,
-            namespace: rawSecurityGroup.region,
-          } as IKubernetesSecurityGroup;
+          this.securityGroup = securityGroup as IKubernetesSecurityGroup;
           this.manifest = manifest;
           this.state.loading = false;
         });

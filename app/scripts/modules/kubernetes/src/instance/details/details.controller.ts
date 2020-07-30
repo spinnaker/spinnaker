@@ -93,11 +93,7 @@ class KubernetesInstanceDetailsController implements IController {
         return this.autoClose();
       }
       ManifestReader.getManifest(instance.account, instance.namespace, instance.name).then((manifest: IManifest) => {
-        this.instance = {
-          ...instance,
-          apiVersion: manifest.manifest.apiVersion,
-          displayName: manifest.manifest.metadata.name,
-        };
+        this.instance = instance;
         this.manifest = manifest;
         this.consoleOutputInstance = {
           account: this.instance.account,
