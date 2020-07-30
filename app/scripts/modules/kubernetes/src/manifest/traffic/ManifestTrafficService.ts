@@ -2,7 +2,7 @@ import { IPromise } from 'angular';
 
 import { IManifest, ITask, TaskExecutor, Application } from '@spinnaker/core';
 
-import { IKubernetesServerGroup } from '../../serverGroup';
+import { IKubernetesServerGroup } from '../../interfaces';
 
 export class ManifestTrafficService {
   public static readonly ENABLE_MANIFEST_OPERATION = 'enableManifest';

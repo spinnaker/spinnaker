@@ -5,7 +5,7 @@ import { react2angular } from 'react2angular';
 
 import { Application, ManifestWriter, ConfirmationModalService } from '@spinnaker/core';
 
-import { IKubernetesServerGroupManager } from '../../serverGroupManager';
+import { IKubernetesServerGroupManager } from '../../interfaces';
 
 interface IRollingRestartProps {
   application: Application;

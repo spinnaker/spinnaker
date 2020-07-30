@@ -4,7 +4,6 @@ import { IEntityTags } from './IEntityTags';
 export interface IServerGroupManager {
   account: string;
   cloudProvider: string;
-  displayName?: string;
   entityTags?: IEntityTags;
   moniker: IMoniker;
   name: string;

@@ -12,7 +12,7 @@ import {
   ManifestReader,
 } from '@spinnaker/core';
 
-import { IKubernetesInstance } from './IKubernetesInstance';
+import { IKubernetesInstance } from '../../interfaces';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 

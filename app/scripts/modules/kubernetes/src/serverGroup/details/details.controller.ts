@@ -14,7 +14,7 @@ import {
   ManifestReader,
 } from '@spinnaker/core';
 
-import { IKubernetesServerGroup } from './IKubernetesServerGroup';
+import { IKubernetesServerGroup } from '../../interfaces';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 import { ManifestTrafficService } from '../../manifest/traffic/ManifestTrafficService';

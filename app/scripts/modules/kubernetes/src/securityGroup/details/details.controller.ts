@@ -11,7 +11,7 @@ import {
   SecurityGroupReader,
 } from '@spinnaker/core';
 
-import { IKubernetesSecurityGroup } from './IKubernetesSecurityGroup';
+import { IKubernetesSecurityGroup } from '../../interfaces';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 

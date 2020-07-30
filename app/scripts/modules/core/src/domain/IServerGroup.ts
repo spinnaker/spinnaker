@@ -40,7 +40,6 @@ export interface IServerGroup extends IManagedResource {
   loadBalancers?: string[];
   moniker?: IMoniker;
   name: string;
-  namespace?: string;
   provider?: string;
   providerMetadata?: any;
   region: string;

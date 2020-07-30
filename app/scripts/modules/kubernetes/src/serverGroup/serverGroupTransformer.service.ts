@@ -1,5 +1,5 @@
 import { IPromise, IQService, module } from 'angular';
-import { IKubernetesServerGroup } from './details/IKubernetesServerGroup';
+import { IKubernetesServerGroup } from '../interfaces';
 
 export class KubernetesV2ServerGroupTransformer {
   public static $inject = ['$q'];

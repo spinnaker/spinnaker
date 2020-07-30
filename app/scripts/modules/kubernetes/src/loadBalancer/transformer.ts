@@ -3,7 +3,7 @@ import { chain, camelCase } from 'lodash';
 
 import { IServerGroup, IInstanceCounts } from '@spinnaker/core';
 
-import { IKubernetesLoadBalancer } from './details/IKubernetesLoadBalancer';
+import { IKubernetesLoadBalancer } from '../interfaces';
 
 class KubernetesV2LoadBalancerTransformer {
   public static $inject = ['$q'];

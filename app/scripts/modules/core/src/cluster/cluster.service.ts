@@ -169,7 +169,7 @@ export class ClusterService {
           if (
             stageServerGroup.includes(serverGroup.name) &&
             stageAccount === serverGroup.account &&
-            (stageRegion === serverGroup.region || stageRegion === serverGroup.namespace)
+            stageRegion === serverGroup.region
           ) {
             serverGroup.runningExecutions.push(execution);
           }

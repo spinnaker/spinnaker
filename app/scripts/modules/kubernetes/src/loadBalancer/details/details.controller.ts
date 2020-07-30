@@ -4,7 +4,7 @@ import { StateService } from '@uirouter/angularjs';
 
 import { Application, ILoadBalancer, IManifest, ManifestReader } from '@spinnaker/core';
 
-import { IKubernetesLoadBalancer } from './IKubernetesLoadBalancer';
+import { IKubernetesLoadBalancer } from '../../interfaces';
 import { KubernetesManifestCommandBuilder } from '../../manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from '../../manifest/wizard/ManifestWizard';
 

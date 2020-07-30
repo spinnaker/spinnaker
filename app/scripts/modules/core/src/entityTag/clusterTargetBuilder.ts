@@ -43,7 +43,7 @@ export class ClusterTargetBuilder {
     return [
       {
         type: 'serverGroupManager',
-        label: `all server groups in **${serverGroupManager.displayName}** in ${clusterName}`,
+        label: `all server groups in **${serverGroupManager.name}** in ${clusterName}`,
         owner: {
           name: serverGroupManager.name,
           cloudProvider: serverGroupManager.cloudProvider,
