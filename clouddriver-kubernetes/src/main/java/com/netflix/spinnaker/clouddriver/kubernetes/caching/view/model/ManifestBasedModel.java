@@ -36,6 +36,18 @@ public abstract class ManifestBasedModel {
     return getManifest().getFullResourceName();
   }
 
+  public String getDisplayName() {
+    return getManifest().getName();
+  }
+
+  public String getApiVersion() {
+    return getManifest().getApiVersion().toString();
+  }
+
+  public String getNamespace() {
+    return getManifest().getNamespace();
+  }
+
   // Spinnaker namespace hacks
   public String getZone() {
     return getManifest().getNamespace();
