@@ -151,6 +151,10 @@ public class SynchronousQueryProcessor {
       // retry in case of network errors
       return true;
     }
+    if (e.getResponse() == null) {
+      // We don't have a network error, but the response is null. It's better to not retry these.
+      return false;
+    }
     HttpStatus responseStatus = HttpStatus.resolve(e.getResponse().getStatus());
     if (responseStatus == null) {
       return false;
@@ -160,7 +164,8 @@ public class SynchronousQueryProcessor {
   }
 
   private boolean isNetworkError(RetrofitError e) {
-    return e.getResponse() == null && e.getCause() instanceof IOException;
+    return e.getKind() == RetrofitError.Kind.NETWORK
+        || (e.getResponse() == null && e.getCause() instanceof IOException);
   }
 
   public Map<String, ?> processQueryAndReturnMap(
