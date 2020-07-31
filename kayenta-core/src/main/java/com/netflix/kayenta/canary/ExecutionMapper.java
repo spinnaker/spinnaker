@@ -357,6 +357,10 @@ public class ExecutionMapper {
                 .withTag("canaryConfigName", canaryConfig.getName()))
         .increment();
 
+    if (canaryConfig.getMetrics().size() <= 0) {
+      throw new IllegalArgumentException(
+          "The canary config must specify at least one metric. Otherwise we're not analyzing anything. :)");
+    }
     Set<String> requiredScopes =
         canaryConfig.getMetrics().stream()
             .map(CanaryMetricConfig::getScopeName)
