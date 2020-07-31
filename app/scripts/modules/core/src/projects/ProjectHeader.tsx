@@ -96,7 +96,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
     );
 
     return (
-      <div className="flex-fill">
+      <div className="flex-fill application">
         <div className="project-header">
           <div className="container">
             <h2>
