@@ -179,6 +179,7 @@ public class RegionScopedTitusClient implements TitusClient {
             .putFilteringCriteria("jobType", "SERVICE")
             .putFilteringCriteria("attributes", "source:spinnaker,name:" + jobName)
             .putFilteringCriteria("attributes.op", "and");
+
     List<Job> results = getJobs(jobQuery, includeTasks);
     return results.isEmpty() ? null : results.get(0);
   }
@@ -373,15 +374,6 @@ public class RegionScopedTitusClient implements TitusClient {
     return new TitusHealth(HealthStatus.HEALTHY);
   }
 
-  @Override
-  public List<Job> getAllJobsWithTasks() {
-    JobQuery.Builder jobQuery =
-        JobQuery.newBuilder()
-            .putFilteringCriteria("jobType", "SERVICE")
-            .putFilteringCriteria("attributes", "source:spinnaker");
-    return getJobs(jobQuery);
-  }
-
   private List<Job> getJobs(JobQuery.Builder jobQuery) {
     return getJobs(jobQuery, true);
   }
@@ -391,13 +383,10 @@ public class RegionScopedTitusClient implements TitusClient {
     final Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks;
 
     if (includeTasks) {
-      List<String> jobIds = Collections.emptyList();
-      if (titusRegion.getFeatureFlags().contains("jobIds")) {
-        jobIds =
-            grpcJobs.stream()
-                .map(com.netflix.titus.grpc.protogen.Job::getId)
-                .collect(Collectors.toList());
-      }
+      List<String> jobIds =
+          grpcJobs.stream()
+              .map(com.netflix.titus.grpc.protogen.Job::getId)
+              .collect(Collectors.toList());
       tasks = getTasks(jobIds, false);
     } else {
       tasks = Collections.emptyMap();
@@ -466,9 +455,7 @@ public class RegionScopedTitusClient implements TitusClient {
       taskQueryBuilder.putFilteringCriteria(
           "jobIds", jobIds.stream().collect(Collectors.joining(",")));
     }
-    if (titusRegion.getFeatureFlags().contains("jobIds")) {
-      taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
-    }
+    taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
     String filterByStates = "Launched,StartInitiated,Started";
     if (includeDoneJobs) {
       filterByStates = filterByStates + ",KillInitiated,Finished";

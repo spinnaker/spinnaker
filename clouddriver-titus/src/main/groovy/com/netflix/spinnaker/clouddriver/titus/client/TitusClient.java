@@ -94,9 +94,6 @@ public interface TitusClient {
   /** @return */
   public TitusHealth getHealth();
 
-  /** @return */
-  public List<Job> getAllJobsWithTasks();
-
   /**
    * For use in TitusV2ClusterCachingAgent
    *

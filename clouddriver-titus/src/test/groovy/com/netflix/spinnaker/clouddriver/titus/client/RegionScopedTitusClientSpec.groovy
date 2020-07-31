@@ -102,29 +102,6 @@ class RegionScopedTitusClientSpec extends Specification {
     logger.info("job by name {}", job);
     job != null
 
-    logger.info("Jobs request: {}", new Date());
-    List<Job> jobs = titusClient.getAllJobsWithTasks();
-    logger.info("Jobs response: {}", new Date());
-    logger.info("Jobs");
-    logger.info("-----------------------------------------------------------------------------------------------");
-    logger.info("Jobs count: {}", jobs.size());
-
-    // ******************************************************************************************************************
-    when:
-    int i = 7;
-    boolean found = false;
-    while (--i > 0) {
-      Job queriedJob = titusClient.getAllJobsWithTasks().find { it.id == jobId }
-      if (queriedJob) {
-        found = true;
-        break;
-      }
-      Thread.sleep(15 * 1000L);
-    }
-
-    then:
-    found
-
     // ******************************************************************************************************************
 
     when:
@@ -180,27 +157,7 @@ class RegionScopedTitusClientSpec extends Specification {
     then:
     terminated
 
-    when:
     logger.info("Successfully terminated job {}" + terminatedJob);
-
-    int k = 14;
-    boolean foundAfterTermination = true;
-    while (--k > 0) {
-      List<Job> queriedJobs = titusClient.getAllJobsWithTasks();
-      if (!queriedJobs.contains(job)) {
-        foundAfterTermination = false;
-        logger.info("Did NOT find job {} in the list of jobs. Terminate successful.", jobId);
-        break;
-      }
-      Thread.sleep(10 * 1000L);
-    }
-
-    if (foundAfterTermination) {
-      System.err.println("ERROR: Even after terminate, job was FOUND in the list of jobs: " + jobId);
-    }
-
-    then:
-    !foundAfterTermination
 
   }
 }

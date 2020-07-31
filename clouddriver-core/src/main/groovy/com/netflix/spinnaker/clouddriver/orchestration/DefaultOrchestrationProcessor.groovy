@@ -124,7 +124,11 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                 }
               }
 
-              task.updateStatus(TASK_PHASE, "Orchestration completed.")
+              if (task.status?.failed) {
+                task.updateStatus(TASK_PHASE, "Orchestration completed with errors, see prior task logs.")
+              } else {
+                task.updateStatus(TASK_PHASE, "Orchestration completed.")
+              }
             }.call()
           } catch (AtomicOperationException e) {
             task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${e.errors.join(', ')}]"
