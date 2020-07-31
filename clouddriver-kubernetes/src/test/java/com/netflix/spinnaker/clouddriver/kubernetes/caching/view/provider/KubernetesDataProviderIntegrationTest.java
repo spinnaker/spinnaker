@@ -147,11 +147,11 @@ final class KubernetesDataProviderIntegrationTest {
   private static KubernetesV2ApplicationProvider applicationProvider =
       new KubernetesV2ApplicationProvider(cacheUtils);
   private static KubernetesV2ClusterProvider clusterProvider =
-      new KubernetesV2ClusterProvider(cacheUtils, kindMap);
+      new KubernetesV2ClusterProvider(cacheUtils);
   private static KubernetesV2InstanceProvider instanceProvider =
       new KubernetesV2InstanceProvider(cacheUtils, accountResolver);
   private static KubernetesV2LoadBalancerProvider loadBalancerProvider =
-      new KubernetesV2LoadBalancerProvider(cacheUtils, kindMap);
+      new KubernetesV2LoadBalancerProvider(cacheUtils);
   private static KubernetesV2SearchProvider searchProvider =
       new KubernetesV2SearchProvider(cacheUtils, kindMap, objectMapper, accountResolver);
   private static KubernetesV2ServerGroupManagerProvider serverGroupManagerProvider =
@@ -296,6 +296,15 @@ final class KubernetesDataProviderIntegrationTest {
         clusterProvider.getServerGroup(ACCOUNT_NAME, "backend-ns", "replicaSet backend-v014");
     assertThat(serverGroup).isNotNull();
     assertBackendPriorServerGroup(softly, serverGroup);
+  }
+
+  @Test
+  void getServerGroupWithManager(SoftAssertions softly) {
+    KubernetesV2ServerGroup serverGroup =
+        clusterProvider.getServerGroup(
+            ACCOUNT_NAME, "frontend-ns", "replicaSet frontend-5c6559f75f");
+    assertThat(serverGroup).isNotNull();
+    assertFrontendCurrentServerGroup(softly, serverGroup);
   }
 
   @Test
@@ -542,9 +551,7 @@ final class KubernetesDataProviderIntegrationTest {
 
     if (includeDetails) {
       assertFrontendServerGroups(softly, cluster.getServerGroups());
-      // TODO(ezimanyi): The same load balancer is being returned multiple times (likely due to
-      // finding all relationships to it). This should be fixed to return it only once.
-      softly.assertThat(cluster.getLoadBalancers()).hasSize(2);
+      softly.assertThat(cluster.getLoadBalancers()).hasSize(1);
       if (!cluster.getLoadBalancers().isEmpty()) {
         assertFrontendLoadBalancer(softly, cluster.getLoadBalancers().iterator().next());
       }
