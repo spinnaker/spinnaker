@@ -16,6 +16,7 @@ package pipeline
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -83,28 +84,21 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 
 	application := pipelineJson["application"].(string)
 	pipelineName := pipelineJson["name"].(string)
-	pipelineID, pipelineIDExists := pipelineJson["id"].(string)
 
 	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context, application, pipelineName)
-	if queryResp.StatusCode == http.StatusNotFound {
-		// must be a new pipeline, let's go ahead and create it
-		if pipelineIDExists {
-			delete(pipelineJson, "id")
+	if queryResp.StatusCode == http.StatusOK {
+		// pipeline found, let's use Spinnaker's known Pipeline ID, otherwise we'll get one created for us
+		if len(foundPipeline) > 0 {
+			pipelineJson["id"] = foundPipeline["id"].(string)
 		}
+	} else if queryResp.StatusCode == http.StatusNotFound {
+		// pipeline doesn't exists, let's create a new one
 	} else {
-		// it's exists already, make sure we're updating the same one
-		if queryResp.StatusCode == http.StatusOK && len(foundPipeline) > 0 {
-			foundId := foundPipeline["id"].(string)
-			if pipelineIDExists && pipelineID != foundId {
-				return fmt.Errorf(`pipeline ID "%s" does not match the found pipeline "%s" in application "%s" with ID "%s"`, pipelineID, pipelineName, application, foundId)
-			}
-
-			pipelineJson["id"] = foundId
-		}
+		b, _ := ioutil.ReadAll(queryResp.Body)
+		return fmt.Errorf("unhandled response %d: %s", queryResp.StatusCode, b)
 	}
 
 	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, pipelineJson)
-
 	if saveErr != nil {
 		return saveErr
 	} else if saveResp.StatusCode != http.StatusOK {
