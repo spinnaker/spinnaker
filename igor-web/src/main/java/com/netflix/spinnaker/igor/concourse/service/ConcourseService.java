@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.concourse.service;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.groupingBy;
@@ -211,16 +212,20 @@ public class ConcourseService implements BuildOperations, BuildProperties {
             gitResourceName -> {
               Map<String, String> git = mergedMetadataByResourceName.remove(gitResourceName);
               if (git != null && !git.isEmpty()) {
+                String sha1 = git.get("commit");
                 String message = git.get("message");
                 String timestamp = git.get("committer_date");
+                String branch =
+                    isNullOrEmpty(git.get("branch")) ? sha1.substring(0, 7) : git.get("branch");
+
                 build.setGenericGitRevisions(
                     Collections.singletonList(
                         GenericGitRevision.builder()
                             .committer(git.get("committer"))
-                            .branch(git.get("branch"))
-                            .name(git.get("branch"))
+                            .branch(branch)
+                            .name(branch)
                             .message(message == null ? null : message.trim())
-                            .sha1(git.get("commit"))
+                            .sha1(sha1)
                             .timestamp(
                                 timestamp == null
                                     ? null

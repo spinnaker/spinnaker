@@ -100,6 +100,24 @@ class ConcourseServiceSpec extends Specification {
         genericBuild.id == "48.1-id"
         genericBuild.timestamp == "1421717251402000"
         genericBuild.url == "http://my.concourse.ci/teams/myteam/pipelines/mypipeline/jobs/myjob/builds/48.1"
+        genericBuild.genericGitRevisions[0].branch == "master"
+    }
+
+    def "getGenericBuildMissingBranch(jobPath, buildNumber)"() {
+        given:
+        buildService.builds('myteam', 'mypipeline', 'myjob', _, _) >> builds('49', '48.1', '48', '47')
+        buildService.plan(_) >> planFixtureNoBranch()
+        eventService.resourceEvents(_) >> eventFixtureNoBranch()
+
+        when:
+        GenericBuild genericBuild = service.getGenericBuild('myteam/mypipeline/myjob', 48)
+
+        then:
+        genericBuild.number == 48
+        genericBuild.id == "48.1-id"
+        genericBuild.timestamp == "1421717251402000"
+        genericBuild.url == "http://my.concourse.ci/teams/myteam/pipelines/mypipeline/jobs/myjob/builds/48.1"
+        genericBuild.genericGitRevisions[0].branch == "b2a1834"
     }
 
     def "getBuilds(jobPath, since)"() {
@@ -326,6 +344,151 @@ class ConcourseServiceSpec extends Specification {
             {"data":{"origin":{"id":"5ed1456e"},"time":1591654926,"exit_status":0,"version":{"number":"1.0.178"},"metadata":[{"name":"number","value":"1.0.178"}]},"event":"finish-get","version":"5.1"},
             {"data":{"origin":{"id":"5ed14570"},"time":1591654959,"exit_status":0,"version":{"ref":"65a7c129fe402634ee1d94b5ba2577fd46a039f2"},"metadata":[{"name":"commit","value":"65a7c129fe402634ee1d94b5ba2577fd46a039f2"},{"name":"author","value":"John Smith"},{"name":"author_date","value":"2020-06-08 15:13:23 -0700"},{"name":"branch","value":"master"},{"name":"tags","value":"v1.0.178"},{"name":"message","value":"DOOL-1990: reopening question sets completionPercent to zero\\n\\n"},{"name":"url","value":"https://github.com/myteam/gateway/commit/65a7c129fe402634ee1d94b5ba2577fd46a039f2"}]},"event":"finish-put","version":"5.1"},
             {"data":{"origin":{"id":"5ed14571"},"time":1591654963,"exit_status":0,"version":{"ref":"65a7c129fe402634ee1d94b5ba2577fd46a039f2"},"metadata":[{"name":"commit","value":"65a7c129fe402634ee1d94b5ba2577fd46a039f2"},{"name":"author","value":"John Smith"},{"name":"author_date","value":"2020-06-08 15:13:23 -0700"},{"name":"branch","value":"master"},{"name":"tags","value":"v1.0.178"},{"name":"message","value":"DOOL-1990: reopening question sets completionPercent to zero\\n\\n"},{"name":"url","value":"https://github.com/myteam/gateway/commit/65a7c129fe402634ee1d94b5ba2577fd46a039f2"}]},"event":"finish-get","version":"5.1"}
+        ]'''.stripIndent()
+
+        def events = mapper.readValue(eventsJson, new TypeReference<List<Event>>(){})
+        return Flux.fromIterable(events)
+    }
+
+    private Plan planFixtureNoBranch() {
+        def planJson = """\
+            {
+                "plan": {
+                    "do": [
+                        {
+                            "get": {
+                                "name": "repo",
+                                "resource": "repo",
+                                "type": "git",
+                                "version": {
+                                    "ref": "b2a18347d4669c25ab23f626edea622ec8ffe7aa"
+                                }
+                            },
+                            "id": "5f06bca6"
+                        },
+                        {
+                            "get": {
+                                "name": "version",
+                                "resource": "version",
+                                "type": "semver",
+                                "version": {
+                                    "number": "1.0.40"
+                                }
+                            },
+                            "id": "5f06bca7"
+                        },
+                        {
+                            "id": "5f06bca8",
+                            "task": {
+                                "name": "build-kops",
+                                "privileged": false
+                            }
+                        },
+                        {
+                            "id": "5f06bcab",
+                            "on_success": {
+                                "on_success": {
+                                    "get": {
+                                        "name": "nonprod-cluster-spec",
+                                        "resource": "nonprod-cluster-spec",
+                                        "type": "s3"
+                                    },
+                                    "id": "5f06bcaa"
+                                },
+                                "step": {
+                                    "id": "5f06bca9",
+                                    "put": {
+                                        "name": "nonprod-cluster-spec",
+                                        "resource": "nonprod-cluster-spec",
+                                        "type": "s3"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": "5f06bcae",
+                            "on_success": {
+                                "on_success": {
+                                    "get": {
+                                        "name": "prod-cluster-spec",
+                                        "resource": "prod-cluster-spec",
+                                        "type": "s3"
+                                    },
+                                    "id": "5f06bcad"
+                                },
+                                "step": {
+                                    "id": "5f06bcac",
+                                    "put": {
+                                        "name": "prod-cluster-spec",
+                                        "resource": "prod-cluster-spec",
+                                        "type": "s3"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": "5f06bcb1",
+                            "on_success": {
+                                "on_success": {
+                                    "get": {
+                                        "name": "ops-cluster-spec",
+                                        "resource": "ops-cluster-spec",
+                                        "type": "s3"
+                                    },
+                                    "id": "5f06bcb0"
+                                },
+                                "step": {
+                                    "id": "5f06bcaf",
+                                    "put": {
+                                        "name": "ops-cluster-spec",
+                                        "resource": "ops-cluster-spec",
+                                        "type": "s3"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": "5f06bcb4",
+                            "on_success": {
+                                "on_success": {
+                                    "get": {
+                                        "name": "version",
+                                        "resource": "version",
+                                        "type": "semver"
+                                    },
+                                    "id": "5f06bcb3"
+                                },
+                                "step": {
+                                    "id": "5f06bcb2",
+                                    "put": {
+                                        "name": "version",
+                                        "resource": "version",
+                                        "type": "semver"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "id": "5f06bcb5"
+                },
+                "schema": "exec.v2"
+            }""".stripIndent()
+
+        return mapper.readValue(planJson, Plan.class)
+    }
+
+    private Flux<Event> eventFixtureNoBranch() throws Exception {
+        def eventsJson = '''[\
+            {"data":{"origin":{"id":"5f06bca6"},"time":1595715621,"exit_status":0,"version":{"ref":"b2a18347d4669c25ab23f626edea622ec8ffe7aa"},"metadata":[{"name":"commit","value":"b2a18347d4669c25ab23f626edea622ec8ffe7aa"},{"name":"author","value":"Jared Stehler"},{"name":"author_date","value":"2020-07-25 17:58:28 -0400"},{"name":"committer","value":"Jared Stehler"},{"name":"committer_date","value":"2020-07-25 17:58:28 -0400"},{"name":"message","value":"[DOOL-2652] upgrade k8s to 1.17.9\\n"},{"name":"url","value":"https://github.com/myteam/cloud/commit/b2a18347d4669c25ab23f626edea622ec8ffe7aa"}]},"event":"finish-get","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bca7"},"time":1595715622,"exit_status":0,"version":{"number":"1.0.40"},"metadata":[{"name":"number","value":"1.0.40"}]},"event":"finish-get","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bca9"},"time":1595715631,"exit_status":0,"version":{"path":"artifacts/kops/nonprod/nonprod-cluster-spec-1.0.41-b2a1834.yaml"},"metadata":[{"name":"filename","value":"nonprod-cluster-spec-1.0.41-b2a1834.yaml"},{"name":"url","value":"https://s3-us-west-2.amazonaws.com/artifacts-bucket/artifacts/kops/nonprod/nonprod-cluster-spec-1.0.41-b2a1834.yaml"}]},"event":"finish-put","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcaa"},"time":1595715632,"exit_status":0,"version":{"path":"artifacts/kops/nonprod/nonprod-cluster-spec-1.0.41-b2a1834.yaml"},"metadata":[{"name":"filename","value":"nonprod-cluster-spec-1.0.41-b2a1834.yaml"},{"name":"url","value":"https://s3-us-west-2.amazonaws.com/artifacts-bucket/artifacts/kops/nonprod/nonprod-cluster-spec-1.0.41-b2a1834.yaml"}]},"event":"finish-get","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcac"},"time":1595715638,"exit_status":0,"version":{"path":"artifacts/kops/prod/prod-cluster-spec-1.0.41-b2a1834.yaml"},"metadata":[{"name":"filename","value":"prod-cluster-spec-1.0.41-b2a1834.yaml"},{"name":"url","value":"https://s3-us-west-2.amazonaws.com/artifacts-bucket/artifacts/kops/prod/prod-cluster-spec-1.0.41-b2a1834.yaml"}]},"event":"finish-put","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcad"},"time":1595715640,"exit_status":0,"version":{"path":"artifacts/kops/prod/prod-cluster-spec-1.0.41-b2a1834.yaml"},"metadata":[{"name":"filename","value":"prod-cluster-spec-1.0.41-b2a1834.yaml"},{"name":"url","value":"https://s3-us-west-2.amazonaws.com/artifacts-bucket/artifacts/kops/prod/prod-cluster-spec-1.0.41-b2a1834.yaml"}]},"event":"finish-get","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcaf"},"time":1595715646,"exit_status":0,"version":{"path":"artifacts/kops/ops/ops-cluster-spec-1.0.41-b2a1834.yaml"},"metadata":[{"name":"filename","value":"ops-cluster-spec-1.0.41-b2a1834.yaml"},{"name":"url","value":"https://s3-us-west-2.amazonaws.com/artifacts-bucket/artifacts/kops/ops/ops-cluster-spec-1.0.41-b2a1834.yaml"}]},"event":"finish-put","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcb0"},"time":1595715648,"exit_status":0,"version":{"path":"artifacts/kops/ops/ops-cluster-spec-1.0.41-b2a1834.yaml"},"metadata":[{"name":"filename","value":"ops-cluster-spec-1.0.41-b2a1834.yaml"},{"name":"url","value":"https://s3-us-west-2.amazonaws.com/artifacts-bucket/artifacts/kops/ops/ops-cluster-spec-1.0.41-b2a1834.yaml"}]},"event":"finish-get","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcb2"},"time":1595715660,"exit_status":0,"version":{"number":"1.0.41"},"metadata":[{"name":"number","value":"1.0.41"}]},"event":"finish-put","version":"5.1"},
+            {"data":{"origin":{"id":"5f06bcb3"},"time":1595715662,"exit_status":0,"version":{"number":"1.0.41"},"metadata":[{"name":"number","value":"1.0.41"}]},"event":"finish-get","version":"5.1"}
         ]'''.stripIndent()
 
         def events = mapper.readValue(eventsJson, new TypeReference<List<Event>>(){})
