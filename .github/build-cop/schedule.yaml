@@ -1,8 +1,4 @@
 shifts:
-- startDate: Mon 13 Jul 2020
-  user: mneterval@google.com
-- startDate: Mon 20 Jul 2020
-  user: jonsie
 - startDate: Mon 27 Jul 2020
   user: robzienert
 - startDate: Mon 03 Aug 2020
@@ -16,5 +12,9 @@ shifts:
 - startDate: Mon 31 Aug 2020
   user: jonsie
 - startDate: Mon 07 Sep 2020
-  stopDate: Sun 13 Sep 2020
   user: mneterval@google.com
+- startDate: Mon 14 Sep 2020
+  user: plumpy@google.com
+- startDate: Mon 21 Sep 2020
+  stopDate: Sun 27 Sep 2020
+  user: robzienert
