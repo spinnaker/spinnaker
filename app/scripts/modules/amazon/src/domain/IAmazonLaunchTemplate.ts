@@ -43,6 +43,11 @@ export interface IMetadataOptions {
   state?: 'pending' | 'applied';
 }
 
+export interface INetworkInterface {
+  deviceIndex: number;
+  groups: string[];
+}
+
 export interface ITagSpecification {
   resourceType?: string;
   tagSet?: Array<{
@@ -71,6 +76,7 @@ export interface ILaunchTemplateData {
   monitoring: {
     enabled: boolean;
   };
+  networkInterfaces?: INetworkInterface[];
   ramDiskId?: string;
   securityGroupIds: string[];
   securityGroups: string[];

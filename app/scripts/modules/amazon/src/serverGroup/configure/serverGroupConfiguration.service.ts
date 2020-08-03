@@ -81,6 +81,7 @@ export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandV
 }
 
 export interface IAmazonServerGroupCommand extends IServerGroupCommand {
+  associateIPv6Address?: boolean;
   associatePublicIpAddress: boolean;
   backingData: IAmazonServerGroupCommandBackingData;
   copySourceCustomBlockDeviceMappings: boolean;
@@ -89,10 +90,12 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   instanceMonitoring: boolean;
   keyPair: string;
   legacyUdf?: boolean;
+  requireIMDSv2?: boolean;
   spotPrice: string;
   targetHealthyDeployPercentage: number;
   useAmiBlockDeviceMappings: boolean;
   targetGroups: string[];
+  setLaunchTemplate?: boolean;
   spelTargetGroups: string[];
   spelLoadBalancers: string[];
   viewState: IAmazonServerGroupCommandViewState;

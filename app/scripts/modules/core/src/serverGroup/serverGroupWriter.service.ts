@@ -194,6 +194,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     securityGroups: ISecurityGroup[],
     application: Application,
+    hasLaunchTemplate?: boolean,
   ): ng.IPromise<ITask> {
     const job: IServerGroupJob = {
       amiName: serverGroup.launchConfig.imageId,
@@ -203,8 +204,11 @@ export class ServerGroupWriter {
       region: serverGroup.region,
       securityGroups: securityGroups.map((group: ISecurityGroup) => group.id),
       serverGroupName: serverGroup.name,
-      type: 'updateSecurityGroupsForServerGroup',
     };
+
+    if (hasLaunchTemplate) {
+      job.hasLaunchTemplate = hasLaunchTemplate;
+    }
 
     return TaskExecutor.executeTask({
       job: [job],

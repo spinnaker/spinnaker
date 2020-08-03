@@ -2,33 +2,34 @@
 
 // Use environment variables when developing locally via 'yarn start', i.e.:
 // API_HOST=https://gate.spinnaker.mycompany.com yarn start
-var apiHost = process.env.API_HOST || 'http://localhost:8084';
-var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
-var authEndpoint = process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
-var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
-var bakeryDetailUrl =
+const apiHost = process.env.API_HOST || 'http://localhost:8084';
+const atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
+const authEndpoint = process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
+const authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
+const bakeryDetailUrl =
   process.env.BAKERY_DETAIL_URL || apiHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
-var canaryAccount = process.env.CANARY_ACCOUNT || '';
-var canaryEnabled = process.env.CANARY_ENABLED === 'true';
-var canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
-var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
-var chaosEnabled = process.env.CHAOS_ENABLED === 'true' ? true : false;
-var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
-var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
-var displayTimestampsInUserLocalTime = process.env.DISPLAY_TIMESTAMPS_IN_USER_LOCAL_TIME === 'true';
-var dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
-var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
-var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
-var gceStatefulMigsEnabled = process.env.GCE_STATEFUL_MIGS_ENABLED === 'true' ? true : false;
-var iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
-var managedDeliveryEnabled = process.env.MANAGED_DELIVERY_ENABLED === 'true';
-var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
-var managedResourcesEnabled = process.env.MANAGED_RESOURCES_ENABLED === 'true';
-var onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
-var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
-var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
-var useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
-var functionsEnabled = process.env.FUNCTIONS_ENABLED === 'true' ? true : false;
+const canaryAccount = process.env.CANARY_ACCOUNT || '';
+const canaryEnabled = process.env.CANARY_ENABLED === 'true';
+const canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
+const canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
+const chaosEnabled = process.env.CHAOS_ENABLED === 'true' ? true : false;
+const debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
+const defaultMetricStore = process.env.METRIC_STORE || 'atlas';
+const displayTimestampsInUserLocalTime = process.env.DISPLAY_TIMESTAMPS_IN_USER_LOCAL_TIME === 'true';
+const dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
+const entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
+const fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
+const gceScaleDownControlsEnabled = process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ? true : false;
+const gceStatefulMigsEnabled = process.env.GCE_STATEFUL_MIGS_ENABLED === 'true' ? true : false;
+const iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
+const managedDeliveryEnabled = process.env.MANAGED_DELIVERY_ENABLED === 'true';
+const managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
+const managedResourcesEnabled = process.env.MANAGED_RESOURCES_ENABLED === 'true';
+const onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
+const reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
+const templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
+const useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
+const functionsEnabled = process.env.FUNCTIONS_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   authEnabled: authEnabled,
@@ -145,6 +146,10 @@ window.spinnakerSettings = {
         // if true, VPC load balancers will be created as internal load balancers if the selected subnet has a purpose
         // tag that starts with "internal"
         inferInternalFlagFromSubnet: false,
+      },
+      serverGroups: {
+        enableIPv6: false,
+        enableIMDSv2: false,
       },
       useAmiBlockDeviceMappings: false,
     },

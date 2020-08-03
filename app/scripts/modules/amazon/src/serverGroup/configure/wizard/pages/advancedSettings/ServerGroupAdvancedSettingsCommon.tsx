@@ -53,6 +53,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
 
     const blockDeviceMappingsSource = values.getBlockDeviceMappingsSource(values);
     const keyPairs = values.backingData.filtered.keyPairs || [];
+    const asgSettings = AWSProviderSettings.serverGroups;
 
     return (
       <div className="container-fluid form-horizontal">
@@ -203,6 +204,23 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             </label>
           </div>
         </div>
+        {asgSettings?.enableIMDSv2 && (
+          <div className="form-group">
+            <div className="col-md-5 sm-label-right">
+              <b>IMDSv2 </b>
+            </div>
+            <div className="col-md-6 checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={values.requireIMDSv2 === true}
+                  onChange={e => setFieldValue('requireIMDSv2', e.target.checked)}
+                />{' '}
+                Enable IMDSv2{' '}
+              </label>
+            </div>
+          </div>
+        )}
         {!AWSProviderSettings.disableSpotPricing && (
           <div className="form-group">
             <div className="col-md-5 sm-label-right">
@@ -255,41 +273,58 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         </div>
         <div className="form-group">
           <div className="col-md-5 sm-label-right">
-            <b>Associate Public IP Address</b>
+            <b>{`Associate ${asgSettings?.enableIPv6 ? 'IPv6' : 'Public IPv4'} Address`}</b>
           </div>
-          <div className="col-md-2 radio">
-            <label>
-              <input
-                type="radio"
-                checked={values.associatePublicIpAddress === true}
-                onChange={() => setFieldValue('associatePublicIpAddress', true)}
-                id="associatePublicIpAddressTrue"
-              />
-              Yes
-            </label>
-          </div>
-          <div className="col-md-2 radio">
-            <label>
-              <input
-                type="radio"
-                checked={values.associatePublicIpAddress === false}
-                onChange={() => setFieldValue('associatePublicIpAddress', false)}
-                id="associatePublicIpAddressFalse"
-              />
-              No
-            </label>
-          </div>
-          <div className="col-md-2 radio">
-            <label>
-              <input
-                type="radio"
-                checked={values.associatePublicIpAddress === null}
-                onChange={() => setFieldValue('associatePublicIpAddress', null)}
-                id="associatePublicIpAddressDefault"
-              />
-              Default
-            </label>
-          </div>
+          {asgSettings?.enableIPv6 && (
+            <div className="col-md-6 checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={values.associateIPv6Address === true}
+                  onChange={e => setFieldValue('associateIPv6Address', e.target.checked)}
+                  id="associateIPv6AddressToggle"
+                />{' '}
+                Assign an IPv6 address to instances{' '}
+              </label>
+            </div>
+          )}
+          {!asgSettings?.enableIPv6 && (
+            <div>
+              <div className="col-md-2 radio">
+                <label>
+                  <input
+                    type="radio"
+                    checked={values.associatePublicIpAddress === true}
+                    onChange={() => setFieldValue('associatePublicIpAddress', true)}
+                    id="associatePublicIpAddressTrue"
+                  />
+                  Yes
+                </label>
+              </div>
+              <div className="col-md-2 radio">
+                <label>
+                  <input
+                    type="radio"
+                    checked={values.associatePublicIpAddress === false}
+                    onChange={() => setFieldValue('associatePublicIpAddress', false)}
+                    id="associatePublicIpAddressFalse"
+                  />
+                  No
+                </label>
+              </div>
+              <div className="col-md-2 radio">
+                <label>
+                  <input
+                    type="radio"
+                    checked={values.associatePublicIpAddress === null}
+                    onChange={() => setFieldValue('associatePublicIpAddress', null)}
+                    id="associatePublicIpAddressDefault"
+                  />
+                  Default
+                </label>
+              </div>
+            </div>
+          )}
         </div>
         <div className="form-group">
           <div className="col-md-5 sm-label-right">

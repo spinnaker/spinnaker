@@ -1,5 +1,3 @@
-'use strict';
-
 import * as angular from 'angular';
 import _ from 'lodash';
 
@@ -111,6 +109,10 @@ angular
               command.interestingHealthProviderNames = ['Amazon'];
             }
 
+            if (AWSProviderSettings.serverGroups && AWSProviderSettings.serverGroups.enableIMDSv2) {
+              command.requireIMDSv2 = true;
+            }
+
             return command;
           });
       }
@@ -204,7 +206,11 @@ angular
 
         const serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
-        const instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
+        const instanceType = serverGroup.launchConfig
+          ? serverGroup.launchConfig.instanceType
+          : serverGroup.launchTemplate
+          ? serverGroup.launchTemplate.launchTemplateData.instanceType
+          : null;
         const instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
 
         const asyncLoader = $q.all({
@@ -333,6 +339,33 @@ angular
             command.viewState.imageId = serverGroup.launchConfig.imageId;
           }
 
+          if (serverGroup.launchTemplate) {
+            const { launchTemplateData } = serverGroup.launchTemplate;
+            const maxPrice =
+              launchTemplateData.instanceMarketOptions &&
+              launchTemplateData.instanceMarketOptions.spotOptions &&
+              launchTemplateData.instanceMarketOptions.spotOptions.maxPrice;
+            const ipv6Addresses = _.flatMap(launchTemplateData.networkInterfaces, i => i.ipv6Addresses) || [];
+
+            angular.extend(command, {
+              instanceType: launchTemplateData.instanceType,
+              iamRole: launchTemplateData.iamInstanceProfile.name,
+              keyPair: launchTemplateData.keyName,
+              associateIPv6Address: ipv6Addresses.length > 0,
+              ramdiskId: launchTemplateData.ramdiskId,
+              instanceMonitoring: launchTemplateData.monitoring.enabled,
+              ebsOptimized: launchTemplateData.ebsOptimized,
+              spotPrice: maxPrice || undefined,
+              requireIMDSv2:
+                launchTemplateData.metadataOptions && launchTemplateData.metadataOptions.httpsTokens === 'required',
+            });
+
+            if (launchTemplateData.userData) {
+              command.base64UserData = launchTemplateData.userData;
+            }
+            command.viewState.imageId = launchTemplateData.imageId;
+          }
+
           if (mode === 'clone' && serverGroup.image && serverGroup.image.name) {
             command.amiName = serverGroup.image.name;
           }
@@ -340,6 +373,17 @@ angular
           if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
             command.securityGroups = serverGroup.launchConfig.securityGroups;
           }
+
+          if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.securityGroups.length) {
+            command.securityGroups = serverGroup.launchTemplate.launchTemplateData.securityGroups;
+          }
+
+          if (serverGroup.launchTemplate && serverGroup.launchTemplate.launchTemplateData.networkInterfaces) {
+            const networkInterface =
+              serverGroup.launchTemplate.launchTemplateData.networkInterfaces.find(ni => ni.deviceIndex === 0) || {};
+            command.securityGroups = networkInterface.groups;
+          }
+
           return command;
         });
       }

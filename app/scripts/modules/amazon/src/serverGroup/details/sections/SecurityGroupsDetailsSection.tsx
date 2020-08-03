@@ -11,6 +11,7 @@ import {
   ISecurityGroupsByAccount,
 } from '@spinnaker/core';
 
+import { INetworkInterface } from '../../../domain/IAmazonLaunchTemplate';
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AwsSecurityGroupReader } from 'amazon/securityGroup/securityGroup.reader';
 
@@ -44,8 +45,27 @@ export class SecurityGroupsDetailsSection extends React.Component<
   private getSecurityGroups(props: IAmazonServerGroupDetailsSectionProps): ISecurityGroup[] {
     let securityGroups: ISecurityGroup[];
     const { app, serverGroup } = props;
-    if (props.serverGroup.launchConfig && serverGroup.launchConfig.securityGroups) {
-      securityGroups = chain(serverGroup.launchConfig.securityGroups)
+    let sgData: string[];
+
+    if (serverGroup?.launchConfig?.securityGroups) {
+      sgData = serverGroup.launchConfig.securityGroups;
+    }
+
+    if (serverGroup?.launchTemplate?.launchTemplateData) {
+      const { networkInterfaces, securityGroups } = serverGroup?.launchTemplate?.launchTemplateData;
+
+      if (securityGroups && securityGroups.length) {
+        sgData = securityGroups;
+      }
+
+      if (networkInterfaces && networkInterfaces.length) {
+        const networkInterface = networkInterfaces.find((ni: INetworkInterface) => ni.deviceIndex === 0);
+        sgData = networkInterface.groups;
+      }
+    }
+
+    if (sgData && sgData.length) {
+      securityGroups = chain(sgData)
         .map((id: string) => {
           return (
             find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, id }) ||
