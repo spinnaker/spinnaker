@@ -161,7 +161,7 @@ interface IExecutionListTableStateProps {
   accounts: IKayentaAccount[];
 }
 
-const ExecutionListTable = ({ executions, application, accounts }: IExecutionListTableStateProps) => {
+const TableRows = ({ executions }: { executions: ICanaryExecutionStatusResult[] }) => {
   if (!executions || !executions.length) {
     return (
       <CenteredDetail>
@@ -169,27 +169,30 @@ const ExecutionListTable = ({ executions, application, accounts }: IExecutionLis
       </CenteredDetail>
     );
   }
-
   return (
-    <div className="vertical execution-list-container">
-      {CanarySettings.manualAnalysisEnabled && (
-        <button
-          style={{ alignSelf: 'flex-end', flexShrink: 0 }}
-          className="primary"
-          onClick={() => startManualAnalysis(application, accounts)}
-        >
-          <i className="fa fa-play" /> Start Manual Analysis
-        </button>
-      )}
-      <NativeTable
-        rows={executions}
-        className="flex-1 execution-list-table"
-        columns={columns}
-        rowKey={(execution) => execution.pipelineId}
-      />
-    </div>
+    <NativeTable
+      rows={executions}
+      className="flex-1 execution-list-table"
+      columns={columns}
+      rowKey={(execution) => execution.pipelineId}
+    />
   );
 };
+
+const ExecutionListTable = ({ executions, application, accounts }: IExecutionListTableStateProps) => (
+  <div className="vertical execution-list-container">
+    {CanarySettings.manualAnalysisEnabled && (
+      <button
+        style={{ alignSelf: 'flex-end', flexShrink: 0 }}
+        className="primary"
+        onClick={() => startManualAnalysis(application, accounts)}
+      >
+        <i className="fa fa-play" /> Start Manual Analysis
+      </button>
+    )}
+    <TableRows executions={executions} />
+  </div>
+);
 
 const mapStateToProps = (state: ICanaryState) => ({
   executions: Object.values(state.data.executions.data).filter((e) => e.result),
