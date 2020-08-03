@@ -61,13 +61,15 @@ public class RedisConfig {
       password = redisConnection.getUserInfo().split(":", 2)[1];
     }
 
+    boolean isSSL = redisConnection.getScheme().equals("rediss");
+
     if (redisPoolConfig == null) {
       redisPoolConfig = new GenericObjectPoolConfig();
     }
 
     return new InstrumentedJedisPool(
         registry,
-        new JedisPool(redisPoolConfig, host, port, timeout, password, database, null),
+        new JedisPool(redisPoolConfig, host, port, timeout, password, database, null, isSSL),
         "fiat");
   }
 }
