@@ -25,16 +25,6 @@ export class ManifestWriter {
     });
   }
 
-  public static patchManifest(command: any, application: Application): IPromise<ITask> {
-    const description = 'Patch a manifest';
-    command.type = 'patchManifest';
-    return TaskExecutor.executeTask({
-      job: [command],
-      application,
-      description,
-    });
-  }
-
   public static scaleManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Scale manifest';
     command.type = 'scaleManifest';
@@ -78,16 +68,6 @@ export class ManifestWriter {
   public static rollingRestartManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Rolling restart of manifest';
     command.type = 'rollingRestartManifest';
-    return TaskExecutor.executeTask({
-      job: [command],
-      application,
-      description,
-    });
-  }
-
-  public static findArtifactsFromResource(command: any, application: Application): IPromise<ITask> {
-    const description = 'Find artifacts from a Kubernetes resource';
-    command.type = 'findArtifactsFromResource';
     return TaskExecutor.executeTask({
       job: [command],
       application,
