@@ -141,6 +141,7 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
           FEEDBACK_URL: 'https://hootch.test.netflix.net/submit',
           FIAT_ENABLED: false,
           INFRA_STAGES: false,
+          MANUAL_CANARY_ANALYSIS_ENABLED: false,
           METRIC_STORE: 'atlas',
           REDUX_LOGGER: false,
           TEMPLATES_ENABLED: false,

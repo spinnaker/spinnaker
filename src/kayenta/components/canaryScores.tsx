@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { isString } from 'lodash';
-import autoBindMethods from 'class-autobind-decorator';
 import * as classNames from 'classnames';
 
 import { HelpField } from '@spinnaker/core';
@@ -23,114 +22,142 @@ export interface ICanaryScoresProps {
   disabled?: boolean;
 }
 
-@autoBindMethods
-export class CanaryScores extends React.Component<ICanaryScoresProps> {
-  public render() {
-    const hasExpressions =
-      this.isExpression(this.props.unhealthyScore) || this.isExpression(this.props.successfulScore);
+export interface ICanaryScoresState {
+  successfulTouched: boolean;
+  unhealthyTouched: boolean;
+}
 
-    let successful: number;
-    let unhealthy: number;
-    if (!hasExpressions) {
-      successful = parseInt(this.props.successfulScore, 10);
-      unhealthy = parseInt(this.props.unhealthyScore, 10);
-    }
+export function CanaryScores(props: ICanaryScoresProps) {
+  const [successfulTouched, setSuccessfulTouched] = React.useState(!!props.successfulScore);
+  const [unhealthyTouched, setUnhealthyTouched] = React.useState(!!props.unhealthyScore);
 
-    const invalid = !(successful && unhealthy);
+  const { successfulScore, unhealthyScore } = props;
 
-    return (
-      <div>
-        {hasExpressions && (
-          <div className="form-group">
-            <div className="col-md-2 col-md-offset-1 sm-label-right">
-              <label>Canary Scores</label>
-            </div>
-            <div className="col-md-9 form-control-static">Expressions are currently being used for canary scores.</div>
-          </div>
-        )}
-        {!hasExpressions && (
-          <div className="canary-score">
-            <div className="form-group">
-              <div className="col-md-2 col-md-offset-1 sm-label-right">
-                <label>{this.props.unhealthyLabel || 'Unhealthy Score'}</label>
-                <HelpField id={this.props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'} />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  required={true}
-                  disabled={this.props.disabled}
-                  value={Number.isNaN(unhealthy) ? '' : unhealthy}
-                  onChange={this.handleUnhealthyChange}
-                  className={classNames('form-control', 'input-sm', {
-                    'ng-invalid': !this.isUnhealthyScoreValid(successful, unhealthy),
-                    'ng-invalid-validate-min': !this.isUnhealthyScoreValid(successful, unhealthy),
-                  })}
-                />
-              </div>
-              <div className="col-md-2 col-md-offset-1 sm-label-right">
-                <label>{this.props.successfulLabel || 'Successful Score'}</label>
-                <HelpField id={this.props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'} />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  required={true}
-                  disabled={this.props.disabled}
-                  value={Number.isNaN(successful) ? '' : successful}
-                  onChange={this.handleSuccessfulChange}
-                  className={classNames('form-control', 'input-sm', {
-                    'ng-invalid': !this.isSuccessfulScoreValid(successful, unhealthy),
-                    'ng-invalid-validate-max': !this.isSuccessfulScoreValid(successful, unhealthy),
-                  })}
-                />
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-md-offset-1 col-md-10">
-                <div className="progress">
-                  <div className="progress-bar progress-bar-danger" style={{ width: `${invalid ? 0 : unhealthy}%` }} />
-                  <div
-                    className="progress-bar progress-bar-warning"
-                    style={{ width: `${invalid ? 0 : 100 - (unhealthy + (100 - successful))}%` }}
-                  />
-                  <div
-                    className="progress-bar progress-bar-success"
-                    style={{ width: `${invalid ? 0 : 100 - successful}%` }}
-                  />
-                  <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 100 : 0}%` }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const isExpression = (scoreValue: string): boolean => {
+    return isString(scoreValue) && scoreValue.includes('${');
+  };
+
+  const hasExpressions = isExpression(unhealthyScore) || isExpression(successfulScore);
+
+  let successful: number;
+  let unhealthy: number;
+  if (!hasExpressions) {
+    successful = Number(successfulScore);
+    unhealthy = Number(unhealthyScore);
   }
 
-  private handleSuccessfulChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.props.onChange({
+  const handleSuccessfulChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    props.onChange({
       successfulScore: event.target.value,
-      unhealthyScore: this.props.unhealthyScore,
+      unhealthyScore,
     });
-  }
+  };
 
-  private handleUnhealthyChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.props.onChange({
-      successfulScore: this.props.successfulScore,
+  const handleUnhealthyChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    props.onChange({
+      successfulScore,
       unhealthyScore: event.target.value,
     });
+  };
+
+  const errors = {
+    successful: '',
+    unhealthy: '',
+  };
+
+  if (successfulTouched) {
+    if (successful <= 0) {
+      errors.successful = 'Must be positive';
+    }
+    if (successful >= 100) {
+      errors.successful = 'Must be less than 100';
+    }
   }
 
-  private isSuccessfulScoreValid(successfulScore: number, unhealthyScore: number): boolean {
-    return successfulScore && (!unhealthyScore || successfulScore > unhealthyScore) && successfulScore <= 100;
+  if (unhealthyTouched) {
+    if (unhealthy <= 0) {
+      errors.unhealthy = 'Must be positive';
+    }
+    if (unhealthy >= 100) {
+      errors.unhealthy = 'Must be less than 100';
+    }
   }
 
-  private isUnhealthyScoreValid(successfulScore: number, unhealthyScore: number): boolean {
-    return unhealthyScore && (!successfulScore || unhealthyScore < successfulScore) && unhealthyScore >= 0;
+  if (successfulTouched && unhealthyTouched) {
+    if (successful <= unhealthy) {
+      errors.successful = `Must be greater than ${props.unhealthyLabel}`;
+    }
   }
 
-  private isExpression(scoreValue: string): boolean {
-    return isString(scoreValue) && scoreValue.includes('${');
-  }
+  const invalid = !(successful && unhealthy);
+  return (
+    <div>
+      {hasExpressions && (
+        <div className="form-group">
+          <div className="col-md-2 col-md-offset-1 sm-label-right">Canary Scores</div>
+          <div className="col-md-9 form-control-static">Expressions are currently being used for canary scores.</div>
+        </div>
+      )}
+      {!hasExpressions && (
+        <div className="canary-score">
+          <div className="form-group">
+            <div className="col-md-2 col-md-offset-1 sm-label-right">
+              {props.unhealthyLabel || 'Unhealthy Score '}
+              <HelpField id={props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'} />
+            </div>
+            <div className="col-md-2">
+              <input
+                type="number"
+                required={true}
+                disabled={props.disabled}
+                onBlur={() => setUnhealthyTouched(true)}
+                value={Number.isNaN(unhealthy) ? '' : unhealthy}
+                onChange={handleUnhealthyChange}
+                className={classNames('form-control', 'input-sm', {
+                  'ng-invalid': !!errors.unhealthy,
+                  'ng-invalid-validate-min': !!errors.unhealthy,
+                })}
+              />
+              {errors.unhealthy && <div className="error-message">{errors.unhealthy}</div>}
+            </div>
+            <div className="col-md-2 col-md-offset-1 sm-label-right">
+              {props.successfulLabel || 'Successful Score '}
+              <HelpField id={props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'} />
+            </div>
+            <div className="col-md-2">
+              <input
+                type="number"
+                required={true}
+                disabled={props.disabled}
+                onBlur={() => setSuccessfulTouched(true)}
+                value={Number.isNaN(successful) ? '' : successful}
+                onChange={handleSuccessfulChange}
+                className={classNames('form-control', 'input-sm', {
+                  'ng-invalid': !!errors.successful,
+                  'ng-invalid-validate-max': !!errors.successful,
+                })}
+              />
+              {errors.successful && <div className="error-message">{errors.successful}</div>}
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-offset-1 col-md-10">
+              <div className="progress">
+                <div className="progress-bar progress-bar-danger" style={{ width: `${invalid ? 0 : unhealthy}%` }} />
+                <div
+                  className="progress-bar progress-bar-warning"
+                  style={{ width: `${invalid ? 0 : 100 - (unhealthy + (100 - successful))}%` }}
+                />
+                <div
+                  className="progress-bar progress-bar-success"
+                  style={{ width: `${invalid ? 0 : 100 - successful}%` }}
+                />
+                <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 100 : 0}%` }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

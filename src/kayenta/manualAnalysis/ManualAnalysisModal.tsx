@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { get } from 'lodash';
-import { Formik, Form, Field, FormikProps, FormikErrors, FormikActions } from 'formik';
+import { Formik, Form, FormikProps, FormikErrors, FormikActions, FormikTouched, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
 
 import {
@@ -13,6 +13,7 @@ import {
   TetheredSelect,
   HelpField,
   MapEditor,
+  HoverablePopover,
 } from '@spinnaker/core';
 
 import { ICanaryConfigSummary, IKayentaAccount, KayentaAccountType, ICanaryExecutionRequest } from '../domain';
@@ -155,6 +156,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
 
   private validate = (values: IManualAnalysisModalFormProps) => {
     const errors = {} as FormikErrors<IManualAnalysisModalFormProps>;
+    let startTime, endTime;
 
     if (!values.configId) {
       errors.configId = 'You must choose a canary config';
@@ -162,10 +164,26 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
 
     if (!values.startTime) {
       errors.startTime = 'You must provide a start time';
+    } else {
+      try {
+        startTime = new Date(values.startTime).getTime();
+      } catch (e) {
+        errors.startTime = 'Invalid start time. Time must be in ISO-8601 format, e.g. 2018-07-12T22:28:29Z';
+      }
     }
 
     if (!values.endTime) {
       errors.endTime = 'You must provide an end time';
+    } else {
+      try {
+        endTime = new Date(values.endTime).getTime();
+      } catch (e) {
+        errors.endTime = 'Invalid start time. Time must be in ISO-8601 format, e.g. 2018-07-12T22:28:29Z';
+      }
+    }
+
+    if (startTime && endTime && endTime <= startTime) {
+      errors.endTime = 'End time must be after start time';
     }
 
     if (!values.step) {
@@ -195,14 +213,16 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
 
     if (!values.marginalThreshold) {
       errors.marginalThreshold = 'You must provide a marginal score threshold';
-    } else if (marginalThreshold > passThreshold || marginalThreshold < 1) {
-      errors.marginalThreshold = 'Invalid marginal score threshold';
+    } else if (marginalThreshold > passThreshold) {
+      errors.marginalThreshold = 'Marginal threshold must be greater than passing threshold';
+    } else if (marginalThreshold < 1) {
+      errors.marginalThreshold = 'Marginal threshold must be positive';
     }
 
     if (!values.passThreshold) {
       errors.passThreshold = 'You must provide a passing score threshold';
-    } else if (passThreshold < marginalThreshold || passThreshold > 100) {
-      errors.passThreshold = 'Invalid passing score threshold';
+    } else if (passThreshold > 100) {
+      errors.passThreshold = 'Passing threshold cannot be greater than 100';
     }
 
     if (!values.metricsAccountName) {
@@ -240,7 +260,10 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
     const { dismissModal, title, application, accounts } = this.props;
     const { showAllControlLocations, showAllExperimentLocations } = this.state;
 
-    const canaryConfigs: ICanaryConfigSummary[] = application.getDataSource('canaryConfigs').data;
+    const canaryConfigs: ICanaryConfigSummary[] = application
+      .getDataSource('canaryConfigs')
+      .data.slice()
+      .sort((a: ICanaryConfigSummary, b: ICanaryConfigSummary) => a.name.localeCompare(b.name));
     const metricsStores = accounts.filter(({ supportedTypes }) =>
       supportedTypes.includes(KayentaAccountType.MetricsStore),
     );
@@ -266,6 +289,8 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
           isSubmitting,
           status,
           setFieldValue,
+          setFieldTouched,
+          errors,
         }: FormikProps<IManualAnalysisModalFormProps>) => {
           if (get(status, 'succeeded') === true) {
             return (
@@ -275,7 +300,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                 <Modal.Body>
                   <p>Analysis started — check the list of reports in a few minutes to view results</p>
                 </Modal.Body>
-                <Modal.Footer>
+                <Modal.Footer className="horizontal right">
                   <button className="btn btn-primary" onClick={dismissModal} type="button">
                     Got it
                   </button>
@@ -319,7 +344,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                           Start Time <HelpField id="pipeline.config.canary.startTimeIso" />
                         </div>
                         <div className="col-md-7">
-                          <Field className="form-control input-sm" name="startTime" required={touched.startTime} />
+                          <ValidatedField errors={errors} touched={touched} name="startTime" />
                         </div>
                       </div>
                       <div className="form-group">
@@ -327,18 +352,18 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                           End Time <HelpField id="pipeline.config.canary.endTimeIso" />
                         </div>
                         <div className="col-md-7">
-                          <Field className="form-control input-sm" name="endTime" required={touched.endTime} />
+                          <ValidatedField errors={errors} touched={touched} name="endTime" />
                         </div>
                       </div>
                       <div className="form-group">
                         <div className="col-md-3 sm-label-right">Step</div>
                         <div className="col-md-7">
-                          <Field
+                          <ValidatedField
+                            errors={errors}
+                            touched={touched}
                             type="number"
                             style={{ width: '60px', display: 'inline-block' }}
-                            className="form-control input-sm"
                             name="step"
-                            required={touched.step}
                           />
                           <span className="form-control-static"> seconds</span>
                         </div>
@@ -350,11 +375,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                           Baseline <HelpField id="pipeline.config.canary.baselineGroup" />
                         </div>
                         <div className="col-md-7">
-                          <Field
-                            className="form-control input-sm"
-                            name="baselineScope"
-                            required={touched.baselineScope}
-                          />
+                          <ValidatedField name="baselineScope" errors={errors} touched={touched} />
                         </div>
                       </div>
                       <div className="form-group">
@@ -368,15 +389,14 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                             recommendedLocations={recommendedLocations}
                             locations={locations}
                             value={values.baselineLocation}
-                            onChange={(location) => setFieldValue('baselineLocation', location)}
+                            field="baselineLocation"
+                            errors={errors}
+                            touched={touched}
+                            onChange={(location) => {
+                              setFieldTouched('baselineLocation', true);
+                              setFieldValue('baselineLocation', location);
+                            }}
                             onShowAllChange={(showAll) => this.setState({ showAllControlLocations: showAll })}
-                            input={
-                              <Field
-                                className="form-control input-sm"
-                                name="baselineLocation"
-                                required={touched.baselineLocation}
-                              />
-                            }
                           />
                         </div>
                       </div>
@@ -385,7 +405,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                           Canary <HelpField id="pipeline.config.canary.canaryGroup" />
                         </div>
                         <div className="col-md-7">
-                          <Field className="form-control input-sm" name="canaryScope" required={touched.canaryScope} />
+                          <ValidatedField errors={errors} touched={touched} name="canaryScope" />
                         </div>
                       </div>
                       <div className="form-group">
@@ -399,15 +419,14 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                             recommendedLocations={recommendedLocations}
                             locations={locations}
                             value={values.canaryLocation}
-                            onChange={(location) => setFieldValue('canaryLocation', location)}
+                            field="canaryLocation"
+                            errors={errors}
+                            touched={touched}
+                            onChange={(location) => {
+                              setFieldTouched('canaryLocation', true);
+                              setFieldValue('canaryLocation', location);
+                            }}
                             onShowAllChange={(showAll) => this.setState({ showAllExperimentLocations: showAll })}
-                            input={
-                              <Field
-                                className="form-control input-sm"
-                                name="canaryLocation"
-                                required={touched.canaryLocation}
-                              />
-                            }
                           />
                         </div>
                       </div>
@@ -424,6 +443,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                                 setFieldValue('resourceType', (item && item.value) || '')
                               }
                             />
+                            <ErrorMessage field="resourceType" errors={errors} touched={touched} />
                           </div>
                         </div>
                       )}
@@ -447,10 +467,10 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                           setFieldValue('passThreshold', successfulScore);
                         }}
                         successfulHelpFieldId="pipeline.config.canary.passingScore"
-                        successfulLabel="Pass"
+                        successfulLabel="Pass "
                         successfulScore={values.passThreshold}
                         unhealthyHelpFieldId="pipeline.config.canary.marginalScore"
-                        unhealthyLabel="Marginal"
+                        unhealthyLabel="Marginal "
                         unhealthyScore={values.marginalThreshold}
                       />
                       {showAdvancedSettings && (
@@ -460,6 +480,8 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                           objectStores={objectStores}
                           selectedObjectStore={selectedObjectStore}
                           onChange={setFieldValue}
+                          errors={errors}
+                          touched={touched}
                         />
                       )}
                     </div>
@@ -476,16 +498,11 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
                   </div>
                 )}
               </Modal.Body>
-              <Modal.Footer>
+              <Modal.Footer className="horizontal right">
                 <button className="btn btn-default" onClick={dismissModal} type="button">
                   Cancel
                 </button>
-                <SubmitButton
-                  isDisabled={!isValid}
-                  submitting={isSubmitting}
-                  isFormSubmit={true}
-                  label="Start analysis"
-                />
+                <SubmitFormButton isValid={isValid} isSubmitting={isSubmitting} errors={errors} />
               </Modal.Footer>
             </Form>
           );
@@ -494,6 +511,35 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
     );
   }
 }
+
+const SubmitFormButton = ({
+  errors,
+  isValid,
+  isSubmitting,
+}: {
+  errors: FormikErrors<any>;
+  isValid: boolean;
+  isSubmitting: boolean;
+}) => {
+  const button = (
+    <SubmitButton isDisabled={!isValid} submitting={isSubmitting} isFormSubmit={true} label="Start analysis" />
+  );
+  const errorMessages = Object.values(errors).map((error: string, i) => <li key={i}>{error}</li>);
+  if (isValid || !errorMessages.length) {
+    return button;
+  }
+
+  const popoverComponent = () => (
+    <div>
+      The following errors must be corrected before submitting:<ul>{errorMessages}</ul>
+    </div>
+  );
+  return (
+    <div className="sp-margin-s-left">
+      <HoverablePopover Component={popoverComponent}>{button}</HoverablePopover>
+    </div>
+  );
+};
 
 const combineLocations = (includeAll: boolean, recommendedLocations: string[], locations: string[]) => {
   if (includeAll) {
@@ -511,7 +557,9 @@ interface ILocationFieldProps {
   value: string;
   onChange: (location: string) => any;
   onShowAllChange: (showAll: boolean) => any;
-  input: JSX.Element;
+  errors: FormikErrors<IManualAnalysisModalFormProps>;
+  touched: FormikTouched<IManualAnalysisModalFormProps>;
+  field: keyof IManualAnalysisModalFormProps;
 }
 
 const LocationField = ({
@@ -522,12 +570,13 @@ const LocationField = ({
   value,
   onChange,
   onShowAllChange,
-  input,
+  errors,
+  touched,
+  field,
 }: ILocationFieldProps) => {
   if (!hasLocationChoices) {
-    return input;
+    return <ValidatedField name={field} errors={errors} touched={touched} />;
   }
-
   const combinedLocations = combineLocations(showAll, recommendedLocations, locations);
   const options = combinedLocations.map((location) => ({ label: location, value: location }));
 
@@ -539,6 +588,7 @@ const LocationField = ({
         options={options}
         onChange={(item: { label: string; value: string }) => onChange((item && item.value) || '')}
       />
+      <ErrorMessage field={field} errors={errors} touched={touched} />
       {recommendedLocations.length > 0 && locations.length > 0 && (
         <div className="pull-right">
           <button
@@ -565,6 +615,8 @@ interface IAdvancedSettingsProps {
   selectedMetricsStore: IKayentaAccount;
   selectedObjectStore: IKayentaAccount;
   onChange: (field: 'metricsAccountName' | 'storageAccountName', value: string) => any;
+  errors: FormikErrors<IManualAnalysisModalFormProps>;
+  touched: FormikTouched<IManualAnalysisModalFormProps>;
 }
 
 const AdvancedSettings = ({
@@ -573,6 +625,8 @@ const AdvancedSettings = ({
   objectStores,
   selectedObjectStore,
   onChange,
+  errors,
+  touched,
 }: IAdvancedSettingsProps) => {
   return (
     <>
@@ -591,6 +645,7 @@ const AdvancedSettings = ({
               onChange('metricsAccountName', (item && item.value) || '')
             }
           />
+          <ErrorMessage field="metricsAccountName" errors={errors} touched={touched} />
         </div>
       </div>
       <div className="form-group">
@@ -606,8 +661,39 @@ const AdvancedSettings = ({
               onChange('storageAccountName', (item && item.value) || '')
             }
           />
+          <ErrorMessage field="storageAccountName" errors={errors} touched={touched} />
         </div>
       </div>
+    </>
+  );
+};
+
+interface IErrorMessageProps {
+  field: keyof IManualAnalysisModalFormProps;
+  errors: FormikErrors<IManualAnalysisModalFormProps>;
+  touched: FormikTouched<IManualAnalysisModalFormProps>;
+}
+
+const ErrorMessage = ({ field, errors, touched }: IErrorMessageProps) => {
+  if (!touched[field] || !errors[field]) {
+    return null;
+  }
+  return <div className="error-message">{errors[field]}</div>;
+};
+
+export interface IValidatedFieldProps {
+  errors: FormikErrors<IManualAnalysisModalFormProps>;
+  touched: FormikTouched<IManualAnalysisModalFormProps>;
+  name: keyof IManualAnalysisModalFormProps;
+  [field: string]: any;
+}
+
+const ValidatedField = (props: IValidatedFieldProps) => {
+  const { errors, name, touched } = props;
+  return (
+    <>
+      <Field {...props} className="form-control input-sm" required={touched[name]} error={errors[name]} />
+      <ErrorMessage field={name} errors={errors} touched={touched} />
     </>
   );
 };
