@@ -50,7 +50,8 @@ abstract class StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAt
       deliveryConfig.name,
       targetEnvironment.name,
       version,
-      constraint.type
+      constraint.type,
+      artifact.reference
     )
 
     if (state == null) {
@@ -58,6 +59,7 @@ abstract class StatefulConstraintEvaluator<T : Constraint, A : ConstraintStateAt
         deliveryConfigName = deliveryConfig.name,
         environmentName = targetEnvironment.name,
         artifactVersion = version,
+        artifactReference = artifact.reference,
         type = constraint.type,
         status = ConstraintStatus.PENDING
       ).also {

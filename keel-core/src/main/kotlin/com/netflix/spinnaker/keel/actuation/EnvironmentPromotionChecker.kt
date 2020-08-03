@@ -36,7 +36,7 @@ class EnvironmentPromotionChecker(
       .associateWith { repository.artifactVersions(it) }
       .forEach { (artifact, versions) ->
         if (versions.isEmpty()) {
-          log.warn("No versions for ${artifact.type} artifact ${artifact.name} are known")
+          log.warn("No versions for ${artifact.type} artifact name ${artifact.name} and reference ${artifact.reference} are known")
         } else {
           deliveryConfig.environments.forEach { environment ->
             val envContext = EnvironmentContext(
@@ -58,7 +58,7 @@ class EnvironmentPromotionChecker(
 
               // everything the constraint runner has already approved
               val queuedForApproval: MutableSet<String> = repository
-                .getQueuedConstraintApprovals(deliveryConfig.name, environment.name)
+                .getQueuedConstraintApprovals(deliveryConfig.name, environment.name, artifact.reference)
                 .toMutableSet()
 
               /**
@@ -76,7 +76,7 @@ class EnvironmentPromotionChecker(
                     "and being evaluated for stateless constraints in environment ${environment.name}")
                   if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, v, environment)) {
                     approveVersion(deliveryConfig, artifact, v, environment.name)
-                    repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v)
+                    repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v, artifact.reference)
                   }
                 }
 

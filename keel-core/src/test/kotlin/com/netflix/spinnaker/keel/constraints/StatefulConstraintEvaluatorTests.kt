@@ -60,7 +60,7 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
       override val attributeType = SupportedConstraintAttributesType<DefaultConstraintAttributes>("fake")
     }
 
-    val artifact = DebianArtifact("fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
+    val artifact = DebianArtifact("fnord", reference = "fnord", vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2")))
 
     val constraint = FakeConstraint()
 
@@ -89,6 +89,7 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
       deliveryConfigName = "test",
       environmentName = "test",
       artifactVersion = "v1.0.0",
+      artifactReference = artifact.reference,
       type = constraint.type,
       status = ConstraintStatus.PENDING
     )
@@ -108,11 +109,11 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
       } just Runs
 
       every {
-        repository.getConstraintState("test", "test", "v1.0.0", "fake")
+        repository.getConstraintState("test", "test", "v1.0.0", "fake", artifact.reference)
       } returns null
 
       every {
-        repository.getConstraintState("test", "test", "v1.0.1", "fake")
+        repository.getConstraintState("test", "test", "v1.0.1", "fake", artifact.reference)
       } returns pendingConstraintState
 
       every {
@@ -162,7 +163,7 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
       subject.canPromote(artifact, "v1.0.1", manifest, environment)
 
       verify(exactly = 2) {
-        repository.getConstraintState("test", "test", any(), "fake")
+        repository.getConstraintState("test", "test", any(), "fake", artifact.reference)
       }
 
       val event = slot<ConstraintStateChanged>()

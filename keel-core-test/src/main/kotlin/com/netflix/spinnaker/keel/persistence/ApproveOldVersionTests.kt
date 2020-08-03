@@ -92,6 +92,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
     val artifact = DebianArtifact(
       name = "fnord",
       deliveryConfigName = "my-manifest",
+      reference = "my-artifact",
       vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
     )
     val deliveryConfig = DeliveryConfig(
@@ -109,6 +110,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       deliveryConfig.name,
       environment.name,
       version1,
+      artifact.reference,
       "manual-judgement",
       PENDING
     )
@@ -117,6 +119,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       deliveryConfig.name,
       environment.name,
       version2,
+      artifact.reference,
       "manual-judgement",
       PENDING
     )
@@ -125,6 +128,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       deliveryConfig.name,
       environment.name,
       version1,
+      artifact.reference,
       "manual-judgement",
       OVERRIDE_PASS
     )
@@ -172,7 +176,7 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
             subject.checkEnvironments(deliveryConfig)
           }
 
-          expectThat(repository.getConstraintState(deliveryConfig.name, environment.name, version1, "manual-judgement")).get {
+          expectThat(repository.getConstraintState(deliveryConfig.name, environment.name, version1, "manual-judgement", artifact.reference)).get {
             this?.status
           }.isEqualTo(
             passedManualJudgement1.status

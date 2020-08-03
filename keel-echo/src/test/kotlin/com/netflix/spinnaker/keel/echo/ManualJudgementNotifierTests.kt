@@ -67,6 +67,7 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
             deliveryConfigName = "test",
             environmentName = "test",
             artifactVersion = "v1.0.0",
+            artifactReference = "deb",
             type = manualJudgementConstraint.type,
             status = ConstraintStatus.PENDING
           )

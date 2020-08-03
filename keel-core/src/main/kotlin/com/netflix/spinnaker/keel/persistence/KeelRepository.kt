@@ -108,7 +108,7 @@ interface KeelRepository {
 
   fun storeConstraintState(state: ConstraintState)
 
-  fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String): ConstraintState?
+  fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String, artifactReference: String?): ConstraintState?
 
   fun getConstraintStateById(uid: UID): ConstraintState?
 
@@ -122,11 +122,11 @@ interface KeelRepository {
 
   fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String>
 
-  fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String): Set<String>
+  fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String, artifactReference: String?): Set<String>
 
-  fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String)
+  fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
 
-  fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String)
+  fun deleteQueuedConstraintApproval(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
 
   fun deliveryConfigsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig>
 

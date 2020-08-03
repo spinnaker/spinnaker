@@ -26,6 +26,7 @@ data class ConstraintState(
   val deliveryConfigName: String,
   val environmentName: String,
   val artifactVersion: String,
+  val artifactReference: String? = null,
   val type: String,
   val status: ConstraintStatus,
   val createdAt: Instant = Instant.now(),

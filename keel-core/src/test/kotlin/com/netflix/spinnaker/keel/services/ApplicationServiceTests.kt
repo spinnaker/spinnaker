@@ -250,11 +250,13 @@ class ApplicationServiceTests : JUnit5Minutests {
             when (val environment = arg<String>(1)) {
               "production" -> {
                 val version = arg<String>(2)
+                val type = "deb"
                 listOf(
                   ConstraintState(
                     deliveryConfig.name,
                     environment,
                     version,
+                    type,
                     "pipeline",
                     if (version in listOf(version0, version1)) PASS else PENDING
                   )

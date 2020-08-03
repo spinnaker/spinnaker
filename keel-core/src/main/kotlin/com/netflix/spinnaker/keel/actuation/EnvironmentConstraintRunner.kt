@@ -161,7 +161,7 @@ class EnvironmentConstraintRunner(
       .latestVersionApprovedIn(deliveryConfig, artifact, targetEnvironment)
     if (latestVersion != version) {
       log.debug("Queueing version $version of ${artifact.type} artifact ${artifact.name} in environment $targetEnvironment for approval")
-      repository.queueAllConstraintsApproved(deliveryConfig.name, targetEnvironment, version)
+      repository.queueAllConstraintsApproved(deliveryConfig.name, targetEnvironment, version, artifact.reference)
     }
   }
 

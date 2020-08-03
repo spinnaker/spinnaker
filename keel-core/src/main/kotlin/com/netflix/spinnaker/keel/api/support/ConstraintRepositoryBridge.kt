@@ -35,8 +35,8 @@ class ConstraintRepositoryBridge(
     keelRepository.storeConstraintState(state)
   }
 
-  override fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String): ConstraintState? {
-    return keelRepository.getConstraintState(deliveryConfigName, environmentName, artifactVersion, type)
+  override fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String, artifactReference: String?): ConstraintState? {
+    return keelRepository.getConstraintState(deliveryConfigName, environmentName, artifactVersion, type, artifactReference)
   }
 
   override fun getConstraintStateById(uid: UID): ConstraintState? {

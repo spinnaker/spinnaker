@@ -303,7 +303,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
-              UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
+              UpdatedConstraintStatus("manual-judgement", "prod", "deb", OVERRIDE_PASS)
             )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
@@ -318,7 +318,7 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           }
           test("request is forbidden") {
             val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
-              UpdatedConstraintStatus("manual-judgement", "prod", OVERRIDE_PASS)
+              UpdatedConstraintStatus("manual-judgement", "prod", "deb", OVERRIDE_PASS)
             )
               .accept(APPLICATION_JSON_VALUE)
               .header("X-SPINNAKER-USER", user)
