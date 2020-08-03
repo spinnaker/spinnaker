@@ -45,11 +45,14 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   constructor(props: IExecutionFiltersProps) {
     super(props);
 
+    const searchString = ExecutionState.filterModel.asFilterModel.sortFilter.filter;
     this.state = {
-      pipelineNames: this.getPipelineNames(false),
+      pipelineNames: this.getPipelineNames(false).filter(pipelineName =>
+        searchString ? pipelineName.toLocaleLowerCase().includes(searchString.toLocaleLowerCase()) : true,
+      ),
       strategyNames: this.getPipelineNames(true),
       pipelineReorderEnabled: false,
-      searchString: '',
+      searchString,
       tags: ExecutionState.filterModel.asFilterModel.tags,
     };
   }
@@ -197,8 +200,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   };
 
   public render() {
-    const { pipelineNames, strategyNames, pipelineReorderEnabled, tags } = this.state;
-    const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
+    const { pipelineNames, searchString, strategyNames, pipelineReorderEnabled, tags } = this.state;
 
     return (
       <div className="execution-filters">
@@ -206,7 +208,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
           <div className="heading">
             <FilterSearch
               helpKey="executions.search"
-              value={sortFilter.filter}
+              value={searchString}
               onBlur={this.searchFieldUpdated}
               onSearchChange={this.searchFieldUpdated}
             />
