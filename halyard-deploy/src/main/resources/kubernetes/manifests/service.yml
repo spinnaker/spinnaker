@@ -9,10 +9,10 @@ metadata:
     {% for key, value in serviceLabels.items() %}
     "{{ key }}": "{{ value }}"
     {% endfor %}
-annotations:
-  {% for key, value in serviceAnnotations.items() %}
-  "{{ key }}": "{{ value }}"
-  {% endfor %}
+  annotations:
+    {% for key, value in serviceAnnotations.items() %}
+    "{{ key }}": "{{ value }}"
+    {% endfor %}
 spec:
   selector:
     app: spin
