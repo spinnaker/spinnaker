@@ -97,7 +97,7 @@ class KubernetesInstanceDetailsController implements IController {
         this.manifest = manifest;
         this.consoleOutputInstance = {
           account: this.instance.account,
-          region: this.instance.region,
+          region: this.instance.zone,
           id: this.instance.humanReadableName,
           provider: this.instance.provider,
         };
@@ -137,7 +137,6 @@ class KubernetesInstanceDetailsController implements IController {
       RecentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
       return InstanceReader.getInstanceDetails(instanceManager.account, instanceManager.region, instance.name).then(
         (instanceDetails: IKubernetesInstance) => {
-          instanceDetails.namespace = instanceDetails.region;
           instanceDetails.id = instance.id;
           instanceDetails.name = instance.name;
           instanceDetails.provider = 'kubernetes';
