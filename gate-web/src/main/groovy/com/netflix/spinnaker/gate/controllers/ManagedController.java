@@ -293,7 +293,7 @@ public class ManagedController {
     keelService.veto(application, veto);
   }
 
-  @ApiOperation(value = "Veto an artifact version in an environment")
+  @ApiOperation(value = "Remove veto of an artifact version in an environment")
   @DeleteMapping(path = "/application/{application}/veto/{targetEnvironment}/{reference}/{version}")
   void deleteVeto(
       @PathVariable("application") String application,
