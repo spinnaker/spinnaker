@@ -17,6 +17,8 @@ package com.netflix.spinnaker.front50.model.plugins
 
 import com.netflix.spinnaker.front50.echo.EchoService
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.plugins.remote.RemoteExtension
+import com.netflix.spinnaker.front50.model.plugins.remote.stage.StageRemoteExtensionConfig
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService
 import com.netflix.spinnaker.front50.validator.PluginInfoValidator
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -58,7 +60,7 @@ class PluginInfoServiceSpec extends Specification {
     0 * repository.create(_, _)
   }
 
-  def "upsert with a new release for an existing plugin"() {
+  def "upsert with a new release for an existing plugin, new release contains remote extension configuration"() {
     given:
     PluginInfo currentPluginInfo = new PluginInfo(id: "foo.bar")
     currentPluginInfo.releases.add(new PluginInfo.Release(version: "1.0.0"))
@@ -66,6 +68,22 @@ class PluginInfoServiceSpec extends Specification {
     and:
     PluginInfo newPluginInfo = new PluginInfo(id: "foo.bar")
     newPluginInfo.releases.add(new PluginInfo.Release(version: "2.0.0"))
+    newPluginInfo.releases.get(0).remoteExtensions.add(
+      new RemoteExtension(
+        type: "stage",
+        id: "netflix.remote.remoteWait",
+        transport: new RemoteExtension.RemoteExtensionTransport(
+          http: new RemoteExtension.RemoteExtensionTransport.Http(
+            url: "http://example.com"
+          )
+        ),
+        config: new StageRemoteExtensionConfig(
+          type: "remoteWait",
+          label: "Wait on a remote service",
+          description: "A stage that waits on a remote service",
+          parameters: ["waitTime": 30, "message": "Done"]
+        )
+      ))
 
     when:
     PluginInfo persistedPluginInfo = subject.upsert(newPluginInfo)

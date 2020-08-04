@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model.plugins;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
 import com.netflix.spinnaker.front50.model.Timestamped;
+import com.netflix.spinnaker.front50.model.plugins.remote.RemoteExtension;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -181,6 +182,9 @@ public class PluginInfo implements Timestamped {
     public boolean supportsService(@Nonnull String service) {
       return getParsedRequires().stream().anyMatch(it -> it.getService().equalsIgnoreCase(service));
     }
+
+    /** Remote extensions associated with this plugin release. */
+    @Nonnull private List<RemoteExtension> remoteExtensions = new ArrayList<>();
   }
 
   @Data
