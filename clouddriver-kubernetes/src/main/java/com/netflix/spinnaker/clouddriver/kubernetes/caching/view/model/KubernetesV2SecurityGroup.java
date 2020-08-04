@@ -22,8 +22,10 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
@@ -32,6 +34,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.moniker.Moniker;
 import io.kubernetes.client.custom.IntOrString;
 import io.kubernetes.client.openapi.models.V1NetworkPolicy;
 import io.kubernetes.client.openapi.models.V1NetworkPolicyEgressRule;
@@ -39,6 +43,7 @@ import io.kubernetes.client.openapi.models.V1NetworkPolicyIngressRule;
 import io.kubernetes.client.openapi.models.V1NetworkPolicyPort;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
@@ -53,19 +58,28 @@ import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Value
-public final class KubernetesV2SecurityGroup extends ManifestBasedModel implements SecurityGroup {
+public final class KubernetesV2SecurityGroup implements KubernetesResource, SecurityGroup {
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
       ImmutableSet.of(EXTENSIONS_V1BETA1, NETWORKING_K8S_IO_V1BETA1, NETWORKING_K8S_IO_V1);
 
-  private final KubernetesManifest manifest;
-  private final Keys.InfrastructureCacheKey key;
+  private final String account;
   private final String id;
+  private final String namespace;
+  private final String displayName;
+  private final KubernetesApiVersion apiVersion;
+  private final KubernetesKind kind;
+  private final Map<String, String> labels;
+  private final Moniker moniker;
 
   private final Set<Rule> inboundRules;
   private final Set<Rule> outboundRules;
+
+  @Override
+  public String getAccountName() {
+    return account;
+  }
 
   @Override
   public String getApplication() {
@@ -79,9 +93,20 @@ public final class KubernetesV2SecurityGroup extends ManifestBasedModel implemen
 
   private KubernetesV2SecurityGroup(
       KubernetesManifest manifest, String key, Set<Rule> inboundRules, Set<Rule> outboundRules) {
-    this.manifest = manifest;
     this.id = manifest.getFullResourceName();
-    this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
+    this.account = ((Keys.InfrastructureCacheKey) Keys.parseKey(key).get()).getAccount();
+    this.kind = manifest.getKind();
+    this.apiVersion = manifest.getApiVersion();
+    this.displayName = manifest.getName();
+    this.namespace = manifest.getNamespace();
+    this.labels = ImmutableMap.copyOf(manifest.getLabels());
+    this.moniker =
+        NamerRegistry.lookup()
+            .withProvider(KubernetesCloudProvider.ID)
+            .withAccount(account)
+            .withResource(KubernetesManifest.class)
+            .deriveMoniker(manifest);
+
     this.inboundRules = inboundRules;
     this.outboundRules = outboundRules;
   }
@@ -153,6 +178,26 @@ public final class KubernetesV2SecurityGroup extends ManifestBasedModel implemen
             port == null
                 ? null
                 : new TreeSet<>(ImmutableList.of(new StringPortRange(port.toString()))));
+  }
+
+  @Override
+  public String getType() {
+    return KubernetesCloudProvider.ID;
+  }
+
+  @Override
+  public String getName() {
+    return id;
+  }
+
+  @Override
+  public String getRegion() {
+    return namespace;
+  }
+
+  @Override
+  public String getCloudProvider() {
+    return KubernetesCloudProvider.ID;
   }
 
   @Data

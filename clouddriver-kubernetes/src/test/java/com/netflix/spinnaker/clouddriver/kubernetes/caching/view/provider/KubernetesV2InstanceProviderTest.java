@@ -92,7 +92,11 @@ final class KubernetesV2InstanceProviderTest {
 
     KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
-    assertThat(instance.getManifest()).isEqualTo(manifest);
+    assertThat(instance.getName()).isEqualTo(manifest.getUid());
+    assertThat(instance.getDisplayName()).isEqualTo(manifest.getName());
+    assertThat(instance.getZone()).isEqualTo(manifest.getNamespace());
+    assertThat(instance.getKind()).isEqualTo(manifest.getKind());
+    assertThat(instance.getApiVersion()).isEqualTo(manifest.getApiVersion());
   }
 
   @Test
@@ -163,6 +167,8 @@ final class KubernetesV2InstanceProviderTest {
 
   private V1Pod getPod() {
     V1Pod pod = new V1Pod();
+    pod.setApiVersion("v1");
+    pod.setKind("Pod");
     V1PodSpec podSpec = new V1PodSpec();
     V1ObjectMeta metadata = new V1ObjectMeta();
     V1Container container = new V1Container();

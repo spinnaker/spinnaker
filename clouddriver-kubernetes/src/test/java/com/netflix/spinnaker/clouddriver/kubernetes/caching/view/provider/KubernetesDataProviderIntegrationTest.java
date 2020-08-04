@@ -523,7 +523,6 @@ final class KubernetesDataProviderIntegrationTest {
   private void assertFrontendLoadBalancer(
       SoftAssertions softly, KubernetesV2LoadBalancer loadBalancer) {
     softly.assertThat(loadBalancer.getRegion()).isEqualTo("frontend-ns");
-    softly.assertThat(loadBalancer.getZone()).isEqualTo("frontend-ns");
     softly.assertThat(loadBalancer.getAccount()).isEqualTo(ACCOUNT_NAME);
     softly
         .assertThat(loadBalancer.getLabels())
@@ -533,7 +532,6 @@ final class KubernetesDataProviderIntegrationTest {
                 "app.kubernetes.io/managed-by", "spinnaker"));
     softly.assertThat(loadBalancer.getKind()).isEqualTo(KubernetesKind.SERVICE);
     softly.assertThat(loadBalancer.getType()).isEqualTo("kubernetes");
-    softly.assertThat(loadBalancer.getProviderType()).isEqualTo("kubernetes");
     softly.assertThat(loadBalancer.getMoniker().getApp()).isEqualTo("frontendapp");
     softly.assertThat(loadBalancer.getMoniker().getCluster()).isEqualTo("service frontend");
     softly.assertThat(loadBalancer.getName()).isEqualTo("service frontend");
@@ -596,13 +594,11 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getMoniker().getSequence()).isEqualTo(1);
     softly.assertThat(serverGroup.getCapacity().getDesired()).isEqualTo(0);
     softly.assertThat(serverGroup.getAccount()).isEqualTo("my-account");
-    softly.assertThat(serverGroup.getAccountName()).isEqualTo("my-account");
     softly.assertThat(serverGroup.getKind()).isEqualTo(KubernetesKind.REPLICA_SET);
     softly.assertThat(serverGroup.getName()).isEqualTo("replicaSet frontend-64545c4c54");
     softly.assertThat(serverGroup.getInstanceCounts().getUp()).isEqualTo(0);
     softly.assertThat(serverGroup.getInstanceCounts().getTotal()).isEqualTo(0);
     softly.assertThat(serverGroup.getLoadBalancers()).containsExactly("service frontend");
-    softly.assertThat(serverGroup.getUid()).isEqualTo("13939207-d970-4e19-8f8d-ffcd353016ff");
     // When using a deployment, the prior server group is not disabled as labels aren't changed;
     // instead this server group is scaled down to 0 instances.
     softly.assertThat(serverGroup.isDisabled()).isFalse();
@@ -622,7 +618,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly("nginx:1.19.0");
-    softly.assertThat(serverGroup.getZone()).isEqualTo("frontend-ns");
     softly.assertThat(serverGroup.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(serverGroup.getInstances()).isEmpty();
   }
@@ -634,13 +629,11 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getMoniker().getSequence()).isEqualTo(2);
     softly.assertThat(serverGroup.getCapacity().getDesired()).isEqualTo(2);
     softly.assertThat(serverGroup.getAccount()).isEqualTo("my-account");
-    softly.assertThat(serverGroup.getAccountName()).isEqualTo("my-account");
     softly.assertThat(serverGroup.getKind()).isEqualTo(KubernetesKind.REPLICA_SET);
     softly.assertThat(serverGroup.getName()).isEqualTo("replicaSet frontend-5c6559f75f");
     softly.assertThat(serverGroup.getInstanceCounts().getUp()).isEqualTo(2);
     softly.assertThat(serverGroup.getInstanceCounts().getTotal()).isEqualTo(2);
     softly.assertThat(serverGroup.getLoadBalancers()).containsExactly("service frontend");
-    softly.assertThat(serverGroup.getUid()).isEqualTo("29630998-bdee-4586-ac64-45223d7ef7d5");
     softly.assertThat(serverGroup.isDisabled()).isFalse();
     softly.assertThat(serverGroup.getRegion()).isEqualTo("frontend-ns");
     softly.assertThat(serverGroup.getServerGroupManagers()).hasSize(1);
@@ -658,7 +651,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly("nginx:1.19.1");
-    softly.assertThat(serverGroup.getZone()).isEqualTo("frontend-ns");
     softly.assertThat(serverGroup.getCloudProvider()).isEqualTo("kubernetes");
     assertFrontendCurrentServerGroupInstances(softly, serverGroup.getInstances());
   }
@@ -685,13 +677,11 @@ final class KubernetesDataProviderIntegrationTest {
 
   private void assertFrontendFirstInstance(SoftAssertions softly, KubernetesV2Instance instance) {
     softly.assertThat(instance.getAccount()).isEqualTo(ACCOUNT_NAME);
-    softly.assertThat(instance.getRegion()).isEqualTo("frontend-ns");
     softly.assertThat(instance.getZone()).isEqualTo("frontend-ns");
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod frontend-5c6559f75f-4ml8h");
     softly.assertThat(instance.getName()).isEqualTo("477dcf19-be44-4853-88fd-1d9aedfcddba");
     softly
@@ -708,13 +698,11 @@ final class KubernetesDataProviderIntegrationTest {
 
   private void assertFrontendSecondInstance(SoftAssertions softly, KubernetesV2Instance instance) {
     softly.assertThat(instance.getAccount()).isEqualTo(ACCOUNT_NAME);
-    softly.assertThat(instance.getRegion()).isEqualTo("frontend-ns");
     softly.assertThat(instance.getZone()).isEqualTo("frontend-ns");
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod frontend-5c6559f75f-6fdmt");
     softly.assertThat(instance.getName()).isEqualTo("a2280982-e745-468f-9176-21ff1642fa8d");
     softly
@@ -738,10 +726,7 @@ final class KubernetesDataProviderIntegrationTest {
 
   private void assertFrontEndServerGroupManager(
       SoftAssertions softly, KubernetesV2ServerGroupManager serverGroupManager) {
-    softly.assertThat(serverGroupManager.getType()).isEqualTo("kubernetes");
     softly.assertThat(serverGroupManager.getCloudProvider()).isEqualTo("kubernetes");
-    softly.assertThat(serverGroupManager.getProviderType()).isEqualTo("kubernetes");
-    softly.assertThat(serverGroupManager.getZone()).isEqualTo("frontend-ns");
     softly.assertThat(serverGroupManager.getRegion()).isEqualTo("frontend-ns");
     softly.assertThat(serverGroupManager.getAccount()).isEqualTo(ACCOUNT_NAME);
     softly.assertThat(serverGroupManager.getName()).isEqualTo("deployment frontend");
@@ -864,7 +849,6 @@ final class KubernetesDataProviderIntegrationTest {
   private void assertBackendLoadBalancer(
       SoftAssertions softly, KubernetesV2LoadBalancer loadBalancer) {
     softly.assertThat(loadBalancer.getRegion()).isEqualTo("backend-ns");
-    softly.assertThat(loadBalancer.getZone()).isEqualTo("backend-ns");
     softly.assertThat(loadBalancer.getAccount()).isEqualTo(ACCOUNT_NAME);
     softly
         .assertThat(loadBalancer.getLabels())
@@ -874,7 +858,6 @@ final class KubernetesDataProviderIntegrationTest {
                 "app.kubernetes.io/managed-by", "spinnaker"));
     softly.assertThat(loadBalancer.getKind()).isEqualTo(KubernetesKind.SERVICE);
     softly.assertThat(loadBalancer.getType()).isEqualTo("kubernetes");
-    softly.assertThat(loadBalancer.getProviderType()).isEqualTo("kubernetes");
     softly.assertThat(loadBalancer.getMoniker().getApp()).isEqualTo("backendapp");
     softly.assertThat(loadBalancer.getMoniker().getCluster()).isEqualTo("service backendlb");
     softly.assertThat(loadBalancer.getName()).isEqualTo("service backendlb");
@@ -965,13 +948,11 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getMoniker().getSequence()).isEqualTo(14);
     softly.assertThat(serverGroup.getCapacity().getDesired()).isEqualTo(1);
     softly.assertThat(serverGroup.getAccount()).isEqualTo("my-account");
-    softly.assertThat(serverGroup.getAccountName()).isEqualTo("my-account");
     softly.assertThat(serverGroup.getKind()).isEqualTo(KubernetesKind.REPLICA_SET);
     softly.assertThat(serverGroup.getName()).isEqualTo("replicaSet backend-v014");
     softly.assertThat(serverGroup.getInstanceCounts().getUp()).isEqualTo(1);
     softly.assertThat(serverGroup.getInstanceCounts().getTotal()).isEqualTo(1);
     softly.assertThat(serverGroup.getLoadBalancers()).containsExactly("service backendlb");
-    softly.assertThat(serverGroup.getUid()).isEqualTo("ded56bd9-2034-4196-a7e4-b6b736c997ba");
     // When using a replica set with traffic management, the prior server group is disabled.
     softly.assertThat(serverGroup.isDisabled()).isTrue();
     softly.assertThat(serverGroup.getRegion()).isEqualTo("backend-ns");
@@ -988,7 +969,6 @@ final class KubernetesDataProviderIntegrationTest {
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly(
             "gcr.io/my-gcr-repository/backend-service@sha256:2eefbb528a4619311555f92ea9b781af101c62f4c70b73c4a5e93d15624ba94c");
-    softly.assertThat(serverGroup.getZone()).isEqualTo("backend-ns");
     softly.assertThat(serverGroup.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(serverGroup.getInstances()).hasSize(1);
     if (!serverGroup.getInstances().isEmpty()) {
@@ -1002,13 +982,11 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getMoniker().getSequence()).isEqualTo(15);
     softly.assertThat(serverGroup.getCapacity().getDesired()).isEqualTo(1);
     softly.assertThat(serverGroup.getAccount()).isEqualTo("my-account");
-    softly.assertThat(serverGroup.getAccountName()).isEqualTo("my-account");
     softly.assertThat(serverGroup.getKind()).isEqualTo(KubernetesKind.REPLICA_SET);
     softly.assertThat(serverGroup.getName()).isEqualTo("replicaSet backend-v015");
     softly.assertThat(serverGroup.getInstanceCounts().getUp()).isEqualTo(1);
     softly.assertThat(serverGroup.getInstanceCounts().getTotal()).isEqualTo(1);
     softly.assertThat(serverGroup.getLoadBalancers()).containsExactly("service backendlb");
-    softly.assertThat(serverGroup.getUid()).isEqualTo("518fdd80-8949-47c4-806e-1fd3ac1e1d3c");
     softly.assertThat(serverGroup.isDisabled()).isFalse();
     softly.assertThat(serverGroup.getRegion()).isEqualTo("backend-ns");
     softly.assertThat(serverGroup.getServerGroupManagers()).isEmpty();
@@ -1024,7 +1002,6 @@ final class KubernetesDataProviderIntegrationTest {
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly(
             "gcr.io/my-gcr-repository/backend-service@sha256:51f29a570a484fbae4da912199ff27ed21f91b1caf51564a9d3afe3a201c1f32");
-    softly.assertThat(serverGroup.getZone()).isEqualTo("backend-ns");
     softly.assertThat(serverGroup.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(serverGroup.getInstances()).hasSize(1);
     if (!serverGroup.getInstances().isEmpty()) {
@@ -1035,13 +1012,11 @@ final class KubernetesDataProviderIntegrationTest {
   private void assertBackendPriorServerGroupInstance(
       SoftAssertions softly, KubernetesV2Instance instance) {
     softly.assertThat(instance.getAccount()).isEqualTo(ACCOUNT_NAME);
-    softly.assertThat(instance.getRegion()).isEqualTo("backend-ns");
     softly.assertThat(instance.getZone()).isEqualTo("backend-ns");
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod backend-v014-xkvwh");
     softly.assertThat(instance.getName()).isEqualTo("d05606fe-aa69-4f16-b56a-371c2313fe9c");
     softly
@@ -1059,13 +1034,11 @@ final class KubernetesDataProviderIntegrationTest {
   private void assertBackendCurrentServerGroupInstance(
       SoftAssertions softly, KubernetesV2Instance instance) {
     softly.assertThat(instance.getAccount()).isEqualTo(ACCOUNT_NAME);
-    softly.assertThat(instance.getRegion()).isEqualTo("backend-ns");
     softly.assertThat(instance.getZone()).isEqualTo("backend-ns");
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod backend-v015-vhglj");
     softly.assertThat(instance.getName()).isEqualTo("45db7673-e3d2-4746-9ecd-38f868f853e5");
     softly

@@ -17,7 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -29,6 +32,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestTraffic;
@@ -36,8 +41,11 @@ import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.ArrayList;
+import com.netflix.spinnaker.moniker.Moniker;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,21 +55,27 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.Null;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Value
-public final class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
+public final class KubernetesV2ServerGroup implements KubernetesResource, ServerGroup {
   private final boolean disabled;
   private final Set<KubernetesV2Instance> instances;
   private final Set<String> loadBalancers;
   private final List<ServerGroupManagerSummary> serverGroupManagers;
   private final Capacity capacity;
-  private final KubernetesManifest manifest;
-  private final Keys.InfrastructureCacheKey key;
+  private final String account;
+  private final String name;
+  private final String namespace;
+  private final String displayName;
+  private final KubernetesApiVersion apiVersion;
+  private final KubernetesKind kind;
+  private final Map<String, String> labels;
+  private final Moniker moniker;
+  private final Long createdTime;
+  private final ImmutableMap<String, ImmutableList<String>> buildInfo;
 
   private final Set<String> zones = ImmutableSet.of();
   private final Set<String> securityGroups = ImmutableSet.of();
@@ -101,16 +115,6 @@ public final class KubernetesV2ServerGroup extends ManifestBasedModel implements
         .build();
   }
 
-  public Map<String, Object> getBuildInfo() {
-    return new ImmutableMap.Builder<String, Object>()
-        .put(
-            "images",
-            dockerImageReplacer.findAll(getManifest()).stream()
-                .map(Artifact::getReference)
-                .collect(Collectors.toSet()))
-        .build();
-  }
-
   @Override
   public Boolean isDisabled() {
     return disabled;
@@ -123,8 +127,27 @@ public final class KubernetesV2ServerGroup extends ManifestBasedModel implements
       Set<String> loadBalancers,
       List<ServerGroupManagerSummary> serverGroupManagers,
       Boolean disabled) {
-    this.manifest = manifest;
-    this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
+    this.account = ((Keys.InfrastructureCacheKey) Keys.parseKey(key).get()).getAccount();
+    this.kind = manifest.getKind();
+    this.apiVersion = manifest.getApiVersion();
+    this.namespace = manifest.getNamespace();
+    this.name = manifest.getFullResourceName();
+    this.displayName = manifest.getName();
+    this.labels = ImmutableMap.copyOf(manifest.getLabels());
+    this.moniker =
+        NamerRegistry.lookup()
+            .withProvider(KubernetesCloudProvider.ID)
+            .withAccount(account)
+            .withResource(KubernetesManifest.class)
+            .deriveMoniker(manifest);
+    this.createdTime = getCreatedTime(manifest);
+    this.buildInfo =
+        ImmutableMap.of(
+            "images",
+            dockerImageReplacer.findAll(manifest).stream()
+                .map(Artifact::getReference)
+                .distinct()
+                .collect(toImmutableList()));
     this.instances = new HashSet<>(instances);
     this.loadBalancers = loadBalancers;
     this.serverGroupManagers = serverGroupManagers;
@@ -241,38 +264,41 @@ public final class KubernetesV2ServerGroup extends ManifestBasedModel implements
 
   @Override
   public ImagesSummary getImagesSummary() {
-    Map<String, Object> buildInfo = getBuildInfo();
-    Set<String> images = (HashSet<String>) buildInfo.get("images");
     return () ->
         ImmutableList.of(
-            new ImageSummary() {
+            KubernetesV2ImageSummary.builder()
+                .serverGroupName(displayName)
+                .buildInfo(buildInfo)
+                .build());
+  }
 
-              @Override
-              public String getServerGroupName() {
-                return getManifest().getName();
-              }
+  private static Long getCreatedTime(KubernetesManifest manifest) {
+    Map<String, String> metadata =
+        (Map<String, String>) manifest.getOrDefault("metadata", new HashMap<>());
+    String timestamp = metadata.get("creationTimestamp");
+    try {
+      if (!Strings.isNullOrEmpty(timestamp)) {
+        return (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(timestamp)).getTime();
+      }
+    } catch (ParseException e) {
+      log.warn("Failed to parse timestamp: ", e);
+    }
 
-              @Override
-              public String getImageId() {
-                return null;
-              }
+    return null;
+  }
 
-              @Override
-              public String getImageName() {
-                return null;
-              }
+  @Override
+  public String getType() {
+    return KubernetesCloudProvider.ID;
+  }
 
-              @Override
-              public Map<String, Object> getImage() {
-                return null;
-              }
+  @Override
+  public String getRegion() {
+    return namespace;
+  }
 
-              @Override
-              public Map<String, Object> getBuildInfo() {
-                return new ImmutableMap.Builder<String, Object>()
-                    .put("images", new ArrayList<>(images))
-                    .build();
-              }
-            });
+  @Override
+  public String getCloudProvider() {
+    return KubernetesCloudProvider.ID;
   }
 }
