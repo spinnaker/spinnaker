@@ -115,10 +115,13 @@ export interface IListenerRule {
   priority: number | 'default';
 }
 
-export type ListenerRuleConditionField = 'path-pattern' | 'host-header';
+export type ListenerRuleConditionField = 'path-pattern' | 'host-header' | 'http-request-method';
 
 export interface IListenerRuleCondition {
   field: ListenerRuleConditionField;
+  httpRequestMethodConfig?: {
+    values: string[];
+  };
   values: string[];
 }
 

@@ -328,6 +328,31 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
     this.updateListeners();
   };
 
+  private handleHttpRequestMethodChanged = (
+    condition: IListenerRuleCondition,
+    newValue: string,
+    selected: boolean,
+  ): void => {
+    let newValues = condition.values || [];
+
+    if (selected) {
+      newValues.push(newValue);
+    } else {
+      newValues = newValues.filter(v => v !== newValue);
+    }
+
+    /**
+     * The `http-request-method` conditions have a differnt model.
+     * AWS uses `httpRequestMethodConfig` as the source of truth, while deck uses `values`.
+     * Both are updated for consistency.
+     */
+    condition.values = newValues;
+    condition.httpRequestMethodConfig = {
+      values: newValues,
+    };
+    this.updateListeners();
+  };
+
   private addCondition = (rule: IListenerRule): void => {
     if (rule.conditions.length === 1) {
       const field = rule.conditions[0].field === 'path-pattern' ? 'host-header' : 'path-pattern';
@@ -458,7 +483,6 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
   public render() {
     const { errors, values } = this.props.formik;
     const { certificates, certificateTypes, oidcConfigs } = this.state;
-
     return (
       <div className="container-fluid form-horizontal">
         <div className="form-group">
@@ -563,6 +587,7 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
                           distance={10}
                           handleConditionFieldChanged={this.handleConditionFieldChanged}
                           handleConditionValueChanged={this.handleConditionValueChanged}
+                          handleHttpRequestMethodChanged={this.handleHttpRequestMethodChanged}
                           handleRuleActionTargetChanged={this.handleRuleActionTargetChanged}
                           handleRuleActionTypeChanged={this.handleRuleActionTypeChanged}
                           listener={listener}
@@ -630,6 +655,7 @@ interface IRuleProps {
   removeCondition: (rule: IListenerRule, index: number) => void;
   handleConditionFieldChanged: (condition: IListenerRuleCondition, newField: ListenerRuleConditionField) => void;
   handleConditionValueChanged: (condition: IListenerRuleCondition, newValue: string) => void;
+  handleHttpRequestMethodChanged: (condition: IListenerRuleCondition, newValue: string, selected: boolean) => void;
   configureOidcClient: (action: IListenerAction) => void;
   configureRedirect: (action: IListenerAction) => void;
 }
@@ -648,7 +674,7 @@ const Rule = SortableElement((props: IRuleProps) => (
             onChange={event =>
               props.handleConditionFieldChanged(condition, event.target.value as ListenerRuleConditionField)
             }
-            style={{ width: '37%' }}
+            style={{ width: '40%' }}
             required={true}
           >
             {(props.rule.conditions.length === 1 || condition.field === 'host-header') && (
@@ -657,18 +683,39 @@ const Rule = SortableElement((props: IRuleProps) => (
             {(props.rule.conditions.length === 1 || condition.field === 'path-pattern') && (
               <option value="path-pattern">Path</option>
             )}
+            {(props.rule.conditions.length === 1 || condition.field === 'http-request-method') && (
+              <option value="http-request-method">Method(s)</option>
+            )}
           </select>
           {condition.field === 'path-pattern' && <HelpField id="aws.loadBalancer.ruleCondition.path" />}
           {condition.field === 'host-header' && <HelpField id="aws.loadBalancer.ruleCondition.host" />}
-          <input
-            className="form-control input-sm"
-            type="text"
-            value={condition.values[0]}
-            onChange={event => props.handleConditionValueChanged(condition, event.target.value)}
-            maxLength={128}
-            required={true}
-            style={{ width: '63%' }}
-          />
+          {condition.field !== 'http-request-method' && (
+            <input
+              className="form-control input-sm"
+              type="text"
+              value={condition.values[0]}
+              onChange={event => props.handleConditionValueChanged(condition, event.target.value)}
+              maxLength={128}
+              required={true}
+              style={{ width: '63%' }}
+            />
+          )}
+          {condition.field === 'http-request-method' && (
+            <div className="col-md-6 checkbox">
+              {['DELETE', 'GET', 'PATCH', 'POST', 'PUT'].map(httpMethod => (
+                <label key={`${httpMethod}-checkbox`}>
+                  <input
+                    type="checkbox"
+                    checked={condition.values.includes(httpMethod)}
+                    onChange={event =>
+                      props.handleHttpRequestMethodChanged(condition, httpMethod, event.target.checked)
+                    }
+                  />
+                  {httpMethod}
+                </label>
+              ))}
+            </div>
+          )}
           <span className="remove-condition">
             {cIndex === 1 && (
               <a
@@ -871,6 +918,7 @@ interface IRulesProps {
   removeCondition: (rule: IListenerRule, index: number) => void;
   handleConditionFieldChanged: (condition: IListenerRuleCondition, newField: ListenerRuleConditionField) => void;
   handleConditionValueChanged: (condition: IListenerRuleCondition, newValue: string) => void;
+  handleHttpRequestMethodChanged: (condition: IListenerRuleCondition, newValue: string, selected: boolean) => void;
   listener: IListenerDescription;
   targetGroups: IALBTargetGroupDescription[];
   oidcConfigChanged: (action: IListenerAction, config: IAuthenticateOidcActionConfig) => void;
@@ -918,6 +966,7 @@ const Rules = SortableContainer((props: IRulesProps) => (
           addCondition={props.addCondition}
           handleConditionFieldChanged={props.handleConditionFieldChanged}
           handleConditionValueChanged={props.handleConditionValueChanged}
+          handleHttpRequestMethodChanged={props.handleHttpRequestMethodChanged}
           handleRuleActionTargetChanged={props.handleRuleActionTargetChanged}
           handleRuleActionTypeChanged={props.handleRuleActionTypeChanged}
           oidcConfigChanged={props.oidcConfigChanged}

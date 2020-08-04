@@ -332,6 +332,11 @@ export class AwsLoadBalancerTransformer {
               }
               action.redirectActionConfig = action.redirectConfig;
             });
+            (rule.conditions || []).forEach(condition => {
+              if (condition.field === 'http-request-method') {
+                condition.values = condition.httpRequestMethodConfig.values;
+              }
+            });
             rule.conditions = rule.conditions || [];
           });
 

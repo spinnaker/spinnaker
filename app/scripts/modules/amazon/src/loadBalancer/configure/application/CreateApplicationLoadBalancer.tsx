@@ -149,7 +149,13 @@ export class CreateApplicationLoadBalancer extends React.Component<
         // Set the priority in array order, starting with 1
         rule.priority = index + 1;
         // Remove conditions that have no value
-        rule.conditions = rule.conditions.filter(condition => condition.values[0].length > 0);
+        rule.conditions = rule.conditions.filter(condition => {
+          if (condition.field !== 'http-request-method') {
+            return condition.values[0].length > 0;
+          }
+
+          return condition.values.length > 0;
+        });
       });
     });
   }
