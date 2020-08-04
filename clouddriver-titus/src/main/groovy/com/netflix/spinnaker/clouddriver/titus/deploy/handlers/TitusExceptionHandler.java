@@ -45,6 +45,9 @@ public class TitusExceptionHandler implements SagaExceptionHandler {
       case UNAVAILABLE:
       case UNKNOWN:
         return true;
+      case INVALID_ARGUMENT:
+        String message = statusRuntimeException.getMessage();
+        return message != null && message.toLowerCase().contains("rate exceeded");
       default:
         return false;
     }
