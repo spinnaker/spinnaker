@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline;
 
-public class InvalidCronExpressionException extends IllegalArgumentException {
+import com.netflix.spinnaker.kork.exceptions.UserException;
+
+public class InvalidCronExpressionException extends UserException {
   public InvalidCronExpressionException(String cronExpression, String explanation) {
     super("Invalid CRON expression: '" + cronExpression + "' explanation: " + explanation);
   }

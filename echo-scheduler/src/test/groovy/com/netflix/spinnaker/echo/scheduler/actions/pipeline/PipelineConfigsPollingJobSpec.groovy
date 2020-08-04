@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
@@ -27,20 +25,19 @@ import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.TriggerKey
 import org.quartz.impl.triggers.CronTriggerImpl
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class PipelineConfigsPollingJobSpec extends Specification {
 
-  Registry registry = new NoopRegistry()
+  PipelineConfigPollingMetrics metrics = Mock(PipelineConfigPollingMetrics)
   def scheduler = Mock(Scheduler)
   def pipelineCache = Mock(PipelineCache)
   def pollingJobContext = Mock(JobExecutionContext)
   def jobDataMap = new JobDataMap()
 
   @Subject
-    pollingAgent = new PipelineConfigsPollingJob(registry, pipelineCache)
+    pollingAgent = new PipelineConfigsPollingJob(metrics, pipelineCache)
 
   void setup() {
     jobDataMap.put("timeZoneId", "America/Los_Angeles")
@@ -68,7 +65,6 @@ class PipelineConfigsPollingJobSpec extends Specification {
       assert (args[0] as CronTrigger).key.name == pipelines[0].triggers[0].id
     }
     0 * scheduler.unscheduleJob(_)
-
   }
 
   void 'when an existing pipeline trigger is removed, corresponding scheduled action is also removed'() {
@@ -89,6 +85,51 @@ class PipelineConfigsPollingJobSpec extends Specification {
     0 * scheduler.scheduleJob(_)
   }
 
+  void 'invalid new triggers are not causing errors'() {
+    given:
+    Trigger trigger = Trigger.builder()
+      .enabled(true)
+      .type('cron')
+      .cronExpression('0 0/5 13-14 2 8 ? 1995')
+      .build()
+    Pipeline pipeline = buildPipeline([trigger])
+
+    List<Pipeline> pipelines = PipelineCache.decorateTriggers([pipeline])
+    pipelineCache.getPipelinesSync() >> pipelines
+
+    when: 'creating a new trigger'
+    pollingAgent.execute(pollingJobContext)
+
+    then: 'the bad trigger is ignored'
+    noExceptionThrown()
+    0 * scheduler.scheduleJob(_)
+    1 * metrics.addCount(0)
+    1 * metrics.failedUpdateCount(0)
+  }
+
+  void 'invalid updates to existing triggers are not causing errors'() {
+    given:
+    Trigger triggerInvalid = Trigger.builder()
+      .enabled(true)
+      .type('cron')
+      .cronExpression('0 0/5 13-14 2 8 ? 1995')
+      .build()
+    Pipeline pipelineWithInvalidTrigger = buildPipeline([triggerInvalid])
+    List<Pipeline> pipelines2 = PipelineCache.decorateTriggers([pipelineWithInvalidTrigger])
+
+    when: 'updating with an invalid trigger'
+    pipelineCache.getPipelinesSync() >> pipelines2
+    scheduler.getTrigger(_) >> makeTrigger("1", "America/New_York", true)
+    pollingAgent.execute(pollingJobContext)
+
+    then: 'the bad trigger is ignored and original trigger is removed'
+    noExceptionThrown()
+    0 * scheduler.scheduleJob(_)
+    1 * scheduler.unscheduleJob(_)
+    1 * metrics.addCount(0)
+    1 * metrics.failedUpdateCount(0)
+  }
+
   private static Pipeline buildPipeline(List<Trigger> triggers) {
     Pipeline
       .builder()
@@ -100,10 +141,14 @@ class PipelineConfigsPollingJobSpec extends Specification {
       .build()
   }
 
-  private CronTrigger makeTrigger(String id, String timezone, boolean rebake) {
+  private static CronTrigger makeTrigger(String id, String timezone, boolean rebake) {
+    return makeTrigger(id, timezone, rebake, id + " 10 0/12 1/1 * ? *")
+  }
+
+  private static CronTrigger makeTrigger(String id, String timezone, boolean rebake, String cronExpression) {
     def trigger = new CronTriggerImpl(
-      "key" + id, "trigger_", "job", "job",
-      id + " 10 0/12 1/1 * ? *")
+      "key" + id, PipelineConfigsPollingJob.PIPELINE_TRIGGER_GROUP_PREFIX, "job", "job",
+      cronExpression)
 
     trigger.jobDataMap.put("application", "app" + id)
     trigger.jobDataMap.put("id", "id" + id)
