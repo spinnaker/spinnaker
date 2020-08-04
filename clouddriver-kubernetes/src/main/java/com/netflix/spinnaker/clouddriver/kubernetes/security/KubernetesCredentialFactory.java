@@ -52,6 +52,6 @@ public interface KubernetesCredentialFactory<C extends KubernetesCredentials> {
           managedAccount.getKubeconfigContents(), managedAccount.getName());
     }
 
-    return System.getProperty("user.home") + "/.kube/config";
+    return "";
   }
 }
