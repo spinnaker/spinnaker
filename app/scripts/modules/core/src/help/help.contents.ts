@@ -264,8 +264,9 @@ const helpContents: { [key: string]: string } = {
     '<p>(Optional) Instructions are shown to the user when making a manual judgment.</p><p>May contain HTML.</p>',
   'pipeline.config.manualJudgment.propagateAuthentication': `
       <p><strong>Checked</strong> - the pipeline will continue with the permissions of the approver.</p>
-      <p><strong>Unchecked</strong> - the pipeline will continue with its current permissions.</p>
-        pipeline.config.manualJudgment.judgmentInputs': '<p>(Optional) Entries populate a dropdown displayed when performing a manual judgment.</p>
+      <p><strong>Unchecked</strong> - the pipeline will continue with its current permissions.</p>`,
+  'pipeline.config.manualJudgment.judgmentInputs': `
+      <p>(Optional) Entries populate a dropdown displayed when performing a manual judgment.</p>
       <p>The selected value can be used in a subsequent <strong>Check Preconditions</strong> stage to determine branching.</p>
       <p>For example, if the user selects "rollback" from this list of options, that branch can be activated by using the expression:
         <samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>`,
