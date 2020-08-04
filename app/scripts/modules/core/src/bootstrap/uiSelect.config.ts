@@ -5,7 +5,8 @@ uiSelectDecorator.$inject = ['$provide'];
 function uiSelectDecorator($provide: ng.auto.IProvideService) {
   $provide.decorator('uiSelectMultipleDirective', [
     '$delegate',
-    function($delegate: any) {
+    '$timeout',
+    function($delegate: any, $timeout: ng.ITimeoutService) {
       const [uiSelect] = $delegate;
       const originalLink = uiSelect.link;
       const SELECT_EVENT_KEY = 'uis:select';
@@ -20,6 +21,17 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
           }
           if (!event.defaultPrevented) {
             $select.selected.push(item);
+            const locals = {
+              [$select.parserResult.itemName]: item,
+            };
+            $timeout(function() {
+              if ($select.onSelectCallback) {
+                $select.onSelectCallback(scope, {
+                  $item: item,
+                  $model: $select.parserResult.modelMapper(scope, locals),
+                });
+              }
+            });
             scope.$selectMultiple.updateModel();
           }
         });

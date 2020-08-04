@@ -36,14 +36,22 @@ angular
             ? this.application.attributes.cloudProviders
             : [];
 
-          this.sections = _.cloneDeep(
-            this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || [],
-          ).filter(
-            section =>
-              !section.cloudProviders ||
-              section.cloudProviders.length === 0 ||
-              _.intersection(section.cloudProviders, this.cloudProviders).length > 0,
-          );
+          this.sections = _.cloneDeep(this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || [])
+            .filter(
+              section =>
+                !section.cloudProviders ||
+                section.cloudProviders.length === 0 ||
+                _.intersection(section.cloudProviders, this.cloudProviders).length > 0,
+            )
+            .map(section => {
+              // The absence of cloud providers may be represented as an empty array or a null value. Normalizing this
+              // value to an empty array so that we can accurately calculate `isDirty` check in `configChanged`
+              // function.
+              if (!section.cloudProviders) {
+                section.cloudProviders = [];
+              }
+              return section;
+            });
 
           this.viewState = {
             originalSections: _.cloneDeep(this.sections),
