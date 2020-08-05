@@ -27,6 +27,7 @@ enableFeaturePreview("VERSION_ORDERING_V2")
 
 include(
   "spinnaker-dependencies",
+  "kork-actuator",
   "kork-annotations",
   "kork-artifacts",
   "kork-aws",
