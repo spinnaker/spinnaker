@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.model.AdminOperations;
+import com.netflix.spinnaker.front50.model.ObjectType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.Collection;
@@ -42,5 +43,14 @@ public class AdminController {
   @RequestMapping(value = "/recover", method = RequestMethod.POST)
   void recover(@RequestBody AdminOperations.Recover operation) {
     adminOperations.forEach(o -> o.recover(operation));
+    // Application permissions need to be recovered alongside the application itself.
+    if (operation.getObjectType().equalsIgnoreCase(ObjectType.APPLICATION.clazz.getSimpleName())) {
+      adminOperations.forEach(
+          o ->
+              o.recover(
+                  new AdminOperations.Recover(
+                      ObjectType.APPLICATION_PERMISSION.clazz.getSimpleName(),
+                      operation.getObjectId())));
+    }
   }
 }

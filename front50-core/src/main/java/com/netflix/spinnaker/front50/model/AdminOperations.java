@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public interface AdminOperations {
   void recover(Recover operation);
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   class Recover {
     String objectType;
     String objectId;
