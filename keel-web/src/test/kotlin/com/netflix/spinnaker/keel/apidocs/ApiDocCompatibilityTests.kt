@@ -7,27 +7,25 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
-import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlin.reflect.KClass
-import org.junit.jupiter.api.extension.ExtendWith
 import org.openapi4j.core.validation.ValidationResults
 import org.openapi4j.schema.validator.v3.SchemaValidator
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.Assertion
 import strikt.api.expectThat
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
@@ -38,26 +36,28 @@ import strikt.api.expectThat
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
+@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
 class ApiDocCompatibilityTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc
 
-  // TODO: can we generate this without having to spin up all the Spring stuff?
-  val api: JsonNode by lazy {
-    mvc
-      .perform(get("/v3/api-docs").accept(APPLICATION_JSON_VALUE))
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-      .also(::println)
-      .let { jacksonObjectMapper().readTree(it) }
+  class Fixture(mvc: MockMvc) {
+    val api: JsonNode by lazy {
+      mvc
+        .perform(get("/v3/api-docs").accept(APPLICATION_JSON_VALUE))
+        .andExpect(status().isOk)
+        .andReturn()
+        .response
+        .contentAsString
+        .also(::println)
+        .let { jacksonObjectMapper().readTree(it) }
+    }
+    val validator: SchemaValidator by lazy { SchemaValidator("Keel", api) }
   }
 
-  // FIXME: the order of the @Beans used to customize type handling for the OpenAPI stuff is causing a stack overflow
-  fun tests() = SKIP - rootContext<SchemaValidator> {
+  fun tests() = rootContext<Fixture> {
     fixture {
-      SchemaValidator("Keel", api)
+      Fixture(mvc)
     }
 
     context("resource definitions") {
@@ -88,7 +88,7 @@ class ApiDocCompatibilityTests : JUnit5Minutests {
     }
   }
 
-  private inline fun <reified T> SchemaValidator.validate(path: String): ValidationResults =
+  private inline fun <reified T> Fixture.validate(path: String): ValidationResults =
     ValidationResults().also {
       validatorFor(T::class).validate(loadExample(path), it)
     }
@@ -98,13 +98,13 @@ class ApiDocCompatibilityTests : JUnit5Minutests {
    * the whole schema there as a 'parent' so that `$ref` nodes work properly. Although the docs
    * don't make this at all clear, this seems to be how you achieve that.
    */
-  private fun SchemaValidator.validatorFor(type: KClass<*>) =
+  private fun Fixture.validatorFor(type: KClass<*>) =
     SchemaValidator(
-      context,
+      validator.context,
       type.simpleName,
       api.at("/components/schemas/${type.simpleName}"),
       api,
-      this
+      validator
     )
 
   private fun loadExample(path: String): JsonNode =

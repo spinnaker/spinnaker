@@ -6,24 +6,24 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectThat
 import strikt.assertions.isNotEqualTo
 import strikt.assertions.startsWith
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, ThreadCapturingEventListener::class],
   webEnvironment = MOCK
 )
+@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
 internal class ApplicationEventTests {
 
   @Autowired

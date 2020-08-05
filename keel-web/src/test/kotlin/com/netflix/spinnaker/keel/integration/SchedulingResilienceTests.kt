@@ -11,12 +11,12 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.context.annotation.Bean
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import strikt.api.Assertion
@@ -24,11 +24,11 @@ import strikt.api.expectThat
 
 // TODO: this doesn't really need to be an integration test except that it's painful to configure
 //       the retrofit client without Spring
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK
 )
+@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
 internal class SchedulingResilienceTests {
 
   @Autowired

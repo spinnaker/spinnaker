@@ -29,8 +29,9 @@ import io.mockk.coEvery as every
 import java.net.URI
 import java.time.Clock
 import java.time.Duration
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
@@ -40,7 +41,6 @@ import org.springframework.context.annotation.Primary
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.mock.web.MockHttpServletResponse
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -52,12 +52,12 @@ import strikt.assertions.map
 import strikt.jackson.hasSize
 import strikt.jackson.isArray
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, MockTimeConfiguration::class],
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
+@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
 internal class EventControllerTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc

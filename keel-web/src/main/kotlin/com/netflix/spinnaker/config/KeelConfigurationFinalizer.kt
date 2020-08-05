@@ -1,13 +1,14 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.actuation.ArtifactHandler
 import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
+import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.resources.SpecMigrator
@@ -27,7 +28,8 @@ class KeelConfigurationFinalizer(
   private val constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList(),
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
-  private val objectMappers: List<ObjectMapper>
+  private val objectMappers: List<ObjectMapper>,
+  private val extensionRegistry: ExtensionRegistry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -45,8 +47,7 @@ class KeelConfigurationFinalizer(
     (resourceHandlers.map { it.supportedKind } + specMigrators.map { it.input })
       .forEach { (kind, specClass) ->
         log.info("Registering ResourceSpec sub-type {}: {}", kind, specClass.simpleName)
-        val namedType = NamedType(specClass, kind.toString())
-        objectMappers.forEach { it.registerSubtypes(namedType) }
+        extensionRegistry.register(specClass, kind.toString())
       }
   }
 
@@ -56,8 +57,7 @@ class KeelConfigurationFinalizer(
       .map { it.supportedType }
       .forEach { constraintType ->
         log.info("Registering Constraint sub-type {}: {}", constraintType.name, constraintType.type.simpleName)
-        val namedType = NamedType(constraintType.type, constraintType.name)
-        objectMappers.forEach { it.registerSubtypes(namedType) }
+        extensionRegistry.register(constraintType.type, constraintType.name)
       }
   }
 
@@ -68,8 +68,7 @@ class KeelConfigurationFinalizer(
       .map { it.attributeType }
       .forEach { attributeType ->
         log.info("Registering Constraint Attributes sub-type {}: {}", attributeType.name, attributeType.type.simpleName)
-        val namedType = NamedType(attributeType.type, attributeType.name)
-        objectMappers.forEach { it.registerSubtypes(namedType) }
+        extensionRegistry.register(attributeType.type, attributeType.name)
       }
   }
 
@@ -79,16 +78,14 @@ class KeelConfigurationFinalizer(
       .map { it.supportedArtifact }
       .forEach { (name, artifactClass) ->
         log.info("Registering DeliveryArtifact sub-type {}: {}", name, artifactClass.simpleName)
-        val namedType = NamedType(artifactClass, name)
-        objectMappers.forEach { it.registerSubtypes(namedType) }
+        extensionRegistry.register(artifactClass, name)
       }
 
     artifactSuppliers
       .map { it.supportedVersioningStrategy }
       .forEach { (name, strategyClass) ->
         log.info("Registering VersioningStrategy sub-type {}: {}", name, strategyClass.simpleName)
-        val namedType = NamedType(strategyClass, name)
-        objectMappers.forEach { it.registerSubtypes(namedType) }
+        extensionRegistry.register(strategyClass, name)
       }
   }
 

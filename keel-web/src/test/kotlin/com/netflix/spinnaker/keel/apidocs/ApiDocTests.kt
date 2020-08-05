@@ -3,14 +3,16 @@ package com.netflix.spinnaker.keel.apidocs
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
-import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
+import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
@@ -24,14 +26,13 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.swagger.v3.core.util.RefUtils.constructRef
 import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -56,7 +57,6 @@ import strikt.jackson.path
 import strikt.jackson.textValue
 import strikt.jackson.textValues
 
-@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
@@ -67,21 +67,19 @@ import strikt.jackson.textValues
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
+@EnableAutoConfiguration(exclude = [TaskSchedulingAutoConfiguration::class])
 class ApiDocTests : JUnit5Minutests {
   @Autowired
   lateinit var mvc: MockMvc
 
   @Autowired
-  lateinit var resourceHandlers: List<ResourceHandler<*, *>>
+  lateinit var extensionRegistry: ExtensionRegistry
 
   val resourceSpecTypes
-    get() = resourceHandlers.map { it.supportedKind.specClass.kotlin }
-
-  @Autowired
-  lateinit var constraintEvaluators: List<ConstraintEvaluator<*>>
+    get() = extensionRegistry.extensionsOf<ResourceSpec>().values.toList()
 
   val constraintTypes
-    get() = constraintEvaluators.map { it.supportedType.type.kotlin }
+    get() = extensionRegistry.extensionsOf<Constraint>().values.toList()
 
   val imageProviderTypes = listOf(
     ArtifactImageProvider::class,
@@ -95,26 +93,19 @@ class ApiDocTests : JUnit5Minutests {
     VersionedTagProvider::class
   )
 
-  @Autowired
-  lateinit var artifactSuppliers: List<ArtifactSupplier<*, *>>
-
   val artifactTypes
-    get() = artifactSuppliers.map { it.supportedArtifact.artifactClass.kotlin }
+    get() = extensionRegistry.extensionsOf<DeliveryArtifact>().values.toList()
 
-  val api: JsonNode by lazy {
-    mvc
-      .perform(get("/v3/api-docs").accept(APPLICATION_JSON_VALUE))
-      .andExpect(status().isOk)
-      .andReturn()
-      .response
-      .contentAsString
-      .also(::println)
-      .let { jacksonObjectMapper().readTree(it) }
-  }
-
-  // FIXME: the order of the @Beans used to customize type handling for the OpenAPI stuff is causing a stack overflow
-  fun tests() = SKIP - rootContext<Assertion.Builder<JsonNode>> {
+  fun tests() = rootContext<Assertion.Builder<JsonNode>> {
     fixture {
+      val api = mvc
+        .perform(get("/v3/api-docs").accept(APPLICATION_JSON_VALUE))
+        .andExpect(status().isOk)
+        .andReturn()
+        .response
+        .contentAsString
+        .also(::println)
+        .let { jacksonObjectMapper().readTree(it) }
       expectThat(api).describedAs("API Docs response")
     }
 
@@ -139,7 +130,7 @@ class ApiDocTests : JUnit5Minutests {
         }
 
         resourceSpecTypes
-          .map(KClass<*>::simpleName)
+          .map(Class<*>::getSimpleName)
           .forEach { specSubType ->
             test("contains a parameterized version of schema for $type with a spec of $specSubType") {
               at("/components/schemas/${specSubType}$type/properties")
@@ -154,7 +145,7 @@ class ApiDocTests : JUnit5Minutests {
       }
 
     resourceSpecTypes
-      .map(KClass<*>::simpleName)
+      .map(Class<*>::getSimpleName)
       .forEach { type ->
         test("all properties of the parameterized version of the schema for Resource with a spec of $type are required") {
           at("/components/schemas/${type}Resource/required")
@@ -194,7 +185,7 @@ class ApiDocTests : JUnit5Minutests {
     }
 
     constraintTypes
-      .map(KClass<*>::simpleName)
+      .map(Class<*>::getSimpleName)
       .forEach { type ->
         test("Constraint sub-type $type has its own schema") {
           at("/components/schemas/$type")
@@ -208,7 +199,7 @@ class ApiDocTests : JUnit5Minutests {
         .path("oneOf")
         .isArray()
         .findValuesAsText("\$ref")
-        .containsExactlyInAnyOrder(artifactTypes.map { constructRef("${it.simpleName}") })
+        .containsExactlyInAnyOrder(artifactTypes.map { constructRef(it.simpleName) })
     }
 
     sequenceOf(
@@ -394,8 +385,8 @@ class ApiDocTests : JUnit5Minutests {
     }
 
     resourceSpecTypes
-      .filter { it.isSubclassOf(Locatable::class) }
-      .map(KClass<*>::simpleName)
+      .filter { Locatable::class.java.isAssignableFrom(it) }
+      .map(Class<*>::getSimpleName)
       .forEach { locatableType ->
         test("locations property of $locatableType is optional") {
           at("/components/schemas/$locatableType/required")

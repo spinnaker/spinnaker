@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.apidocs
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
+import com.netflix.spinnaker.keel.api.support.extensionsOf
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import io.swagger.v3.core.converter.AnnotatedType
 import io.swagger.v3.core.converter.ModelConverter
@@ -17,12 +19,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class ResourceModelConverter(
-  handlers: List<ResourceHandler<*, *>>
+  private val extensionRegistry: ExtensionRegistry
 ) : BaseModelConverter() {
 
-  private val specTypes = handlers.associate {
-    it.supportedKind.kind.toString() to it.supportedKind.specClass
-  }
+  private val specTypes: Map<String, Class<out ResourceSpec>>
+    get() = extensionRegistry.extensionsOf()
 
   override fun resolve(
     annotatedType: AnnotatedType,
