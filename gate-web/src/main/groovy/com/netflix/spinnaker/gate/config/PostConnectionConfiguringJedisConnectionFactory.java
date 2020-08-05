@@ -60,6 +60,10 @@ public class PostConnectionConfiguringJedisConnectionFactory extends JedisConnec
         setPassword(userInfo.get(1));
       }
     }
+
+    if (redisUri.getScheme().equals("rediss")) {
+      setUseSsl(true);
+    }
   }
 
   @Override
