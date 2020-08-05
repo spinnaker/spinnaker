@@ -27,6 +27,7 @@ import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.BeanInitializationException
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component
 interface ExecutionPromoter
 
 @Component
+@ConditionalOnProperty("pollers.qos.enabled")
 class DefaultExecutionPromoter(
   private val executionLauncher: ExecutionLauncher,
   private val executionRepository: ExecutionRepository,
