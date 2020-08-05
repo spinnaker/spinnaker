@@ -46,10 +46,24 @@ public class TitusExceptionHandler implements SagaExceptionHandler {
       case UNKNOWN:
         return true;
       case INVALID_ARGUMENT:
-        String message = statusRuntimeException.getMessage();
-        return message != null && message.toLowerCase().contains("rate exceeded");
+        return invalidArgumentConditional(statusRuntimeException.getMessage());
       default:
         return false;
     }
+  }
+
+  private boolean invalidArgumentConditional(String statusRuntimeExceptionMessage) {
+    if (statusRuntimeExceptionMessage == null) {
+      return false;
+    }
+
+    boolean rateExceeded = statusRuntimeExceptionMessage.toLowerCase().contains("rate exceeded");
+    boolean assumeRoleError =
+        statusRuntimeExceptionMessage.toLowerCase().contains("jobiamvalidator")
+            && statusRuntimeExceptionMessage
+                .toLowerCase()
+                .contains("titus cannot assume into role");
+
+    return rateExceeded || assumeRoleError;
   }
 }
