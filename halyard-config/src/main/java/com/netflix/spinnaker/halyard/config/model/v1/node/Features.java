@@ -64,8 +64,11 @@ public class Features extends Node {
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.5.0",
+      upperBound = "1.22.0",
       tooLowMessage =
-          "Canary is not configurable prior to this release. Will be stable at a later release.")
+          "Canary is not configurable prior to this release. Will be stable at a later release.",
+      tooHighMessage =
+          "This flag gates legacy canary stages and does not need to be enabled for OSS canary analysis support.")
   private Boolean mineCanary;
 
   @ValidForSpinnakerVersion(
