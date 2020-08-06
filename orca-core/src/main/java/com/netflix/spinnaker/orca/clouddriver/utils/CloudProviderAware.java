@@ -58,9 +58,12 @@ public interface CloudProviderAware {
 
   // may return a list with 0, 1 or more regions (no guarantees on the ordering)
   default List<String> getRegions(Map<String, Object> context) {
-    String region = (String) context.getOrDefault("region", null);
+    Object region = context.getOrDefault("region", null);
     if (region != null) {
-      return ImmutableList.of(region);
+      if (region instanceof List) {
+        return ImmutableList.copyOf((List<String>) region);
+      }
+      return ImmutableList.of(region.toString());
     }
 
     try {

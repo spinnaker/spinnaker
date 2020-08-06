@@ -39,6 +39,7 @@ import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.orca.q.get
 import com.netflix.spinnaker.orca.q.metrics.MetricsTagHelper
 import com.netflix.spinnaker.q.Queue
+import java.lang.Exception
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import org.springframework.beans.factory.annotation.Qualifier
@@ -118,18 +119,21 @@ class CompleteTaskHandler(
   }
 
   private fun trackResult(stage: StageExecution, taskModel: TaskExecution, status: ExecutionStatus) {
-    val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
-    val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
+    try {
+      val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
+      val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
 
-    // we are looking at the time it took to complete the whole execution, not just one invocation
-    val elapsedMillis = clock.millis() - (taskModel.startTime ?: 0)
+      // we are looking at the time it took to complete the whole execution, not just one invocation
+      val elapsedMillis = clock.millis() - (taskModel.startTime ?: 0)
 
-    hashMapOf(
-      "task.completions.duration" to commonTags + BasicTag("application", stage.execution.application),
-      "task.completions.duration.withType" to commonTags + detailedTags
-    ).forEach {
-      name, tags ->
-      registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      hashMapOf(
+        "task.completions.duration" to commonTags + BasicTag("application", stage.execution.application),
+        "task.completions.duration.withType" to commonTags + detailedTags
+      ).forEach { name, tags ->
+        registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      }
+    } catch (e: Exception) {
+      log.warn("Failed to track result for stage: ${stage.id}, task: ${taskModel.id}", e)
     }
   }
 }

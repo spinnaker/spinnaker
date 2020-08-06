@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.TaskExecutionInterceptor
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
@@ -169,7 +170,7 @@ class RunTaskHandler(
             } else if (e is TimeoutException && stage.context["markSuccessfulOnTimeout"] == true) {
               queue.push(CompleteTask(message, SUCCEEDED))
             } else {
-              if (e !is TimeoutException) {
+              if (e !is TimeoutException && e !is UserException) {
                 log.error("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]", e)
               }
 
@@ -186,17 +187,20 @@ class RunTaskHandler(
   }
 
   private fun trackResult(stage: StageExecution, thisInvocationStartTimeMs: Long, taskModel: TaskExecution, status: ExecutionStatus) {
-    val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
-    val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
+    try {
+      val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
+      val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
 
-    val elapsedMillis = clock.millis() - thisInvocationStartTimeMs
+      val elapsedMillis = clock.millis() - thisInvocationStartTimeMs
 
-    hashMapOf(
-      "task.invocations.duration" to commonTags + BasicTag("application", stage.execution.application),
-      "task.invocations.duration.withType" to commonTags + detailedTags
-    ).forEach {
-      name, tags ->
-      registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      hashMapOf(
+        "task.invocations.duration" to commonTags + BasicTag("application", stage.execution.application),
+        "task.invocations.duration.withType" to commonTags + detailedTags
+      ).forEach { name, tags ->
+        registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
+      }
+    } catch (e: java.lang.Exception) {
+      log.warn("Failed to track result for stage: ${stage.id}, task: ${taskModel.id}", e)
     }
   }
 
