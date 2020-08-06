@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release
 
+import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtension
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import java.time.Instant
 import java.util.Date
@@ -80,6 +81,36 @@ val plugin3 = SpinnakerPluginInfo().apply {
       version = "7.0.0"
       date = Date.from(Instant.now())
       url = "front50.com/plugin.zip"
+    }
+  )
+}
+
+val pluginWithRemoteExtension = SpinnakerPluginInfo().apply {
+  id = "com.netflix.plugin.remote"
+  name = "remote"
+  description = "A test plugin"
+  provider = "netflix"
+  releases = listOf(
+    SpinnakerPluginInfo.SpinnakerPluginRelease(
+      true,
+      mutableListOf(
+        RemoteExtension(
+          "type",
+          "netflix.remote.extension",
+          RemoteExtension.RemoteExtensionTransport(
+            RemoteExtension.RemoteExtensionTransport.Http(
+              "https://example.com",
+              mutableMapOf()
+            )
+          ),
+          mutableMapOf()
+        )
+      )
+    ).apply {
+      requires = "orca>=2.0.0"
+      version = "7.0.0"
+      date = Date.from(Instant.now())
+      url = null
     }
   )
 }

@@ -29,6 +29,7 @@ include(
   "spinnaker-dependencies",
   "kork-actuator",
   "kork-annotations",
+  "kork-api",
   "kork-artifacts",
   "kork-aws",
   "kork-bom",

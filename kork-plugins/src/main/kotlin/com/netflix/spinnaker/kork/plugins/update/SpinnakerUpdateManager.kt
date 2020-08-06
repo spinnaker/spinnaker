@@ -68,6 +68,12 @@ class SpinnakerUpdateManager(
     pluginInfoReleases
       .forEach release@{ release ->
 
+        // This is a remote plugin only, do nothing here.
+        if (release.props.url == null && release.props.remoteExtensions.isNotEmpty()) {
+          log.info("Nothing to download - plugin '{}' is a remote plugin and there is no in-process plugin binary.", release.pluginId)
+          return@release
+        }
+
         val loadedPlugin = pluginManager.getPlugin(release.pluginId)
         if (loadedPlugin != null) {
           val loadedPluginVersion = loadedPlugin.descriptor.version

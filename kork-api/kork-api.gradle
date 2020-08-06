@@ -1,0 +1,16 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  implementation project(":kork-annotations")
+
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+  useJUnitPlatform()
+}

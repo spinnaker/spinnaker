@@ -42,6 +42,8 @@ import com.netflix.spinnaker.kork.plugins.update.downloader.FileDownloaderProvid
 import com.netflix.spinnaker.kork.plugins.update.downloader.SupportingFileDownloader;
 import com.netflix.spinnaker.kork.plugins.update.release.provider.AggregatePluginInfoReleaseProvider;
 import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider;
+import com.netflix.spinnaker.kork.plugins.update.release.remote.RemotePluginInfoReleaseCache;
+import com.netflix.spinnaker.kork.plugins.update.release.source.Front50PluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.LatestPluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.PreferredPluginInfoReleaseSource;
@@ -197,6 +199,26 @@ public class PluginsAutoConfiguration {
       SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider) {
     return new AggregatePluginInfoReleaseProvider(
         pluginInfoReleaseSources, springStrictPluginLoaderStatusProvider);
+  }
+
+  @Bean
+  public static RemotePluginInfoReleaseCache remotePluginInfoReleaseCache(
+      Collection<PluginInfoReleaseSource> pluginInfoReleaseSources,
+      SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider,
+      ApplicationEventPublisher applicationEventPublisher,
+      SpinnakerUpdateManager updateManager,
+      SpinnakerPluginManager pluginManager,
+      SpringPluginStatusProvider springPluginStatusProvider) {
+    return new RemotePluginInfoReleaseCache(
+        new AggregatePluginInfoReleaseProvider(
+            pluginInfoReleaseSources.stream()
+                .filter(source -> !(source instanceof Front50PluginInfoReleaseSource))
+                .collect(Collectors.toList()),
+            springStrictPluginLoaderStatusProvider),
+        applicationEventPublisher,
+        updateManager,
+        pluginManager,
+        springPluginStatusProvider);
   }
 
   @Bean

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.update.internal
 
 import com.fasterxml.jackson.annotation.JsonSetter
+import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtension
 import org.pf4j.update.PluginInfo
 
 class SpinnakerPluginInfo : PluginInfo() {
@@ -36,5 +37,8 @@ class SpinnakerPluginInfo : PluginInfo() {
    * SpinnakerPluginInfo object.  Therefore, additional fields defined here must provide a default
    * value.
    */
-  data class SpinnakerPluginRelease(val preferred: Boolean = false) : PluginRelease()
+  data class SpinnakerPluginRelease(
+    val preferred: Boolean = false,
+    val remoteExtensions: MutableList<RemoteExtension> = mutableListOf()
+  ) : PluginRelease()
 }
