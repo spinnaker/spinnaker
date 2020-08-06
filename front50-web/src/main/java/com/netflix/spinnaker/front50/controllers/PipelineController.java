@@ -143,9 +143,12 @@ public class PipelineController {
   @PreAuthorize(
       "@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#pipeline.application, 'APPLICATION', 'WRITE') and @authorizationSupport.hasRunAsUserPermission(#pipeline)")
   @RequestMapping(value = "", method = RequestMethod.POST)
-  public Pipeline save(@RequestBody Pipeline pipeline) {
+  public Pipeline save(
+      @RequestBody Pipeline pipeline,
+      @RequestParam(value = "staleCheck", required = false, defaultValue = "false")
+          Boolean staleCheck) {
 
-    validatePipeline(pipeline);
+    validatePipeline(pipeline, staleCheck);
 
     pipeline.setName(pipeline.getName().trim());
     pipeline = ensureCronTriggersHaveIdentifier(pipeline);
@@ -189,7 +192,11 @@ public class PipelineController {
 
   @PreAuthorize("hasPermission(#pipeline.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-  public Pipeline update(@PathVariable final String id, @RequestBody Pipeline pipeline) {
+  public Pipeline update(
+      @PathVariable final String id,
+      @RequestParam(value = "staleCheck", required = false, defaultValue = "false")
+          Boolean staleCheck,
+      @RequestBody Pipeline pipeline) {
     Pipeline existingPipeline = pipelineDAO.findById(id);
 
     if (!pipeline.getId().equals(existingPipeline.getId())) {
@@ -199,7 +206,7 @@ public class PipelineController {
               pipeline.getId(), existingPipeline.getId()));
     }
 
-    validatePipeline(pipeline);
+    validatePipeline(pipeline, staleCheck);
 
     pipeline.setName(pipeline.getName().trim());
     pipeline.put("updateTs", System.currentTimeMillis());
@@ -215,7 +222,7 @@ public class PipelineController {
    *
    * @param pipeline The Pipeline to validate
    */
-  private void validatePipeline(final Pipeline pipeline) {
+  private void validatePipeline(final Pipeline pipeline, Boolean staleCheck) {
     // Pipelines must have an application and a name
     if (Strings.isNullOrEmpty(pipeline.getApplication())
         || Strings.isNullOrEmpty(pipeline.getName())) {
@@ -259,6 +266,12 @@ public class PipelineController {
     final GenericValidationErrors errors = new GenericValidationErrors(pipeline);
     pipelineValidators.forEach(it -> it.validate(pipeline, errors));
 
+    if (staleCheck
+        && !Strings.isNullOrEmpty(pipeline.getId())
+        && pipeline.getLastModified() != null) {
+      checkForStalePipeline(pipeline, errors);
+    }
+
     if (errors.hasErrors()) {
       List<String> message =
           errors.getAllErrors().stream()
@@ -273,6 +286,20 @@ public class PipelineController {
         () ->
             new BadRequestException(
                 "Pipeline Templates are not supported with your current storage backend"));
+  }
+
+  private void checkForStalePipeline(Pipeline pipeline, GenericValidationErrors errors) {
+    Pipeline existingPipeline = pipelineDAO.findById(pipeline.getId());
+    Long storedUpdateTs = existingPipeline.getLastModified();
+    Long submittedUpdateTs = pipeline.getLastModified();
+    if (!submittedUpdateTs.equals(storedUpdateTs)) {
+      errors.reject(
+          "stale",
+          "The submitted pipeline is stale.  submitted updateTs "
+              + submittedUpdateTs
+              + " does not match stored updateTs "
+              + storedUpdateTs);
+    }
   }
 
   private void checkForDuplicatePipeline(String application, String name, String id) {
