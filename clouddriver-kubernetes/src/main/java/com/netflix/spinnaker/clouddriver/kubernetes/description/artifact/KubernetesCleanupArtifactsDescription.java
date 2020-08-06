@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.artifact;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -31,7 +30,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesCleanupArtifactsDescription
-    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
+public class KubernetesCleanupArtifactsDescription extends KubernetesAtomicOperationDescription {
   Set<KubernetesManifest> manifests = new HashSet<>();
 }

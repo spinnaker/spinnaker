@@ -22,7 +22,6 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesMultiManifestOperationDescription
-    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
+    extends KubernetesAtomicOperationDescription {
   private String manifestName;
   private String location;
   private List<String> kinds = new ArrayList<>();

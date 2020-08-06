@@ -38,11 +38,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
-import com.netflix.spinnaker.moniker.Namer;
 import io.kubernetes.client.openapi.JSON;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -126,7 +124,9 @@ public class KubernetesCacheDataConverter {
   }
 
   public static void convertPodMetric(
-      KubernetesCacheData kubernetesCacheData, String account, KubernetesPodMetric podMetric) {
+      KubernetesCacheData kubernetesCacheData,
+      @Nonnull String account,
+      KubernetesPodMetric podMetric) {
     String podName = podMetric.getPodName();
     String namespace = podMetric.getNamespace();
     Map<String, Object> attributes =
@@ -144,7 +144,7 @@ public class KubernetesCacheDataConverter {
 
   public static void convertAsResource(
       KubernetesCacheData kubernetesCacheData,
-      String account,
+      @Nonnull String account,
       @Nonnull KubernetesKindProperties kindProperties,
       KubernetesManifest manifest,
       List<KubernetesManifest> resourceRelationships,
@@ -167,14 +167,12 @@ public class KubernetesCacheDataConverter {
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
     String namespace = manifest.getNamespace();
-    Namer<KubernetesManifest> namer =
-        account == null
-            ? new KubernetesManifestNamer()
-            : NamerRegistry.lookup()
-                .withProvider(KubernetesCloudProvider.ID)
-                .withAccount(account)
-                .withResource(KubernetesManifest.class);
-    Moniker moniker = namer.deriveMoniker(manifest);
+    Moniker moniker =
+        NamerRegistry.lookup()
+            .withProvider(KubernetesCloudProvider.ID)
+            .withAccount(account)
+            .withResource(KubernetesManifest.class)
+            .deriveMoniker(manifest);
 
     Map<String, Object> attributes =
         new ImmutableMap.Builder<String, Object>()

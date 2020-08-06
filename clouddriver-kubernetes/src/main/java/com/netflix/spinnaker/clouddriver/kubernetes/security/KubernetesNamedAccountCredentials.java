@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryC
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.*;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,7 +36,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
     extends AbstractAccountCredentials<C> {
   private final String cloudProvider = "kubernetes";
 
-  @Include private final String name;
+  @Nonnull @Include private final String name;
 
   @Include private final String environment;
 
@@ -53,7 +54,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
 
   public KubernetesNamedAccountCredentials(
       ManagedAccount managedAccount, KubernetesCredentialFactory<C> credentialFactory) {
-    this.name = managedAccount.getName();
+    managedAccount.validate();
+    this.name = Objects.requireNonNull(managedAccount.getName());
     this.environment =
         Optional.ofNullable(managedAccount.getEnvironment()).orElse(managedAccount.getName());
     this.accountType =

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.job;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import lombok.Data;
@@ -27,8 +26,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesRunJobOperationDescription
-    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
+public class KubernetesRunJobOperationDescription extends KubernetesAtomicOperationDescription {
   String application;
   String namespace = "";
   KubernetesManifest manifest;

@@ -79,7 +79,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Clock clock;
   private final KubectlJobExecutor jobExecutor;
 
-  @Include @Getter private final String accountName;
+  @Include @Getter @Nonnull private final String accountName;
 
   @Include @Getter private final ImmutableList<String> namespaces;
 
@@ -150,7 +150,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
                             KubernetesKind.fromString(cr.getKubernetesKind()), cr.isNamespaced()))
                 .collect(toImmutableList()));
 
-    this.accountName = managedAccount.getName();
+    this.accountName = Objects.requireNonNull(managedAccount.getName());
     this.namespaces = ImmutableList.copyOf(managedAccount.getNamespaces());
     this.omitNamespaces = ImmutableList.copyOf(managedAccount.getOmitNamespaces());
     this.kinds =
@@ -698,7 +698,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     public KubernetesV2Credentials build(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      validateAccount(managedAccount);
       NamerRegistry.lookup()
           .withProvider(KubernetesCloudProvider.ID)
           .withAccount(managedAccount.getName())

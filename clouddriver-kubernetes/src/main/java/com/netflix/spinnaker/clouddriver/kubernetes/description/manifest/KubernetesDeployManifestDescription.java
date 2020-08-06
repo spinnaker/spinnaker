@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.List;
@@ -27,8 +26,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesDeployManifestDescription
-    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
+public class KubernetesDeployManifestDescription extends KubernetesAtomicOperationDescription {
   @Deprecated private KubernetesManifest manifest;
   private List<KubernetesManifest> manifests;
   private Moniker moniker;

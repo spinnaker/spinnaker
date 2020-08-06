@@ -19,29 +19,26 @@ package com.netflix.spinnaker.clouddriver.kubernetes.health;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialFactory;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 
-final class StubKubernetesCredentialsFactory<T extends KubernetesCredentials>
-    implements KubernetesCredentialFactory<T> {
-  private final T credentials;
+final class StubKubernetesCredentialsFactory
+    implements KubernetesCredentialFactory<KubernetesV2Credentials> {
+  private final KubernetesV2Credentials credentials;
 
-  static <U extends KubernetesCredentials> KubernetesCredentialFactory<U> getInstance(
-      U credentials) {
-    return new StubKubernetesCredentialsFactory<>(credentials);
+  static KubernetesCredentialFactory<KubernetesV2Credentials> getInstance(
+      KubernetesV2Credentials credentials) {
+    return new StubKubernetesCredentialsFactory(credentials);
   }
 
-  private StubKubernetesCredentialsFactory(T credentials) {
+  private StubKubernetesCredentialsFactory(KubernetesV2Credentials credentials) {
     this.credentials = credentials;
   }
 
   @Override
-  public T build(ManagedAccount managedAccount) {
+  public KubernetesV2Credentials build(ManagedAccount managedAccount) {
     return credentials;
   }
-
-  @Override
-  public void validateAccount(ManagedAccount managedAccount) {}
 
   @Override
   public String getKubeconfigFile(

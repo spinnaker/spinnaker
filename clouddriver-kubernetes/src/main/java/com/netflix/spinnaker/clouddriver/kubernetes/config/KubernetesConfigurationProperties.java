@@ -16,6 +16,7 @@
  */
 package com.netflix.spinnaker.clouddriver.kubernetes.config;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,5 +56,21 @@ public class KubernetesConfigurationProperties {
     private boolean onlySpinnakerManaged = false;
     private boolean liveManifestCalls = false;
     private Long cacheIntervalSeconds;
+
+    public void validate() {
+      if (Strings.isNullOrEmpty(name)) {
+        throw new IllegalArgumentException("Account name for Kubernetes provider missing.");
+      }
+
+      if (!omitNamespaces.isEmpty() && !namespaces.isEmpty()) {
+        throw new IllegalArgumentException(
+            "At most one of 'namespaces' and 'omitNamespaces' can be specified");
+      }
+
+      if (!omitKinds.isEmpty() && !kinds.isEmpty()) {
+        throw new IllegalArgumentException(
+            "At most one of 'kinds' and 'omitKinds' can be specified");
+      }
+    }
   }
 }

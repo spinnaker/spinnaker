@@ -22,13 +22,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
+import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.RegistryUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -52,7 +53,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class KubernetesV2CachingAgent
-    extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
+    implements AgentIntervalAware, CachingAgent, AccountAware {
+  @Getter @Nonnull protected final String accountName;
+  protected final Registry registry;
+  protected final KubernetesV2Credentials credentials;
+  protected final ObjectMapper objectMapper;
+
+  protected final int agentIndex;
+  protected final int agentCount;
   protected KubectlJobExecutor jobExecutor;
 
   @Getter protected String providerName = KubernetesCloudProvider.ID;
@@ -66,7 +74,12 @@ public abstract class KubernetesV2CachingAgent
       int agentIndex,
       int agentCount,
       Long agentInterval) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    this.accountName = namedAccountCredentials.getName();
+    this.credentials = namedAccountCredentials.getCredentials();
+    this.objectMapper = objectMapper;
+    this.registry = registry;
+    this.agentIndex = agentIndex;
+    this.agentCount = agentCount;
     this.agentInterval = agentInterval;
   }
 
@@ -227,5 +240,11 @@ public abstract class KubernetesV2CachingAgent
    */
   protected boolean handleClusterScopedResources() {
     return agentIndex == 0;
+  }
+
+  @Override
+  public String getAgentType() {
+    return String.format(
+        "%s/%s[%d/%d]", accountName, this.getClass().getSimpleName(), agentIndex + 1, agentCount);
   }
 }

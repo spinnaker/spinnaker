@@ -27,8 +27,8 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialFactory;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.*;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -42,16 +42,14 @@ final class KubernetesHealthIndicatorTest {
   private static final String ERROR_MESSAGE = "Failed to get namespaces";
   private static final Registry REGISTRY = new NoopRegistry();
 
-  private static final KubernetesCredentialFactory<KubernetesCredentials>
+  private static final KubernetesCredentialFactory<KubernetesV2Credentials>
       HEALTHY_CREDENTIAL_FACTORY =
-          StubKubernetesCredentialsFactory.getInstance(
-              StubKubernetesCredentials.withNamespaces(NAMESPACES));
+          StubKubernetesCredentialsFactory.getInstance(mockHealthyCredentials(NAMESPACES));
 
-  private static final KubernetesCredentialFactory<KubernetesCredentials>
+  private static final KubernetesCredentialFactory<KubernetesV2Credentials>
       UNHEALTHY_CREDENTIAL_FACTORY =
           StubKubernetesCredentialsFactory.getInstance(
-              StubKubernetesCredentials.withNamespaceException(
-                  new RuntimeException(ERROR_MESSAGE)));
+              mockUnhealthyCredentials(new RuntimeException(ERROR_MESSAGE)));
 
   @Test
   void healthyWithNoAccounts() {
@@ -141,13 +139,13 @@ final class KubernetesHealthIndicatorTest {
     return managedAccount;
   }
 
-  private static KubernetesNamedAccountCredentials<KubernetesCredentials> healthyAccount(
+  private static KubernetesNamedAccountCredentials<KubernetesV2Credentials> healthyAccount(
       String name) {
     return new KubernetesNamedAccountCredentials<>(
         getManagedAccount(name), HEALTHY_CREDENTIAL_FACTORY);
   }
 
-  private static KubernetesNamedAccountCredentials<KubernetesCredentials> unhealthyAccount(
+  private static KubernetesNamedAccountCredentials<KubernetesV2Credentials> unhealthyAccount(
       String name) {
     return new KubernetesNamedAccountCredentials<>(
         getManagedAccount(name), UNHEALTHY_CREDENTIAL_FACTORY);
@@ -166,5 +164,17 @@ final class KubernetesHealthIndicatorTest {
       accountRepository.save(account.getName(), account);
     }
     return new DefaultAccountCredentialsProvider(accountRepository);
+  }
+
+  private static KubernetesV2Credentials mockHealthyCredentials(ImmutableList<String> namespaces) {
+    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    when(credentials.getDeclaredNamespaces()).thenReturn(namespaces);
+    return credentials;
+  }
+
+  private static KubernetesV2Credentials mockUnhealthyCredentials(RuntimeException exception) {
+    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    when(credentials.getDeclaredNamespaces()).thenThrow(exception);
+    return credentials;
   }
 }

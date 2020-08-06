@@ -39,13 +39,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KubernetesCleanupArtifactsOperation implements AtomicOperation<OperationResult> {
   private final KubernetesCleanupArtifactsDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
+  @Nonnull private final String accountName;
   private final ArtifactProvider artifactProvider;
   private static final String OP_NAME = "CLEANUP_KUBERNETES_ARTIFACTS";
 
