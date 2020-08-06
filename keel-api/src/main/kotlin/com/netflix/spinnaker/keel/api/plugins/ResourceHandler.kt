@@ -31,6 +31,7 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  * If those two are the same, use [SimpleResourceHandler] instead.
  */
 interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
+  @JvmDefault
   val name: String
     get() = extensionClass.simpleName
 
@@ -72,6 +73,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @return a list of tasks launched to actuate the resource.
    */
+  @JvmDefault
   suspend fun create(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -88,6 +90,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @return a list of tasks launched to actuate the resource.
    */
+  @JvmDefault
   suspend fun update(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -102,6 +105,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @return a list of tasks launched to actuate the resource.
    */
+  @JvmDefault
   suspend fun upsert(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -112,27 +116,28 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
   /**
    * Delete a resource as the desired state is that it should no longer exist.
    */
+  @JvmDefault
   suspend fun delete(resource: Resource<S>): List<Task> = TODO("Not implemented")
 
   /**
    * Generate a spec from currently existing resources.
    */
-  suspend fun export(exportable: Exportable): S {
-    TODO("Not implemented")
-  }
+  @JvmDefault
+  suspend fun export(exportable: Exportable): S = TODO("Not implemented")
 
   /**
    * Generates an artifact from a currently existing resource.
    * Note: this only applies to resources that use artifacts, like clusters.
    */
-  suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact {
+  @JvmDefault
+  suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact =
     TODO("Not implemented or not supported with this handler")
-  }
 
   /**
    * @return `true` if this plugin is still busy running a previous actuation for [resource],
    * `false` otherwise.
    */
+  @JvmDefault
   suspend fun actuationInProgress(resource: Resource<S>): Boolean = false
 }
 
