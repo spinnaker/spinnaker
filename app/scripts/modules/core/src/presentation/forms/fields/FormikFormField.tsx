@@ -1,16 +1,15 @@
-import React from 'react';
-import { toPath, isString } from 'lodash';
-import { FastField, Field, FieldProps, FormikConsumer, FormikContext } from 'formik';
-
 import { firstDefined } from 'core/utils';
+import { FastField, Field, FieldProps, FormikConsumer, FormikContext } from 'formik';
+import { isString, toPath } from 'lodash';
+import React from 'react';
+import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';
+import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
 
 import { WatchValue } from '../../WatchValue';
-import { composeValidators, IValidator, useValidationData, Validators } from '../validation';
-import { ICommonFormFieldProps, renderContent } from './index';
 import { IFormInputValidation } from '../inputs';
 import { ILayoutProps, LayoutContext } from '../layouts';
-import { FormikSpelContext, SimpleSpelInput, SpelAwareInputMode, SpelService, SpelToggle } from '../../spel';
-import { useMountStatusRef } from '../../hooks/useMountStatusRef.hook';
+import { composeValidators, IValidator, useValidationData, Validators } from '../validation';
+import { ICommonFormFieldProps, renderContent } from './index';
 
 export interface IFormikFieldProps<T> {
   /**
@@ -104,20 +103,16 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
     messageNode,
   };
 
-  const [inputMode, setInputMode] = React.useState(SpelAwareInputMode.DEFAULT);
+  const freeformInputAllowed = firstDefined(props.spelAware, SpelAwareFromContext, false);
 
-  const freeformInputEnabled = firstDefined(props.spelAware, SpelAwareFromContext, false);
-
-  React.useEffect(() => {
-    if (!freeformInputEnabled) {
-      return;
-    }
+  const initialInputMode = React.useMemo(() => {
     const fieldValue = getIn(props.formik.values, name, '');
-    const isFieldValueSpel = SpelService.includesSpel(fieldValue);
-    if (isFieldValueSpel) {
-      setInputMode(SpelAwareInputMode.FREEFORM);
-    }
+    return freeformInputAllowed && SpelService.includesSpel(fieldValue)
+      ? SpelAwareInputMode.FREEFORM
+      : SpelAwareInputMode.DEFAULT;
   }, []);
+
+  const [inputMode, setInputMode] = React.useState(initialInputMode);
 
   const onSpelToggleClick = () => {
     formik.setFieldValue(name, null);
@@ -133,7 +128,7 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
     const composedActions = (
       <>
         {actions}
-        {freeformInputEnabled && <SpelToggle inputMode={inputMode} onClick={onSpelToggleClick} />}
+        {freeformInputAllowed && <SpelToggle inputMode={inputMode} onClick={onSpelToggleClick} />}
       </>
     );
 

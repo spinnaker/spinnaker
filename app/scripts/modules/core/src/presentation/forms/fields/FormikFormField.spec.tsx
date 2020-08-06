@@ -138,6 +138,19 @@ describe('<FormikFormField/>', () => {
       expect(component.find(ReactSelectInput).length).toEqual(0);
     });
 
+    it('does not render the input even once if the field value is SpEL and freeform SpEL inputs are enabled', () => {
+      const spy = jasmine.createSpy();
+      const NeverRenderedComponent = () => {
+        spy();
+        return <span />;
+      };
+      const TestField = () => (
+        <FormikFormField name="account" label="Account" input={NeverRenderedComponent} spelAware={true} />
+      );
+      mount(<Test initialValues={{ account: '${spel_account}' }} render={() => <TestField />} />);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
     it('renders the default input if the field value is not SpEL', () => {
       const component = mount(
         <Test initialValues={{ account: 'account' }} render={() => <AccountField propsSpelAware={true} />} />,
