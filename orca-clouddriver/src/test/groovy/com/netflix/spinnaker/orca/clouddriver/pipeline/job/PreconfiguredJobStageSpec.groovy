@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStagePa
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.clouddriver.config.KubernetesPreconfiguredJobProperties
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask
+import io.kubernetes.client.models.V1Container
+import io.kubernetes.client.models.V1EnvVar
 import io.kubernetes.client.models.V1Job
 import spock.lang.Specification
 
@@ -98,5 +100,128 @@ class PreconfiguredJobStageSpec extends Specification {
     preconfiguredJob.getManifest().getMetadata().getName() == manifestMetadataName
     // verify that stage manifest has the correctly overridden name
     stage.getContext().get("manifest").metadata.name == overriddenName
+  }
+
+  def "setNestedValue can handle array property mappings"() {
+    given:
+    def manifestEnvValue = "defaultValue"
+    def overriddenValue = "newValue"
+    def stage = stage {
+      type = "test"
+      context = [account: "test"]
+    }
+    def property = new KubernetesPreconfiguredJobProperties(
+      enabled: true,
+      label: "test",
+      type: "test",
+      cloudProvider: "kubernetes",
+      parameters: [
+        new PreconfiguredJobStageParameter(
+          mapping: "manifest.spec.template.spec.containers[0].env[0].value",
+          defaultValue: overriddenValue,
+          name: "envVariable"
+        )
+      ],
+      manifest: new V1Job(spec: [template: [spec: [containers: [new V1Container(env: [new V1EnvVar(name: "foo", value: manifestEnvValue)])]]]])
+    )
+
+    def jobService = Mock(JobService) {
+      2 * getPreconfiguredStages() >> {
+        return [
+          property
+        ]
+      }
+    }
+
+    when:
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
+    preconfiguredJobStage.buildTaskGraph(stage)
+
+    then:
+    // verify that underlying job configuration hasn't been modified
+    def preconfiguredJob = (KubernetesPreconfiguredJobProperties) jobService.getPreconfiguredStages().get(0)
+    preconfiguredJob.getManifest().getSpec().getTemplate().getSpec().getContainers()[0].getEnv()[0].getValue() == manifestEnvValue
+    // verify that stage manifest has the correctly overridden name
+    stage.getContext().get("manifest").spec.template.spec.containers[0].env[0].value == overriddenValue
+  }
+
+  def "setNestedValue throws an error if the index is invalid"() {
+    given:
+    def manifestEnvValue = "defaultValue"
+    def overriddenValue = "newValue"
+    def stage = stage {
+      type = "test"
+      context = [account: "test"]
+    }
+    def property = new KubernetesPreconfiguredJobProperties(
+      enabled: true,
+      label: "test",
+      type: "test",
+      cloudProvider: "kubernetes",
+      parameters: [
+        new PreconfiguredJobStageParameter(
+          mapping: "manifest.spec.template.spec.containers[0].env[1].value",
+          defaultValue: overriddenValue,
+          name: "envVariable"
+        )
+      ],
+      manifest: new V1Job(spec: [template: [spec: [containers: [new V1Container(env: [new V1EnvVar(name: "foo", value: manifestEnvValue)])]]]])
+    )
+
+    def jobService = Mock(JobService) {
+      1 * getPreconfiguredStages() >> {
+        return [
+          property
+        ]
+      }
+    }
+
+    when:
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
+    preconfiguredJobStage.buildTaskGraph(stage)
+
+    then:
+    def ex = thrown(IllegalArgumentException)
+    assert ex.getMessage().startsWith("Invalid index 1 for list")
+  }
+
+  def "setNestedValue throws an error if an array property name is invalid"() {
+    given:
+    def manifestEnvValue = "defaultValue"
+    def overriddenValue = "newValue"
+    def stage = stage {
+      type = "test"
+      context = [account: "test"]
+    }
+    def property = new KubernetesPreconfiguredJobProperties(
+      enabled: true,
+      label: "test",
+      type: "test",
+      cloudProvider: "kubernetes",
+      parameters: [
+        new PreconfiguredJobStageParameter(
+          mapping: "manifest.spec.template.spec.containers[0].missingProperty[0].value",
+          defaultValue: overriddenValue,
+          name: "envVariable"
+        )
+      ],
+      manifest: new V1Job(spec: [template: [spec: [containers: [new V1Container(env: [new V1EnvVar(name: "foo", value: manifestEnvValue)])]]]])
+    )
+
+    def jobService = Mock(JobService) {
+      1 * getPreconfiguredStages() >> {
+        return [
+          property
+        ]
+      }
+    }
+
+    when:
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
+    preconfiguredJobStage.buildTaskGraph(stage)
+
+    then:
+    def ex = thrown(IllegalArgumentException)
+    assert ex.getMessage().startsWith("no property missingProperty on")
   }
 }
