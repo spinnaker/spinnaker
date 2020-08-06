@@ -34,9 +34,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @Slf4j
 @Configuration
-@ComponentScan(basePackages = ["com.netflix.spinnaker.endpoint"])
 @EnableConfigurationProperties([
-  ResolvedEnvironmentConfigurationProperties,
   TomcatConfigurationProperties
 ])
 @EnableScheduling
