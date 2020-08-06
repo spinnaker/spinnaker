@@ -17,9 +17,9 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import ch.qos.logback.core.encoder.ByteArrayUtil
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import java.security.MessageDigest
-import javax.xml.bind.DatatypeConverter
 
 /**
  * Stores a hash of the diff.
@@ -36,7 +36,7 @@ interface DiffFingerprintRepository {
   fun ResourceDiff<*>.generateHash(): String {
     val bytes = MessageDigest
       .getInstance("SHA-1")
-      .digest(this.toDeltaJson().toString().toByteArray())
-    return DatatypeConverter.printHexBinary(bytes).toUpperCase()
+      .digest(toDeltaJson().toString().toByteArray())
+    return ByteArrayUtil.toHexString(bytes).toUpperCase()
   }
 }

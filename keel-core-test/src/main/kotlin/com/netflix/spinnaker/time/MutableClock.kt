@@ -4,10 +4,11 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit.MILLIS
 import java.time.temporal.TemporalAmount
 
 class MutableClock(
-  private var instant: Instant = Instant.now(),
+  private var instant: Instant = Instant.now().truncatedTo(MILLIS),
   private val zone: ZoneId = ZoneId.of("UTC"),
   val start: Instant = instant
 ) : Clock() {
