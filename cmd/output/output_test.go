@@ -61,8 +61,34 @@ func TestOutputMarshalToJsonPath_string(t *testing.T) {
 	}
 }
 
-// TODO(karlkfi): Validate non-primitive jsonpath outputs.
-// This behavior changed with https://github.com/spinnaker/spin/pull/241
+func TestOutputMarshalToJsonPath_globString(t *testing.T) {
+	formatFunc := MarshalToJsonPathWrapper("{.stages[*].name}")
+	jsonBytes, err := formatFunc(testMap)
+	if err != nil {
+		t.Fatalf("Failed to format: %s", err)
+	}
+
+	// Expected as the current implementation only returns the first match when using a glob expression.
+	expected := "Wait"
+	recieved := string(jsonBytes)
+	if recieved != expected {
+		t.Fatalf("Unexpected formatted jsonpath output: want=\"%s\" got=\"%s\"", expected, recieved)
+	}
+}
+
+func TestOutputMarshalToJsonPath_nonPrimitive(t *testing.T) {
+	formatFunc := MarshalToJsonPathWrapper("{.stages}")
+	jsonBytes, err := formatFunc(testMap)
+	if err != nil {
+		t.Fatalf("Failed to format: %s", err)
+	}
+
+	expected := strings.TrimSpace(testJsonpathNonPrimStr)
+	recieved := string(jsonBytes)
+	if recieved != expected {
+		t.Fatalf("Unexpected formatted jsonpath output: want=\"%s\" got=\"%s\"", expected, recieved)
+	}
+}
 
 var testMap = map[string]interface{}{
 	"application":          "app",
@@ -84,6 +110,14 @@ var testMap = map[string]interface{}{
 			"comments":             "${ parameters.derp }",
 			"name":                 "Wait",
 			"refId":                "1",
+			"requisiteStageRefIds": []string{},
+			"type":                 "wait",
+			"waitTime":             30,
+		},
+		{
+			"comments":             "${ parameters.derp }",
+			"name":                 "Wait Again",
+			"refId":                "2",
 			"requisiteStageRefIds": []string{},
 			"type":                 "wait",
 			"waitTime":             30,
@@ -128,6 +162,14 @@ const testJsonStr = `
    "requisiteStageRefIds": [],
    "type": "wait",
    "waitTime": 30
+  },
+  {
+   "comments": "${ parameters.derp }",
+   "name": "Wait Again",
+   "refId": "2",
+   "requisiteStageRefIds": [],
+   "type": "wait",
+   "waitTime": 30
   }
  ],
  "triggers": [],
@@ -154,6 +196,33 @@ stages:
   requisiteStageRefIds: []
   type: wait
   waitTime: 30
+- comments: ${ parameters.derp }
+  name: Wait Again
+  refId: "2"
+  requisiteStageRefIds: []
+  type: wait
+  waitTime: 30
 triggers: []
 updateTs: "1520879791608"
+`
+
+const testJsonpathNonPrimStr = `
+[
+ {
+  "comments": "${ parameters.derp }",
+  "name": "Wait",
+  "refId": "1",
+  "requisiteStageRefIds": [],
+  "type": "wait",
+  "waitTime": 30
+ },
+ {
+  "comments": "${ parameters.derp }",
+  "name": "Wait Again",
+  "refId": "2",
+  "requisiteStageRefIds": [],
+  "type": "wait",
+  "waitTime": 30
+ }
+]
 `

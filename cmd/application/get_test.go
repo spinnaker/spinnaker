@@ -55,6 +55,28 @@ func TestApplicationGet_json(t *testing.T) {
 	}
 }
 
+func TestApplicationGet_jsonpath(t *testing.T) {
+	ts := testGateApplicationGetSuccess()
+	defer ts.Close()
+
+	buffer := new(bytes.Buffer)
+	rootCmd, rootOpts := cmd.NewCmdRoot(buffer, buffer)
+	rootCmd.AddCommand(NewApplicationCmd(rootOpts))
+
+	args := []string{"application", "get", APP, "--output", "jsonpath={.permissions}", "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+
+	expected := strings.TrimSpace(permissionsJson)
+	recieved := strings.TrimSpace(buffer.String())
+	if expected != recieved {
+		t.Fatalf("Unexpected command output:\n%s", diff.LineDiff(expected, recieved))
+	}
+}
+
 func TestApplicationGet_yaml(t *testing.T) {
 	ts := testGateApplicationGetSuccess()
 	defer ts.Close()
@@ -152,6 +174,18 @@ const malformedApplicationGetJson = `
   "instancePort": 80,
   "lastModifiedBy": "anonymous",
   "name": "app",
+  "permissions": {
+	"EXECUTE": [
+	 "admin-group"
+	],
+	"READ": [
+	 "admin-group",
+	 "user-group"
+	],
+	"WRITE": [
+	 "admin-group"
+	]
+  },
   "updateTs": "1527261941735",
   "user": "anonymous"
 }
@@ -171,6 +205,18 @@ const applicationJsonExpanded = `
   "instancePort": 80,
   "lastModifiedBy": "anonymous",
   "name": "app",
+  "permissions": {
+    "EXECUTE": [
+	  "admin-group"
+	 ],
+	 "READ": [
+	  "admin-group",
+	  "user-group"
+	 ],
+	 "WRITE": [
+	  "admin-group"
+	 ]
+  },
   "updateTs": "1527261941735",
   "user": "anonymous"
  },
@@ -199,6 +245,18 @@ const applicationJson = `
  "instancePort": 80,
  "lastModifiedBy": "anonymous",
  "name": "app",
+ "permissions": {
+  "EXECUTE": [
+   "admin-group"
+  ],
+  "READ": [
+   "admin-group",
+   "user-group"
+  ],
+  "WRITE": [
+   "admin-group"
+  ]
+ },
  "updateTs": "1527261941735",
  "user": "anonymous"
 }
@@ -214,6 +272,29 @@ email: app
 instancePort: 80
 lastModifiedBy: anonymous
 name: app
+permissions:
+  EXECUTE:
+  - admin-group
+  READ:
+  - admin-group
+  - user-group
+  WRITE:
+  - admin-group
 updateTs: "1527261941735"
 user: anonymous
+`
+
+const permissionsJson = `
+{
+ "EXECUTE": [
+  "admin-group"
+ ],
+ "READ": [
+  "admin-group",
+  "user-group"
+ ],
+ "WRITE": [
+  "admin-group"
+ ]
+}
 `
