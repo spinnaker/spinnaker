@@ -80,11 +80,6 @@ public class AzureStorageService implements StorageService {
   }
 
   @Override
-  public void ensureBucketExists() {
-    // do nothing
-  }
-
-  @Override
   public boolean supportsVersioning() {
     return true;
   }

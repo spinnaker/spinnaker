@@ -82,10 +82,6 @@ class SqlStorageService(
     )
   }
 
-  override fun ensureBucketExists() {
-    // no-op
-  }
-
   override fun supportsVersioning(): Boolean {
     return true
   }

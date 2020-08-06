@@ -66,11 +66,6 @@ class CompositeStorageService(
     previousReadStatusGauge.set(if (isPreviousReadEnabled()) 1.0 else 0.0)
   }
 
-  override fun ensureBucketExists() {
-    primary.ensureBucketExists()
-    previous.ensureBucketExists()
-  }
-
   override fun supportsVersioning(): Boolean {
     return primary.supportsVersioning()
   }

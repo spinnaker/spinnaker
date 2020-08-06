@@ -89,7 +89,6 @@ public class SwiftStorageService implements StorageService {
   }
 
   /** Check to see if the bucket (Swift container) exists, creating it if it is not there. */
-  @Override
   public void ensureBucketExists() {
     List<? extends SwiftContainer> containers =
         getSwift().containers().list(ContainerListOptions.create().startsWith(containerName));

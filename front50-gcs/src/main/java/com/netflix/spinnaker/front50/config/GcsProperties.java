@@ -35,6 +35,10 @@ public class GcsProperties {
   }
 
   public void setBucket(String bucket) {
+    // "google.com:" is deprecated but may be in certain old projects.
+    if (bucket.startsWith("google.com:")) {
+      bucket = bucket.substring("google.com:".length());
+    }
     this.bucket = bucket;
   }
 

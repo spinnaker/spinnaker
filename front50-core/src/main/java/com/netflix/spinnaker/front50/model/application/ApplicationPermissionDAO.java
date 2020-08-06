@@ -18,6 +18,4 @@ package com.netflix.spinnaker.front50.model.application;
 
 import com.netflix.spinnaker.front50.model.ItemDAO;
 
-public interface ApplicationPermissionDAO extends ItemDAO<Application.Permission> {
-  String DEFAULT_DATA_FILENAME = "permission.json";
-}
+public interface ApplicationPermissionDAO extends ItemDAO<Application.Permission> {}

@@ -69,7 +69,6 @@ public class S3StorageService implements StorageService {
     this.serverSideEncryption = serverSideEncryption;
   }
 
-  @Override
   public void ensureBucketExists() {
     HeadBucketRequest request = new HeadBucketRequest(bucket);
     try {

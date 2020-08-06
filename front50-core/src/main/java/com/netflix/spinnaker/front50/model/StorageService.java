@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface StorageService {
-  /** Check to see if the bucket exists, creating it if it is not there. */
-  void ensureBucketExists();
 
   /** @return true if the storage service supports versioning. */
   boolean supportsVersioning();

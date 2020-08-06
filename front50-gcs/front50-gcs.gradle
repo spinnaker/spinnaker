@@ -14,23 +14,37 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/kotlin.gradle"
+
 dependencies {
   implementation project(":front50-core")
 
-  implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "org.springframework.boot:spring-boot-autoconfigure"
-  implementation "org.springframework:spring-web"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-google-common:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "org.apache.commons:commons-lang3"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.google.apis:google-api-services-storage"
-  implementation 'com.google.auth:google-auth-library-oauth2-http'
-  implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "net.logstash.logback:logstash-logback-encoder"
-  implementation "io.reactivex:rxjava"
-  implementation "io.github.resilience4j:resilience4j-circuitbreaker"
+  implementation "com.google.auth:google-auth-library-oauth2-http"
+  // TODO(plumpy): remove version once added to kork
+  implementation "com.google.cloud:google-cloud-storage:1.108.0"
+  implementation "com.google.guava:guava"
   implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "io.github.resilience4j:resilience4j-circuitbreaker"
+  implementation "io.reactivex:rxjava"
+  implementation "net.logstash.logback:logstash-logback-encoder"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework:spring-beans"
+  implementation "org.springframework:spring-context"
+  implementation "org.springframework:spring-web"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.boot:spring-boot"
+  testImplementation "com.google.http-client:google-http-client"
+  testImplementation "com.google.cloud:google-cloud-core"
+  testImplementation "io.strikt:strikt-core"
+  testImplementation "io.mockk:mockk"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+}
 
-  testImplementation project(":front50-test")
+test {
+  useJUnitPlatform {
+    includeEngines "junit-jupiter"
+  }
 }
