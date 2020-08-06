@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.util.HashMap;
@@ -58,7 +59,10 @@ public class EnhancedMonitoringConfiguration {
     Id runningOrchestrationsId =
         registry
             .createId("executions.running")
-            .withTag("executionType", "Orchestration"); // similar to what MetricsTagHelper is doing
+            .withTag(
+                "executionType",
+                ExecutionType.ORCHESTRATION
+                    .toString()); // similar to what MetricsTagHelper is doing
 
     for (String application : configuration.getApplications()) {
       Id applicationSpecificId = runningOrchestrationsId.withTag("application", application);

@@ -40,7 +40,7 @@ public class MetricsExecutionListener implements ExecutionListener {
     Id id =
         registry
             .createId("executions.started")
-            .withTag("executionType", execution.getClass().getSimpleName().toLowerCase())
+            .withTag("executionType", execution.getType().toString())
             .withTag("application", execution.getApplication().toLowerCase());
 
     registry.counter(id).increment();
@@ -68,7 +68,7 @@ public class MetricsExecutionListener implements ExecutionListener {
     Id id =
         registry
             .createId("executions.totalTime")
-            .withTag("executionType", "orchestration")
+            .withTag("executionType", execution.getType().toString())
             .withTag("successful", Boolean.valueOf(wasSuccessful).toString())
             .withTag("application", execution.getApplication().toLowerCase());
 
