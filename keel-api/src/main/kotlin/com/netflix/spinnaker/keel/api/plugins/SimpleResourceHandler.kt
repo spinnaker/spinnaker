@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 
 abstract class SimpleResourceHandler<T : ResourceSpec>(
   resolvers: List<Resolver<*>>
-) : ResourceHandler<T, T>(resolvers) {
+) : ResolvableResourceHandler<T, T>(resolvers) {
 
   /**
    * If you need to do any resolution of the desired value into a different type you should

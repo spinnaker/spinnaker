@@ -37,8 +37,8 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
@@ -88,7 +88,7 @@ class TitusClusterHandler(
   private val publisher: ApplicationEventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
-) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
+) : ResolvableResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
 
   private val mapper = configuredObjectMapper()
 

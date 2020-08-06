@@ -43,8 +43,8 @@ import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -95,7 +95,7 @@ class ClusterHandler(
   private val publisher: ApplicationEventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
-) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
+) : ResolvableResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
 
   private val debianArtifactParser = DebianArtifactParser()
 

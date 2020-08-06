@@ -16,8 +16,8 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -39,7 +39,7 @@ class ApplicationLoadBalancerHandler(
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(resolvers) {
+) : ResolvableResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(resolvers) {
 
   override val supportedKind = EC2_APPLICATION_LOAD_BALANCER_V1_1
 

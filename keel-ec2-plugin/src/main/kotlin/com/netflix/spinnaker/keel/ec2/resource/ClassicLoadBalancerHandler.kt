@@ -18,8 +18,8 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -41,7 +41,7 @@ class ClassicLoadBalancerHandler(
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(resolvers) {
+) : ResolvableResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(resolvers) {
 
   override val supportedKind = EC2_CLASSIC_LOAD_BALANCER_V1
 
