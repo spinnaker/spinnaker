@@ -71,8 +71,8 @@ class GitHubConfig {
         }
 
         @Override
-        void intercept(RequestInterceptor.RequestFacade request) {
-            request.addQueryParam("access_token", accessToken)
+        void intercept(RequestFacade request) {
+          request.addHeader("Authorization", "token " + accessToken)
         }
     }
 

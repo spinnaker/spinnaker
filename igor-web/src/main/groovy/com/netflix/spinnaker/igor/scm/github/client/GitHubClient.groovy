@@ -17,19 +17,36 @@
 package com.netflix.spinnaker.igor.scm.github.client
 
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
 import retrofit.http.GET
 import retrofit.http.Path
+import retrofit.http.Query
 
 /**
  * Interface for interacting with a GitHub REST API
- * https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository
  */
 interface GitHubClient {
-    @GET('/repos/{projectKey}/{repositorySlug}/compare/{fromCommit}...{toCommit}')
-    CompareCommitsResponse getCompareCommits(
-        @Path('projectKey') String projectKey,
-        @Path('repositorySlug') String repositorySlug,
-        @Path('fromCommit') String fromCommit,
-        @Path('toCommit') String toCommit)
+  @GET('/repos/{projectKey}/{repositorySlug}/compare/{fromCommit}...{toCommit}')
+  CompareCommitsResponse getCompareCommits(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path('fromCommit') String fromCommit,
+    @Path('toCommit') String toCommit)
+
+  @GET('/repos/{projectKey}/{repositorySlug}/contents/{path}')
+  GetRepositoryContentResponse getFileContent(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path(value = 'path', encode = false) String path,
+    @Query('ref') String ref
+  )
+
+  @GET('/repos/{projectKey}/{repositorySlug}/contents/{path}')
+  List<GetRepositoryContentResponse> listDirectory(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path(value = 'path', encode = false) String path,
+    @Query('ref') String ref
+  )
 }
 

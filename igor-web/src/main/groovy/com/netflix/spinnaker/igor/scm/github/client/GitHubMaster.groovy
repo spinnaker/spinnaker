@@ -16,53 +16,63 @@
 
 package com.netflix.spinnaker.igor.scm.github.client
 
-import com.netflix.spinnaker.igor.config.GitHubProperties
-import com.netflix.spinnaker.igor.scm.AbstractScmMaster
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import org.springframework.context.annotation.Bean
-import retrofit.Endpoints
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.client.OkClient
-import retrofit.converter.JacksonConverter
 
-import javax.validation.Valid
+import com.netflix.spinnaker.igor.scm.AbstractScmMaster
+import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import groovy.util.logging.Slf4j
+import retrofit.RetrofitError
+
+import java.util.stream.Collectors
 
 /**
  * Wrapper class for a collection of GitHub clients
  */
-class GitHubMaster  extends AbstractScmMaster {
-    GitHubClient gitHubClient
-    String baseUrl
+@Slf4j
+class GitHubMaster extends AbstractScmMaster {
 
-    @Bean
-    GitHubMaster gitHubMasters(@Valid GitHubProperties gitHubProperties) {
-        new GitHubMaster(githubClient : gitHubClient(gitHubProperties.baseUrl, gitHubProperties.accessToken), baseUrl: gitHubProperties.baseUrl)
+  private static final String FILE_CONTENT_TYPE = "file";
+
+  GitHubClient gitHubClient
+  String baseUrl
+
+  @Override
+  List<String> listDirectory(String projectKey, String repositorySlug, String path, String ref) {
+    try {
+      List<GetRepositoryContentResponse> response = gitHubClient.listDirectory(projectKey, repositorySlug, path, ref);
+      return response.stream()
+        .map({ r -> r.path })
+        .collect(Collectors.toList())
+    } catch (RetrofitError e) {
+      if (e.getKind() == RetrofitError.Kind.NETWORK) {
+        throw new NotFoundException("Could not find the server ${baseUrl}")
+      }
+      log.error(
+        "Failed to fetch file from {}/{}/{}, reason: {}",
+        projectKey, repositorySlug, path, e.message
+      )
+      throw e
     }
+  }
 
-
-    GitHubClient gitHubClient(String address, String username, String password) {
-        new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
-            .setClient(new OkClient())
-            .setConverter(new JacksonConverter())
-            .setLog(new Slf4jRetrofitLogger(GitHubClient))
-            .build()
-            .create(GitHubClient)
+  @Override
+  String getTextFileContents(String projectKey, String repositorySlug, String path, String ref) {
+    try {
+      GetRepositoryContentResponse response = gitHubClient.getFileContent(projectKey, repositorySlug, path, ref);
+      if (FILE_CONTENT_TYPE != response.type) {
+        throw new NotFoundException("Unexpected content type: ${response.type}");
+      }
+      return new String(Base64.mimeDecoder.decode(response.content));
+    } catch (RetrofitError e) {
+      if (e.getKind() == RetrofitError.Kind.NETWORK) {
+        throw new NotFoundException("Could not find the server ${baseUrl}")
+      }
+      log.error(
+        "Failed to fetch file from {}/{}/{}, reason: {}",
+        projectKey, repositorySlug, path, e.message
+      )
+      throw e
     }
+  }
 
-    static class BasicAuthRequestInterceptor implements RequestInterceptor {
-
-        private final String accessToken
-
-        BasicAuthRequestInterceptor(String accessToken) {
-            this.accessToken = accessToken
-        }
-
-        @Override
-        void intercept(RequestInterceptor.RequestFacade request) {
-            request.addQueryParam("access_token", accessToken)
-        }
-    }
 }
