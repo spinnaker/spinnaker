@@ -19,7 +19,6 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.plugins.Resolver
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -34,9 +33,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConditionalOnProperty("keel.plugins.titus.enabled")
 class TitusConfig {
-  @Bean
-  fun titusClusterV1() = TITUS_CLUSTER_V1
-
   @Bean
   fun titusClusterHandler(
     cloudDriverService: CloudDriverService,
