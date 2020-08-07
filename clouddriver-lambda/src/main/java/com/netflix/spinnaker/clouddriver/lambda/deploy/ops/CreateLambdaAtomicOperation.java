@@ -96,7 +96,9 @@ public class CreateLambdaAtomicOperation
               .withSecurityGroupIds(description.getSecurityGroupIds())
               .withSubnetIds(description.getSubnetIds()));
     }
-    request.setDeadLetterConfig(description.getDeadLetterConfig());
+    if (!description.getDeadLetterConfig().getTargetArn().isEmpty()) {
+      request.setDeadLetterConfig(description.getDeadLetterConfig());
+    }
     request.setKMSKeyArn(description.getEncryptionKMSKeyArn());
     request.setTracingConfig(description.getTracingConfig());
 
