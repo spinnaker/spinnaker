@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard;
 
-import com.netflix.spinnaker.config.ResolvedEnvironmentConfigurationProperties;
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap;
 import java.util.Map;
@@ -26,12 +25,10 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.cloud.config.server.EnableConfigServer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Configuration
-@ComponentScan(value = {"com.netflix.spinnaker.halyard", "com.netflix.spinnaker.endpoint"})
+@ComponentScan(value = {"com.netflix.spinnaker.halyard"})
 @EnableAutoConfiguration
-@Import(ResolvedEnvironmentConfigurationProperties.class)
 @EnableConfigServer
 public class Main extends SpringBootServletInitializer {
   private static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build();

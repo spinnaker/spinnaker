@@ -33,6 +33,7 @@ dependencies {
   implementation 'org.codehaus.groovy:groovy'
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.netflix.spinnaker.kork:kork-config"
+  runtimeOnly    "com.netflix.spinnaker.kork:kork-actuator"
 
   implementation project(':halyard-backup')
   // halyard-cli is required as a dependency even though it is not used directly by halyard-web
