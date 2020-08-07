@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.config;
 
+import java.util.Map;
 import javax.annotation.Nonnull;
 
 /** Endpoint config used to build clients. */
@@ -29,4 +30,8 @@ public interface ServiceEndpoint {
   /** Base API url */
   @Nonnull
   public String getBaseUrl();
+
+  /** Misc. config necessary for the service client. */
+  @Nonnull
+  public Map<String, Object> getConfig();
 }

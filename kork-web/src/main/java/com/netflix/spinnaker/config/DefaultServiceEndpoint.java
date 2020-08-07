@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.config;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
@@ -29,9 +31,20 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
   /** Base API url */
   @Nonnull private final String baseUrl;
 
+  /** Misc. config necessary for the service client. */
+  @Nonnull private final Map<String, Object> config;
+
   public DefaultServiceEndpoint(@Nonnull String name, @Nonnull String baseUrl) {
     this.name = Objects.requireNonNull(name);
     this.baseUrl = Objects.requireNonNull(baseUrl);
+    this.config = new HashMap<>();
+  }
+
+  public DefaultServiceEndpoint(
+      @Nonnull String name, @Nonnull String baseUrl, @Nonnull Map<String, Object> config) {
+    this.name = Objects.requireNonNull(name);
+    this.baseUrl = Objects.requireNonNull(baseUrl);
+    this.config = Objects.requireNonNull(config);
   }
 
   @Override
@@ -44,5 +57,11 @@ public class DefaultServiceEndpoint implements ServiceEndpoint {
   @Nonnull
   public String getBaseUrl() {
     return baseUrl;
+  }
+
+  @Nonnull
+  @Override
+  public Map<String, Object> getConfig() {
+    return config;
   }
 }
