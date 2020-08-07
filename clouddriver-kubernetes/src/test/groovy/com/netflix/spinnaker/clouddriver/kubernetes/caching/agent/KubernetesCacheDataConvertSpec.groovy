@@ -22,11 +22,9 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric
-import com.netflix.spinnaker.clouddriver.kubernetes.security.GlobalKubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
@@ -75,7 +73,13 @@ metadata:
 
     when:
     KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
-    KubernetesCacheDataConverter.convertAsResource(kubernetesCacheData, account, KubernetesKindProperties.create(kind, true), manifest, [], false)
+    KubernetesCacheDataConverter.convertAsResource(
+      kubernetesCacheData,
+      account,
+      KubernetesKindProperties.create(kind, true),
+      new KubernetesManifestNamer(),
+      manifest,
+      [])
     def optional = kubernetesCacheData.toCacheData().stream().filter({
       cd -> cd.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
     }).findFirst()

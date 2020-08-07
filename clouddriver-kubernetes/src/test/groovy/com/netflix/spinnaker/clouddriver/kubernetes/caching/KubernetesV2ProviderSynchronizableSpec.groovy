@@ -30,6 +30,7 @@ import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCoreCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesUnregisteredCustomResourceCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentDispatcher
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
@@ -38,7 +39,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesKindRegis
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
@@ -48,7 +48,7 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
 
   CatsModule catsModule = Mock(CatsModule)
   AccountCredentialsRepository accountCredentialsRepository
-  NamerRegistry namerRegistry = new NamerRegistry([new KubernetesManifestNamer()])
+  KubernetesNamerRegistry namerRegistry = new KubernetesNamerRegistry([new KubernetesManifestNamer()])
   ConfigFileService configFileService = Mock(ConfigFileService)
   KubernetesV2Provider kubernetesV2Provider = new KubernetesV2Provider()
   KubernetesV2CachingAgentDispatcher agentDispatcher = Mock(KubernetesV2CachingAgentDispatcher)

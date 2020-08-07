@@ -50,6 +50,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credent
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.Namer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -62,6 +63,7 @@ final class KubernetesDeployManifestOperationTest {
       new GlobalResourcePropertyRegistry(
           ImmutableList.of(new KubernetesReplicaSetHandler(), new KubernetesServiceHandler()),
           new KubernetesUnregisteredCustomResourceHandler());
+  private static final Namer<KubernetesManifest> NAMER = new KubernetesManifestNamer();
 
   @BeforeEach
   void setTask() {
@@ -210,6 +212,7 @@ final class KubernetesDeployManifestOperationTest {
               }
               return result;
             });
+    when(credentialsMock.getNamer()).thenReturn(NAMER);
     return credentialsMock;
   }
 

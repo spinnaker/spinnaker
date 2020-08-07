@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
 import java.util.Objects;
@@ -52,7 +51,10 @@ public final class KubernetesV2ServerGroupManager
   private final Moniker moniker;
 
   private KubernetesV2ServerGroupManager(
-      KubernetesManifest manifest, String key, Set<KubernetesV2ServerGroupSummary> serverGroups) {
+      KubernetesManifest manifest,
+      String key,
+      Moniker moniker,
+      Set<KubernetesV2ServerGroupSummary> serverGroups) {
     this.account = ((Keys.InfrastructureCacheKey) Keys.parseKey(key).get()).getAccount();
     this.kind = manifest.getKind();
     this.apiVersion = manifest.getApiVersion();
@@ -60,12 +62,7 @@ public final class KubernetesV2ServerGroupManager
     this.name = manifest.getFullResourceName();
     this.displayName = manifest.getName();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
-    this.moniker =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(account)
-            .withResource(KubernetesManifest.class)
-            .deriveMoniker(manifest);
+    this.moniker = moniker;
     this.serverGroups = serverGroups;
   }
 
@@ -89,8 +86,9 @@ public final class KubernetesV2ServerGroupManager
             .map(KubernetesV2ServerGroup::toServerGroupSummary)
             .collect(Collectors.toSet());
 
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(data.getServerGroupManagerData());
     return new KubernetesV2ServerGroupManager(
-        manifest, data.getServerGroupManagerData().getId(), serverGroups);
+        manifest, data.getServerGroupManagerData().getId(), moniker, serverGroups);
   }
 
   @Override

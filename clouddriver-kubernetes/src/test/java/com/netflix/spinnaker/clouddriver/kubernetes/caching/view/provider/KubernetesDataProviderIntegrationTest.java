@@ -50,6 +50,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePr
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
+import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesPodHandler;
@@ -71,7 +72,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
@@ -499,7 +499,7 @@ final class KubernetesDataProviderIntegrationTest {
     KubernetesV2Credentials.Factory credentialFactory =
         new KubernetesV2Credentials.Factory(
             new NoopRegistry(),
-            new NamerRegistry(ImmutableList.of(new KubernetesManifestNamer())),
+            new KubernetesNamerRegistry(ImmutableList.of(new KubernetesManifestNamer())),
             getJobExecutor(),
             new ConfigFileService(new CloudConfigResourceService()),
             new AccountResourcePropertyRegistry.Factory(resourcePropertyRegistry),

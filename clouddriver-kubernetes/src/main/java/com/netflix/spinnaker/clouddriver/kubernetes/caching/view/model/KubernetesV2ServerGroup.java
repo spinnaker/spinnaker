@@ -41,7 +41,6 @@ import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.text.ParseException;
@@ -123,6 +122,7 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
   private KubernetesV2ServerGroup(
       KubernetesManifest manifest,
       String key,
+      Moniker moniker,
       List<KubernetesV2Instance> instances,
       Set<String> loadBalancers,
       List<ServerGroupManagerSummary> serverGroupManagers,
@@ -134,12 +134,7 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
     this.name = manifest.getFullResourceName();
     this.displayName = manifest.getName();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
-    this.moniker =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(account)
-            .withResource(KubernetesManifest.class)
-            .deriveMoniker(manifest);
+    this.moniker = moniker;
     this.createdTime = getCreatedTime(manifest);
     this.buildInfo =
         ImmutableMap.of(
@@ -222,9 +217,11 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
     boolean disabled = loadBalancers.isEmpty() && !explicitLoadBalancers.isEmpty();
     loadBalancers.addAll(explicitLoadBalancers);
 
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(cacheData.getServerGroupData());
     return new KubernetesV2ServerGroup(
         manifest,
         cacheData.getServerGroupData().getId(),
+        moniker,
         instances,
         loadBalancers,
         serverGroupManagers,

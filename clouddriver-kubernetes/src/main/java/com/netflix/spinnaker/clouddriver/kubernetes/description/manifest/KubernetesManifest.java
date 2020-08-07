@@ -143,6 +143,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  @Nonnull
   public String getCreationTimestamp() {
     return getMetadata().containsKey("creationTimestamp")
         ? getMetadata().get("creationTimestamp").toString()

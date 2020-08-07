@@ -34,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 import io.kubernetes.client.custom.IntOrString;
 import io.kubernetes.client.openapi.models.V1NetworkPolicy;
@@ -92,7 +91,11 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
   }
 
   private KubernetesV2SecurityGroup(
-      KubernetesManifest manifest, String key, Set<Rule> inboundRules, Set<Rule> outboundRules) {
+      KubernetesManifest manifest,
+      String key,
+      Moniker moniker,
+      Set<Rule> inboundRules,
+      Set<Rule> outboundRules) {
     this.id = manifest.getFullResourceName();
     this.account = ((Keys.InfrastructureCacheKey) Keys.parseKey(key).get()).getAccount();
     this.kind = manifest.getKind();
@@ -100,12 +103,7 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
     this.displayName = manifest.getName();
     this.namespace = manifest.getNamespace();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
-    this.moniker =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(account)
-            .withResource(KubernetesManifest.class)
-            .deriveMoniker(manifest);
+    this.moniker = moniker;
 
     this.inboundRules = inboundRules;
     this.outboundRules = outboundRules;
@@ -143,7 +141,9 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
       }
     }
 
-    return new KubernetesV2SecurityGroup(manifest, cd.getId(), inboundRules, outboundRules);
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(cd);
+    return new KubernetesV2SecurityGroup(
+        manifest, cd.getId(), moniker, inboundRules, outboundRules);
   }
 
   private static Set<Rule> inboundRules(V1NetworkPolicy policy) {

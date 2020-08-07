@@ -22,16 +22,26 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestLabeler;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.moniker.Moniker;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifest> {
-  @Value("${kubernetes.v2.apply-app-labels:true}")
-  boolean applyAppLabels;
+  private final boolean applyAppLabels;
+  private final String managedBySuffix;
 
-  @Value("${kubernetes.v2.managed-by-suffix:}")
-  String managedBySuffix;
+  @Autowired
+  public KubernetesManifestNamer(
+      @Value("${kubernetes.v2.apply-app-labels:true}") boolean applyAppLabels,
+      @Value("${kubernetes.v2.managed-by-suffix:}") String managedBySuffix) {
+    this.applyAppLabels = applyAppLabels;
+    this.managedBySuffix = managedBySuffix;
+  }
+
+  public KubernetesManifestNamer() {
+    this(true, "");
+  }
 
   @Override
   public String getName() {

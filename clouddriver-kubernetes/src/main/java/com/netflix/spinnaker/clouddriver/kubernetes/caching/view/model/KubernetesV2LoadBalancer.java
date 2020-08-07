@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +51,10 @@ public final class KubernetesV2LoadBalancer
   private final Moniker moniker;
 
   private KubernetesV2LoadBalancer(
-      KubernetesManifest manifest, String key, Set<LoadBalancerServerGroup> serverGroups) {
+      KubernetesManifest manifest,
+      String key,
+      Moniker moniker,
+      Set<LoadBalancerServerGroup> serverGroups) {
     this.account = ((Keys.InfrastructureCacheKey) Keys.parseKey(key).get()).getAccount();
     this.name = manifest.getFullResourceName();
     this.displayName = manifest.getName();
@@ -60,12 +62,7 @@ public final class KubernetesV2LoadBalancer
     this.kind = manifest.getKind();
     this.namespace = manifest.getNamespace();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
-    this.moniker =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(account)
-            .withResource(KubernetesManifest.class)
-            .deriveMoniker(manifest);
+    this.moniker = moniker;
     this.serverGroups = serverGroups;
   }
 
@@ -78,7 +75,8 @@ public final class KubernetesV2LoadBalancer
       log.warn("Cache data {} inserted without a manifest", cd.getId());
       return null;
     }
-    return new KubernetesV2LoadBalancer(manifest, cd.getId(), loadBalancerServerGroups);
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(cd);
+    return new KubernetesV2LoadBalancer(manifest, cd.getId(), moniker, loadBalancerServerGroups);
   }
 
   @Override

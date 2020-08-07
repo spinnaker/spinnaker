@@ -24,17 +24,19 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResou
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CustomKubernetesHandlerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
+import java.util.Objects;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
 @Slf4j
 public class KubernetesResourceProperties {
-  private final KubernetesHandler handler;
+  @Nonnull private final KubernetesHandler handler;
   private final boolean versioned;
 
-  public KubernetesResourceProperties(KubernetesHandler handler, boolean versioned) {
-    this.handler = handler;
+  public KubernetesResourceProperties(@Nonnull KubernetesHandler handler, boolean versioned) {
+    this.handler = Objects.requireNonNull(handler);
     this.versioned = versioned;
   }
 

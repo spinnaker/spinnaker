@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
+import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials.KubernetesKindStatus
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
@@ -42,7 +42,7 @@ class KubernetesV2CredentialsSpec extends Specification {
   KubernetesKindRegistry.Factory kindRegistryFactory = new KubernetesKindRegistry.Factory(
     new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties())
   )
-  NamerRegistry namerRegistry = new NamerRegistry([new KubernetesManifestNamer()])
+  KubernetesNamerRegistry namerRegistry = new KubernetesNamerRegistry([new KubernetesManifestNamer()])
   ConfigFileService configFileService = new ConfigFileService()
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
 

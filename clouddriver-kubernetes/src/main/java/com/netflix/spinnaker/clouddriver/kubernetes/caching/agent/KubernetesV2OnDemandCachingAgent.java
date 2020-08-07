@@ -39,8 +39,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
-import com.netflix.spinnaker.moniker.Namer;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,7 +58,6 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   private static final String CACHE_RESULTS_KEY = "cacheResults";
   private static final String MONIKER_KEY = "moniker";
   private static final String DETAILS_KEY = "details";
-  private final Namer<KubernetesManifest> namer;
 
   protected KubernetesV2OnDemandCachingAgent(
       KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
@@ -70,11 +67,6 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       int agentCount,
       Long agentInterval) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
-    namer =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(namedAccountCredentials.getName())
-            .withResource(KubernetesManifest.class);
 
     metricsSupport =
         new OnDemandMetricsSupport(
@@ -87,15 +79,13 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     Map<String, Object> details = defaultIntrospectionDetails();
 
     Long start = System.currentTimeMillis();
-    Map<KubernetesKind, List<KubernetesManifest>> primaryResource;
-    primaryResource = loadPrimaryResourceList();
+    Map<KubernetesKind, List<KubernetesManifest>> primaryResource = loadPrimaryResourceList();
 
     details.put("timeSpentInKubectlMs", System.currentTimeMillis() - start);
 
     List<String> primaryKeys =
         primaryResource.values().stream()
             .flatMap(Collection::stream)
-            .map(rs -> objectMapper.convertValue(rs, KubernetesManifest.class))
             .map(mf -> Keys.InfrastructureCacheKey.createKey(mf, accountName))
             .collect(Collectors.toList());
 
@@ -253,7 +243,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
             .put(CACHE_RESULTS_KEY, jsonResult)
             .put(PROCESSED_COUNT_KEY, 0)
             .put(PROCESSED_TIME_KEY, -1)
-            .put(MONIKER_KEY, namer.deriveMoniker(manifest))
+            .put(MONIKER_KEY, credentials.getNamer().deriveMoniker(manifest))
             .build();
 
     Map<String, Collection<String>> relationships = new HashMap<>();

@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesModelUtil
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 import io.kubernetes.client.openapi.models.V1PodStatus;
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
     return null;
   }
 
-  private KubernetesV2Instance(KubernetesManifest manifest, String key) {
+  private KubernetesV2Instance(KubernetesManifest manifest, String key, Moniker moniker) {
     this.account = ((Keys.InfrastructureCacheKey) Keys.parseKey(key).get()).getAccount();
     this.name = manifest.getUid();
     this.humanReadableName = manifest.getFullResourceName();
@@ -73,12 +72,7 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
     this.apiVersion = manifest.getApiVersion();
     this.kind = manifest.getKind();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
-    this.moniker =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(account)
-            .withResource(KubernetesManifest.class)
-            .deriveMoniker(manifest);
+    this.moniker = moniker;
 
     this.health = new ArrayList<>();
     V1PodStatus status =
@@ -107,7 +101,8 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
       return null;
     }
 
-    return new KubernetesV2Instance(manifest, cd.getId());
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(cd);
+    return new KubernetesV2Instance(manifest, cd.getId(), moniker);
   }
 
   public LoadBalancerInstance toLoadBalancerInstance() {

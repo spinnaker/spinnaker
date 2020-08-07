@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
@@ -34,11 +33,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanScale;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
-import com.netflix.spinnaker.moniker.Namer;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -50,7 +47,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   private final KubernetesDeployManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final ArtifactProvider provider;
-  private final Namer<KubernetesManifest> namer;
   @Nonnull private final String accountName;
   private static final String OP_NAME = "DEPLOY_KUBERNETES_MANIFEST";
 
@@ -60,11 +56,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     this.credentials = description.getCredentials().getCredentials();
     this.provider = provider;
     this.accountName = description.getCredentials().getName();
-    this.namer =
-        NamerRegistry.lookup()
-            .withProvider(KubernetesCloudProvider.ID)
-            .withAccount(accountName)
-            .withResource(KubernetesManifest.class);
   }
 
   private static Task getTask() {
@@ -200,7 +191,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
         applyTraffic(traffic, manifest);
       }
 
-      namer.applyMoniker(manifest, moniker);
+      credentials.getNamer().applyMoniker(manifest, moniker);
       manifest.setName(converter.getDeployedName(artifact));
 
       getTask()

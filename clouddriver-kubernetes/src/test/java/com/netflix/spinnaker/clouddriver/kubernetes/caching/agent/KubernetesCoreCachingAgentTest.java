@@ -47,9 +47,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.moniker.Namer;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -93,6 +95,7 @@ final class KubernetesCoreCachingAgentTest {
   private static final ResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler());
+  private static final Namer<KubernetesManifest> NAMER = new KubernetesManifestNamer();
 
   /** A test Deployment manifest */
   private static KubernetesManifest deploymentManifest() {
@@ -146,6 +149,7 @@ final class KubernetesCoreCachingAgentTest {
                   }
                   return result.build();
                 });
+    when(v2Credentials.getNamer()).thenReturn(NAMER);
     return v2Credentials;
   }
 

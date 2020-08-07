@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
@@ -48,11 +47,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourceProperty
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlException;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
+import com.netflix.spinnaker.moniker.Namer;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition;
 import java.util.*;
@@ -128,6 +128,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Supplier<ImmutableList<String>> liveNamespaceSupplier =
       Memoizer.memoizeWithExpiration(
           this::namespaceSupplier, NAMESPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
+  @Getter private final Namer<KubernetesManifest> namer;
 
   private KubernetesV2Credentials(
       Registry registry,
@@ -136,7 +137,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory,
       KubernetesKindRegistry.Factory kindRegistryFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-      String kubeconfigFile) {
+      String kubeconfigFile,
+      Namer<KubernetesManifest> manifestNamer) {
     this.registry = registry;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
@@ -189,6 +191,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.metrics = managedAccount.isMetrics();
 
     this.debug = managedAccount.isDebug();
+    this.namer = manifestNamer;
   }
 
   /**
@@ -689,7 +692,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @RequiredArgsConstructor
   public static class Factory implements KubernetesCredentialFactory<KubernetesV2Credentials> {
     private final Registry spectatorRegistry;
-    private final NamerRegistry namerRegistry;
+    private final KubernetesNamerRegistry kubernetesNamerRegistry;
     private final KubectlJobExecutor jobExecutor;
     private final ConfigFileService configFileService;
     private final AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory;
@@ -698,12 +701,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     public KubernetesV2Credentials build(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      NamerRegistry.lookup()
-          .withProvider(KubernetesCloudProvider.ID)
-          .withAccount(managedAccount.getName())
-          .setNamer(
-              KubernetesManifest.class,
-              namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
+      Namer<KubernetesManifest> manifestNamer =
+          kubernetesNamerRegistry.get(managedAccount.getNamingStrategy());
       return new KubernetesV2Credentials(
           spectatorRegistry,
           jobExecutor,
@@ -711,7 +710,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           resourcePropertyRegistryFactory,
           kindRegistryFactory,
           kubernetesSpinnakerKindMap,
-          getKubeconfigFile(configFileService, managedAccount));
+          getKubeconfigFile(configFileService, managedAccount),
+          manifestNamer);
     }
   }
 }

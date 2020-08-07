@@ -17,20 +17,22 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
-import lombok.AllArgsConstructor;
+import com.google.common.base.Strings;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NonnullByDefault
+@Value
 public class KubernetesCachingProperties {
-  boolean ignore;
-  String application;
+  private final boolean ignore;
+  private final String application;
 
-  public String getApplication() {
-    return this.application;
+  @Builder
+  @ParametersAreNullableByDefault
+  private KubernetesCachingProperties(boolean ignore, String application) {
+    this.ignore = ignore;
+    this.application = Strings.nullToEmpty(application);
   }
 }
