@@ -20,13 +20,20 @@ package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 
 /**
  * Implementations apply changes to a [ResourceSpec] such as adding default values, applying
  * opinions, or resolving references.
  */
-interface Resolver<T : ResourceSpec> : (Resource<T>) -> Resource<T> {
+interface Resolver<T : ResourceSpec> : SpinnakerExtensionPoint, (Resource<T>) -> Resource<T> {
   val supportedKind: SupportedKind<T>
+
+  override fun invoke(resource: Resource<T>): Resource<T>
+
+  @JvmDefault
+  val name: String
+    get() = extensionClass.simpleName
 }
 
 fun <T : ResourceSpec> Iterable<Resolver<*>>.supporting(
