@@ -30,5 +30,5 @@ class GoogleSubnet implements Subnet {
   String account
   String region
   String selfLink
-  String purpose = "n/a"
+  String purpose
 }

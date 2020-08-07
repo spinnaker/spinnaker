@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -79,6 +80,34 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             portRange: description.portRange
         )
         List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(googleHttpLoadBalancer.view)
+        services?.each { GoogleBackendService service ->
+          if (!service.healthCheck) {
+            errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
+              "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
+          }
+        }
+        break
+      case GoogleLoadBalancerType.INTERNAL_MANAGED:
+
+        // portRange must be a single port.
+        try {
+          Integer.parseInt(description.portRange)
+        } catch (NumberFormatException _) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
+        }
+
+        // Each backend service must have a health check.
+        def googleInternalHttpLoadBalancer = new GoogleInternalHttpLoadBalancer(
+            name: description.loadBalancerName,
+            defaultService: description.defaultService,
+            hostRules: description.hostRules,
+            certificate: description.certificate,
+            ipAddress: description.ipAddress,
+            ipProtocol: description.ipProtocol,
+            portRange: description.portRange
+        )
+        List<GoogleBackendService> services = Utils.getBackendServicesFromInternalHttpLoadBalancerView(googleInternalHttpLoadBalancer.view)
         services?.each { GoogleBackendService service ->
           if (!service.healthCheck) {
             errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",

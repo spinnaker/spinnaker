@@ -67,6 +67,7 @@ class GCEUtil {
   public static final String REGIONAL_LOAD_BALANCER_NAMES = "load-balancer-names"
   public static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
   public static final String BACKEND_SERVICE_NAMES = "backend-service-names"
+  public static final String REGION_BACKEND_SERVICE_NAMES = "region-backend-service-names"
   public static final String LOAD_BALANCING_POLICY = "load-balancing-policy"
   public static final String SELECT_ZONES = 'select-zones'
   public static final String AUTOSCALING_POLICY = 'autoscaling-policy'
@@ -681,6 +682,10 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/global/sslCertificates/$certName"
   }
 
+  static String buildRegionalCertificateUrl(String projectName, String region, String certName) {
+    return GCE_API_PREFIX + "$projectName/regions/$region/sslCertificates/$certName"
+  }
+
   static String buildHttpHealthCheckUrl(String projectName, String healthCheckName) {
     return GCE_API_PREFIX + "$projectName/global/httpHealthChecks/$healthCheckName"
   }
@@ -691,6 +696,10 @@ class GCEUtil {
 
   static String buildHealthCheckUrl(String projectName, String healthCheckName) {
     return GCE_API_PREFIX + "$projectName/global/healthChecks/$healthCheckName"
+  }
+
+  static String buildRegionalHealthCheckUrl(String projectName, String region, String healthCheckName) {
+    return GCE_API_PREFIX + "$projectName/regions/$region/healthChecks/$healthCheckName"
   }
 
   static String buildInstanceTemplateUrl(String projectName, String templateName) {
@@ -1087,6 +1096,72 @@ class GCEUtil {
           googleOperationPoller.waitForGlobalOperation(compute, project, updateOp.getName(), null,
             task, 'compute.backendService.update', phase)
           task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Http(s) load balancer backend service ${backendServiceName}."
+        }
+      }
+    }
+  }
+
+  static void addInternalHttpLoadBalancerBackends(Compute compute,
+                                          ObjectMapper objectMapper,
+                                          String project,
+                                          GoogleServerGroup.View serverGroup,
+                                          GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                          Task task,
+                                          String phase,
+                                          GoogleOperationPoller googleOperationPoller,
+                                          GoogleExecutorTraits executor) {
+    String serverGroupName = serverGroup.name
+    String region = serverGroup.region
+    Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+    Map<String, String> metadataMap = buildMapFromMetadata(instanceMetadata)
+    def internalHttpLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+
+    def internalHttpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, internalHttpLoadBalancersInMetadata, task, phase)
+      .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED }
+    if (!internalHttpLoadBalancersToAddTo) {
+      log.warn("Cache call missed for Internal Http load balancers ${internalHttpLoadBalancersInMetadata}, making a call to GCP")
+      List<ForwardingRule> projectForwardingRules = executor.timeExecute(
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+      ).getItems()
+      internalHttpLoadBalancersToAddTo = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+        forwardingRule.name in serverGroup.loadBalancers && forwardingRule.target &&
+          Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]
+      }
+    }
+
+    if (internalHttpLoadBalancersToAddTo) {
+      String policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
+      if (!policyJson) {
+        updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
+      }
+      GoogleHttpLoadBalancingPolicy policy = objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy)
+
+      List<String> backendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",") ?: []
+      if (backendServiceNames) {
+        backendServiceNames.each { String backendServiceName ->
+          BackendService backendService = executor.timeExecute(
+            compute.regionBackendServices().get(project, region, backendServiceName),
+            "compute.regionBackendServices.get",
+            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
+          if (serverGroup.regional) {
+            backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
+          } else {
+            backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
+          }
+          if (backendService.backends == null) {
+            backendService.backends = []
+          }
+          backendService.backends << backendToAdd
+          def updateOp = executor.timeExecute(
+            compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+            "compute.regionBackendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_REGIONAL)
+          googleOperationPoller.waitForGlobalOperation(compute, project, updateOp.getName(), null,
+            task, 'compute.regionBackendService.update', phase)
+          task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Internal Http(s) load balancer backend service ${backendServiceName}."
         }
       }
     }
@@ -1498,6 +1573,67 @@ class GCEUtil {
     }
   }
 
+  static void destroyInternalHttpLoadBalancerBackends(Compute compute,
+                                              String project,
+                                              GoogleServerGroup.View serverGroup,
+                                              GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                              Task task,
+                                              String phase,
+                                              GoogleOperationPoller googleOperationPoller,
+                                              GoogleExecutorTraits executor) {
+    def serverGroupName = serverGroup.name
+    def region = serverGroup.region
+    def httpLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?: []
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following Internal Http load balancers: ${httpLoadBalancersInMetadata}")
+
+    log.debug("Looking up the following Internal Http load balancers in the cache: ${httpLoadBalancersInMetadata}")
+    def foundInternalHttpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL_MANAGED
+    }
+    if (!foundInternalHttpLoadBalancers) {
+      log.warn("Cache call missed for Internal Http load balancers ${httpLoadBalancersInMetadata}, making a call to GCP")
+      List<ForwardingRule> projectForwardingRules = executor.timeExecute(
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+      ).getItems()
+      foundInternalHttpLoadBalancers = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS] &&
+          forwardingRule.name in serverGroup.loadBalancers
+      }
+    }
+
+    def notDeleted = httpLoadBalancersInMetadata - (foundInternalHttpLoadBalancers.collect { it.name })
+    if (notDeleted) {
+      log.warn("Could not locate the following Internal Http load balancers: ${notDeleted}. Proceeding with other backend deletions without mutating them.")
+    }
+
+    if (foundInternalHttpLoadBalancers) {
+      Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+      Map metadataMap = buildMapFromMetadata(instanceMetadata)
+      List<String> backendServiceNames = metadataMap?.get(REGION_BACKEND_SERVICE_NAMES)?.split(",")
+      if (backendServiceNames) {
+        backendServiceNames.each { String backendServiceName ->
+          BackendService backendService = executor.timeExecute(
+            compute.regionBackendServices().get(project, region, backendServiceName),
+            "compute.regionBackendService.get",
+            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          backendService?.backends?.removeAll { Backend backend ->
+            (getLocalName(backend.group) == serverGroupName) &&
+              (Utils.getRegionFromGroupUrl(backend.group) == serverGroup.region)
+          }
+          def updateOp = executor.timeExecute(
+            compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+            "compute.regionBackendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          googleOperationPoller.waitForRegionalOperation(compute, project, region, updateOp.getName(), null,
+            task, 'compute.regionBackendService.update', phase)
+          task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Internal Http(s) load balancer backend service ${backendServiceName}."
+        }
+      }
+    }
+  }
+
   static Boolean isBackendServiceInUse(List<UrlMap> projectUrlMaps, String backendServiceName) {
     def defaultServicesMatch = projectUrlMaps?.findAll { UrlMap urlMap ->
       getLocalName(urlMap.getDefaultService()) == backendServiceName
@@ -1629,6 +1765,47 @@ class GCEUtil {
     return retrievedTargetProxy
   }
 
+  def static getRegionTargetProxyFromRule(Compute compute, String project, String region, ForwardingRule forwardingRule, String phase, SafeRetry safeRetry, GoogleExecutorTraits executor) {
+    String target = forwardingRule.getTarget()
+    GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(target)
+    String targetProxyName = getLocalName(target)
+
+    def operationName
+    def proxyGet = null
+    switch (targetProxyType) {
+      case GoogleTargetProxyType.HTTP:
+        proxyGet = { executor.timeExecute(
+          compute.regionTargetHttpProxies().get(project, region, targetProxyName),
+          "compute.regionTargetHttpProxies.get",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL)
+        }
+        operationName = "compute.regionTargetHttpProxies.get"
+        break
+      case GoogleTargetProxyType.HTTPS:
+        proxyGet = { executor.timeExecute(
+          compute.regionTargetHttpsProxies().get(project, region, targetProxyName),
+          "compute.regionTargetHttpsProxies.get",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL)
+        }
+        operationName = "compute.regionTargetHttpsProxies.get"
+        break
+      default:
+        log.warn("Unexpected target proxy type for $targetProxyName in $region.")
+        return null
+        break
+    }
+    def retrievedTargetProxy = safeRetry.doRetry(
+      proxyGet,
+      "Region Target proxy $targetProxyName",
+      null,
+      [400, 403, 412],
+      [],
+      [action: "get", phase: phase, operation: operationName, (executor.TAG_SCOPE): executor.SCOPE_REGIONAL, (executor.TAG_REGION): region],
+      executor.registry
+    )
+    return retrievedTargetProxy
+  }
+
   /**
    * Deletes an L7/SSL LB global listener, i.e. a global forwarding rule and its target proxy.
    * @param compute
@@ -1713,6 +1890,72 @@ class GCEUtil {
         [400, 412],
         [404],
         [action: "delete", phase: phase, operation: operation_name, (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+        executor.registry
+      ) as Operation
+      return result
+    }
+  }
+  static Operation deleteRegionalListener(Compute compute,
+                                        String project,
+                                        String region,
+                                        String forwardingRuleName,
+                                        String phase,
+                                        SafeRetry safeRetry,
+                                        GoogleExecutorTraits executor) {
+    ForwardingRule ruleToDelete = safeRetry.doRetry(
+      { executor.timeExecute(
+        compute.forwardingRules().get(project, region, forwardingRuleName),
+        "compute.forwardingRules.get",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      },
+      "forwarding rule ${forwardingRuleName}",
+      null,
+      [400, 412],
+      [404],
+      [action: "get", phase: phase, operation: "compute.forwardingRules.get", (executor.TAG_SCOPE): executor.SCOPE_REGIONAL, (executor.TAG_REGION): region],
+      executor.registry
+    ) as ForwardingRule
+    if (ruleToDelete) {
+      def operation_name
+      executor.timeExecute(
+        compute.forwardingRules().delete(project, region, ruleToDelete.getName()),
+        "compute.forwardingRules.delete",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      String targetProxyLink = ruleToDelete.getTarget()
+      String targetProxyName = getLocalName(targetProxyLink)
+      GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(targetProxyLink)
+      Closure deleteProxyClosure = { null }
+      switch (targetProxyType) {
+        case GoogleTargetProxyType.HTTP:
+          deleteProxyClosure = {
+            executor.timeExecute(
+              compute.regionTargetHttpProxies().delete(project, region, targetProxyName),
+              "compute.regionTargetHttpProxies.delete",
+              executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          }
+          operation_name = "compute.regionTargetHttpProxies.delete"
+          break
+        case GoogleTargetProxyType.HTTPS:
+          deleteProxyClosure = {
+            executor.timeExecute(
+              compute.regionTargetHttpsProxies().delete(project, region, targetProxyName),
+              "compute.regionTargetHttpsProxies.delete",
+              executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+          }
+          operation_name = "compute.regionTargetHttpsProxies.delete"
+          break
+        default:
+          log.warn("Unexpected target proxy type for $targetProxyName.")
+          break
+      }
+
+      Operation result = safeRetry.doRetry(
+        deleteProxyClosure,
+        "region target proxy ${targetProxyName}",
+        null,
+        [400, 412],
+        [404],
+        [action: "delete", phase: phase, operation: operation_name, (executor.TAG_SCOPE): executor.SCOPE_REGIONAL, (executor.TAG_REGION): region],
         executor.registry
       ) as Operation
       return result
@@ -1962,6 +2205,24 @@ class GCEUtil {
         compute.healthChecks().list(project).setPageToken(nextPageToken),
         "compute.healthChecks.list",
         agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
+
+      executedAtLeastOnce = true
+      nextPageToken = healthCheckList.getNextPageToken()
+      healthChecks.addAll(healthCheckList.getItems() ?: [])
+    }
+    return healthChecks
+  }
+
+
+  static List<HealthCheck> fetchRegionalHealthChecks(GoogleExecutorTraits agent, Compute compute, String project, String region) {
+    Boolean executedAtLeastOnce = false
+    String nextPageToken = null
+    List<HealthCheck> healthChecks = []
+    while (!executedAtLeastOnce || nextPageToken) {
+      HealthCheckList healthCheckList = agent.timeExecute(
+        compute.regionHealthChecks().list(project, region).setPageToken(nextPageToken),
+        "compute.regionHealthChecks.list",
+        agent.TAG_SCOPE, agent.SCOPE_REGIONAL, agent.TAG_REGION, region)
 
       executedAtLeastOnce = true
       nextPageToken = healthCheckList.getNextPageToken()

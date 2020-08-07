@@ -89,6 +89,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       case GoogleLoadBalancerType.INTERNAL:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleInternalLoadBalancer)
         break
+      case GoogleLoadBalancerType.INTERNAL_MANAGED:
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleInternalHttpLoadBalancer)
+        break
       case GoogleLoadBalancerType.HTTP:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleHttpLoadBalancer)
         break
@@ -131,6 +134,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         case GoogleLoadBalancerType.INTERNAL:
           // A server group shouldn't be internally and externally (L4/L7/SSL) load balanced at the same time.
           isDisabled = Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+          break
+        case GoogleLoadBalancerType.INTERNAL_MANAGED:
+          isDisabled = Utils.determineInternalHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
           break
         case GoogleLoadBalancerType.NETWORK:
           isDisabled = serverGroup.disabled
@@ -201,15 +207,12 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         switch (loadBalancerType) {
           case (GoogleLoadBalancerType.HTTP):
             GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
-            if (httpView.defaultService) {
-              backendServices << httpView?.defaultService.name
-            }
-            httpView?.hostRules?.each { GoogleHostRule hostRule ->
-              backendServices << hostRule?.pathMatcher?.defaultService?.name
-              hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
-                backendServices << pathRule.backendService.name
-              }
-            }
+            backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView).collect { it.name }
+            urlMapName = httpView.urlMapName
+            break
+          case (GoogleLoadBalancerType.INTERNAL_MANAGED):
+            GoogleInternalHttpLoadBalancer.InternalHttpLbView httpView = view as GoogleInternalHttpLoadBalancer.InternalHttpLbView
+            backendServices = Utils.getBackendServicesFromInternalHttpLoadBalancerView(httpView).collect { it.name }
             urlMapName = httpView.urlMapName
             break
           case (GoogleLoadBalancerType.INTERNAL):
@@ -261,14 +264,6 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     }
 
     def backendServiceHealthChecks = [:]
-    if (view.loadBalancerType == GoogleLoadBalancerType.HTTP) {
-      GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
-      List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
-      backendServices?.each { GoogleBackendService backendService ->
-        backendServiceHealthChecks[backendService.name] = backendService.healthCheck.view
-      }
-    }
-
     String instancePort
     String loadBalancerPort
     String sessionAffinity
@@ -282,6 +277,16 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       case GoogleLoadBalancerType.HTTP:
         instancePort = 'http'
         loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+        List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
+        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck.view] }
+        break
+      case GoogleLoadBalancerType.INTERNAL_MANAGED:
+        instancePort = 'http'
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        GoogleInternalHttpLoadBalancer.InternalHttpLbView httpView = view as GoogleInternalHttpLoadBalancer.InternalHttpLbView
+        List<GoogleBackendService> backendServices = Utils.getBackendServicesFromInternalHttpLoadBalancerView(httpView)
+        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck.view] }
         break
       case GoogleLoadBalancerType.INTERNAL:
         GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View

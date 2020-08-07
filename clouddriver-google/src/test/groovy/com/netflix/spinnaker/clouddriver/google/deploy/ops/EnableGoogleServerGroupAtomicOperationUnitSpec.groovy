@@ -166,9 +166,9 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplate
 
-      2 * computeMock.forwardingRules() >> forwardingRulesMock
-      2 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
-      2 * forwardingRulesListMock.execute() >> forwardingRulesList
+      3 * computeMock.forwardingRules() >> forwardingRulesMock
+      3 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
+      3 * forwardingRulesListMock.execute() >> forwardingRulesList
 
       [TARGET_POOL_NAME_1, TARGET_POOL_NAME_2].each { targetPoolLocalName ->
         1 * computeMock.targetPools() >> targetPoolsMock
@@ -224,9 +224,9 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplate
 
-      2 * computeMock.forwardingRules() >> forwardingRulesMock
-      2 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
-      2 * forwardingRulesListMock.execute() >> forwardingRulesList2
+      3 * computeMock.forwardingRules() >> forwardingRulesMock
+      3 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
+      3 * forwardingRulesListMock.execute() >> forwardingRulesList2
 
       3 * computeMock.globalForwardingRules() >> globalForwardingRules
       3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList

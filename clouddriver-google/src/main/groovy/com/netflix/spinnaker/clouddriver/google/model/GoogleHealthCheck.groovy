@@ -48,6 +48,8 @@ class GoogleHealthCheck {
    */
   HealthCheckKind kind
 
+  String region
+
   /**
    * Name of the GCP certificate, if HTTPS/SSL.
    */
@@ -107,6 +109,7 @@ class GoogleHealthCheck {
     String selfLink = GoogleHealthCheck.this.selfLink
     String kind = GoogleHealthCheck.this.kind
     String target = GoogleHealthCheck.this.target
+    String region = GoogleHealthCheck.this.region
   }
 
   static enum HealthCheckType {

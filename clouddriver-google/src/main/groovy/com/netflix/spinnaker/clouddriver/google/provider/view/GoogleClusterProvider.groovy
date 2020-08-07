@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
@@ -220,7 +221,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       serverGroupData.each { CacheData serverGroupCacheData ->
         GoogleServerGroup serverGroup = serverGroupFromCacheData(serverGroupCacheData, clusterView.accountName, instances, securityGroups, loadBalancers)
         clusterView.serverGroups << serverGroup.view
-        clusterView.loadBalancers.addAll(serverGroup.loadBalancers*.view)
+        clusterView.loadBalancers.addAll(serverGroup.loadBalancers)
       }
       log.debug("Server groups added to cluster: ${clusterView?.serverGroups?.collect { it?.name }}")
     }
@@ -237,6 +238,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
           break
         case GoogleLoadBalancerType.HTTP:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleHttpLoadBalancer)
+          break
+        case GoogleLoadBalancerType.INTERNAL_MANAGED:
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleInternalHttpLoadBalancer)
           break
         case GoogleLoadBalancerType.NETWORK:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleNetworkLoadBalancer)
@@ -301,6 +305,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
         Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
     }
 
+    def internalHttpLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.INTERNAL_MANAGED }
+    def internalHttpDisabledStates = internalHttpLoadBalancers.collect { loadBalancer ->
+        Utils.determineInternalHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
+    }
+
     def sslLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.SSL }
     def sslDisabledStates = sslLoadBalancers.collect { loadBalancer ->
       Utils.determineSslLoadBalancerDisabledState(loadBalancer, serverGroup)
@@ -330,6 +339,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
     if (internalDisabledStates) {
       isDisabled &= internalDisabledStates.every { it }
+    }
+    if (internalHttpDisabledStates) {
+      isDisabled &= internalHttpDisabledStates.every { it }
     }
     if (sslDisabledStates) {
       isDisabled &= sslDisabledStates.every { it }

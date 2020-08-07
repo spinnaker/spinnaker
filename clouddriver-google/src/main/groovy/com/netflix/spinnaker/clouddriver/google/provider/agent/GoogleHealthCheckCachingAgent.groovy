@@ -90,6 +90,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       ret << new GoogleHealthCheck(
         name: hc.getName(),
         selfLink: hc.getSelfLink(),
+        region: "global",
         healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
         kind: GoogleHealthCheck.HealthCheckKind.httpHealthCheck,
         port: hc.getPort(),
@@ -120,6 +121,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       ret << new GoogleHealthCheck(
         name: hc.getName(),
         selfLink: hc.getSelfLink(),
+        region: "global",
         healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
         kind: GoogleHealthCheck.HealthCheckKind.httpsHealthCheck,
         port: hc.getPort(),
@@ -146,51 +148,73 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       { HealthCheckList list -> list.getItems() },
       "compute.healthChecks.list", TAG_SCOPE, SCOPE_GLOBAL
     )
-    healthChecks.each { HealthCheck hc ->
-      def newHC = new GoogleHealthCheck(
-        name: hc.getName(),
-        selfLink: hc.getSelfLink(),
-        kind: GoogleHealthCheck.HealthCheckKind.healthCheck,
-        checkIntervalSec: hc.getCheckIntervalSec(),
-        timeoutSec: hc.getTimeoutSec(),
-        healthyThreshold: hc.getHealthyThreshold(),
-        unhealthyThreshold: hc.getUnhealthyThreshold()
-      )
+    ret.addAll(healthChecks.collect { toGoogleHealthCheck(it, "global") })
+    def cachingAgent = this
+    credentials.regions.collect { it.name }.each { String region ->
+      List<HealthCheck> regionHealthChecks = new PaginatedRequest<HealthCheckList>(cachingAgent) {
+        @Override
+        protected ComputeRequest<HealthCheckList> request (String pageToken) {
+          return compute.regionHealthChecks().list(project, region).setPageToken(pageToken)
+        }
 
-      // Health checks of kind 'healthCheck' are all nested -- the actual health check is contained
-      // in a field inside a wrapper HealthCheck object. The wrapper object specifies the type of nested
-      // health check as a string, and the proper field is populated based on the type.
-      switch(hc.getType()) {
-        case 'HTTP':
-          newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP
-          newHC.port = hc.getHttpHealthCheck().getPort()
-          newHC.requestPath = hc.getHttpHealthCheck().getRequestPath()
-          break
-        case 'HTTPS':
-          newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTPS
-          newHC.port = hc.getHttpsHealthCheck().getPort()
-          newHC.requestPath = hc.getHttpsHealthCheck().getRequestPath()
-          break
-        case 'TCP':
-          newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.TCP
-          newHC.port = hc.getTcpHealthCheck().getPort()
-          break
-        case 'SSL':
-          newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.SSL
-          newHC.port = hc.getSslHealthCheck().getPort()
-          break
-        case 'UDP':
-          newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.UDP
-          newHC.port = hc.getUdpHealthCheck().getPort()
-          break
-        default:
-          log.warn("Health check ${hc.getName()} has unknown type ${hc.getType()}.")
-          return
-          break
+        @Override
+        String getNextPageToken(HealthCheckList t) {
+          return t.getNextPageToken();
+        }
       }
-      ret << newHC
+      .timeExecute(
+          { HealthCheckList list -> list.getItems() },
+          "compute.regionHealthChecks.list", TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
+        )
+      ret.addAll(regionHealthChecks.collect { toGoogleHealthCheck(it, region) })
     }
     ret
+  }
+
+  private static GoogleHealthCheck toGoogleHealthCheck(HealthCheck hc, String region) {
+    def newHC = new GoogleHealthCheck(
+      name: hc.getName(),
+      selfLink: hc.getSelfLink(),
+      region: region,
+      kind: GoogleHealthCheck.HealthCheckKind.healthCheck,
+      checkIntervalSec: hc.getCheckIntervalSec(),
+      timeoutSec: hc.getTimeoutSec(),
+      healthyThreshold: hc.getHealthyThreshold(),
+      unhealthyThreshold: hc.getUnhealthyThreshold()
+    )
+
+    // Health checks of kind 'healthCheck' are all nested -- the actual health check is contained
+    // in a field inside a wrapper HealthCheck object. The wrapper object specifies the type of nested
+    // health check as a string, and the proper field is populated based on the type.
+    switch(hc.getType()) {
+      case 'HTTP':
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP
+        newHC.port = hc.getHttpHealthCheck().getPort()
+        newHC.requestPath = hc.getHttpHealthCheck().getRequestPath()
+        break
+      case 'HTTPS':
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTPS
+        newHC.port = hc.getHttpsHealthCheck().getPort()
+        newHC.requestPath = hc.getHttpsHealthCheck().getRequestPath()
+        break
+      case 'TCP':
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.TCP
+        newHC.port = hc.getTcpHealthCheck().getPort()
+        break
+      case 'SSL':
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.SSL
+        newHC.port = hc.getSslHealthCheck().getPort()
+        break
+      case 'UDP':
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.UDP
+        newHC.port = hc.getUdpHealthCheck().getPort()
+        break
+      default:
+        log.warn("Health check ${hc.getName()} has unknown type ${hc.getType()}.")
+        return
+        break
+    }
+    return newHC
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<GoogleHealthCheck> healthCheckList) {

@@ -77,7 +77,8 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
       cidrBlock: subnet.ipCidrRange,
       account: parts.account,
       region: parts.region,
-      selfLink: subnet.selfLink
+      selfLink: subnet.selfLink,
+      purpose: subnet.purpose ?: "n/a"
     )
   }
 

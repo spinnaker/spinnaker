@@ -30,7 +30,7 @@ import com.google.api.services.compute.model.NamedPort
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
   @JsonIgnore
-  static final String HTTP_DEFAULT_PORT_NAME = 'http'
+  public static final String HTTP_DEFAULT_PORT_NAME = 'http'
 
   @JsonIgnore
   static final Integer HTTP_DEFAULT_PORT = 80

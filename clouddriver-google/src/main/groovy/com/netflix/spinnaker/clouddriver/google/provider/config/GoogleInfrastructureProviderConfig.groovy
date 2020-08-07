@@ -153,6 +153,11 @@ class GoogleInfrastructureProviderConfig {
                                                                          objectMapper,
                                                                          registry,
                                                                          region)
+          newlyAddedAgents << new GoogleInternalHttpLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
+                                                                         credentials,
+                                                                         objectMapper,
+                                                                         registry,
+                                                                         region)
           newlyAddedAgents << new GoogleNetworkLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                         credentials,
                                                                         objectMapper,
