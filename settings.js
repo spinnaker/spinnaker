@@ -5,7 +5,7 @@
 const apiHost = process.env.API_HOST || 'http://localhost:8084';
 const atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
 const authEndpoint = process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
-const authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
+const authEnabled = process.env.AUTH_ENABLED === 'true';
 const bakeryDetailUrl =
   process.env.BAKERY_DETAIL_URL || apiHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
 const canaryAccount = process.env.CANARY_ACCOUNT || '';
