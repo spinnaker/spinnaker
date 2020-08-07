@@ -1566,10 +1566,10 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/mocks/-/mocks-1.0.6.tgz#8514fdc2f9c6c149e6fdb1b533c3fbd3d8693db9"
   integrity sha512-KfKtlBR6r1OLqafA9MgpzxDFYIC9Ohr79CvkWghnEXL73cNR+18OwGoJktgeeqk2tHP0J2Glrf2Wh3xU5/dRzw==
 
-"@spinnaker/styleguide@^1.0.20":
-  version "1.0.20"
-  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.20.tgz#ad397e134c29f4a33a2ecc5f1235950708aa1b4e"
-  integrity sha512-N3ebcvdZ/O/8KztAQvI9QIbD5zbgfJnHnGJg8Li/yHwBncGxMs3xat7I1Dd6UYKi/wpE/bUBRyASXuFhggh73w==
+"@spinnaker/styleguide@^1.0.21":
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.21.tgz#2a46cc7d00f91b87a9ae63223b78e6f00ddf3742"
+  integrity sha512-y67yK6vB8EPEeMFSmcqi8B6i3K+7/6tW9OyeTQhchGa+eMUJLYa2ABpXzMN/CK68Q465Bv+LyyGUGXE5KMeaEA==
 
 "@storybook/addons@5.3.19":
   version "5.3.19"
