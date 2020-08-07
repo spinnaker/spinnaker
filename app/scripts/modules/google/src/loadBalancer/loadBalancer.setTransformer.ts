@@ -15,10 +15,12 @@ export class GceLoadBalancerSetTransformer {
         name: loadBalancer.name,
         certificate: loadBalancer.certificate,
         ipAddress: loadBalancer.ipAddress,
+        subnet: loadBalancer.subnet,
       };
     });
 
     normalized.name = normalized.urlMapName;
+    delete normalized.subnet;
     return normalized;
   }
 

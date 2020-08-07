@@ -46,6 +46,14 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONEN
           .value();
       };
 
+      this.getSessionAffinitySuggestions = () => {
+        if (this.loadBalancer.loadBalancerType === 'HTTP') {
+          return ['None', 'Client IP', 'Generated Cookie'];
+        } else {
+          return ['None', 'Client IP', 'Generated Cookie', 'Header Field', 'HTTP Cookie'];
+        }
+      };
+
       this.getAllServiceNames = () => {
         return this.command.backingData.backendServices
           .filter(service => service.account === this.loadBalancer.credentials)

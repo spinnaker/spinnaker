@@ -13,6 +13,7 @@ module(GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE, []).directive('gceNetworkSelectFi
       component: '=',
       field: '@',
       account: '=',
+      helpKey: '@',
       onChange: '&',
       labelColumns: '@',
       fieldColumns: '@',

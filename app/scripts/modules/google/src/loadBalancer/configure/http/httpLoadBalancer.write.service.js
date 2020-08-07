@@ -33,9 +33,9 @@ angular
       const job = {
         type: 'deleteLoadBalancer',
         loadBalancerName: loadBalancer.listeners[0].name,
-        regions: ['global'],
-        region: 'global',
-        loadBalancerType: 'HTTP',
+        regions: [loadBalancer.region || 'global'],
+        region: loadBalancer.region || 'global',
+        loadBalancerType: loadBalancer.loadBalancerType,
         cloudProvider: loadBalancer.provider,
         credentials: loadBalancer.account,
       };

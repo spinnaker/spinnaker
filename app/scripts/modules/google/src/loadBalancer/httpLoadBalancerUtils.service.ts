@@ -8,8 +8,7 @@ export class GceHttpLoadBalancerUtils {
   public isHttpLoadBalancer(lb: IGceLoadBalancer): lb is IGceHttpLoadBalancer {
     return (
       (lb.provider === 'gce' || lb.type === 'gce') &&
-      lb.loadBalancerType === 'HTTP' &&
-      lb.region === GceHttpLoadBalancerUtils.REGION
+      (lb.loadBalancerType === 'HTTP' || lb.loadBalancerType === 'INTERNAL_MANAGED')
     );
   }
 

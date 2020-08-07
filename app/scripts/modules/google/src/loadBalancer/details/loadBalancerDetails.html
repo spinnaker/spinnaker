@@ -110,7 +110,7 @@
             </copy-to-clipboard>
           </dd>
         </div>
-        <div ng-if="ctrl.isHttpLoadBalancer(loadBalancer)">
+        <div ng-if="ctrl.loadBalancer.loadBalancerType === 'HTTP'">
           <dt>DNS Names</dt>
           <dd>
             <ul>

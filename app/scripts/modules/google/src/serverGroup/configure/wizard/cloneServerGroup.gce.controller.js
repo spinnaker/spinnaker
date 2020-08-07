@@ -287,6 +287,10 @@ angular
                 metadata['global-load-balancer-names'] = metadata['global-load-balancer-names'].concat(
                   loadBalancerDetails.listeners.map(listener => listener.name),
                 );
+              } else if (loadBalancerDetails.loadBalancerType === 'INTERNAL_MANAGED') {
+                metadata['load-balancer-names'] = metadata['load-balancer-names'].concat(
+                  loadBalancerDetails.listeners.map(listener => listener.name),
+                );
               } else if (loadBalancerDetails.loadBalancerType === 'SSL') {
                 metadata['global-load-balancer-names'].push(name);
               } else if (loadBalancerDetails.loadBalancerType === 'TCP') {

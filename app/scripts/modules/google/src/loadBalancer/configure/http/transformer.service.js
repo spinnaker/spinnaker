@@ -85,6 +85,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
         command.portRange = listener.port;
         command.certificate = listener.certificate || null;
         command.ipAddress = listener.ipAddress;
+        command.subnet = listener.subnet;
 
         return command;
       });
@@ -103,6 +104,8 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
         healthChecks,
         hostRules,
         listeners,
+        network: loadBalancer.network,
+        region: loadBalancer.region,
         urlMapName: loadBalancer.urlMapName,
         credentials: loadBalancer.credentials || loadBalancer.account,
       };

@@ -104,6 +104,8 @@ angular
                 resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
               } else if ($scope.loadBalancer.loadBalancerType === 'TCP') {
                 resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
+              } else if ($scope.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+                resourceTypes = ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];
               } else {
                 // $scope.loadBalancer.loadBalancerType === 'HTTP'
                 resourceTypes = ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];

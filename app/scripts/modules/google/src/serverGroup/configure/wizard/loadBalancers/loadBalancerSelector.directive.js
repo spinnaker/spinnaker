@@ -41,6 +41,7 @@ angular
             _.some(selected, s => {
               return (
                 index[s].loadBalancerType === 'HTTP' ||
+                index[s].loadBalancerType === 'INTERNAL_MANAGED' ||
                 index[s].loadBalancerType === 'SSL' ||
                 index[s].loadBalancerType === 'TCP'
               );

@@ -33,6 +33,20 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
           .map(certificate => certificate.name);
       };
 
+      this.getSubnets = () => {
+        const ret = this.command.backingData.subnetMap[this.command.loadBalancer.network]
+          .filter(subnet => subnet.region === this.command.loadBalancer.region)
+          .map(subnet => subnet.name);
+        return _.uniq(ret);
+      };
+
+      this.getInternalAddresses = () => {
+        const ret = this.command.backingData.addresses.filter(
+          address => address.addressType === 'INTERNAL' && address.subnetwork.split('/').pop() === this.listener.subnet,
+        );
+        return ret;
+      };
+
       this.updateName = (listener, appName) => {
         listener.name = this.getName(listener, appName);
       };

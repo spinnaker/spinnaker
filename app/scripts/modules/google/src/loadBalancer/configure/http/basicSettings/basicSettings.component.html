@@ -39,12 +39,27 @@
           </account-select-field>
         </div>
       </div>
-      <div class="form-group">
-        <div class="col-md-2 sm-label-right">Region</div>
-        <div class="col-md-3">
-          <input readonly class="form-control input-sm" ng-model="$ctrl.loadBalancer.region" />
-        </div>
-      </div>
+      <gce-region-select-field
+        ng-if="$ctrl.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED'"
+        label-columns="2"
+        field-columns="8"
+        component="$ctrl.loadBalancer"
+        field="region"
+        account="$ctrl.loadBalancer.credentials"
+        on-change="$ctrl.command.onRegionSelected($ctrl.command)"
+        regions="$ctrl.command.backingData.regions"
+      ></gce-region-select-field>
+      <gce-network-select-field
+        ng-if="$ctrl.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED'"
+        label-columns="2"
+        field-columns="8"
+        component="$ctrl.loadBalancer"
+        field="network"
+        helpKey="gce.internalHttpLoadBalancer.network"
+        account="$ctrl.loadBalancer.credentials"
+        networks="$ctrl.command.backingData.internalHttpLbNetworks"
+      ></gce-network-select-field>
+
       <div class="form-group">
         <div class="col-md-2 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
         <div class="col-md-3">

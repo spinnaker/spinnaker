@@ -1,5 +1,7 @@
 <div class="form-group">
-  <div class="col-md-{{labelColumns}} sm-label-right">Network</div>
+  <div class="col-md-{{labelColumns}} sm-label-right">
+    Network <help-field ng-if="helpKey" key="{{helpKey}}"></help-field>
+  </div>
   <div class="col-md-{{fieldColumns || 7}}" ng-if="!account">(Select an account)</div>
   <div class="col-md-{{fieldColumns || 7}}">
     <select class="form-control input-sm" ng-if="account" ng-model="component.network" ng-change="onChange()" required>

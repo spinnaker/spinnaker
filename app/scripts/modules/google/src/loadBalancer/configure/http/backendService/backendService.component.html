@@ -97,9 +97,7 @@
           <ui-select-match placeholder="Select...">
             {{ $select.selected }}
           </ui-select-match>
-          <ui-select-choices
-            repeat="sessionAffinity in ['None', 'Client IP', 'Generated Cookie'] | filter: $select.search"
-          >
+          <ui-select-choices repeat="sessionAffinity in $ctrl.getSessionAffinitySuggestions() | filter: $select.search">
             <div ng-bind-html="sessionAffinity | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
@@ -130,7 +128,7 @@
       </div>
     </div>
 
-    <div class="form-group">
+    <div ng-if="$ctrl.loadBalancer.loadBalancerType === 'HTTP'" class="form-group">
       <div class="col-md-4 sm-label-right">
         <b>Enable CDN</b>
       </div>

@@ -56,6 +56,8 @@ const helpContents: { [key: string]: string } = {
   'gce.instanceType.32core':
     '<p>32-core machine types are in Beta and are available only in Ivy Bridge and Haswell zones.</p>',
   'gce.internalLoadBalancer.ports': 'Use a comma to separate up to five TCP ports.',
+  'gce.internalHttpLoadBalancer.network':
+    "Network must have a subnet whose 'purpose' is 'INTERNAL_HTTPS_LOAD_BALANCER'",
   'gce.loadBalancer.connectionDraining':
     '(Optional) If set, enables connection draining for this backend service. This field defines the number of seconds to wait before instances that belong to this backend service are terminated in order to drain in-flight connections.',
   'gce.loadBalancer.detail':

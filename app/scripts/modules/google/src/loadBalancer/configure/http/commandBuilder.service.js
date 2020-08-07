@@ -3,7 +3,7 @@
 import { module } from 'angular';
 import _ from 'lodash';
 
-import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader } from '@spinnaker/core';
 
 import { GCE_ADDRESS_READER } from 'google/address/address.reader';
 import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
@@ -14,6 +14,7 @@ import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps
 import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../../../backendService/backendService.reader';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from './transformer.service';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE =
   'spinnaker.deck.gce.httpLoadBalancer.backing.service';
@@ -26,6 +27,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
   GCE_ADDRESS_READER,
   GCE_HEALTH_CHECK_READER,
   GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE,
+  GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
 ]).factory('gceHttpLoadBalancerCommandBuilder', [
   '$q',
   'gceHttpLoadBalancerUtils',
@@ -35,6 +37,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
   'gceHttpLoadBalancerTransformer',
   'loadBalancerReader',
   'gceAddressReader',
+  'gceXpnNamingService',
   function(
     $q,
     gceHttpLoadBalancerUtils,
@@ -44,52 +47,83 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     gceHttpLoadBalancerTransformer,
     loadBalancerReader,
     gceAddressReader,
+    gceXpnNamingService,
   ) {
-    function buildCommand({ originalLoadBalancer, isNew }) {
+    function buildCommand({ originalLoadBalancer, isNew, isInternal }) {
       originalLoadBalancer = _.cloneDeep(originalLoadBalancer);
 
-      return buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew).then(({ backingData, loadBalancer }) => {
-        return {
-          backingData,
-          getAllBackendServices,
-          isNew,
-          loadBalancer,
-          onAccountChange,
-          onBackendServiceRefresh,
-          onBackendServiceSelected,
-          onCertificateRefresh,
-          onHealthCheckRefresh,
-          onHealthCheckSelected,
-          getUnusedBackendServices,
-          removeUnusedBackendServices,
-          getUnusedHealthChecks,
-          removeUnusedHealthChecks,
-          onAddressRefresh,
-        };
+      return buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew, isInternal).then(
+        ({ backingData, loadBalancer }) => {
+          return {
+            backingData,
+            getAllBackendServices,
+            isNew,
+            loadBalancer,
+            onAccountChange,
+            onBackendServiceRefresh,
+            onBackendServiceSelected,
+            onRegionSelected,
+            onCertificateRefresh,
+            onHealthCheckRefresh,
+            onHealthCheckSelected,
+            getUnusedBackendServices,
+            removeUnusedBackendServices,
+            getUnusedHealthChecks,
+            removeUnusedHealthChecks,
+            onAddressRefresh,
+          };
+        },
+      );
+    }
+
+    function buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew, isInternal) {
+      let region = null;
+      if (isInternal) {
+        region = originalLoadBalancer ? originalLoadBalancer.region : GCEProviderSettings.defaults.region;
+      }
+      return buildBackingData(region).then(backingData => {
+        const loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, isInternal);
+
+        unifyDataSources(backingData, loadBalancer);
+
+        return { backingData, loadBalancer };
       });
     }
 
-    function buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew) {
-      return $q
-        .all({
-          backendServices: getBackendServices(),
-          healthChecks: getHealthChecks(),
-          certificates: getCertificates(),
-          loadBalancerMap: getLoadBalancerMap(),
-          accounts: getAccounts(),
-          addresses: gceAddressReader.listAddresses('global'),
-        })
-        .then(backingData => {
-          const loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, backingData);
-
-          unifyDataSources(backingData, loadBalancer);
-
-          return { backingData, loadBalancer };
-        });
+    function buildBackingData(region) {
+      const promises = {
+        backendServices: getBackendServices(region),
+        healthChecks: getHealthChecks(region),
+        certificates: getCertificates(),
+        loadBalancerMap: getLoadBalancerMap(region),
+        networks: getNetworks(),
+        subnets: SubnetReader.listSubnetsByProvider('gce'),
+        addresses: gceAddressReader.listAddresses(region),
+        accounts: getAccounts(),
+      };
+      return $q.all(promises);
     }
 
-    function buildLoadBalancer(isNew, loadBalancer) {
+    function buildLoadBalancer(isNew, loadBalancer, isInternal) {
       const loadBalancerTemplate = new HttpLoadBalancerTemplate(GCEProviderSettings.defaults.account || null);
+      if (isInternal) {
+        loadBalancerTemplate.loadBalancerType = 'INTERNAL_MANAGED';
+        loadBalancerTemplate.isInternal = true;
+        if (loadBalancer) {
+          loadBalancer.network = gceXpnNamingService.decorateXpnResourceIfNecessary(
+            loadBalancer.project,
+            loadBalancer.network,
+          );
+          loadBalancer.listeners.forEach(listener => {
+            listener.subnet = gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, listener.subnet);
+          });
+        }
+        loadBalancerTemplate.region = GCEProviderSettings.defaults.region;
+        loadBalancerTemplate.network = 'default';
+      } else {
+        loadBalancerTemplate.loadBalancerType = 'HTTP';
+        loadBalancerTemplate.isInternal = false;
+      }
 
       let mixinData;
       if (isNew) {
@@ -127,6 +161,15 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       );
       backingData.backendServicesKeyedByNameCopy = _.cloneDeep(backingDataBackendServiceMap);
       backingData.backendServices = _.map(backingDataBackendServiceMap, _.identity);
+
+      backingData.regions = backingData.accounts
+        .find(account => account.name === loadBalancer.credentials)
+        .regions.map(region => region.name);
+
+      backingData.subnetMap = _.groupBy(backingData.subnets, 'network');
+      backingData.internalHttpLbNetworks = backingData.networks.filter(network =>
+        backingData.subnetMap[network].find(subnet => subnet.purpose === 'INTERNAL_HTTPS_LOAD_BALANCER'),
+      );
     }
 
     function removeExistingListenersFromBackingData(backingData, existingListeners) {
@@ -151,12 +194,26 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       }
     }
 
-    function getHealthChecks() {
-      return gceHealthCheckReader.listHealthChecks();
+    function getHealthChecks(region) {
+      return gceHealthCheckReader.listHealthChecks().then(healthChecks => {
+        return healthChecks.filter(healthCheck => !region || healthCheck.region === region);
+      });
     }
 
-    function getBackendServices() {
-      return gceBackendServiceReader.listBackendServices('globalBackendService').then(backendServices => {
+    function getNetworks() {
+      return NetworkReader.listNetworksByProvider('gce').then(networks => {
+        return _.chain(networks)
+          .map('name')
+          .compact()
+          .uniq()
+          .value();
+      });
+    }
+
+    function getBackendServices(region) {
+      const kind = region ? 'regionBackendService' : 'globalBackendService';
+      return gceBackendServiceReader.listBackendServices(kind).then(backendServices => {
+        backendServices = backendServices.filter(backendService => !region || backendService.region === region);
         backendServices.forEach(service => {
           service.healthCheck = service.healthCheckLink.split('/').pop();
 
@@ -178,7 +235,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       return AccountService.listAccounts('gce');
     }
 
-    function getLoadBalancerMap() {
+    function getLoadBalancerMap(region) {
       return loadBalancerReader.listLoadBalancers('gce').then(lbs => {
         return _.chain(lbs)
           .map(lb => lb.accounts)
@@ -188,7 +245,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
             const loadBalancers = _.chain(accounts)
               .map(a => a.regions)
               .flatten()
-              .filter(region => region.name === gceHttpLoadBalancerUtils.REGION)
+              .filter(region => region.name === (region || gceHttpLoadBalancerUtils.REGION))
               .map(region => region.loadBalancers)
               .flatten()
               .value();
@@ -209,7 +266,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onHealthCheckRefresh(command) {
-      getHealthChecks().then(healthChecks => {
+      getHealthChecks(command.loadBalancer.region).then(healthChecks => {
         command.backingData.healthChecks = healthChecks;
         command.backingData.healthChecksKeyedByName = _.keyBy(healthChecks, 'name');
         command.backingData.healthChecksKeyedByNameCopy = _.cloneDeep(command.backingData.healthChecksKeyedByName);
@@ -232,7 +289,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onBackendServiceRefresh(command) {
-      getBackendServices().then(backendServices => {
+      getBackendServices(command.loadBalancer.region).then(backendServices => {
         command.backingData.backendServices = backendServices;
         command.backingData.backendServicesKeyedByName = _.keyBy(backendServices, 'name');
         command.backingData.backendServicesKeyedByNameCopy = _.cloneDeep(
@@ -247,6 +304,13 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
             return service;
           }
         });
+      });
+    }
+
+    function onRegionSelected(command) {
+      buildBackingData(command.loadBalancer.region).then(backingData => {
+        Object.assign(command.backingData, backingData);
+        unifyDataSources(command.backingData, command.loadBalancer);
       });
     }
 
@@ -334,6 +398,9 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       command.loadBalancer.hostRules = [];
       command.loadBalancer.listeners = [new ListenerTemplate()];
       command.loadBalancer.defaultService = null;
+      command.backingData.regions = command.backingData.accounts
+        .find(account => account.name === command.loadBalancer.credentials)
+        .regions.map(region => region.name);
     }
 
     function onAddressRefresh(command) {
