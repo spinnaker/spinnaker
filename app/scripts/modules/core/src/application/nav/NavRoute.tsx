@@ -1,5 +1,5 @@
 import React from 'react';
-import { useIsActive, useSrefActive } from '@uirouter/react';
+import { useIsActive, useSref } from '@uirouter/react';
 
 import { NavItem } from './NavItem';
 import { ApplicationDataSource } from '../service/applicationDataSource';
@@ -11,11 +11,11 @@ export interface INavRouteProps {
 }
 
 export const NavRoute = ({ app, dataSource }: INavRouteProps) => {
-  const sref = useSrefActive(dataSource.sref, null, 'active');
+  const sref = useSref(dataSource.sref);
   const isActive = useIsActive(dataSource.activeState);
 
   return (
-    <a {...sref}>
+    <a {...sref} className={isActive ? 'active' : ''}>
       <NavItem app={app} dataSource={dataSource} isActive={isActive} />
     </a>
   );
