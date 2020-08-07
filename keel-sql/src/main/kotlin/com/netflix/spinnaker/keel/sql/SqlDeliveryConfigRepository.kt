@@ -568,11 +568,18 @@ class SqlDeliveryConfigRepository(
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion),
-          (ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
-            // for backwards comparability
-            .or(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.isNull)),
           ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
         )
+        .let {
+          // For backwards-compatibility, only use the artifact reference in the query when passed in
+          if (artifactReference != null) {
+            it.and(
+              ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
+            )
+          } else {
+            it
+          }
+        }
         .fetchOne { (deliveryConfigName,
                       environmentName,
                       artifactVersion,
