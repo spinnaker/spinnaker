@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
@@ -9,6 +8,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.persistence.KeelReadOnlyRepository
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.ArtifactSummaryInEnvironment
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional
 /**
  * A repository for interacting with delivery configs, artifacts, and resources.
  */
-interface KeelRepository {
+interface KeelRepository : KeelReadOnlyRepository {
   val clock: Clock
   val publisher: ApplicationEventPublisher
   val log: Logger
@@ -94,35 +94,15 @@ interface KeelRepository {
   // START Delivery config methods
   fun storeDeliveryConfig(deliveryConfig: DeliveryConfig)
 
-  fun getDeliveryConfig(name: String): DeliveryConfig
-
-  fun environmentFor(resourceId: String): Environment
-
-  fun deliveryConfigFor(resourceId: String): DeliveryConfig
-
-  fun getDeliveryConfigForApplication(application: String): DeliveryConfig
-
   fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String)
 
   fun deleteEnvironment(deliveryConfigName: String, environmentName: String)
 
   fun storeConstraintState(state: ConstraintState)
 
-  fun getConstraintState(deliveryConfigName: String, environmentName: String, artifactVersion: String, type: String, artifactReference: String?): ConstraintState?
-
   fun getConstraintStateById(uid: UID): ConstraintState?
 
   fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String)
-
-  fun constraintStateFor(application: String): List<ConstraintState>
-
-  fun constraintStateFor(deliveryConfigName: String, environmentName: String, limit: Int): List<ConstraintState>
-
-  fun constraintStateFor(deliveryConfigName: String, environmentName: String, artifactVersion: String): List<ConstraintState>
-
-  fun pendingConstraintVersionsFor(deliveryConfigName: String, environmentName: String): List<String>
-
-  fun getQueuedConstraintApprovals(deliveryConfigName: String, environmentName: String, artifactReference: String?): Set<String>
 
   fun queueAllConstraintsApproved(deliveryConfigName: String, environmentName: String, artifactVersion: String, artifactReference: String?)
 
@@ -135,14 +115,6 @@ interface KeelRepository {
 
   // START ResourceRepository methods
   fun allResources(callback: (ResourceHeader) -> Unit)
-
-  fun getResource(id: String): Resource<ResourceSpec>
-
-  fun hasManagedResources(application: String): Boolean
-
-  fun getResourceIdsByApplication(application: String): List<String>
-
-  fun getResourcesByApplication(application: String): List<Resource<*>>
 
   fun storeResource(resource: Resource<*>)
 
@@ -168,14 +140,6 @@ interface KeelRepository {
   // START ArtifactRepository methods
   fun register(artifact: DeliveryArtifact)
 
-  fun getArtifact(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact>
-
-  fun getArtifact(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact
-
-  fun getArtifact(deliveryConfigName: String, reference: String): DeliveryArtifact
-
-  fun isRegistered(name: String, type: ArtifactType): Boolean
-
   fun getAllArtifacts(type: ArtifactType? = null): List<DeliveryArtifact>
 
   fun storeArtifact(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): Boolean
@@ -184,21 +148,9 @@ interface KeelRepository {
 
   fun deleteArtifact(artifact: DeliveryArtifact)
 
-  fun artifactVersions(artifact: DeliveryArtifact): List<String>
-
-  fun artifactVersions(name: String, type: ArtifactType): List<String>
-
-  fun latestVersionApprovedIn(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, targetEnvironment: String): String?
-
   fun approveVersionFor(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean
 
-  fun isApprovedFor(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean
-
   fun markAsDeployingTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String)
-
-  fun wasSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean
-
-  fun isCurrentlyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean
 
   fun markAsSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String)
 
