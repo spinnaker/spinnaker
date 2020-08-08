@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import com.netflix.spectator.api.NoopRegistry;
@@ -67,12 +66,12 @@ final class PooledRequestQueueTest {
 
   @Test
   void timesOutRequestIfDoesNotStartInTime() throws Exception {
-    long startTimeout = 50;
+    long startTimeout = 20;
     PooledRequestQueue queue =
         new PooledRequestQueue(
             dynamicConfigService, new NoopRegistry(), startTimeout, 5 * startTimeout, 1);
 
-    ExecutorService executor = Executors.newFixedThreadPool(2);
+    ExecutorService executor = Executors.newCachedThreadPool();
 
     CountDownLatch blockingJobStarted = new CountDownLatch(1);
     CountDownLatch testJobExited = new CountDownLatch(1);
@@ -93,14 +92,12 @@ final class PooledRequestQueueTest {
 
     // Submit another job to the queue, and ensure that it is rejected before starting.
     AtomicBoolean testJobRan = new AtomicBoolean(false);
-    CountDownLatch testJobQueued = new CountDownLatch(1);
     Future<Void> testJob =
         executor.submit(
             safeRun(
                 () -> {
                   try {
                     blockingJobStarted.await();
-                    testJobQueued.countDown();
                     queue.execute(
                         "foo",
                         () -> {
@@ -112,16 +109,11 @@ final class PooledRequestQueueTest {
                   }
                 }));
 
+    // Wait for our jobs to finish and interrupt them if they take longer than a reasonable
+    // amount of time (where reasonable is a few times the startup timeout).
     executor.shutdown();
-
-    // Once the test job is queued, we'll wait a few times the startup timeout for it to finish.
-    testJobQueued.await();
-    if (!executor.awaitTermination(10 * startTimeout, TimeUnit.MILLISECONDS)) {
-      executor.shutdownNow();
-      // Fail the test immediately rather than assert on the status of the jobs, given that we
-      // interrupted them abnormally.
-      fail("Timeout waiting for queued jobs to finish.");
-    }
+    executor.awaitTermination(5 * startTimeout, TimeUnit.MILLISECONDS);
+    executor.shutdownNow();
 
     assertThatThrownBy(testJob::get).hasCauseInstanceOf(PromiseNotStartedException.class);
     assertThat(testJobRan.get()).isFalse();
