@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.orca.web.config
 
-import javax.servlet.*
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -33,23 +38,25 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 @ComponentScan(['com.netflix.spinnaker.orca.controllers', 'com.netflix.spinnaker.orca.util'])
 @CompileStatic
 @EnableFiatAutoConfig
-class WebConfiguration extends WebMvcConfigurerAdapter {
+class WebConfiguration implements WebMvcConfigurer {
+
   @Autowired
   Registry registry
 
+  @Bean
+  MetricsInterceptor metricsInterceptor() {
+    return  new MetricsInterceptor(this.registry, "controller.invocations", ["application"], ["BasicErrorController"])
+  }
+
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(
-      new MetricsInterceptor(
-        this.registry, "controller.invocations", ["application"], ["BasicErrorController"]
-      )
-    )
+    registry.addInterceptor(metricsInterceptor())
   }
 
   @Bean(name = "objectMapper", autowire = Autowire.BY_TYPE) ObjectMapper orcaObjectMapper() {
