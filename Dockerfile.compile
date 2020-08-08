@@ -7,5 +7,5 @@ MAINTAINER sig-platform@spinnaker.io
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 ENV JDK_18 /usr/lib/jvm/java-8-openjdk-amd64
 ENV GRADLE_USER_HOME /workspace/.gradle
-ENV GRADLE_OPTS "-Xmx6g -Xms6g"
+ENV GRADLE_OPTS "-Xmx7g -Xms6g"
 CMD ./gradlew --no-daemon -PenableCrossCompilerPlugin=true clouddriver-web:installDist -x test
