@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.web.exceptions;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
+import com.netflix.spinnaker.kork.exceptions.UserException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
@@ -48,8 +49,6 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
   @ExceptionHandler(AccessDeniedException.class)
   public void handleAccessDeniedException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
-    logger.error("Access Denied", e);
-
     storeException(request, response, e);
 
     // avoid leaking any information that may be in `e.getMessage()` by returning a static error
@@ -64,7 +63,7 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
     response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
   }
 
-  @ExceptionHandler(InvalidRequestException.class)
+  @ExceptionHandler({InvalidRequestException.class, UserException.class})
   public void handleInvalidRequestException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
@@ -134,6 +133,7 @@ public class GenericExceptionHandlers extends ResponseEntityExceptionHandler {
       HttpServletRequest request, HttpServletResponse response, Exception ex) {
     // store exception as an attribute of HttpServletRequest such that it can be referenced by
     // GenericErrorController
+    logger.warn("Handled error in generic exception handler", ex);
     defaultErrorAttributes.resolveException(request, response, null, ex);
   }
 
