@@ -22,7 +22,7 @@ import lombok.Builder;
 import lombok.Value;
 
 /*
- * A package is an application’s ‘source code’; either raw bits for your application or a pointer to these bits.
+ * A package is an application's 'source code'; either raw bits for your application or a pointer to these bits.
  */
 @Value
 @Builder

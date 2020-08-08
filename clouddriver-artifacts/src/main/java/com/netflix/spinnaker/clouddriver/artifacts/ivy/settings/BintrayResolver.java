@@ -29,7 +29,7 @@ final class BintrayResolver extends Resolver<org.apache.ivy.plugins.resolver.Bin
   @Nullable
   private String subject;
 
-  /** User’s repository name. */
+  /** User's repository name. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private String repo;
