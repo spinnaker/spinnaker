@@ -24,6 +24,7 @@ import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -181,7 +182,15 @@ public class ExecutionLauncher {
       }
     }
 
-    log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
+    if (failure instanceof UserException) {
+      log.warn(
+          "Failed to start {} {} due to user error or misconfiguration",
+          execution.getType(),
+          execution.getId(),
+          failure);
+    } else {
+      log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
+    }
     executionRepository.updateStatus(execution.getType(), execution.getId(), status);
     executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
     return executionRepository.retrieve(execution.getType(), execution.getId());

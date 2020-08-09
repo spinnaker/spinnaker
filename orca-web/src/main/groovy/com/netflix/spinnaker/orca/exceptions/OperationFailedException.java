@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.orca.exceptions;
 
-public class OperationFailedException extends RuntimeException {
+import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+
+public class OperationFailedException extends IntegrationException {
   public OperationFailedException(String message) {
     super(message);
   }

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
+import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -41,6 +43,18 @@ public class GetBuildPropertiesTask extends RetryableIgorTask<CIStageDefinition>
       return TaskResult.SUCCEEDED;
     }
 
+    if ((stageDefinition.getBuildNumber() == null)) {
+      throw new UserException(
+          "Can't retrieve property file because the build number is not available, check for build start failures");
+    }
+
+    if ((stageDefinition.getPropertyFile() == null)
+        || (stageDefinition.getMaster() == null)
+        || (stageDefinition.getJob() == null)) {
+      throw new UserException(
+          "Can't retrieve property file: propertyFile, master, and job can't be null, check for build start failures");
+    }
+
     Map<String, Object> properties =
         buildService.getPropertyFile(
             stageDefinition.getBuildNumber(),
@@ -48,7 +62,7 @@ public class GetBuildPropertiesTask extends RetryableIgorTask<CIStageDefinition>
             stageDefinition.getMaster(),
             stageDefinition.getJob());
     if (properties.size() == 0) {
-      throw new IllegalStateException(
+      throw new ConfigurationException(
           String.format(
               "Expected properties file %s but it was either missing, empty or contained invalid syntax",
               stageDefinition.getPropertyFile()));

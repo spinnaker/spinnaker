@@ -89,10 +89,12 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
       return true;
     }
 
-    int status = retrofitError.getResponse().getStatus();
-    if (status == 500 || status == 503) {
-      log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
-      return true;
+    if (retrofitError.getResponse() != null) {
+      int status = retrofitError.getResponse().getStatus();
+      if (status == 500 || status == 503) {
+        log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
+        return true;
+      }
     }
     return false;
   }

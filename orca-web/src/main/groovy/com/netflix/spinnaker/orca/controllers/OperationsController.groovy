@@ -23,8 +23,7 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.netflix.spinnaker.kork.web.exceptions.ValidationException
+import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.OperationFailedException
@@ -330,7 +329,7 @@ class OperationsController {
         buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
-          throw new IllegalStateException("Build ${trigger.buildNumber} of ${trigger.master}/${trigger.job} not found")
+          throw new ConfigurationException("Build ${trigger.buildNumber} of ${trigger.master}/${trigger.job} not found")
         } else {
           throw new OperationFailedException("Failed to get build ${trigger.buildNumber} of ${trigger.master}/${trigger.job}", e)
         }
@@ -351,7 +350,7 @@ class OperationsController {
           )
         } catch (RetrofitError e) {
           if (e.response?.status == 404) {
-            throw new IllegalStateException("Expected properties file " + trigger.propertyFile + " (configured on trigger), but it was missing")
+            throw new ConfigurationException("Expected properties file " + trigger.propertyFile + " (configured on trigger), but it was missing")
           } else {
             throw new OperationFailedException("Failed to get properties file ${trigger.propertyFile}", e)
           }

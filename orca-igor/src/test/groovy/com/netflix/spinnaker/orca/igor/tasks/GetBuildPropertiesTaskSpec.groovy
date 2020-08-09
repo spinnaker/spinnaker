@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -141,7 +142,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    IllegalStateException e = thrown IllegalStateException
+    ConfigurationException e = thrown ConfigurationException
     e.message == "Expected properties file $PROPERTY_FILE but it was either missing, empty or contained invalid syntax"
   }
 
