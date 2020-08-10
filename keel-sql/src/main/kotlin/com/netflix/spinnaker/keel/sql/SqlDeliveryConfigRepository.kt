@@ -507,6 +507,7 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT))
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT))
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES))
+              .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE, state.artifactReference)
               .execute()
 
             txn
@@ -571,10 +572,11 @@ class SqlDeliveryConfigRepository(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
         )
         .let {
-          // For backwards-compatibility, only use the artifact reference in the query when passed in
+          // For backwards-compatibility, only use the artifact reference in the query when passed in, but also match
+          // rows with a missing reference.
           if (artifactReference != null) {
-            it.and(
-              ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
+            it.and(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(artifactReference)
+              .or(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.isNull)
             )
           } else {
             it

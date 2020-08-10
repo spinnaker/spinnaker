@@ -26,6 +26,8 @@ data class ConstraintState(
   val deliveryConfigName: String,
   val environmentName: String,
   val artifactVersion: String,
+  // FIXME: this should not be nullable as it's the only field uniquely identifying the artifact,
+  //  but would need a DB migration.
   val artifactReference: String? = null,
   val type: String,
   val status: ConstraintStatus,

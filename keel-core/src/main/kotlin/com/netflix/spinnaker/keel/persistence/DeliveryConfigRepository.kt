@@ -81,6 +81,8 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
     environmentName: String,
     artifactVersion: String,
     type: String,
+    // FIXME: this should not be nullable as it's the only parameter uniquely identifying the artifact,
+    //  but calls from the UI are currently not passing the artifact reference.
     artifactReference: String?
   ): ConstraintState?
 
