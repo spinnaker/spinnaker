@@ -4,6 +4,8 @@ plugins {
   application
 }
 
+apply(plugin = "io.spinnaker.package")
+
 dependencies {
   api(project(":keel-core"))
   api(project(":keel-clouddriver"))

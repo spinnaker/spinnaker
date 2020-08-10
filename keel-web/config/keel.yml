@@ -1,0 +1,89 @@
+eureka:
+  enabled: false
+
+keel:
+  resourceCheck:
+    minAgeDuration: 10s
+  artifact-refresh:
+    frequency: PT1M
+  plugins:
+    bakery:
+      enabled: false
+      baseImages:
+        bionic:
+          candidate: bionicbase-x86_64-201904232145-ebs
+          unstable: bionicbase-unstable-x86_64-201904252133-ebs
+          release: bionicbase-x86_64-201904041959-ebs
+        xenial:
+          candidate: xenialbase-x86_64-201904232145-ebs
+          unstable: xenialbase-unstable-x86_64-201904252133-ebs
+          release: xenialbase-x86_64-201904041959-ebs
+          previous: xenialbase-x86_64-201902202219-ebs
+    ec2:
+      enabled: true
+    deliveryConfig:
+      enabled: true
+    titus:
+      enabled: false
+  constraints:
+    manual-judgement:
+      interactive-notifications:
+        enabled: false
+
+front50:
+  enabled: ${services.front50.enabled}
+  baseUrl: ${services.front50.baseUrl:http://localhost:8080}
+clouddriver:
+  enabled: ${services.clouddriver.enabled}
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
+echo:
+  enabled: ${services.echo.enabled}
+  baseUrl: ${services.echo.baseUrl:http://localhost:8089}
+igor:
+  enabled: ${services.igor.enabled}
+  baseUrl: ${services.igor.baseUrl:http://localhost:8088}
+orca:
+  enabled: ${services.orca.enabled}
+  baseUrl: ${services.orca.baseUrl:http://localhost:8083}
+
+services:
+  fiat:
+    enabled: false
+    legacyFallback: true
+    refreshable: false
+    baseUrl: ${services.fiat.baseUrl:http://localhost:7003}
+
+sql:
+  enabled: true
+  connectionPools:
+    default:
+      jdbcUrl: jdbc:mysql://127.0.0.1:3306/keel?useSSL=false&serverTimezone=UTC
+      user: root
+      password:
+
+okHttpClient:
+  # moved to spinnaker-common
+  #keyStore: /apps/keel/config/all-services-client.p12
+  #trustStore: /apps/keel/config/services-truststore.p12
+  propagateSpinnakerHeaders: true
+  connectTimeoutMs: 30000
+  readTimeoutMs: 59000
+  interceptor.skipHeaderCheck: true
+
+server:
+  port: 7010
+  legacyServerPort: 7101
+  ssl:
+    enabled: false
+    keyStore: ${user.home}/.spinnaker/keystores/localhost.p12
+    keyStorePassword: changeit
+    trustStore: ${user.home}/.spinnaker/truststores/services-truststore.p12
+    trustStorePassword: changeit
+
+EC2_REGION: us-east-2
+NETFLIX_ENVIRONMENT: ${netflix.environment}
+retrofit2:
+  logLevel: BASIC
+
+# logging:
+#   config: ${user.home}/.spinnaker/logback-defaults.xml
