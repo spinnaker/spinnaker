@@ -19,9 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalKind.CLUSTERS;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
@@ -33,10 +31,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +55,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
   }
 
   @Override
+  @Nullable
   public KubernetesV2Manifest getManifest(
       String account, String location, String name, boolean includeEvents) {
     Optional<KubernetesV2Credentials> optionalCredentials = accountResolver.getCredentials(account);
@@ -64,10 +64,6 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
     KubernetesV2Credentials credentials = optionalCredentials.get();
 
-    if (credentials.isLiveManifestCalls()) {
-      return null;
-    }
-
     Pair<KubernetesKind, String> parsedName;
     try {
       parsedName = KubernetesManifest.fromFullResourceName(name);
@@ -75,24 +71,30 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
       return null;
     }
 
-    KubernetesKind kind = parsedName.getLeft();
-    if (!credentials.getKindProperties(kind).isNamespaced() && !Strings.isNullOrEmpty(location)) {
-      log.warn(
-          "Kind {} is not namespaced, but namespace {} was provided (ignoring)", kind, location);
-      location = "";
-    }
-
-    String key =
-        Keys.InfrastructureCacheKey.createKey(kind, account, location, parsedName.getRight());
-
-    Optional<CacheData> dataOptional = cacheUtils.getSingleEntry(kind.toString(), key);
-    if (!dataOptional.isPresent()) {
+    KubernetesManifest manifest =
+        credentials.get(parsedName.getLeft(), location, parsedName.getRight());
+    if (manifest == null) {
       return null;
     }
 
-    CacheData data = dataOptional.get();
+    String namespace = manifest.getNamespace();
+    KubernetesKind kind = manifest.getKind();
 
-    return fromCacheData(data, credentials, includeEvents);
+    List<KubernetesManifest> events =
+        includeEvents
+            ? credentials.eventsFor(kind, namespace, parsedName.getRight())
+            : ImmutableList.of();
+
+    List<KubernetesPodMetric.ContainerMetric> metrics = ImmutableList.of();
+    if (includeEvents && kind.equals(KubernetesKind.POD) && credentials.isMetricsEnabled()) {
+      metrics =
+          credentials.topPod(namespace, parsedName.getRight()).stream()
+              .map(KubernetesPodMetric::getContainerMetrics)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toList());
+    }
+
+    return KubernetesV2ManifestBuilder.buildManifest(credentials, manifest, events, metrics);
   }
 
   @Override
@@ -114,38 +116,18 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .map(
             c ->
                 cacheUtils.getRelationships(c, kind).stream()
-                    .map(cd -> fromCacheData(cd, credentials, false))
+                    .map(
+                        cd ->
+                            KubernetesV2ManifestBuilder.buildManifest(
+                                credentials,
+                                KubernetesCacheDataConverter.getManifest(cd),
+                                ImmutableList.of(),
+                                ImmutableList.of()))
                     .filter(m -> m.getLocation().equals(location))
                     .sorted(
                         (m1, m2) ->
                             handler.comparatorFor(sort).compare(m1.getManifest(), m2.getManifest()))
                     .collect(Collectors.toList()))
         .orElse(new ArrayList<>());
-  }
-
-  @Nonnull
-  private KubernetesV2Manifest fromCacheData(
-      CacheData data, KubernetesV2Credentials credentials, boolean includeEvents) {
-    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
-    String namespace = manifest.getNamespace();
-    KubernetesKind kind = manifest.getKind();
-
-    List<KubernetesManifest> events =
-        includeEvents
-            ? cacheUtils.getRelationships(data, KubernetesKind.EVENT.toString()).stream()
-                .map(KubernetesCacheDataConverter::getManifest)
-                .collect(Collectors.toList())
-            : ImmutableList.of();
-
-    String metricKey =
-        Keys.MetricCacheKey.createKey(
-            kind, credentials.getAccountName(), namespace, manifest.getName());
-    List<KubernetesPodMetric.ContainerMetric> metrics =
-        cacheUtils
-            .getSingleEntry(Keys.Kind.KUBERNETES_METRIC.toString(), metricKey)
-            .map(KubernetesCacheDataConverter::getMetrics)
-            .orElse(ImmutableList.of());
-
-    return KubernetesV2ManifestBuilder.buildManifest(credentials, manifest, events, metrics);
   }
 }

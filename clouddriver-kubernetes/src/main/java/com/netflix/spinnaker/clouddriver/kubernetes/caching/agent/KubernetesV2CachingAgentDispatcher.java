@@ -63,7 +63,6 @@ public class KubernetesV2CachingAgentDispatcher {
             i ->
                 propertyRegistry.values().stream()
                     .map(KubernetesResourceProperties::getHandler)
-                    .filter(Objects::nonNull)
                     .map(
                         h ->
                             h.buildCachingAgent(
@@ -75,18 +74,6 @@ public class KubernetesV2CachingAgentDispatcher {
                                 agentInterval))
                     .filter(Objects::nonNull)
                     .forEach(result::add));
-
-    IntStream.range(0, credentials.getCacheThreads())
-        .forEach(
-            i ->
-                result.add(
-                    new KubernetesMetricCachingAgent(
-                        credentials,
-                        objectMapper,
-                        registry,
-                        i,
-                        credentials.getCacheThreads(),
-                        agentInterval)));
 
     return result.stream()
         .collect(Collectors.toMap(KubernetesV2CachingAgent::getAgentType, c -> c, (a, b) -> b))

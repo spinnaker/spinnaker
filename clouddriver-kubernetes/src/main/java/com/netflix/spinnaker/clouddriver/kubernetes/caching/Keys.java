@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.Kind.KUBERNETES_METRIC;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -42,8 +40,7 @@ public class Keys {
   public enum Kind {
     LOGICAL,
     ARTIFACT,
-    INFRASTRUCTURE,
-    KUBERNETES_METRIC;
+    INFRASTRUCTURE;
 
     private final String lcName;
 
@@ -134,8 +131,6 @@ public class Keys {
           return Optional.of(new ArtifactCacheKey(parts));
         case INFRASTRUCTURE:
           return Optional.of(new InfrastructureCacheKey(parts));
-        case KUBERNETES_METRIC:
-          return Optional.of(new MetricCacheKey(parts));
         default:
           throw new IllegalArgumentException("Unknown kind " + kind);
       }
@@ -329,43 +324,6 @@ public class Keys {
     @Override
     public String getGroup() {
       return kubernetesKind.toString();
-    }
-  }
-
-  @EqualsAndHashCode(callSuper = true)
-  @Getter
-  @RequiredArgsConstructor
-  public static class MetricCacheKey extends CacheKey {
-    @Getter private static final Kind kind = KUBERNETES_METRIC;
-    private final KubernetesKind kubernetesKind;
-    private final String account;
-    private final String namespace;
-    private final String name;
-
-    protected MetricCacheKey(String[] parts) {
-      if (parts.length != 6) {
-        throw new IllegalArgumentException("Malformed metric key " + Arrays.toString(parts));
-      }
-
-      kubernetesKind = KubernetesKind.fromString(parts[2]);
-      account = parts[3];
-      namespace = parts[4];
-      name = parts[5];
-    }
-
-    public static String createKey(
-        KubernetesKind kubernetesKind, String account, String namespace, String name) {
-      return createKeyFromParts(kind, kubernetesKind, account, namespace, name);
-    }
-
-    @Override
-    public String toString() {
-      return createKeyFromParts(kind, kubernetesKind, account, namespace, name);
-    }
-
-    @Override
-    public String getGroup() {
-      return KUBERNETES_METRIC.toString();
     }
   }
 }

@@ -128,49 +128,6 @@ metadata:
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1                 | "another-account" | "cluster"     | "some-namespace" | "what-name"
   }
 
-  @Unroll
-  def "correctly builds cache data entry for pod metrics"() {
-    setup:
-    KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
-    def account = "my-account"
-    def namespace = "my-namespace"
-    def podName = "pod-name"
-    def podMetric = KubernetesPodMetric.builder()
-      .podName(podName)
-      .namespace(namespace)
-      .containerMetrics(containerMetrics)
-      .build()
-    def metricKey = new Keys.MetricCacheKey(KubernetesKind.POD, account, namespace, podName)
-
-    when:
-    KubernetesCacheDataConverter.convertPodMetric(kubernetesCacheData, account, podMetric)
-    List<CacheData> cacheDataList = kubernetesCacheData.toCacheData()
-
-    then:
-    CacheData cacheData = cacheDataList
-      .stream()
-      .filter({cd -> cd.id == metricKey.toString()})
-      .findFirst().get()
-    cacheData.attributes == [
-      name: podName,
-      namespace: namespace,
-      metrics: containerMetrics
-    ]
-
-    when:
-    def metrics = KubernetesCacheDataConverter.getMetrics(cacheData)
-
-    then:
-    metrics == containerMetrics
-
-    where:
-    containerMetrics << [
-      [containerMetric("container-a")],
-      [containerMetric("container-a"), containerMetric("container-b")],
-      []
-    ]
-  }
-
   def containerMetric(String containerName) {
     return new KubernetesPodMetric.ContainerMetric(containerName, [
         "CPU(cores)": "10m",

@@ -148,9 +148,6 @@ class KeysSpec extends Specification {
     "lOgiCAl"           | Keys.Kind.LOGICAL
     "artifacT"          | Keys.Kind.ARTIFACT
     "InfraStructurE"    | Keys.Kind.INFRASTRUCTURE
-    "KUBERNETES_METRIC" | Keys.Kind.KUBERNETES_METRIC
-    "kubernetes_metric" | Keys.Kind.KUBERNETES_METRIC
-    "kUbernetEs_meTriC" | Keys.Kind.KUBERNETES_METRIC
   }
 
   @Unroll
@@ -163,7 +160,6 @@ class KeysSpec extends Specification {
     Keys.Kind.LOGICAL           | "logical"
     Keys.Kind.ARTIFACT          | "artifact"
     Keys.Kind.INFRASTRUCTURE    | "infrastructure"
-    Keys.Kind.KUBERNETES_METRIC | "kubernetes_metric"
   }
 
   @Unroll

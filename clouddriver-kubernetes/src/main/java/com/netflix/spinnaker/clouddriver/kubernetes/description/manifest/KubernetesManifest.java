@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,9 +132,10 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  @Nonnull
   public String getNamespace() {
     String namespace = (String) getMetadata().get("namespace");
-    return Strings.isNullOrEmpty(namespace) ? "" : namespace;
+    return Strings.nullToEmpty(namespace);
   }
 
   @JsonIgnore
@@ -151,14 +152,12 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  @Nonnull
   public List<OwnerReference> getOwnerReferences() {
     Map<String, Object> metadata = getMetadata();
-    Object ownerReferences = metadata.get("ownerReferences");
-    if (ownerReferences == null) {
-      return new ArrayList<>();
-    }
-
-    return mapper.convertValue(ownerReferences, new TypeReference<List<OwnerReference>>() {});
+    return Optional.ofNullable(metadata.get("ownerReferences"))
+        .map(r -> mapper.convertValue(r, new TypeReference<List<OwnerReference>>() {}))
+        .orElseGet(ImmutableList::of);
   }
 
   @JsonIgnore
