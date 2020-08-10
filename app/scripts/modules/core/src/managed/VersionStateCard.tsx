@@ -42,7 +42,7 @@ const cardAppearanceByState: { [state: string]: CardAppearance } = {
   },
   previous: {
     icon: 'cloudDecommissioned',
-    appearance: 'neutral',
+    appearance: 'archived',
     title: ({ replacedAtMillis, replacedByVersionName }: CardTitleMetadata) => (
       <span className="sp-group-margin-xs-xaxis">
         <span>Decommissioned {replacedAtMillis && relativeTime(replacedAtMillis)}</span>

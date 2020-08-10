@@ -10,7 +10,7 @@ const QUANITITY_SIZES = ['small', 'medium', 'large', 'extraLarge'];
 
 export interface IStatusBubbleProps {
   iconName: IconNames;
-  appearance: 'inactive' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error';
+  appearance: 'inactive' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error' | 'archived';
   size: 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
   quantity?: string | number;
 }

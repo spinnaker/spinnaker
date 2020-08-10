@@ -8,7 +8,7 @@ import { StatusBubble } from './StatusBubble';
 import './StatusCard.less';
 
 export interface IStatusCardProps {
-  appearance: 'inactive' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error';
+  appearance: 'inactive' | 'neutral' | 'info' | 'progress' | 'success' | 'warning' | 'error' | 'archived';
   iconName: IconNames;
   title: React.ReactNode;
   description?: React.ReactNode;

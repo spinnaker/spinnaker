@@ -62,7 +62,7 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
       <div className={styles.content}>
         {build?.id && (
           <div className={styles.version}>
-            <Pill text={`#${build.id}`} />
+            <Pill bgColor={isSelected ? '#2c4b5f' : undefined} text={`#${build.id}`} />
           </div>
         )}
         <div className={classNames(styles.text, { 'sp-margin-m-left': !build?.id })}>
@@ -70,14 +70,22 @@ export const ArtifactRow = ({ isSelected, clickHandler, version: versionInfo, re
           {name && <div className={styles.name}>{name}</div>}
         </div>
         <StatusBubbleStack
-          borderColor={isSelected ? 'var(--color-white)' : isHovered ? '#f1f4fa' : 'var(--color-alabaster)'}
+          borderColor={isSelected ? '#c7def5' : isHovered ? '#e8eaf2' : 'var(--color-alabaster)'}
           maxBubbles={3}
           statuses={getArtifactStatuses(versionInfo)}
         />
       </div>
       <div className={styles.stages}>
         {environments
-          .map(({ name, state }) => <span key={name} className={classNames(styles.stage, styles[state])} />)
+          .map(({ name, state }) => (
+            <span
+              key={name}
+              className={classNames(styles.stage, styles[state], 'text-bold flex-container-h center middle')}
+              style={{ width: `${environments.length / 100}%` }}
+            >
+              <span className={styles.stageName}>{name}</span>
+            </span>
+          ))
           .reverse()}
       </div>
     </div>
