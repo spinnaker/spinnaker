@@ -1,8 +1,8 @@
-import { IPromise, IQService, module } from 'angular';
+import { IPromise, module } from 'angular';
 
 import { API } from 'core/api/ApiService';
-import { IFunctionSourceData, IFunction } from 'core/domain';
-import { CORE_FUNCTION_FUNCTION_TRANSFORMER } from './function.transformer';
+import { IFunctionSourceData } from 'core/domain';
+import { CORE_FUNCTION_FUNCTION_TRANSFORMER, IFunctionTransformer } from './function.transformer';
 
 export interface IFunctionByAccount {
   name: string;
@@ -16,8 +16,9 @@ export interface IFunctionByAccount {
 }
 
 export class FunctionReader {
-  public static $inject = ['$q', 'functionTransformer'];
-  public constructor(private $q: IQService, private functionTransformer: any) {}
+  public static $inject = ['functionTransformer'];
+
+  public constructor(private functionTransformer: IFunctionTransformer) {}
 
   public loadFunctions(applicationName: string): IPromise<IFunctionSourceData[]> {
     return API.one('applications', applicationName)
@@ -25,7 +26,7 @@ export class FunctionReader {
       .getList()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);
-        return this.$q.all(functions.map(fn => this.normalizeFunction(fn)));
+        return functions.map(fn => this.normalizeFunction(fn));
       });
   }
 
@@ -40,7 +41,7 @@ export class FunctionReader {
       .get()
       .then((functions: IFunctionSourceData[]) => {
         functions = this.functionTransformer.normalizeFunctionSet(functions);
-        return this.$q.all(functions.map(fn => this.normalizeFunction(fn)));
+        return functions.map(fn => this.normalizeFunction(fn));
       });
   }
 
@@ -50,11 +51,10 @@ export class FunctionReader {
       .getList();
   }
 
-  private normalizeFunction(functionDef: IFunctionSourceData): IPromise<IFunction> {
-    return this.functionTransformer.normalizeFunction(functionDef).then((fn: IFunction) => {
-      fn.cloudProvider = fn.cloudProvider || 'aws';
-      return fn;
-    });
+  private normalizeFunction(functionDef: IFunctionSourceData): IFunctionSourceData {
+    const fn = this.functionTransformer.normalizeFunction(functionDef);
+    fn.cloudProvider = fn.cloudProvider || 'aws';
+    return fn;
   }
 }
 
