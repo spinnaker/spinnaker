@@ -4,10 +4,10 @@ import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.front50.UntypedUtils;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel;
 import com.netflix.spinnaker.front50.model.notification.Notification;
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

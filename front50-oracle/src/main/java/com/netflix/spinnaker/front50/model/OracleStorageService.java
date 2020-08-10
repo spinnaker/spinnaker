@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Supplier;
 import com.netflix.spinnaker.front50.config.OracleProperties;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimplePrivateKeySupplier;

@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.front50.model
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called

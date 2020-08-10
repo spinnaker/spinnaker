@@ -22,7 +22,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.application.Application

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.exception.ValidationException
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO

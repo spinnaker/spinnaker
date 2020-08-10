@@ -20,7 +20,7 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
 import org.springframework.security.core.Authentication

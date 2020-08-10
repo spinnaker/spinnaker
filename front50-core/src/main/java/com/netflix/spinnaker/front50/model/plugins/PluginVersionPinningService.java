@@ -17,7 +17,7 @@ package com.netflix.spinnaker.front50.model.plugins;
 
 import static java.lang.String.format;
 
-import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;

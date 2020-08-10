@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.front50.controllers;
 
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.swagger.annotations.ApiOperation;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;

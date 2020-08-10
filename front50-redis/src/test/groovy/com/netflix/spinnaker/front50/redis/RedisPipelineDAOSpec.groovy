@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.front50.redis
 
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.pipeline.PipelineDAOSpec
 import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig

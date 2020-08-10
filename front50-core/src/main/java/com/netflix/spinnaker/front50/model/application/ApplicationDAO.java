@@ -18,9 +18,9 @@ package com.netflix.spinnaker.front50.model.application;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.front50.UntypedUtils;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import com.netflix.spinnaker.front50.model.SearchUtils;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 

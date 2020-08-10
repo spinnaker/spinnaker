@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.front50.redis
 
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import org.springframework.data.redis.core.Cursor

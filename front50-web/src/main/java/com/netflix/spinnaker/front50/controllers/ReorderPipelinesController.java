@@ -16,10 +16,10 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import com.netflix.spinnaker.front50.model.pipeline.*;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;

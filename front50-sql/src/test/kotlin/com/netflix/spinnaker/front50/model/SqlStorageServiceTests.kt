@@ -18,11 +18,11 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

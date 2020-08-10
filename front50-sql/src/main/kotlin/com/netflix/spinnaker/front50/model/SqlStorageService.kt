@@ -18,7 +18,6 @@ package com.netflix.spinnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION
 import com.netflix.spinnaker.front50.model.ObjectType.APPLICATION_PERMISSION
 import com.netflix.spinnaker.front50.model.ObjectType.DELIVERY
@@ -41,6 +40,7 @@ import com.netflix.spinnaker.front50.model.sql.transactional
 import com.netflix.spinnaker.front50.model.sql.withRetry
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import java.time.Clock
 import kotlin.system.measureTimeMillis

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.front50.model;
 
-import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.time.Duration;
 import java.util.Collection;
 

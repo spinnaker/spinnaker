@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.front50.redis;
 
 import com.google.common.collect.Lists;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;

@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.front50.model.plugins
 
 import com.netflix.spinnaker.front50.echo.EchoService
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.plugins.remote.RemoteExtension
 import com.netflix.spinnaker.front50.model.plugins.remote.stage.StageRemoteExtensionConfig
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService

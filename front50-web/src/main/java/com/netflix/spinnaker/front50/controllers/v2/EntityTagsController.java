@@ -4,9 +4,9 @@ import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.tag.EntityTags;
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;

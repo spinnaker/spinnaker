@@ -19,7 +19,7 @@ package com.netflix.spinnaker.front50.model;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

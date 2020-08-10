@@ -17,12 +17,12 @@ package com.netflix.spinnaker.front50.model.plugins;
 
 import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.echo.EchoService;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
 import com.netflix.spinnaker.front50.validator.PluginInfoValidator;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
 import java.util.ArrayList;

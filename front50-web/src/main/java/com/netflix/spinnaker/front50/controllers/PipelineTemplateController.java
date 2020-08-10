@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
