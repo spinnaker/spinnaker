@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.artifact
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesV2ArtifactProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
@@ -50,7 +50,8 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
   @Unroll
   def "correctly pick next version"() {
     when:
-    def artifacts = versions.collect { v -> Artifact.builder().version("v$v").build() }
+    def account = "account"
+    def artifacts = versions.collect { v -> Artifact.builder().metadata(ImmutableMap.of("account", account)).version("v$v").build() }
     def artifactProvider = Mock(KubernetesV2ArtifactProvider)
     def type = "type"
     def name = "name"
@@ -61,7 +62,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     def converter = KubernetesVersionedArtifactConverter.INSTANCE
 
     then:
-    converter.getVersion(artifactProvider, type, name, location, null) == expected
+    converter.getVersion(artifactProvider, type, name, location, account, null) == expected
 
     where:
     versions  | expected
@@ -87,8 +88,9 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     def version1 = "v001"
     def version2 = "v002"
 
-    def artifact1 = Artifact.builder().version(version1).metadata([lastAppliedConfiguration: manifest1]).build()
-    def artifact2 = Artifact.builder().version(version2).metadata([lastAppliedConfiguration: manifest2]).build()
+    def account = "account"
+    def artifact1 = Artifact.builder().metadata([lastAppliedConfiguration: manifest1, account: account]).version(version1).build()
+    def artifact2 = Artifact.builder().metadata([lastAppliedConfiguration: manifest2, account: account]).version(version2).build()
     def artifacts = [artifact1, artifact2]
 
     def artifactProvider = Mock(KubernetesV2ArtifactProvider)
@@ -101,6 +103,6 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     def converter = KubernetesVersionedArtifactConverter.INSTANCE
 
     then:
-    converter.getVersion(artifactProvider, type, name, location, manifest1) == version1
+    converter.getVersion(artifactProvider, type, name, location, account, manifest1) == version1
   }
 }

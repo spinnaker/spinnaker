@@ -44,7 +44,7 @@ final class KubernetesVersionedArtifactConverter extends KubernetesArtifactConve
     String type = getType(manifest);
     String name = manifest.getName();
     String location = manifest.getNamespace();
-    String version = getVersion(provider, type, name, location, manifest);
+    String version = getVersion(provider, type, name, location, account, manifest);
     Map<String, Object> metadata = new HashMap<>();
     metadata.put("account", account);
     return Artifact.builder()
@@ -71,8 +71,12 @@ final class KubernetesVersionedArtifactConverter extends KubernetesArtifactConve
       String type,
       String name,
       String location,
+      String account,
       KubernetesManifest manifest) {
-    List<Artifact> priorVersions = provider.getArtifacts(type, name, location);
+    List<Artifact> priorVersions =
+        provider.getArtifacts(type, name, location).stream()
+            .filter(a -> account.equals(a.getMetadata("account")))
+            .collect(Collectors.toList());
 
     Optional<String> maybeVersion = findMatchingVersion(priorVersions, manifest);
     if (maybeVersion.isPresent()) {
