@@ -620,9 +620,7 @@ export class DockerImageAndTagSelector extends React.Component<
         specifyTagByRegex ? (
           <div className="sp-formItem">
             <div className="sp-formItem__left">
-              <div className="sp-formLabel">
-                Tag <HelpField id="pipeline.config.docker.trigger.tag" />
-              </div>
+              <div className="sp-formLabel">Tag</div>
             </div>
 
             <div className="sp-formItem__right">
@@ -637,6 +635,7 @@ export class DockerImageAndTagSelector extends React.Component<
                   />
                 </span>
               </div>
+              <HelpField id="pipeline.config.docker.trigger.tag" expand={true} />
             </div>
           </div>
         ) : (
