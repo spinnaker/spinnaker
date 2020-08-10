@@ -1,7 +1,7 @@
 import { module, IQService } from 'angular';
 import { CanarySettings } from 'kayenta/canary.settings';
 
-import { ApplicationDataSourceRegistry, Application, SETTINGS } from '@spinnaker/core';
+import { ApplicationDataSourceRegistry, Application } from '@spinnaker/core';
 
 import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
 import { ICanaryConfigSummary, IJudge } from './domain/index';
