@@ -16,7 +16,7 @@ module(CANARY_DATA_SOURCE, []).run([
   ($q: IQService) => {
     'ngInject';
 
-    if (!SETTINGS.feature.canary) {
+    if (CanarySettings.featureDisabled) {
       return;
     }
 
