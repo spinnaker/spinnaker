@@ -24,7 +24,6 @@ export function EnvironmentRow({ name, resources = [], hasPinnedVersions, childr
 
   const envRowClasses = classNames({
     srow: true,
-    rowProd: isCritical,
   });
 
   return (
