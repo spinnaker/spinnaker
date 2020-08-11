@@ -69,15 +69,19 @@ class PipelineController {
   @CompileDynamic
   @ApiOperation(value = "Save a pipeline definition")
   @PostMapping('')
-  void savePipeline(@RequestBody Map pipeline) {
+  void savePipeline(
+    @RequestBody Map pipeline,
+    @RequestParam(value = "staleCheck", required = false, defaultValue = "false")
+      Boolean staleCheck) {
     def operation = [
       description: (String) "Save pipeline '${pipeline.get("name") ?: "Unknown"}'",
       application: pipeline.get('application'),
       job        : [
         [
-          type    : "savePipeline",
-          pipeline: (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).getBytes("UTF-8")),
-          user    : AuthenticatedRequest.spinnakerUser.orElse("anonymous")
+          type      : "savePipeline",
+          pipeline  : (String) Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).getBytes("UTF-8")),
+          user      : AuthenticatedRequest.spinnakerUser.orElse("anonymous"),
+          staleCheck: staleCheck
         ]
       ]
     ]
@@ -196,8 +200,8 @@ class PipelineController {
   @ResponseBody
   @ResponseStatus(HttpStatus.ACCEPTED)
   Map invokePipelineConfig(@PathVariable("application") String application,
-                                  @PathVariable("pipelineNameOrId") String pipelineNameOrId,
-                                  @RequestBody(required = false) Map trigger) {
+                           @PathVariable("pipelineNameOrId") String pipelineNameOrId,
+                           @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
     trigger.notifications = trigger.notifications ?: [];
@@ -297,7 +301,7 @@ class PipelineController {
                           required = true,
                           examples = @Example(value =
                             @ExampleProperty(mediaType = "application/json", value = '[{"key":"a","value":"1"},{"key":"b","value":"2"},{"key":"sum","value":"${a+b}"}]')
-                        ))
+                          ))
                         @RequestBody List<Map<String, String>> expressions) {
     try {
       return pipelineService.evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)
