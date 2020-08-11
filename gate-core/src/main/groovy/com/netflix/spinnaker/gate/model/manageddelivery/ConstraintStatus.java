@@ -22,6 +22,7 @@ import lombok.Data;
 public class ConstraintStatus {
   String type;
   String artifactVersion;
+  String artifactReference;
   String status;
   String comment;
 }
