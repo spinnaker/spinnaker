@@ -128,7 +128,7 @@ const statelessConstraintOptionsByType: { [type: string]: IStatelessConstraintCo
     iconName: 'mdConstraintDependsOn',
     shortSummary: {
       pass: ({ attributes: { environment } }) =>
-        `Already deployed to previous environment ${environment?.toUpperCase()}`,
+        `Already deployed to prerequisite environment ${environment?.toUpperCase()}`,
       fail: ({ attributes: { environment } }) =>
         `Deployment to ${environment?.toUpperCase()} will be required before promotion`,
     },
