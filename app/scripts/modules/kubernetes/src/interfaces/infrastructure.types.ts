@@ -9,6 +9,7 @@ import {
 
 export interface IKubernetesResource {
   apiVersion: string;
+  createdTime?: number;
   displayName: string;
   kind: string;
   namespace: string;
