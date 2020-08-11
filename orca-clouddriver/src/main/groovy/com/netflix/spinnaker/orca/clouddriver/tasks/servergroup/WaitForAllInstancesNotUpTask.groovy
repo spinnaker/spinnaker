@@ -25,6 +25,10 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
+@Deprecated
+/**
+ * @deprecated this does not handle some corner cases (like the platformHealthOnly flag), use {@link WaitForRequiredInstancesDownTask} instead
+ */
 class WaitForAllInstancesNotUpTask extends AbstractWaitingForInstancesTask {
   @Override
   protected boolean hasSucceeded(StageExecution stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
