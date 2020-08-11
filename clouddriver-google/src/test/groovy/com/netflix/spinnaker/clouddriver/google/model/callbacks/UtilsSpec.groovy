@@ -77,15 +77,22 @@ class UtilsSpec extends Specification {
       expected == Utils.getTargetProxyType(input)
 
     where:
-      input                                                                                                  | expected
-      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | GoogleTargetProxyType.HTTPS
-      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | GoogleTargetProxyType.HTTP
-      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"     | GoogleTargetProxyType.SSL
-      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"     | GoogleTargetProxyType.TCP
-      "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                       | GoogleTargetProxyType.HTTPS
-      "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                         | GoogleTargetProxyType.HTTP
-      "projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"                                           | GoogleTargetProxyType.SSL
-      "projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"                                           | GoogleTargetProxyType.TCP
+      input                                                                                                                                   | expected
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                              | GoogleTargetProxyType.HTTPS
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                | GoogleTargetProxyType.HTTP
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"                                  | GoogleTargetProxyType.SSL
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"                                  | GoogleTargetProxyType.TCP
+      "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                                                        | GoogleTargetProxyType.HTTPS
+      "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                                                          | GoogleTargetProxyType.HTTP
+      "projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"                                                                            | GoogleTargetProxyType.SSL
+      "projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"                                                                            | GoogleTargetProxyType.TCP
+      "https://www.googleapis.com/compute/beta/projects/my-project/regions/us-west3/targetPools/zsvrgrptestvmgvalx06-gce-fe-tp-1597099154789" | GoogleTargetProxyType.UNKNOWN
+      null                                                                                                                                    | GoogleTargetProxyType.UNKNOWN
+      ""                                                                                                                                      | GoogleTargetProxyType.UNKNOWN
+      "/abc"                                                                                                                                  | GoogleTargetProxyType.UNKNOWN
+      "abc/"                                                                                                                                  | GoogleTargetProxyType.UNKNOWN
+      "abc"                                                                                                                                   | GoogleTargetProxyType.UNKNOWN
+      "abc//"                                                                                                                                 | GoogleTargetProxyType.UNKNOWN
   }
 
   def "should get region from a full group Url"() {
