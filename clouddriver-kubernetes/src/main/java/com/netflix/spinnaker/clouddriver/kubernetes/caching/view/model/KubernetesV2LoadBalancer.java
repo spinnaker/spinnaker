@@ -49,6 +49,7 @@ public final class KubernetesV2LoadBalancer
   private final KubernetesKind kind;
   private final Map<String, String> labels;
   private final Moniker moniker;
+  private final Long createdTime;
 
   private KubernetesV2LoadBalancer(
       KubernetesManifest manifest,
@@ -64,6 +65,7 @@ public final class KubernetesV2LoadBalancer
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
     this.serverGroups = serverGroups;
+    this.createdTime = manifest.getFormattedCreationTimestamp();
   }
 
   @Nullable

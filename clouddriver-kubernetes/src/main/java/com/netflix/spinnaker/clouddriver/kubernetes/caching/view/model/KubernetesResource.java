@@ -32,4 +32,6 @@ public interface KubernetesResource {
   KubernetesApiVersion getApiVersion();
 
   String getNamespace();
+
+  Long getCreatedTime();
 }

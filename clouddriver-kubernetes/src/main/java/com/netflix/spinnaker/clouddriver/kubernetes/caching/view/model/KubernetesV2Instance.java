@@ -56,6 +56,7 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
   private final KubernetesKind kind;
   private final Map<String, String> labels;
   private final Moniker moniker;
+  private final Long createdTime;
 
   @Null
   @Override
@@ -73,6 +74,7 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
     this.kind = manifest.getKind();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
+    this.createdTime = manifest.getFormattedCreationTimestamp();
 
     this.health = new ArrayList<>();
     V1PodStatus status =

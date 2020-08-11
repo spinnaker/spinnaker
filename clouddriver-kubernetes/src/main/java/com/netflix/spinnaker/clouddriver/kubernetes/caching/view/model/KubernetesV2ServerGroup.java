@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,8 +42,6 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -135,7 +132,7 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
     this.displayName = manifest.getName();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
-    this.createdTime = getCreatedTime(manifest);
+    this.createdTime = manifest.getFormattedCreationTimestamp();
     this.buildInfo =
         ImmutableMap.of(
             "images",
@@ -267,21 +264,6 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
                 .serverGroupName(displayName)
                 .buildInfo(buildInfo)
                 .build());
-  }
-
-  private static Long getCreatedTime(KubernetesManifest manifest) {
-    Map<String, String> metadata =
-        (Map<String, String>) manifest.getOrDefault("metadata", new HashMap<>());
-    String timestamp = metadata.get("creationTimestamp");
-    try {
-      if (!Strings.isNullOrEmpty(timestamp)) {
-        return (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(timestamp)).getTime();
-      }
-    } catch (ParseException e) {
-      log.warn("Failed to parse timestamp: ", e);
-    }
-
-    return null;
   }
 
   @Override

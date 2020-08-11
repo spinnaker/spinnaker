@@ -71,6 +71,7 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
   private final KubernetesKind kind;
   private final Map<String, String> labels;
   private final Moniker moniker;
+  private final Long createdTime;
 
   private final Set<Rule> inboundRules;
   private final Set<Rule> outboundRules;
@@ -104,6 +105,7 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
     this.namespace = manifest.getNamespace();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
+    this.createdTime = manifest.getFormattedCreationTimestamp();
 
     this.inboundRules = inboundRules;
     this.outboundRules = outboundRules;
