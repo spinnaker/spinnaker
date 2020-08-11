@@ -77,6 +77,8 @@ public class SavePipelineTask implements RetryableTask {
     final Boolean isSavingMultiplePipelines =
         (Boolean)
             Optional.ofNullable(stage.getContext().get("isSavingMultiplePipelines")).orElse(false);
+    final Boolean staleCheck =
+        (Boolean) Optional.ofNullable(stage.getContext().get("staleCheck")).orElse(false);
     if (stage.getContext().get("pipeline.id") != null
         && pipeline.get("id") == null
         && !isSavingMultiplePipelines) {
@@ -90,7 +92,7 @@ public class SavePipelineTask implements RetryableTask {
         .filter(m -> m.supports(pipeline))
         .forEach(m -> m.mutate(pipeline));
 
-    Response response = front50Service.savePipeline(pipeline);
+    Response response = front50Service.savePipeline(pipeline, staleCheck);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "savepipeline");

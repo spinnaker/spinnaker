@@ -72,7 +72,7 @@ interface Front50Service {
   Map<String, Object> getPipeline(@Path("pipelineId") String pipelineId)
 
   @POST("/pipelines")
-  Response savePipeline(@Body Map pipeline)
+  Response savePipeline(@Body Map pipeline, @Query("staleCheck") boolean staleCheck)
 
   @PUT("/pipelines/{pipelineId}")
   Response updatePipeline(@Path("pipelineId") String pipelineId, @Body Map pipeline)

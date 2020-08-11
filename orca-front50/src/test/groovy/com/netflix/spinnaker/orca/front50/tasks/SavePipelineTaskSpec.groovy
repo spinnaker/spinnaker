@@ -54,7 +54,7 @@ class SavePipelineTaskSpec extends Specification {
     then:
     1 * mutator.supports(pipeline) >> true
     1 * mutator.mutate(pipeline)
-    1 * front50Service.savePipeline(pipeline) >> {
+    1 * front50Service.savePipeline(pipeline, _) >> {
       new Response('http://front50', 200, 'OK', [], null)
     }
     result.status == ExecutionStatus.SUCCEEDED
@@ -85,7 +85,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     front50Service.getPipelines(_) >> [existingPipeline]
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       receivedIndex = newPipeline.get("index")
       new Response('http://front50', 200, 'OK', [], null)
     }
@@ -117,7 +117,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     front50Service.getPipelines(_) >> [existingPipeline]
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       receivedIndex = newPipeline.get("index")
       new Response('http://front50', 200, 'OK', [], null)
     }
@@ -149,7 +149,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     stage.getContext().put('pipeline.serviceAccount', expectedRunAsUser)
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       runAsUser = newPipeline.triggers[0].runAsUser
       new Response('http://front50', 200, 'OK', [], null)
     }
@@ -181,7 +181,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     stage.getContext().put('pipeline.serviceAccount', 'my-pipeline@managed-service-account')
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       runAsUser = newPipeline.get("triggers")[0]?.runAsUser
       new Response('http://front50', 200, 'OK', [], null)
     }
@@ -213,7 +213,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     stage.getContext().put('pipeline.serviceAccount', 'id@managed-service-account')
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       runAsUser = newPipeline.get("triggers")[0]?.runAsUser
       new Response('http://front50', 200, 'OK', [], null)
     }
@@ -236,7 +236,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     front50Service.getPipelines(_) >> []
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       new Response('http://front50', 500, 'OK', [], null)
     }
     def result = task.execute(stage)
@@ -259,7 +259,7 @@ class SavePipelineTaskSpec extends Specification {
 
     when:
     front50Service.getPipelines(_) >> []
-    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+    front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       new Response('http://front50', 500, 'OK', [], null)
     }
     def result = task.execute(stage)
