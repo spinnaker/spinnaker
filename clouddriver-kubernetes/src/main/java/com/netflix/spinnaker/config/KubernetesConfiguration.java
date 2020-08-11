@@ -22,12 +22,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesV2Provider
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.ManifestProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.NoopManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -76,11 +73,5 @@ public class KubernetesConfiguration {
         kubernetesConfigurationProperties,
         credentialFactory,
         catsModule);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(ManifestProvider.class)
-  public ManifestProvider noopManifestProvider() {
-    return new NoopManifestProvider();
   }
 }

@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesV2JobStatus;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
@@ -31,7 +31,6 @@ import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1Pod;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -45,13 +44,13 @@ import org.springframework.stereotype.Component;
 public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatus> {
   @Getter private final String platform = "kubernetes";
   private final AccountCredentialsProvider accountCredentialsProvider;
-  private final List<ManifestProvider<KubernetesV2Manifest>> manifestProviderList;
+  private final KubernetesManifestProvider manifestProvider;
 
   KubernetesV2JobProvider(
       AccountCredentialsProvider accountCredentialsProvider,
-      List<ManifestProvider<KubernetesV2Manifest>> manifestProviderList) {
+      KubernetesManifestProvider manifestProvider) {
     this.accountCredentialsProvider = accountCredentialsProvider;
-    this.manifestProviderList = manifestProviderList;
+    this.manifestProvider = manifestProvider;
   }
 
   @Nullable
@@ -112,10 +111,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   }
 
   private Optional<V1Job> getKubernetesJob(String account, String location, String id) {
-    return manifestProviderList.stream()
-        .map(p -> p.getManifest(account, location, id, false))
-        .filter(Objects::nonNull)
-        .findFirst()
+    return Optional.ofNullable(manifestProvider.getManifest(account, location, id, false))
         .map(KubernetesV2Manifest::getManifest)
         .map(m -> KubernetesCacheDataConverter.getResource(m, V1Job.class));
   }

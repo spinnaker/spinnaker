@@ -17,14 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.controllers;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.ManifestProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.model.ManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +39,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/manifests")
 public class ManifestController {
-  final List<ManifestProvider<?>> manifestProviders;
+  final KubernetesManifestProvider manifestProvider;
 
   final RequestQueue requestQueue;
 
   @Autowired
   public ManifestController(
-      List<ManifestProvider<?>> manifestProviders, RequestQueue requestQueue) {
-    this.manifestProviders = manifestProviders;
+      KubernetesManifestProvider manifestProvider, RequestQueue requestQueue) {
+    this.manifestProvider = manifestProvider;
     this.requestQueue = requestQueue;
   }
 
@@ -72,32 +71,23 @@ public class ManifestController {
       @RequestParam(value = "includeEvents", required = false, defaultValue = "true")
           boolean includeEvents) {
 
-    List<Manifest> manifests =
-        manifestProviders.stream()
-            .map(
-                provider -> {
-                  try {
-                    return requestQueue.execute(
-                        account,
-                        () -> provider.getManifest(account, location, name, includeEvents));
-                  } catch (Throwable t) {
-                    log.warn("Failed to read manifest ", t);
-                    return null;
-                  }
-                })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+    Manifest manifest;
+    try {
+      manifest =
+          requestQueue.execute(
+              account, () -> manifestProvider.getManifest(account, location, name, includeEvents));
+    } catch (Throwable t) {
+      log.warn("Failed to read manifest ", t);
+      return null;
+    }
 
     String request =
         String.format("(account: %s, location: %s, name: %s)", account, location, name);
-    if (manifests.isEmpty()) {
+    if (manifest == null) {
       throw new NotFoundException("Manifest " + request + " not found");
-    } else if (manifests.size() > 1) {
-      log.error("Duplicate manifests " + manifests);
-      throw new IllegalStateException("Multiple manifests matching " + request + " found");
     }
 
-    return manifests.get(0);
+    return manifest;
   }
 
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
@@ -124,31 +114,24 @@ public class ManifestController {
         String.format(
             "(account: %s, location: %s, kind: %s, app %s, cluster: %s, criteria: %s)",
             account, location, kind, app, cluster, criteria);
-    List<List<? extends Manifest>> manifestSet =
-        manifestProviders.stream()
-            .map(
-                p -> {
-                  try {
-                    return requestQueue.execute(
-                        account,
-                        () ->
-                            p.getClusterAndSortAscending(
-                                account, location, kind, app, cluster, criteria.getSort()));
-                  } catch (Throwable t) {
-                    log.warn("Failed to read {}", request, t);
-                    return null;
-                  }
-                })
-            .filter(l -> l != null && !l.isEmpty())
-            .collect(Collectors.toList());
 
-    if (manifestSet.isEmpty()) {
-      throw new NotFoundException("No manifests matching " + request + " found");
-    } else if (manifestSet.size() > 1) {
-      throw new IllegalStateException("Multiple sets of manifests matching " + request + " found");
+    List<KubernetesV2Manifest> manifests;
+    try {
+      manifests =
+          requestQueue.execute(
+              account,
+              () ->
+                  manifestProvider.getClusterAndSortAscending(
+                      account, location, kind, app, cluster, criteria.getSort()));
+    } catch (Throwable t) {
+      log.warn("Failed to read {}", request, t);
+      return null;
     }
 
-    List<? extends Manifest> manifests = manifestSet.get(0);
+    if (manifests == null) {
+      throw new NotFoundException("No manifests matching " + request + " found");
+    }
+
     try {
       switch (criteria) {
         case oldest:

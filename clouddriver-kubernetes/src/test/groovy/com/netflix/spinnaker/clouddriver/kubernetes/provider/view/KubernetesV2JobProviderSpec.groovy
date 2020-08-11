@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesV2ManifestProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
@@ -49,7 +49,7 @@ class KubernetesV2JobProviderSpec extends Specification {
       ]
     ])
 
-    def mockManifestProvider = Mock(KubernetesV2ManifestProvider) {
+    def mockManifestProvider = Mock(KubernetesManifestProvider) {
       getManifest(*_) >> KubernetesV2Manifest.builder()
         .account("a")
         .name("a")
@@ -58,7 +58,7 @@ class KubernetesV2JobProviderSpec extends Specification {
     }
 
     when:
-    def provider = new KubernetesV2JobProvider(mockAccountCredentialsProvider, [mockManifestProvider])
+    def provider = new KubernetesV2JobProvider(mockAccountCredentialsProvider, mockManifestProvider)
     def logResult = provider.getFileContents("a", "b", "c", "d")
 
     then:
