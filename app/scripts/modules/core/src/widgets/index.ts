@@ -1,5 +1,4 @@
 export * from './ApplicationsPickerInput';
-export * from './CustomDropdown';
 export * from './Keys';
 export * from './ScopeClusterSelector';
 export * from './Spinner';
