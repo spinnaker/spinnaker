@@ -134,6 +134,7 @@ const EnvironmentCards = memo(
               key={constraint.type}
               application={application}
               environment={environmentName}
+              reference={reference}
               version={versionDetails.version}
               constraint={constraint}
             />

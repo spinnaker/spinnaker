@@ -21,6 +21,7 @@ export interface IUpdateConstraintStatusRequest {
   application: string;
   environment: string;
   type: string;
+  reference: string;
   version: string;
   status: StatefulConstraintStatus;
 }
@@ -79,6 +80,7 @@ export class ManagedWriter {
     application,
     environment,
     type,
+    reference,
     version,
     status,
   }: IUpdateConstraintStatusRequest): IPromise<void> {
@@ -88,6 +90,7 @@ export class ManagedWriter {
       .one('constraint')
       .post({
         type,
+        artifactReference: reference,
         artifactVersion: version,
         status,
       });

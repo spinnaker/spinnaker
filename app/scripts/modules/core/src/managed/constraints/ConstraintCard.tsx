@@ -73,67 +73,71 @@ const getCardAppearance = (constraint: IStatefulConstraint | IStatelessConstrain
 export interface IConstraintCardProps {
   application: Application;
   environment: string;
+  reference: string;
   version: string;
   constraint: IStatefulConstraint | IStatelessConstraint;
 }
 
-export const ConstraintCard = memo(({ application, environment, version, constraint }: IConstraintCardProps) => {
-  const { type } = constraint;
+export const ConstraintCard = memo(
+  ({ application, environment, reference, version, constraint }: IConstraintCardProps) => {
+    const { type } = constraint;
 
-  const [actionStatus, setActionStatus] = useState<IRequestStatus>('NONE');
+    const [actionStatus, setActionStatus] = useState<IRequestStatus>('NONE');
 
-  if (!isConstraintSupported(type)) {
-    logUnsupportedConstraintError(type);
-    return null;
-  }
+    if (!isConstraintSupported(type)) {
+      logUnsupportedConstraintError(type);
+      return null;
+    }
 
-  const actions = getConstraintActions(constraint);
+    const actions = getConstraintActions(constraint);
 
-  return (
-    <StatusCard
-      appearance={getCardAppearance(constraint)}
-      iconName={getConstraintIcon(type)}
-      title={getConstraintSummary(constraint)}
-      actions={
-        actions && (
-          <div
-            className={classNames('flex-container-h middle', {
-              'sp-group-margin-s-xaxis': actionStatus !== 'REJECTED',
-            })}
-          >
-            {actionStatus !== 'REJECTED' &&
-              actions.map(({ title, pass }) => {
-                return (
-                  <Button
-                    key={title + pass}
-                    disabled={actionStatus === 'PENDING'}
-                    onClick={() => {
-                      setActionStatus('PENDING');
-                      overrideConstraintStatus(application, {
-                        environment,
-                        type,
-                        version,
-                        status: pass ? OVERRIDE_PASS : OVERRIDE_FAIL,
-                      })
-                        .then(() => setActionStatus('RESOLVED'))
-                        .catch(() => {
-                          setActionStatus('REJECTED');
-                        });
-                    }}
-                  >
-                    {title}
-                  </Button>
-                );
+    return (
+      <StatusCard
+        appearance={getCardAppearance(constraint)}
+        iconName={getConstraintIcon(type)}
+        title={getConstraintSummary(constraint)}
+        actions={
+          actions && (
+            <div
+              className={classNames('flex-container-h middle', {
+                'sp-group-margin-s-xaxis': actionStatus !== 'REJECTED',
               })}
-            {actionStatus === 'REJECTED' && (
-              <>
-                <span className="text-bold action-error-message sp-margin-l-right">Something went wrong</span>
-                <Button onClick={() => setActionStatus('NONE')}>Try again</Button>
-              </>
-            )}
-          </div>
-        )
-      }
-    />
-  );
-});
+            >
+              {actionStatus !== 'REJECTED' &&
+                actions.map(({ title, pass }) => {
+                  return (
+                    <Button
+                      key={title + pass}
+                      disabled={actionStatus === 'PENDING'}
+                      onClick={() => {
+                        setActionStatus('PENDING');
+                        overrideConstraintStatus(application, {
+                          environment,
+                          type,
+                          reference,
+                          version,
+                          status: pass ? OVERRIDE_PASS : OVERRIDE_FAIL,
+                        })
+                          .then(() => setActionStatus('RESOLVED'))
+                          .catch(() => {
+                            setActionStatus('REJECTED');
+                          });
+                      }}
+                    >
+                      {title}
+                    </Button>
+                  );
+                })}
+              {actionStatus === 'REJECTED' && (
+                <>
+                  <span className="text-bold action-error-message sp-margin-l-right">Something went wrong</span>
+                  <Button onClick={() => setActionStatus('NONE')}>Try again</Button>
+                </>
+              )}
+            </div>
+          )
+        }
+      />
+    );
+  },
+);
