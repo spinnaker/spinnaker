@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -128,30 +129,35 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       Map job = objectMapper.readValue(jobStream, new TypeReference<Map>() {})
       outputs.jobStatus = job
 
+      outputs.completionDetails = job.completionDetails
       switch ((String) job.jobState) {
         case "Succeeded":
           status = ExecutionStatus.SUCCEEDED
-          outputs.completionDetails = job.completionDetails
-
-          if (stage.context.propertyFile) {
-            Map<String, Object> properties = [:]
-            retrySupport.retry({
-              properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
-              if (properties.size() == 0) {
-                throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
-              }
-            }, 6, 5000, false) // retry for 30 seconds
-            outputs << properties
-            outputs.propertyFileContents = properties
-          }
-
-          return
+          break
 
         case "Failed":
           status = ExecutionStatus.TERMINAL
-          outputs.completionDetails = job.completionDetails
-          return
+          break
       }
+
+      if ((status == ExecutionStatus.SUCCEEDED) || (status == ExecutionStatus.TERMINAL)) {
+        if (stage.context.propertyFile) {
+          Map<String, Object> properties = [:]
+          retrySupport.retry({
+            properties = katoRestService.getFileContents(appName, account, location, name, stage.context.propertyFile)
+            if (properties.size() == 0) {
+              if (status == ExecutionStatus.SUCCEEDED) {
+                throw new ConfigurationException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
+              } else {
+                throw new ConfigurationException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax (this may be because the job failed)")
+              }
+            }
+          }, 6, 5000, false) // retry for 30 seconds
+          outputs << properties
+          outputs.propertyFileContents = properties
+        }
+      }
+
     }
 
     TaskResult.builder(status).context(outputs).outputs(outputs).build()
