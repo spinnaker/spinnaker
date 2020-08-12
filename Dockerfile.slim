@@ -1,0 +1,9 @@
+FROM alpine:3.11
+MAINTAINER sig-platform@spinnaker.io
+RUN apk --no-cache add --update bash openjdk11-jre
+RUN addgroup -S -g 10111 spinnaker
+RUN adduser -D -S spinnaker -u 10111 -G spinnaker
+COPY keel-web/build/install/keel /opt/keel
+RUN mkdir -p /opt/keel/plugins && chown -R spinnaker:nogroup /opt/keel/plugins
+USER spinnaker
+CMD ["/opt/keel/bin/keel"]
