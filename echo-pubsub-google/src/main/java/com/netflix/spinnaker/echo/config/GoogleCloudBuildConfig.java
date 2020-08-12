@@ -51,7 +51,7 @@ public class GoogleCloudBuildConfig {
 
   @PostConstruct
   void googleCloudBuildSubscribers() {
-    log.info("Creating Google Pubsub Subscribers");
+    log.info("Creating Google Cloud Build Pubsub Subscribers");
     List<PubsubSubscriber> newSubscribers = new ArrayList<>();
 
     googleCloudBuildProperties
