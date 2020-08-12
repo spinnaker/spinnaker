@@ -1,6 +1,5 @@
 FROM alpine:3.11
-MAINTAINER sig-platform@spinnaker.io
-COPY clouddriver-web/build/install/clouddriver /opt/clouddriver
+LABEL maintainer="sig-platform@spinnaker.io"
 
 ENV KUBECTL_VERSION v1.17.6
 
@@ -29,8 +28,10 @@ ENV PATH "$PATH:/usr/local/bin/"
 
 ENV PATH=$PATH:/opt/google-cloud-sdk/bin/
 
-RUN adduser -D -S spinnaker
+RUN addgroup -S -g 10111 spinnaker
+RUN adduser -S -G spinnaker -u 10111 spinnaker
 
+COPY clouddriver-web/build/install/clouddriver /opt/clouddriver
 RUN mkdir -p /opt/clouddriver/plugins && chown -R spinnaker:nogroup /opt/clouddriver/plugins
 
 USER spinnaker
