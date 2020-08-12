@@ -1,8 +1,8 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
-COPY gate-web/build/install/gate /opt/gate
+LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
-RUN adduser --disabled-login --system spinnaker
+RUN adduser --system --uid 10111 --group spinnaker
+COPY gate-web/build/install/gate /opt/gate
 RUN mkdir -p /opt/gate/plugins && chown -R spinnaker:nogroup /opt/gate/plugins
 USER spinnaker
 CMD ["/opt/gate/bin/gate"]
