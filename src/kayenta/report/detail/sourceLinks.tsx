@@ -19,13 +19,15 @@ const SourceLinks = ({ reportUrl, metricListUrl }: ISourceJsonStateProps) => {
           Report
         </a>
       </li>
-      <li>
-        <p>
-          <a target="_blank" href={metricListUrl}>
-            Metrics
-          </a>
-        </p>
-      </li>
+      {metricListUrl && (
+        <li>
+          <p>
+            <a target="_blank" href={metricListUrl}>
+              Metrics
+            </a>
+          </p>
+        </li>
+      )}
     </ul>
   );
 };
@@ -45,6 +47,9 @@ const resolveReportUrl = (state: ICanaryState): string => {
 const resolveMetricListUrl = (state: ICanaryState): string => {
   const status = runSelector(state);
   const { metricSetPairListId } = status;
+  if (!metricSetPairListId) {
+    return null;
+  }
   let url = `${SETTINGS.gateUrl}/v2/canaries/metricSetPairList/${metricSetPairListId}`;
   const storageAccountName = status.storageAccountName || CanarySettings.storageAccountName;
   if (storageAccountName) {

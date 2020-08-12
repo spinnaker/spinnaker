@@ -9,6 +9,7 @@ export interface ICanaryExecutionStatusResult {
   complete: boolean;
   status: string;
   result: ICanaryResult;
+  exception?: ICanaryExecutionException;
   stageStatus: { [key: string]: string };
   startTimeIso: string;
   application: string;
@@ -18,6 +19,13 @@ export interface ICanaryExecutionStatusResult {
   config: ICanaryConfig;
   canaryExecutionRequest: ICanaryExecutionRequest;
   storageAccountName: string;
+}
+
+export interface ICanaryExecutionException {
+  exceptionType: string;
+  operation: string;
+  details: { [key: string]: any };
+  timestamp: string;
 }
 
 export interface ICanaryResult {

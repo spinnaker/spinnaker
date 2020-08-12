@@ -1,5 +1,3 @@
-import { sortBy } from 'lodash';
-
 import { API } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
@@ -22,7 +20,7 @@ export const getCanaryRun = (configId: string, canaryExecutionId: string): Promi
       const { config } = run;
       config.id = configId;
       run.id = canaryExecutionId;
-      run.result.judgeResult.results = sortBy(run.result.judgeResult.results, 'name');
+      run.result?.judgeResult.results.sort((a, b) => a.name.localeCompare(b.name));
       return run;
     });
 

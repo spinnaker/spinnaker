@@ -8,11 +8,11 @@ import { validateMetric } from '../edit/editMetricValidation';
 
 export const runSelector = (state: ICanaryState): ICanaryExecutionStatusResult => state.selectedRun.run;
 
-export const judgeResultSelector = createSelector(runSelector, (run) => run.result.judgeResult);
+export const judgeResultSelector = createSelector(runSelector, (run) => run.result?.judgeResult);
 
 export const configIdSelector = createSelector(runSelector, (run) => run.config.id);
 
-export const metricResultsSelector = createSelector(runSelector, (run) => run.result.judgeResult.results);
+export const metricResultsSelector = createSelector(runSelector, (run) => run.result?.judgeResult.results ?? []);
 
 export const canaryExecutionRequestSelector = createSelector(runSelector, (run) => run.canaryExecutionRequest);
 
