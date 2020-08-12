@@ -1,8 +1,8 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
-COPY front50-web/build/install/front50 /opt/front50
+LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
-RUN adduser --disabled-login --system spinnaker
+RUN adduser --system --uid 10111 --group spinnaker
+COPY front50-web/build/install/front50 /opt/front50
 RUN mkdir -p /opt/front50/plugins && chown -R spinnaker:nogroup /opt/front50/plugins
 USER spinnaker
 CMD ["/opt/front50/bin/front50"]
