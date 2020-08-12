@@ -1,9 +1,8 @@
 # Not using the alpine image because it lacks a package gRPC needed to establish pub/sub listeners.
 FROM openjdk:11
-MAINTAINER sig-platform@spinnaker.io
+LABEL maintainer="sig-platform@spinnaker.io"
+RUN adduser --system --uid 10111 --group spinnaker
 COPY echo-web/build/install/echo /opt/echo
-
-RUN adduser --disabled-login --system spinnaker
 RUN mkdir -p /opt/echo/plugins && chown -R spinnaker:nogroup /opt/echo/plugins
 USER spinnaker
 CMD ["/opt/echo/bin/echo"]
