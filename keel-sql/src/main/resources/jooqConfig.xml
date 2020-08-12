@@ -24,7 +24,8 @@
     </database>
     <target>
       <packageName>com.netflix.spinnaker.keel.persistence.metamodel</packageName>
-      <directory>keel-sql/src/generated/java</directory>
+      <!-- tokenized by gradle's processResources task -->
+      <directory>$projectDir/src/generated/java</directory>
     </target>
     <generate>
       <javaTimeTypes>true</javaTimeTypes>

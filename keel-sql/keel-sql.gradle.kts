@@ -1,3 +1,4 @@
+import ch.ayedo.jooqmodelator.gradle.JooqModelatorTask
 import com.diffplug.gradle.spotless.SpotlessExtension
 
 plugins {
@@ -78,7 +79,7 @@ dependencies {
 jooqModelator {
   jooqVersion = "3.13.2"
   jooqEdition = "OSS"
-  jooqConfigPath = "$projectDir/src/main/resources/jooqConfig.xml"
+  jooqConfigPath = "$buildDir/resources/main/jooqConfig.xml"
   jooqOutputPath = "$projectDir/src/generated/java"
   migrationEngine = "LIQUIBASE"
   migrationsPaths = listOf("$projectDir/src/main/resources/db")
@@ -86,6 +87,18 @@ jooqModelator {
   dockerEnv = listOf("MYSQL_ROOT_PASSWORD=sa", "MYSQL_ROOT_HOST=%", "MYSQL_DATABASE=keel")
   dockerHostPort = 6603
   dockerContainerPort = 3306
+}
+
+// expand properties in jooqConfig.xml so it gets a fully-qualified directory to generate into
+tasks.withType<ProcessResources> {
+  filesMatching("jooqConfig.xml") {
+    expand(project.properties)
+  }
+}
+
+// process resources before generating JOOQ stuff so we tokenize the config XML
+tasks.withType<JooqModelatorTask> {
+  dependsOn("processResources")
 }
 
 // Don't enforce spotless for generated code
