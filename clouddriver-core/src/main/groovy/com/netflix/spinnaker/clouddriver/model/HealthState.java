@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * A JobStatus reflects the state of a running or completed job.
- */
-interface JobStatus {
-  String getName()
+public enum HealthState {
+  Failed,
+  Down,
+  OutOfService,
+  Unknown,
+  Starting,
+  Succeeded,
+  Up;
 
-  String getAccount()
-
-  String getId()
-
-  String getLocation()
-
-  String getProvider()
-
-  JobState getJobState()
-
-  Long getCreatedTime()
-
-  Long getCompletedTime()
-
-  Map<String, ? extends Serializable> getCompletionDetails()
+  public static HealthState fromString(final String name) {
+    for (HealthState state : values()) {
+      if (state.name().equalsIgnoreCase(name)) {
+        return state;
+      }
+    }
+    return Unknown;
+  }
 }

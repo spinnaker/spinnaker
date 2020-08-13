@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-public interface NetworkProvider<T extends Network> {
-  String getCloudProvider()
-  Set<T> getAll()
+import java.util.Set;
+
+public interface InstanceTypeProvider<T extends InstanceType> {
+  Set<T> getAll();
 }

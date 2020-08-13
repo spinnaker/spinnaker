@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.netflix.spinnaker.clouddriver.documentation.Empty
-
-import javax.annotation.Nullable
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
+import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
- * An application provider is an interface for which {@link Application} objects may be retrieved. This interface defines a common contract for which various providers may be queried about their
+ * An application provider is an interface for which {@link Application} objects may be retrieved.
+ * This interface defines a common contract for which various providers may be queried about their
  * known applications.
- *
- *
- *
  */
-interface ApplicationProvider {
+public interface ApplicationProvider {
   /**
    * Looks up all of the {@link Application} objects known to this provider
    *
@@ -35,7 +33,7 @@ interface ApplicationProvider {
    * @return a set of applications or an empty set if none are known to this provider
    */
   @Empty
-  Set<? extends Application> getApplications(boolean expand)
+  Set<? extends Application> getApplications(boolean expand);
 
   /**
    * Looks up a particular application by name
@@ -44,5 +42,5 @@ interface ApplicationProvider {
    * @return an application or null if it is not known to this provider
    */
   @Nullable
-  Application getApplication(String name)
+  Application getApplication(String name);
 }

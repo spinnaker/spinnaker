@@ -78,11 +78,23 @@ class ClusterController {
       if (!lastApp) {
         clusterNames = app.clusterNames
       } else {
-        clusterNames = Application.mergeClusters.curry(lastApp, app).call()
+        clusterNames = mergeClusters.curry(lastApp, app).call()
       }
       lastApp = app
     }
     clusterNames
+  }
+
+  private Closure<Map<String, Set<String>>> mergeClusters = { Application a, Application b ->
+    [a, b].inject([:]) { Map map, source ->
+      for (Map.Entry e in source.clusterNames) {
+        if (!map.containsKey(e.key)) {
+          map[e.key] = new HashSet()
+        }
+        map[e.key].addAll e.value
+      }
+      map
+    }
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")

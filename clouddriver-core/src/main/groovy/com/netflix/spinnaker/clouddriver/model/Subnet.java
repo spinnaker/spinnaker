@@ -14,7 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-interface CachingAgentScheduler {
+/** A representation of a subnet */
+public interface Subnet {
+  /**
+   * The cloud provider associated with this subnet
+   *
+   * @return
+   */
+  String getType();
+
+  /**
+   * The ID associated with this subnet
+   *
+   * @return
+   */
+  String getId();
+
+  /**
+   * The purpose for this subnet. Examples: internal, external, secure, performance, etc
+   *
+   * @return
+   */
+  String getPurpose();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.clouddriver.model;
 
-package com.netflix.spinnaker.clouddriver.model
-
-/**
- * A representation of a key pair
- */
-interface KeyPair {
-
-    /**
-     * The name of the key pair.
-     */
-    String getKeyName()
-
-    /**
-     * The fingerprint of the key pair.
-     */
-    String getKeyFingerprint()
-
-}
+public interface ReservationReport {}

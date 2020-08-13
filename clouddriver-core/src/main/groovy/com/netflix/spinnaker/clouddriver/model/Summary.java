@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.documentation
-
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+package com.netflix.spinnaker.clouddriver.model;
 
 /**
- * Marker annotation that defines that the provided method may return an empty map, list, or set
- *
- *
+ * Summary objects are views into particular pieces of a server group. Instead of requesting an
+ * entire server group (including all instances and load balancers and whatnot), clients can request
+ * a Summary that contains just the information needed.
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
-@interface Empty {
-
-}
+public interface Summary {}

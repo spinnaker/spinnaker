@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-public interface JobProvider<T extends JobStatus> {
-  String getPlatform()
-
-  T collectJob(String account, String location, String id)
-
-  Map<String, Object> getFileContents(String account, String location, String id, String fileName)
-
-  void cancelJob(String account, String location, String id)
+/** A JobState defines the set of possible states a job can be in. */
+public enum JobState {
+  Starting,
+  Running,
+  Failed,
+  Succeeded,
+  Unknown;
 }

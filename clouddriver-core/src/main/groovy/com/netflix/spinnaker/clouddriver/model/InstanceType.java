@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-interface KeyPairProvider<T extends KeyPair> {
-  Set<T> getAll()
+/** A representation of an instance type */
+public interface InstanceType {
+  String getName();
 }

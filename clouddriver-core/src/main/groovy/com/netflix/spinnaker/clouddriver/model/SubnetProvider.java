@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * Marker interface to represent a Health object. The concrete object will be serialized for consumers.
- *
- *
- */
-public interface Health {
+import java.util.Set;
 
-  /**
-   * @return health state indication
-   */
-  HealthState getState()
+public interface SubnetProvider<T extends Subnet> {
+  String getCloudProvider();
 
+  Set<T> getAll();
 }

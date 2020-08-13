@@ -14,44 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * A representation of a network
- */
-public interface Network {
-  /**
-   * The cloud provider associated with this network
-   *
-   * @return
-   */
-  String getCloudProvider()
+import java.util.Map;
 
-  /**
-   * The ID associated with this network
-   *
-   * @return
-   */
-  String getId()
-
-  /**
-   * The name for this network
-   *
-   * @return
-   */
-  String getName()
-
-  /**
-   * The account associated with this network
-   *
-   * @return
-   */
-  String getAccount()
-
-  /**
-   * The region associated with this network
-   *
-   * @return
-   */
-  String getRegion()
+public interface ReservationReportProvider<T extends ReservationReport> {
+  T getReservationReport(String name, Map<String, String> filters);
 }

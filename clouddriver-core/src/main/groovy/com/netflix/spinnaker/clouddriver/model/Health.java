@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-interface ReservationReportProvider<T extends ReservationReport> {
-  T getReservationReport(String name, Map<String, String> filters)
+/**
+ * Marker interface to represent a Health object. The concrete object will be serialized for
+ * consumers.
+ */
+public interface Health {
+  /** @return health state indication */
+  HealthState getState();
 }

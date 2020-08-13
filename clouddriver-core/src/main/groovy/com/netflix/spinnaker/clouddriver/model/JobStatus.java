@@ -14,11 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * A JobState defines the set of possible states a job can be in.
- */
-enum JobState {
-  Starting, Running, Failed, Succeeded, Unknown
+import java.io.Serializable;
+import java.util.Map;
+
+/** A JobStatus reflects the state of a running or completed job. */
+public interface JobStatus {
+  String getName();
+
+  String getAccount();
+
+  String getId();
+
+  String getLocation();
+
+  String getProvider();
+
+  JobState getJobState();
+
+  Long getCreatedTime();
+
+  Long getCompletedTime();
+
+  Map<String, ? extends Serializable> getCompletionDetails();
 }

@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.documentation;
 
-interface SubnetProvider<T extends Subnet> {
-  String getCloudProvider()
-  Set<T> getAll()
-}
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/** Marker annotation that defines that the provided method may return an empty map, list, or set */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.SOURCE)
+public @interface Empty {}

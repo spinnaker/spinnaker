@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-enum HealthState {
-  Failed, Down, OutOfService, Unknown, Starting, Succeeded, Up
+import java.util.Set;
 
-  static HealthState fromString(String name) {
-    values().find { it.name().equalsIgnoreCase(name) } ?: Unknown
-  }
+public interface CertificateProvider<T extends Certificate> {
+  public abstract String getCloudProvider();
+
+  public abstract Set<T> getAll();
 }

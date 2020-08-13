@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * A representation of an instance type
- */
-interface InstanceType {
+import java.util.Set;
 
-    String getName()
+public interface NetworkProvider<T extends Network> {
+  String getCloudProvider();
 
+  Set<T> getAll();
 }

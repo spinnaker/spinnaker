@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.netflix.spinnaker.clouddriver.documentation.Empty
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An application is a top-level construct that provides an association to {@link Cluster} objects.
- *
- *
  */
-interface Application {
+public interface Application {
   /**
    * The name of the application
    *
    * @return name
    */
-  String getName()
+  String getName();
 
   /**
    * Arbitrary metadata that may be associated with an application.
@@ -37,7 +37,7 @@ interface Application {
    * @return map of key->value pairs, or an empty map
    */
   @Empty
-  Map<String, String> getAttributes()
+  Map<String, String> getAttributes();
 
   /**
    * A set of cluster names that are associated with this application
@@ -45,17 +45,5 @@ interface Application {
    * @return names
    */
   @Empty
-  Map<String, Set<String>> getClusterNames()
-
-  Closure<Map<String, Set<String>>> mergeClusters = { Application a, Application b ->
-    [a, b].inject([:]) { Map map, source ->
-      for (Map.Entry e in source.clusterNames) {
-        if (!map.containsKey(e.key)) {
-          map[e.key] = new HashSet()
-        }
-        map[e.key].addAll e.value
-      }
-      map
-    }
-  }
+  Map<String, Set<String>> getClusterNames();
 }

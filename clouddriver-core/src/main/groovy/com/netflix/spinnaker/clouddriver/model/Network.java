@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,42 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * A representation of a subnet
- */
-interface Subnet {
+/** A representation of a network */
+public interface Network {
   /**
-   * The cloud provider associated with this subnet
+   * The cloud provider associated with this network
    *
    * @return
    */
-  String getType()
+  String getCloudProvider();
 
   /**
-   * The ID associated with this subnet
+   * The ID associated with this network
+   *
    * @return
    */
-  String getId()
+  String getId();
 
   /**
-   * The purpose for this subnet. Examples: internal, external, secure, performance, etc
+   * The name for this network
+   *
    * @return
    */
-  String getPurpose()
+  String getName();
+
+  /**
+   * The account associated with this network
+   *
+   * @return
+   */
+  String getAccount();
+
+  /**
+   * The region associated with this network
+   *
+   * @return
+   */
+  String getRegion();
 }

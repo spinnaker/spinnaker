@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-interface InstanceProvider<T extends Instance, S> {
-
+public interface InstanceProvider<T extends Instance, S> {
   /**
    * Returns the platform the instance provider
+   *
    * @return a String, e.g. 'aws', 'gce'
    */
-  String getCloudProvider()
+  String getCloudProvider();
 
-  T getInstance(String account, String region, String id)
+  T getInstance(String account, String region, String id);
 
-  S getConsoleOutput(String account, String region, String id)
+  S getConsoleOutput(String account, String region, String id);
 }

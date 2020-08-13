@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * Summary objects are views into particular pieces of a server group. Instead of requesting an entire server group
- * (including all instances and load balancers and whatnot), clients can request a Summary that contains just the
- * information needed.
- */
-interface Summary {}
+import java.util.Set;
+
+public interface KeyPairProvider<T extends KeyPair> {
+  Set<T> getAll();
+}
