@@ -23,17 +23,11 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Component
 
-@Component
-@ConditionalOnProperty("monitor.active-executions.redis", havingValue = "false")
 class SqlActiveExecutionsMonitor(
-  @Qualifier("sqlExecutionRepository") private val executionRepository: ExecutionStatisticsRepository,
+  private val executionRepository: ExecutionStatisticsRepository,
   registry: Registry,
-  @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
+  refreshFrequencyMs: Long
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)

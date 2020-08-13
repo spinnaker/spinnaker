@@ -28,11 +28,14 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
+import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
+import com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor
 import java.time.Clock
 import java.util.Optional
 import liquibase.integration.spring.SpringLiquibase
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -97,6 +100,15 @@ class SqlConfiguration {
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
+
+  @ConditionalOnProperty("monitor.active-executions.redis", havingValue = "false")
+  @Bean
+  fun sqlActiveExecutionsMonitor(
+    @Qualifier("sqlExecutionRepository") executionRepository: ExecutionStatisticsRepository,
+    registry: Registry,
+    @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
+  ) =
+    SqlActiveExecutionsMonitor(executionRepository, registry, refreshFrequencyMs)
 
   @Bean
   fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
