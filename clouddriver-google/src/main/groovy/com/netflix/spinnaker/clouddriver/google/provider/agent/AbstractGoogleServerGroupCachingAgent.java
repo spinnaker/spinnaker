@@ -83,6 +83,7 @@ import com.netflix.spinnaker.clouddriver.google.compute.Instances;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.AutoscalingMode;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CpuUtilization;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CpuUtilization.PredictiveMethod;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization.UtilizationTargetType;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.FixedOrPercent;
@@ -942,6 +943,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
     }
     CpuUtilization output = new CpuUtilization();
     output.setUtilizationTarget(input.getUtilizationTarget());
+    output.setPredictiveMethod(valueOf(PredictiveMethod.class, input.getPredictiveMethod()));
     return output;
   }
 

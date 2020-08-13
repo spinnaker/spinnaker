@@ -39,6 +39,12 @@ class GoogleAutoscalingPolicy {
   @ToString(includeNames = true)
   static class CpuUtilization {
     Double utilizationTarget
+    PredictiveMethod predictiveMethod
+
+    enum PredictiveMethod {
+      NONE,
+      STANDARD
+    }
   }
 
   @ToString(includeNames = true)

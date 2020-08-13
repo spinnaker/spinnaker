@@ -725,7 +725,10 @@ class AbstractGoogleServerGroupCachingAgentTest {
     AutoscalingPolicy input =
         new AutoscalingPolicy()
             .setCoolDownPeriodSec(123)
-            .setCpuUtilization(new AutoscalingPolicyCpuUtilization().setUtilizationTarget(9.87))
+            .setCpuUtilization(
+                new AutoscalingPolicyCpuUtilization()
+                    .setUtilizationTarget(9.87)
+                    .setPredictiveMethod("STANDARD"))
             .setLoadBalancingUtilization(
                 new AutoscalingPolicyLoadBalancingUtilization().setUtilizationTarget(6.54))
             .setMaxNumReplicas(99)
@@ -764,6 +767,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(converted.getCoolDownPeriodSec()).isEqualTo(input.getCoolDownPeriodSec());
     assertThat(converted.getCpuUtilization().getUtilizationTarget())
         .isEqualTo(input.getCpuUtilization().getUtilizationTarget());
+    assertThat(converted.getCpuUtilization().getPredictiveMethod().toString())
+        .isEqualTo(input.getCpuUtilization().getPredictiveMethod());
     assertThat(converted.getLoadBalancingUtilization().getUtilizationTarget())
         .isEqualTo(input.getLoadBalancingUtilization().getUtilizationTarget());
     assertThat(converted.getMaxNumReplicas()).isEqualTo(input.getMaxNumReplicas());
@@ -822,6 +827,65 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(converted.getMinNumReplicas()).isNull();
     assertThat(converted.getMode()).isNull();
     assertThat(converted.getScaleInControl()).isNull();
+  }
+
+  @Test
+  void serverGroupAutoscalingPolicy_unknownPredictiveAutoscalerMethod() {
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager().setName("myServerGroup").setZone(ZONE_URL);
+    Autoscaler autoscaler =
+        new Autoscaler()
+            .setZone(ZONE_URL)
+            .setTarget("myServerGroup")
+            .setAutoscalingPolicy(
+                new AutoscalingPolicy()
+                    .setCpuUtilization(
+                        new AutoscalingPolicyCpuUtilization()
+                            .setPredictiveMethod("SOME THING THAT DOESN'T REALLY EXIST")));
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setAutoscalers(autoscaler)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(
+            compute, ImmutableList.of(instanceGroupManager), ImmutableList.of(autoscaler));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+    GoogleAutoscalingPolicy converted = serverGroup.getAutoscalingPolicy();
+
+    assertThat(converted.getCpuUtilization().getPredictiveMethod()).isNull();
+  }
+
+  @Test
+  void serverGroupAutoscalingPolicy_emptyPredictiveAutoscalerMethod() {
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager().setName("myServerGroup").setZone(ZONE_URL);
+    Autoscaler autoscaler =
+        new Autoscaler()
+            .setZone(ZONE_URL)
+            .setTarget("myServerGroup")
+            .setAutoscalingPolicy(
+                new AutoscalingPolicy().setCpuUtilization(new AutoscalingPolicyCpuUtilization()));
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setAutoscalers(autoscaler)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(
+            compute, ImmutableList.of(instanceGroupManager), ImmutableList.of(autoscaler));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+    GoogleAutoscalingPolicy converted = serverGroup.getAutoscalingPolicy();
+
+    assertThat(converted.getCpuUtilization().getPredictiveMethod()).isNull();
   }
 
   public static AbstractGoogleServerGroupCachingAgent createCachingAgent(

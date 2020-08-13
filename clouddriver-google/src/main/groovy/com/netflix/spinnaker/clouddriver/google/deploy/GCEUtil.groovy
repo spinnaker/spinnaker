@@ -840,7 +840,8 @@ class GCEUtil {
 
       if (cpuUtilization) {
         gceAutoscalingPolicy.cpuUtilization =
-            new AutoscalingPolicyCpuUtilization(utilizationTarget: cpuUtilization.utilizationTarget)
+            new AutoscalingPolicyCpuUtilization(utilizationTarget: cpuUtilization.utilizationTarget,
+                                                predictiveMethod: cpuUtilization.predictiveMethod)
       }
 
       if (loadBalancingUtilization) {
