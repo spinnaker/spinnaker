@@ -1,5 +1,6 @@
 import { module, IWindowService } from 'angular';
 import { UIRouter } from '@uirouter/angularjs';
+import { Transition } from '@uirouter/core';
 
 import { INestedState, APPLICATION_STATE_PROVIDER, ApplicationStateProvider, IDeckRootScope } from '@spinnaker/core';
 
@@ -12,6 +13,7 @@ import Report from 'kayenta/report/report';
 import ResultDetailLoader from 'kayenta/report/detail/detailLoader';
 import ExecutionListLoadStates from 'kayenta/report/list/loadStates';
 import * as Creators from 'kayenta/actions/creators';
+import { CanarySettings } from '../canary.settings';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
 module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
@@ -100,11 +102,18 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
       const report: INestedState = {
         name: 'report',
-        url: '/report',
+        url: '/report?count',
         views: {
           canary: {
             component: Report,
             $type: 'react',
+          },
+        },
+        params: {
+          count: {
+            type: 'int',
+            value: CanarySettings.defaultExecutionCount ?? CanarySettings.executionsCountOptions?.[0] ?? 20,
+            squash: true,
           },
         },
         children: [reportDetail, reportDefault],
@@ -127,13 +136,6 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
           },
         },
         children: [config, report],
-        resolve: [
-          {
-            token: 'success$',
-            deps: [UIRouter],
-            resolveFn: (uiRouter: any) => uiRouter.globals.success$,
-          },
-        ],
       };
 
       applicationStateProvider.addChildState(canaryRoot);
@@ -179,6 +181,11 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       // Clears reload hook when leaving canary config view.
       $uiRouter.transitionService.onExit({ from: '**.configDetail.**' }, () => {
         $window.onbeforeunload = undefined;
+      });
+      $uiRouter.transitionService.onSuccess({ to: '**.report.**' }, (transition: Transition) => {
+        if (transition.params('from').count !== transition.params('to').count) {
+          canaryStore.dispatch(Creators.setExecutionsCount({ count: transition.params('to').count }));
+        }
       });
     },
   ]);

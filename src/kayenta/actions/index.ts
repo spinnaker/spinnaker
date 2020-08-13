@@ -10,6 +10,7 @@ export const SAVE_CONFIG_FAILURE = 'save_config_failure';
 export const DELETE_CONFIG_MODAL_OPEN = 'delete_config_modal_open';
 export const DELETE_CONFIG_MODAL_CLOSE = 'delete_config_modal_close';
 export const DISMISS_SAVE_CONFIG_ERROR = 'dismiss_save_config_error';
+export const SET_EXECUTIONS_COUNT = 'set_executions_count';
 export const INITIALIZE = 'initialize';
 export const ADD_METRIC = 'add_metric';
 export const RENAME_METRIC = 'rename_metric';

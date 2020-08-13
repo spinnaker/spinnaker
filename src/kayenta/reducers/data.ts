@@ -94,7 +94,7 @@ const executions = combineReducers<IExecutionsState>({
       [Actions.LOAD_EXECUTIONS_SUCCESS]: () => AsyncRequestState.Fulfilled,
       [Actions.LOAD_EXECUTIONS_FAILURE]: () => AsyncRequestState.Failed,
     },
-    AsyncRequestState.Requesting,
+    AsyncRequestState.Fulfilled,
   ),
 });
 

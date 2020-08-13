@@ -23,6 +23,7 @@ export interface IKayentaAction<T> extends Action {
   payload: T;
 }
 
+export const setExecutionsCount = createAction<{ count: number }>(Actions.SET_EXECUTIONS_COUNT);
 export const openDeleteConfigModal = createAction(Actions.DELETE_CONFIG_MODAL_OPEN);
 export const closeDeleteConfigModal = createAction(Actions.DELETE_CONFIG_MODAL_CLOSE);
 export const deleteConfig = createAction(Actions.DELETE_CONFIG_REQUEST);

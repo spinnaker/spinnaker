@@ -1,4 +1,4 @@
-import { API } from '@spinnaker/core';
+import { API, ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import {
@@ -40,13 +40,10 @@ export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: s
     .get()
     .then((list: IMetricSetPair[]) => list.find((pair) => pair.id === metricSetPairId));
 
-export const listCanaryExecutions = (
-  application: string,
-  limit: number,
-  statuses?: string,
-  storageAccountName?: string,
-): Promise<ICanaryExecutionStatusResult[]> =>
-  API.one('v2/canaries').one(application).one('executions').withParams({ limit, statuses, storageAccountName }).get();
+export const listCanaryExecutions = (application: string): Promise<ICanaryExecutionStatusResult[]> => {
+  const limit = ReactInjector.$stateParams.count || 20;
+  return API.one('v2/canaries').one(application).one('executions').withParams({ limit }).getList();
+};
 
 export const getHealthLabel = (health: string, result: string): string => {
   const healthLC = (health || '').toLowerCase();

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import * as moment from 'moment';
 import { isEqual, get } from 'lodash';
 
-import { Application } from '@spinnaker/core';
+import { Application, ReactInjector, Spinner } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
@@ -159,9 +159,25 @@ interface IExecutionListTableStateProps {
   executions: ICanaryExecutionStatusResult[];
   application: Application;
   accounts: IKayentaAccount[];
+  executionsCount: number;
 }
 
-const TableRows = ({ executions }: { executions: ICanaryExecutionStatusResult[] }) => {
+const TableRows = ({
+  executions,
+  application,
+}: {
+  executions: ICanaryExecutionStatusResult[];
+  application: Application;
+}) => {
+  if (!application.getDataSource('canaryExecutions').loaded) {
+    return (
+      <CenteredDetail>
+        <div className="horizontal center middle spinner-container">
+          <Spinner />
+        </div>
+      </CenteredDetail>
+    );
+  }
   if (!executions || !executions.length) {
     return (
       <CenteredDetail>
@@ -179,25 +195,64 @@ const TableRows = ({ executions }: { executions: ICanaryExecutionStatusResult[] 
   );
 };
 
-const ExecutionListTable = ({ executions, application, accounts }: IExecutionListTableStateProps) => (
-  <div className="vertical execution-list-container">
-    {CanarySettings.manualAnalysisEnabled && (
-      <button
-        style={{ alignSelf: 'flex-end', flexShrink: 0 }}
-        className="primary"
-        onClick={() => startManualAnalysis(application, accounts)}
-      >
-        <i className="fa fa-play" /> Start Manual Analysis
-      </button>
-    )}
-    <TableRows executions={executions} />
-  </div>
-);
+const updateExecutionsCount = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  ReactInjector.$state.go('.', { count: Number(event.target.value) });
+};
+
+const ExecutionListTable = ({ executions, application, accounts, executionsCount }: IExecutionListTableStateProps) => {
+  React.useEffect(() => {
+    const dataSource = application.getDataSource('canaryExecutions');
+    if (!dataSource.active) {
+      dataSource.activate();
+    }
+    dataSource.refresh();
+    return () => dataSource.deactivate();
+  }, [application, executionsCount]);
+
+  const countOptions: number[] = CanarySettings.executionsCountOptions ?? [20, 50, 100, 200];
+  if (!countOptions.includes(executionsCount)) {
+    countOptions.push(executionsCount);
+    countOptions.sort((a, b) => a - b);
+  }
+
+  return (
+    <div className="vertical execution-list-container">
+      <div className="horizontal space-between form-inline">
+        <div className="form-group">
+          {countOptions.length > 1 && (
+            <>
+              <span className="sp-margin-s-right">Showing</span>
+              <select className="form-control input-sm" onChange={updateExecutionsCount}>
+                {countOptions.map((o) => (
+                  <option selected={executionsCount === o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+              <span className="sp-margin-s-left">most recent reports</span>
+            </>
+          )}
+        </div>
+        {CanarySettings.manualAnalysisEnabled && (
+          <button
+            style={{ alignSelf: 'flex-end', flexShrink: 0 }}
+            className="primary"
+            onClick={() => startManualAnalysis(application, accounts)}
+          >
+            <i className="fa fa-play" /> Start Manual Analysis
+          </button>
+        )}
+      </div>
+      <TableRows executions={executions} application={application} />
+    </div>
+  );
+};
 
 const mapStateToProps = (state: ICanaryState) => ({
   executions: Object.values(state.data.executions.data).filter((e) => e.result),
   application: state.data.application,
   accounts: state.data.kayentaAccounts.data,
+  executionsCount: state.app.executionsCount,
 });
 
 export default connect(mapStateToProps)(ExecutionListTable);

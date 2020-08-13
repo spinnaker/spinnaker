@@ -89,8 +89,7 @@ module(CANARY_DATA_SOURCE, []).run([
     });
 
     const loadCanaryExecutions = (application: Application) => {
-      // TODO(dpeach): make the number of canary executions rendered configurable from the UI.
-      const listExecutionsRequest = listCanaryExecutions(application.name, 20);
+      const listExecutionsRequest = listCanaryExecutions(application.name);
 
       listExecutionsRequest.catch((error) => {
         canaryStore.dispatch(Creators.loadExecutionsFailure({ error }));
@@ -125,7 +124,6 @@ module(CANARY_DATA_SOURCE, []).run([
       onLoad: canaryExecutionsLoaded,
       afterLoad: afterCanaryExecutionsLoaded,
       lazy: true,
-      autoActivate: true,
       defaultData: [],
       iconName: 'spMenuCanaryReport',
     });

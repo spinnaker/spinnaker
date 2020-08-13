@@ -2,7 +2,6 @@ import * as React from 'react';
 import { createStore, applyMiddleware } from 'redux';
 import { logger } from 'redux-logger';
 import { UIView } from '@uirouter/react';
-import { Observable } from 'rxjs/Observable';
 
 import { Application } from '@spinnaker/core';
 
@@ -16,7 +15,6 @@ import { CanarySettings } from './canary.settings';
 
 export interface ICanaryProps {
   app: Application;
-  success$: Observable<void>;
 }
 
 const middleware = [epicMiddleware, actionInterceptingMiddleware, asyncDispatchMiddleware];

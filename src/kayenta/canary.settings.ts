@@ -9,6 +9,8 @@ export interface ICanarySettings {
   metricStore: string;
   stagesEnabled: boolean;
   stageName: string;
+  executionsCountOptions: number[];
+  defaultExecutionCount: number;
   stageDescription: string;
   featureDisabled: boolean;
   optInAll: boolean;

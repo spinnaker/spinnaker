@@ -3,13 +3,22 @@ import { handleActions, combineActions } from 'redux-actions';
 
 import * as Actions from '../actions';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
+import { CanarySettings } from '../canary.settings';
 
 export interface IAppState {
   deleteConfigModalOpen: boolean;
   configJsonModalOpen: boolean;
   configJsonModalTabState: ConfigJsonModalTabState;
   disableConfigEdit: boolean;
+  executionsCount: number;
 }
+
+const executionsCount = handleActions(
+  {
+    [Actions.SET_EXECUTIONS_COUNT]: (_state: IAppState, action: Action & any) => action.payload.count,
+  },
+  CanarySettings.defaultExecutionCount ?? CanarySettings.executionsCountOptions?.[0] ?? 20,
+);
 
 const deleteConfigModalOpen = handleActions(
   {
@@ -39,6 +48,7 @@ const configJsonModalTabState = handleActions(
 const disableConfigEdit = handleActions<boolean>({}, false);
 
 export const app: Reducer<IAppState> = combineReducers<IAppState>({
+  executionsCount,
   deleteConfigModalOpen,
   configJsonModalOpen,
   configJsonModalTabState,
