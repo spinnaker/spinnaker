@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 
 public class KubernetesSourceCapacity {
 
   public static Double getSourceCapacity(
-      KubernetesManifest manifest, KubernetesV2Credentials credentials) {
+      KubernetesManifest manifest, KubernetesCredentials credentials) {
     KubernetesManifest currentManifest =
         credentials.get(manifest.getKind(), manifest.getNamespace(), manifest.getName());
     if (currentManifest != null) {

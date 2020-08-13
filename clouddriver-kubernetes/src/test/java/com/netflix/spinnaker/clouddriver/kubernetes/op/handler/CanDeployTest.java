@@ -28,8 +28,8 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.DeployStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -41,7 +41,7 @@ final class CanDeployTest {
 
   @Test
   void applyMutations() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.APPLY);
@@ -51,7 +51,7 @@ final class CanDeployTest {
 
   @Test
   void applyReturnValue() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.APPLY);
@@ -60,7 +60,7 @@ final class CanDeployTest {
 
   @Test
   void replaceMutations() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.createOrReplace(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
@@ -70,7 +70,7 @@ final class CanDeployTest {
 
   @Test
   void replaceReturnValue() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.createOrReplace(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.REPLACE);
@@ -79,7 +79,7 @@ final class CanDeployTest {
 
   @Test
   void recreateMutations() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest)).thenReturn(manifest);
     handler.deploy(credentials, manifest, DeployStrategy.RECREATE);
@@ -96,7 +96,7 @@ final class CanDeployTest {
 
   @Test
   void recreateReturnValue() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest)).thenReturn(manifest);
     OperationResult result = handler.deploy(credentials, manifest, DeployStrategy.RECREATE);
@@ -105,7 +105,7 @@ final class CanDeployTest {
 
   @Test
   void createMutation() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest =
         ManifestFetcher.getManifest("candeploy/deployment-generate-name.yml");
     KubernetesManifest createResult =
@@ -118,7 +118,7 @@ final class CanDeployTest {
 
   @Test
   void createReturnValue() {
-    KubernetesV2Credentials credentials = mock(KubernetesV2Credentials.class);
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest =
         ManifestFetcher.getManifest("candeploy/deployment-generate-name.yml");
     KubernetesManifest createResult =

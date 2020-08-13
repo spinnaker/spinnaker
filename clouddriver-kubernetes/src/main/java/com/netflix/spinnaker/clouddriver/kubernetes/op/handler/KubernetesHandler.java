@@ -35,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Warning;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
 import javax.annotation.Nonnull;
@@ -94,7 +93,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
   }
 
   public KubernetesV2CachingAgent buildCachingAgent(
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,

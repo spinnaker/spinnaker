@@ -22,8 +22,8 @@ import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher;
   private final KubernetesConfigurationProperties kubernetesConfigurationProperties;
-  private final KubernetesV2Credentials.Factory credentialFactory;
+  private final KubernetesCredentials.Factory credentialFactory;
   private final CatsModule catsModule;
 
   public KubernetesV2ProviderSynchronizable(
@@ -45,7 +45,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
       AccountCredentialsRepository accountCredentialsRepository,
       KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
-      KubernetesV2Credentials.Factory credentialFactory,
+      KubernetesCredentials.Factory credentialFactory,
       CatsModule catsModule) {
     this.kubernetesV2Provider = kubernetesV2Provider;
     this.accountCredentialsRepository = accountCredentialsRepository;
@@ -57,11 +57,11 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
   @PostConstruct
   public void setup() {
-    Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> allAccounts =
+    Set<KubernetesNamedAccountCredentials> allAccounts =
         kubernetesConfigurationProperties.getAccounts().stream()
             .map(
                 managedAccount ->
-                    new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory))
+                    new KubernetesNamedAccountCredentials(managedAccount, credentialFactory))
             .peek(a -> accountCredentialsRepository.save(a.getName(), a))
             .collect(Collectors.toSet());
 
@@ -73,11 +73,10 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
     Set<String> newAndChangedAccountNames = synchronizeAccountCredentials();
 
     // we only want to initialize caching agents for new or updated accounts
-    Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> newAndChangedAccounts =
+    Set<KubernetesNamedAccountCredentials> newAndChangedAccounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(
                 accountCredentialsRepository, KubernetesNamedAccountCredentials.class)
             .stream()
-            .map(c -> (KubernetesNamedAccountCredentials<KubernetesV2Credentials>) c)
             .filter(account -> newAndChangedAccountNames.contains(account.getName()))
             .collect(Collectors.toSet());
 
@@ -99,7 +98,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
         .map(
             managedAccount -> {
               KubernetesNamedAccountCredentials credentials =
-                  new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory);
+                  new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
 
               AccountCredentials existingCredentials =
                   accountCredentialsRepository.getOne(managedAccount.getName());
@@ -165,7 +164,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
   }
 
   private void synchronizeKubernetesV2Provider(
-      Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> newAndChangedAccounts) {
+      Set<KubernetesNamedAccountCredentials> newAndChangedAccounts) {
 
     log.info(
         "Synchronizing caching agents for {} new or changed V2 Kubernetes accounts.",
@@ -173,8 +172,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
     Set<String> stagedAccountNames = new HashSet<>();
 
-    for (KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials :
-        newAndChangedAccounts) {
+    for (KubernetesNamedAccountCredentials credentials : newAndChangedAccounts) {
       try {
         List<Agent> newlyAddedAgents =
             kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials).stream()

@@ -42,7 +42,7 @@ public class KubernetesResumeRolloutManifestValidator
       ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("resumeRolloutKubernetesManifest", errors);
-    if (!util.validateV2Credentials(
+    if (!util.validateCredentials(
         provider,
         description.getAccount(),
         description.getPointCoordinates().getKind(),

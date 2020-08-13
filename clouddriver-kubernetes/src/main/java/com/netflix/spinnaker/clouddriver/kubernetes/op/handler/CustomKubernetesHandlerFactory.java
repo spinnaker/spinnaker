@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,7 +91,7 @@ public class CustomKubernetesHandlerFactory {
     }
 
     private KubernetesV2CachingAgent buildCustomCachingAgent(
-        KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+        KubernetesNamedAccountCredentials namedAccountCredentials,
         ObjectMapper objectMapper,
         Registry registry,
         int agentIndex,

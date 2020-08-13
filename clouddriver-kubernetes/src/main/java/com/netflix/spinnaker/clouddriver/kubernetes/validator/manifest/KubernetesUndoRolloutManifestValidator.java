@@ -42,7 +42,7 @@ public class KubernetesUndoRolloutManifestValidator
       ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("undoRolloutKubernetesManifest", errors);
-    if (!util.validateV2Credentials(
+    if (!util.validateCredentials(
         provider,
         description.getAccount(),
         description.getPointCoordinates().getKind(),

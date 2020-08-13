@@ -26,12 +26,11 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 
 public class CustomKubernetesCachingAgentFactory {
   public static KubernetesV2OnDemandCachingAgent create(
       KubernetesKind kind,
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
@@ -52,7 +51,7 @@ public class CustomKubernetesCachingAgentFactory {
 
     Agent(
         KubernetesKind kind,
-        KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+        KubernetesNamedAccountCredentials namedAccountCredentials,
         ObjectMapper objectMapper,
         Registry registry,
         int agentIndex,

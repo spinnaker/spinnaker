@@ -60,10 +60,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregis
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.ManifestFetcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.GlobalKubernetesKindRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Application;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -159,8 +159,7 @@ final class KubernetesDataProviderIntegrationTest {
 
   @BeforeAll
   static void prepareCache() {
-    KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials =
-        getNamedAccountCredentials();
+    KubernetesNamedAccountCredentials credentials = getNamedAccountCredentials();
     credentialsRepository.save(credentials.getName(), credentials);
     dispatcher
         .buildAllCachingAgents(credentials)
@@ -472,7 +471,7 @@ final class KubernetesDataProviderIntegrationTest {
   private static KubectlJobExecutor getJobExecutor() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class, new ReturnsSmartNulls());
     when(jobExecutor.list(
-            any(KubernetesV2Credentials.class),
+            any(KubernetesCredentials.class),
             anyList(),
             any(String.class),
             any(KubernetesSelectorList.class)))
@@ -487,8 +486,7 @@ final class KubernetesDataProviderIntegrationTest {
     return jobExecutor;
   }
 
-  private static KubernetesNamedAccountCredentials<KubernetesV2Credentials>
-      getNamedAccountCredentials() {
+  private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
     KubernetesConfigurationProperties.ManagedAccount managedAccount =
         new KubernetesConfigurationProperties.ManagedAccount();
     managedAccount.setName(ACCOUNT_NAME);
@@ -496,8 +494,8 @@ final class KubernetesDataProviderIntegrationTest {
     managedAccount.setKinds(ImmutableList.of("deployment", "replicaSet", "service", "pod"));
     managedAccount.setMetrics(false);
 
-    KubernetesV2Credentials.Factory credentialFactory =
-        new KubernetesV2Credentials.Factory(
+    KubernetesCredentials.Factory credentialFactory =
+        new KubernetesCredentials.Factory(
             new NoopRegistry(),
             new KubernetesNamerRegistry(ImmutableList.of(new KubernetesManifestNamer())),
             getJobExecutor(),
@@ -505,7 +503,7 @@ final class KubernetesDataProviderIntegrationTest {
             new AccountResourcePropertyRegistry.Factory(resourcePropertyRegistry),
             new KubernetesKindRegistry.Factory(new GlobalKubernetesKindRegistry()),
             kindMap);
-    return new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory);
+    return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
   // This is documenting the current cluster that is returned representing a service, but we

@@ -37,7 +37,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = Mock(KubernetesKindRegistry.Factory)
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
-  KubernetesV2Credentials.Factory credentialFactory = new KubernetesV2Credentials.Factory(
+  KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
     new NoopRegistry(),
     namerRegistry,
     Mock(KubectlJobExecutor),

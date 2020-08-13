@@ -38,8 +38,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +58,7 @@ public abstract class KubernetesV2CachingAgent
     implements AgentIntervalAware, CachingAgent, AccountAware {
   @Getter @Nonnull protected final String accountName;
   protected final Registry registry;
-  protected final KubernetesV2Credentials credentials;
+  protected final KubernetesCredentials credentials;
   protected final ObjectMapper objectMapper;
 
   protected final int agentIndex;
@@ -70,7 +70,7 @@ public abstract class KubernetesV2CachingAgent
   @Getter protected final Long agentInterval;
 
   protected KubernetesV2CachingAgent(
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,

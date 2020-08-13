@@ -53,15 +53,14 @@ import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 
 @RunWith(JUnitPlatform.class)
-final class KubernetesV2CredentialsTest {
+final class KubernetesCredentialsTest {
   private static final String ACCOUNT_NAME = "my-account";
   private static final String DEPLOYMENT_NAME = "my-deployment";
   private static final String NAMESPACE = "my-namespace";
 
-  private KubernetesV2Credentials getCredentials(
-      Registry registry, KubectlJobExecutor jobExecutor) {
-    KubernetesV2Credentials.Factory factory =
-        new KubernetesV2Credentials.Factory(
+  private KubernetesCredentials getCredentials(Registry registry, KubectlJobExecutor jobExecutor) {
+    KubernetesCredentials.Factory factory =
+        new KubernetesCredentials.Factory(
             registry,
             new KubernetesNamerRegistry(ImmutableList.of(new KubernetesManifestNamer())),
             jobExecutor,
@@ -90,7 +89,7 @@ final class KubernetesV2CredentialsTest {
   void metricTagsForSuccessfulDeploy() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.deploy(getManifest());
 
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
@@ -111,7 +110,7 @@ final class KubernetesV2CredentialsTest {
   void metricTagsForSuccessfulList() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(
         ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), NAMESPACE);
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
@@ -133,7 +132,7 @@ final class KubernetesV2CredentialsTest {
   void metricTagsForSuccessfulListNoNamespace() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), null);
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
     assertThat(timers).hasSize(1);
@@ -148,7 +147,7 @@ final class KubernetesV2CredentialsTest {
   void metricTagsForSuccessfulListEmptyNamespace() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), "");
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
     assertThat(timers).hasSize(1);
@@ -163,7 +162,7 @@ final class KubernetesV2CredentialsTest {
   void returnValueForSuccessfulList() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     KubernetesManifest manifest = getManifest();
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
@@ -180,7 +179,7 @@ final class KubernetesV2CredentialsTest {
 
     ManualClock clock = new ManualClock();
     Registry registry = new DefaultRegistry(clock);
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     clock.setMonotonicTime(1000);
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
@@ -204,7 +203,7 @@ final class KubernetesV2CredentialsTest {
   void metricTagsForListThrowingKubectlException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
         .thenThrow(
@@ -237,7 +236,7 @@ final class KubernetesV2CredentialsTest {
   void propagatedExceptionForListThrowingKubectlException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     KubectlException exception =
         new KubectlException(
@@ -259,7 +258,7 @@ final class KubernetesV2CredentialsTest {
 
     ManualClock clock = new ManualClock();
     Registry registry = new DefaultRegistry(clock);
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     clock.setMonotonicTime(1000);
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
@@ -288,7 +287,7 @@ final class KubernetesV2CredentialsTest {
   void metricTagsForListThrowingOtherException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
         .thenThrow(new CustomException("Kubernetes error"));
@@ -321,7 +320,7 @@ final class KubernetesV2CredentialsTest {
 
     ManualClock clock = new ManualClock();
     Registry registry = new DefaultRegistry(clock);
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     clock.setMonotonicTime(1000);
     when(jobExecutor.list(eq(credentials), any(), any(), any()))
@@ -349,7 +348,7 @@ final class KubernetesV2CredentialsTest {
   void propagatedExceptionForListThrowingOtherException() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
-    KubernetesV2Credentials credentials = getCredentials(registry, jobExecutor);
+    KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
     Exception cause = new CustomException("Kubernetes error");
     when(jobExecutor.list(eq(credentials), any(), any(), any())).thenThrow(cause);
@@ -368,7 +367,7 @@ final class KubernetesV2CredentialsTest {
   void replaceWhenResourceExists() {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    KubernetesV2Credentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
     when(jobExecutor.create(credentials, manifest))
         .thenThrow(new KubectlException("Create failed: Error from server (AlreadyExists)"));
     when(jobExecutor.replace(credentials, manifest)).thenReturn(manifest);
@@ -381,7 +380,7 @@ final class KubernetesV2CredentialsTest {
   void replaceWhenResourceDoesNotExist() {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
-    KubernetesV2Credentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
     when(jobExecutor.replace(credentials, manifest))
         .thenThrow(new KubectlNotFoundException("Not found"));
     when(jobExecutor.create(credentials, manifest)).thenReturn(manifest);

@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,15 +48,15 @@ public class KubernetesV2CachingAgentDispatcher {
   }
 
   public Collection<KubernetesV2CachingAgent> buildAllCachingAgents(
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials) {
-    KubernetesV2Credentials v2Credentials = credentials.getCredentials();
+      KubernetesNamedAccountCredentials credentials) {
+    KubernetesCredentials kubernetesCredentials = credentials.getCredentials();
     List<KubernetesV2CachingAgent> result = new ArrayList<>();
     Long agentInterval =
         Optional.ofNullable(credentials.getCacheIntervalSeconds())
             .map(TimeUnit.SECONDS::toMillis)
             .orElse(null);
 
-    ResourcePropertyRegistry propertyRegistry = v2Credentials.getResourcePropertyRegistry();
+    ResourcePropertyRegistry propertyRegistry = kubernetesCredentials.getResourcePropertyRegistry();
 
     IntStream.range(0, credentials.getCacheThreads())
         .forEach(

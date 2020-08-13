@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials.KubernetesKindStatus;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials.KubernetesKindStatus;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.ArrayList;
@@ -82,14 +82,14 @@ public class KubernetesValidationUtil {
     return true;
   }
 
-  public boolean validateV2Credentials(
+  public boolean validateCredentials(
       AccountCredentialsProvider provider, String accountName, KubernetesManifest manifest) {
     KubernetesKind kind = manifest.getKind();
     String namespace = manifest.getNamespace();
-    return validateV2Credentials(provider, accountName, kind, namespace);
+    return validateCredentials(provider, accountName, kind, namespace);
   }
 
-  public boolean validateV2Credentials(
+  public boolean validateCredentials(
       AccountCredentialsProvider provider,
       String accountName,
       KubernetesKind kind,
@@ -109,16 +109,16 @@ public class KubernetesValidationUtil {
       return false;
     }
 
-    if (!(credentials.getCredentials() instanceof KubernetesV2Credentials)) {
+    if (!(credentials.getCredentials() instanceof KubernetesCredentials)) {
       reject("wrongVersion", "account");
       return false;
     }
 
-    if (!validateNamespace(namespace, (KubernetesV2Credentials) credentials.getCredentials())) {
+    if (!validateNamespace(namespace, (KubernetesCredentials) credentials.getCredentials())) {
       return false;
     }
 
-    if (!validateKind(kind, (KubernetesV2Credentials) credentials.getCredentials())) {
+    if (!validateKind(kind, (KubernetesCredentials) credentials.getCredentials())) {
       return false;
     }
 
@@ -131,7 +131,7 @@ public class KubernetesValidationUtil {
   private static final ImmutableSet<KubernetesKindStatus> validKindStatuses =
       ImmutableSet.of(KubernetesKindStatus.VALID, KubernetesKindStatus.UNKNOWN);
 
-  private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
+  private boolean validateKind(KubernetesKind kind, KubernetesCredentials credentials) {
     KubernetesKindStatus kindStatus = credentials.getKindStatus(kind);
     if (!validKindStatuses.contains(kindStatus)) {
       reject(kindStatus.getErrorMessage(kind), kind.toString());
@@ -140,7 +140,7 @@ public class KubernetesValidationUtil {
     return true;
   }
 
-  protected boolean validateNamespace(String namespace, KubernetesV2Credentials credentials) {
+  protected boolean validateNamespace(String namespace, KubernetesCredentials credentials) {
     final List<String> configuredNamespaces = credentials.getNamespaces();
     if (configuredNamespaces != null
         && !configuredNamespaces.isEmpty()

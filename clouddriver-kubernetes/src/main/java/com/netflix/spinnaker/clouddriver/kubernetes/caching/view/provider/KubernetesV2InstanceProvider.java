@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.ContainerLog;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -86,13 +86,13 @@ public class KubernetesV2InstanceProvider
 
   @Override
   public List<ContainerLog> getConsoleOutput(String account, String namespace, String fullName) {
-    Optional<KubernetesV2Credentials> optionalCredentials = accountResolver.getCredentials(account);
+    Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (!optionalCredentials.isPresent()) {
       log.warn("Failure getting account {}", account);
       return null;
     }
 
-    KubernetesV2Credentials credentials = optionalCredentials.get();
+    KubernetesCredentials credentials = optionalCredentials.get();
     Pair<KubernetesKind, String> parsedName;
 
     try {
@@ -117,7 +117,7 @@ public class KubernetesV2InstanceProvider
 
   @Nonnull
   private List<ContainerLog> getPodLogs(
-      @Nonnull KubernetesV2Credentials credentials, @Nonnull V1Pod pod) {
+      @Nonnull KubernetesCredentials credentials, @Nonnull V1Pod pod) {
     List<V1Container> initContainers =
         Optional.ofNullable(pod.getSpec().getInitContainers()).orElse(ImmutableList.of());
     List<V1Container> containers = pod.getSpec().getContainers();
@@ -129,7 +129,7 @@ public class KubernetesV2InstanceProvider
 
   @Nonnull
   private ContainerLog getContainerLog(
-      @Nonnull KubernetesV2Credentials credentials,
+      @Nonnull KubernetesCredentials credentials,
       @Nonnull V1Pod pod,
       @Nonnull V1Container container) {
     String containerName = container.getName();

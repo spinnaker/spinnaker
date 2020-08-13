@@ -21,11 +21,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResour
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.util.List;
 
 public interface HasPods {
-  List<KubernetesManifest> pods(KubernetesV2Credentials credentials, KubernetesManifest object);
+  List<KubernetesManifest> pods(KubernetesCredentials credentials, KubernetesManifest object);
 
   static HasPods lookupProperties(ResourcePropertyRegistry registry, KubernetesKind kind) {
     KubernetesResourceProperties hasPodsProperties = registry.get(kind);

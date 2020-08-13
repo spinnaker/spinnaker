@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -34,7 +34,7 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
   @Unroll
   void "merges two cache data"() {
     when:
-    def credentials = Mock(KubernetesV2Credentials)
+    def credentials = Mock(KubernetesCredentials)
     credentials.getDeclaredNamespaces() >> [NAMESPACE]
 
     def namedAccountCredentials = Mock(KubernetesNamedAccountCredentials)

@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,7 +33,7 @@ public class KubernetesAtomicOperationDescription
   @JsonProperty("account")
   String account;
 
-  KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials;
+  KubernetesNamedAccountCredentials credentials;
 
   @Override
   public boolean requiresApplicationRestriction() {

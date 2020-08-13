@@ -26,7 +26,6 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -35,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent {
   public KubernetesCoreCachingAgent(
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,

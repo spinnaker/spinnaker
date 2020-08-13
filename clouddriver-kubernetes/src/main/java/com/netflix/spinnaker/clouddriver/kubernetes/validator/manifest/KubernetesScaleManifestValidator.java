@@ -41,7 +41,7 @@ public class KubernetesScaleManifestValidator
       KubernetesScaleManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("scaleKubernetesManifest", errors);
-    if (!util.validateV2Credentials(
+    if (!util.validateCredentials(
         provider,
         description.getAccount(),
         description.getPointCoordinates().getKind(),

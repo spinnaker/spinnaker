@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Comparator;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @NonnullByDefault
 final class KubernetesV2ManifestBuilder {
   static KubernetesV2Manifest buildManifest(
-      KubernetesV2Credentials credentials,
+      KubernetesCredentials credentials,
       KubernetesManifest manifest,
       List<KubernetesManifest> events,
       List<KubernetesPodMetric.ContainerMetric> metrics) {

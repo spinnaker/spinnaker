@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.ContainerLog;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -50,7 +50,7 @@ import org.junit.runner.RunWith;
 final class KubernetesV2InstanceProviderTest {
 
   private KubernetesV2InstanceProvider provider;
-  private KubernetesV2Credentials credentials;
+  private KubernetesCredentials credentials;
   private KubernetesAccountResolver accountResolver;
   private KubernetesCacheUtils cacheUtils;
 
@@ -70,7 +70,7 @@ final class KubernetesV2InstanceProviderTest {
   public void setup() {
     accountResolver = mock(KubernetesAccountResolver.class);
     cacheUtils = mock(KubernetesCacheUtils.class);
-    credentials = mock(KubernetesV2Credentials.class);
+    credentials = mock(KubernetesCredentials.class);
     provider = new KubernetesV2InstanceProvider(cacheUtils, accountResolver);
     when(accountResolver.getCredentials(ACCOUNT)).thenReturn(Optional.of(credentials));
   }

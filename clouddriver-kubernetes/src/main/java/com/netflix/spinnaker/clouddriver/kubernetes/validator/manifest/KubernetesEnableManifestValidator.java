@@ -42,7 +42,7 @@ public class KubernetesEnableManifestValidator
       ValidationErrors errors) {
     KubernetesValidationUtil util =
         new KubernetesValidationUtil("enableKubernetesManifest", errors);
-    if (!util.validateV2Credentials(
+    if (!util.validateCredentials(
         provider,
         description.getAccount(),
         description.getPointCoordinates().getKind(),

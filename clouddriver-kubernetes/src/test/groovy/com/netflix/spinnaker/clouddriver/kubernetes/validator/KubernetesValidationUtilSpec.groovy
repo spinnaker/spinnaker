@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Specification
@@ -39,13 +39,13 @@ class KubernetesValidationUtilSpec extends Specification {
     def omitNamespaces = ImmutableList.of("omit-namespace")
     def kind = KubernetesKind.DEPLOYMENT
     AccountCredentials accountCredentials = Mock(AccountCredentials)
-    KubernetesV2Credentials credentials = Mock(KubernetesV2Credentials)
+    KubernetesCredentials credentials = Mock(KubernetesCredentials)
     KubernetesValidationUtil kubernetesValidationUtil = new KubernetesValidationUtil("currentContext", errors);
     AccountCredentialsProvider accountCredentialsProvider = Mock(AccountCredentialsProvider)
     KubernetesManifest manifest = Mock(KubernetesManifest)
 
     when:
-    def judgement = kubernetesValidationUtil.validateV2Credentials(accountCredentialsProvider, kubernetesAccount, manifest)
+    def judgement = kubernetesValidationUtil.validateCredentials(accountCredentialsProvider, kubernetesAccount, manifest)
 
     then:
     accountCredentialsProvider.getCredentials(kubernetesAccount) >> accountCredentials
@@ -55,7 +55,7 @@ class KubernetesValidationUtilSpec extends Specification {
     manifest.getNamespace() >> testNamespace
     manifest.getKind() >> kind
     credentials.isValidKind(kind) >> true
-    credentials.getKindStatus(kind) >> KubernetesV2Credentials.KubernetesKindStatus.VALID
+    credentials.getKindStatus(kind) >> KubernetesCredentials.KubernetesKindStatus.VALID
     judgement == expectedResult
 
     where:
@@ -71,7 +71,7 @@ class KubernetesValidationUtilSpec extends Specification {
   void "validation of namespaces"() {
     given:
     ValidationErrors errors = Mock(ValidationErrors)
-    KubernetesV2Credentials credentials = Mock(KubernetesV2Credentials)
+    KubernetesCredentials credentials = Mock(KubernetesCredentials)
     KubernetesValidationUtil kubernetesValidationUtil = new KubernetesValidationUtil("currentContext", errors);
 
     when:

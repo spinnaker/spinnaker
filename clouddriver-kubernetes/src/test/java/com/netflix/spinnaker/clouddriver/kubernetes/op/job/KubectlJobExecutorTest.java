@@ -33,7 +33,7 @@ import com.netflix.spinnaker.clouddriver.jobs.JobResult;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult.Result;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric.ContainerMetric;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Optional;
@@ -57,7 +57,7 @@ final class KubectlJobExecutorTest {
     KubectlJobExecutor kubectlJobExecutor =
         new KubectlJobExecutor(jobExecutor, "kubectl", "oauth2l");
     Collection<KubernetesPodMetric> podMetrics =
-        kubectlJobExecutor.topPod(mockKubernetesV2Credentials(), "test", "");
+        kubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", "");
     assertThat(podMetrics).isEmpty();
   }
 
@@ -78,7 +78,7 @@ final class KubectlJobExecutorTest {
     KubectlJobExecutor kubectlJobExecutor =
         new KubectlJobExecutor(jobExecutor, "kubectl", "oauth2l");
     Collection<KubernetesPodMetric> podMetrics =
-        kubectlJobExecutor.topPod(mockKubernetesV2Credentials(), NAMESPACE, "");
+        kubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "");
     assertThat(podMetrics).hasSize(2);
 
     ImmutableSetMultimap<String, ContainerMetric> expectedMetrics =
@@ -119,10 +119,10 @@ final class KubectlJobExecutorTest {
     }
   }
 
-  /** Returns a mock KubernetesV2Credentials object */
-  private static KubernetesV2Credentials mockKubernetesV2Credentials() {
-    KubernetesV2Credentials v2Credentials = mock(KubernetesV2Credentials.class);
-    when(v2Credentials.getKubectlExecutable()).thenReturn("");
-    return v2Credentials;
+  /** Returns a mock KubernetesCredentials object */
+  private static KubernetesCredentials mockKubernetesCredentials() {
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    when(credentials.getKubectlExecutable()).thenReturn("");
+    return credentials;
   }
 }

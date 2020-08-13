@@ -49,8 +49,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourceProperty
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.moniker.Namer;
 import java.io.IOException;
 import java.util.*;
@@ -118,21 +118,20 @@ final class KubernetesCoreCachingAgentTest {
     return storageClass;
   }
 
-  /** Returns a mock KubernetesV2Credentials object */
-  private static KubernetesV2Credentials mockKubernetesV2Credentials() {
-    KubernetesV2Credentials v2Credentials = mock(KubernetesV2Credentials.class);
-    when(v2Credentials.isLiveManifestCalls()).thenReturn(false);
-    when(v2Credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
-    when(v2Credentials.getKindProperties(any(KubernetesKind.class)))
+  /** Returns a mock KubernetesCredentials object */
+  private static KubernetesCredentials mockKubernetesCredentials() {
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    when(credentials.isLiveManifestCalls()).thenReturn(false);
+    when(credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
+    when(credentials.getKindProperties(any(KubernetesKind.class)))
         .thenAnswer(invocation -> kindProperties.get(invocation.getArgument(0)));
-    when(v2Credentials.getDeclaredNamespaces())
-        .thenReturn(ImmutableList.of(NAMESPACE1, NAMESPACE2));
-    when(v2Credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
-    when(v2Credentials.get(KubernetesKind.DEPLOYMENT, NAMESPACE1, DEPLOYMENT_NAME))
+    when(credentials.getDeclaredNamespaces()).thenReturn(ImmutableList.of(NAMESPACE1, NAMESPACE2));
+    when(credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
+    when(credentials.get(KubernetesKind.DEPLOYMENT, NAMESPACE1, DEPLOYMENT_NAME))
         .thenReturn(deploymentManifest());
-    when(v2Credentials.get(KubernetesKind.STORAGE_CLASS, "", STORAGE_CLASS_NAME))
+    when(credentials.get(KubernetesKind.STORAGE_CLASS, "", STORAGE_CLASS_NAME))
         .thenReturn(storageClassManifest());
-    when(v2Credentials.list(any(List.class), any()))
+    when(credentials.list(any(List.class), any()))
         .thenAnswer(
             (Answer<ImmutableList<KubernetesManifest>>)
                 invocation -> {
@@ -149,23 +148,22 @@ final class KubernetesCoreCachingAgentTest {
                   }
                   return result.build();
                 });
-    when(v2Credentials.getNamer()).thenReturn(NAMER);
-    return v2Credentials;
+    when(credentials.getNamer()).thenReturn(NAMER);
+    return credentials;
   }
 
   /**
-   * Returns a KubernetesNamedAccountCredentials that contains a mock KubernetesV2Credentials object
+   * Returns a KubernetesNamedAccountCredentials that contains a mock KubernetesCredentials object
    */
-  private static KubernetesNamedAccountCredentials<KubernetesV2Credentials>
-      getNamedAccountCredentials() {
+  private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
     KubernetesConfigurationProperties.ManagedAccount managedAccount =
         new KubernetesConfigurationProperties.ManagedAccount();
     managedAccount.setName(ACCOUNT);
 
-    KubernetesV2Credentials mockV2Credentials = mockKubernetesV2Credentials();
-    KubernetesV2Credentials.Factory credentialFactory = mock(KubernetesV2Credentials.Factory.class);
-    when(credentialFactory.build(managedAccount)).thenReturn(mockV2Credentials);
-    return new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory);
+    KubernetesCredentials mockCredentials = mockKubernetesCredentials();
+    KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
+    when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
+    return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
   /**
@@ -174,7 +172,7 @@ final class KubernetesCoreCachingAgentTest {
    * collection of those agents.
    */
   private static ImmutableCollection<KubernetesCoreCachingAgent> createCachingAgents(
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials, int agentCount) {
+      KubernetesNamedAccountCredentials credentials, int agentCount) {
     return IntStream.range(0, agentCount)
         .mapToObj(
             i ->

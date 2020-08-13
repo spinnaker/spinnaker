@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanLoadBalance;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.HasPods;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +44,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public abstract class AbstractKubernetesEnableDisableManifestOperation
     implements AtomicOperation<OperationResult> {
   private final KubernetesEnableDisableManifestDescription description;
-  private final KubernetesV2Credentials credentials;
+  private final KubernetesCredentials credentials;
   private final String OP_NAME = getVerbName().toUpperCase() + "_MANIFEST";
 
   protected abstract String getVerbName();

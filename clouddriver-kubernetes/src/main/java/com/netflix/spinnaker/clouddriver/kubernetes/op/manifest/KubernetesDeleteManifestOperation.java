@@ -25,13 +25,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResour
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
 
 public class KubernetesDeleteManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesDeleteManifestDescription description;
-  private final KubernetesV2Credentials credentials;
+  private final KubernetesCredentials credentials;
   private static final String OP_NAME = "DELETE_KUBERNETES_MANIFEST";
 
   public KubernetesDeleteManifestOperation(KubernetesDeleteManifestDescription description) {

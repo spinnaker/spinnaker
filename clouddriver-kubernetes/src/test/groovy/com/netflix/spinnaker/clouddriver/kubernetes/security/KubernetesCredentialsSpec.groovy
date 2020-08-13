@@ -22,7 +22,6 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesApiGroupSpec
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
@@ -30,11 +29,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials.KubernetesKindStatus
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials.KubernetesKindStatus
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
-class KubernetesV2CredentialsSpec extends Specification {
+class KubernetesCredentialsSpec extends Specification {
   Registry registry = Stub(Registry)
   KubectlJobExecutor kubectlJobExecutor = Stub(KubectlJobExecutor)
   String NAMESPACE = "my-namespace"
@@ -46,7 +45,7 @@ class KubernetesV2CredentialsSpec extends Specification {
   ConfigFileService configFileService = new ConfigFileService()
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
 
-  KubernetesV2Credentials.Factory credentialFactory = new KubernetesV2Credentials.Factory(
+  KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
     new NoopRegistry(),
     namerRegistry,
     kubectlJobExecutor,
@@ -60,7 +59,7 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Built-in Kubernetes kinds are considered valid by default"() {
     when:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -73,7 +72,7 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Built-in Kubernetes kinds are considered valid by default when kinds is empty"() {
     when:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -87,7 +86,7 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Only explicitly listed kinds are valid when kinds is not empty"() {
     when:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -101,7 +100,7 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Explicitly omitted kinds are not valid"() {
     when:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -116,7 +115,7 @@ class KubernetesV2CredentialsSpec extends Specification {
   void "CRDs that are not installed return unknown"() {
     given:
     KubernetesApiGroup customGroup = KubernetesApiGroup.fromString("deployment.stable.example.com")
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
       name: "k8s",
       namespaces: [NAMESPACE],
       checkPermissionsOnStartup: true,
@@ -128,15 +127,15 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Kinds that are not readable are considered invalid"() {
     given:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
       ))
-    kubectlJobExecutor.list(_ as KubernetesV2Credentials, ImmutableList.of(KubernetesKind.DEPLOYMENT), NAMESPACE, _ as KubernetesSelectorList) >> {
+    kubectlJobExecutor.list(_ as KubernetesCredentials, ImmutableList.of(KubernetesKind.DEPLOYMENT), NAMESPACE, _ as KubernetesSelectorList) >> {
       throw new KubectlJobExecutor.KubectlException("Error", new Exception())
     }
-    kubectlJobExecutor.list(_ as KubernetesV2Credentials, ImmutableList.of(KubernetesKind.REPLICA_SET), NAMESPACE, _ as KubernetesSelectorList) >> {
+    kubectlJobExecutor.list(_ as KubernetesCredentials, ImmutableList.of(KubernetesKind.REPLICA_SET), NAMESPACE, _ as KubernetesSelectorList) >> {
       return ImmutableList.of()
     }
 
@@ -147,7 +146,7 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Metrics are properly set on the account when not checking permissions"() {
     given:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: false,
@@ -163,13 +162,13 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Metrics are properly enabled when readable"() {
     given:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
         metrics: true
       ))
-    kubectlJobExecutor.topPod(_ as KubernetesV2Credentials, NAMESPACE, _) >> ImmutableList.of()
+    kubectlJobExecutor.topPod(_ as KubernetesCredentials, NAMESPACE, _) >> ImmutableList.of()
 
     expect:
     credentials.isMetricsEnabled() == true
@@ -177,13 +176,13 @@ class KubernetesV2CredentialsSpec extends Specification {
 
   void "Metrics are properly disabled when not readable"() {
     given:
-    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+    KubernetesCredentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
         name: "k8s",
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
         metrics: true
       ))
-    kubectlJobExecutor.topPod(_ as KubernetesV2Credentials, NAMESPACE, _) >> {
+    kubectlJobExecutor.topPod(_ as KubernetesCredentials, NAMESPACE, _) >> {
       throw new KubectlJobExecutor.KubectlException("Error", new Exception())
     }
 

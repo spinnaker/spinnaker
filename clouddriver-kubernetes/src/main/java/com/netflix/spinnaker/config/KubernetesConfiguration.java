@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesV2Provider
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -64,7 +64,7 @@ public class KubernetesConfiguration {
       AccountCredentialsRepository accountCredentialsRepository,
       KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
-      KubernetesV2Credentials.Factory credentialFactory,
+      KubernetesCredentials.Factory credentialFactory,
       CatsModule catsModule) {
     return new KubernetesV2ProviderSynchronizable(
         kubernetesV2Provider,

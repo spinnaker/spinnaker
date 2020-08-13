@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Specification
@@ -29,7 +29,7 @@ class KubernetesV2JobProviderSpec extends Specification {
 
   def "getFileContents return a map with properties"() {
     given:
-    def mockCredentials = Mock(KubernetesV2Credentials) {
+    def mockCredentials = Mock(KubernetesCredentials) {
       jobLogs(*_) >> logs
     }
 

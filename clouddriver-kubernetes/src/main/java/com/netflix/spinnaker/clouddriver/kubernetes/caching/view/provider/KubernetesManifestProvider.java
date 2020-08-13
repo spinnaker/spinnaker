@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResour
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -56,11 +56,11 @@ public class KubernetesManifestProvider {
   @Nullable
   public KubernetesV2Manifest getManifest(
       String account, String location, String name, boolean includeEvents) {
-    Optional<KubernetesV2Credentials> optionalCredentials = accountResolver.getCredentials(account);
+    Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (!optionalCredentials.isPresent()) {
       return null;
     }
-    KubernetesV2Credentials credentials = optionalCredentials.get();
+    KubernetesCredentials credentials = optionalCredentials.get();
 
     Pair<KubernetesKind, String> parsedName;
     try {
@@ -98,11 +98,11 @@ public class KubernetesManifestProvider {
   @Nullable
   public List<KubernetesV2Manifest> getClusterAndSortAscending(
       String account, String location, String kind, String app, String cluster, Sort sort) {
-    Optional<KubernetesV2Credentials> optionalCredentials = accountResolver.getCredentials(account);
+    Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (!optionalCredentials.isPresent()) {
       return null;
     }
-    KubernetesV2Credentials credentials = optionalCredentials.get();
+    KubernetesCredentials credentials = optionalCredentials.get();
 
     KubernetesResourceProperties properties =
         credentials.getResourcePropertyRegistry().get(KubernetesKind.fromString(kind));

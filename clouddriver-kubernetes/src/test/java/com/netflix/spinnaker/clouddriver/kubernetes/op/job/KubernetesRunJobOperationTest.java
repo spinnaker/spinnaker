@@ -41,8 +41,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesReplica
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesServiceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.ManifestFetcher;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Namer;
@@ -138,8 +138,7 @@ final class KubernetesRunJobOperationTest {
     return runJobDescription;
   }
 
-  private static KubernetesNamedAccountCredentials<KubernetesV2Credentials>
-      getNamedAccountCredentials() {
+  private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
     KubernetesConfigurationProperties.ManagedAccount managedAccount =
         new KubernetesConfigurationProperties.ManagedAccount();
     managedAccount.setName("my-account");
@@ -149,14 +148,14 @@ final class KubernetesRunJobOperationTest {
         .withAccount(managedAccount.getName())
         .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
 
-    KubernetesV2Credentials mockV2Credentials = getMockKubernetesV2Credentials();
-    KubernetesV2Credentials.Factory credentialFactory = mock(KubernetesV2Credentials.Factory.class);
-    when(credentialFactory.build(managedAccount)).thenReturn(mockV2Credentials);
-    return new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory);
+    KubernetesCredentials mockCredentials = getMockKubernetesCredential();
+    KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
+    when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
+    return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
-  private static KubernetesV2Credentials getMockKubernetesV2Credentials() {
-    KubernetesV2Credentials credentialsMock = mock(KubernetesV2Credentials.class);
+  private static KubernetesCredentials getMockKubernetesCredential() {
+    KubernetesCredentials credentialsMock = mock(KubernetesCredentials.class);
     when(credentialsMock.getKindProperties(any(KubernetesKind.class)))
         .thenAnswer(
             invocation ->

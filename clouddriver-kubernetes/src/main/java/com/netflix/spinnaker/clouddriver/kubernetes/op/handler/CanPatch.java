@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPatchO
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,7 +30,7 @@ public interface CanPatch {
   KubernetesKind kind();
 
   default OperationResult patchWithManifest(
-      KubernetesV2Credentials credentials,
+      KubernetesCredentials credentials,
       String namespace,
       String name,
       KubernetesPatchOptions options,
@@ -40,7 +40,7 @@ public interface CanPatch {
   }
 
   default OperationResult patchWithJson(
-      KubernetesV2Credentials credentials,
+      KubernetesCredentials credentials,
       String namespace,
       String name,
       KubernetesPatchOptions options,

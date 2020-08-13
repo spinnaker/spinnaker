@@ -23,8 +23,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.Kubern
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesV2JobStatus;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import io.kubernetes.client.openapi.models.V1Job;
@@ -61,9 +61,8 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     }
     V1Job job = optionalJob.get();
     KubernetesV2JobStatus jobStatus = new KubernetesV2JobStatus(job, account);
-    KubernetesV2Credentials credentials =
-        (KubernetesV2Credentials)
-            accountCredentialsProvider.getCredentials(account).getCredentials();
+    KubernetesCredentials credentials =
+        (KubernetesCredentials) accountCredentialsProvider.getCredentials(account).getCredentials();
 
     Map<String, String> selector = job.getSpec().getSelector().getMatchLabels();
     List<KubernetesManifest> pods =
@@ -87,9 +86,8 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   @Nullable
   public Map<String, Object> getFileContents(
       String account, String location, String id, String containerName) {
-    KubernetesV2Credentials credentials =
-        (KubernetesV2Credentials)
-            accountCredentialsProvider.getCredentials(account).getCredentials();
+    KubernetesCredentials credentials =
+        (KubernetesCredentials) accountCredentialsProvider.getCredentials(account).getCredentials();
     return getKubernetesJob(account, location, id)
         .map(
             job -> {

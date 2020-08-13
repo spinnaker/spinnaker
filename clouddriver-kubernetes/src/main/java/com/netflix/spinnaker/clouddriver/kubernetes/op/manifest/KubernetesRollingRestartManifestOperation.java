@@ -24,13 +24,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResour
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesRollingRestartManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanRollingRestart;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
 
 public class KubernetesRollingRestartManifestOperation implements AtomicOperation<Void> {
   private final KubernetesRollingRestartManifestDescription description;
-  private final KubernetesV2Credentials credentials;
+  private final KubernetesCredentials credentials;
   private static final String OP_NAME = "ROLLING_RESTART_KUBERNETES_MANIFEST";
 
   public KubernetesRollingRestartManifestOperation(

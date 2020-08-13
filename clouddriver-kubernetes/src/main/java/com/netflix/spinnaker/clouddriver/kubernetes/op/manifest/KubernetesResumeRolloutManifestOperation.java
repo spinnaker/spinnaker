@@ -24,13 +24,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResour
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesResumeRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanResumeRollout;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
 
 public class KubernetesResumeRolloutManifestOperation implements AtomicOperation<Void> {
   private final KubernetesResumeRolloutManifestDescription description;
-  private final KubernetesV2Credentials credentials;
+  private final KubernetesCredentials credentials;
   private static final String OP_NAME = "RESUME_ROLLOUT_KUBERNETES_MANIFEST";
 
   public KubernetesResumeRolloutManifestOperation(

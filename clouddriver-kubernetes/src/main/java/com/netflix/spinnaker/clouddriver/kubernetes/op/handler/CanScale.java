@@ -18,13 +18,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 
 public interface CanScale {
   KubernetesKind kind();
 
   default void scale(
-      KubernetesV2Credentials credentials, String namespace, String name, int replicas) {
+      KubernetesCredentials credentials, String namespace, String name, int replicas) {
     credentials.scale(kind(), namespace, name, replicas);
   }
 }

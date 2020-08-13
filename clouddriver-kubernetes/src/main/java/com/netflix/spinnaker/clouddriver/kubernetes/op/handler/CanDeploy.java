@@ -21,13 +21,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 
 public interface CanDeploy {
   default OperationResult deploy(
-      KubernetesV2Credentials credentials,
+      KubernetesCredentials credentials,
       KubernetesManifest manifest,
       KubernetesManifestStrategy.DeployStrategy deployStrategy) {
     // If the manifest has a generateName, we must apply with kubectl create as all other operations

@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanLoadBalance;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanScale;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -45,7 +45,7 @@ import org.apache.commons.lang3.tuple.Pair;
 @Slf4j
 public class KubernetesDeployManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesDeployManifestDescription description;
-  private final KubernetesV2Credentials credentials;
+  private final KubernetesCredentials credentials;
   private final ArtifactProvider provider;
   @Nonnull private final String accountName;
   private static final String OP_NAME = "DEPLOY_KUBERNETES_MANIFEST";

@@ -18,12 +18,12 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 
 public interface CanRollingRestart {
   KubernetesKind kind();
 
-  default void rollingRestart(KubernetesV2Credentials credentials, String namespace, String name) {
+  default void rollingRestart(KubernetesCredentials credentials, String namespace, String name) {
     credentials.rollingRestart(kind(), namespace, name);
   }
 }

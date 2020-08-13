@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
@@ -39,18 +39,16 @@ class KubernetesAccountResolver {
     this.globalResourcePropertyRegistry = globalResourcePropertyRegistry;
   }
 
-  Optional<KubernetesV2Credentials> getCredentials(String account) {
+  Optional<KubernetesCredentials> getCredentials(String account) {
     return Optional.ofNullable(credentialsRepository.getOne(account))
         .filter(c -> c instanceof KubernetesNamedAccountCredentials)
         .map(c -> (KubernetesNamedAccountCredentials) c)
-        .map(AccountCredentials::getCredentials)
-        .filter(c -> c instanceof KubernetesV2Credentials)
-        .map(c -> (KubernetesV2Credentials) c);
+        .map(AccountCredentials::getCredentials);
   }
 
   ResourcePropertyRegistry getResourcePropertyRegistry(String account) {
     return getCredentials(account)
-        .map(KubernetesV2Credentials::getResourcePropertyRegistry)
+        .map(KubernetesCredentials::getResourcePropertyRegistry)
         .orElse(globalResourcePropertyRegistry);
   }
 }

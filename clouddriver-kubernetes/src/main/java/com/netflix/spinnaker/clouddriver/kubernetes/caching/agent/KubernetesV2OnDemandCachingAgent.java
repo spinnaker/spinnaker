@@ -38,7 +38,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesV2Credentials;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,7 +59,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   private static final String DETAILS_KEY = "details";
 
   protected KubernetesV2OnDemandCachingAgent(
-      KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
