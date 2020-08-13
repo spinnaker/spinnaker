@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.model.securitygroups;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.SortedSet;
 import lombok.Data;
 import org.apache.commons.lang3.ObjectUtils;
@@ -27,7 +26,6 @@ import org.apache.commons.lang3.ObjectUtils;
  * @see IpRangeRule
  * @see SecurityGroupRule
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "class")
 public interface Rule {
   /**
    * The port ranges associated with this rule

@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBu
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
+import com.netflix.spinnaker.clouddriver.jackson.ClouddriverApiModule
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.model.CloudMetricProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -136,7 +137,8 @@ class CloudDriverConfig {
         jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL)
         jacksonObjectMapperBuilder.failOnEmptyBeans(false)
         jacksonObjectMapperBuilder.failOnUnknownProperties(false)
-        jacksonObjectMapperBuilder.modules(new Jdk8Module(), new JavaTimeModule(), new KotlinModule())
+        jacksonObjectMapperBuilder.modules(
+          new Jdk8Module(), new JavaTimeModule(), new KotlinModule(), new ClouddriverApiModule())
       }
     }
   }

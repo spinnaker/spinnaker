@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -75,7 +70,6 @@ public interface ServerGroup {
    *
    * @return true if the server group is disabled; false otherwise
    */
-  @JsonGetter
   Boolean isDisabled();
 
   /**
@@ -156,7 +150,6 @@ public interface ServerGroup {
    * This represents all images deployed to the server group. For most providers, this will be a
    * singleton.
    */
-  @JsonIgnore
   ImagesSummary getImagesSummary();
 
   /**
@@ -165,7 +158,6 @@ public interface ServerGroup {
    *
    * <p>Deprecated in favor of getImagesSummary, which is a more generic getImageSummary.
    */
-  @JsonIgnore
   @Deprecated
   ImageSummary getImageSummary();
 
@@ -177,7 +169,6 @@ public interface ServerGroup {
     return new HashMap<>();
   }
 
-  @JsonIgnore
   default Map<String, Object> getExtraAttributes() {
     return Collections.EMPTY_MAP;
   }
@@ -241,7 +232,6 @@ public interface ServerGroup {
    * Cloud provider-specific data related to the build and VM image of the server group. Deprecated
    * in favor of Images summary
    */
-  @JsonInclude(NON_NULL)
   public static interface ImageSummary extends Summary {
     String getServerGroupName();
 
@@ -256,7 +246,6 @@ public interface ServerGroup {
   }
 
   /** Cloud provider-specific data related to the build and VM image of the server group. */
-  @JsonInclude(NON_NULL)
   public static interface ImagesSummary extends Summary {
     List<? extends ImageSummary> getSummaries();
   }

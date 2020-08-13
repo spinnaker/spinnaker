@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import java.util.List;
 import java.util.Set;
@@ -61,22 +60,18 @@ public interface LoadBalancerProvider<T extends LoadBalancer> {
   interface Item {
     String getName();
 
-    @JsonProperty("accounts")
     List<? extends ByAccount> getByAccounts();
   }
 
   interface ByAccount {
     String getName();
 
-    @JsonProperty("regions")
     List<? extends ByRegion> getByRegions();
   }
 
   interface ByRegion {
-    @JsonProperty("name")
     String getName();
 
-    @JsonProperty("loadBalancers")
     List<? extends Details> getLoadBalancers();
   }
 

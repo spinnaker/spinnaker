@@ -18,11 +18,12 @@
 package com.netflix.spinnaker.clouddriver.aws.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.jackson.ClouddriverApiModule
 import spock.lang.Specification
 
 class AmazonClusterSpec extends Specification {
   void "should serialize null loadBalancers and serverGroups as empty arrays"() {
-    def objectMapper = new ObjectMapper()
+    def objectMapper = new ObjectMapper().registerModule(new ClouddriverApiModule())
 
     when:
     def nullCluster = objectMapper.convertValue(
