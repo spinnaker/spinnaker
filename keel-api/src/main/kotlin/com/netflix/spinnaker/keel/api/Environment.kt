@@ -5,7 +5,9 @@ data class Environment(
   val resources: Set<Resource<*>> = emptySet(),
   val constraints: Set<Constraint> = emptySet(),
   val notifications: Set<NotificationConfig> = emptySet() // applies to each resource
-)
+) {
+  override fun toString(): String = "Environment $name"
+}
 
 val Set<Constraint>.anyStateful: Boolean
   get() = any { it is StatefulConstraint }

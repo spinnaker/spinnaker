@@ -81,6 +81,9 @@ class EnvironmentConstraintRunner(
     var versionIsPending = false
     val vetoedVersions: Set<String> = envContext.vetoedVersions
 
+    log.debug("Checking constraints for ${envContext.artifact} in ${envContext.environment}, " +
+      "versions=${envContext.versions.joinToString()}, vetoed=${envContext.vetoedVersions.joinToString()}")
+
     version = envContext.versions
       .filterNot { vetoedVersions.contains(it) }
       .firstOrNull { v ->
@@ -100,11 +103,17 @@ class EnvironmentConstraintRunner(
             .any { it.status == ConstraintStatus.PENDING }
         }
 
+        log.debug("Version $v of ${envContext.artifact} ${if (passesConstraints) "passes" else "does not pass"} " +
+          "constraints in ${envContext.environment}")
+        log.debug("Version $v of ${envContext.artifact} ${if (versionIsPending) "is" else "is not"} " +
+          "pending constraint approval in ${envContext.environment}")
+
         // select either the first version that passes all constraints,
         // or the first version where stateful constraints are pending.
         // so that we don't roll back while constraints are evaluating for a version
         passesConstraints || versionIsPending
       }
+
     if (version != null && !versionIsPending) {
       // we've selected a version that passes all constraints, queue it for approval
       queueForApproval(envContext.deliveryConfig, envContext.artifact, version, envContext.environment.name)
@@ -162,6 +171,8 @@ class EnvironmentConstraintRunner(
     if (latestVersion != version) {
       log.debug("Queueing version $version of ${artifact.type} artifact ${artifact.name} in environment $targetEnvironment for approval")
       repository.queueAllConstraintsApproved(deliveryConfig.name, targetEnvironment, version, artifact.reference)
+    } else {
+      log.debug("Not queueing version $version of $artifact in environment $targetEnvironment for approval as it's already approved")
     }
   }
 
