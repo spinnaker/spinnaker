@@ -167,7 +167,7 @@ const gceDiskConfigurer: IComponentOptions = {
                   selected-image="disk.sourceImage"
                   select-image="$ctrl.handleImageChange"
                   target="disk"
-                />
+                ></gce-image-select>
               </td>
               <td ng-if="$index > 0">
                 <a class="btn btn-link sm-label" style="margin-top: 0;" ng-click="$ctrl.removePersistentDisk($index)">
