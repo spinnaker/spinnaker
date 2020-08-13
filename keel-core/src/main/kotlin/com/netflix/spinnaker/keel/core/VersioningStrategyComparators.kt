@@ -43,7 +43,7 @@ class TagComparator(
     val i2 = parseWithRegex(o2, strategy, customRegex)
     return when (strategy.sortType) {
       SEMVER -> semverComparator.compare(parseSemver(i1), parseSemver(i2))
-      INCREASING -> increasingComparator.compare(i1?.toIntOrNull(), i2?.toIntOrNull())
+      INCREASING -> increasingComparator.compare(i1?.toLongOrNull(), i2?.toLongOrNull())
     }
   }
 
@@ -83,8 +83,8 @@ val SEMVER_COMPARATOR: Comparator<SemVer> = Comparator { a, b ->
   b.compareTo(a)
 }
 
-val INCREASING_COMPARATOR: Comparator<Int> = Comparator { a, b ->
-  b - a
+val INCREASING_COMPARATOR: Comparator<Long> = Comparator { a, b ->
+  b.compareTo(a)
 }
 
 // descending by default

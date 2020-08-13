@@ -35,7 +35,7 @@ import strikt.assertions.isNull
 
 class VersioningStrategyTests : JUnit5Minutests {
 
-  private val incrTags = listOf("1", "2", "3", "0")
+  private val incrTags = listOf("1", "2", "3", "0", "1597277806575", "1597276129386")
   private val semVerTags = listOf("0.0.3", "0.1.3", "0.10.3", "0.4.1")
   private val semVerTagsWithV = listOf("v0.0.3", "v0.1.3", "v0.10.3", "v0.4.1")
   private val branchJobCommitTags = listOf("master-h1.blah", "master-h2.blah", "master-h3.blah", "master-h0.blah")
@@ -46,7 +46,7 @@ class VersioningStrategyTests : JUnit5Minutests {
     context("increasing tags") {
       test("comparing gets highest") {
         val sorted = incrTags.sortedWith(TagComparator(INCREASING_TAG))
-        expectThat(sorted.first()).isEqualTo("3")
+        expectThat(sorted.first()).isEqualTo("1597277806575")
       }
     }
 
