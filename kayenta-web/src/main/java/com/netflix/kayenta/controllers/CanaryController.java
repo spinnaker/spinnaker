@@ -183,6 +183,7 @@ public class CanaryController {
   List<CanaryExecutionStatusResponse> getCanaryResultsByApplication(
       @RequestParam(required = false) String application,
       @RequestParam(value = "limit", defaultValue = "20") int limit,
+      @RequestParam(value = "page", defaultValue = "1") int page,
       @RequestParam(value = "statuses", required = false) String statuses,
       @RequestParam(required = false) final String storageAccountName) {
     String resolvedStorageAccountName =
@@ -206,7 +207,10 @@ public class CanaryController {
             .filter(s -> !StringUtils.isEmpty(s))
             .collect(Collectors.toList());
     ExecutionRepository.ExecutionCriteria executionCriteria =
-        new ExecutionRepository.ExecutionCriteria().setPageSize(limit).setStatuses(statusesList);
+        new ExecutionRepository.ExecutionCriteria()
+            .setPageSize(limit)
+            .setStatuses(statusesList)
+            .setPage(page);
 
     // Users of the ad-hoc endpoint can either omit application or pass 'ad-hoc' explicitly.
     if (StringUtils.isEmpty(application)) {
