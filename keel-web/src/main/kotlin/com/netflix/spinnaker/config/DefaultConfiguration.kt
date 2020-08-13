@@ -6,6 +6,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.rest.DeliveryConfigYamlParsingFilter
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -84,5 +85,15 @@ class DefaultConfiguration(
     scheduler.threadNamePrefix = "scheduler-"
     scheduler.poolSize = poolSize
     return scheduler
+  }
+
+  @Bean
+  fun deliveryConfigYamlParsingFilter(): FilterRegistrationBean<*> {
+    val registration = FilterRegistrationBean<DeliveryConfigYamlParsingFilter>()
+    registration.filter = DeliveryConfigYamlParsingFilter()
+    registration.setName("deliveryConfigYamlParsingFilter")
+    registration.addUrlPatterns("/delivery-configs/")
+    registration.order = 10
+    return registration
   }
 }
