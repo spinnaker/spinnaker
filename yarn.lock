@@ -205,15 +205,15 @@
     merge-source-map "^1.1.0"
     schema-utils "^2.6.4"
 
-"@spinnaker/amazon@^0.0.249":
-  version "0.0.249"
-  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.249.tgz#358709c70e1f649ba8ed47e835ee5bf1f3401ade"
-  integrity sha512-VWTGSkyBrGI3wLNmikUYgh1hSjDTdBX17i4KBxnCZKphLPJPoz/qCLI/+0EWMTX73hHIFGrBPkIPNwnr7tZouw==
+"@spinnaker/amazon@0.0.262":
+  version "0.0.262"
+  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.262.tgz#226ac647aaa820381564ad352093151952e64e1e"
+  integrity sha512-0wM6XtVhe3aoT+E+NuVJ0Em79xZjFTQ6Hd85w1sVa1D2Diz8wI64we6yyzEZ1oPYpKR4mzE+Ie9wJmnD/Sg4cQ==
 
-"@spinnaker/core@0.0.485":
-  version "0.0.485"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.485.tgz#8fbf0732125ececbb9d62f7559a6f31bc8cd7009"
-  integrity sha512-FkXHobOG0SQiedDZEhZ7XZ4RYoAA6qq8NwMdJdK954ly6N4nkcXM441ajeaXb/34/p7UrhaX7RoUeQm9gauweA==
+"@spinnaker/core@0.0.501":
+  version "0.0.501"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.501.tgz#c16d98e9a6d6b668dd92bc3ced8d9bfa5ef4cde4"
+  integrity sha512-ZcQXVvoCzhtxNW4Y/r6WaRaHxkw9fMZgxE6E8//fC3skXZvgGTRD8GaG06HT0CTVhQZsoH9adCC3oelmCHZ+rw==
 
 "@spinnaker/eslint-plugin@1.0.4":
   version "1.0.4"

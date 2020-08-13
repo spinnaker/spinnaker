@@ -84,8 +84,8 @@
     "webpack-dev-middleware": "3.7.2"
   },
   "devDependencies": {
-    "@spinnaker/amazon": "^0.0.249",
-    "@spinnaker/core": "0.0.485",
+    "@spinnaker/amazon": "0.0.262",
+    "@spinnaker/core": "0.0.501",
     "@spinnaker/eslint-plugin": "1.0.4",
     "@spinnaker/styleguide": "^1.0.12",
     "@types/angular": "1.6.26",
