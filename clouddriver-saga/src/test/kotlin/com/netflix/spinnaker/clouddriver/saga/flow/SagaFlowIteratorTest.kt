@@ -20,6 +20,9 @@ import com.netflix.spinnaker.clouddriver.saga.AbstractSagaTest
 import com.netflix.spinnaker.clouddriver.saga.Action1
 import com.netflix.spinnaker.clouddriver.saga.Action2
 import com.netflix.spinnaker.clouddriver.saga.Action3
+import com.netflix.spinnaker.clouddriver.saga.DoAction1
+import com.netflix.spinnaker.clouddriver.saga.DoAction2
+import com.netflix.spinnaker.clouddriver.saga.DoAction3
 import com.netflix.spinnaker.clouddriver.saga.SagaCommandCompleted
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranch
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranchPredicate
@@ -65,6 +68,22 @@ class SagaFlowIteratorTest : AbstractSagaTest() {
       expect {
         that(subject.hasNext()).isTrue()
         that(subject.next()).get { action }.isA<Action2>()
+        that(subject.next()).get { action }.isA<Action3>()
+        that(subject.hasNext()).isFalse()
+      }
+    }
+
+    test("handles ManyCommands completed out-of-order") {
+      saga.addEventForTest(DoAction1())
+      saga.addEventForTest(SagaCommandCompleted("doAction1"))
+      saga.addEventForTest(ShouldBranch())
+      saga.addEventForTest(DoAction2())
+      saga.addEventForTest(DoAction3())
+
+      expect {
+        that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action2>()
+        that(subject.hasNext()).isTrue()
         that(subject.next()).get { action }.isA<Action3>()
         that(subject.hasNext()).isFalse()
       }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
+import com.netflix.spinnaker.clouddriver.titus.TitusException;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
 import com.netflix.spinnaker.clouddriver.titus.deploy.events.TitusLoadBalancerAttached;
@@ -62,9 +63,7 @@ public class AttachTitusServiceLoadBalancers extends AbstractTitusDeployAction
         titusClientProvider.getTitusLoadBalancerClient(
             description.getCredentials(), description.getRegion());
     if (loadBalancerClient == null) {
-      // TODO(rz): This definitely doesn't seem like something to casually skip?
-      saga.log("Unable to create load balancing client in target account/region");
-      return new Result();
+      throw new TitusException("Unable to create load balancing client in target account/region");
     }
 
     TargetGroupLookupHelper.TargetGroupLookupResult targetGroups =

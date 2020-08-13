@@ -70,7 +70,7 @@ class SagaFlowIterator(
       ?: throw SagaNotFoundException("Could not find Saga (${context.sagaName}/${context.sagaId} for flow traversal")
 
     // To support resuming sagas, we want to seek to the next step that has not been processed,
-    // which may not be the first step
+    // which may not be the first step.
     seekToNextStep(latestSaga)
 
     val nextStep = steps[index]
@@ -85,6 +85,7 @@ class SagaFlowIterator(
         throw SagaSystemException("Failed to create SagaFlow Predicate: ${nextStep.predicate.simpleName}", e)
       }
 
+      // TODO(rz): Add a ConditionEvaluated event. We shouldn't be re-evaluating conditions when resuming a Saga
       val result = predicate.test(latestSaga)
       log.trace("Predicate '${predicate.javaClass.simpleName}' result: $result")
       if (result) {
@@ -114,7 +115,7 @@ class SagaFlowIterator(
 
     index = listOf(SagaCommandCompletedEventSeeker(), SagaCommandEventSeeker())
       .mapNotNull { it.invoke(index, steps, saga)?.coerceAtLeast(0) }
-      .max()
+      .min()
       ?: index
 
     if (index != 0) {
