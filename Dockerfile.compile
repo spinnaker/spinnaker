@@ -3,7 +3,7 @@ RUN apk add --update \
     openjdk11 \
     openjdk8 \
     && rm -rf /var/cache/apk
-MAINTAINER sig-platform@spinnaker.io
+LABEL maintainer="sig-platform@spinnaker.io"
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
 ENV JDK_18 /usr/lib/jvm/java-1.8-openjdk
 ENV GRADLE_USER_HOME /workspace/.gradle

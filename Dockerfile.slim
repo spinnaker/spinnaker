@@ -1,8 +1,5 @@
 FROM alpine:3.11
-MAINTAINER sig-platform@spinnaker.io
-COPY rosco-web/build/install/rosco /opt/rosco
-COPY rosco-web/config              /opt/rosco
-COPY halconfig/packer              /opt/rosco/config/packer
+LABEL maintainer="sig-platform@spinnaker.io"
 
 WORKDIR /packer
 
@@ -32,7 +29,11 @@ RUN mkdir kustomize && \
 
 ENV PATH "kustomize:$PATH"
 
-RUN adduser -D -S spinnaker
+RUN addgroup -S -g 10111 spinnaker
+RUN adduser -S -G spinnaker -u 10111 spinnaker
+COPY rosco-web/build/install/rosco /opt/rosco
+COPY rosco-web/config              /opt/rosco
+COPY halconfig/packer              /opt/rosco/config/packer
 RUN mkdir -p /opt/rosco/plugins && chown -R spinnaker:nogroup /opt/rosco/plugins
 USER spinnaker
 CMD ["/opt/rosco/bin/rosco"]

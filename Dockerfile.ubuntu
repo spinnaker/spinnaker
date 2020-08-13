@@ -1,8 +1,5 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
-COPY rosco-web/build/install/rosco /opt/rosco
-COPY rosco-web/config              /opt/rosco
-COPY halconfig/packer              /opt/rosco/config/packer
+LABEL maintainer="sig-platform@spinnaker.io"
 
 WORKDIR /packer
 
@@ -32,7 +29,10 @@ RUN mkdir kustomize && \
 
 ENV PATH "kustomize:$PATH"
 
-RUN adduser --disabled-login --system spinnaker
+RUN adduser --system --uid 10111 --group spinnaker
+COPY rosco-web/build/install/rosco /opt/rosco
+COPY rosco-web/config              /opt/rosco
+COPY halconfig/packer              /opt/rosco/config/packer
 RUN mkdir -p /opt/rosco/plugins && chown -R spinnaker:nogroup /opt/rosco/plugins
 USER spinnaker
 CMD ["/opt/rosco/bin/rosco"]
