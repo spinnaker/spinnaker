@@ -1,5 +1,5 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
+LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
 RUN adduser --system --uid 10111 --group spinnaker
 COPY keel-web/build/install/keel /opt/keel

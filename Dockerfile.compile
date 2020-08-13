@@ -1,5 +1,5 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
+LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get install -y \
     openjdk-8-jdk \
     openjdk-11-jdk \
