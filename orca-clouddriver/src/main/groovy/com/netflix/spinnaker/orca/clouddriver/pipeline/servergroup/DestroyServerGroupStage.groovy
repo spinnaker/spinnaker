@@ -25,11 +25,15 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware {
+  private static final Logger log = LoggerFactory.getLogger(DestroyServerGroupStage.class)
+  
   static final String PIPELINE_CONFIG_TYPE = "destroyServerGroup"
 
   private final DynamicConfigService dynamicConfigService
@@ -40,10 +44,18 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport implem
   }
 
   private static void addDisableStage(Map<String, Object> context, StageGraphBuilderImpl graph) {
-    graph.add {
-      it.name = "disableServerGroup"
-      it.type = getType(DisableServerGroupStage)
-      it.context.putAll(context)
+    boolean skipDisable = (boolean)context.getOrDefault("skipDisableBeforeDestroy", false)
+
+    if (!skipDisable) {
+      // conditional opt-out for server groups where an explicit disable is unnecessary 
+      // (ie. they do not register in service discovery or a load balancer)
+      graph.add {
+        it.name = "disableServerGroup"
+        it.type = getType(DisableServerGroupStage)
+        it.context.putAll(context)
+      }
+    } else {
+      log.info("DisableServerGroupStage has been skipped (skipDisableBeforeDestroy: true)")
     }
   }
 
