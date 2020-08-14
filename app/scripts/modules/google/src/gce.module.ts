@@ -10,6 +10,7 @@ import { IAP_INTERCEPTOR } from 'google/interceptors/iap.interceptor';
 import { LOAD_BALANCER_SET_TRANSFORMER } from './loadBalancer/loadBalancer.setTransformer';
 import { GCE_SERVER_GROUP_DISK_DESCRIPTIONS } from './serverGroup/details/ServerGroupDiskDescriptions';
 import { GCE_SCALE_IN_CONTROLS } from './serverGroup/details/autoscalingPolicy/modal/GceScaleInControls';
+import { GCE_PREDICTIVE_AUTOSCALING } from './autoscalingPolicy/components/metricSettings/GcePredictiveAutoscaling';
 import { GceImageReader } from './image';
 import './help/gce.help';
 
@@ -66,6 +67,7 @@ module(GOOGLE_MODULE, [
   IAP_INTERCEPTOR,
   GCE_SERVER_GROUP_DISK_DESCRIPTIONS,
   GCE_SCALE_IN_CONTROLS,
+  GCE_PREDICTIVE_AUTOSCALING,
   GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE,
   GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
   GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER,

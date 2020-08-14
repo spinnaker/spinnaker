@@ -3,7 +3,7 @@ import { isEmpty } from 'lodash';
 
 import { ILayoutProps } from '@spinnaker/core';
 
-import './gceScaleInControls.less';
+import './gceAutoscalingFieldLayout.less';
 
 // todo(mneterval): remove when GCE Autoscaling Controls are entirely converted to React & Formik
 export function GceAutoScalingFieldLayout(props: ILayoutProps) {
@@ -13,7 +13,7 @@ export function GceAutoScalingFieldLayout(props: ILayoutProps) {
   const { hidden, messageNode } = validation;
 
   return (
-    <div className="gce-scale-in-controls">
+    <div className="gce-autoscaling-layout">
       {showLabel && (
         <label className="col-md-3 sm-label-right">
           {label}

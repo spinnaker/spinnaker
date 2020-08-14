@@ -13,6 +13,7 @@ module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONE
     bindings: {
       policy: '=',
       showNoMetricsWarning: '=',
+      updatePolicy: '<',
     },
     templateUrl: require('./metricSettings.component.html'),
     controller: function() {

@@ -6,23 +6,11 @@ import { isEmpty } from 'lodash';
 
 import { CheckboxInput, FormField, LayoutProvider, NumberInput, ReactSelectInput } from '@spinnaker/core';
 
-import { GceAutoScalingFieldLayout } from './GceAutoScalingFieldLayout';
+import { GceAutoScalingFieldLayout, IGceAutoscalingPolicy, IGceScaleInControl } from '../../../../autoscalingPolicy';
 
 enum maxReplicasUnit {
   fixed = 'fixed',
   percent = 'percent',
-}
-
-interface IGceScaleInControl {
-  maxScaledInReplicas?: {
-    fixed?: number;
-    percent?: number;
-  };
-  timeWindowSec?: number;
-}
-
-interface IGceAutoscalingPolicy {
-  scaleInControl: IGceScaleInControl;
 }
 
 interface IGceScaleInControlsProps {

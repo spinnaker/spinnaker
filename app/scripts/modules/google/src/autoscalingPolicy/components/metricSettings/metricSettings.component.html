@@ -32,6 +32,8 @@
             </button>
           </div>
         </div>
+        <gce-predictive-autoscaling policy="$ctrl.policy" update-policy="$ctrl.updatePolicy">
+        </gce-predictive-autoscaling>
       </div>
       <button
         ng-hide="$ctrl.showMetric('cpuUtilization')"

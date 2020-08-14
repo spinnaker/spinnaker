@@ -93,6 +93,8 @@ const helpContents: { [key: string]: string } = {
     'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance.',
   'gce.serverGroup.scalingPolicy.cpuUtilization':
     'Autoscaler adds or removes instances to maintain this CPU usage on each instance.',
+  'gce.serverGroup.scalingPolicy.predictiveAutoscaling':
+    'Autoscaler adds or removes instances based on forecasted load. You must set a CPU utilization target to enable predictive autoscaling.',
   'gce.serverGroup.scalingPolicy.loadBalancingUtilization':
     'Autoscaler adds or removes instances to maintain this usage of load-balancing capacity.',
   'gce.serverGroup.scalingPolicy.customMetricUtilizations':

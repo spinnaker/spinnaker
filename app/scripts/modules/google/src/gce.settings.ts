@@ -7,6 +7,9 @@ export interface IGCEProviderSettings extends IProviderSettings {
     zone?: string;
     instanceTypeStorage?: IInstanceStorage;
   };
+  feature?: {
+    predictiveAutoscaling?: boolean;
+  };
 }
 
 export const GCEProviderSettings: IGCEProviderSettings = (SETTINGS.providers.gce as IGCEProviderSettings) || {
