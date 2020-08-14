@@ -1,39 +1,36 @@
 FROM alpine:3.11
-MAINTAINER sig-platform@spinnaker.io
-COPY halyard-web/build/install/halyard /opt/halyard
+LABEL maintainer="sig-platform@spinnaker.io"
 
 ENV KUBECTL_RELEASE=1.15.10
 ENV AWS_BINARY_RELEASE_DATE=2020-02-22
 ENV AWS_CLI_VERSION=1.18.18
 
 RUN apk --no-cache add --update \
-  bash \
-  curl \
-  openjdk11-jre \
-  openssl \
-  py-pip \
-  python
-RUN pip install --upgrade awscli==${AWS_CLI_VERSION}
-RUN apk --purge del \
-  py-pip
-RUN rm -rf /var/cache/apk
+      bash \
+      curl \
+      openjdk11-jre \
+      openssl \
+      py-pip \
+      python \
+  && pip install --upgrade awscli==${AWS_CLI_VERSION} \
+  && apk --purge del \
+       py-pip \
+  && rm -rf /var/cache/apk
 
 RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
-  echo '/opt/halyard/bin/hal "$@"' > /usr/local/bin/hal && \
+  echo '/opt/halyard/bin/hal "$@"' >> /usr/local/bin/hal && \
   chmod +x /usr/local/bin/hal
 
 RUN curl -f -LO --retry 3 --retry-delay 3 https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
-RUN curl -f -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
-  chmod +x ./aws-iam-authenticator && \
-  mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
-
-ENV PATH "$PATH:/usr/local/bin/aws-iam-authenticator"
+RUN curl -f -o /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
+  chmod +x /usr/local/bin/aws-iam-authenticator
 
 RUN addgroup -S -g 1000 spinnaker
-RUN adduser -D -S -G spinnaker -u 1000 spinnaker
+RUN adduser -S -G spinnaker -u 1000 spinnaker
+COPY halyard-web/build/install/halyard /opt/halyard
 USER spinnaker
 
 CMD ["/opt/halyard/bin/halyard"]

@@ -1,6 +1,5 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
-COPY halyard-web/build/install/halyard /opt/halyard
+LABEL maintainer="sig-platform@spinnaker.io"
 
 ENV KUBECTL_RELEASE=1.15.10
 ENV AWS_BINARY_RELEASE_DATE=2020-02-22
@@ -14,18 +13,19 @@ RUN apt-get update && \
       python-pip && \
     pip install awscli==${AWS_CLI_VERSION} --upgrade
 
-RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
-  echo '/opt/halyard/bin/hal "$@"' | tee /usr/local/bin/hal > /dev/null
-RUN chmod +x /usr/local/bin/hal
+RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
+  echo '/opt/halyard/bin/hal "$@"' >> /usr/local/bin/hal && \
+  chmod +x /usr/local/bin/hal
 
 RUN curl -f -LO --retry 3 --retry-delay 3 https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
-RUN curl -f -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
-    chmod +x /usr/local/bin/aws-iam-authenticator
+RUN curl -f -o /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
+  chmod +x /usr/local/bin/aws-iam-authenticator
 
-RUN adduser --disabled-login --system --group --uid 1000 spinnaker
+RUN adduser --system --uid 1000 --group spinnaker
+COPY halyard-web/build/install/halyard /opt/halyard
 USER spinnaker
 
 CMD ["/opt/halyard/bin/halyard"]
