@@ -30,8 +30,9 @@
     <generate>
       <javaTimeTypes>true</javaTimeTypes>
 
-      <generatedAnnotation>true</generatedAnnotation>
-      <generatedAnnotationType>DETECT_FROM_JDK</generatedAnnotationType>
+      <!-- this can be reenabled once cross-compilation to Java 8 is no longer required -->
+      <!-- generatedAnnotation>true</generatedAnnotation>
+      <generatedAnnotationType>DETECT_FROM_JDK</generatedAnnotationType -->
 
       <nullableAnnotation>true</nullableAnnotation>
       <nullableAnnotationType>javax.annotation.Nullable</nullableAnnotationType>
