@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;

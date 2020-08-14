@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.kubernetes;
 
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+
+@NonnullByDefault
 public enum KubernetesArtifactType {
   DockerImage("docker/image"),
   ConfigMap("kubernetes/configMap"),

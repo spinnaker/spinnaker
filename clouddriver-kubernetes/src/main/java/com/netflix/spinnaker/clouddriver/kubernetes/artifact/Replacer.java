@@ -19,19 +19,17 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,28 +42,10 @@ import lombok.extern.slf4j.Slf4j;
 @ParametersAreNonnullByDefault
 @Slf4j
 public class Replacer {
-  private static final ObjectMapper mapper = new ObjectMapper();
-
   @Nonnull private final String replacePath;
   @Nonnull private final String findPath;
   @Nullable private final Function<String, String> nameFromReference;
   @Nonnull private final KubernetesArtifactType type;
-
-  private static String substituteField(String result, String fieldName, @Nullable String field) {
-    return result.replace("{%" + fieldName + "%}", Optional.ofNullable(field).orElse(""));
-  }
-
-  private static String processPath(String path, Artifact artifact) {
-    String result = substituteField(path, "name", artifact.getName());
-    result = substituteField(result, "type", artifact.getType());
-    result = substituteField(result, "version", artifact.getVersion());
-    result = substituteField(result, "reference", artifact.getReference());
-    return result;
-  }
-
-  private ArrayNode findAll(DocumentContext obj) {
-    return obj.read(findPath);
-  }
 
   @Nonnull
   private Artifact artifactFromReference(String s) {
@@ -83,7 +63,8 @@ public class Replacer {
 
   @Nonnull
   ImmutableCollection<Artifact> getArtifacts(DocumentContext document) {
-    return mapper.convertValue(findAll(document), new TypeReference<List<String>>() {}).stream()
+    return Streams.stream(document.<ArrayNode>read(findPath).elements())
+        .map(JsonNode::asText)
         .map(this::artifactFromReference)
         .collect(toImmutableList());
   }
@@ -102,16 +83,19 @@ public class Replacer {
     return replacedArtifacts.build();
   }
 
-  private boolean replaceIfPossible(DocumentContext obj, @Nullable Artifact artifact) {
-    if (artifact == null || Strings.isNullOrEmpty(artifact.getType())) {
-      throw new IllegalArgumentException("Artifact and artifact type must be set.");
-    }
-
-    if (!artifact.getType().equals(type.getType())) {
+  private boolean replaceIfPossible(DocumentContext obj, @Nonnull Artifact artifact) {
+    if (!type.getType().equals(artifact.getType())) {
       return false;
     }
 
-    String jsonPath = processPath(replacePath, artifact);
+    // Here, given the current artifact, we are constructing a JsonPath query to find nodes in
+    // the document where we should replace the contents with information from the artifact.
+    String jsonPath =
+        replacePath
+            .replace("{%name%}", Strings.nullToEmpty(artifact.getName()))
+            .replace("{%type%}", Strings.nullToEmpty(artifact.getType()))
+            .replace("{%version%}", Strings.nullToEmpty(artifact.getVersion()))
+            .replace("{%reference%}", Strings.nullToEmpty(artifact.getReference()));
 
     log.debug("Processed jsonPath == {}", jsonPath);
 

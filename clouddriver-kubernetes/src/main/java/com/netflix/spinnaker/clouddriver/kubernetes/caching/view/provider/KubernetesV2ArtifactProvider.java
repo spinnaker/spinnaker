@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
-import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Comparator;
 import java.util.List;
