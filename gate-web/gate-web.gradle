@@ -26,6 +26,7 @@ dependencies {
 
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
@@ -44,7 +45,6 @@ dependencies {
   implementation 'commons-io:commons-io'
   implementation 'org.springframework.session:spring-session-data-redis'
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   implementation "org.apache.commons:commons-lang3"
 
   implementation "org.springframework:spring-web"
@@ -71,6 +71,7 @@ dependencies {
   testImplementation "org.springframework.security:spring-security-oauth2-jose"
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testRuntimeOnly "com.netflix.spinnaker.kork:kork-retrofit"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {
@@ -98,4 +99,5 @@ test {
       }
     }
   }
+  useJUnitPlatform()
 }

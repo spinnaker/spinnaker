@@ -17,12 +17,11 @@
 
 package com.netflix.spinnaker.gate.health
 
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.HealthCheckableService
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,13 +31,10 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
-import retrofit.RestAdapter
 import retrofit.RetrofitError
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Component
 @Slf4j
@@ -49,7 +45,7 @@ class DownstreamServicesHealthIndicator extends AbstractHealthIndicator {
   AtomicBoolean skipDownstreamServiceChecks = new AtomicBoolean(false)
 
   @Autowired
-  DownstreamServicesHealthIndicator(OkHttpClientProvider clientProvider,
+  DownstreamServicesHealthIndicator(ServiceClientProvider serviceProvider,
                                     ServiceConfiguration serviceConfiguration) {
     this(
       serviceConfiguration.services.findResults { String name, Service service ->
@@ -58,11 +54,8 @@ class DownstreamServicesHealthIndicator extends AbstractHealthIndicator {
         }
 
         return [
-          name, new RestAdapter.Builder()
-          .setEndpoint(newFixedEndpoint(service.baseUrl))
-          .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint(name, service.baseUrl))))
-          .build()
-          .create(HealthCheckableService)
+          name,
+          serviceProvider.getService(HealthCheckableService, new DefaultServiceEndpoint(name, service.baseUrl))
         ]
       }.collectEntries()
     )
