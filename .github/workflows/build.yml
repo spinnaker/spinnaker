@@ -16,12 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11]
+        crossCompile: ["true", "false"]
     steps:
       - uses: actions/checkout@v2
+      # Install Java 8 for cross-compilation support. Setting it up before
+      # Java 11 means it comes later in $PATH (because of how setup-java works)
       - uses: actions/setup-java@v1
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 8
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
       - uses: actions/cache@v1
         with:
           path: ~/.gradle
@@ -29,7 +34,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        run: ./gradlew build jacocoAggregateReport --stacktrace
+        run: ./gradlew -PenableCrossCompilerPlugin=${{ matrix.crossCompile }} build jacocoAggregateReport --stacktrace
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
         if: github.ref == 'refs/heads/master'
