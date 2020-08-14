@@ -19,7 +19,7 @@ RUN tar -xf /tmp/workdir/kayenta-web/build/distributions/kayenta.tar -C /opt
 #
 FROM alpine:3.11
 
-MAINTAINER delivery-engineering@netflix.com
+LABEL maintainer="delivery-engineering@netflix.com"
 
 RUN apk --no-cache add --update openjdk8-jre
 
