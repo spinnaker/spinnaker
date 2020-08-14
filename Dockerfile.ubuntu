@@ -1,8 +1,8 @@
 FROM ubuntu:bionic
-MAINTAINER sig-platform@spinnaker.io
-COPY kayenta-web/build/install/kayenta /opt/kayenta
+LABEL maintainer="sig-platform@spinnaker.io"
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
-RUN adduser --disabled-login --system spinnaker
+RUN adduser --system --uid 10111 --group spinnaker
+COPY kayenta-web/build/install/kayenta /opt/kayenta
 RUN mkdir -p /opt/kayenta/plugins && chown -R spinnaker:nogroup /opt/kayenta/plugins
 USER spinnaker
 CMD ["/opt/kayenta/bin/kayenta"]
