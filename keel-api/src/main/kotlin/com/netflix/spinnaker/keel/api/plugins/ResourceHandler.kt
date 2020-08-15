@@ -27,8 +27,6 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  *
  * @param S the spec type.
  * @param R the resolved model type.
- *
- * If those two are the same, use [SimpleResourceHandler] instead.
  */
 interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
   @JvmDefault

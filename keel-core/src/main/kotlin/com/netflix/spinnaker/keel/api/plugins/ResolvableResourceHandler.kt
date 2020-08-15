@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 abstract class ResolvableResourceHandler<S : ResourceSpec, R : Any>(
   private val resolvers: List<Resolver<*>>
 ) : ResourceHandler<S, R> {
-  protected val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+  protected val log: Logger = LoggerFactory.getLogger(javaClass)
 
   /**
    * Applies any defaults / opinions to the resource as it is resolved into its [desired] state.
