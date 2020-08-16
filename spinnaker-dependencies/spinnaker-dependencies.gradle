@@ -6,7 +6,7 @@ javaPlatform {
 
 ext {
   versions = [
-    aws              : "1.11.802",
+    aws              : "1.11.820",
     bouncycastle     : "1.61",
     groovy           : "2.5.11", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     jsch             : "0.1.54",
