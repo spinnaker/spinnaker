@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import groovy.text.SimpleTemplateEngine
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class KubernetesManifestSpec extends Specification {
   def objectMapper = new ObjectMapper()
@@ -71,22 +70,6 @@ class KubernetesManifestSpec extends Specification {
     manifest.getKind() == KIND
     manifest.getApiVersion() == API_VERSION
     manifest.getSpecTemplateAnnotations().get().get(KEY) == VALUE
-  }
-
-  @Unroll
-  void "correctly parses a fully qualified resource name #kind/#name"() {
-    expect:
-    def pair = KubernetesManifest.fromFullResourceName(fullResourceName)
-    pair.getRight() == name
-    pair.getLeft() == kind
-
-    where:
-    fullResourceName || kind                       | name
-    "replicaSet abc" || KubernetesKind.REPLICA_SET | "abc"
-    "rs abc"         || KubernetesKind.REPLICA_SET | "abc"
-    "service abc"    || KubernetesKind.SERVICE     | "abc"
-    "SERVICE abc"    || KubernetesKind.SERVICE     | "abc"
-    "ingress abc"    || KubernetesKind.INGRESS     | "abc"
   }
 
   void "correctly reads observedGeneration from status"() {

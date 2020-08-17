@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -36,7 +37,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,31 +62,27 @@ public class KubernetesManifestProvider {
     }
     KubernetesCredentials credentials = optionalCredentials.get();
 
-    Pair<KubernetesKind, String> parsedName;
+    KubernetesCoordinates coords;
     try {
-      parsedName = KubernetesManifest.fromFullResourceName(name);
-    } catch (Exception e) {
+      coords = KubernetesCoordinates.builder().namespace(location).fullResourceName(name).build();
+    } catch (IllegalArgumentException e) {
       return null;
     }
 
-    KubernetesManifest manifest =
-        credentials.get(parsedName.getLeft(), location, parsedName.getRight());
+    KubernetesManifest manifest = credentials.get(coords);
     if (manifest == null) {
       return null;
     }
 
-    String namespace = manifest.getNamespace();
-    KubernetesKind kind = manifest.getKind();
-
     List<KubernetesManifest> events =
-        includeEvents
-            ? credentials.eventsFor(kind, namespace, parsedName.getRight())
-            : ImmutableList.of();
+        includeEvents ? credentials.eventsFor(coords) : ImmutableList.of();
 
     List<KubernetesPodMetric.ContainerMetric> metrics = ImmutableList.of();
-    if (includeEvents && kind.equals(KubernetesKind.POD) && credentials.isMetricsEnabled()) {
+    if (includeEvents
+        && coords.getKind().equals(KubernetesKind.POD)
+        && credentials.isMetricsEnabled()) {
       metrics =
-          credentials.topPod(namespace, parsedName.getRight()).stream()
+          credentials.topPod(coords).stream()
               .map(KubernetesPodMetric::getContainerMetrics)
               .flatMap(Collection::stream)
               .collect(Collectors.toList());

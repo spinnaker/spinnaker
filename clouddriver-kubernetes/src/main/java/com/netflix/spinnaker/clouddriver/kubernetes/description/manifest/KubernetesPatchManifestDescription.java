@@ -25,7 +25,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.tuple.Pair;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -44,12 +43,9 @@ public class KubernetesPatchManifestDescription extends KubernetesAtomicOperatio
 
   @JsonIgnore
   public KubernetesCoordinates getPointCoordinates() {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(manifestName);
-
     return KubernetesCoordinates.builder()
         .namespace(location)
-        .kind(parsedName.getLeft())
-        .name(parsedName.getRight())
+        .fullResourceName(manifestName)
         .build();
   }
 }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.Versioned;
@@ -40,7 +41,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class KubernetesDeployManifestOperation implements AtomicOperation<OperationResult> {
@@ -236,9 +236,13 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   }
 
   private void attachLoadBalancer(String loadBalancerName, KubernetesManifest target) {
-    Pair<KubernetesKind, String> name;
+    KubernetesCoordinates coords;
     try {
-      name = KubernetesManifest.fromFullResourceName(loadBalancerName);
+      coords =
+          KubernetesCoordinates.builder()
+              .namespace(target.getNamespace())
+              .fullResourceName(loadBalancerName)
+              .build();
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException(
           String.format(
@@ -248,15 +252,16 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     }
 
     CanLoadBalance handler =
-        CanLoadBalance.lookupProperties(credentials.getResourcePropertyRegistry(), name);
+        CanLoadBalance.lookupProperties(credentials.getResourcePropertyRegistry(), coords);
 
     // TODO(lwander): look into using a combination of the cache & other resources passed in with
     // this request instead of making a live call here.
     KubernetesManifest loadBalancer =
-        credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
-    if (loadBalancer == null) {
-      throw new IllegalArgumentException("Load balancer " + loadBalancerName + " does not exist");
-    }
+        Optional.ofNullable(credentials.get(coords))
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Load balancer " + loadBalancerName + " does not exist"));
 
     getTask()
         .updateStatus(

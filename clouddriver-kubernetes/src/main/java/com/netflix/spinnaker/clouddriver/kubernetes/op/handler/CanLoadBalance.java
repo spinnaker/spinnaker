@@ -18,13 +18,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.apache.commons.lang3.tuple.Pair;
 
 @ParametersAreNonnullByDefault
 public interface CanLoadBalance {
@@ -35,18 +33,11 @@ public interface CanLoadBalance {
   List<JsonPatch> attachPatch(KubernetesManifest loadBalancer, KubernetesManifest target);
 
   static CanLoadBalance lookupProperties(
-      ResourcePropertyRegistry registry, Pair<KubernetesKind, String> name) {
-    KubernetesResourceProperties loadBalancerProperties = registry.get(name.getLeft());
-
-    KubernetesHandler loadBalancerHandler = loadBalancerProperties.getHandler();
-    if (loadBalancerHandler == null) {
-      throw new IllegalArgumentException(
-          "No handler registered for " + name + ", are you sure it's a valid load balancer type?");
-    }
-
+      ResourcePropertyRegistry registry, KubernetesCoordinates coords) {
+    KubernetesHandler loadBalancerHandler = registry.get(coords.getKind()).getHandler();
     if (!(loadBalancerHandler instanceof CanLoadBalance)) {
       throw new IllegalArgumentException(
-          "No support for load balancing via " + name + " exists in Spinnaker");
+          "No support for load balancing via " + coords.getKind() + " exists in Spinnaker");
     }
 
     return (CanLoadBalance) loadBalancerHandler;

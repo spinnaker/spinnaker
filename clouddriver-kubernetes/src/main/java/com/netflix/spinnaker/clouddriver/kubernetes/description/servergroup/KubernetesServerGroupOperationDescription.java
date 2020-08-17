@@ -20,11 +20,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.servergroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.tuple.Pair;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -35,13 +32,9 @@ public class KubernetesServerGroupOperationDescription
 
   @JsonIgnore
   public KubernetesCoordinates getCoordinates() {
-    Pair<KubernetesKind, String> parsedName =
-        KubernetesManifest.fromFullResourceName(serverGroupName);
-
     return KubernetesCoordinates.builder()
         .namespace(region)
-        .kind(parsedName.getLeft())
-        .name(parsedName.getRight())
+        .fullResourceName(serverGroupName)
         .build();
   }
 }

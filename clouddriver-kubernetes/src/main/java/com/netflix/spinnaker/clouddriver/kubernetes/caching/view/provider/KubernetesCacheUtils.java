@@ -34,6 +34,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesV2CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -82,6 +83,31 @@ class KubernetesCacheUtils {
 
   Optional<CacheData> getSingleEntry(String type, String key) {
     return Optional.ofNullable(cache.get(type, key));
+  }
+
+  /**
+   * Given an account, a namespace, and a resource name, returns the {@link CacheData} entry for
+   * that item.
+   *
+   * <p>If the resource name cannot be parsed into a kind and a name, or if there is no entry in the
+   * cache for the requested item, returjns an empty {@link Optional}.
+   *
+   * @param account the account of the requested item
+   * @param namespace the namespace for the requested item, which can be empty for a cluster-scoped
+   *     resource
+   * @param name the full name of the requested item in the form "kind name" (ex: "pod my-pod-abcd")
+   * @return An optional containg the requested {@link CacheData} item, or an empty {@link Optional}
+   *     if the item is not found.
+   */
+  Optional<CacheData> getSingleEntry(String account, String namespace, String name) {
+    KubernetesCoordinates coords;
+    try {
+      coords = KubernetesCoordinates.builder().namespace(namespace).fullResourceName(name).build();
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
+    }
+    return getSingleEntry(
+        coords.getKind().toString(), Keys.InfrastructureCacheKey.createKey(account, coords));
   }
 
   Optional<CacheData> getSingleEntryWithRelationships(

@@ -28,25 +28,20 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ApplicationCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2LoadBalancer;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -79,25 +74,11 @@ public class KubernetesV2LoadBalancerProvider
   @Override
   public List<KubernetesV2LoadBalancer> byAccountAndRegionAndName(
       String account, String namespace, String fullName) {
-    Pair<KubernetesKind, String> parsedName;
-    try {
-      parsedName = KubernetesManifest.fromFullResourceName(fullName);
-    } catch (Exception e) {
-      return null;
-    }
-
-    KubernetesKind kind = parsedName.getLeft();
-    String name = parsedName.getRight();
-    String key = Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name);
-
-    Optional<CacheData> optionalLoadBalancerData = cacheUtils.getSingleEntry(kind.toString(), key);
-    if (!optionalLoadBalancerData.isPresent()) {
-      return null;
-    }
-
-    CacheData loadBalancerData = optionalLoadBalancerData.get();
-
-    return new ArrayList<>(fromLoadBalancerCacheData(ImmutableList.of(loadBalancerData)));
+    return cacheUtils
+        .getSingleEntry(account, namespace, fullName)
+        .map(loadBalancerData -> fromLoadBalancerCacheData(ImmutableList.of(loadBalancerData)))
+        .map(ImmutableList::copyOf)
+        .orElse(null);
   }
 
   @Override

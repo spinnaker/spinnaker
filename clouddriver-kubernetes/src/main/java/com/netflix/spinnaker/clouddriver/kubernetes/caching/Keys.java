@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import java.util.Arrays;
@@ -310,6 +311,11 @@ public class Keys {
     public static String createKey(
         KubernetesKind kubernetesKind, String account, String namespace, String name) {
       return createKeyFromParts(kind, kubernetesKind, account, namespace, name);
+    }
+
+    public static String createKey(String account, KubernetesCoordinates coords) {
+      return createKeyFromParts(
+          kind, coords.getKind(), account, coords.getNamespace(), coords.getName());
     }
 
     public static String createKey(KubernetesManifest manifest, String account) {

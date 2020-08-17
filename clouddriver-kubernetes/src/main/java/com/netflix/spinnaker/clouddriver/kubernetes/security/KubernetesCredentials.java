@@ -25,6 +25,7 @@ import static lombok.EqualsAndHashCode.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +40,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
@@ -368,10 +370,20 @@ public class KubernetesCredentials {
     return ImmutableList.of();
   }
 
+  /** Deprecated in favor of {@link KubernetesCredentials#get(KubernetesCoordinates)}. */
+  @Deprecated
   @Nullable
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
+    return get(KubernetesCoordinates.builder().kind(kind).namespace(namespace).name(name).build());
+  }
+
+  @Nullable
+  public KubernetesManifest get(KubernetesCoordinates coords) {
     return runAndRecordMetrics(
-        "get", kind, namespace, () -> jobExecutor.get(this, kind, namespace, name));
+        "get",
+        coords.getKind(),
+        coords.getNamespace(),
+        () -> jobExecutor.get(this, coords.getKind(), coords.getNamespace(), coords.getName()));
   }
 
   @Nonnull
@@ -408,14 +420,23 @@ public class KubernetesCredentials {
     }
   }
 
+  /** Deprecated in favor of {@link KubernetesCredentials#eventsFor(KubernetesCoordinates)}. */
+  @Deprecated
   @Nonnull
   public ImmutableList<KubernetesManifest> eventsFor(
       KubernetesKind kind, String namespace, String name) {
+    return eventsFor(
+        KubernetesCoordinates.builder().kind(kind).namespace(namespace).name(name).build());
+  }
+
+  @Nonnull
+  public ImmutableList<KubernetesManifest> eventsFor(KubernetesCoordinates coords) {
     return runAndRecordMetrics(
         "list",
         KubernetesKind.EVENT,
-        namespace,
-        () -> jobExecutor.eventsFor(this, kind, namespace, name));
+        coords.getNamespace(),
+        () ->
+            jobExecutor.eventsFor(this, coords.getKind(), coords.getNamespace(), coords.getName()));
   }
 
   public String logs(String namespace, String podName, String containerName) {
@@ -452,9 +473,25 @@ public class KubernetesCredentials {
         () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
   }
 
+  /** Deprecated in favor of {@link KubernetesCredentials#topPod(KubernetesCoordinates)} */
+  @Deprecated
   public Collection<KubernetesPodMetric> topPod(String namespace, String pod) {
+    return topPod(
+        KubernetesCoordinates.builder()
+            .kind(KubernetesKind.POD)
+            .namespace(namespace)
+            .name(pod)
+            .build());
+  }
+
+  public Collection<KubernetesPodMetric> topPod(KubernetesCoordinates coords) {
+    Preconditions.checkState(
+        coords.getKind().equals(KubernetesKind.POD), "Metrics are only available for pods.");
     return runAndRecordMetrics(
-        "top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace, pod));
+        "top",
+        KubernetesKind.POD,
+        coords.getNamespace(),
+        () -> jobExecutor.topPod(this, coords.getNamespace(), coords.getName()));
   }
 
   public KubernetesManifest deploy(KubernetesManifest manifest) {

@@ -20,10 +20,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2SecurityGroup;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider;
 import java.util.Collection;
 import java.util.Objects;
@@ -93,8 +93,8 @@ public class KubernetesV2SecurityGroupProvider
       boolean includeRules, String account, String fullName) {
     String name;
     try {
-      name = KubernetesManifest.fromFullResourceName(fullName).getRight();
-    } catch (Exception e) {
+      name = KubernetesCoordinates.builder().fullResourceName(fullName).build().getName();
+    } catch (IllegalArgumentException e) {
       return null;
     }
 
@@ -128,8 +128,8 @@ public class KubernetesV2SecurityGroupProvider
       String account, String namespace, String fullName, String _unused) {
     String name;
     try {
-      name = KubernetesManifest.fromFullResourceName(fullName).getRight();
-    } catch (Exception e) {
+      name = KubernetesCoordinates.builder().fullResourceName(fullName).build().getName();
+    } catch (IllegalArgumentException e) {
       return null;
     }
 

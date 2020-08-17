@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.tuple.Pair;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -57,12 +56,9 @@ public class KubernetesMultiManifestOperationDescription
   @JsonIgnore
   @Deprecated
   public KubernetesCoordinates getPointCoordinates() {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(manifestName);
-
     return KubernetesCoordinates.builder()
         .namespace(location)
-        .kind(parsedName.getLeft())
-        .name(parsedName.getRight())
+        .fullResourceName(manifestName)
         .build();
   }
 }

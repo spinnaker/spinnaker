@@ -603,11 +603,11 @@ public class KubectlJobExecutor {
   }
 
   public ImmutableList<KubernetesPodMetric> topPod(
-      KubernetesCredentials credentials, String namespace, String pod) {
+      KubernetesCredentials credentials, String namespace, @Nonnull String pod) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
     command.add("top");
     command.add("po");
-    if (pod != null) {
+    if (!pod.isEmpty()) {
       command.add(pod);
     }
     command.add("--containers");

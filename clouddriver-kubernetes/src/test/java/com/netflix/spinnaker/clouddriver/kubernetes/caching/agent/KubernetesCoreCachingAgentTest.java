@@ -45,6 +45,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
@@ -127,9 +128,18 @@ final class KubernetesCoreCachingAgentTest {
         .thenAnswer(invocation -> kindProperties.get(invocation.getArgument(0)));
     when(credentials.getDeclaredNamespaces()).thenReturn(ImmutableList.of(NAMESPACE1, NAMESPACE2));
     when(credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
-    when(credentials.get(KubernetesKind.DEPLOYMENT, NAMESPACE1, DEPLOYMENT_NAME))
+    when(credentials.get(
+            KubernetesCoordinates.builder()
+                .kind(KubernetesKind.DEPLOYMENT)
+                .namespace(NAMESPACE1)
+                .name(DEPLOYMENT_NAME)
+                .build()))
         .thenReturn(deploymentManifest());
-    when(credentials.get(KubernetesKind.STORAGE_CLASS, "", STORAGE_CLASS_NAME))
+    when(credentials.get(
+            KubernetesCoordinates.builder()
+                .kind(KubernetesKind.STORAGE_CLASS)
+                .name(STORAGE_CLASS_NAME)
+                .build()))
         .thenReturn(storageClassManifest());
     when(credentials.list(any(List.class), any()))
         .thenAnswer(

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomic
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.tuple.Pair;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -32,12 +31,9 @@ public class KubernetesManifestOperationDescription extends KubernetesAtomicOper
 
   @JsonIgnore
   public KubernetesCoordinates getPointCoordinates() {
-    Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(manifestName);
-
     return KubernetesCoordinates.builder()
         .namespace(location)
-        .kind(parsedName.getLeft())
-        .name(parsedName.getRight())
+        .fullResourceName(manifestName)
         .build();
   }
 }

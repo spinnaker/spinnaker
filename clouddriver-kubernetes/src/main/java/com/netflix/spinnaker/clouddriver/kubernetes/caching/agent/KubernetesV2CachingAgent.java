@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesCachingProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
@@ -164,9 +165,19 @@ public abstract class KubernetesV2CachingAgent
     return result;
   }
 
+  /**
+   * Deprecated in favor {@link
+   * KubernetesV2CachingAgent#loadPrimaryResource(KubernetesCoordinates)}.
+   */
+  @Deprecated
   protected KubernetesManifest loadPrimaryResource(
       KubernetesKind kind, String namespace, String name) {
-    return credentials.get(kind, namespace, name);
+    return loadPrimaryResource(
+        KubernetesCoordinates.builder().kind(kind).namespace(namespace).name(name).build());
+  }
+
+  protected KubernetesManifest loadPrimaryResource(KubernetesCoordinates coordinates) {
+    return credentials.get(coordinates);
   }
 
   @Override

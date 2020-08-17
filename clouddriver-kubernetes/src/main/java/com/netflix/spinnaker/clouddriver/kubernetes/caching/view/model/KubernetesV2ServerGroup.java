@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -193,13 +194,11 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
     KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
     Set<String> explicitLoadBalancers =
         traffic.getLoadBalancers().stream()
-            .map(KubernetesManifest::fromFullResourceName)
-            .map(
-                p ->
-                    KubernetesManifest.getFullResourceName(
-                        p.getLeft(),
-                        p.getRight())) // this ensures the names are serialized correctly when
-            // the get merged below
+            // TODO(ezimanyi): Leaving this logic and the comment below, but I'm not sure that we
+            // still need the logic to parse then re-serialize the name.
+            // this ensures the names are serialized correctly when the get merged below
+            .map(lb -> KubernetesCoordinates.builder().fullResourceName(lb).build())
+            .map(c -> KubernetesManifest.getFullResourceName(c.getKind(), c.getName()))
             .collect(Collectors.toSet());
 
     Set<String> loadBalancers =

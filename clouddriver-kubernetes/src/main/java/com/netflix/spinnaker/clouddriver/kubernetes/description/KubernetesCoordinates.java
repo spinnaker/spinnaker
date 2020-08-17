@@ -17,14 +17,57 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.kork.annotations.FieldsAreNullableByDefault;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.List;
+import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
 
-@Builder
+@NonnullByDefault
 @Value
 public class KubernetesCoordinates {
   private final KubernetesKind kind;
   private final String namespace;
   private final String name;
+
+  @Builder(toBuilder = true)
+  @ParametersAreNullableByDefault
+  private KubernetesCoordinates(@Nonnull KubernetesKind kind, String namespace, String name) {
+    this.kind = Objects.requireNonNull(kind);
+    this.namespace = Strings.nullToEmpty(namespace);
+    this.name = Strings.nullToEmpty(name);
+  }
+
+  @FieldsAreNullableByDefault
+  public static class KubernetesCoordinatesBuilder {
+    @Nonnull private static final Splitter splitter = Splitter.on(' ').limit(3);
+
+    /**
+     * Given a full resource name of the type "kind name" (ex: "pod my-rs-v003-mnop"), parses out
+     * the kind and the name, and sets the corresponding fields on the builder.
+     *
+     * @param fullResourceName the full resource name
+     * @return this KubernetesCoordinatesBuilder object
+     * @throws IllegalArgumentException if the input string does not contain exactly two tokens
+     *     separated by a space
+     */
+    public KubernetesCoordinatesBuilder fullResourceName(String fullResourceName) {
+      List<String> parts = splitter.splitToList(fullResourceName);
+      if (parts.size() != 2) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Expected a full resource name of the form <kind> <name>. Got: %s",
+                fullResourceName));
+      }
+      this.kind = KubernetesKind.fromString(parts.get(0));
+      this.name = parts.get(1);
+      return this;
+    }
+  }
 }

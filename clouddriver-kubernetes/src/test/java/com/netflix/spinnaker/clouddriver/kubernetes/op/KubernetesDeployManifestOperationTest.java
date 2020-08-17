@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -193,11 +194,21 @@ final class KubernetesDeployManifestOperationTest {
                 KubernetesKindProperties.withDefaultProperties(
                     invocation.getArgument(0, KubernetesKind.class)));
     when(credentialsMock.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
-    when(credentialsMock.get(KubernetesKind.SERVICE, "my-namespace", "my-service"))
+    when(credentialsMock.get(
+            KubernetesCoordinates.builder()
+                .kind(KubernetesKind.SERVICE)
+                .namespace("my-namespace")
+                .name("my-service")
+                .build()))
         .thenReturn(
             ManifestFetcher.getManifest(
                 KubernetesDeployManifestOperationTest.class, "deploy/service.yml"));
-    when(credentialsMock.get(KubernetesKind.SERVICE, "my-namespace", "my-service-no-selector"))
+    when(credentialsMock.get(
+            KubernetesCoordinates.builder()
+                .kind(KubernetesKind.SERVICE)
+                .namespace("my-namespace")
+                .name("my-service-no-selector")
+                .build()))
         .thenReturn(
             ManifestFetcher.getManifest(
                 KubernetesDeployManifestOperationTest.class, "deploy/service-no-selector.yml"));

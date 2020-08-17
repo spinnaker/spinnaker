@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -395,16 +396,16 @@ public class KubernetesManifest extends HashMap<String, Object> {
     return cloneThis.equals(cloneOther);
   }
 
+  /**
+   * This method is deprecated in favor of creating a {@link KubernetesCoordinates} object using
+   * {@link KubernetesCoordinates.KubernetesCoordinatesBuilder#fullResourceName}, which has more
+   * clearly identified named than {@link Pair#getLeft()}) and {@link Pair#getRight()}).
+   */
+  @Deprecated
   public static Pair<KubernetesKind, String> fromFullResourceName(String fullResourceName) {
-    String[] split = fullResourceName.split(" ");
-    if (split.length != 2) {
-      throw new IllegalArgumentException("Expected a full resource name of the form <kind> <name>");
-    }
-
-    KubernetesKind kind = KubernetesKind.fromString(split[0]);
-    String name = split[1];
-
-    return new ImmutablePair<>(kind, name);
+    KubernetesCoordinates coords =
+        KubernetesCoordinates.builder().fullResourceName(fullResourceName).build();
+    return new ImmutablePair<>(coords.getKind(), coords.getName());
   }
 
   @Data

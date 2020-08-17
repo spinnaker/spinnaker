@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -43,7 +44,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2CachingAgent
@@ -257,8 +257,6 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     String account = (String) data.get("account");
     String namespace = (String) data.get("location");
     String fullName = (String) data.get("name");
-    String name;
-    KubernetesKind kind;
 
     if (Strings.isNullOrEmpty(account) || !getAccountName().equals(account)) {
       return null;
@@ -269,44 +267,45 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return null;
     }
 
+    KubernetesCoordinates coords;
     try {
-      Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(fullName);
-      kind = parsedName.getLeft();
-      if (!primaryKinds().contains(kind)) {
+      coords =
+          KubernetesCoordinates.builder().namespace(namespace).fullResourceName(fullName).build();
+      if (!primaryKinds().contains(coords.getKind())) {
         return null;
       }
 
-      name = parsedName.getRight();
-      if (Strings.isNullOrEmpty(name)) {
+      if (coords.getName().isEmpty()) {
         return null;
       }
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       // This is OK - the cache controller tries (w/o much info) to get every cache agent to handle
       // each request
       return null;
     }
 
-    if (!Strings.isNullOrEmpty(namespace) && !credentials.getKindProperties(kind).isNamespaced()) {
+    if (!coords.getNamespace().isEmpty()
+        && !credentials.getKindProperties(coords.getKind()).isNamespaced()) {
       log.warn(
           "{}: Kind {} is not namespace but namespace {} was provided, ignoring",
           getAgentType(),
-          kind,
-          namespace);
-      namespace = "";
+          coords.getKind(),
+          coords.getNamespace());
+      coords = coords.toBuilder().namespace("").build();
     }
 
-    if (!handleNamespace(namespace)) {
+    if (!handleNamespace(coords.getNamespace())) {
       return null;
     }
 
     log.info("{}: Accepted on demand refresh of '{}'", getAgentType(), data);
     OnDemandAgent.OnDemandResult result;
-    KubernetesManifest manifest = loadPrimaryResource(kind, namespace, name);
-    String resourceKey = Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name);
+    KubernetesManifest manifest = loadPrimaryResource(coords);
+    String resourceKey = Keys.InfrastructureCacheKey.createKey(account, coords);
     try {
       result =
           manifest == null
-              ? evictEntry(providerCache, kind, resourceKey)
+              ? evictEntry(providerCache, coords.getKind(), resourceKey)
               : addEntry(providerCache, resourceKey, manifest);
     } catch (Exception e) {
       log.error("Failed to process update of '{}'", resourceKey, e);
