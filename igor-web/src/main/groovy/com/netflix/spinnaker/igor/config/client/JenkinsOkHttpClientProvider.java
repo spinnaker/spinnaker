@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.igor.config.client;
 
 import com.netflix.spinnaker.igor.config.JenkinsProperties;
-import com.squareup.okhttp.OkHttpClient;
+import okhttp3.OkHttpClient;
 
 /** Abstracts away the logic for providing an OkHttpClient for Jenkins services. */
 public interface JenkinsOkHttpClientProvider {

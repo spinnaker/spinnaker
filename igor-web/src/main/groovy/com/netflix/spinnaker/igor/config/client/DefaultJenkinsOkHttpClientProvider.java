@@ -16,12 +16,18 @@
 package com.netflix.spinnaker.igor.config.client;
 
 import com.netflix.spinnaker.igor.config.JenkinsProperties;
-import com.squareup.okhttp.OkHttpClient;
+import okhttp3.OkHttpClient;
 
 public class DefaultJenkinsOkHttpClientProvider implements JenkinsOkHttpClientProvider {
 
+  private final OkHttpClient okHttpClient;
+
+  public DefaultJenkinsOkHttpClientProvider(OkHttpClient okHttpClient) {
+    this.okHttpClient = okHttpClient;
+  }
+
   @Override
   public OkHttpClient provide(JenkinsProperties.JenkinsHost host) {
-    return new OkHttpClient();
+    return okHttpClient;
   }
 }
