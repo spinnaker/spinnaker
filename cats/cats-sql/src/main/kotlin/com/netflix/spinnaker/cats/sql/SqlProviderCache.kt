@@ -60,7 +60,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return getAll(type, null as CacheFilter?)
   }
 
-  override fun getAll(type: String, identifiers: MutableCollection<String>?): MutableCollection<CacheData> {
+  override fun getAll(type: String, identifiers: MutableCollection<String?>?): MutableCollection<CacheData> {
     return getAll(type, identifiers, null)
   }
 
@@ -71,7 +71,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
 
   override fun getAll(
     type: String,
-    identifiers: MutableCollection<String>?,
+    identifiers: MutableCollection<String?>?,
     cacheFilter: CacheFilter?
   ): MutableCollection<CacheData> {
     validateTypes(type)
@@ -111,7 +111,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @param identifiers the identifiers
    * @return the items matching the type and identifiers
    */
-  override fun getAll(type: String, vararg identifiers: String): MutableCollection<CacheData> {
+  override fun getAll(type: String, vararg identifiers: String?): MutableCollection<CacheData> {
     return getAll(type, identifiers.toMutableList())
   }
 
@@ -136,7 +136,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return backingStore.get(type, id, cacheFilter) ?: return null
   }
 
-  override fun evictDeletedItems(type: String, ids: Collection<String>) {
+  override fun evictDeletedItems(type: String, ids: Collection<String?>) {
     try {
       MDC.put("agentClass", "evictDeletedItems")
 

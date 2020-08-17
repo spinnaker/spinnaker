@@ -175,7 +175,7 @@ class SqlUnknownAgentCleanupAgent(
         .map { it.typeName }
         .toSet()
 
-      result = Pair(agents.mapNotNull { sqlNames.checkAgentName(it.agentType) }.toSet(), dataTypes)
+      result = Pair(agents.map { it.agentType }.toSet(), dataTypes)
     }
     return result
   }

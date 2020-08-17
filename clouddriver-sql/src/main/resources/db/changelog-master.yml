@@ -14,3 +14,6 @@ databaseChangeLog:
 - include:
     file: changelog/20190913-task-sagaids.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20200709-cats-v2.yml
+    relativeToChangelogFile: true
