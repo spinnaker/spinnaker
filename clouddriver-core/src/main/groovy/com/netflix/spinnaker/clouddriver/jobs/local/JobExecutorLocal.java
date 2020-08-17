@@ -21,11 +21,22 @@ import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobResult;
 import java.io.*;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.*;
 
 @Slf4j
 public class JobExecutorLocal implements JobExecutor {
+  // We don't actually use this executor to run the jobs as we're deferring to the Apache Commons
+  // library to do this. Ideally we'd refactor this class to use ProcessBuilder, but given that
+  // the main consumer is the Kubernetes provider and we have plans to refactor it to use a client
+  // library, it is not worth the effort at this point.
+  // This executor is only used to parsing the output of a job when running in streaming mode; the
+  // main thread waits on the job while the output parsing is sent to the executor.
+  private final ExecutorService executorService = Executors.newCachedThreadPool();
   private final long timeoutMinutes;
 
   public JobExecutorLocal(long timeoutMinutes) {
@@ -82,33 +93,32 @@ public class JobExecutorLocal implements JobExecutor {
       throws IOException {
     PipedOutputStream stdOut = new PipedOutputStream();
     ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
-
     Executor executor =
         buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
-    DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-    executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment(), resultHandler);
+
+    // Send a task to the executor to consume the output from the job.
+    Future<T> futureResult =
+        executorService.submit(
+            () ->
+                consumer.consume(
+                    new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut)))));
+    int exitValue = executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment());
 
     T result;
     try {
-      result =
-          consumer.consume(new BufferedReader(new InputStreamReader(new PipedInputStream(stdOut))));
-    } catch (IOException e) {
-      throw new JobExecutionException(
-          String.format("Error parsing output of job: %s", jobRequest.toString()), e);
-    }
-
-    try {
-      resultHandler.waitFor();
+      result = futureResult.get();
     } catch (InterruptedException e) {
       executor.getWatchdog().destroyProcess();
       Thread.currentThread().interrupt();
       throw new JobExecutionException(
           String.format("Interrupted while executing job: %s", jobRequest.toString()), e);
+    } catch (ExecutionException e) {
+      throw new JobExecutionException(
+          String.format("Error parsing output of job: %s", jobRequest.toString()), e.getCause());
     }
 
     return JobResult.<T>builder()
-        .result(
-            resultHandler.getExitValue() == 0 ? JobResult.Result.SUCCESS : JobResult.Result.FAILURE)
+        .result(exitValue == 0 ? JobResult.Result.SUCCESS : JobResult.Result.FAILURE)
         .killed(executor.getWatchdog().killedProcess())
         .output(result)
         .error(stdErr.toString())
