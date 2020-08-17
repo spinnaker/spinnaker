@@ -17,13 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,14 +41,16 @@ public class KubernetesV2ArtifactProvider implements ArtifactProvider {
   }
 
   @Override
-  public List<Artifact> getArtifacts(String type, String name, String location) {
+  public ImmutableList<Artifact> getArtifacts(
+      String type, String name, String location, @Nonnull String account) {
     String key = Keys.ArtifactCacheKey.createKey(type, name, location, "*");
     return cacheUtils.getAllDataMatchingPattern(Keys.Kind.ARTIFACT.toString(), key).stream()
         .sorted(
             Comparator.comparing(
                 cd -> (String) cd.getAttributes().getOrDefault("creationTimestamp", "")))
         .map(this::cacheDataToArtifact)
-        .collect(Collectors.toList());
+        .filter(a -> account.equals(a.getMetadata("account")))
+        .collect(toImmutableList());
   }
 
   private Artifact cacheDataToArtifact(CacheData cacheData) {

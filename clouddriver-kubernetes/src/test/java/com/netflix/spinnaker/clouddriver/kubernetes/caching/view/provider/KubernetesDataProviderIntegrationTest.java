@@ -75,6 +75,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.Collection;
@@ -156,6 +157,8 @@ final class KubernetesDataProviderIntegrationTest {
       new KubernetesV2SearchProvider(cacheUtils, kindMap, objectMapper, accountResolver);
   private static KubernetesV2ServerGroupManagerProvider serverGroupManagerProvider =
       new KubernetesV2ServerGroupManagerProvider(cacheUtils);
+  private static KubernetesV2ArtifactProvider artifactProvider =
+      new KubernetesV2ArtifactProvider(cacheUtils, objectMapper);
 
   @BeforeAll
   static void prepareCache() {
@@ -466,6 +469,52 @@ final class KubernetesDataProviderIntegrationTest {
                         .put("region", "backend-ns")
                         .put("type", "instances")
                         .build()));
+  }
+
+  @Test
+  void getArtifacts(SoftAssertions softly) {
+    List<Artifact> artifacts =
+        artifactProvider.getArtifacts(
+            "kubernetes/replicaSet", "backend", "backend-ns", ACCOUNT_NAME);
+    softly.assertThat(artifacts).hasSize(2);
+    softly
+        .assertThat(artifacts)
+        .allSatisfy(
+            artifact -> {
+              softly.assertThat(artifact.getType()).isEqualTo("kubernetes/replicaSet");
+              softly.assertThat(artifact.getName()).isEqualTo("backend");
+              softly.assertThat(artifact.getLocation()).isEqualTo("backend-ns");
+              softly
+                  .assertThat(Optional.ofNullable((String) artifact.getMetadata("account")))
+                  .contains(ACCOUNT_NAME);
+            });
+    // Order matters here because we're expecting to get the artifacts back in the order they were
+    // created.
+    softly.assertThat(artifacts).extracting(Artifact::getVersion).containsExactly("v014", "v015");
+  }
+
+  @Test
+  void getArtifactsWrongType(SoftAssertions softly) {
+    List<Artifact> artifacts =
+        artifactProvider.getArtifacts(
+            "kubernetes/deployment", "backend", "backend-ns", ACCOUNT_NAME);
+    softly.assertThat(artifacts).isEmpty();
+  }
+
+  @Test
+  void getArtifactsWrongNamespace(SoftAssertions softly) {
+    List<Artifact> artifacts =
+        artifactProvider.getArtifacts(
+            "kubernetes/replicaSet", "backend", "frontend-ns", ACCOUNT_NAME);
+    softly.assertThat(artifacts).isEmpty();
+  }
+
+  @Test
+  void getArtifactsWrongAccount(SoftAssertions softly) {
+    List<Artifact> artifacts =
+        artifactProvider.getArtifacts(
+            "kubernetes/replicaSet", "backend", "backend-ns", "wrong-account");
+    softly.assertThat(artifacts).isEmpty();
   }
 
   private static KubectlJobExecutor getJobExecutor() {

@@ -17,91 +17,107 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.jayway.jsonpath.Criteria.where;
+import static com.jayway.jsonpath.Filter.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.Filter;
+import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-@Builder(access = AccessLevel.PRIVATE)
-@ParametersAreNonnullByDefault
+@NonnullByDefault
 @Slf4j
-public class Replacer {
-  @Nonnull private final String replacePath;
-  @Nonnull private final String findPath;
-  @Nullable private final Function<String, String> nameFromReference;
-  @Nonnull private final KubernetesArtifactType type;
+public final class Replacer {
+  private final KubernetesArtifactType type;
+  private final JsonPath findPath;
+  private final Function<Artifact, JsonPath> replacePathSupplier;
+  private final Function<String, String> nameFromReference;
 
-  @Nonnull
-  private Artifact artifactFromReference(String s) {
-    return Artifact.builder().type(type.getType()).reference(s).name(nameFromReference(s)).build();
-  }
-
-  @Nonnull
-  private String nameFromReference(String s) {
-    if (nameFromReference != null) {
-      return nameFromReference.apply(s);
+  /**
+   * @param type the type of artifact this replacer handles
+   * @param path a string representing a JsonPath expression containing a single [?] placeholder
+   *     representing a filter
+   * @param findFilter a filter that should be applied to the path when finding any artifacts in a
+   *     manifest; defaults to a filter matching all nodes
+   * @param replaceFilter a function that takes an artifact and returns the filter that should be
+   *     applied to the path when replacing artifacts; if a findFilter is supplied both the
+   *     findFilter and replaceFilter must match for the artifact to be replaced
+   * @param nameFromReference a function to extract an artifact name from its reference; defaults to
+   *     returning the reference
+   */
+  @Builder(access = AccessLevel.PRIVATE)
+  private Replacer(
+      KubernetesArtifactType type,
+      String path,
+      @Nullable Filter findFilter,
+      Function<Artifact, Filter> replaceFilter,
+      @Nullable Function<String, String> nameFromReference) {
+    this.type = Objects.requireNonNull(type);
+    Objects.requireNonNull(path);
+    Objects.requireNonNull(replaceFilter);
+    if (findFilter != null) {
+      this.findPath = JsonPath.compile(path, findFilter);
+      this.replacePathSupplier =
+          a -> JsonPath.compile(path, replaceFilter.apply(a).and(findFilter));
     } else {
-      return s;
+      this.findPath = JsonPath.compile(path, filter(a -> true));
+      this.replacePathSupplier = a -> JsonPath.compile(path, replaceFilter.apply(a));
     }
+    this.nameFromReference = Optional.ofNullable(nameFromReference).orElse(a -> a);
   }
 
-  @Nonnull
-  ImmutableCollection<Artifact> getArtifacts(DocumentContext document) {
+  Stream<Artifact> getArtifacts(DocumentContext document) {
     return Streams.stream(document.<ArrayNode>read(findPath).elements())
         .map(JsonNode::asText)
-        .map(this::artifactFromReference)
-        .collect(toImmutableList());
+        .map(
+            ref ->
+                Artifact.builder()
+                    .type(type.getType())
+                    .reference(ref)
+                    .name(nameFromReference.apply(ref))
+                    .build());
   }
 
-  @Nonnull
   ImmutableCollection<Artifact> replaceArtifacts(
       DocumentContext obj, Collection<Artifact> artifacts) {
-    ImmutableSet.Builder<Artifact> replacedArtifacts = new ImmutableSet.Builder<>();
-    artifacts.forEach(
-        artifact -> {
-          boolean wasReplaced = replaceIfPossible(obj, artifact);
-          if (wasReplaced) {
-            replacedArtifacts.add(artifact);
-          }
-        });
+    ImmutableSet.Builder<Artifact> replacedArtifacts = ImmutableSet.builder();
+    for (Artifact artifact : artifacts) {
+      boolean wasReplaced = replaceIfPossible(obj, artifact);
+      if (wasReplaced) {
+        replacedArtifacts.add(artifact);
+      }
+    }
     return replacedArtifacts.build();
   }
 
-  private boolean replaceIfPossible(DocumentContext obj, @Nonnull Artifact artifact) {
+  private boolean replaceIfPossible(DocumentContext obj, Artifact artifact) {
     if (!type.getType().equals(artifact.getType())) {
       return false;
     }
 
-    // Here, given the current artifact, we are constructing a JsonPath query to find nodes in
-    // the document where we should replace the contents with information from the artifact.
-    String jsonPath =
-        replacePath
-            .replace("{%name%}", Strings.nullToEmpty(artifact.getName()))
-            .replace("{%type%}", Strings.nullToEmpty(artifact.getType()))
-            .replace("{%version%}", Strings.nullToEmpty(artifact.getVersion()))
-            .replace("{%reference%}", Strings.nullToEmpty(artifact.getReference()));
-
-    log.debug("Processed jsonPath == {}", jsonPath);
+    JsonPath path = replacePathSupplier.apply(artifact);
+    log.debug("Processed jsonPath == {}", path.getPath());
 
     Object get;
     try {
-      get = obj.read(jsonPath);
+      get = obj.read(path);
     } catch (PathNotFoundException e) {
       return false;
     }
@@ -109,22 +125,21 @@ public class Replacer {
       return false;
     }
 
-    log.info("Found valid swap for " + artifact + " using " + jsonPath + ": " + get);
-    obj.set(jsonPath, artifact.getReference());
+    log.info("Found valid swap for " + artifact + " using " + path.getPath() + ": " + get);
+    obj.set(path, artifact.getReference());
 
     return true;
   }
 
   private static final Replacer DOCKER_IMAGE =
       builder()
-          .replacePath(
-              "$..spec.template.spec['containers', 'initContainers'].[?( @.image == \"{%name%}\" )].image")
-          .findPath("$..spec.template.spec['containers', 'initContainers'].*.image")
+          .path("$..spec.template.spec['containers', 'initContainers'].[?].image")
+          .replaceFilter(a -> filter(where("image").is(a.getName())))
           .nameFromReference(
               ref -> {
-                int atIndex = ref.indexOf('@');
                 // @ can only show up in image references denoting a digest
                 // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L70
+                int atIndex = ref.indexOf('@');
                 if (atIndex >= 0) {
                   return ref.substring(0, atIndex);
                 }
@@ -132,134 +147,117 @@ public class Replacer {
                 // : can be used to denote a port, part of a digest (already matched) or a tag
                 // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L69
                 int lastColonIndex = ref.lastIndexOf(':');
-
-                if (lastColonIndex < 0) {
-                  return ref;
+                if (lastColonIndex >= 0) {
+                  // we don't need to check if this is a tag, or a port. ports will be matched
+                  // lazily if they are numeric, and are treated as tags first:
+                  // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L34
+                  return ref.substring(0, lastColonIndex);
                 }
-
-                // we don't need to check if this is a tag, or a port. ports will be matched lazily
-                // if
-                // they are numeric, and are treated as tags first:
-                // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L34
-                return ref.substring(0, lastColonIndex);
+                return ref;
               })
           .type(KubernetesArtifactType.DockerImage)
           .build();
   private static final Replacer POD_DOCKER_IMAGE =
       builder()
-          .replacePath("$.spec.containers.[?( @.image == \"{%name%}\" )].image")
-          .findPath("$.spec.containers.*.image")
+          .path("$.spec.containers.[?].image")
+          .replaceFilter(a -> filter(where("image").is(a.getName())))
           .type(KubernetesArtifactType.DockerImage)
           .build();
   private static final Replacer CONFIG_MAP_VOLUME =
       builder()
-          .replacePath(
-              "$..spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
-          .findPath("$..spec.template.spec.volumes.*.configMap.name")
+          .path("$..spec.template.spec.volumes.[?].configMap.name")
+          .replaceFilter(a -> filter(where("configMap.name").is(a.getName())))
           .type(KubernetesArtifactType.ConfigMap)
           .build();
   private static final Replacer SECRET_VOLUME =
       builder()
-          .replacePath(
-              "$..spec.template.spec.volumes.[?( @.secret.secretName == \"{%name%}\" )].secret.secretName")
-          .findPath("$..spec.template.spec.volumes.*.secret.secretName")
+          .path("$..spec.template.spec.volumes.[?].secret.secretName")
+          .replaceFilter(a -> filter(where("secret.secretName").is(a.getName())))
           .type(KubernetesArtifactType.Secret)
           .build();
   private static final Replacer CONFIG_MAP_KEY_VALUE =
       builder()
-          .replacePath(
-              "$..spec.template.spec['containers', 'initContainers'].*.env.[?( @.valueFrom.configMapKeyRef.name == \"{%name%}\" )].valueFrom.configMapKeyRef.name")
-          .findPath(
-              "$..spec.template.spec['containers', 'initContainers'].*.env.*.valueFrom.configMapKeyRef.name")
+          .path(
+              "$..spec.template.spec['containers', 'initContainers'].*.env.[?].valueFrom.configMapKeyRef.name")
+          .replaceFilter(a -> filter(where("valueFrom.configMapKeyRef.name").is(a.getName())))
           .type(KubernetesArtifactType.ConfigMap)
           .build();
   private static final Replacer SECRET_KEY_VALUE =
       builder()
-          .replacePath(
-              "$..spec.template.spec['containers', 'initContainers'].*.env.[?( @.valueFrom.secretKeyRef.name == \"{%name%}\" )].valueFrom.secretKeyRef.name")
-          .findPath(
-              "$..spec.template.spec['containers', 'initContainers'].*.env.*.valueFrom.secretKeyRef.name")
+          .path(
+              "$..spec.template.spec['containers', 'initContainers'].*.env.[?].valueFrom.secretKeyRef.name")
+          .replaceFilter(a -> filter(where("valueFrom.secretKeyRef.name").is(a.getName())))
           .type(KubernetesArtifactType.Secret)
           .build();
   private static final Replacer CONFIG_MAP_ENV =
       builder()
-          .replacePath(
-              "$..spec.template.spec['containers', 'initContainers'].*.envFrom.[?( @.configMapRef.name == \"{%name%}\" )].configMapRef.name")
-          .findPath(
-              "$..spec.template.spec['containers', 'initContainers'].*.envFrom.*.configMapRef.name")
+          .path(
+              "$..spec.template.spec['containers', 'initContainers'].*.envFrom.[?].configMapRef.name")
+          .replaceFilter(a -> filter(where("configMapRef.name").is(a.getName())))
           .type(KubernetesArtifactType.ConfigMap)
           .build();
   private static final Replacer SECRET_ENV =
       builder()
-          .replacePath(
-              "$..spec.template.spec['containers', 'initContainers'].*.envFrom.[?( @.secretRef.name == \"{%name%}\" )].secretRef.name")
-          .findPath(
-              "$..spec.template.spec['containers', 'initContainers'].*.envFrom.*.secretRef.name")
+          .path(
+              "$..spec.template.spec['containers', 'initContainers'].*.envFrom.[?].secretRef.name")
+          .replaceFilter(a -> filter(where("secretRef.name").is(a.getName())))
           .type(KubernetesArtifactType.Secret)
           .build();
   private static final Replacer HPA_DEPLOYMENT =
       builder()
-          .replacePath(
-              "$[?( (@.spec.scaleTargetRef.kind == \"Deployment\" || @.spec.scaleTargetRef.kind == \"deployment\") && @.spec.scaleTargetRef.name == \"{%name%}\" )].spec.scaleTargetRef.name")
-          .findPath(
-              "$[?( @.spec.scaleTargetRef.kind == \"Deployment\" || @.spec.scaleTargetRef.kind == \"deployment\" )].spec.scaleTargetRef.name")
+          .path("$[?].spec.scaleTargetRef.name")
+          .findFilter(
+              filter(where("spec.scaleTargetRef.kind").is("Deployment"))
+                  .or(where("spec.scaleTargetRef.kind").is("deployment")))
+          .replaceFilter(a -> filter(where("spec.scaleTargetRef.name").is(a.getName())))
           .type(KubernetesArtifactType.Deployment)
           .build();
   private static final Replacer HPA_REPLICA_SET =
       builder()
-          .replacePath(
-              "$[?( (@.spec.scaleTargetRef.kind == \"ReplicaSet\" || @.spec.scaleTargetRef.kind == \"replicaSet\") && @.spec.scaleTargetRef.name == \"{%name%}\" )].spec.scaleTargetRef.name")
-          .findPath(
-              "$[?( @.spec.scaleTargetRef.kind == \"ReplicaSet\" || @.spec.scaleTargetRef.kind == \"replicaSet\" )].spec.scaleTargetRef.name")
+          .path("$[?].spec.scaleTargetRef.name")
+          .findFilter(
+              filter(where("spec.scaleTargetRef.kind").is("ReplicaSet"))
+                  .or(where("spec.scaleTargetRef.kind").is("replicaSet")))
+          .replaceFilter(a -> filter(where("spec.scaleTargetRef.name").is(a.getName())))
           .type(KubernetesArtifactType.ReplicaSet)
           .build();
 
-  @Nonnull
   public static Replacer dockerImage() {
     return DOCKER_IMAGE;
   }
 
-  @Nonnull
   public static Replacer podDockerImage() {
     return POD_DOCKER_IMAGE;
   }
 
-  @Nonnull
   public static Replacer configMapVolume() {
     return CONFIG_MAP_VOLUME;
   }
 
-  @Nonnull
   public static Replacer secretVolume() {
     return SECRET_VOLUME;
   }
 
-  @Nonnull
   public static Replacer configMapKeyValue() {
     return CONFIG_MAP_KEY_VALUE;
   }
 
-  @Nonnull
   public static Replacer secretKeyValue() {
     return SECRET_KEY_VALUE;
   }
 
-  @Nonnull
   public static Replacer configMapEnv() {
     return CONFIG_MAP_ENV;
   }
 
-  @Nonnull
   public static Replacer secretEnv() {
     return SECRET_ENV;
   }
 
-  @Nonnull
   public static Replacer hpaDeployment() {
     return HPA_DEPLOYMENT;
   }
 
-  @Nonnull
   public static Replacer hpaReplicaSet() {
     return HPA_REPLICA_SET;
   }

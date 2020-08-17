@@ -20,8 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.HashMap;
-import java.util.Map;
 
 final class KubernetesUnversionedArtifactConverter extends KubernetesArtifactConverter {
   static final KubernetesUnversionedArtifactConverter INSTANCE =
@@ -32,17 +30,12 @@ final class KubernetesUnversionedArtifactConverter extends KubernetesArtifactCon
   @Override
   public Artifact toArtifact(
       ArtifactProvider provider, KubernetesManifest manifest, String account) {
-    String type = getType(manifest);
-    String name = manifest.getName();
-    String location = manifest.getNamespace();
-    Map<String, Object> metadata = new HashMap<>();
-    metadata.put("account", account);
     return Artifact.builder()
-        .type(type)
-        .name(name)
-        .location(location)
-        .reference(name)
-        .metadata(metadata)
+        .type(artifactType(manifest.getKind()))
+        .name(manifest.getName())
+        .location(manifest.getNamespace())
+        .reference(manifest.getName())
+        .putMetadata("account", account)
         .build();
   }
 

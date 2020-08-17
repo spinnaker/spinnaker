@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.manifest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -115,7 +116,10 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
         objectMapper.convertValue(description.getPatchBody(), KubernetesManifest.class);
     ReplaceResult replaceResult =
         patchHandler.replaceArtifacts(
-            manifest, allArtifacts, objToPatch.getNamespace(), description.getAccount());
+            manifest,
+            allArtifacts,
+            Strings.nullToEmpty(objToPatch.getNamespace()),
+            description.getAccount());
 
     if (description.getRequiredArtifacts() != null) {
       Set<ArtifactKey> unboundArtifacts =

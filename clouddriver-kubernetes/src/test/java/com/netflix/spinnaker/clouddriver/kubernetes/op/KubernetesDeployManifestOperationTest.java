@@ -64,6 +64,7 @@ final class KubernetesDeployManifestOperationTest {
           ImmutableList.of(new KubernetesReplicaSetHandler(), new KubernetesServiceHandler()),
           new KubernetesUnregisteredCustomResourceHandler());
   private static final Namer<KubernetesManifest> NAMER = new KubernetesManifestNamer();
+  private static final String ACCOUNT = "my-account";
 
   @BeforeEach
   void setTask() {
@@ -163,6 +164,7 @@ final class KubernetesDeployManifestOperationTest {
                         KubernetesDeployManifestOperationTest.class, manifest)))
             .setMoniker(new Moniker())
             .setSource(KubernetesDeployManifestDescription.Source.text);
+    deployManifestDescription.setAccount(ACCOUNT);
     deployManifestDescription.setCredentials(getNamedAccountCredentials());
     return deployManifestDescription;
   }
@@ -217,7 +219,8 @@ final class KubernetesDeployManifestOperationTest {
 
   private static OperationResult deploy(KubernetesDeployManifestDescription description) {
     ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(any(String.class), any(String.class), any(String.class)))
+    when(provider.getArtifacts(
+            any(String.class), any(String.class), any(String.class), any(String.class)))
         .thenReturn(ImmutableList.of());
     return new KubernetesDeployManifestOperation(description, provider).operate(ImmutableList.of());
   }

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.artifact;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
@@ -33,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -97,30 +97,26 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
     return result;
   }
 
-  private List<Artifact> artifactsToDelete(KubernetesManifest manifest) {
+  private ImmutableList<Artifact> artifactsToDelete(KubernetesManifest manifest) {
     KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
     OptionalInt optionalMaxVersionHistory = strategy.getMaxVersionHistory();
     if (!optionalMaxVersionHistory.isPresent()) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     }
 
     int maxVersionHistory = optionalMaxVersionHistory.getAsInt();
     Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest, accountName);
     if (!optional.isPresent()) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     }
 
     Artifact artifact = optional.get();
 
-    List<Artifact> artifacts =
-        artifactProvider
-            .getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation())
-            .stream()
-            .filter(a -> accountName.equals(a.getMetadata("account")))
-            .collect(Collectors.toList());
-
+    ImmutableList<Artifact> artifacts =
+        artifactProvider.getArtifacts(
+            artifact.getType(), artifact.getName(), artifact.getLocation(), accountName);
     if (maxVersionHistory >= artifacts.size()) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     } else {
       return artifacts.subList(0, artifacts.size() - maxVersionHistory);
     }

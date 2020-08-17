@@ -50,20 +50,6 @@ final class KubernetesVersionedArtifactConverterTest {
   private static final String ARTIFACT_TYPE = "kubernetes/pod";
 
   @Test
-  public void checkArtifactAcrossAccount() {
-    ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE))
-        .thenReturn(
-            ImmutableList.of(
-                Artifact.builder().putMetadata("account", "account1").version("v003").build(),
-                Artifact.builder().putMetadata("account", "account2").version("v005").build()));
-
-    Artifact artifact = converter.toArtifact(provider, getStubManifest(), "account1");
-    assertThat(artifact).isNotNull();
-    assertThat(artifact.getVersion()).isEqualTo("v004");
-  }
-
-  @Test
   void inferVersionedArtifactProperties() {
     String name =
         converter.getDeployedName(
@@ -95,7 +81,7 @@ final class KubernetesVersionedArtifactConverterTest {
     String version2 = "v002";
 
     ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE))
+    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE, ACCOUNT))
         .thenReturn(
             ImmutableList.of(
                 Artifact.builder()
@@ -117,7 +103,7 @@ final class KubernetesVersionedArtifactConverterTest {
   @MethodSource("versionTestCases")
   void correctlyPicksNextVersion(VersionTestCase testCase) {
     ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE))
+    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE, ACCOUNT))
         .thenReturn(
             testCase.getExistingVersions().stream()
                 .map(v -> Artifact.builder().putMetadata("account", ACCOUNT).version(v).build())
@@ -133,12 +119,15 @@ final class KubernetesVersionedArtifactConverterTest {
         new VersionTestCase(ImmutableList.of("v000"), "v001"),
         new VersionTestCase(ImmutableList.of(), "v000"),
         new VersionTestCase(ImmutableList.of("v001"), "v002"),
+        new VersionTestCase(ImmutableList.of("abc", "", "v001"), "v002"),
         new VersionTestCase(ImmutableList.of("v001", "v002", "v003"), "v004"),
         new VersionTestCase(ImmutableList.of("v000", "v002", "v003"), "v004"),
         new VersionTestCase(ImmutableList.of("v002", "v000", "v001"), "v003"),
         new VersionTestCase(ImmutableList.of("v000", "v001", "v003"), "v004"),
         new VersionTestCase(ImmutableList.of("v001", "v000", "v003"), "v004"),
-        new VersionTestCase(ImmutableList.of("v1000"), "v1001"));
+        new VersionTestCase(ImmutableList.of("v999"), "v1000"),
+        new VersionTestCase(ImmutableList.of("v1000"), "v1001"),
+        new VersionTestCase(ImmutableList.of("v12345", "v98765"), "v98766"));
   }
 
   @RequiredArgsConstructor

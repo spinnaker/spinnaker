@@ -77,12 +77,15 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
   }
 
   public ReplaceResult replaceArtifacts(
-      KubernetesManifest manifest, List<Artifact> artifacts, String account) {
+      KubernetesManifest manifest, List<Artifact> artifacts, @Nonnull String account) {
     return artifactReplacer.replaceAll(manifest, artifacts, manifest.getNamespace(), account);
   }
 
   public ReplaceResult replaceArtifacts(
-      KubernetesManifest manifest, List<Artifact> artifacts, String namespace, String account) {
+      KubernetesManifest manifest,
+      List<Artifact> artifacts,
+      @Nonnull String namespace,
+      @Nonnull String account) {
     return artifactReplacer.replaceAll(manifest, artifacts, namespace, account);
   }
 

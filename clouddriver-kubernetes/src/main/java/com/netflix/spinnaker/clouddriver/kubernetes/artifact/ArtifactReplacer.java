@@ -23,6 +23,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.jayway.jsonpath.Configuration;
@@ -33,8 +34,11 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
@@ -56,73 +60,59 @@ public class ArtifactReplacer {
     this.replacers = ImmutableList.copyOf(replacers);
   }
 
-  private static ImmutableList<Artifact> filterKubernetesArtifactsByNamespaceAndAccount(
-      String namespace, String account, List<Artifact> artifacts) {
+  private static ImmutableList<Artifact> filterArtifacts(
+      @Nonnull String namespace, @Nonnull String account, List<Artifact> artifacts) {
     return artifacts.stream()
-        // Keep artifacts that either aren't k8s, or are in the same namespace and account as our
-        // manifest
-        .filter(
-            a -> {
-              String type = a.getType();
-              if (Strings.isNullOrEmpty(type)) {
-                log.warn("Artifact {} without a type, ignoring", a);
-                return false;
-              }
-
-              if (!type.startsWith("kubernetes/")) {
-                return true;
-              }
-
-              boolean locationMatches;
-              String location = a.getLocation();
-              if (Strings.isNullOrEmpty(location)) {
-                locationMatches = Strings.isNullOrEmpty(namespace);
-              } else {
-                locationMatches = location.equals(namespace);
-              }
-
-              boolean accountMatches;
-              String artifactAccount = getAccount(a);
-              // If the artifact fails to provide an account, we'll assume this was unintentional
-              // and match anyways
-              accountMatches =
-                  Strings.isNullOrEmpty(artifactAccount) || artifactAccount.equals(account);
-
-              return accountMatches && locationMatches;
-            })
+        .filter(a -> !Strings.isNullOrEmpty(a.getType()))
+        .filter(nonKubernetes().or(namespaceMatches(namespace).and(accountMatches(account))))
         .collect(toImmutableList());
   }
 
-  private static String getAccount(Artifact artifact) {
-    return Strings.nullToEmpty((String) artifact.getMetadata("account"));
+  private static Predicate<Artifact> nonKubernetes() {
+    return a -> !a.getType().startsWith("kubernetes/");
+  }
+
+  private static Predicate<Artifact> namespaceMatches(@Nonnull String namespace) {
+    return a -> Strings.nullToEmpty(a.getLocation()).equals(namespace);
+  }
+
+  private static Predicate<Artifact> accountMatches(@Nonnull String account) {
+    return a -> {
+      String artifactAccount = Strings.nullToEmpty((String) a.getMetadata("account"));
+      // If the artifact fails to provide an account, assume this was unintentional and match
+      // anyways
+      return artifactAccount.isEmpty() || artifactAccount.equals(account);
+    };
   }
 
   @Nonnull
   public ReplaceResult replaceAll(
-      KubernetesManifest input, List<Artifact> artifacts, String namespace, String account) {
+      KubernetesManifest input,
+      List<Artifact> artifacts,
+      @Nonnull String namespace,
+      @Nonnull String account) {
     log.debug("Doing replacement on {} using {}", input, artifacts);
-    ImmutableList<Artifact> filteredArtifacts =
-        filterKubernetesArtifactsByNamespaceAndAccount(namespace, account, artifacts);
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
     } catch (JsonProcessingException e) {
-      log.error("Malformed manifest", e);
-      throw new RuntimeException(e);
+      throw new UncheckedIOException("Malformed manifest", e);
     }
 
-    ImmutableSet.Builder<Artifact> replacedArtifacts = new ImmutableSet.Builder<>();
-    replacers.forEach(
-        replacer ->
-            replacedArtifacts.addAll(replacer.replaceArtifacts(document, filteredArtifacts)));
+    ImmutableList<Artifact> filteredArtifacts = filterArtifacts(namespace, account, artifacts);
+    ImmutableSet.Builder<Artifact> replacedArtifacts = ImmutableSet.builder();
+    for (Replacer replacer : replacers) {
+      ImmutableCollection<Artifact> replaced =
+          replacer.replaceArtifacts(document, filteredArtifacts);
+      replacedArtifacts.addAll(replaced);
+    }
 
     try {
       return new ReplaceResult(
           mapper.readValue(document.jsonString(), KubernetesManifest.class),
           replacedArtifacts.build());
     } catch (IOException e) {
-      log.error("Malformed Document Context", e);
-      throw new RuntimeException(e);
+      throw new UncheckedIOException("Malformed manifest", e);
     }
   }
 
@@ -132,11 +122,11 @@ public class ArtifactReplacer {
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
     } catch (JsonProcessingException e) {
-      throw new RuntimeException("Malformed manifest", e);
+      throw new UncheckedIOException("Malformed manifest", e);
     }
 
     return replacers.stream()
-        .map(
+        .flatMap(
             r -> {
               try {
                 return r.getArtifacts(document);
@@ -148,10 +138,9 @@ public class ArtifactReplacer {
                     input.getFullResourceName(),
                     r,
                     e);
-                return ImmutableList.<Artifact>of();
+                return Stream.empty();
               }
             })
-        .flatMap(Collection::stream)
         .collect(toImmutableSet());
   }
 
