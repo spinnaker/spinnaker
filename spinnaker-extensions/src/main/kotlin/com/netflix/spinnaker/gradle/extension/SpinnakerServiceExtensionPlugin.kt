@@ -79,9 +79,10 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
   private fun createPluginRef(project: Project, pluginExtensionName: String?, manifestLocation: String) {
     val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
 
-    val classesDirs: List<String>  = sourceSets.getByName("main").runtimeClasspath.files.map { it ->
-      it.absolutePath
-    }
+    val classesDirs: List<String>  = sourceSets.getByName("main").runtimeClasspath.files
+      .filter { !it.absolutePath.endsWith(".jar") }
+      .map { it.absolutePath }
+
     val libDirs: List<String>  = sourceSets.getByName("main").runtimeClasspath.files
       .filter { it.absolutePath.endsWith(".jar") }
       .map { it.parent }

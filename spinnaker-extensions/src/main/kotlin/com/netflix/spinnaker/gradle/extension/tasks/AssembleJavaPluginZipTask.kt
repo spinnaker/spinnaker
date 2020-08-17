@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.gradle.extension.tasks
 
 import com.netflix.spinnaker.gradle.extension.Plugins
-import com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -52,7 +51,7 @@ open class AssembleJavaPluginZipTask : Zip() {
     this.with(
       *(copySpecs.toTypedArray()),
       project.copySpec()
-        .from(sourceSets.getByName("main").runtimeClasspath)
+        .from(sourceSets.getByName("main").runtimeClasspath.files.filter { !it.absolutePath.endsWith(".jar") })
         .from(sourceSets.getByName("main").resources)
         .into("classes/"),
       project.copySpec().from(File(project.buildDir, "tmp/jar"))
