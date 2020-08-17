@@ -1,4 +1,4 @@
-import { IController, IScope, module } from 'angular';
+import { IController, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
@@ -26,7 +26,15 @@ class KubernetesSecurityGroupDetailsController implements IController {
   public securityGroup: IKubernetesSecurityGroup;
   public manifest: IManifest;
 
-  public static $inject = ['$uibModal', '$state', '$scope', 'securityGroupReader', 'resolvedSecurityGroup', 'app'];
+  public static $inject = [
+    '$uibModal',
+    '$state',
+    '$scope',
+    'securityGroupReader',
+    'resolvedSecurityGroup',
+    'app',
+    '$q',
+  ];
   constructor(
     private $uibModal: IModalService,
     private $state: StateService,
@@ -34,6 +42,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
     private securityGroupReader: SecurityGroupReader,
     resolvedSecurityGroup: ISecurityGroupFromStateParams,
     private app: Application,
+    private $q: IQService,
   ) {
     const dataSource = app.getDataSource('securityGroups');
     dataSource
@@ -74,24 +83,25 @@ class KubernetesSecurityGroupDetailsController implements IController {
   }
 
   private extractSecurityGroup({ accountId, name, region }: ISecurityGroupFromStateParams): void {
-    this.securityGroupReader
-      .getSecurityGroupDetails(
-        this.app,
-        accountId,
-        'kubernetes',
-        region,
-        '', // unused vpc id
-        name,
-      )
-      .then((securityGroup: ISecurityGroupDetail) => {
+    this.$q
+      .all([
+        this.securityGroupReader.getSecurityGroupDetails(
+          this.app,
+          accountId,
+          'kubernetes',
+          region,
+          '', // unused vpc id
+          name,
+        ),
+        ManifestReader.getManifest(accountId, region, name),
+      ])
+      .then(([securityGroup, manifest]: [ISecurityGroupDetail, IManifest]) => {
         if (!securityGroup) {
           return this.autoClose();
         }
-        ManifestReader.getManifest(accountId, region, name).then((manifest: IManifest) => {
-          this.securityGroup = securityGroup as IKubernetesSecurityGroup;
-          this.manifest = manifest;
-          this.state.loading = false;
-        });
+        this.securityGroup = securityGroup as IKubernetesSecurityGroup;
+        this.manifest = manifest;
+        this.state.loading = false;
       });
   }
 

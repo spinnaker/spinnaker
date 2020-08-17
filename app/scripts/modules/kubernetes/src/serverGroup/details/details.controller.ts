@@ -1,4 +1,4 @@
-import { IController, IScope, module } from 'angular';
+import { IController, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
@@ -31,13 +31,14 @@ class KubernetesServerGroupDetailsController implements IController {
   public manifest: IManifest;
   public entityTagTargets: IOwnerOption[];
 
-  public static $inject = ['serverGroup', 'app', '$uibModal', '$scope', '$state'];
+  public static $inject = ['serverGroup', 'app', '$uibModal', '$scope', '$state', '$q'];
   constructor(
     serverGroup: IServerGroupFromStateParams,
     public app: Application,
     private $uibModal: IModalService,
     private $scope: IScope,
     private $state: StateService,
+    private $q: IQService,
   ) {
     const dataSource = this.app.getDataSource('serverGroups');
     dataSource
@@ -177,20 +178,20 @@ class KubernetesServerGroupDetailsController implements IController {
   }
 
   private extractServerGroup({ accountId, name, region }: IServerGroupFromStateParams): void {
-    ServerGroupReader.getServerGroup(this.app.name, accountId, region, name).then(
-      (serverGroupDetails: IServerGroup) => {
+    this.$q
+      .all([
+        ServerGroupReader.getServerGroup(this.app.name, accountId, region, name),
+        ManifestReader.getManifest(accountId, region, name),
+      ])
+      .then(([serverGroupDetails, manifest]: [IServerGroup, IManifest]) => {
         if (!serverGroupDetails) {
           return this.autoClose();
         }
-
-        ManifestReader.getManifest(accountId, region, name).then((manifest: IManifest) => {
-          this.manifest = manifest;
-          this.serverGroup = serverGroupDetails as IKubernetesServerGroup;
-          this.entityTagTargets = this.configureEntityTagTargets();
-          this.state.loading = false;
-        });
-      },
-    );
+        this.serverGroup = serverGroupDetails as IKubernetesServerGroup;
+        this.entityTagTargets = this.configureEntityTagTargets();
+        this.manifest = manifest;
+        this.state.loading = false;
+      });
   }
 
   private configureEntityTagTargets(): IOwnerOption[] {
