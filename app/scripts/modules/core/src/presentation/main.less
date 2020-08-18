@@ -641,6 +641,11 @@ body > .container {
   }
 }
 
+/* This class is used to override the uibModal default z-index value of 1050 */
+.modal-z-index {
+  z-index: var(--layer-critical) !important;
+}
+
 .modal-pages {
   width: 1200px;
   .modal-page {

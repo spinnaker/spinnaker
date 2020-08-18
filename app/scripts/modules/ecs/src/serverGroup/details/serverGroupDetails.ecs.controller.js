@@ -292,6 +292,7 @@ angular
             'ecs.rollback.modal',
             require('./rollback/rollbackServerGroup.html'),
           ),
+          windowClass: 'modal-z-index',
           controller: 'ecsRollbackServerGroupCtrl as ctrl',
           resolve: {
             serverGroup: () => this.serverGroup,
@@ -318,6 +319,7 @@ angular
         $uibModal.open({
           templateUrl: overrideRegistry.getTemplate('ecs.resize.modal', require('./resize/resizeServerGroup.html')),
           controller: 'ecsResizeServerGroupCtrl as ctrl',
+          windowClass: 'modal-z-index',
           resolve: {
             serverGroup: () => this.serverGroup,
             application: () => app,
@@ -330,6 +332,7 @@ angular
           templateUrl: require('../configure/wizard/serverGroupWizard.html'),
           controller: 'ecsCloneServerGroupCtrl as ctrl',
           size: 'lg',
+          windowClass: 'modal-z-index',
           resolve: {
             title: () => 'Clone ' + serverGroup.name,
             application: () => app,

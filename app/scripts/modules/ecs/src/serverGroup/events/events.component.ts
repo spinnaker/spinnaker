@@ -13,6 +13,7 @@ class ViewEventsLinkCtrl implements IController {
       templateUrl: require('./events.html'),
       controller: EventsController,
       controllerAs: '$ctrl',
+      windowClass: 'modal-z-index',
       resolve: {
         serverGroup: () => this.serverGroup,
       },

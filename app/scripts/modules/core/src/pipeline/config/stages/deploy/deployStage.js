@@ -149,6 +149,7 @@ angular
                   templateUrl: config.cloneServerGroupTemplateUrl,
                   controller: `${config.cloneServerGroupController} as ctrl`,
                   size: 'lg',
+                  windowClass: 'modal-z-index',
                   resolve: {
                     title: () => title,
                     application: () => application,
@@ -186,6 +187,7 @@ angular
                 templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,
                 controller: `${providerConfig.serverGroup.cloneServerGroupController} as ctrl`,
                 size: 'lg',
+                windowClass: 'modal-z-index',
                 resolve: {
                   title: () => title,
                   application: () => application,
