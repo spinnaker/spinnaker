@@ -17,8 +17,8 @@ buildscript {
 }
 
 plugins {
-  id("nebula.kotlin") version "1.3.72" apply false
-  id("org.jetbrains.kotlin.plugin.allopen") version "1.3.72" apply false
+  kotlin("jvm") version "1.4.0" apply false
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.4.0" apply false
   id("com.adarshr.test-logger") version "2.1.0" apply false
   id("com.github.ben-manes.versions") version "0.28.0"
   jacoco
@@ -50,7 +50,7 @@ subprojects {
   group = "com.netflix.spinnaker.keel"
 
   if (name != "keel-bom") {
-    apply(plugin = "nebula.kotlin")
+    apply(plugin = "kotlin")
     apply(plugin = "jacoco")
 
     dependencies {
@@ -71,9 +71,8 @@ subprojects {
 
     tasks.withType<KotlinCompile> {
       kotlinOptions {
-        languageVersion = "1.3"
+        languageVersion = "1.4"
         jvmTarget = "1.8"
-        freeCompilerArgs += "-progressive"
         freeCompilerArgs += "-Xjvm-default=enable"
       }
     }

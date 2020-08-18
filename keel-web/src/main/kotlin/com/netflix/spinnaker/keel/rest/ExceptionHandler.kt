@@ -133,6 +133,7 @@ class ExceptionHandler(
         is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
         else -> when (rootCause) {
           is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
+          is NullPointerException -> ParsingError.INVALID_VALUE
           is IllegalStateException -> ParsingError.INVALID_VALUE
           is IllegalArgumentException -> ParsingError.INVALID_VALUE
           is MismatchedInputException -> ParsingError.INVALID_TYPE
