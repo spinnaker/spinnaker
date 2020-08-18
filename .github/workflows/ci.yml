@@ -9,7 +9,6 @@ on:
 
 env:
   NODE_VERSION: 12.16.0
-  CHOKIDAR_USEPOLLING: 1 
 
 jobs:
   ci:
@@ -46,7 +45,7 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Unit Tests
-        run: yarn test --single-run --coverage --no-auto-watch
+        run: CHOKIDAR_USEPOLLING=true yarn test --single-run --coverage --no-auto-watch
 
   build:
     name: Production Build
