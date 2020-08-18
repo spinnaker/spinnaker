@@ -17,14 +17,18 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalKind.CLUSTERS;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric.ContainerMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -34,6 +38,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +53,9 @@ import org.springframework.stereotype.Component;
 public class KubernetesManifestProvider {
   private final KubernetesCacheUtils cacheUtils;
   private final KubernetesAccountResolver accountResolver;
+  private final ExecutorService executorService =
+      Executors.newCachedThreadPool(
+          new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d").build());
 
   @Autowired
   public KubernetesManifestProvider(
@@ -69,26 +80,45 @@ public class KubernetesManifestProvider {
       return null;
     }
 
+    Future<List<KubernetesManifest>> events =
+        includeEvents
+            ? executorService.submit(() -> credentials.eventsFor(coords))
+            : Futures.immediateFuture(ImmutableList.of());
+
+    Future<List<ContainerMetric>> metrics =
+        includeEvents
+                && coords.getKind().equals(KubernetesKind.POD)
+                && credentials.isMetricsEnabled()
+            ? executorService.submit(() -> getPodMetrics(credentials, coords))
+            : Futures.immediateFuture(ImmutableList.of());
+
     KubernetesManifest manifest = credentials.get(coords);
     if (manifest == null) {
+      events.cancel(true);
+      metrics.cancel(true);
       return null;
     }
 
-    List<KubernetesManifest> events =
-        includeEvents ? credentials.eventsFor(coords) : ImmutableList.of();
-
-    List<KubernetesPodMetric.ContainerMetric> metrics = ImmutableList.of();
-    if (includeEvents
-        && coords.getKind().equals(KubernetesKind.POD)
-        && credentials.isMetricsEnabled()) {
-      metrics =
-          credentials.topPod(coords).stream()
-              .map(KubernetesPodMetric::getContainerMetrics)
-              .flatMap(Collection::stream)
-              .collect(Collectors.toList());
+    try {
+      return KubernetesV2ManifestBuilder.buildManifest(
+          credentials, manifest, events.get(), metrics.get());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      events.cancel(true);
+      metrics.cancel(true);
+      log.warn("Interrupted while fetching manifest: {}", coords);
+      return null;
+    } catch (ExecutionException e) {
+      throw new RuntimeException(e.getCause());
     }
+  }
 
-    return KubernetesV2ManifestBuilder.buildManifest(credentials, manifest, events, metrics);
+  private ImmutableList<ContainerMetric> getPodMetrics(
+      KubernetesCredentials credentials, KubernetesCoordinates coords) {
+    return credentials.topPod(coords).stream()
+        .map(KubernetesPodMetric::getContainerMetrics)
+        .flatMap(Collection::stream)
+        .collect(toImmutableList());
   }
 
   @Nullable

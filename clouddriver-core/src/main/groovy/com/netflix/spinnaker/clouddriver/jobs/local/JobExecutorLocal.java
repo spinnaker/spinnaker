@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.jobs.local;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutionException;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
@@ -36,7 +37,9 @@ public class JobExecutorLocal implements JobExecutor {
   // library, it is not worth the effort at this point.
   // This executor is only used to parsing the output of a job when running in streaming mode; the
   // main thread waits on the job while the output parsing is sent to the executor.
-  private final ExecutorService executorService = Executors.newCachedThreadPool();
+  private final ExecutorService executorService =
+      Executors.newCachedThreadPool(
+          new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d").build());
   private final long timeoutMinutes;
 
   public JobExecutorLocal(long timeoutMinutes) {

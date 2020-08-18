@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
-import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodStatus;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -69,8 +68,8 @@ public class KubernetesPodHandler extends KubernetesHandler {
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    V1Pod pod = KubernetesCacheDataConverter.getResource(manifest, V1Pod.class);
-    V1PodStatus status = pod.getStatus();
+    V1PodStatus status =
+        KubernetesCacheDataConverter.getResource(manifest.getStatus(), V1PodStatus.class);
 
     if (status == null) {
       return Status.noneReported();
