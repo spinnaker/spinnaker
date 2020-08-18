@@ -16,17 +16,17 @@ Retrieve a list of networks for a given cloud provider
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **cloudProvider** | **string**| cloudProvider | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***NetworkControllerApiAllByCloudProviderUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a NetworkControllerApiAllByCloudProviderUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **cloudProvider** | **string**| cloudProvider | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -51,15 +51,15 @@ Retrieve a list of networks, grouped by cloud provider
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***NetworkControllerApiAllUsingGET2Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a NetworkControllerApiAllUsingGET2Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 

@@ -17,7 +17,7 @@ Retrieve a list of available bakery base images for a given cloud provider
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **cloudProvider** | **string**| cloudProvider | 
 
 ### Return type
@@ -65,7 +65,7 @@ Retrieve the logs for a given bake
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **region** | **string**| region | 
   **statusId** | **string**| statusId | 
 

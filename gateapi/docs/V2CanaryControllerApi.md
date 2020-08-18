@@ -23,19 +23,19 @@ Method | HTTP request | Description
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **canaryConfigId** | **string**| canaryConfigId | 
   **canaryExecutionId** | **string**| canaryExecutionId | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryControllerApiGetCanaryResultUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiGetCanaryResultUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **canaryConfigId** | **string**| canaryConfigId | 
- **canaryExecutionId** | **string**| canaryExecutionId | 
- **storageAccountName** | **string**| storageAccountName | 
+
+
+ **storageAccountName** | **optional.String**| storageAccountName | 
 
 ### Return type
 
@@ -60,17 +60,17 @@ Retrieve a canary result
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **canaryExecutionId** | **string**| canaryExecutionId | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryControllerApiGetCanaryResultUsingGET1Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiGetCanaryResultUsingGET1Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **canaryExecutionId** | **string**| canaryExecutionId | 
- **storageAccountName** | **string**| storageAccountName | 
+
+ **storageAccountName** | **optional.String**| storageAccountName | 
 
 ### Return type
 
@@ -95,20 +95,20 @@ Retrieve a list of an application's canary results
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **limit** | **int32**| limit | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryControllerApiGetCanaryResultsByApplicationUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiGetCanaryResultsByApplicationUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **limit** | **int32**| limit | 
- **statuses** | **string**| Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL | 
- **storageAccountName** | **string**| storageAccountName | 
+
+
+ **statuses** | **optional.String**| Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL | 
+ **storageAccountName** | **optional.String**| storageAccountName | 
 
 ### Return type
 
@@ -133,17 +133,17 @@ Retrieve a metric set pair list
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **metricSetPairListId** | **string**| metricSetPairListId | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryControllerApiGetMetricSetPairListUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiGetMetricSetPairListUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **metricSetPairListId** | **string**| metricSetPairListId | 
- **storageAccountName** | **string**| storageAccountName | 
+
+ **storageAccountName** | **optional.String**| storageAccountName | 
 
 ### Return type
 
@@ -168,23 +168,23 @@ Start a canary execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **canaryConfigId** | **string**| canaryConfigId | 
   **executionRequest** | [**interface{}**](interface{}.md)| executionRequest | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryControllerApiInitiateCanaryUsingPOSTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiInitiateCanaryUsingPOSTOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **canaryConfigId** | **string**| canaryConfigId | 
- **executionRequest** | [**interface{}**](interface{}.md)| executionRequest | 
- **application** | **string**| application | 
- **configurationAccountName** | **string**| configurationAccountName | 
- **metricsAccountName** | **string**| metricsAccountName | 
- **parentPipelineExecutionId** | **string**| parentPipelineExecutionId | 
- **storageAccountName** | **string**| storageAccountName | 
+
+
+ **application** | **optional.String**| application | 
+ **configurationAccountName** | **optional.String**| configurationAccountName | 
+ **metricsAccountName** | **optional.String**| metricsAccountName | 
+ **parentPipelineExecutionId** | **optional.String**| parentPipelineExecutionId | 
+ **storageAccountName** | **optional.String**| storageAccountName | 
 
 ### Return type
 
@@ -209,20 +209,20 @@ Start a canary execution with the supplied canary config
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **adhocExecutionRequest** | [**interface{}**](interface{}.md)| adhocExecutionRequest | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryControllerApiInitiateCanaryWithConfigUsingPOSTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiInitiateCanaryWithConfigUsingPOSTOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **adhocExecutionRequest** | [**interface{}**](interface{}.md)| adhocExecutionRequest | 
- **application** | **string**| application | 
- **metricsAccountName** | **string**| metricsAccountName | 
- **parentPipelineExecutionId** | **string**| parentPipelineExecutionId | 
- **storageAccountName** | **string**| storageAccountName | 
+
+ **application** | **optional.String**| application | 
+ **metricsAccountName** | **optional.String**| metricsAccountName | 
+ **parentPipelineExecutionId** | **optional.String**| parentPipelineExecutionId | 
+ **storageAccountName** | **optional.String**| storageAccountName | 
 
 ### Return type
 
@@ -291,16 +291,16 @@ Retrieve a list of descriptors for use in populating the canary config ui
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***V2CanaryControllerApiListMetricsServiceMetadataUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryControllerApiListMetricsServiceMetadataUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **filter** | **string**| filter | 
- **metricsAccountName** | **string**| metricsAccountName | 
+ **filter** | **optional.String**| filter | 
+ **metricsAccountName** | **optional.String**| metricsAccountName | 
 
 ### Return type
 

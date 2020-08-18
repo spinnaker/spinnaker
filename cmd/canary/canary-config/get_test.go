@@ -98,23 +98,6 @@ func TestCanaryConfigGet_args(t *testing.T) {
 	}
 }
 
-func TestCanaryConfigGet_malformed(t *testing.T) {
-	ts := testGateCanaryConfigGetMalformed()
-	defer ts.Close()
-
-	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
-	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
-	rootCmd.AddCommand(canaryCmd)
-
-	args := []string{"canary", "canary-config", "get", "--id", "3f3dbcc1", "--gate-endpoint", ts.URL}
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
-	if err == nil {
-		t.Fatalf("Command failed with: %s", err)
-	}
-}
-
 func TestCanaryConfigGet_fail(t *testing.T) {
 	ts := testGateFail()
 	defer ts.Close()
@@ -157,18 +140,8 @@ func testGateCanaryConfigGetSuccess() *httptest.Server {
 	mux.Handle(
 		"/v2/canaryConfig/",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("content-type", "application/json")
 			fmt.Fprintln(w, strings.TrimSpace(canaryConfigGetJson))
-		}))
-	return httptest.NewServer(mux)
-}
-
-// testGateCanaryConfigGetMalformed returns a malformed get of canaryConfig configs.
-func testGateCanaryConfigGetMalformed() *httptest.Server {
-	mux := util.TestGateMuxWithVersionHandler()
-	mux.Handle(
-		"/v2/canaryConfig/",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, strings.TrimSpace(malformedCanaryConfigGetJson))
 		}))
 	return httptest.NewServer(mux)
 }
@@ -181,18 +154,6 @@ func testGateCanaryConfigGetMissing() *httptest.Server {
 	}))
 	return httptest.NewServer(mux)
 }
-
-const malformedCanaryConfigGetJson = `
-{{
- "applications": [
-  "canaryconfigs"
- ],
- "id": "3f3dbcc1-002d-458c-b181-be4aa809922a",
- "name": "exampleCanary",
- "updatedTimestamp": 1568131247595,
- "updatedTimestampIso": "2019-09-10T16:00:47.595Z"
-}
-`
 
 const canaryConfigGetJson = `
 {

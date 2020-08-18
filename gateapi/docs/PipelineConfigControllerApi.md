@@ -17,7 +17,7 @@ Convert a pipeline config to a pipeline template.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **pipelineConfigId** | **string**| pipelineConfigId | 
 
 ### Return type
@@ -65,17 +65,17 @@ Get pipeline config history.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **pipelineConfigId** | **string**| pipelineConfigId | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***PipelineConfigControllerApiGetPipelineConfigHistoryUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a PipelineConfigControllerApiGetPipelineConfigHistoryUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **pipelineConfigId** | **string**| pipelineConfigId | 
- **limit** | **int32**| limit | [default to 20]
+
+ **limit** | **optional.Int32**| limit | [default to 20]
 
 ### Return type
 

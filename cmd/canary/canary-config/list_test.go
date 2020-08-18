@@ -44,23 +44,6 @@ func TestCanaryConfigList_basic(t *testing.T) {
 	}
 }
 
-func TestCanaryConfigList_malformed(t *testing.T) {
-	ts := testGateCanaryConfigListMalformed()
-	defer ts.Close()
-
-	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	canaryCmd, canaryOpts := canary.NewCanaryCmd(rootOpts)
-	canaryCmd.AddCommand(NewCanaryConfigCmd(canaryOpts))
-	rootCmd.AddCommand(canaryCmd)
-
-	args := []string{"canary", "canary-config", "list", "--gate-endpoint", ts.URL}
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
-	if err == nil {
-		t.Fatalf("Command failed with: %s", err)
-	}
-}
-
 func TestCanaryConfigList_fail(t *testing.T) {
 	ts := testGateFail()
 	defer ts.Close()
@@ -85,18 +68,8 @@ func testGateCanaryConfigListSuccess() *httptest.Server {
 	mux.Handle(
 		"/v2/canaryConfig",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("content-type", "application/json")
 			fmt.Fprintln(w, strings.TrimSpace(canaryConfigListJson))
-		}))
-	return httptest.NewServer(mux)
-}
-
-// testGateCanaryConfigListMalformed returns a malformed list of canaryConfig configs.
-func testGateCanaryConfigListMalformed() *httptest.Server {
-	mux := util.TestGateMuxWithVersionHandler()
-	mux.Handle(
-		"/v2/canaryConfig",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, strings.TrimSpace(malformedCanaryConfigListJson))
 		}))
 	return httptest.NewServer(mux)
 }
@@ -105,22 +78,10 @@ func testGateCanaryConfigListMalformed() *httptest.Server {
 // to direct requests to. Responds with a 500 InternalServerError.
 func testGateFail() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}))
 }
-
-const malformedCanaryConfigListJson = `
- {
-  "applications": [
-   "canaryconfigs"
-  ],
-  "id": "3f3dbcc1-002d-458c-b181-be4aa809922a",
-  "name": "exampleCanary",
-  "updatedTimestamp": 1568131247595,
-  "updatedTimestampIso": "2019-09-10T16:00:47.595Z"
- }
-]
-`
 
 const canaryConfigListJson = `
 [

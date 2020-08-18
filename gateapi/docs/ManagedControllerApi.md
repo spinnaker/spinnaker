@@ -39,7 +39,7 @@ Create a pin for an artifact in an environment
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **pin** | [**EnvironmentArtifactPin**](EnvironmentArtifactPin.md)| pin | 
 
@@ -66,7 +66,7 @@ Delete a delivery config manifest for an application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
 
 ### Return type
@@ -92,7 +92,7 @@ Delete a delivery config manifest
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **name** | **string**| name | 
 
 ### Return type
@@ -118,19 +118,19 @@ Unpin one or more artifact(s) in an environment. If the `reference` parameter is
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **targetEnvironment** | **string**| targetEnvironment | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ManagedControllerApiDeletePinUsingDELETEOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ManagedControllerApiDeletePinUsingDELETEOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **targetEnvironment** | **string**| targetEnvironment | 
- **reference** | **string**| reference | 
+
+
+ **reference** | **optional.String**| reference | 
 
 ### Return type
 
@@ -155,7 +155,7 @@ Veto an artifact version in an environment
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **reference** | **string**| reference | 
   **targetEnvironment** | **string**| targetEnvironment | 
@@ -184,7 +184,7 @@ Ad-hoc validate and diff a config manifest
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **manifest** | [**DeliveryConfig**](DeliveryConfig.md)| manifest | 
 
 ### Return type
@@ -210,7 +210,7 @@ Ad-hoc validate and diff a resource
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **resource** | [**Resource**](Resource.md)| resource | 
 
 ### Return type
@@ -236,7 +236,7 @@ Generates an artifact definition based on the artifact used in a running cluster
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **cloudProvider** | **string**| cloudProvider | 
   **clusterName** | **string**| clusterName | 
@@ -264,7 +264,7 @@ Generate a keel resource definition for a deployed cloud resource
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **cloudProvider** | **string**| cloudProvider | 
   **name** | **string**| name | 
@@ -316,18 +316,18 @@ Get managed details about an application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ManagedControllerApiGetApplicationDetailsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ManagedControllerApiGetApplicationDetailsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **entities** | [**[]string**](string.md)| entities | [default to resources]
- **includeDetails** | **bool**| includeDetails | [default to false]
+
+ **entities** | [**optional.Interface of []string**](string.md)| entities | 
+ **includeDetails** | **optional.Bool**| includeDetails | [default to false]
 
 ### Return type
 
@@ -352,7 +352,7 @@ Get the delivery config associated with an application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
 
 ### Return type
@@ -378,19 +378,19 @@ List up-to {limit} current constraint states for an environment
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **environment** | **string**| environment | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ManagedControllerApiGetConstraintStateUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ManagedControllerApiGetConstraintStateUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **environment** | **string**| environment | 
- **limit** | **string**| limit | [default to 10]
+
+
+ **limit** | **optional.String**| limit | [default to 10]
 
 ### Return type
 
@@ -415,7 +415,7 @@ Get the status of each version of each artifact in each environment
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **name** | **string**| name | 
 
 ### Return type
@@ -441,7 +441,7 @@ Get a delivery config manifest
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **name** | **string**| name | 
 
 ### Return type
@@ -467,7 +467,7 @@ Get status of a resource
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **resourceId** | **string**| resourceId | 
 
 ### Return type
@@ -493,7 +493,7 @@ Get a resource
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **resourceId** | **string**| resourceId | 
 
 ### Return type
@@ -519,7 +519,7 @@ Pause management of an entire application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
 
 ### Return type
@@ -545,7 +545,7 @@ Pause management of a resource
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **resourceId** | **string**| resourceId | 
 
 ### Return type
@@ -571,7 +571,7 @@ Resume management of an entire application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
 
 ### Return type
@@ -597,7 +597,7 @@ Resume management of a resource
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **resourceId** | **string**| resourceId | 
 
 ### Return type
@@ -623,7 +623,7 @@ Update the status of an environment constraint
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **environment** | **string**| environment | 
   **status** | [**ConstraintStatus**](ConstraintStatus.md)| status | 
@@ -651,7 +651,7 @@ Create or update a delivery config manifest
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **manifest** | [**DeliveryConfig**](DeliveryConfig.md)| manifest | 
 
 ### Return type
@@ -677,7 +677,7 @@ Validate a delivery config manifest
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **manifest** | [**DeliveryConfig**](DeliveryConfig.md)| manifest | 
 
 ### Return type
@@ -703,7 +703,7 @@ Veto an artifact version in an environment
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **veto** | [**EnvironmentArtifactVeto**](EnvironmentArtifactVeto.md)| veto | 
 

@@ -18,16 +18,16 @@ Retrieve a list of load balancers for a given cloud provider
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***LoadBalancerControllerApiGetAllUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a LoadBalancerControllerApiGetAllUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **provider** | **string**| provider | [default to aws]
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **provider** | **optional.String**| provider | [default to aws]
 
 ### Return type
 
@@ -52,17 +52,17 @@ Retrieve a list of load balancers for a given application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***LoadBalancerControllerApiGetApplicationLoadBalancersUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a LoadBalancerControllerApiGetApplicationLoadBalancersUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -87,22 +87,22 @@ Retrieve a load balancer's details as a single element list for a given account,
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **name** | **string**| name | 
   **region** | **string**| region | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***LoadBalancerControllerApiGetLoadBalancerDetailsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a LoadBalancerControllerApiGetLoadBalancerDetailsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **name** | **string**| name | 
- **region** | **string**| region | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **provider** | **string**| provider | [default to aws]
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **provider** | **optional.String**| provider | [default to aws]
 
 ### Return type
 
@@ -127,18 +127,18 @@ Retrieve a load balancer for a given cloud provider
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **name** | **string**| name | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***LoadBalancerControllerApiGetLoadBalancerUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a LoadBalancerControllerApiGetLoadBalancerUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **name** | **string**| name | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **provider** | **string**| provider | [default to aws]
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **provider** | **optional.String**| provider | [default to aws]
 
 ### Return type
 

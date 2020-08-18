@@ -19,7 +19,7 @@ Get application functions
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
 
 ### Return type
@@ -45,17 +45,17 @@ Get functions
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***AmazonInfrastructureControllerApiFunctionsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a AmazonInfrastructureControllerApiFunctionsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **functionName** | **string**| functionName | 
- **region** | **string**| region | 
+ **account** | **optional.String**| account | 
+ **functionName** | **optional.String**| functionName | 
+ **region** | **optional.String**| region | 
 
 ### Return type
 

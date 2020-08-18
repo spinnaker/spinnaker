@@ -107,21 +107,6 @@ func TestAccountGet_flags(t *testing.T) {
 	}
 }
 
-func TestAccountGet_malformed(t *testing.T) {
-	ts := testGateAccountGetMalformed()
-	defer ts.Close()
-
-	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	rootCmd.AddCommand(NewAccountCmd(rootOpts))
-
-	args := []string{"account", "get", ACCOUNT, "--gate-endpoint=" + ts.URL}
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
-	if err == nil { // Success is actually failure here, return payload is malformed.
-		t.Fatalf("Command failed with: %d", err)
-	}
-}
-
 func TestAccountGet_fail(t *testing.T) {
 	ts := testGateFail()
 	defer ts.Close()
@@ -142,30 +127,11 @@ func TestAccountGet_fail(t *testing.T) {
 func testGateAccountGetSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/credentials/"+ACCOUNT, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(accountJson))
 	}))
 	return httptest.NewServer(mux)
 }
-
-// testGateAccountGetMalformed returns a malformed list of pipeline configs.
-func testGateAccountGetMalformed() *httptest.Server {
-	mux := util.TestGateMuxWithVersionHandler()
-	mux.Handle("/credentials/"+ACCOUNT, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, strings.TrimSpace(malformedAccountGetJson))
-	}))
-	return httptest.NewServer(mux)
-}
-
-const malformedAccountGetJson = `
- "type": "kubernetes",
- "providerVersion": "v2",
- "environment": "self",
- "skin": "v2",
- "name": "self",
- "cloudProvider": "kubernetes",
- "accountType": "self"
-}
-`
 
 const accountJson = `
 {

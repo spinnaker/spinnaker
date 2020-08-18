@@ -56,21 +56,6 @@ func TestPipelineTemplateList_scope(t *testing.T) {
 	}
 }
 
-func TestPipelineTemplateList_malformed(t *testing.T) {
-	ts := testGatePipelineTemplateListMalformed()
-	defer ts.Close()
-
-	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
-
-	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
-	if err == nil {
-		t.Fatalf("Command failed with: %s", err)
-	}
-}
-
 func TestPipelineTemplateList_fail(t *testing.T) {
 	ts := testGateFail()
 	defer ts.Close()
@@ -105,72 +90,6 @@ func testGateScopedPipelineTemplateListSuccess() *httptest.Server {
 	}))
 	return httptest.NewServer(mux)
 }
-
-// testGatePipelineTemplateListMalformed returns a malformed list of pipelineTemplate configs.
-func testGatePipelineTemplateListMalformed() *httptest.Server {
-	mux := util.TestGateMuxWithVersionHandler()
-	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, strings.TrimSpace(malformedPipelineTemplateListJson))
-	}))
-	return httptest.NewServer(mux)
-}
-
-const malformedPipelineTemplateListJson = `
-  {
-   "id": "newSpelTemplate",
-   "lastModifiedBy": "anonymous",
-   "metadata": {
-    "description": "A generic application wait.",
-    "name": "Default Wait",
-    "owner": "example@example.com",
-    "scopes": [
-     "global"
-    ]
-   },
-   "pipeline": {
-    "description": "",
-    "keepWaitingPipelines": false,
-    "lastModifiedBy": "anonymous",
-    "limitConcurrent": true,
-    "notifications": [],
-    "parameterConfig": [],
-    "stages": [
-     {
-      "name": "My Wait Stage",
-      "refId": "wait1",
-      "requisiteStageRefIds": [],
-      "type": "wait",
-      "waitTime": "${ templateVariables.waitTime }"
-     }
-    ],
-    "triggers": [
-     {
-      "attributeConstraints": {},
-      "enabled": true,
-      "payloadConstraints": {},
-      "pubsubSystem": "google",
-      "source": "jake",
-      "subscription": "super-why",
-      "subscriptionName": "super-why",
-      "type": "pubsub"
-     }
-    ],
-    "updateTs": "1543509523663"
-   },
-   "protect": false,
-   "schema": "v2",
-   "updateTs": "1543860678988",
-   "variables": [
-    {
-     "defaultValue": 42,
-     "description": "The time a wait stage shall pauseth",
-     "name": "waitTime",
-     "type": "int"
-    }
-   ]
-  }
-]
-`
 
 const pipelineTemplateListJson = `
 [

@@ -17,15 +17,15 @@ Retrieve the list of artifact accounts configured in Clouddriver.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***ArtifactControllerApiAllUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ArtifactControllerApiAllUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -50,21 +50,21 @@ Retrieve the list of artifact versions by account and artifact names
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **accountName** | **string**| accountName | 
   **artifactName** | **string**| artifactName | 
   **type_** | **string**| type | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ArtifactControllerApiArtifactVersionsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ArtifactControllerApiArtifactVersionsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accountName** | **string**| accountName | 
- **artifactName** | **string**| artifactName | 
- **type_** | **string**| type | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -89,7 +89,7 @@ Retrieve the specified artifact version for an artifact provider and package nam
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **packageName** | **string**| packageName | 
   **provider** | **string**| provider | 
   **version** | **string**| version | 

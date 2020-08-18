@@ -19,19 +19,19 @@ The query parameter `q` filters the list of images by image name
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***ImageControllerApiFindImagesUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ImageControllerApiFindImagesUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **count** | **int32**| count | 
- **provider** | **string**| provider | [default to aws]
- **q** | **string**| q | 
- **region** | **string**| region | 
+ **account** | **optional.String**| account | 
+ **count** | **optional.Int32**| count | 
+ **provider** | **optional.String**| provider | [default to aws]
+ **q** | **optional.String**| q | 
+ **region** | **optional.String**| region | 
 
 ### Return type
 
@@ -56,20 +56,20 @@ Find tags
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **repository** | **string**| repository | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ImageControllerApiFindTagsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ImageControllerApiFindTagsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **repository** | **string**| repository | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **provider** | **string**| provider | [default to aws]
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **provider** | **optional.String**| provider | [default to aws]
 
 ### Return type
 
@@ -94,22 +94,22 @@ Get image details
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **imageId** | **string**| imageId | 
   **region** | **string**| region | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ImageControllerApiGetImageDetailsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ImageControllerApiGetImageDetailsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **imageId** | **string**| imageId | 
- **region** | **string**| region | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **provider** | **string**| provider | [default to aws]
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **provider** | **optional.String**| provider | [default to aws]
 
 ### Return type
 

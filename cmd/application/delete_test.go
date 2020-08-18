@@ -78,6 +78,7 @@ func testGateApplicationDeleteSuccess() *httptest.Server {
 	mux.Handle("/applications/"+APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		payload := map[string]string{} // We don't use the payload, we are just checking if the target app exists.
 		b, _ := json.Marshal(&payload)
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, string(b))
 	}))
 	mux.Handle("/tasks", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -85,6 +86,7 @@ func testGateApplicationDeleteSuccess() *httptest.Server {
 			"ref": "/tasks/id",
 		}
 		b, _ := json.Marshal(&payload)
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, string(b))
 	}))
 	mux.Handle("/tasks/id", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +94,7 @@ func testGateApplicationDeleteSuccess() *httptest.Server {
 			"status": "SUCCEEDED",
 		}
 		b, _ := json.Marshal(&payload)
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, string(b))
 	}))
 	return httptest.NewServer(mux)

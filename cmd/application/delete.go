@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"net/http"
 
-	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
-
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
+	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
+	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -65,7 +66,7 @@ func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string
 		},
 	}
 
-	_, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, map[string]interface{}{"expand": false})
+	_, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationUsingGETOpts{Expand: optional.NewBool(false)})
 
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Attempting to delete application '%s' which does not exist, exiting...", applicationName)

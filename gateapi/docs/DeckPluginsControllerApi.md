@@ -16,7 +16,7 @@ Retrieve a single plugin asset by version
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **asset** | **string**| asset | 
   **pluginId** | **string**| pluginId | 
   **pluginVersion** | **string**| pluginVersion | 

@@ -18,8 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
+	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -60,9 +62,9 @@ func deletePipelineTemplate(cmd *cobra.Command, options *deleteOptions, args []s
 		return err
 	}
 
-	queryParams := map[string]interface{}{}
+	queryParams := &gate.V2PipelineTemplatesControllerApiDeleteUsingDELETE1Opts{}
 	if options.tag != "" {
-		queryParams["tag"] = options.tag
+		queryParams.Tag = optional.NewString(options.tag)
 	}
 
 	_, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.DeleteUsingDELETE1(options.GateClient.Context, id, queryParams)

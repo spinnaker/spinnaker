@@ -16,29 +16,29 @@ Retrieve an account's details
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***CredentialsControllerApiGetAccountUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a CredentialsControllerApiGetAccountUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **accountNonExpired** | **bool**|  | 
- **accountNonLocked** | **bool**|  | 
- **allowedAccounts** | [**[]string**](string.md)|  | 
- **authorities0Authority** | **string**|  | 
- **credentialsNonExpired** | **bool**|  | 
- **email** | **string**|  | 
- **enabled** | **bool**|  | 
- **firstName** | **string**|  | 
- **lastName** | **string**|  | 
- **password** | **string**|  | 
- **roles** | [**[]string**](string.md)|  | 
- **username** | **string**|  | 
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **accountNonExpired** | **optional.Bool**|  | 
+ **accountNonLocked** | **optional.Bool**|  | 
+ **allowedAccounts** | [**optional.Interface of []string**](string.md)|  | 
+ **authorities0Authority** | **optional.String**|  | 
+ **credentialsNonExpired** | **optional.Bool**|  | 
+ **email** | **optional.String**|  | 
+ **enabled** | **optional.Bool**|  | 
+ **firstName** | **optional.String**|  | 
+ **lastName** | **optional.String**|  | 
+ **password** | **optional.String**|  | 
+ **roles** | [**optional.Interface of []string**](string.md)|  | 
+ **username** | **optional.String**|  | 
 
 ### Return type
 
@@ -63,27 +63,27 @@ Retrieve a list of accounts
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***CredentialsControllerApiGetAccountsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a CredentialsControllerApiGetAccountsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accountNonExpired** | **bool**|  | 
- **accountNonLocked** | **bool**|  | 
- **allowedAccounts** | [**[]string**](string.md)|  | 
- **authorities0Authority** | **string**|  | 
- **credentialsNonExpired** | **bool**|  | 
- **email** | **string**|  | 
- **enabled** | **bool**|  | 
- **expand** | **bool**| expand | 
- **firstName** | **string**|  | 
- **lastName** | **string**|  | 
- **password** | **string**|  | 
- **roles** | [**[]string**](string.md)|  | 
- **username** | **string**|  | 
+ **accountNonExpired** | **optional.Bool**|  | 
+ **accountNonLocked** | **optional.Bool**|  | 
+ **allowedAccounts** | [**optional.Interface of []string**](string.md)|  | 
+ **authorities0Authority** | **optional.String**|  | 
+ **credentialsNonExpired** | **optional.Bool**|  | 
+ **email** | **optional.String**|  | 
+ **enabled** | **optional.Bool**|  | 
+ **expand** | **optional.Bool**| expand | 
+ **firstName** | **optional.String**|  | 
+ **lastName** | **optional.String**|  | 
+ **password** | **optional.String**|  | 
+ **roles** | [**optional.Interface of []string**](string.md)|  | 
+ **username** | **optional.String**|  | 
 
 ### Return type
 

@@ -19,17 +19,17 @@ Create a canary configuration
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **config** | [**interface{}**](interface{}.md)| config | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryConfigControllerApiCreateCanaryConfigUsingPOSTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryConfigControllerApiCreateCanaryConfigUsingPOSTOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **config** | [**interface{}**](interface{}.md)| config | 
- **configurationAccountName** | **string**| configurationAccountName | 
+
+ **configurationAccountName** | **optional.String**| configurationAccountName | 
 
 ### Return type
 
@@ -54,17 +54,17 @@ Delete a canary configuration
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryConfigControllerApiDeleteCanaryConfigUsingDELETEOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryConfigControllerApiDeleteCanaryConfigUsingDELETEOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **string**| id | 
- **configurationAccountName** | **string**| configurationAccountName | 
+
+ **configurationAccountName** | **optional.String**| configurationAccountName | 
 
 ### Return type
 
@@ -89,17 +89,17 @@ Retrieve a canary configuration by id
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryConfigControllerApiGetCanaryConfigUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryConfigControllerApiGetCanaryConfigUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **string**| id | 
- **configurationAccountName** | **string**| configurationAccountName | 
+
+ **configurationAccountName** | **optional.String**| configurationAccountName | 
 
 ### Return type
 
@@ -124,16 +124,16 @@ Retrieve a list of canary configurations
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***V2CanaryConfigControllerApiGetCanaryConfigsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryConfigControllerApiGetCanaryConfigsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **configurationAccountName** | **string**| configurationAccountName | 
+ **application** | **optional.String**| application | 
+ **configurationAccountName** | **optional.String**| configurationAccountName | 
 
 ### Return type
 
@@ -158,19 +158,19 @@ Update a canary configuration
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **config** | [**interface{}**](interface{}.md)| config | 
   **id** | **string**| id | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***V2CanaryConfigControllerApiUpdateCanaryConfigUsingPUTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a V2CanaryConfigControllerApiUpdateCanaryConfigUsingPUTOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **config** | [**interface{}**](interface{}.md)| config | 
- **id** | **string**| id | 
- **configurationAccountName** | **string**| configurationAccountName | 
+
+
+ **configurationAccountName** | **optional.String**| configurationAccountName | 
 
 ### Return type
 

@@ -169,10 +169,12 @@ func TestCanaryConfigRetro_timeout(t *testing.T) {
 func gateServerRetroPass() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/canaries/canary", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		w.Write([]byte(canaryExecRespJson))
 	}))
 
 	mux.Handle("/v2/canaries/canary/executionId", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		w.Write([]byte(canaryFinishedPassJson))
 	}))
 	return httptest.NewServer(mux)
@@ -181,10 +183,12 @@ func gateServerRetroPass() *httptest.Server {
 func gateServerExecHang() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/canaries/canary", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		w.Write([]byte(canaryExecRespJson))
 	}))
 
 	mux.Handle("/v2/canaries/canary/executionId", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		w.Write([]byte(canaryUnfinishedJson))
 	}))
 	return httptest.NewServer(mux)
@@ -198,7 +202,7 @@ const canaryExecRespJson = `
 
 const canaryUnfinishedJson = `
 {
-  "complete": false,
+  "complete": false
 }
 `
 

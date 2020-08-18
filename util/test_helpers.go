@@ -19,6 +19,7 @@ func TestGateMuxWithVersionHandler() *http.ServeMux {
 			"version": "Unknown",
 		}
 		b, _ := json.Marshal(&payload)
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, string(b))
 	}))
 
@@ -58,6 +59,7 @@ func NewTestBufferHandlerFunc(method string, requestBuffer io.Writer, responseHe
 		}
 
 		// Empty response body. Status: 200 Success
+		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(responseHeader)
 		fmt.Fprintln(w, responseBody)
 	})

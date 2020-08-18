@@ -18,7 +18,7 @@ Delete plugin info with the provided Id
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
 
 ### Return type
@@ -44,15 +44,15 @@ Get all plugin info objects
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***PluginInfoControllerApiGetAllPluginInfoUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a PluginInfoControllerApiGetAllPluginInfoUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **service** | **string**| service | 
+ **service** | **optional.String**| service | 
 
 ### Return type
 
@@ -77,7 +77,7 @@ Persist plugin metadata information
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **pluginInfo** | [**SpinnakerPluginInfo**](SpinnakerPluginInfo.md)| pluginInfo | 
 
 ### Return type
@@ -103,7 +103,7 @@ Persist plugin metadata information
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **pluginInfo** | [**SpinnakerPluginInfo**](SpinnakerPluginInfo.md)| pluginInfo | 
 
 ### Return type

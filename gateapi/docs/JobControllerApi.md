@@ -15,24 +15,24 @@ Get job
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **applicationName** | **string**| applicationName | 
   **name** | **string**| name | 
   **region** | **string**| region | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***JobControllerApiGetJobUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a JobControllerApiGetJobUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **applicationName** | **string**| applicationName | 
- **name** | **string**| name | 
- **region** | **string**| region | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **expand** | **string**| expand | [default to false]
+
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **expand** | **optional.String**| expand | [default to false]
 
 ### Return type
 

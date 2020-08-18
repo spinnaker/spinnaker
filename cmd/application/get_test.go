@@ -114,21 +114,6 @@ func TestApplicationGet_flags(t *testing.T) {
 	}
 }
 
-func TestApplicationGet_malformed(t *testing.T) {
-	ts := testGateApplicationGetMalformed()
-	defer ts.Close()
-
-	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	rootCmd.AddCommand(NewApplicationCmd(rootOpts))
-
-	args := []string{"application", "get", APP, "--gate-endpoint=" + ts.URL}
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
-	if err == nil { // Success is actually failure here, return payload is malformed.
-		t.Fatalf("Command failed with: %d", err)
-	}
-}
-
 func TestApplicationGet_fail(t *testing.T) {
 	ts := testGateFail()
 	defer ts.Close()
@@ -149,47 +134,11 @@ func TestApplicationGet_fail(t *testing.T) {
 func testGateApplicationGetSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/applications/"+APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(applicationJsonExpanded))
 	}))
 	return httptest.NewServer(mux)
 }
-
-// testGateApplicationGetMalformed returns a malformed list of pipeline configs.
-func testGateApplicationGetMalformed() *httptest.Server {
-	mux := util.TestGateMuxWithVersionHandler()
-	mux.Handle("/applications/"+APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, strings.TrimSpace(malformedApplicationGetJson))
-	}))
-	return httptest.NewServer(mux)
-}
-
-const malformedApplicationGetJson = `
-  "accounts": "account1",
-  "cloudproviders": [
-    "gce",
-    "kubernetes"
-  ],
-  "createTs": "1527261941734",
-  "email": "app",
-  "instancePort": 80,
-  "lastModifiedBy": "anonymous",
-  "name": "app",
-  "permissions": {
-	"EXECUTE": [
-	 "admin-group"
-	],
-	"READ": [
-	 "admin-group",
-	 "user-group"
-	],
-	"WRITE": [
-	 "admin-group"
-	]
-  },
-  "updateTs": "1527261941735",
-  "user": "anonymous"
-}
-`
 
 // GET /applications/{app} returns an envelope with 'attributes' and 'clusters'.
 const applicationJsonExpanded = `

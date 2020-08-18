@@ -15,19 +15,19 @@ getBuilds
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **projectKey** | **string**| projectKey | 
   **repoSlug** | **string**| repoSlug | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***CiControllerApiGetBuildsUsingGET1Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a CiControllerApiGetBuildsUsingGET1Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **projectKey** | **string**| projectKey | 
- **repoSlug** | **string**| repoSlug | 
- **completionStatus** | **string**| completionStatus | 
+
+
+ **completionStatus** | **optional.String**| completionStatus | 
 
 ### Return type
 

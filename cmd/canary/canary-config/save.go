@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"net/http"
 
+	gate "github.com/spinnaker/spin/gateapi"
+
 	"github.com/spf13/cobra"
 
 	"github.com/spinnaker/spin/util"
@@ -68,16 +70,16 @@ func saveCanaryConfig(cmd *cobra.Command, options *saveOptions) error {
 	templateId := templateJson["id"].(string)
 
 	_, resp, queryErr := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
-		options.GateClient.Context, templateId, map[string]interface{}{})
+		options.GateClient.Context, templateId, &gate.V2CanaryConfigControllerApiGetCanaryConfigUsingGETOpts{})
 
 	var saveResp *http.Response
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
 		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.UpdateCanaryConfigUsingPUT(
-			options.GateClient.Context, templateJson, templateId, map[string]interface{}{})
+			options.GateClient.Context, templateJson, templateId, &gate.V2CanaryConfigControllerApiUpdateCanaryConfigUsingPUTOpts{})
 	} else if resp.StatusCode == http.StatusNotFound {
 		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.CreateCanaryConfigUsingPOST(
-			options.GateClient.Context, templateJson, map[string]interface{}{})
+			options.GateClient.Context, templateJson, &gate.V2CanaryConfigControllerApiCreateCanaryConfigUsingPOSTOpts{})
 	} else {
 		if queryErr != nil {
 			return queryErr

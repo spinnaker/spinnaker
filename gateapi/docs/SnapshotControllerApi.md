@@ -16,7 +16,7 @@ Get current snapshot
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
 
@@ -43,19 +43,19 @@ Get snapshot history
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***SnapshotControllerApiGetSnapshotHistoryUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a SnapshotControllerApiGetSnapshotHistoryUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **limit** | **int32**| limit | [default to 20]
+
+
+ **limit** | **optional.Int32**| limit | [default to 20]
 
 ### Return type
 

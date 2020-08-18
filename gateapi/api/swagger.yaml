@@ -108,19 +108,19 @@ paths:
           $ref: "#/definitions/ReorderPipelinesCommand"
         x-exportParamName: "ReorderPipelinesCommand"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications:
     get:
       tags:
@@ -138,6 +138,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "Account"
+        x-optionalDataType: "String"
       - name: "owner"
         in: "query"
         description: "filters results to only include applications owned by the specified\
@@ -146,20 +147,22 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "Owner"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{applicationName}/jobs/{account}/{region}/{name}:
     get:
       tags:
@@ -175,6 +178,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -194,6 +198,7 @@ paths:
         type: "string"
         default: "false"
         x-exportParamName: "Expand"
+        x-optionalDataType: "String"
       - name: "name"
         in: "path"
         description: "name"
@@ -207,19 +212,20 @@ paths:
         type: "string"
         x-exportParamName: "Region"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{applicationName}/serverGroups:
     get:
       tags:
@@ -235,6 +241,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "applicationName"
         in: "path"
         description: "applicationName"
@@ -247,12 +254,14 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "CloudProvider"
+        x-optionalDataType: "String"
       - name: "clusters"
         in: "query"
         description: "clusters"
         required: false
         type: "string"
         x-exportParamName: "Clusters"
+        x-optionalDataType: "String"
       - name: "expand"
         in: "query"
         description: "expand"
@@ -260,20 +269,22 @@ paths:
         type: "string"
         default: "false"
         x-exportParamName: "Expand"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName}:
     get:
       tags:
@@ -289,6 +300,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -308,6 +320,7 @@ paths:
         type: "string"
         default: "true"
         x-exportParamName: "IncludeDetails"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -321,17 +334,17 @@ paths:
         type: "string"
         x-exportParamName: "ServerGroupName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}:
     get:
       tags:
@@ -354,20 +367,22 @@ paths:
         type: "boolean"
         default: true
         x-exportParamName: "Expand"
+        x-optionalDataType: "Bool"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters:
     get:
       tags:
@@ -383,6 +398,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "application"
         in: "path"
         description: "application"
@@ -390,19 +406,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}:
     get:
       tags:
@@ -418,6 +435,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -431,19 +449,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}/{clusterName}:
     get:
       tags:
@@ -459,6 +478,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -478,19 +498,20 @@ paths:
         type: "string"
         x-exportParamName: "ClusterName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}/{clusterName}/serverGroups:
     get:
       tags:
@@ -506,6 +527,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -525,19 +547,20 @@ paths:
         type: "string"
         x-exportParamName: "ClusterName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}/{clusterName}/serverGroups/{serverGroupName}:
     get:
       tags:
@@ -553,6 +576,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -578,19 +602,20 @@ paths:
         type: "string"
         x-exportParamName: "ServerGroupName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}/{clusterName}/serverGroups/{serverGroupName}/scalingActivities:
     get:
       tags:
@@ -606,6 +631,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -631,12 +657,14 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "query"
         description: "region"
         required: false
         type: "string"
         x-exportParamName: "Region"
+        x-optionalDataType: "String"
       - name: "serverGroupName"
         in: "path"
         description: "serverGroupName"
@@ -644,19 +672,20 @@ paths:
         type: "string"
         x-exportParamName: "ServerGroupName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target}:
     get:
       tags:
@@ -674,6 +703,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -704,6 +734,7 @@ paths:
         required: false
         type: "boolean"
         x-exportParamName: "OnlyEnabled"
+        x-optionalDataType: "Bool"
       - name: "scope"
         in: "path"
         description: "scope"
@@ -722,20 +753,22 @@ paths:
         required: false
         type: "boolean"
         x-exportParamName: "ValidateOldest"
+        x-optionalDataType: "Bool"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/clusters/{account}/{clusterName}/{type}/loadBalancers:
     get:
       tags:
@@ -751,6 +784,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -776,19 +810,20 @@ paths:
         type: "string"
         x-exportParamName: "Type_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/executions/search:
     get:
       tags:
@@ -815,6 +850,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "EventId"
+        x-optionalDataType: "String"
       - name: "expand"
         in: "query"
         description: "Expands each execution object in the resulting list. If this\
@@ -825,6 +861,7 @@ paths:
         allowEmptyValue: false
         x-example: false
         x-exportParamName: "Expand"
+        x-optionalDataType: "Bool"
       - name: "pipelineName"
         in: "query"
         description: "Only includes executions that with this pipeline name."
@@ -832,6 +869,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "PipelineName"
+        x-optionalDataType: "String"
       - name: "reverse"
         in: "query"
         description: "Reverses the resulting list before it is paginated. If this\
@@ -842,6 +880,7 @@ paths:
         allowEmptyValue: false
         x-example: false
         x-exportParamName: "Reverse"
+        x-optionalDataType: "Bool"
       - name: "size"
         in: "query"
         description: "Sets the size of the resulting list for pagination. This value\
@@ -849,9 +888,10 @@ paths:
         required: false
         type: "integer"
         default: 10
-        allowEmptyValue: false
         format: "int32"
+        allowEmptyValue: false
         x-exportParamName: "Size"
+        x-optionalDataType: "Int32"
       - name: "startIndex"
         in: "query"
         description: "Sets the first item of the resulting list for pagination. The\
@@ -860,9 +900,10 @@ paths:
         required: false
         type: "integer"
         default: 0
-        allowEmptyValue: false
         format: "int32"
+        allowEmptyValue: false
         x-exportParamName: "StartIndex"
+        x-optionalDataType: "Int32"
       - name: "statuses"
         in: "query"
         description: "Only includes executions with a status that is equal to a status\
@@ -874,6 +915,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "Statuses"
+        x-optionalDataType: "String"
       - name: "trigger"
         in: "query"
         description: "Only includes executions that were triggered by a trigger that\
@@ -895,6 +937,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "Trigger"
+        x-optionalDataType: "String"
       - name: "triggerTimeEndBoundary"
         in: "query"
         description: "Only includes executions that were built at or before the given\
@@ -904,9 +947,10 @@ paths:
         required: false
         type: "integer"
         default: 9223372036854775807
-        allowEmptyValue: false
         format: "int64"
+        allowEmptyValue: false
         x-exportParamName: "TriggerTimeEndBoundary"
+        x-optionalDataType: "Int64"
       - name: "triggerTimeStartBoundary"
         in: "query"
         description: "Only includes executions that were built at or after the given\
@@ -916,9 +960,10 @@ paths:
         required: false
         type: "integer"
         default: 0
-        allowEmptyValue: false
         format: "int64"
+        allowEmptyValue: false
         x-exportParamName: "TriggerTimeStartBoundary"
+        x-optionalDataType: "Int64"
       - name: "triggerTypes"
         in: "query"
         description: "Only includes executions that were triggered by a trigger with\
@@ -929,20 +974,22 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "TriggerTypes"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/functions:
     get:
       tags:
@@ -959,19 +1006,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/history:
     get:
       tags:
@@ -995,20 +1043,22 @@ paths:
         default: 20
         format: "int32"
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/loadBalancers:
     get:
       tags:
@@ -1024,6 +1074,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "application"
         in: "path"
         description: "application"
@@ -1031,19 +1082,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/pipelineConfigs:
     get:
       tags:
@@ -1060,19 +1112,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/pipelineConfigs/{pipelineName}:
     get:
       tags:
@@ -1095,19 +1148,20 @@ paths:
         type: "string"
         x-exportParamName: "PipelineName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "application-controller"
@@ -1143,18 +1197,19 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "User"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/HttpEntity"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /applications/{application}/pipelines:
@@ -1178,6 +1233,7 @@ paths:
         required: false
         type: "boolean"
         x-exportParamName: "Expand"
+        x-optionalDataType: "Bool"
       - name: "limit"
         in: "query"
         description: "limit"
@@ -1185,26 +1241,29 @@ paths:
         type: "integer"
         format: "int32"
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       - name: "statuses"
         in: "query"
         description: "statuses"
         required: false
         type: "string"
         x-exportParamName: "Statuses"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/pipelines/{id}/cancel:
     put:
       tags:
@@ -1228,21 +1287,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Reason"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /applications/{application}/serverGroupManagers:
@@ -1261,19 +1321,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/serverGroups/{account}/{serverGroupName}/events:
     get:
       tags:
@@ -1314,19 +1375,20 @@ paths:
         type: "string"
         x-exportParamName: "ServerGroupName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/snapshots/{account}:
     get:
       tags:
@@ -1349,19 +1411,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/snapshots/{account}/history:
     get:
       tags:
@@ -1391,20 +1454,22 @@ paths:
         default: 20
         format: "int32"
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/strategyConfigs:
     get:
       tags:
@@ -1421,19 +1486,20 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/strategyConfigs/{strategyName}:
     get:
       tags:
@@ -1456,19 +1522,20 @@ paths:
         type: "string"
         x-exportParamName: "StrategyName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /applications/{application}/tasks:
     get:
       tags:
@@ -1491,6 +1558,7 @@ paths:
         type: "integer"
         format: "int32"
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       - name: "page"
         in: "query"
         description: "page"
@@ -1498,26 +1566,29 @@ paths:
         type: "integer"
         format: "int32"
         x-exportParamName: "Page"
+        x-optionalDataType: "Int32"
       - name: "statuses"
         in: "query"
         description: "statuses"
         required: false
         type: "string"
         x-exportParamName: "Statuses"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "application-controller"
@@ -1542,20 +1613,20 @@ paths:
           type: "object"
         x-exportParamName: "Map_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /applications/{application}/tasks/{id}:
@@ -1574,18 +1645,18 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /applications/{application}/tasks/{id}/cancel:
@@ -1606,20 +1677,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /applications/{application}/tasks/{id}/details/{taskDetailsId}:
@@ -1637,6 +1708,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -1650,18 +1722,18 @@ paths:
         type: "string"
         x-exportParamName: "TaskDetailsId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /artifacts/account/{accountName}/versions:
@@ -1679,6 +1751,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "accountName"
         in: "path"
         description: "accountName"
@@ -1698,18 +1771,19 @@ paths:
         type: "string"
         x-exportParamName: "Type_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "string"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /artifacts/credentials:
     get:
       tags:
@@ -1725,20 +1799,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /artifacts/{provider}/{packageName}/{version}:
     get:
       tags:
@@ -1768,17 +1844,17 @@ paths:
         type: "string"
         x-exportParamName: "Version"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /auth/loggedOut:
     get:
       tags:
@@ -1789,16 +1865,17 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "string"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /auth/redirect:
     get:
       tags:
@@ -1815,14 +1892,15 @@ paths:
         type: "string"
         x-exportParamName: "To"
       responses:
-        200:
+        "200":
           description: "OK"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /auth/roles/sync:
     post:
       tags:
@@ -1835,16 +1913,17 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /auth/user:
     get:
       tags:
@@ -1855,16 +1934,17 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/User"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /auth/user/serviceAccounts:
     get:
       tags:
@@ -1880,20 +1960,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Application"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /bakery/logs/{region}/{statusId}:
     get:
       tags:
@@ -1916,17 +1998,17 @@ paths:
         type: "string"
         x-exportParamName: "StatusId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /bakery/options:
     get:
       tags:
@@ -1938,17 +2020,17 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /bakery/options/{cloudProvider}:
     get:
       tags:
@@ -1966,17 +2048,17 @@ paths:
         type: "string"
         x-exportParamName: "CloudProvider"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /ci/builds:
     get:
       tags:
@@ -1992,6 +2074,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "CompletionStatus"
+        x-optionalDataType: "String"
       - name: "projectKey"
         in: "query"
         description: "projectKey"
@@ -2005,19 +2088,20 @@ paths:
         type: "string"
         x-exportParamName: "RepoSlug"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /concourse/{buildMaster}/teams/{team}/pipelines:
     get:
       tags:
@@ -2041,19 +2125,20 @@ paths:
         type: "string"
         x-exportParamName: "Team"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/jobs:
     get:
       tags:
@@ -2082,19 +2167,20 @@ paths:
         type: "string"
         x-exportParamName: "Team"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources:
     get:
       tags:
@@ -2124,19 +2210,20 @@ paths:
         type: "string"
         x-exportParamName: "Team"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /credentials:
     get:
       tags:
@@ -2151,11 +2238,13 @@ paths:
         required: false
         type: "boolean"
         x-exportParamName: "AccountNonExpired"
+        x-optionalDataType: "Bool"
       - name: "accountNonLocked"
         in: "query"
         required: false
         type: "boolean"
         x-exportParamName: "AccountNonLocked"
+        x-optionalDataType: "Bool"
       - name: "allowedAccounts"
         in: "query"
         required: false
@@ -2169,42 +2258,50 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Authorities0Authority"
+        x-optionalDataType: "String"
       - name: "credentialsNonExpired"
         in: "query"
         required: false
         type: "boolean"
         x-exportParamName: "CredentialsNonExpired"
+        x-optionalDataType: "Bool"
       - name: "email"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "Email"
+        x-optionalDataType: "String"
       - name: "enabled"
         in: "query"
         required: false
         type: "boolean"
         x-exportParamName: "Enabled"
+        x-optionalDataType: "Bool"
       - name: "expand"
         in: "query"
         description: "expand"
         required: false
         type: "boolean"
         x-exportParamName: "Expand"
+        x-optionalDataType: "Bool"
       - name: "firstName"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "FirstName"
+        x-optionalDataType: "String"
       - name: "lastName"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "LastName"
+        x-optionalDataType: "String"
       - name: "password"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "Password"
+        x-optionalDataType: "String"
       - name: "roles"
         in: "query"
         required: false
@@ -2218,19 +2315,21 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Username"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               $ref: "#/definitions/Account"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /credentials/{account}:
     get:
       tags:
@@ -2246,6 +2345,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2257,11 +2357,13 @@ paths:
         required: false
         type: "boolean"
         x-exportParamName: "AccountNonExpired"
+        x-optionalDataType: "Bool"
       - name: "accountNonLocked"
         in: "query"
         required: false
         type: "boolean"
         x-exportParamName: "AccountNonLocked"
+        x-optionalDataType: "Bool"
       - name: "allowedAccounts"
         in: "query"
         required: false
@@ -2275,36 +2377,43 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Authorities0Authority"
+        x-optionalDataType: "String"
       - name: "credentialsNonExpired"
         in: "query"
         required: false
         type: "boolean"
         x-exportParamName: "CredentialsNonExpired"
+        x-optionalDataType: "Bool"
       - name: "email"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "Email"
+        x-optionalDataType: "String"
       - name: "enabled"
         in: "query"
         required: false
         type: "boolean"
         x-exportParamName: "Enabled"
+        x-optionalDataType: "Bool"
       - name: "firstName"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "FirstName"
+        x-optionalDataType: "String"
       - name: "lastName"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "LastName"
+        x-optionalDataType: "String"
       - name: "password"
         in: "query"
         required: false
         type: "string"
         x-exportParamName: "Password"
+        x-optionalDataType: "String"
       - name: "roles"
         in: "query"
         required: false
@@ -2318,17 +2427,19 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Username"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/AccountDetails"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /executions:
     get:
       tags:
@@ -2349,6 +2460,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "ExecutionIds"
+        x-optionalDataType: "String"
       - name: "expand"
         in: "query"
         description: "Expands each execution object in the resulting list. If this\
@@ -2358,6 +2470,7 @@ paths:
         default: true
         allowEmptyValue: false
         x-exportParamName: "Expand"
+        x-optionalDataType: "Bool"
       - name: "limit"
         in: "query"
         description: "The number of executions to return per pipeline configuration.\
@@ -2365,9 +2478,10 @@ paths:
           \ it is defaulted to 1."
         required: false
         type: "integer"
-        allowEmptyValue: false
         format: "int32"
+        allowEmptyValue: false
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       - name: "pipelineConfigIds"
         in: "query"
         description: "A comma-separated list of pipeline configuration IDs to retrieve\
@@ -2377,6 +2491,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "PipelineConfigIds"
+        x-optionalDataType: "String"
       - name: "statuses"
         in: "query"
         description: "A comma-separated list of execution statuses to filter by. Ignored\
@@ -2386,20 +2501,22 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "Statuses"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /firewalls:
     get:
       tags:
@@ -2416,24 +2533,26 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "id"
         in: "query"
         description: "id"
         required: false
         type: "string"
         x-exportParamName: "Id"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /firewalls/{account}:
     get:
       tags:
@@ -2449,6 +2568,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2462,18 +2582,19 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /firewalls/{account}/{region}:
     get:
       tags:
@@ -2489,6 +2610,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2502,6 +2624,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -2509,19 +2632,20 @@ paths:
         type: "string"
         x-exportParamName: "Region"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /firewalls/{account}/{region}/{name}:
     get:
       tags:
@@ -2537,6 +2661,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2556,6 +2681,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -2568,18 +2694,19 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "VpcId"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /functions:
     get:
       tags:
@@ -2595,32 +2722,36 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Account"
+        x-optionalDataType: "String"
       - name: "functionName"
         in: "query"
         description: "functionName"
         required: false
         type: "string"
         x-exportParamName: "FunctionName"
+        x-optionalDataType: "String"
       - name: "region"
         in: "query"
         description: "region"
         required: false
         type: "string"
         x-exportParamName: "Region"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /images/find:
     get:
       tags:
@@ -2638,6 +2769,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Account"
+        x-optionalDataType: "String"
       - name: "count"
         in: "query"
         description: "count"
@@ -2645,6 +2777,7 @@ paths:
         type: "integer"
         format: "int32"
         x-exportParamName: "Count"
+        x-optionalDataType: "Int32"
       - name: "provider"
         in: "query"
         description: "provider"
@@ -2652,32 +2785,36 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "q"
         in: "query"
         description: "q"
         required: false
         type: "string"
         x-exportParamName: "Q"
+        x-optionalDataType: "String"
       - name: "region"
         in: "query"
         description: "region"
         required: false
         type: "string"
         x-exportParamName: "Region"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /images/tags:
     get:
       tags:
@@ -2693,6 +2830,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "query"
         description: "account"
@@ -2706,6 +2844,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "repository"
         in: "query"
         description: "repository"
@@ -2713,19 +2852,20 @@ paths:
         type: "string"
         x-exportParamName: "Repository"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /images/{account}/{region}/{imageId}:
     get:
       tags:
@@ -2741,6 +2881,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2760,6 +2901,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -2767,19 +2909,20 @@ paths:
         type: "string"
         x-exportParamName: "Region"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /instanceTypes:
     get:
       tags:
@@ -2790,19 +2933,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /instances/{account}/{region}/{instanceId}:
     get:
       tags:
@@ -2818,6 +2962,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2837,17 +2982,17 @@ paths:
         type: "string"
         x-exportParamName: "Region"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /instances/{account}/{region}/{instanceId}/console:
     get:
       tags:
@@ -2863,6 +3008,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2882,6 +3028,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -2889,17 +3036,17 @@ paths:
         type: "string"
         x-exportParamName: "Region"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /loadBalancers:
     get:
       tags:
@@ -2915,6 +3062,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "provider"
         in: "query"
         description: "provider"
@@ -2922,20 +3070,22 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /loadBalancers/{account}/{region}/{name}:
     get:
       tags:
@@ -2952,6 +3102,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -2971,6 +3122,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -2978,19 +3130,20 @@ paths:
         type: "string"
         x-exportParamName: "Region"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /loadBalancers/{name}:
     get:
       tags:
@@ -3006,6 +3159,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "name"
         in: "path"
         description: "name"
@@ -3019,20 +3173,22 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/api-docs:
     get:
       tags:
@@ -3043,17 +3199,17 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/application/{application}:
     get:
       tags:
@@ -3077,7 +3233,6 @@ paths:
         items:
           type: "string"
         collectionFormat: "multi"
-        default: "resources"
         x-exportParamName: "Entities"
       - name: "includeDetails"
         in: "query"
@@ -3086,18 +3241,19 @@ paths:
         type: "boolean"
         default: false
         x-exportParamName: "IncludeDetails"
+        x-optionalDataType: "Bool"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/application/{application}/config:
     get:
       tags:
@@ -3114,16 +3270,17 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/DeliveryConfig"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "managed-controller"
@@ -3139,16 +3296,17 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/DeliveryConfig"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /managed/application/{application}/environment/{environment}/constraint:
     post:
       tags:
@@ -3180,16 +3338,17 @@ paths:
           $ref: "#/definitions/ConstraintStatus"
         x-exportParamName: "Status"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/application/{application}/environment/{environment}/constraints:
     get:
       tags:
@@ -3218,17 +3377,19 @@ paths:
         type: "string"
         default: "10"
         x-exportParamName: "Limit"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/ConstraintState"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/application/{application}/pause:
     post:
       tags:
@@ -3247,16 +3408,17 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "managed-controller"
@@ -3272,14 +3434,15 @@ paths:
         type: "string"
         x-exportParamName: "Application"
       responses:
-        200:
+        "200":
           description: "OK"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /managed/application/{application}/pin:
     post:
       tags:
@@ -3305,16 +3468,17 @@ paths:
           $ref: "#/definitions/EnvironmentArtifactPin"
         x-exportParamName: "Pin"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/application/{application}/pin/{targetEnvironment}:
     delete:
       tags:
@@ -3338,6 +3502,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Reference"
+        x-optionalDataType: "String"
       - name: "targetEnvironment"
         in: "path"
         description: "targetEnvironment"
@@ -3345,14 +3510,15 @@ paths:
         type: "string"
         x-exportParamName: "TargetEnvironment"
       responses:
-        200:
+        "200":
           description: "OK"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /managed/application/{application}/veto:
     post:
       tags:
@@ -3378,16 +3544,17 @@ paths:
           $ref: "#/definitions/EnvironmentArtifactVeto"
         x-exportParamName: "Veto"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/application/{application}/veto/{targetEnvironment}/{reference}/{version}:
     delete:
       tags:
@@ -3422,14 +3589,15 @@ paths:
         type: "string"
         x-exportParamName: "Version"
       responses:
-        200:
+        "200":
           description: "OK"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /managed/delivery-configs:
     post:
       tags:
@@ -3450,18 +3618,19 @@ paths:
           $ref: "#/definitions/DeliveryConfig"
         x-exportParamName: "Manifest"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/DeliveryConfig"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/delivery-configs/diff:
     post:
       tags:
@@ -3482,19 +3651,19 @@ paths:
           $ref: "#/definitions/DeliveryConfig"
         x-exportParamName: "Manifest"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/delivery-configs/validate:
     post:
       tags:
@@ -3516,19 +3685,19 @@ paths:
           $ref: "#/definitions/DeliveryConfig"
         x-exportParamName: "Manifest"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/delivery-configs/{name}:
     get:
       tags:
@@ -3545,16 +3714,17 @@ paths:
         type: "string"
         x-exportParamName: "Name"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/DeliveryConfig"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "managed-controller"
@@ -3570,16 +3740,17 @@ paths:
         type: "string"
         x-exportParamName: "Name"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/DeliveryConfig"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /managed/delivery-configs/{name}/artifacts:
     get:
       tags:
@@ -3596,19 +3767,20 @@ paths:
         type: "string"
         x-exportParamName: "Name"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/resources/diff:
     post:
       tags:
@@ -3629,19 +3801,19 @@ paths:
           $ref: "#/definitions/Resource"
         x-exportParamName: "Resource"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/resources/export/artifact/{cloudProvider}/{account}/{clusterName}:
     get:
       tags:
@@ -3671,17 +3843,17 @@ paths:
         type: "string"
         x-exportParamName: "ClusterName"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/resources/export/{cloudProvider}/{account}/{type}/{name}:
     get:
       tags:
@@ -3722,16 +3894,17 @@ paths:
         type: "string"
         x-exportParamName: "Type_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/Resource"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/resources/{resourceId}:
     get:
       tags:
@@ -3748,16 +3921,17 @@ paths:
         type: "string"
         x-exportParamName: "ResourceId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/Resource"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /managed/resources/{resourceId}/pause:
     post:
       tags:
@@ -3776,16 +3950,17 @@ paths:
         type: "string"
         x-exportParamName: "ResourceId"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "managed-controller"
@@ -3801,14 +3976,15 @@ paths:
         type: "string"
         x-exportParamName: "ResourceId"
       responses:
-        200:
+        "200":
           description: "OK"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /managed/resources/{resourceId}/status:
     get:
       tags:
@@ -3825,17 +4001,17 @@ paths:
         type: "string"
         x-exportParamName: "ResourceId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /networks:
     get:
       tags:
@@ -3851,20 +4027,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /networks/{cloudProvider}:
     get:
       tags:
@@ -3880,6 +4058,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "cloudProvider"
         in: "path"
         description: "cloudProvider"
@@ -3887,19 +4066,20 @@ paths:
         type: "string"
         x-exportParamName: "CloudProvider"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelineConfigs:
     get:
       tags:
@@ -3910,19 +4090,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelineConfigs/{pipelineConfigId}/convertToTemplate:
     get:
       tags:
@@ -3939,16 +4120,17 @@ paths:
         type: "string"
         x-exportParamName: "PipelineConfigId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "string"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelineConfigs/{pipelineConfigId}/history:
     get:
       tags:
@@ -3966,6 +4148,7 @@ paths:
         default: 20
         format: "int32"
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       - name: "pipelineConfigId"
         in: "path"
         description: "pipelineConfigId"
@@ -3973,19 +4156,20 @@ paths:
         type: "string"
         x-exportParamName: "PipelineConfigId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelineTemplates:
     get:
       tags:
@@ -4005,19 +4189,20 @@ paths:
         collectionFormat: "multi"
         x-exportParamName: "Scopes"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "pipeline-templates-controller"
@@ -4036,21 +4221,22 @@ paths:
           type: "object"
         x-exportParamName: "PipelineTemplate"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelineTemplates/resolve:
     get:
       tags:
@@ -4066,12 +4252,14 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "ExecutionId"
+        x-optionalDataType: "String"
       - name: "pipelineConfigId"
         in: "query"
         description: "pipelineConfigId"
         required: false
         type: "string"
         x-exportParamName: "PipelineConfigId"
+        x-optionalDataType: "String"
       - name: "source"
         in: "query"
         description: "source"
@@ -4079,19 +4267,20 @@ paths:
         type: "string"
         x-exportParamName: "Source"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelineTemplates/{id}:
     get:
       tags:
@@ -4108,19 +4297,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "pipeline-templates-controller"
@@ -4151,22 +4341,24 @@ paths:
         type: "boolean"
         default: false
         x-exportParamName: "SkipPlanDependents"
+        x-optionalDataType: "Bool"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "pipeline-templates-controller"
@@ -4181,6 +4373,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Application"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -4188,19 +4381,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /pipelineTemplates/{id}/dependents:
     get:
       tags:
@@ -4222,20 +4416,22 @@ paths:
         required: false
         type: "boolean"
         x-exportParamName: "Recursive"
+        x-optionalDataType: "Bool"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines:
     post:
       tags:
@@ -4255,16 +4451,17 @@ paths:
           type: "object"
         x-exportParamName: "Pipeline"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/move:
     post:
       tags:
@@ -4284,16 +4481,17 @@ paths:
           type: "object"
         x-exportParamName: "RenameCommand"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/start:
     post:
       tags:
@@ -4313,18 +4511,19 @@ paths:
           type: "object"
         x-exportParamName: "Map_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/ResponseEntity"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/v2/{application}/{pipelineNameOrId}:
     post:
       tags:
@@ -4356,19 +4555,19 @@ paths:
           type: "object"
         x-exportParamName: "Trigger"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{application}/{pipelineNameOrId}:
     post:
       tags:
@@ -4400,19 +4599,19 @@ paths:
           type: "object"
         x-exportParamName: "Trigger"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{application}/{pipelineName}:
     delete:
       tags:
@@ -4435,14 +4634,15 @@ paths:
         type: "string"
         x-exportParamName: "PipelineName"
       responses:
-        200:
+        "200":
           description: "OK"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /pipelines/{id}:
     get:
       tags:
@@ -4459,17 +4659,17 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     put:
       tags:
       - "pipeline-controller"
@@ -4494,21 +4694,22 @@ paths:
           type: "object"
         x-exportParamName: "Pipeline"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "pipeline-controller"
@@ -4524,19 +4725,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /pipelines/{id}/cancel:
     put:
       tags:
@@ -4555,6 +4757,7 @@ paths:
         type: "boolean"
         default: false
         x-exportParamName: "Force"
+        x-optionalDataType: "Bool"
       - name: "id"
         in: "path"
         description: "id"
@@ -4567,17 +4770,19 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Reason"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{id}/evaluateExpression:
     get:
       tags:
@@ -4600,19 +4805,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "pipeline-controller"
@@ -4637,21 +4843,22 @@ paths:
           type: "object"
         x-exportParamName: "PipelineExpression"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{id}/evaluateVariables:
     post:
       tags:
@@ -4691,6 +4898,7 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "RequisiteStageRefIds"
+        x-optionalDataType: "String"
       - name: "spelVersion"
         in: "query"
         description: "Version of SpEL evaluation logic to use (v3 or v4)"
@@ -4698,22 +4906,24 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "SpelVersion"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{id}/pause:
     put:
       tags:
@@ -4732,16 +4942,17 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{id}/resume:
     put:
       tags:
@@ -4760,21 +4971,22 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{id}/stages/{stageId}:
     patch:
       tags:
@@ -4806,19 +5018,20 @@ paths:
         type: "string"
         x-exportParamName: "StageId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /pipelines/{id}/stages/{stageId}/restart:
     put:
       tags:
@@ -4850,21 +5063,22 @@ paths:
         type: "string"
         x-exportParamName: "StageId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pipelines/{id}/{stageId}/evaluateExpression:
     get:
       tags:
@@ -4894,19 +5108,20 @@ paths:
         type: "string"
         x-exportParamName: "StageId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /plugins/deck/plugin-manifest.json:
     get:
       tags:
@@ -4917,18 +5132,19 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               $ref: "#/definitions/DeckPluginVersion"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /plugins/deck/{pluginId}/{pluginVersion}/{asset}:
     get:
       tags:
@@ -4957,16 +5173,17 @@ paths:
         type: "string"
         x-exportParamName: "PluginVersion"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "string"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /plugins/info:
     get:
       tags:
@@ -4982,19 +5199,21 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Service"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               $ref: "#/definitions/MapÂ«string,objectÂ»"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "plugin-info-controller"
@@ -5013,19 +5232,19 @@ paths:
           $ref: "#/definitions/SpinnakerPluginInfo"
         x-exportParamName: "PluginInfo"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     put:
       tags:
       - "plugin-info-controller"
@@ -5044,19 +5263,19 @@ paths:
           $ref: "#/definitions/SpinnakerPluginInfo"
         x-exportParamName: "PluginInfo"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /plugins/info/{id}:
     delete:
       tags:
@@ -5073,17 +5292,17 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
-            properties: {}
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /plugins/installed:
     get:
       tags:
@@ -5099,8 +5318,9 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Service"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
@@ -5108,12 +5328,13 @@ paths:
               type: "array"
               items:
                 $ref: "#/definitions/SpinnakerPluginDescriptor"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /plugins/publish/{pluginId}/{pluginVersion}:
     post:
       tags:
@@ -5149,16 +5370,17 @@ paths:
         type: "string"
         x-exportParamName: "PluginVersion"
       responses:
-        200:
+        "200":
           description: "OK"
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /projects:
     get:
       tags:
@@ -5169,19 +5391,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /projects/{id}:
     get:
       tags:
@@ -5198,19 +5421,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /projects/{id}/clusters:
     get:
       tags:
@@ -5226,6 +5450,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -5233,19 +5458,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /projects/{id}/pipelines:
     get:
       tags:
@@ -5269,26 +5495,29 @@ paths:
         default: 5
         format: "int32"
         x-exportParamName: "Limit"
+        x-optionalDataType: "Int32"
       - name: "statuses"
         in: "query"
         description: "statuses"
         required: false
         type: "string"
         x-exportParamName: "Statuses"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /pubsub/subscriptions:
     get:
       tags:
@@ -5299,18 +5528,19 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               $ref: "#/definitions/MapÂ«string,stringÂ»"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /search:
     get:
       tags:
@@ -5326,6 +5556,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "allowShortQuery"
         in: "query"
         description: "allowShortQuery"
@@ -5333,6 +5564,7 @@ paths:
         type: "boolean"
         default: false
         x-exportParamName: "AllowShortQuery"
+        x-optionalDataType: "Bool"
       - name: "page"
         in: "query"
         description: "page"
@@ -5341,6 +5573,7 @@ paths:
         default: 1
         format: "int32"
         x-exportParamName: "Page"
+        x-optionalDataType: "Int32"
       - name: "pageSize"
         in: "query"
         description: "pageSize"
@@ -5349,18 +5582,21 @@ paths:
         default: 10000
         format: "int32"
         x-exportParamName: "PageSize"
+        x-optionalDataType: "Int32"
       - name: "platform"
         in: "query"
         description: "platform"
         required: false
         type: "string"
         x-exportParamName: "Platform"
+        x-optionalDataType: "String"
       - name: "q"
         in: "query"
         description: "q"
         required: false
         type: "string"
         x-exportParamName: "Q"
+        x-optionalDataType: "String"
       - name: "type"
         in: "query"
         description: "type"
@@ -5368,19 +5604,20 @@ paths:
         type: "string"
         x-exportParamName: "Type_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /securityGroups:
     get:
       tags:
@@ -5397,24 +5634,26 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "id"
         in: "query"
         description: "id"
         required: false
         type: "string"
         x-exportParamName: "Id"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /securityGroups/{account}:
     get:
       tags:
@@ -5431,6 +5670,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -5444,18 +5684,19 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /securityGroups/{account}/{region}/{name}:
     get:
       tags:
@@ -5471,6 +5712,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "account"
         in: "path"
         description: "account"
@@ -5490,6 +5732,7 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+        x-optionalDataType: "String"
       - name: "region"
         in: "path"
         description: "region"
@@ -5502,18 +5745,19 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "VpcId"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /subnets:
     get:
       tags:
@@ -5524,19 +5768,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /subnets/{cloudProvider}:
     get:
       tags:
@@ -5553,19 +5798,20 @@ paths:
         type: "string"
         x-exportParamName: "CloudProvider"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /tasks:
     post:
       tags:
@@ -5585,21 +5831,22 @@ paths:
           type: "object"
         x-exportParamName: "Map_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /tasks/cancel:
     put:
       tags:
@@ -5621,21 +5868,22 @@ paths:
         collectionFormat: "multi"
         x-exportParamName: "Ids"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /tasks/{id}:
     get:
       tags:
@@ -5652,19 +5900,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "task-controller"
@@ -5680,19 +5929,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /tasks/{id}/cancel:
     put:
       tags:
@@ -5711,21 +5961,22 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /tasks/{id}/details/{taskDetailsId}:
     get:
       tags:
@@ -5741,6 +5992,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -5754,19 +6006,20 @@ paths:
         type: "string"
         x-exportParamName: "TaskDetailsId"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/builds:
     get:
       tags:
@@ -5783,20 +6036,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Type_"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/builds/{buildMaster}/build/{number}/**:
     get:
       tags:
@@ -5820,19 +6075,20 @@ paths:
         type: "string"
         x-exportParamName: "Number"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/builds/{buildMaster}/builds/**:
     get:
       tags:
@@ -5850,19 +6106,20 @@ paths:
         type: "string"
         x-exportParamName: "BuildMaster"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/builds/{buildMaster}/jobs:
     get:
       tags:
@@ -5880,19 +6137,20 @@ paths:
         type: "string"
         x-exportParamName: "BuildMaster"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/builds/{buildMaster}/jobs/**:
     get:
       tags:
@@ -5910,19 +6168,20 @@ paths:
         type: "string"
         x-exportParamName: "BuildMaster"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/canary:
     post:
       tags:
@@ -5947,38 +6206,42 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Application"
+        x-optionalDataType: "String"
       - name: "metricsAccountName"
         in: "query"
         description: "metricsAccountName"
         required: false
         type: "string"
         x-exportParamName: "MetricsAccountName"
+        x-optionalDataType: "String"
       - name: "parentPipelineExecutionId"
         in: "query"
         description: "parentPipelineExecutionId"
         required: false
         type: "string"
         x-exportParamName: "ParentPipelineExecutionId"
+        x-optionalDataType: "String"
       - name: "storageAccountName"
         in: "query"
         description: "storageAccountName"
         required: false
         type: "string"
         x-exportParamName: "StorageAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/canary/{canaryConfigId}:
     post:
       tags:
@@ -5996,6 +6259,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Application"
+        x-optionalDataType: "String"
       - name: "canaryConfigId"
         in: "path"
         description: "canaryConfigId"
@@ -6008,6 +6272,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "ConfigurationAccountName"
+        x-optionalDataType: "String"
       - in: "body"
         name: "executionRequest"
         description: "executionRequest"
@@ -6021,32 +6286,35 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "MetricsAccountName"
+        x-optionalDataType: "String"
       - name: "parentPipelineExecutionId"
         in: "query"
         description: "parentPipelineExecutionId"
         required: false
         type: "string"
         x-exportParamName: "ParentPipelineExecutionId"
+        x-optionalDataType: "String"
       - name: "storageAccountName"
         in: "query"
         description: "storageAccountName"
         required: false
         type: "string"
         x-exportParamName: "StorageAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/canary/{canaryConfigId}/{canaryExecutionId}:
     get:
       tags:
@@ -6074,17 +6342,17 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "StorageAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /v2/canaries/canary/{canaryExecutionId}:
@@ -6108,18 +6376,19 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "StorageAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/credentials:
     get:
       tags:
@@ -6130,19 +6399,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/judges:
     get:
       tags:
@@ -6153,19 +6423,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/metadata/metricsService:
     get:
       tags:
@@ -6182,26 +6453,29 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Filter"
+        x-optionalDataType: "String"
       - name: "metricsAccountName"
         in: "query"
         description: "metricsAccountName"
         required: false
         type: "string"
         x-exportParamName: "MetricsAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/metricSetPairList/{metricSetPairListId}:
     get:
       tags:
@@ -6223,20 +6497,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "StorageAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaries/{application}/executions:
     get:
       tags:
@@ -6267,26 +6543,29 @@ paths:
         type: "string"
         allowEmptyValue: false
         x-exportParamName: "Statuses"
+        x-optionalDataType: "String"
       - name: "storageAccountName"
         in: "query"
         description: "storageAccountName"
         required: false
         type: "string"
         x-exportParamName: "StorageAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaryConfig:
     get:
       tags:
@@ -6302,26 +6581,29 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Application"
+        x-optionalDataType: "String"
       - name: "configurationAccountName"
         in: "query"
         description: "configurationAccountName"
         required: false
         type: "string"
         x-exportParamName: "ConfigurationAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     post:
       tags:
       - "v-2-canary-config-controller"
@@ -6345,20 +6627,21 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "ConfigurationAccountName"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/canaryConfig/{id}:
     get:
       tags:
@@ -6374,6 +6657,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "ConfigurationAccountName"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -6381,17 +6665,17 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     put:
       tags:
       - "v-2-canary-config-controller"
@@ -6415,6 +6699,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "ConfigurationAccountName"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -6422,19 +6707,19 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "v-2-canary-config-controller"
@@ -6449,6 +6734,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "ConfigurationAccountName"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -6456,14 +6742,15 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /v2/pipelineTemplates:
     get:
       tags:
@@ -6483,19 +6770,20 @@ paths:
         collectionFormat: "multi"
         x-exportParamName: "Scopes"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/pipelineTemplates/create:
     post:
       tags:
@@ -6520,22 +6808,24 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Tag"
+        x-optionalDataType: "String"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/pipelineTemplates/plan:
     post:
       tags:
@@ -6555,21 +6845,22 @@ paths:
           type: "object"
         x-exportParamName: "Pipeline"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/pipelineTemplates/update/{id}:
     post:
       tags:
@@ -6601,28 +6892,31 @@ paths:
         type: "boolean"
         default: false
         x-exportParamName: "SkipPlanDependents"
+        x-optionalDataType: "Bool"
       - name: "tag"
         in: "query"
         description: "tag"
         required: false
         type: "string"
         x-exportParamName: "Tag"
+        x-optionalDataType: "String"
       responses:
-        201:
+        "201":
           description: "Created"
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/pipelineTemplates/versions:
     get:
       tags:
@@ -6642,17 +6936,17 @@ paths:
         collectionFormat: "multi"
         x-exportParamName: "Scopes"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v2/pipelineTemplates/{id}:
     get:
       tags:
@@ -6668,6 +6962,7 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Digest"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -6680,20 +6975,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Tag"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
     delete:
       tags:
       - "v-2-pipeline-templates-controller"
@@ -6708,12 +7005,14 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Application"
+        x-optionalDataType: "String"
       - name: "digest"
         in: "query"
         description: "digest"
         required: false
         type: "string"
         x-exportParamName: "Digest"
+        x-optionalDataType: "String"
       - name: "id"
         in: "path"
         description: "id"
@@ -6726,20 +7025,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Tag"
+        x-optionalDataType: "String"
       responses:
-        202:
+        "202":
           description: "Accepted"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        204:
+        "204":
           description: "No Content"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
+      deprecated: false
   /v2/pipelineTemplates/{id}/dependents:
     get:
       tags:
@@ -6756,19 +7057,20 @@ paths:
         type: "string"
         x-exportParamName: "Id"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v3/builds:
     get:
       tags:
@@ -6784,20 +7086,22 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "Type_"
+        x-optionalDataType: "String"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v3/builds/{buildMaster}/build/{number}:
     get:
       tags:
@@ -6826,19 +7130,20 @@ paths:
         type: "string"
         x-exportParamName: "Number"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v3/builds/{buildMaster}/builds:
     get:
       tags:
@@ -6861,19 +7166,20 @@ paths:
         type: "string"
         x-exportParamName: "Job"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v3/builds/{buildMaster}/job:
     get:
       tags:
@@ -6896,19 +7202,20 @@ paths:
         type: "string"
         x-exportParamName: "Job"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
             additionalProperties:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /v3/builds/{buildMaster}/jobs:
     get:
       tags:
@@ -6925,19 +7232,20 @@ paths:
         type: "string"
         x-exportParamName: "BuildMaster"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /version:
     get:
       tags:
@@ -6948,16 +7256,17 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             $ref: "#/definitions/Version"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /vpcs:
     get:
       tags:
@@ -6968,18 +7277,18 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
       deprecated: true
   /webhooks/preconfigured:
@@ -6992,19 +7301,20 @@ paths:
       - "*/*"
       parameters: []
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
   /webhooks/{type}/{source}:
     post:
       tags:
@@ -7022,12 +7332,14 @@ paths:
         required: false
         type: "string"
         x-exportParamName: "XEventKey"
+        x-optionalDataType: "String"
       - name: "X-Hub-Signature"
         in: "header"
         description: "X-Hub-Signature"
         required: false
         type: "string"
         x-exportParamName: "XHubSignature"
+        x-optionalDataType: "String"
       - in: "body"
         name: "event"
         description: "event"
@@ -7048,19 +7360,19 @@ paths:
         type: "string"
         x-exportParamName: "Type_"
       responses:
-        200:
+        "200":
           description: "OK"
           schema:
             type: "object"
-            properties: {}
-        201:
+        "201":
           description: "Created"
-        401:
+        "401":
           description: "Unauthorized"
-        403:
+        "403":
           description: "Forbidden"
-        404:
+        "404":
           description: "Not Found"
+      deprecated: false
 definitions:
   Account:
     type: "object"
@@ -7195,17 +7507,14 @@ definitions:
           file:
             readable: true
             parent: "parent"
-            parentFile: null
             hidden: true
             freeSpace: 0
             totalSpace: 1
             usableSpace: 5
-            canonicalFile: null
             directory: true
             executable: true
             writable: true
             path: "path"
-            absoluteFile: null
             file: true
             absolute: true
             canonicalPath: "canonicalPath"
@@ -7252,17 +7561,14 @@ definitions:
           file:
             readable: true
             parent: "parent"
-            parentFile: null
             hidden: true
             freeSpace: 0
             totalSpace: 1
             usableSpace: 5
-            canonicalFile: null
             directory: true
             executable: true
             writable: true
             path: "path"
-            absoluteFile: null
             file: true
             absolute: true
             canonicalPath: "canonicalPath"
@@ -7322,17 +7628,14 @@ definitions:
           file:
             readable: true
             parent: "parent"
-            parentFile: null
             hidden: true
             freeSpace: 0
             totalSpace: 1
             usableSpace: 5
-            canonicalFile: null
             directory: true
             executable: true
             writable: true
             path: "path"
-            absoluteFile: null
             file: true
             absolute: true
             canonicalPath: "canonicalPath"
@@ -7379,17 +7682,14 @@ definitions:
           file:
             readable: true
             parent: "parent"
-            parentFile: null
             hidden: true
             freeSpace: 0
             totalSpace: 1
             usableSpace: 5
-            canonicalFile: null
             directory: true
             executable: true
             writable: true
             path: "path"
-            absoluteFile: null
             file: true
             absolute: true
             canonicalPath: "canonicalPath"
@@ -7476,17 +7776,14 @@ definitions:
         file:
           readable: true
           parent: "parent"
-          parentFile: null
           hidden: true
           freeSpace: 0
           totalSpace: 1
           usableSpace: 5
-          canonicalFile: null
           directory: true
           executable: true
           writable: true
           path: "path"
-          absoluteFile: null
           file: true
           absolute: true
           canonicalPath: "canonicalPath"
@@ -7533,17 +7830,14 @@ definitions:
         file:
           readable: true
           parent: "parent"
-          parentFile: null
           hidden: true
           freeSpace: 0
           totalSpace: 1
           usableSpace: 5
-          canonicalFile: null
           directory: true
           executable: true
           writable: true
           path: "path"
-          absoluteFile: null
           file: true
           absolute: true
           canonicalPath: "canonicalPath"
@@ -7683,17 +7977,14 @@ definitions:
     example:
       readable: true
       parent: "parent"
-      parentFile: null
       hidden: true
       freeSpace: 0
       totalSpace: 1
       usableSpace: 5
-      canonicalFile: null
       directory: true
       executable: true
       writable: true
       path: "path"
-      absoluteFile: null
       file: true
       absolute: true
       canonicalPath: "canonicalPath"
@@ -7807,17 +8098,14 @@ definitions:
       file:
         readable: true
         parent: "parent"
-        parentFile: null
         hidden: true
         freeSpace: 0
         totalSpace: 1
         usableSpace: 5
-        canonicalFile: null
         directory: true
         executable: true
         writable: true
         path: "path"
-        absoluteFile: null
         file: true
         absolute: true
         canonicalPath: "canonicalPath"

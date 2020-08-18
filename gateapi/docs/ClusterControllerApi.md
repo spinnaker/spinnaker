@@ -22,23 +22,23 @@ Retrieve a cluster's loadbalancers
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **applicationName** | **string**| applicationName | 
   **clusterName** | **string**| clusterName | 
   **type_** | **string**| type | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetClusterLoadBalancersUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetClusterLoadBalancersUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **applicationName** | **string**| applicationName | 
- **clusterName** | **string**| clusterName | 
- **type_** | **string**| type | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -63,21 +63,21 @@ Retrieve a cluster's details
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetClustersUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetClustersUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **clusterName** | **string**| clusterName | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -102,19 +102,19 @@ Retrieve a list of clusters for an account
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetClustersUsingGET1Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetClustersUsingGET1Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -139,17 +139,17 @@ Retrieve a list of cluster names for an application, grouped by account
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetClustersUsingGET2Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetClustersUsingGET2Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -174,25 +174,25 @@ Retrieve a list of scaling activities for a server group
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
   **serverGroupName** | **string**| serverGroupName | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetScalingActivitiesUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetScalingActivitiesUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **clusterName** | **string**| clusterName | 
- **serverGroupName** | **string**| serverGroupName | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **provider** | **string**| provider | [default to aws]
- **region** | **string**| region | 
+
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **provider** | **optional.String**| provider | [default to aws]
+ **region** | **optional.String**| region | 
 
 ### Return type
 
@@ -217,23 +217,23 @@ Retrieve a server group's details
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
   **serverGroupName** | **string**| serverGroupName | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetServerGroupsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetServerGroupsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **clusterName** | **string**| clusterName | 
- **serverGroupName** | **string**| serverGroupName | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -258,21 +258,21 @@ Retrieve a list of server groups for a cluster
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetServerGroupsUsingGET1Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetServerGroupsUsingGET1Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **clusterName** | **string**| clusterName | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
 
 ### Return type
 
@@ -299,29 +299,29 @@ Retrieve a server group that matches a target coordinate (e.g., newest, ancestor
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **application** | **string**| application | 
   **cloudProvider** | **string**| cloudProvider | 
   **clusterName** | **string**| clusterName | 
   **scope** | **string**| scope | 
   **target** | **string**| target | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ClusterControllerApiGetTargetServerGroupUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ClusterControllerApiGetTargetServerGroupUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **application** | **string**| application | 
- **cloudProvider** | **string**| cloudProvider | 
- **clusterName** | **string**| clusterName | 
- **scope** | **string**| scope | 
- **target** | **string**| target | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **onlyEnabled** | **bool**| onlyEnabled | 
- **validateOldest** | **bool**| validateOldest | 
+
+
+
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **onlyEnabled** | **optional.Bool**| onlyEnabled | 
+ **validateOldest** | **optional.Bool**| validateOldest | 
 
 ### Return type
 

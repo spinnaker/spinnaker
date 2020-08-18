@@ -20,8 +20,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
+	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -106,7 +108,7 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 	resp, err := options.GateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(options.GateClient.Context,
 		options.application,
 		options.name,
-		map[string]interface{}{"trigger": trigger})
+		&gate.PipelineControllerApiInvokePipelineConfigUsingPOST1Opts{Trigger: optional.NewInterface(trigger)})
 	if err != nil {
 		return fmt.Errorf("Execute pipeline failed with response: %v and error: %s\n", resp, err)
 	}

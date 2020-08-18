@@ -122,22 +122,6 @@ func TestPipelineGet_flags(t *testing.T) {
 	}
 }
 
-func TestPipelineGet_malformed(t *testing.T) {
-	ts := testGatePipelineTemplateGetMalformed()
-	defer ts.Close()
-
-	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
-
-	args := []string{"pipeline-template", "get", "--id", "newSpelTemplate", "--gate-endpoint", ts.URL}
-	rootCmd.SetArgs(args)
-
-	err := rootCmd.Execute()
-	if err == nil {
-		t.Fatalf("Command failed with: %s", err)
-	}
-}
-
 func TestPipelineGet_fail(t *testing.T) {
 	ts := testGateFail()
 	defer ts.Close()
@@ -175,16 +159,8 @@ func TestPipelineGet_notfound(t *testing.T) {
 func testGatePipelineTemplateGetSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(pipelineTemplateGetJson))
-	}))
-	return httptest.NewServer(mux)
-}
-
-// testGatePipelineGetMalformed returns a malformed get response of pipeline configs.
-func testGatePipelineTemplateGetMalformed() *httptest.Server {
-	mux := util.TestGateMuxWithVersionHandler()
-	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, strings.TrimSpace(malformedPipelineTemplateGetJson))
 	}))
 	return httptest.NewServer(mux)
 }
@@ -206,61 +182,6 @@ func testGateFail() *httptest.Server {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}))
 }
-
-const malformedPipelineTemplateGetJson = `
- "id": "newSpelTemplate",
- "lastModifiedBy": "anonymous",
- "metadata": {
-  "description": "A generic application bake and tag pipeline.",
-  "name": "Default Bake and Tag",
-  "owner": "example@example.com",
-  "scopes": [
-   "global"
-  ]
- },
- "pipeline": {
-  "description": "",
-  "keepWaitingPipelines": false,
-  "lastModifiedBy": "anonymous",
-  "limitConcurrent": true,
-  "notifications": [],
-  "parameterConfig": [],
-  "stages": [
-   {
-    "name": "My Wait Stage",
-    "refId": "wait1",
-    "requisiteStageRefIds": [],
-    "type": "wait",
-    "waitTime": "${ templateVariables.waitTime }"
-   }
-  ],
-  "triggers": [
-   {
-    "attributeConstraints": {},
-    "enabled": true,
-    "payloadConstraints": {},
-    "pubsubSystem": "google",
-    "source": "jtk54",
-    "subscription": "super-pub",
-    "subscriptionName": "super-pub",
-    "type": "pubsub"
-   }
-  ],
-  "updateTs": "1543509523663"
- },
- "protect": false,
- "schema": "v2",
- "updateTs": "1543860678988",
- "variables": [
-  {
-   "defaultValue": 42,
-   "description": "The time a wait stage shall pauseth",
-   "name": "waitTime",
-   "type": "int"
-  }
- ]
-}
-`
 
 const pipelineTemplateGetJson = `
 {

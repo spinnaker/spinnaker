@@ -17,7 +17,7 @@ Retrieve the list of job names for a given pipeline available to triggers
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **pipeline** | **string**| pipeline | 
   **team** | **string**| team | 
@@ -45,7 +45,7 @@ Retrieve the list of pipeline names for a given team available to triggers
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **team** | **string**| team | 
 
@@ -72,7 +72,7 @@ Retrieve the list of resource names for a given pipeline available to the Concou
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **pipeline** | **string**| pipeline | 
   **team** | **string**| team | 

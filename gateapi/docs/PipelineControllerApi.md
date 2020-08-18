@@ -32,18 +32,18 @@ Cancel a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***PipelineControllerApiCancelPipelineUsingPUT1Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a PipelineControllerApiCancelPipelineUsingPUT1Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **string**| id | 
- **force** | **bool**| force | [default to false]
- **reason** | **string**| reason | 
+
+ **force** | **optional.Bool**| force | [default to false]
+ **reason** | **optional.String**| reason | 
 
 ### Return type
 
@@ -68,7 +68,7 @@ Delete a pipeline definition
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **pipelineName** | **string**| pipelineName | 
 
@@ -95,7 +95,7 @@ Delete a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
 
 ### Return type
@@ -121,7 +121,7 @@ Evaluate a pipeline expression at a specific stage using the provided execution 
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **expression** | **string**| expression | 
   **id** | **string**| id | 
   **stageId** | **string**| stageId | 
@@ -149,7 +149,7 @@ Evaluate a pipeline expression using the provided execution as context
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **expression** | **string**| expression | 
   **id** | **string**| id | 
 
@@ -176,7 +176,7 @@ Evaluate a pipeline expression using the provided execution as context
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
   **pipelineExpression** | [**interface{}**](interface{}.md)| pipelineExpression | 
 
@@ -203,20 +203,20 @@ Evaluate variables same as Evaluate Variables stage using the provided execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **executionId** | **string**| Execution id to run against | 
   **expressions** | [**[]Mapstringstring**](MapÂ«string,stringÂ».md)| List of variables/expressions to evaluate | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***PipelineControllerApiEvaluateVariablesUsingPOSTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a PipelineControllerApiEvaluateVariablesUsingPOSTOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **executionId** | **string**| Execution id to run against | 
- **expressions** | [**[]Mapstringstring**](MapÂ«string,stringÂ».md)| List of variables/expressions to evaluate | 
- **requisiteStageRefIds** | **string**| Comma separated list of requisite stage IDs for the evaluation stage | 
- **spelVersion** | **string**| Version of SpEL evaluation logic to use (v3 or v4) | 
+
+
+ **requisiteStageRefIds** | **optional.String**| Comma separated list of requisite stage IDs for the evaluation stage | 
+ **spelVersion** | **optional.String**| Version of SpEL evaluation logic to use (v3 or v4) | 
 
 ### Return type
 
@@ -241,7 +241,7 @@ Retrieve a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
 
 ### Return type
@@ -267,19 +267,19 @@ Trigger a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **pipelineNameOrId** | **string**| pipelineNameOrId | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***PipelineControllerApiInvokePipelineConfigUsingPOST1Opts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a PipelineControllerApiInvokePipelineConfigUsingPOST1Opts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **pipelineNameOrId** | **string**| pipelineNameOrId | 
- **trigger** | [**interface{}**](interface{}.md)| trigger | 
+
+
+ **trigger** | [**optional.Interface of interface{}**](interface{}.md)| trigger | 
 
 ### Return type
 
@@ -304,19 +304,19 @@ Trigger a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **application** | **string**| application | 
   **pipelineNameOrId** | **string**| pipelineNameOrId | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***PipelineControllerApiInvokePipelineConfigViaEchoUsingPOSTOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a PipelineControllerApiInvokePipelineConfigViaEchoUsingPOSTOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
- **pipelineNameOrId** | **string**| pipelineNameOrId | 
- **trigger** | [**interface{}**](interface{}.md)| trigger | 
+
+
+ **trigger** | [**optional.Interface of interface{}**](interface{}.md)| trigger | 
 
 ### Return type
 
@@ -341,7 +341,7 @@ Pause a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
 
 ### Return type
@@ -367,7 +367,7 @@ Rename a pipeline definition
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **renameCommand** | [**interface{}**](interface{}.md)| renameCommand | 
 
 ### Return type
@@ -393,7 +393,7 @@ Restart a stage execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **context** | [**interface{}**](interface{}.md)| context | 
   **id** | **string**| id | 
   **stageId** | **string**| stageId | 
@@ -421,7 +421,7 @@ Resume a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
 
 ### Return type
@@ -447,7 +447,7 @@ Save a pipeline definition
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **pipeline** | [**interface{}**](interface{}.md)| pipeline | 
 
 ### Return type
@@ -473,7 +473,7 @@ Initiate a pipeline execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **map_** | [**interface{}**](interface{}.md)| map | 
 
 ### Return type
@@ -499,7 +499,7 @@ Update a pipeline definition
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **id** | **string**| id | 
   **pipeline** | [**interface{}**](interface{}.md)| pipeline | 
 
@@ -526,7 +526,7 @@ Update a stage execution
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **context** | [**interface{}**](interface{}.md)| context | 
   **id** | **string**| id | 
   **stageId** | **string**| stageId | 

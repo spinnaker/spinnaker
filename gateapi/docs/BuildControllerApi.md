@@ -26,15 +26,15 @@ Deprecated, use the v3 endpoint instead
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***BuildControllerApiGetBuildMastersUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a BuildControllerApiGetBuildMastersUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **type_** | **string**| type | 
+ **type_** | **optional.String**| type | 
 
 ### Return type
 
@@ -61,7 +61,7 @@ Deprecated, use the v3 endpoint instead
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **number** | **string**| number | 
 
@@ -90,7 +90,7 @@ Deprecated, use the v3 endpoint instead
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
 
 ### Return type
@@ -118,7 +118,7 @@ Deprecated, use the v3 endpoint instead
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
 
 ### Return type
@@ -146,7 +146,7 @@ Deprecated, use the v3 endpoint instead
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
 
 ### Return type
@@ -172,15 +172,15 @@ Get build masters
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+ **optional** | ***BuildControllerApiV3GetBuildMastersUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a BuildControllerApiV3GetBuildMastersUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **type_** | **string**| type | 
+ **type_** | **optional.String**| type | 
 
 ### Return type
 
@@ -205,7 +205,7 @@ Get build for build master
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **job** | **string**| job | 
   **number** | **string**| number | 
@@ -233,7 +233,7 @@ Get builds for build master
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **job** | **string**| job | 
 
@@ -260,7 +260,7 @@ Get job config
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
   **job** | **string**| job | 
 
@@ -287,7 +287,7 @@ Get jobs for build master
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **buildMaster** | **string**| buildMaster | 
 
 ### Return type

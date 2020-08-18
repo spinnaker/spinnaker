@@ -16,24 +16,24 @@ Retrieve a server group's details
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **account** | **string**| account | 
   **applicationName** | **string**| applicationName | 
   **region** | **string**| region | 
   **serverGroupName** | **string**| serverGroupName | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ServerGroupControllerApiGetServerGroupDetailsUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ServerGroupControllerApiGetServerGroupDetailsUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **account** | **string**| account | 
- **applicationName** | **string**| applicationName | 
- **region** | **string**| region | 
- **serverGroupName** | **string**| serverGroupName | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **includeDetails** | **string**| includeDetails | [default to true]
+
+
+
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **includeDetails** | **optional.String**| includeDetails | [default to true]
 
 ### Return type
 
@@ -58,20 +58,20 @@ Retrieve a list of server groups for a given application
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **applicationName** | **string**| applicationName | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+ **optional** | ***ServerGroupControllerApiGetServerGroupsForApplicationUsingGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
+Optional parameters are passed through a pointer to a ServerGroupControllerApiGetServerGroupsForApplicationUsingGETOpts struct
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **applicationName** | **string**| applicationName | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
- **cloudProvider** | **string**| cloudProvider | 
- **clusters** | **string**| clusters | 
- **expand** | **string**| expand | [default to false]
+
+ **xRateLimitApp** | **optional.String**| X-RateLimit-App | 
+ **cloudProvider** | **optional.String**| cloudProvider | 
+ **clusters** | **optional.String**| clusters | 
+ **expand** | **optional.String**| expand | [default to false]
 
 ### Return type
 

@@ -21,8 +21,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
+	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -141,12 +143,12 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 		"executionRequest": executionRequest,
 	}
 
-	initiateOptionalParams := map[string]interface{}{}
+	initiateOptionalParams := &gate.V2CanaryControllerApiInitiateCanaryWithConfigUsingPOSTOpts{}
 	if options.metricsAccount != "" {
-		initiateOptionalParams["metricsAccountName"] = options.metricsAccount
+		initiateOptionalParams.MetricsAccountName = optional.NewString(options.metricsAccount)
 	}
 	if options.storageAccount != "" {
-		initiateOptionalParams["storageAccountName"] = options.storageAccount
+		initiateOptionalParams.StorageAccountName = optional.NewString(options.storageAccount)
 	}
 
 	options.Ui.Info("Initiating canary execution for supplied canary config")
@@ -165,13 +167,12 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 	canaryExecutionId := canaryExecutionResp.(map[string]interface{})["canaryExecutionId"].(string)
 	options.Ui.Info(fmt.Sprintf("Spawned canary execution with id %s, polling for completion...", canaryExecutionId))
 
-	queryOptionalParams := map[string]interface{}{}
+	queryOptionalParams := &gate.V2CanaryControllerApiGetCanaryResultUsingGET1Opts{}
 	if options.storageAccount != "" {
-		queryOptionalParams["storageAccountName"] = options.storageAccount
+		queryOptionalParams.StorageAccountName = optional.NewString(options.storageAccount)
 	}
 
 	canaryResult, canaryResultResp, canaryResultErr := options.GateClient.V2CanaryControllerApi.GetCanaryResultUsingGET1(options.GateClient.Context, canaryExecutionId, queryOptionalParams)
-
 	if canaryResultErr != nil {
 		return canaryResultErr
 	}

@@ -18,8 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
+	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -78,19 +80,29 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	queryParams := map[string]interface{}{}
+	getQueryParam := &gate.V2PipelineTemplatesControllerApiGetUsingGET2Opts{}
 	if options.tag != "" {
-		queryParams["tag"] = options.tag
+		getQueryParam.Tag = optional.NewString(options.tag)
 	}
 
-	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context, templateId, queryParams)
+	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context, templateId, getQueryParam)
 
 	var saveResp *http.Response
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
-		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, queryParams)
+		opt := &gate.V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts{}
+		if options.tag != "" {
+			opt.Tag = optional.NewString(options.tag)
+		}
+
+		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, opt)
 	} else if resp.StatusCode == http.StatusNotFound {
-		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, queryParams)
+		opt := &gate.V2PipelineTemplatesControllerApiCreateUsingPOST1Opts{}
+		if options.tag != "" {
+			opt.Tag = optional.NewString(options.tag)
+		}
+
+		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, opt)
 	} else {
 		if queryErr != nil {
 			return queryErr

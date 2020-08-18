@@ -27,7 +27,7 @@ import (
 )
 
 func TestApplicationList_basic(t *testing.T) {
-	ts := testGateApplicationList(false)
+	ts := testGateApplicationList()
 	defer ts.Close()
 
 	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
@@ -37,21 +37,6 @@ func TestApplicationList_basic(t *testing.T) {
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	if err != nil {
-		t.Fatalf("Command failed with: %s", err)
-	}
-}
-
-func TestApplicationList_malformed(t *testing.T) {
-	ts := testGateApplicationList(true)
-	defer ts.Close()
-
-	rootCmd, options := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
-	rootCmd.AddCommand(NewApplicationCmd(options))
-
-	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
-	if err == nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
 }
@@ -74,36 +59,15 @@ func TestApplicationList_fail(t *testing.T) {
 // testGateApplicationList spins up a local http server that we will configure the GateClient
 // to direct requests to. When 'returnMalformed' is false, responds with a 200 and a well-formed application list.
 // Returns a malformed list of application configs when 'returnMalformed' is true
-func testGateApplicationList(returnMalformed bool) *httptest.Server {
+func testGateApplicationList() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/applications", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if returnMalformed {
-			fmt.Fprintln(w, strings.TrimSpace(malformedApplicationListJson))
-		} else {
-			fmt.Fprintln(w, strings.TrimSpace(applicationListJson))
-		}
+		w.Header().Add("content-type", "application/json")
+		fmt.Fprintln(w, strings.TrimSpace(applicationListJson))
 	}))
 
 	return httptest.NewServer(mux)
 }
-
-const malformedApplicationListJson = `
-  {
-    "accounts": "account1",
-    "cloudproviders": [
-      "gce",
-      "kubernetes"
-    ],
-    "createTs": "1527261941734",
-    "email": "app",
-    "instancePort": 80,
-    "lastModifiedBy": "anonymous",
-    "name": "app",
-    "updateTs": "1527261941735",
-    "user": "anonymous",
-  }
-]
-`
 
 const applicationListJson = `
 [

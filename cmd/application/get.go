@@ -18,9 +18,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/spinnaker/spin/util"
-
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
+
+	gate "github.com/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spin/util"
 )
 
 type getOptions struct {
@@ -63,7 +65,7 @@ func getApplication(cmd *cobra.Command, options *getOptions, args []string) erro
 		return err
 	}
 
-	app, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, map[string]interface{}{"expand": options.expand})
+	app, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationUsingGETOpts{Expand: optional.NewBool(options.expand)})
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Application '%s' not found\n", applicationName)

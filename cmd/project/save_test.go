@@ -198,6 +198,7 @@ func testGateProjectSaveSuccess(buffer io.Writer) *httptest.Server {
 		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, strings.TrimSpace(testAppTaskRefJsonStr)),
 	)
 	mux.Handle("/tasks/id", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(testProjectTaskStatusJsonStr))
 	}))
 	return httptest.NewServer(mux)
