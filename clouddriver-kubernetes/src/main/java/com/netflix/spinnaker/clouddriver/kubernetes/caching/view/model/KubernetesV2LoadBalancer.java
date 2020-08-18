@@ -81,11 +81,6 @@ public final class KubernetesV2LoadBalancer
     return new KubernetesV2LoadBalancer(manifest, cd.getId(), moniker, loadBalancerServerGroups);
   }
 
-  @Override
-  public String getType() {
-    return KubernetesCloudProvider.ID;
-  }
-
   public String getRegion() {
     return namespace;
   }

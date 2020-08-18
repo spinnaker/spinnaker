@@ -82,11 +82,6 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
   }
 
   @Override
-  public String getApplication() {
-    return getMoniker().getApp();
-  }
-
-  @Override
   public SecurityGroupSummary getSummary() {
     return KubernetesV2SecurityGroupSummary.builder().id(id).name(id).build();
   }
@@ -180,11 +175,6 @@ public final class KubernetesV2SecurityGroup implements KubernetesResource, Secu
             port == null
                 ? null
                 : new TreeSet<>(ImmutableList.of(new StringPortRange(port.toString()))));
-  }
-
-  @Override
-  public String getType() {
-    return KubernetesCloudProvider.ID;
   }
 
   @Override

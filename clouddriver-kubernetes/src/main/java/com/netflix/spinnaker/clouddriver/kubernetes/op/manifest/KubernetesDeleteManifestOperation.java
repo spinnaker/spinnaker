@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
@@ -59,14 +58,8 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
         c -> {
           getTask()
               .updateStatus(OP_NAME, "Looking up resource properties for " + c.getKind() + "...");
-          KubernetesResourceProperties properties =
-              credentials.getResourcePropertyRegistry().get(c.getKind());
-          KubernetesHandler deployer = properties.getHandler();
-
-          if (deployer == null) {
-            throw new IllegalArgumentException("Resource with " + c + " does not support delete");
-          }
-
+          KubernetesHandler deployer =
+              credentials.getResourcePropertyRegistry().get(c.getKind()).getHandler();
           getTask().updateStatus(OP_NAME, "Calling delete operation...");
           result.merge(
               deployer.delete(

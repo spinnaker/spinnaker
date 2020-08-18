@@ -266,11 +266,6 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
   }
 
   @Override
-  public String getType() {
-    return KubernetesCloudProvider.ID;
-  }
-
-  @Override
   public String getRegion() {
     return namespace;
   }

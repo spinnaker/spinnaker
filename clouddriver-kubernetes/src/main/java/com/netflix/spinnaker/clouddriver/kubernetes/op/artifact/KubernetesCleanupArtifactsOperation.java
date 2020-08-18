@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -84,13 +83,14 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
               credentials.getResourcePropertyRegistry().get(KubernetesKind.fromString(kind));
 
           getTask().updateStatus(OP_NAME, "Deleting artifact '" + a + '"');
-          KubernetesHandler handler = properties.getHandler();
           String name = a.getName();
           if (!Strings.isNullOrEmpty(a.getVersion())) {
             name = String.join("-", name, a.getVersion());
           }
           result.merge(
-              handler.delete(credentials, a.getLocation(), name, null, new V1DeleteOptions()));
+              properties
+                  .getHandler()
+                  .delete(credentials, a.getLocation(), name, null, new V1DeleteOptions()));
         });
 
     result.setManifests(null);

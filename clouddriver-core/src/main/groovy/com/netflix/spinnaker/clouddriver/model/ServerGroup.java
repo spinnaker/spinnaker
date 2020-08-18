@@ -53,7 +53,9 @@ public interface ServerGroup {
    * @deprecated use #getCloudProvider
    * @return type
    */
-  String getType();
+  default String getType() {
+    return getCloudProvider();
+  }
 
   /** Provider-specific identifier */
   String getCloudProvider();

@@ -578,7 +578,7 @@ final class KubernetesDataProviderIntegrationTest {
                 "app.kubernetes.io/name", "frontendapp",
                 "app.kubernetes.io/managed-by", "spinnaker"));
     softly.assertThat(loadBalancer.getKind()).isEqualTo(KubernetesKind.SERVICE);
-    softly.assertThat(loadBalancer.getType()).isEqualTo("kubernetes");
+    softly.assertThat(loadBalancer.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(loadBalancer.getMoniker().getApp()).isEqualTo("frontendapp");
     softly.assertThat(loadBalancer.getMoniker().getCluster()).isEqualTo("service frontend");
     softly.assertThat(loadBalancer.getName()).isEqualTo("service frontend");
@@ -661,7 +661,6 @@ final class KubernetesDataProviderIntegrationTest {
             ImmutableMap.of(
                 "app.kubernetes.io/name", "frontendapp",
                 "app.kubernetes.io/managed-by", "spinnaker"));
-    softly.assertThat(serverGroup.getType()).isEqualTo("kubernetes");
     softly
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly("nginx:1.19.0");
@@ -694,7 +693,6 @@ final class KubernetesDataProviderIntegrationTest {
             ImmutableMap.of(
                 "app.kubernetes.io/name", "frontendapp",
                 "app.kubernetes.io/managed-by", "spinnaker"));
-    softly.assertThat(serverGroup.getType()).isEqualTo("kubernetes");
     softly
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly("nginx:1.19.1");
@@ -728,7 +726,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod frontend-5c6559f75f-4ml8h");
     softly.assertThat(instance.getName()).isEqualTo("477dcf19-be44-4853-88fd-1d9aedfcddba");
     softly
@@ -749,7 +746,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod frontend-5c6559f75f-6fdmt");
     softly.assertThat(instance.getName()).isEqualTo("a2280982-e745-468f-9176-21ff1642fa8d");
     softly
@@ -904,7 +900,7 @@ final class KubernetesDataProviderIntegrationTest {
                 "app.kubernetes.io/name", "backendapp",
                 "app.kubernetes.io/managed-by", "spinnaker"));
     softly.assertThat(loadBalancer.getKind()).isEqualTo(KubernetesKind.SERVICE);
-    softly.assertThat(loadBalancer.getType()).isEqualTo("kubernetes");
+    softly.assertThat(loadBalancer.getCloudProvider()).isEqualTo("kubernetes");
     softly.assertThat(loadBalancer.getMoniker().getApp()).isEqualTo("backendapp");
     softly.assertThat(loadBalancer.getMoniker().getCluster()).isEqualTo("service backendlb");
     softly.assertThat(loadBalancer.getName()).isEqualTo("service backendlb");
@@ -1011,7 +1007,6 @@ final class KubernetesDataProviderIntegrationTest {
                 "app.kubernetes.io/name", "backendapp",
                 "moniker.spinnaker.io/sequence", "14",
                 "app.kubernetes.io/managed-by", "spinnaker"));
-    softly.assertThat(serverGroup.getType()).isEqualTo("kubernetes");
     softly
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly(
@@ -1044,7 +1039,6 @@ final class KubernetesDataProviderIntegrationTest {
                 "app.kubernetes.io/name", "backendapp",
                 "moniker.spinnaker.io/sequence", "15",
                 "app.kubernetes.io/managed-by", "spinnaker"));
-    softly.assertThat(serverGroup.getType()).isEqualTo("kubernetes");
     softly
         .assertThat((Collection<String>) serverGroup.getBuildInfo().get("images"))
         .containsExactly(
@@ -1063,7 +1057,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod backend-v014-xkvwh");
     softly.assertThat(instance.getName()).isEqualTo("d05606fe-aa69-4f16-b56a-371c2313fe9c");
     softly
@@ -1085,7 +1078,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(instance.getKind()).isEqualTo(KubernetesKind.POD);
     softly.assertThat(instance.getHealthState()).isEqualTo(HealthState.Up);
     softly.assertThat(instance.getCloudProvider()).isEqualTo("kubernetes");
-    softly.assertThat(instance.getProviderType()).isEqualTo("kubernetes");
     softly.assertThat(instance.getHumanReadableName()).isEqualTo("pod backend-v015-vhglj");
     softly.assertThat(instance.getName()).isEqualTo("45db7673-e3d2-4746-9ecd-38f868f853e5");
     softly

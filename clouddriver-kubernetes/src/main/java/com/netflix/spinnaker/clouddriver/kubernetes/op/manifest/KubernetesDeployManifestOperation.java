@@ -97,15 +97,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
         manifest.setNamespace(description.getNamespaceOverride());
       }
 
-      KubernetesResourceProperties properties = findResourceProperties(manifest);
-      KubernetesHandler deployer = properties.getHandler();
-      if (deployer == null) {
-        throw new IllegalArgumentException(
-            "No deployer available for Kubernetes object kind '"
-                + manifest.getKind().toString()
-                + "', unable to continue.");
-      }
-
       KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(
           manifest, description.getStrategy());
 
@@ -114,7 +105,9 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
               OP_NAME,
               "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
       ReplaceResult replaceResult =
-          deployer.replaceArtifacts(manifest, artifacts, description.getAccount());
+          findResourceProperties(manifest)
+              .getHandler()
+              .replaceArtifacts(manifest, artifacts, description.getAccount());
       deployManifests.add(replaceResult.getManifest());
       boundArtifacts.addAll(replaceResult.getBoundArtifacts());
     }

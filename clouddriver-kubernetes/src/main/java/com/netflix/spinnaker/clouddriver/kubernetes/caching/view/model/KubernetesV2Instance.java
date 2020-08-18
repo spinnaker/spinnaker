@@ -136,11 +136,6 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
   }
 
   @Override
-  public String getProviderType() {
-    return KubernetesCloudProvider.ID;
-  }
-
-  @Override
   public String getCloudProvider() {
     return KubernetesCloudProvider.ID;
   }

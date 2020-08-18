@@ -32,7 +32,9 @@ public interface SecurityGroup {
    * @deprecated use #getCloudProvider
    * @return
    */
-  String getType();
+  default String getType() {
+    return getCloudProvider();
+  }
 
   /** Provider-specific identifier */
   String getCloudProvider();
@@ -68,7 +70,9 @@ public interface SecurityGroup {
    * @return
    */
   @Deprecated
-  String getApplication();
+  default String getApplication() {
+    return getMoniker().getApp();
+  }
 
   /**
    * The account associated with this security group

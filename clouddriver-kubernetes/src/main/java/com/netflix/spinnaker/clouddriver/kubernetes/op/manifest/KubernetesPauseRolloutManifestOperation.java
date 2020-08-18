@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.manifest;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesPauseRolloutManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.CanPauseRollout;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
@@ -49,9 +48,8 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
-    KubernetesResourceProperties properties =
-        credentials.getResourcePropertyRegistry().get(coordinates.getKind());
-    KubernetesHandler deployer = properties.getHandler();
+    KubernetesHandler deployer =
+        credentials.getResourcePropertyRegistry().get(coordinates.getKind()).getHandler();
 
     if (!(deployer instanceof CanPauseRollout)) {
       throw new IllegalArgumentException(

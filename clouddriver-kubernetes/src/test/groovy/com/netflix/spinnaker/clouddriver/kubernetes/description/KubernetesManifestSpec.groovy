@@ -72,50 +72,6 @@ class KubernetesManifestSpec extends Specification {
     manifest.getSpecTemplateAnnotations().get().get(KEY) == VALUE
   }
 
-  void "correctly reads observedGeneration from status"() {
-    when:
-    def statusJson = """
-{
-  "status": {
-     "observedGeneration": 1
-  }
-}
-"""
-
-    def testStatusJson = gsonObj.fromJson(statusJson, Object)
-    def testPayload = gsonObj.fromJson(basicManifestSource(), Object)
-    KubernetesManifest manifest = objectToManifest(testPayload << testStatusJson)
-
-    then:
-    manifest.getObservedGeneration() == 1
-  }
-
-  void "correctly reads generation from manifest"() {
-    when:
-    def testPayload =  gsonObj.fromJson(basicManifestSource(), Object)
-    KubernetesManifest manifest = objectToManifest(testPayload)
-
-    then:
-    manifest.getGeneration() == 3
-  }
-
-  void "correctly determines isNewerThanObservedGeneration"() {
-    when:
-    def statusJson = """
-{
-  "status": {
-     "observedGeneration": 1
-  }
-}
-"""
-
-    def testStatusJson = gsonObj.fromJson(statusJson, Object)
-    def testPayload = gsonObj.fromJson(basicManifestSource(), Object)
-    KubernetesManifest manifest = objectToManifest(testPayload << testStatusJson)
-    then:
-    manifest.isNewerThanObservedGeneration()
-  }
-
   void "correctly handles a change to the manifest's kind"() {
     when:
     def testPayload =  gsonObj.fromJson(basicManifestSource(), Object)

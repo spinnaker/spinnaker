@@ -17,13 +17,49 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Strings;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesDeleteManifestDescription
-    extends KubernetesMultiManifestOperationDescription {
+public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperationDescription {
   V1DeleteOptions options;
+  private String manifestName;
+  private String location;
+  private List<String> kinds = new ArrayList<>();
+  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
+
+  @JsonIgnore
+  public boolean isDynamic() {
+    return Strings.isNullOrEmpty(manifestName);
+  }
+
+  public List<KubernetesCoordinates> getAllCoordinates() {
+    return kinds.stream()
+        .map(
+            k ->
+                KubernetesCoordinates.builder()
+                    .namespace(location)
+                    .kind(KubernetesKind.fromString(k))
+                    .build())
+        .collect(Collectors.toList());
+  }
+
+  @JsonIgnore
+  @Deprecated
+  public KubernetesCoordinates getPointCoordinates() {
+    return KubernetesCoordinates.builder()
+        .namespace(location)
+        .fullResourceName(manifestName)
+        .build();
+  }
 }

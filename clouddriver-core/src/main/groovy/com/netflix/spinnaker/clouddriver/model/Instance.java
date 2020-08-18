@@ -72,7 +72,9 @@ public interface Instance {
   List<Map<String, Object>> getHealth();
 
   /** @deprecated use #getCloudProvider */
-  String getProviderType();
+  default String getProviderType() {
+    return getCloudProvider();
+  }
 
   /**
    * Cloud-provider key, e.g. "aws", "titus"
