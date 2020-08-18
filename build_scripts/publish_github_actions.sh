@@ -1,5 +1,4 @@
 #!/bin/bash
-MODULE=$1
 
 # These scripts are based on similar scripts in https://github.com/spinnaker/deck
 
@@ -17,7 +16,7 @@ echo "Kayenta package publisher ---> Checking that the last commit (${LAST_PKGJS
 HAS_PKG_BUMP=$(git diff "${LAST_PKGJSON_COMMIT}..${LAST_PKGJSON_COMMIT}~1" -- "package.json" | grep -c '"version"')
 if [ "$HAS_PKG_BUMP" -ne 0 ] ; then
   echo "Kayenta package publisher ---> Version bump detected. Checking that it is a pure package bump..."
-  bash ./build_scripts/assert_package_bump.sh HEAD^ || exit 11
+  ./build_scripts/assert_package_bump.sh HEAD^ || exit 11
 else
   echo "Kayenta package publisher ---> The last commit (${LAST_PKGJSON_COMMIT}) did not contain a version bump..."
   echo "=========================================="
