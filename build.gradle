@@ -16,12 +16,12 @@
 
 plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
-  id 'nebula.kotlin' version "$kotlinVersion" apply false
+  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
   id "io.gitlab.arturbosch.detekt" version "1.7.4" apply false
   id 'org.jetbrains.kotlin.plugin.allopen' version "$kotlinVersion" apply false
 }
 
-subprojects { 
+subprojects {
   apply plugin: "io.spinnaker.project"
 
   group = "com.netflix.spinnaker.kork"
