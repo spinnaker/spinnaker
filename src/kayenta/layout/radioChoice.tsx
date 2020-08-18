@@ -4,7 +4,7 @@ import { DISABLE_EDIT_CONFIG, DisableableInput } from './disableable';
 
 export interface IRadioChoiceProps {
   value: string;
-  label: string;
+  label: string | JSX.Element;
   name: string;
   current: string;
   action: (event: any) => void;
@@ -12,16 +12,18 @@ export interface IRadioChoiceProps {
 
 export default function RadioChoice({ value, label, name, current, action }: IRadioChoiceProps) {
   return (
-    <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
-      <DisableableInput
-        type="radio"
-        name={name}
-        value={value}
-        onChange={action}
-        checked={value === current}
-        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-      />{' '}
-      {label}
-    </label>
+    <div className="radio-inline">
+      <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
+        <DisableableInput
+          type="radio"
+          name={name}
+          value={value}
+          onChange={action}
+          checked={value === current}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+        />{' '}
+        {label}
+      </label>
+    </div>
   );
 }

@@ -9,18 +9,23 @@ export interface IFormRowProps {
   checkbox?: boolean;
   error?: string;
   warning?: string;
+  inputOnly?: boolean;
 }
 
-export default function FormRow({ label, helpId, children, checkbox, error, warning }: IFormRowProps) {
+export default function FormRow({ label, helpId, children, checkbox, error, warning, inputOnly }: IFormRowProps) {
+  const style: any = {};
+  if (!inputOnly) {
+    style.marginTop = '5px';
+  }
+  if (checkbox) {
+    style.marginBottom = '0';
+  }
   return (
     <div className="form-group row">
       <label className="col-sm-2 control-label sm-label-right">
         {label} {helpId && <HelpField id={helpId} />}
       </label>
-      <div
-        className={classNames('col-sm-10', { checkbox })}
-        style={checkbox ? { marginTop: '0', marginBottom: '0' } : null}
-      >
+      <div className={classNames('col-sm-10', { checkbox })} style={style}>
         {children}
         {error && <ValidationMessage type="error" message={error} />}
         {warning && <ValidationMessage type="warning" message={warning} />}

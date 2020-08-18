@@ -111,9 +111,9 @@ const metricList = handleActions(
     [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) =>
       idMetrics(state.concat([action.payload.metric])),
     [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) =>
-      idMetrics(state.filter(metric => metric.id !== action.payload.id)),
+      idMetrics(state.filter((metric) => metric.id !== action.payload.id)),
     [Actions.DELETE_TEMPLATE]: (state: ICanaryMetricConfig[], action: Action & any) =>
-      state.map(m => removeDeletedTemplateFromMetric(m, action.payload.name)),
+      state.map((m) => removeDeletedTemplateFromMetric(m, action.payload.name)),
   },
   [],
 );
@@ -155,6 +155,13 @@ const editingMetric = handleActions(
         ? set(newState, ['analysisConfigurations', 'canary', 'critical'], payload.critical)
         : unset(newState, ['analysisConfigurations', 'canary', 'critical']);
 
+      return newState;
+    },
+    [Actions.UPDATE_EFFECT_SIZE]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
+      const newState = cloneDeep(state);
+      Object.keys(payload.value).length
+        ? set(newState, ['analysisConfigurations', 'canary', 'effectSize'], payload.value)
+        : unset(newState, ['analysisConfigurations', 'canary', 'effectSize']);
       return newState;
     },
     [Actions.UPDATE_METRIC_GROUP]: (state: ICanaryMetricConfig, action: Action & any) => ({
@@ -303,14 +310,14 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
     case Actions.EDIT_METRIC_BEGIN:
       return {
         ...state,
-        editingMetric: state.metricList.find(metric => metric.id === action.payload.id),
+        editingMetric: state.metricList.find((metric) => metric.id === action.payload.id),
       };
 
     case Actions.EDIT_METRIC_CONFIRM: {
       const editing: ICanaryMetricConfig = omit(state.editingMetric, 'isNew');
       return {
         ...state,
-        metricList: state.metricList.map(metric => (metric.id === editing.id ? editing : metric)),
+        metricList: state.metricList.map((metric) => (metric.id === editing.id ? editing : metric)),
         editingMetric: null,
       };
     }
@@ -318,7 +325,7 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
     case Actions.EDIT_METRIC_CANCEL:
       return {
         ...state,
-        metricList: state.metricList.filter(metric => !metric.isNew),
+        metricList: state.metricList.filter((metric) => !metric.isNew),
         editingMetric: null,
       };
 
@@ -356,7 +363,7 @@ export function editGroupConfirmReducer(
   }
 
   const { payload } = action;
-  const allGroups = flatMap(state.metricList, metric => metric.groups);
+  const allGroups = flatMap(state.metricList, (metric) => metric.groups);
   if (!payload.edit || payload.edit === ALL || allGroups.includes(payload.edit)) {
     return state;
   }
@@ -364,7 +371,7 @@ export function editGroupConfirmReducer(
   const metricUpdater = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...c,
     groups: (c.groups || []).includes(payload.group)
-      ? [payload.edit].concat((c.groups || []).filter(g => g !== payload.group))
+      ? [payload.edit].concat((c.groups || []).filter((g) => g !== payload.group))
       : c.groups,
   });
 
@@ -378,7 +385,7 @@ export function editGroupConfirmReducer(
   };
 
   const listUpdater = (groupList: string[]): string[] =>
-    [payload.edit].concat((groupList || []).filter(g => g !== payload.group));
+    [payload.edit].concat((groupList || []).filter((g) => g !== payload.group));
   return {
     ...state,
     metricList: state.metricList.map(metricUpdater),
@@ -430,7 +437,7 @@ export function updateGroupWeightsReducer(state: ISelectedConfigState, action: A
   }
 
   const groups = chain(state.metricList)
-    .flatMap(metric => metric.groups)
+    .flatMap((metric) => metric.groups)
     .uniq()
     .value();
 
@@ -439,7 +446,7 @@ export function updateGroupWeightsReducer(state: ISelectedConfigState, action: A
 
   // Initialize weights for new groups.
   groupWeights = {
-    ...fromPairs(groups.map(g => [g, 0])),
+    ...fromPairs(groups.map((g) => [g, 0])),
     ...groupWeights,
   };
 

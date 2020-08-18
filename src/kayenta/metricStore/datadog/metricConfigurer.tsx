@@ -31,7 +31,7 @@ export const aggFinder = (metric: ICanaryMetricConfig) => queryFinder(metric).sp
 function DatadogMetricConfigurer({ changeMetricName, editingMetric }: DatadogMetricConfigurerProps) {
   return (
     <>
-      <FormRow label="Datadog Metric">
+      <FormRow label="Datadog Metric" inputOnly={true}>
         <DatadogMetricTypeSelector
           value={nameFinder(editingMetric)}
           onChange={(option: Option<string>) => changeMetricName(aggFinder(editingMetric), get(option, 'value'))}

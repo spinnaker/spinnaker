@@ -25,7 +25,7 @@ export const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.m
  * */
 function GraphiteMetricConfigurer({ changeMetricName, editingMetric }: GraphiteMetricConfigurerProps) {
   return (
-    <FormRow label="Graphite Metric">
+    <FormRow label="Graphite Metric" inputOnly={true}>
       <GraphiteMetricTypeSelector
         value={queryFinder(editingMetric)}
         onChange={(option: string[]) => {

@@ -2,12 +2,12 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
-import { get, isNull, values } from 'lodash';
+import { isNull, values } from 'lodash';
 
 import { noop } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryMetricConfig, ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
+import { ICanaryMetricConfig } from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
@@ -22,6 +22,7 @@ import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.serv
 import InlineTemplateEditor from './inlineTemplateEditor';
 
 import './editMetricModal.less';
+import EditMetricEffectSizes from './editMetricEffectSizes';
 
 interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
@@ -40,44 +41,6 @@ interface IEditMetricModalStateProps {
   useInlineTemplateEditor: boolean;
   disableEdit: boolean;
   validationErrors: ICanaryMetricValidationErrors;
-}
-
-function EffectSizeSummary({ effectSizes }: { effectSizes: ICanaryMetricEffectSizeConfig }) {
-  if (!effectSizes || Object.keys(effectSizes).length === 0) {
-    return null;
-  }
-
-  const { allowedIncrease, criticalIncrease, allowedDecrease, criticalDecrease } = effectSizes;
-
-  return (
-    <FormRow label="Effect Sizes">
-      <div className="vertical">
-        {allowedIncrease && (
-          <span>
-            Allowed Increase: <b>{allowedIncrease}</b>
-          </span>
-        )}
-        {criticalIncrease && (
-          <span>
-            Critical Increase: <b>{criticalIncrease}</b>
-          </span>
-        )}
-        {allowedDecrease && (
-          <span>
-            Allowed Decrease: <b>{allowedDecrease}</b>
-          </span>
-        )}
-        {criticalDecrease && (
-          <span>
-            Critical Decrease: <b>{criticalDecrease}</b>
-          </span>
-        )}
-        <span className="body-small color-text-caption" style={{ marginTop: '5px' }}>
-          Effect sizes are not currently configurable via the UI.
-        </span>
-      </div>
-    </FormRow>
-  );
 }
 
 /*
@@ -102,14 +65,9 @@ function EditMetricModal({
     return null;
   }
 
-  const direction = get(metric, ['analysisConfigurations', 'canary', 'direction'], 'either');
-  const nanStrategy = get(metric, ['analysisConfigurations', 'canary', 'nanStrategy'], 'default');
-  const critical = get(metric, ['analysisConfigurations', 'canary', 'critical'], false);
-  const effectSize = get<ICanaryMetricConfig, ICanaryMetricEffectSizeConfig>(metric, [
-    'analysisConfigurations',
-    'canary',
-    'effectSize',
-  ]);
+  const direction = metric.analysisConfigurations?.canary?.direction ?? 'either';
+  const nanStrategy = metric.analysisConfigurations?.canary?.nanStrategy ?? 'default';
+  const critical = metric.analysisConfigurations?.canary?.critical ?? false;
   const isConfirmDisabled = !isTemplateValid || disableEdit || values(validationErrors).some((e) => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
@@ -124,7 +82,7 @@ function EditMetricModal({
           <Modal.Title>{disableEdit ? 'Metric Details' : 'Configure Metric'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <FormRow label="Group">
+          <FormRow label="Group" inputOnly={true}>
             {metric.groups.length > 1 && (
               <DisableableInput
                 type="text"
@@ -149,7 +107,7 @@ function EditMetricModal({
               </DisableableSelect>
             )}
           </FormRow>
-          <FormRow label="Name" error={get(validationErrors, 'name.message', null)}>
+          <FormRow label="Name" error={validationErrors?.name?.message ?? null} inputOnly={true}>
             <DisableableInput
               type="text"
               value={metric.name}
@@ -209,7 +167,7 @@ function EditMetricModal({
               action={updateNanStrategy}
             />
           </FormRow>
-          <EffectSizeSummary effectSizes={effectSize} />
+          <EditMetricEffectSizes />
           <MetricConfigurerDelegator />
           {templatesEnabled && !useInlineTemplateEditor && <FilterTemplateSelector />}
           {templatesEnabled && useInlineTemplateEditor && <InlineTemplateEditor />}

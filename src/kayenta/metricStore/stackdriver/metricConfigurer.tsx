@@ -90,7 +90,7 @@ function StackdriverMetricConfigurer({
 }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
   return (
     <>
-      <FormRow label="Resource Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.resourceType`}>
+      <FormRow label="Resource Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.resourceType`} inputOnly={true}>
         <DisableableReactSelect
           value={get(editingMetric, 'query.resourceType')}
           options={toReactSelectOptions(RESOURCE_TYPES)}
@@ -98,7 +98,7 @@ function StackdriverMetricConfigurer({
           disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         />
       </FormRow>
-      <FormRow label="Metric Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.metricType`}>
+      <FormRow label="Metric Type" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.metricType`} inputOnly={true}>
         <StackdriverMetricTypeSelector
           value={get(editingMetric, 'query.metricType', '')}
           onChange={(option: Option<string>) => updateStackdriverQueryField('metricType', option)}
@@ -107,7 +107,7 @@ function StackdriverMetricConfigurer({
       <FormRow label="Group By" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.groupBy`}>
         <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
       </FormRow>
-      <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`}>
+      <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`} inputOnly={true}>
         <DisableableReactSelect
           value={get(editingMetric, 'query.perSeriesAligner')}
           options={toReactSelectOptions(PER_SERIES_ALIGNERS)}
@@ -115,7 +115,7 @@ function StackdriverMetricConfigurer({
           disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         />
       </FormRow>
-      <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`}>
+      <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`} inputOnly={true}>
         <DisableableReactSelect
           value={get(editingMetric, 'query.crossSeriesReducer')}
           options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}

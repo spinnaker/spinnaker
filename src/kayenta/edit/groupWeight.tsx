@@ -32,7 +32,7 @@ function GroupWeight({
 }: IGroupWeightOwnProps & IGroupWeightStateProps & IGroupWeightDispatchProps) {
   const groupWeight = getGroupWeights(config)[group];
   return (
-    <FormRow label={group}>
+    <FormRow label={group} inputOnly={true}>
       <DisableableInput
         type="number"
         value={isNumber(groupWeight) ? groupWeight : ''}

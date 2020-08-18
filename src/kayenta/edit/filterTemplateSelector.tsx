@@ -91,7 +91,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
     const isEditing = isString(editedTemplateName) && isString(editedTemplateValue);
     return (
       <>
-        <FormRow label="Filter Template" helpId="canary.config.filterTemplate">
+        <FormRow label="Filter Template" helpId="canary.config.filterTemplate" inputOnly={true}>
           {!isEditing && (
             <DisableableReactSelect
               value={selectedTemplateName}
@@ -104,7 +104,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
         </FormRow>
         {isEditing && (
           <>
-            <FormRow label="Name" error={get(validation, 'errors.templateName.message')}>
+            <FormRow label="Name" error={get(validation, 'errors.templateName.message')} inputOnly={true}>
               <DisableableInput
                 disabledStateKeys={[DISABLE_EDIT_CONFIG]}
                 onChange={editTemplateName}
@@ -113,6 +113,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
             </FormRow>
             <FormRow
               label="Template"
+              inputOnly={true}
               error={get(validation, 'errors.templateValue.message')}
               warning={get(validation, 'warnings.template.message')}
             >

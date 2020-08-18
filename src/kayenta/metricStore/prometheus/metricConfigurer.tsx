@@ -69,7 +69,7 @@ function PrometheusMetricConfigurer({
       </FormRow>
       {queryType === PrometheusQueryType.DEFAULT && (
         <>
-          <FormRow label="Resource Type">
+          <FormRow label="Resource Type" inputOnly={true}>
             <DisableableReactSelect
               value={get(editingMetric, 'query.resourceType')}
               options={toReactSelectOptions(RESOURCE_TYPES)}
@@ -77,7 +77,7 @@ function PrometheusMetricConfigurer({
               disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
-          <FormRow label="Metric Name">
+          <FormRow label="Metric Name" inputOnly={true}>
             <PrometheusMetricTypeSelector
               value={get(editingMetric, 'query.metricName', '')}
               onChange={(option: Option<string>) => updatePrometheusMetricQueryField('metricName', option)}

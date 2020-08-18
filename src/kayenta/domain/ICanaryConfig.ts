@@ -48,6 +48,7 @@ export interface ICanaryMetricEffectSizeConfig {
   allowedDecrease?: number;
   criticalIncrease?: number;
   criticalDecrease?: number;
+  measure?: string;
 }
 
 export interface ICanaryJudgeConfig {

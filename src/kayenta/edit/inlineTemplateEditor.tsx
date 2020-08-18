@@ -30,6 +30,7 @@ export function InlineTemplateEditor({
   return (
     <FormRow
       label="Template"
+      inputOnly={true}
       helpId="canary.config.filterTemplate"
       error={isEmpty(templateValue) && 'Template is required'}
     >

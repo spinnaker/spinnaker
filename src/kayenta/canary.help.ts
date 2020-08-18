@@ -106,6 +106,19 @@ const helpContents: { [key: string]: string } = {
     <p>Select <strong>default</strong> to use options from the UI to configure your query.</p>
     <p>Select <strong>PromQL</strong> to compose a custom PromQL query (see <a target="blank" href="https://prometheus.io/docs/prometheus/latest/querying/basics/">documentation</a>).</p>
   `,
+  'canary.config.effectSize.cles': `
+    <p>
+      The Common Language Effect Size (CLES) reports the probability that a value from one group will be greater than a
+      value from the other group.
+    </p>
+    <p>A value of 0.50 indicates that the two groups are stochastically equal.</p>
+    <p>A value of 1 indicates that the first group shows complete stochastic domination over the other group, and a
+      value of 0 indicates the complete stochastic domination by the second group.
+    </p>
+    <p>
+      <a href="https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Common_language_effect_size" target="_blank">Read more about CLES</a>.
+    </p>
+  `,
   // These come (almost) verbatim from Stackdriver's Metric Explorer.
   'stackdriver.resourceType':
     'For Stackdriver, a set of time series is identified by a <strong>resource type</strong> and a metric type that has data from that resource type.',

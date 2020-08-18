@@ -14,6 +14,7 @@ import {
   ICanaryConfigSummary,
   ICanaryConfig,
   ICanaryMetricConfig,
+  ICanaryMetricEffectSizeConfig,
 } from 'kayenta/domain';
 import { IUpdateKeyValueListPayload } from '../layout/keyValueList';
 import { IStackdriverCanaryMetricSetQueryConfig } from '../metricStore/stackdriver/domain/IStackdriverCanaryMetricSetQueryConfig';
@@ -37,6 +38,9 @@ export const updateMetricNanStrategy = createAction<{ id: string; strategy: stri
 );
 export const updateMetricCriticality = createAction<{ id: string; critical: boolean }>(
   Actions.UPDATE_METRIC_CRITICALITY,
+);
+export const updateEffectSize = createAction<{ id: string; value: ICanaryMetricEffectSizeConfig }>(
+  Actions.UPDATE_EFFECT_SIZE,
 );
 export const updateMetricGroup = createAction<{ id: string; group: string }>(Actions.UPDATE_METRIC_GROUP);
 export const addGroup = createAction(Actions.ADD_GROUP);

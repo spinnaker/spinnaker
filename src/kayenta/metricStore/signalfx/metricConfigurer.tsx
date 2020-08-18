@@ -49,7 +49,7 @@ class SignalFxMetricConfigurer extends React.Component<SignalFxMetricConfigurerP
 
     return (
       <section>
-        <FormRow label="SignalFx Metric" error={get(validationErrors, 'signalFxMetric.message', null)}>
+        <FormRow label="SignalFx Metric" error={get(validationErrors, 'signalFxMetric.message', null)} inputOnly={true}>
           <DisableableInput
             type="text"
             value={getSignalFxMetric(editingMetric)}
@@ -59,6 +59,7 @@ class SignalFxMetricConfigurer extends React.Component<SignalFxMetricConfigurerP
         </FormRow>
         <FormRow
           label="Aggregation Method"
+          inputOnly={true}
           helpId="canary.config.signalFx.aggregationMethod"
           error={get(validationErrors, 'aggregationMethod.message', null)}
         >

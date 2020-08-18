@@ -101,7 +101,7 @@ window.spinnakerSettings = {
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     atlasWebComponentsPolyfillUrl: atlasWebComponentsPolyfillUrl,
     templatesEnabled: templatesEnabled,
-    showAllConfigs: true,
+    showAllConfigs: false,
   },
   feature: {
     canary: true,

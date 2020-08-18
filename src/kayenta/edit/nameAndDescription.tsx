@@ -30,11 +30,11 @@ function NameAndDescription({
 }: INameAndDescriptionDispatchProps & INameAndDescriptionStateProps) {
   return (
     <FormList>
-      <FormRow label="Configuration Name">
+      <FormRow label="Configuration Name" inputOnly={true}>
         <DisableableInput type="text" value={name} onChange={changeName} disabledStateKeys={[DISABLE_EDIT_CONFIG]} />
       </FormRow>
       <MetricStoreSelector />
-      <FormRow label="Description">
+      <FormRow label="Description" inputOnly={true}>
         <DisableableTextarea
           className="form-control input-sm"
           value={description}

@@ -26,7 +26,7 @@ export const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.s
 function NewRelicMetricConfigurer({ changeSelect, editingMetric }: INewRelicMetricConfigurerProps) {
   return (
     <>
-      <FormRow label="NRQL Select">
+      <FormRow label="NRQL Select" inputOnly={true}>
         <DisableableInput
           type="text"
           value={queryFinder(editingMetric)}

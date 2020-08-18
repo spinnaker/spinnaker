@@ -27,7 +27,7 @@ const MetricStoreSelector = ({
   }
 
   return (
-    <FormRow label="Metric Store">
+    <FormRow label="Metric Store" inputOnly={true}>
       <DisableableSelect
         value={selectedStore || ''}
         onChange={select}
