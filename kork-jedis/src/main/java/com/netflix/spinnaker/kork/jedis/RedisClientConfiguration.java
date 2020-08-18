@@ -109,12 +109,8 @@ public class RedisClientConfiguration {
       Map<String, Object> properties = new HashMap<>();
 
       // Pre-kork redis configuration days, Redis used alternative config structure. This wee block
-      // will
-      // map the
-      // connection information from the deprecated format to the new format _if_ the old format
-      // values
-      // are present and
-      // new format values are missing
+      // will map the connection information from the deprecated format to the new format _if_ the
+      // old format values are present and new format values are missing
       if (connection == ConnectionCompatibility.PRIMARY) {
         Optional.ofNullable(rootConfig.connection)
             .map(
@@ -230,12 +226,17 @@ public class RedisClientConfiguration {
             ? cx.getUserInfo().substring(cx.getUserInfo().indexOf(":"))
             : null;
 
+    boolean isSSL = cx.getScheme().equals("rediss");
+
     return new JedisCluster(
         new HostAndPort(cx.getHost(), port),
         config.getTimeoutMs(),
         config.getTimeoutMs(),
         config.getMaxAttempts(),
-        objectPoolConfig);
+        password,
+        null,
+        objectPoolConfig,
+        isSSL);
   }
 
   @ConfigurationProperties(prefix = "redis")
