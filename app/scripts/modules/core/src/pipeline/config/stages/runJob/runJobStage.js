@@ -12,5 +12,6 @@ module(CORE_PIPELINE_CONFIG_STAGES_RUNJOB_RUNJOBSTAGE, []).config(function() {
     key: 'runJob',
     label: 'Run Job',
     description: 'Runs a container',
+    restartable: true,
   });
 });
