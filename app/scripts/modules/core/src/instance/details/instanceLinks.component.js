@@ -27,6 +27,7 @@ module(CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT, []).component('instanceLin
       ).filter(
         section =>
           !section.cloudProviders ||
+          !section.cloudProviders.length ||
           !this.instance.cloudProvider ||
           section.cloudProviders.includes(this.instance.cloudProvider),
       );
