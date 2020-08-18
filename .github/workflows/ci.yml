@@ -9,6 +9,7 @@ on:
 
 env:
   NODE_VERSION: 12.16.0
+  CHOKIDAR_USEPOLLING: 1 
 
 jobs:
   ci:
