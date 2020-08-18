@@ -108,11 +108,6 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
-  public Map<String, String> getInvolvedObject() {
-    return getRequiredField(this, "involvedObject");
-  }
-
-  @JsonIgnore
   public String getName() {
     return (String) getMetadata().get("name");
   }

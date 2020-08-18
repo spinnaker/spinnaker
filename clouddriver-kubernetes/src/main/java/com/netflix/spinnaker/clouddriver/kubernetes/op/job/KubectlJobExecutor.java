@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.jobs.local.ReaderConsumer;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -374,7 +373,7 @@ public class KubectlJobExecutor {
     command.add(
         String.format(
             "involvedObject.name=%s,involvedObject.kind=%s",
-            name, StringUtils.capitalize(kind.getName())));
+            name, StringUtils.capitalize(kind.toString())));
 
     JobResult<ImmutableList<KubernetesManifest>> status =
         jobExecutor.runJob(new JobRequest(command), parseManifestList());
@@ -388,13 +387,7 @@ public class KubectlJobExecutor {
       return ImmutableList.of();
     }
 
-    return status.getOutput().stream()
-        .filter(
-            x ->
-                x.getInvolvedObject()
-                    .getOrDefault("apiVersion", KubernetesApiGroup.NONE.toString())
-                    .startsWith(kind.getApiGroup().toString()))
-        .collect(ImmutableList.toImmutableList());
+    return status.getOutput();
   }
 
   @Nonnull
