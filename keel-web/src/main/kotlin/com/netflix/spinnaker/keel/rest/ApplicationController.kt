@@ -55,7 +55,8 @@ class ApplicationController(
     path = ["/{application}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #application)
     and @authorizationSupport.hasCloudAccountPermission('READ', 'APPLICATION', #application)"""
   )
   fun get(
@@ -95,7 +96,8 @@ class ApplicationController(
   @DeleteMapping(
     path = ["/{application}/config"]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   fun deleteConfigByApp(@PathVariable("application") application: String) {
@@ -107,7 +109,8 @@ class ApplicationController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   fun updateConstraintStatus(
@@ -145,7 +148,8 @@ class ApplicationController(
   @DeleteMapping(
     path = ["/{application}/pause"]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   fun resume(
@@ -158,7 +162,8 @@ class ApplicationController(
   @PostMapping(
     path = ["/{application}/pin"]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -173,7 +178,8 @@ class ApplicationController(
   @DeleteMapping(
     path = ["/{application}/pin/{targetEnvironment}"]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -190,7 +196,8 @@ class ApplicationController(
     path = ["/{application}/veto"]
   )
   @ResponseStatus(HttpStatus.ACCEPTED)
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   fun veto(
@@ -204,7 +211,8 @@ class ApplicationController(
   @DeleteMapping(
     path = ["/{application}/veto/{targetEnvironment}/{reference}/{version}"]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
   )
   fun deleteVeto(

@@ -27,7 +27,8 @@ class DeliveryConfigYamlParsingFilter : Filter {
 
     if (request is HttpServletRequest &&
       request.method == "POST" &&
-      request.contentType.toLowerCase().contains("yaml")) {
+      request.contentType.toLowerCase().contains("yaml")
+    ) {
 
       val yaml = Yaml()
       val deliveryConfig: Map<String, Any?> = yaml.load(request.inputStream)

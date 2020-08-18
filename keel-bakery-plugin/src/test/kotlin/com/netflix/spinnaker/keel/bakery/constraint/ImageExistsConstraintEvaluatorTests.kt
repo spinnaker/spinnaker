@@ -133,8 +133,10 @@ internal class ImageExistsConstraintEvaluatorTests : JUnit5Minutests {
           tagsByImageId = mapOf(
             "ami-1" to mapOf("appversion" to appVersion, "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
           ),
-          accounts = setOf("test" +
-            ""),
+          accounts = setOf(
+            "test" +
+              ""
+          ),
           amis = mapOf(
             "us-west-2" to listOf("ami-1")
           )

@@ -45,26 +45,26 @@ class ApplicationLoadBalancerHandler(
 
   override suspend fun toResolvedType(resource: Resource<ApplicationLoadBalancerSpec>):
     Map<String, ApplicationLoadBalancer> =
-    with(resource.spec) {
-      locations.regions.map { region ->
-        ApplicationLoadBalancer(
-          moniker,
-          Location(
-            account = locations.account,
-            region = region.name,
-            vpc = locations.vpc ?: error("No vpc supplied or resolved"),
-            subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
-            availabilityZones = region.availabilityZones
-          ),
-          internal,
-          overrides[region.name]?.dependencies ?: dependencies,
-          idleTimeout,
-          overrides[region.name]?.listeners ?: listeners,
-          overrides[region.name]?.targetGroups ?: targetGroups
-        )
+      with(resource.spec) {
+        locations.regions.map { region ->
+          ApplicationLoadBalancer(
+            moniker,
+            Location(
+              account = locations.account,
+              region = region.name,
+              vpc = locations.vpc ?: error("No vpc supplied or resolved"),
+              subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
+              availabilityZones = region.availabilityZones
+            ),
+            internal,
+            overrides[region.name]?.dependencies ?: dependencies,
+            idleTimeout,
+            overrides[region.name]?.listeners ?: listeners,
+            overrides[region.name]?.targetGroups ?: targetGroups
+          )
+        }
+          .associateBy { it.location.region }
       }
-        .associateBy { it.location.region }
-    }
 
   override suspend fun current(resource: Resource<ApplicationLoadBalancerSpec>): Map<String, ApplicationLoadBalancer> =
     cloudDriverService.getApplicationLoadBalancer(resource.spec, resource.serviceAccount)
@@ -107,8 +107,10 @@ class ApplicationLoadBalancerHandler(
     )
 
     if (albs.isEmpty()) {
-      throw ResourceNotFound("Could not find application load balancer: ${exportable.moniker} " +
-        "in account: ${exportable.account}")
+      throw ResourceNotFound(
+        "Could not find application load balancer: ${exportable.moniker} " +
+          "in account: ${exportable.account}"
+      )
     }
 
     val zonesByRegion = albs.map { (region, alb) ->
@@ -124,10 +126,12 @@ class ApplicationLoadBalancerHandler(
     val zonesForALB = albs.map { (region, alb) ->
       region to if (
         alb.location.availabilityZones
-          .containsAll(zonesByRegion[region]
-            ?: error(
-              "Failed resolving availabilityZones for account: ${exportable.account}, region: $region, " +
-                "subnet: ${alb.location.subnet}")
+          .containsAll(
+            zonesByRegion[region]
+              ?: error(
+                "Failed resolving availabilityZones for account: ${exportable.account}, region: $region, " +
+                  "subnet: ${alb.location.subnet}"
+              )
           )
       ) {
         emptySet()

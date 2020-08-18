@@ -13,7 +13,8 @@ import strikt.assertions.isEqualTo
 internal class DefaultBaseImageCacheTests : JUnit5Minutests {
 
   object Fixture {
-    val config = """
+    val config =
+      """
       |bionic:
       |  candidate: nflx-base-5.375.0-h1224.8808866
       |  unstable: nflx-base-5.375.1-h1225.8808866~unstable

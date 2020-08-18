@@ -162,7 +162,8 @@ class ImageService(
     log.debug(
       "Finding latest qualifying named image for $packageName in account $account and regions $regions:\n " +
         "selected image=${image?.imageName}\n " +
-        "rejected images=${eliminatedImages.map { it.key + ": " + it.value + "\n" }.joinToString("")}")
+        "rejected images=${eliminatedImages.map { it.key + ": " + it.value + "\n" }.joinToString("")}"
+    )
 
     return image
   }

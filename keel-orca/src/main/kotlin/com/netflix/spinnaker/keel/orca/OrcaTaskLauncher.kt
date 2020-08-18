@@ -93,8 +93,11 @@ class OrcaTaskLauncher(
       )
       .let {
         log.info("Started task {} to upsert {}", it.ref, subject)
-        publisher.publishEvent(TaskCreatedEvent(
-          TaskRecord(id = it.taskId, name = description, subject = "$type:$subject")))
+        publisher.publishEvent(
+          TaskCreatedEvent(
+            TaskRecord(id = it.taskId, name = description, subject = "$type:$subject")
+          )
+        )
         Task(id = it.taskId, name = description)
       }
 

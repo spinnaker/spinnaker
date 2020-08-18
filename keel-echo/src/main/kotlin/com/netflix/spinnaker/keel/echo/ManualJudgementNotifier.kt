@@ -39,7 +39,8 @@ class ManualJudgementNotifier(
     // so the user can react via other interfaces outside the UI (e.g. e-mail, Slack)
     if (event.constraint is ManualJudgementConstraint &&
       event.previousState == null &&
-      event.currentState.status == ConstraintStatus.PENDING) {
+      event.currentState.status == ConstraintStatus.PENDING
+    ) {
       event.environment.notifications.map {
         // TODO: run in parallel
         runBlocking {

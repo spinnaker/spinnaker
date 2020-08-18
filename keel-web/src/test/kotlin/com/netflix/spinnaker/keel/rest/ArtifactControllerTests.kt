@@ -68,13 +68,15 @@ internal class ArtifactControllerTests : JUnit5Minutests {
       mvc
         .perform(request)
         .andExpect(status().isOk)
-        .andExpect(content().string(
-          """---
+        .andExpect(
+          content().string(
+            """---
             |- "fnord-2.1.0-18ed1dc"
             |- "fnord-2.0.0-608bd90"
             |- "fnord-1.0.0-41595c4"
           """.trimMargin()
-        ))
+          )
+        )
     }
 
     test("versions empty for an artifact we're not tracking") {
@@ -85,9 +87,11 @@ internal class ArtifactControllerTests : JUnit5Minutests {
       mvc
         .perform(request)
         .andExpect(status().isOk)
-        .andExpect(content().string(
-          """--- []""".trimMargin()
-        ))
+        .andExpect(
+          content().string(
+            """--- []""".trimMargin()
+          )
+        )
     }
   }
 }

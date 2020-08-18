@@ -129,7 +129,8 @@ class MemoryCloudDriverCache(
 
   override fun availabilityZonesBy(account: String, vpcId: String, purpose: String, region: String): Set<String> =
     runBlocking {
-      availabilityZones.get("$account:$vpcId:$purpose:$region",
+      availabilityZones.get(
+        "$account:$vpcId:$purpose:$region",
         asyncify {
           cloudDriver
             .listSubnets("aws", DEFAULT_SERVICE_ACCOUNT)

@@ -48,7 +48,8 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
     derivedContext<DefaultResourceDiff<SecurityGroup>>("security groups that differ in basic fields") {
       deriveFixture {
-        DefaultResourceDiff(this,
+        DefaultResourceDiff(
+          this,
           copy(
             location = SecurityGroup.Location(
               account = location.account,
@@ -82,14 +83,17 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
     derivedContext<DefaultResourceDiff<SecurityGroup>>("security groups that differ in ignored and non-ignored fields") {
       deriveFixture {
-        DefaultResourceDiff(this, copy(
-          location = SecurityGroup.Location(
-            account = location.account,
-            vpc = "vpc0",
-            region = "ap-south-1"
-          ),
-          description = "We can't actually make changes to this so it should be ignored by the diff"
-        ))
+        DefaultResourceDiff(
+          this,
+          copy(
+            location = SecurityGroup.Location(
+              account = location.account,
+              vpc = "vpc0",
+              region = "ap-south-1"
+            ),
+            description = "We can't actually make changes to this so it should be ignored by the diff"
+          )
+        )
       }
 
       test("diff contains changes") {
@@ -113,13 +117,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
       deriveFixture {
         DefaultResourceDiff(
           this,
-          copy(inboundRules = inboundRules.map {
-            when (it) {
-              is ReferenceRule -> it.copy(portRange = PortRange(8080, 8083))
-              else -> it
+          copy(
+            inboundRules = inboundRules.map {
+              when (it) {
+                is ReferenceRule -> it.copy(portRange = PortRange(8080, 8083))
+                else -> it
+              }
             }
-          }
-            .toSet()
+              .toSet()
           )
         )
       }

@@ -44,24 +44,34 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
     .toSet()
 
 private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec): LaunchConfiguration {
-  val image = checkNotNull(overrides[region.name]?.launchConfiguration?.image
-    ?: defaults.launchConfiguration?.image) { "No image resolved / specified for ${region.name}" }
+  val image = checkNotNull(
+    overrides[region.name]?.launchConfiguration?.image
+      ?: defaults.launchConfiguration?.image
+  ) { "No image resolved / specified for ${region.name}" }
   return LaunchConfiguration(
     appVersion = image.appVersion,
     baseImageVersion = image.baseImageVersion,
     imageId = image.id,
-    instanceType = checkNotNull(overrides[region.name]?.launchConfiguration?.instanceType
-      ?: defaults.launchConfiguration?.instanceType) {
+    instanceType = checkNotNull(
+      overrides[region.name]?.launchConfiguration?.instanceType
+        ?: defaults.launchConfiguration?.instanceType
+    ) {
       "No instance type resolved for $id (region ${region.name}) and cannot determine a default"
     },
-    ebsOptimized = checkNotNull(overrides[region.name]?.launchConfiguration?.ebsOptimized
-      ?: defaults.launchConfiguration?.ebsOptimized
-      ?: LaunchConfiguration.DEFAULT_EBS_OPTIMIZED),
-    iamRole = checkNotNull(overrides[region.name]?.launchConfiguration?.iamRole
-      ?: defaults.launchConfiguration?.iamRole
-      ?: LaunchConfiguration.defaultIamRoleFor(moniker.app)),
-    keyPair = checkNotNull(overrides[region.name]?.launchConfiguration?.keyPair
-      ?: defaults.launchConfiguration?.keyPair) {
+    ebsOptimized = checkNotNull(
+      overrides[region.name]?.launchConfiguration?.ebsOptimized
+        ?: defaults.launchConfiguration?.ebsOptimized
+        ?: LaunchConfiguration.DEFAULT_EBS_OPTIMIZED
+    ),
+    iamRole = checkNotNull(
+      overrides[region.name]?.launchConfiguration?.iamRole
+        ?: defaults.launchConfiguration?.iamRole
+        ?: LaunchConfiguration.defaultIamRoleFor(moniker.app)
+    ),
+    keyPair = checkNotNull(
+      overrides[region.name]?.launchConfiguration?.keyPair
+        ?: defaults.launchConfiguration?.keyPair
+    ) {
       "No keypair resolved for $id (region ${region.name}) and cannot determine a default"
     },
     instanceMonitoring = overrides[region.name]?.launchConfiguration?.instanceMonitoring
@@ -96,9 +106,9 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
     cooldown = overrides[region]?.health?.cooldown ?: defaults.health?.cooldown ?: default.cooldown,
     warmup = overrides[region]?.health?.warmup ?: defaults.health?.warmup ?: default.warmup,
     healthCheckType = overrides[region]?.health?.healthCheckType ?: defaults.health?.healthCheckType
-    ?: default.healthCheckType,
+      ?: default.healthCheckType,
     enabledMetrics = overrides[region]?.health?.enabledMetrics ?: defaults.health?.enabledMetrics
-    ?: default.enabledMetrics,
+      ?: default.enabledMetrics,
     terminationPolicies = overrides[region]?.health?.terminationPolicies
       ?: defaults.health?.terminationPolicies ?: default.terminationPolicies
   )

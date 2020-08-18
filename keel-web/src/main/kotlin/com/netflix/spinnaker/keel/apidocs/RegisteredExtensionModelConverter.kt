@@ -22,9 +22,9 @@ class RegisteredExtensionModelConverter(
       val extensionTypes = extensionRegistry.extensionsOf(annotatedType.rawClass)
       context.defineSchemaAsOneOf(annotatedType.rawClass, extensionTypes.values.toList())
         .also { schema ->
-            schema.discriminator = Discriminator()
-              .propertyName("type") // TODO: is this a broken assumption?
-              .mapping(extensionTypes.mapValues { (_, v) -> constructRef(v.simpleName) })
+          schema.discriminator = Discriminator()
+            .propertyName("type") // TODO: is this a broken assumption?
+            .mapping(extensionTypes.mapValues { (_, v) -> constructRef(v.simpleName) })
         }
       ref(annotatedType.rawClass)
     } else {

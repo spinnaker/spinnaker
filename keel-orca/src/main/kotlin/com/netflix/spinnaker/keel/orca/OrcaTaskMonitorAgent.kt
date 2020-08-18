@@ -57,13 +57,16 @@ class OrcaTaskMonitorAgent(
               } catch (e: HttpException) {
                 when (e.isNotFound) {
                   true -> {
-                    log.warn("Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" +
-                      " Possible reason: orca is saving info for 2000 tasks/app and this task is older.", e)
+                    log.warn(
+                      "Exception ${e.message} has caught while calling orca to fetch status for execution id: ${it.id}" +
+                        " Possible reason: orca is saving info for 2000 tasks/app and this task is older.",
+                      e
+                    )
                     // when we get not found exception from orca, we shouldn't try to get the status anymore
                     taskTrackingRepository.delete(it.id)
                   }
                   else -> throw e
-              }
+                }
                 null
               }
             }.await()
@@ -78,11 +81,17 @@ class OrcaTaskMonitorAgent(
                 when (taskDetails.status.isSuccess()) {
                   true -> publisher.publishEvent(
                     ResourceTaskSucceeded(
-                      resourceRepository.get(id), listOf(Task(taskDetails.id, taskDetails.name)), clock))
+                      resourceRepository.get(id), listOf(Task(taskDetails.id, taskDetails.name)), clock
+                    )
+                  )
                   false -> publisher.publishEvent(
                     ResourceTaskFailed(
-                      resourceRepository.get(id), taskDetails.execution.stages.getFailureMessage()
-                      ?: "", listOf(Task(taskDetails.id, taskDetails.name)), clock))
+                      resourceRepository.get(id),
+                      taskDetails.execution.stages.getFailureMessage()
+                        ?: "",
+                      listOf(Task(taskDetails.id, taskDetails.name)), clock
+                    )
+                  )
                 }
               } catch (e: NoSuchResourceId) {
                 log.warn("No resource found for id $resourceId")

@@ -148,7 +148,8 @@ internal class DeliveryConfigValidatorTests : JUnit5Minutests {
 
             ),
             constraints = emptySet()
-          ))
+          )
+        )
       )
       test("an error is thrown") {
 

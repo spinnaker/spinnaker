@@ -56,32 +56,38 @@ internal object ULIDSerializationTests : JUnit5Minutests {
 
     context("deserialization") {
       test("reads ULID from JSON") {
-        val deserialized = objectMapper.readValue<Person>("""
+        val deserialized = objectMapper.readValue<Person>(
+          """
           {
             "id": "${person.id}",
             "name": "${person.name}"
           }
-        """)
+        """
+        )
         expectThat(deserialized)
           .isEqualTo(person)
       }
 
       test("reads missing ULID as a JSON null") {
-        val deserialized = objectMapper.readValue<Person>("""
+        val deserialized = objectMapper.readValue<Person>(
+          """
           {
             "name": "${person.name}"
           }
-        """)
+        """
+        )
         expectThat(deserialized.id).isNull()
       }
 
       test("reads null ULID as a JSON null") {
-        val deserialized = objectMapper.readValue<Person>("""
+        val deserialized = objectMapper.readValue<Person>(
+          """
           {
             "id": null,
             "name": "${person.name}"
           }
-        """)
+        """
+        )
         expectThat(deserialized.id).isNull()
       }
     }

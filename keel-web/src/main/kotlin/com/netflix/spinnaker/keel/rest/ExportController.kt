@@ -151,8 +151,10 @@ class ExportController(
   }
 
   companion object {
-    val versionSuffix = """@v(\d+)$""".toRegex()
-    private val versionPrefix = """^v""".toRegex()
+    val versionSuffix =
+      """@v(\d+)$""".toRegex()
+    private val versionPrefix =
+      """^v""".toRegex()
     val versionComparator: Comparator<String> = NullSafeComparator<String>(
       Comparator<String> { s1, s2 ->
         DefaultArtifactVersion(s1?.replace(versionPrefix, "")).compareTo(

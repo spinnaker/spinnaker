@@ -412,8 +412,10 @@ enum class ResourceCheckErrorOrigin {
         UserException::class.java.isAssignableFrom(exceptionType) -> USER
         SystemException::class.java.isAssignableFrom(exceptionType) -> SYSTEM
         else -> UNKNOWN.also {
-          log.trace("All keel exceptions should inherit from UserException or SystemException (got ${exceptionType.name}). " +
-            "This is a probably a bug.")
+          log.trace(
+            "All keel exceptions should inherit from UserException or SystemException (got ${exceptionType.name}). " +
+              "This is a probably a bug."
+          )
         }
       }
   }

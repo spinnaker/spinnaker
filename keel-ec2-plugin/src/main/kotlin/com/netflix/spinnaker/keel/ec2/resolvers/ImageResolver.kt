@@ -137,19 +137,23 @@ class ImageResolver(
         )
     }
 
-    return copy(spec = spec.copy(
-      overrides = overrides,
-      _artifactName = image.artifact?.name
-        ?: error("Artifact not found in image ${image.namedImage.imageName}"),
-      artifactVersion = image.version)
+    return copy(
+      spec = spec.copy(
+        overrides = overrides,
+        _artifactName = image.artifact?.name
+          ?: error("Artifact not found in image ${image.namedImage.imageName}"),
+        artifactVersion = image.version
+      )
     )
   }
 
   private fun ServerGroupSpec?.withVirtualMachineImage(image: VirtualMachineImage) =
     (this ?: ServerGroupSpec()).run {
-      copy(launchConfiguration = launchConfiguration.run {
-        (this ?: LaunchConfigurationSpec()).copy(image = image)
-      })
+      copy(
+        launchConfiguration = launchConfiguration.run {
+          (this ?: LaunchConfigurationSpec()).copy(image = image)
+        }
+      )
     }
 
   @Suppress("UNCHECKED_CAST")

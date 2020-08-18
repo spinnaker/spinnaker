@@ -31,8 +31,10 @@ class ClusterExportHelper(
   ): ClusterDeployStrategy? {
     return kotlinx.coroutines.coroutineScope {
       val entityTags = async {
-        log.debug("Looking for entity tags on server group $serverGroupName in application $application, " +
-          "account $account in search of pipeline/task correlation.")
+        log.debug(
+          "Looking for entity tags on server group $serverGroupName in application $application, " +
+            "account $account in search of pipeline/task correlation."
+        )
         cloudDriverService.getEntityTags(
           cloudProvider = "aws",
           account = account,
@@ -43,8 +45,10 @@ class ClusterExportHelper(
       }.await()
 
       if (entityTags.isEmpty()) {
-        log.warn("Unable to find entity tags for server group $serverGroupName in application $application, " +
-          "account $account.")
+        log.warn(
+          "Unable to find entity tags for server group $serverGroupName in application $application, " +
+            "account $account."
+        )
         return@coroutineScope null
       }
 
@@ -56,8 +60,10 @@ class ClusterExportHelper(
         spinnakerMetadata["executionType"] == null ||
         spinnakerMetadata["executionId"] == null
       ) {
-        log.warn("Unable to find Spinnaker metadata for server group $serverGroupName in application $application, " +
-          "account $account in entity tags.")
+        log.warn(
+          "Unable to find Spinnaker metadata for server group $serverGroupName in application $application, " +
+            "account $account in entity tags."
+        )
         return@coroutineScope null
       }
 
@@ -72,8 +78,10 @@ class ClusterExportHelper(
       }.await()
 
       if (execution == null) {
-        log.error("Unsupported execution type $executionType in Spinnaker metadata. Unable to determine deployment " +
-          "strategy for server group $serverGroupName in application $application, account $account.")
+        log.error(
+          "Unsupported execution type $executionType in Spinnaker metadata. Unable to determine deployment " +
+            "strategy for server group $serverGroupName in application $application, account $account."
+        )
         return@coroutineScope null
       }
 
@@ -96,13 +104,17 @@ class ClusterExportHelper(
         }
         "highlander" -> Highlander
         null -> null.also {
-          log.error("Deployment strategy information not found for server group $serverGroupName " +
-            "in application $application, account $account")
+          log.error(
+            "Deployment strategy information not found for server group $serverGroupName " +
+              "in application $application, account $account"
+          )
         }
         else -> null.also {
-          log.error("Deployment strategy $strategy associated with server group $serverGroupName " +
-            "in application $application, account $account is not supported. " +
-            "Only redblack and highlander are supported at this time.")
+          log.error(
+            "Deployment strategy $strategy associated with server group $serverGroupName " +
+              "in application $application, account $account is not supported. " +
+              "Only redblack and highlander are supported at this time."
+          )
         }
       }
     }

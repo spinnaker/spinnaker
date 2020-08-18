@@ -166,10 +166,12 @@ class TitusClusterHandler(
           }
 
           tags.forEach { tag ->
-            publisher.publishEvent(ArtifactVersionDeploying(
-              resourceId = resource.id,
-              artifactVersion = tag
-            ))
+            publisher.publishEvent(
+              ArtifactVersionDeploying(
+                resourceId = resource.id,
+                artifactVersion = tag
+              )
+            )
           }
           return@map result
         }
@@ -185,8 +187,10 @@ class TitusClusterHandler(
     ).byRegion()
 
     if (serverGroups.isEmpty()) {
-      throw ResourceNotFound("Could not find cluster: ${exportable.moniker} " +
-        "in account: ${exportable.account} for export")
+      throw ResourceNotFound(
+        "Could not find cluster: ${exportable.moniker} " +
+          "in account: ${exportable.account} for export"
+      )
     }
 
     // let's assume that the largest server group is the most important and should be the base
@@ -233,8 +237,10 @@ class TitusClusterHandler(
     ).byRegion()
 
     if (serverGroups.isEmpty()) {
-      throw ResourceNotFound("Could not find cluster: ${exportable.moniker} " +
-        "in account: ${exportable.account} for export")
+      throw ResourceNotFound(
+        "Could not find cluster: ${exportable.moniker} " +
+          "in account: ${exportable.account} for export"
+      )
     }
 
     val container = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }?.container
@@ -408,7 +414,8 @@ class TitusClusterHandler(
     }
 
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<TitusClusterSpec>): Iterable<TitusServerGroup> =
-    getServerGroups(resource.spec.locations.account,
+    getServerGroups(
+      resource.spec.locations.account,
       resource.spec.moniker,
       resource.spec.locations.regions.map { it.name }.toSet(),
       resource.serviceAccount
@@ -424,10 +431,12 @@ class TitusClusterHandler(
               // We publish an event for each tag that matches the digest
               // so that we handle the tags like `latest` where more than one tags have the same digest
               // and we don't care about some of them.
-              publisher.publishEvent(ArtifactVersionDeployed(
-                resourceId = resource.id,
-                artifactVersion = tag
-              ))
+              publisher.publishEvent(
+                ArtifactVersionDeployed(
+                  resourceId = resource.id,
+                  artifactVersion = tag
+                )
+              )
             }
         }
       }

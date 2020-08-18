@@ -208,7 +208,8 @@ internal class ManualJudgementNotifierTests : JUnit5Minutests {
           NotificationConfig(
             type = NotificationType.email,
             address = "john@doe.com",
-            frequency = NotificationFrequency.normal)
+            frequency = NotificationFrequency.normal
+          )
       )
     )
 }

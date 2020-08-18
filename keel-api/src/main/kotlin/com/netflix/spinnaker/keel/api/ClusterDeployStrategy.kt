@@ -112,7 +112,8 @@ data class StaggeredRegion(
   }
 
   companion object {
-    private val HOUR_RANGE_PATTERN = """^\d+-\d+$""".toRegex()
+    private val HOUR_RANGE_PATTERN =
+      """^\d+-\d+$""".toRegex()
   }
 }
 

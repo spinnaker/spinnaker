@@ -143,14 +143,16 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
 
           test("a telemetry event is fired") {
             verify {
-              publisher.publishEvent(ArtifactVersionApproved(
-                deliveryConfig.application,
-                deliveryConfig.name,
-                environment.name,
-                dockerArtifact.name,
-                dockerArtifact.type,
-                "2.0"
-              ))
+              publisher.publishEvent(
+                ArtifactVersionApproved(
+                  deliveryConfig.application,
+                  deliveryConfig.name,
+                  environment.name,
+                  dockerArtifact.name,
+                  dockerArtifact.type,
+                  "2.0"
+                )
+              )
             }
           }
         }
@@ -200,15 +202,17 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
           before {
             every {
               repository.pinnedEnvironments(any())
-            } returns listOf(PinnedEnvironment(
-              deliveryConfigName = deliveryConfig.name,
-              targetEnvironment = environment.name,
-              artifact = dockerArtifact,
-              version = "1.0",
-              pinnedBy = null,
-              pinnedAt = null,
-              comment = null
-            ))
+            } returns listOf(
+              PinnedEnvironment(
+                deliveryConfigName = deliveryConfig.name,
+                targetEnvironment = environment.name,
+                artifact = dockerArtifact,
+                version = "1.0",
+                pinnedBy = null,
+                pinnedAt = null,
+                comment = null
+              )
+            )
 
             every {
               repository.approveVersionFor(deliveryConfig, dockerArtifact, any(), environment.name)
@@ -323,15 +327,17 @@ internal class NewEnvironmentPromotionCheckerTests : JUnit5Minutests {
         before {
           every {
             repository.pinnedEnvironments(any())
-          } returns listOf(PinnedEnvironment(
-            deliveryConfigName = multiEnvConfig.name,
-            targetEnvironment = env1.name,
-            artifact = dockerArtifact,
-            version = "2.0",
-            pinnedBy = null,
-            pinnedAt = null,
-            comment = null
-          ))
+          } returns listOf(
+            PinnedEnvironment(
+              deliveryConfigName = multiEnvConfig.name,
+              targetEnvironment = env1.name,
+              artifact = dockerArtifact,
+              version = "2.0",
+              pinnedBy = null,
+              pinnedAt = null,
+              comment = null
+            )
+          )
 
           runBlocking {
             subject.checkEnvironments(multiEnvConfig)

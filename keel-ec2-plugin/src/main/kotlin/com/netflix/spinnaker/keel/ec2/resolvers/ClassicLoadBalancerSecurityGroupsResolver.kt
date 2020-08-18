@@ -16,11 +16,15 @@ class ClassicLoadBalancerSecurityGroupsResolver : Resolver<ClassicLoadBalancerSp
   override fun invoke(resource: Resource<ClassicLoadBalancerSpec>): Resource<ClassicLoadBalancerSpec> =
     if (resource.spec.dependencies.securityGroupNames.isEmpty()) {
       resource.run {
-        copy(spec = spec.run {
-          copy(dependencies = dependencies.run {
-            copy(securityGroupNames = setOf("${moniker.app}-elb"))
-          })
-        })
+        copy(
+          spec = spec.run {
+            copy(
+              dependencies = dependencies.run {
+                copy(securityGroupNames = setOf("${moniker.app}-elb"))
+              }
+            )
+          }
+        )
       }
     } else {
       resource

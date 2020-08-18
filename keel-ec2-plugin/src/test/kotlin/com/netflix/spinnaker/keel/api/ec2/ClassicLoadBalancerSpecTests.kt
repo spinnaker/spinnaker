@@ -19,7 +19,8 @@ internal object ClassicLoadBalancerSpecTests : JUnit5Minutests {
     context("a CLB definition in yaml") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |moniker:
             |  app: testapp

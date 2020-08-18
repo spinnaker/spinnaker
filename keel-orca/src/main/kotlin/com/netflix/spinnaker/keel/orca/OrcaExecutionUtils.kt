@@ -22,7 +22,11 @@ fun restrictedExecutionWindow(
           "startHour" to startHour,
           "startMin" to 0,
           "endHour" to endHour,
-          "endMin" to 0))))
+          "endMin" to 0
+        )
+      )
+    )
+  )
 
 fun waitStage(wait: Duration, startingRefId: Int): Map<String, Any?> =
   mapOf(

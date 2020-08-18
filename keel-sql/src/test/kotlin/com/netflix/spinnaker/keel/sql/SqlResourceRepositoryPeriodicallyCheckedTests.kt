@@ -90,14 +90,18 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
   fun unreadableResourceTests() = rootContext<Fixture<Resource<ResourceSpec>, SqlResourceRepository>> {
     fixture {
-      Fixture(factory, { count ->
-        listOf(
-          resource(kind = TEST_API_V1.qualify("unreadable"), id = "unreadable").also(subject::store)
-        ) +
-          (2..count).map { i ->
-            resource(id = "readable-$i").also(subject::store)
-          }
-      }, updateOne)
+      Fixture(
+        factory,
+        { count ->
+          listOf(
+            resource(kind = TEST_API_V1.qualify("unreadable"), id = "unreadable").also(subject::store)
+          ) +
+            (2..count).map { i ->
+              resource(id = "readable-$i").also(subject::store)
+            }
+        },
+        updateOne
+      )
     }
 
     before { createAndStore(4) }

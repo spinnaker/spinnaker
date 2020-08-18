@@ -96,14 +96,16 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           mvc
             .perform(request)
             .andExpect(status().isOk)
-            .andExpect(content().json(
-              """
+            .andExpect(
+              content().json(
+                """
               {
                 "applicationPaused":false,
                 "hasManagedResources":true
               }
-              """.trimIndent()
-            ))
+                """.trimIndent()
+              )
+            )
         }
 
         test("returns bad request for unknown entities") {
@@ -216,14 +218,16 @@ internal class ApplicationControllerTests : JUnit5Minutests {
           mvc
             .perform(request)
             .andExpect(status().isOk)
-            .andExpect(content().json(
-              """
+            .andExpect(
+              content().json(
+                """
               {
                 "applicationPaused":true,
                 "hasManagedResources":true
               }
-            """.trimIndent()
-            ))
+                """.trimIndent()
+              )
+            )
         }
       }
     }
@@ -242,13 +246,15 @@ internal class ApplicationControllerTests : JUnit5Minutests {
         mvc
           .perform(request)
           .andExpect(status().isOk)
-          .andExpect(content().json(
-            """
+          .andExpect(
+            content().json(
+              """
               {
                 "hasManagedResources":false
               }
-            """.trimIndent()
-          ))
+              """.trimIndent()
+            )
+          )
       }
     }
 
@@ -302,7 +308,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
-            val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
+            val request = post("/application/fnord/environment/prod/constraint").addData(
+              jsonMapper,
               UpdatedConstraintStatus("manual-judgement", "prod", "deb", OVERRIDE_PASS)
             )
               .accept(APPLICATION_JSON_VALUE)
@@ -317,7 +324,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
-            val request = post("/application/fnord/environment/prod/constraint").addData(jsonMapper,
+            val request = post("/application/fnord/environment/prod/constraint").addData(
+              jsonMapper,
               UpdatedConstraintStatus("manual-judgement", "prod", "deb", OVERRIDE_PASS)
             )
               .accept(APPLICATION_JSON_VALUE)
@@ -377,7 +385,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
-            val request = post("/application/fnord/pin").addData(jsonMapper,
+            val request = post("/application/fnord/pin").addData(
+              jsonMapper,
               EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null)
             )
               .accept(APPLICATION_JSON_VALUE)
@@ -392,7 +401,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
-            val request = post("/application/fnord/pin").addData(jsonMapper,
+            val request = post("/application/fnord/pin").addData(
+              jsonMapper,
               EnvironmentArtifactPin("test", "ref", "deb", "0.0.1", null)
             )
               .accept(APPLICATION_JSON_VALUE)
@@ -438,7 +448,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             authorizationSupport.allowServiceAccountAccess()
           }
           test("request is forbidden") {
-            val request = post("/application/fnord/veto").addData(jsonMapper,
+            val request = post("/application/fnord/veto").addData(
+              jsonMapper,
               EnvironmentArtifactVeto("test", "ref", "0.0.1", "me", "oopsie")
             )
               .accept(APPLICATION_JSON_VALUE)
@@ -453,7 +464,8 @@ internal class ApplicationControllerTests : JUnit5Minutests {
             authorizationSupport.allowApplicationAccess(WRITE, APPLICATION)
           }
           test("request is forbidden") {
-            val request = post("/application/fnord/veto").addData(jsonMapper,
+            val request = post("/application/fnord/veto").addData(
+              jsonMapper,
               EnvironmentArtifactVeto("test", "ref", "0.0.1", "me", "oopsie")
             )
               .accept(APPLICATION_JSON_VALUE)

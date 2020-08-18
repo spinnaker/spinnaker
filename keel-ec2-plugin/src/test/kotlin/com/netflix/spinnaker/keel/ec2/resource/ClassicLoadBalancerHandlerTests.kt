@@ -80,9 +80,11 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
   private val normalizers: List<Resolver<*>> = listOf(
     ClassicLoadBalancerSecurityGroupsResolver(),
-    ClassicLoadBalancerNetworkResolver(cloudDriverCache))
+    ClassicLoadBalancerNetworkResolver(cloudDriverCache)
+  )
 
-  private val yaml = """
+  private val yaml =
+    """
     |---
     |moniker:
     |  app: testapp
@@ -244,9 +246,11 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       test("computed diff removes the default security group if the spec only specifies another") {
         val newSpec = spec.run {
-          copy(dependencies = dependencies.run {
-            copy(securityGroupNames = setOf("nondefault-elb"))
-          })
+          copy(
+            dependencies = dependencies.run {
+              copy(securityGroupNames = setOf("nondefault-elb"))
+            }
+          )
         }
         val newResource = resource.copy(spec = newSpec)
 

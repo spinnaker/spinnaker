@@ -102,14 +102,16 @@ internal class EventControllerTests : JUnit5Minutests {
         authorizationSupport.allowAll()
         every { resourceRepository.get(resource.id) } returns resource
         every { resourceRepository.eventHistory(resource.id, any()) } answers {
-          (listOf(ResourceCreated(resource, nextTick())) + (1..3).flatMap {
-            listOf(
-              ResourceUpdated(resource, emptyMap(), nextTick()),
-              ResourceDeltaDetected(resource, emptyMap(), nextTick()),
-              ResourceActuationLaunched(resource, "a-plugin", listOf(Task(id = randomUID().toString(), name = "i did a thing")), nextTick()),
-              ResourceDeltaResolved(resource, nextTick())
+          (
+            listOf(ResourceCreated(resource, nextTick())) + (1..3).flatMap {
+              listOf(
+                ResourceUpdated(resource, emptyMap(), nextTick()),
+                ResourceDeltaDetected(resource, emptyMap(), nextTick()),
+                ResourceActuationLaunched(resource, "a-plugin", listOf(Task(id = randomUID().toString(), name = "i did a thing")), nextTick()),
+                ResourceDeltaResolved(resource, nextTick())
+              )
+            }
             )
-          })
             .sortedByDescending { it.timestamp }
             .take(secondArg())
         }

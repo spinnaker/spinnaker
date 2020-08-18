@@ -25,7 +25,8 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
     context("a self referencing ingress rule") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |protocol: "TCP"
             |portRange:
@@ -46,7 +47,8 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
     context("an ingress rule referencing another security group") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |protocol: "TCP"
             |name: "fnord"
@@ -69,7 +71,8 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
     context("an ingress rule referencing a security group in another account") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |protocol: "TCP"
             |name: "fnord"
@@ -96,7 +99,8 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
     context("a CIDR rule") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |protocol: "TCP"
             |portRange:
@@ -118,7 +122,8 @@ internal class SecurityGroupRuleTests : JUnit5Minutests {
     context("an open CIDR rule") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |protocol: "ALL"
             |portRange: "ALL"

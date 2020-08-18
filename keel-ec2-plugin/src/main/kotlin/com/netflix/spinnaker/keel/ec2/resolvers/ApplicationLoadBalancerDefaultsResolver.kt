@@ -56,11 +56,16 @@ class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer
       }
 
       return resource.run {
-        copy(spec = spec.run {
-          copy(listeners = listeners, dependencies = dependencies.run {
-            copy(securityGroupNames = securityGroupNames)
-          })
-        })
+        copy(
+          spec = spec.run {
+            copy(
+              listeners = listeners,
+              dependencies = dependencies.run {
+                copy(securityGroupNames = securityGroupNames)
+              }
+            )
+          }
+        )
       }
     }
 

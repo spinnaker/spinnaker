@@ -46,12 +46,14 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
     val taskResourceRecord = TaskRecord(
       id = "123",
       subject = "${SubjectType.RESOURCE}:${resource.id}",
-      name = "upsert server group")
+      name = "upsert server group"
+    )
 
     val taskConstraintRecord = TaskRecord(
       id = "123",
       subject = "${SubjectType.CONSTRAINT}:${resource.id}",
-      name = "canary constraint")
+      name = "canary constraint"
+    )
 
     val task = Task(
       id = "123",
@@ -258,40 +260,48 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         false -> clock.instant()
       },
       status = status,
-      execution = execution)
+      execution = execution
+    )
 
   private fun orcaExceptions() =
     OrcaException(
-      details = GeneralErrorsDetails(errors =
-      listOf("Too many retries.  10 attempts have been made to bake ... its probably not going to happen."),
+      details = GeneralErrorsDetails(
+        errors =
+          listOf("Too many retries.  10 attempts have been made to bake ... its probably not going to happen."),
         stackTrace = "",
         responseBody = "",
         kind = "",
-        error = ""),
+        error = ""
+      ),
       exceptionType = "",
-      shouldRetry = false)
+      shouldRetry = false
+    )
 
   private fun orcaContext(
     exception: OrcaException? = null,
     katoException: List<Map<String, Any>>? = emptyList()
   ): Map<String, Any> =
-    mapOf("context" to
-      OrcaContext(
-        exception = exception,
-        clouddriverException = katoException
-      ))
+    mapOf(
+      "context" to
+        OrcaContext(
+          exception = exception,
+          clouddriverException = katoException
+        )
+    )
 
   private fun clouddriverExceptions():
     List<Map<String, Any>> = (
-    listOf(mapOf(
-      "exception" to ClouddriverException(
-        cause = "",
-        message = "The following security groups do not exist: 'keeldemo-main-elb' in 'test' vpc-46f5a223",
-        operation = "",
-        type = "EXCEPTION"
+      listOf(
+        mapOf(
+          "exception" to ClouddriverException(
+            cause = "",
+            message = "The following security groups do not exist: 'keeldemo-main-elb' in 'test' vpc-46f5a223",
+            operation = "",
+            type = "EXCEPTION"
+          )
+        )
       )
-    ))
-    )
+      )
 
   val RETROFIT_NOT_FOUND = HttpException(
     Response.error<Any>(404, "".toResponseBody("application/json".toMediaTypeOrNull()))

@@ -49,7 +49,8 @@ data class EchoNotification(
   @JsonTypeInfo(
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     use = JsonTypeInfo.Id.NAME,
-    property = "type")
+    property = "type"
+  )
   @JsonSubTypes(
     Type(value = ButtonAction::class, name = "button")
   )

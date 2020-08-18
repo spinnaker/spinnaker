@@ -65,40 +65,44 @@ fun ServerGroup.toCloudDriverResponse(
         health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
         subnets.map(Subnet::id).joinToString(",")
       ),
-      scalingPolicies = listOf(ScalingPolicy(
-        autoScalingGroupName = "$name-v$sequence",
-        policyName = "$name-target-tracking-policy",
-        policyType = "TargetTrackingScaling",
-        estimatedInstanceWarmup = 300,
-        adjustmentType = null,
-        minAdjustmentStep = null,
-        minAdjustmentMagnitude = null,
-        stepAdjustments = null,
-        metricAggregationType = null,
-        targetTrackingConfiguration = TargetTrackingConfiguration(
-          560.0,
-          true,
-          CustomizedMetricSpecificationModel(
-            "RPS per instance",
-            "SPIN/ACH",
-            "Average",
-            null,
-            listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence"))
+      scalingPolicies = listOf(
+        ScalingPolicy(
+          autoScalingGroupName = "$name-v$sequence",
+          policyName = "$name-target-tracking-policy",
+          policyType = "TargetTrackingScaling",
+          estimatedInstanceWarmup = 300,
+          adjustmentType = null,
+          minAdjustmentStep = null,
+          minAdjustmentMagnitude = null,
+          stepAdjustments = null,
+          metricAggregationType = null,
+          targetTrackingConfiguration = TargetTrackingConfiguration(
+            560.0,
+            true,
+            CustomizedMetricSpecificationModel(
+              "RPS per instance",
+              "SPIN/ACH",
+              "Average",
+              null,
+              listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence"))
+            ),
+            null
           ),
-          null
-        ),
-        alarms = listOf(ScalingPolicyAlarm(
-          true,
-          "GreaterThanThreshold",
-          listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence")),
-          3,
-          60,
-          560,
-          "RPS per instance",
-          "SPIN/ACH",
-          "Average"
-        ))
-      )),
+          alarms = listOf(
+            ScalingPolicyAlarm(
+              true,
+              "GreaterThanThreshold",
+              listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence")),
+              3,
+              60,
+              560,
+              "RPS per instance",
+              "SPIN/ACH",
+              "Average"
+            )
+          )
+        )
+      ),
       vpcId = vpc.id,
       targetGroups = dependencies.targetGroups,
       loadBalancers = dependencies.loadBalancerNames,

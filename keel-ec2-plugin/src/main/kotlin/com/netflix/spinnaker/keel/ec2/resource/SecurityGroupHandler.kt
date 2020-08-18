@@ -162,8 +162,10 @@ class SecurityGroupHandler(
       }
 
     if (securityGroups.isEmpty()) {
-      throw ResourceNotFound("Could not find security group: ${exportable.moniker} " +
-        "in account: ${exportable.account}")
+      throw ResourceNotFound(
+        "Could not find security group: ${exportable.moniker} " +
+          "in account: ${exportable.account}"
+      )
     }
 
     val base = securityGroups.values.first()
@@ -275,33 +277,35 @@ class SecurityGroupHandler(
         val ingressRange = rule.range
         val protocol = rule.protocol!!.clouddriverProtocolToKeel()
         when {
-          ingressGroup != null -> rule.portRanges
-            ?.map { it.toPortRange() }
-            ?.map { portRange ->
-              when {
-                ingressGroup.accountName != accountName || ingressGroup.vpcId != vpcId -> CrossAccountReferenceRule(
+          ingressGroup != null ->
+            rule.portRanges
+              ?.map { it.toPortRange() }
+              ?.map { portRange ->
+                when {
+                  ingressGroup.accountName != accountName || ingressGroup.vpcId != vpcId -> CrossAccountReferenceRule(
+                    protocol,
+                    ingressGroup.name,
+                    ingressGroup.accountName!!,
+                    cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
+                    portRange
+                  )
+                  else -> ReferenceRule(
+                    protocol,
+                    if (ingressGroup.name == name) null else ingressGroup.name, // if it's a self-referential rule keel models the name as null
+                    portRange
+                  )
+                }
+              } ?: emptyList()
+          ingressRange != null ->
+            rule.portRanges
+              ?.map { it.toPortRange() }
+              ?.map { portRange ->
+                CidrRule(
                   protocol,
-                  ingressGroup.name,
-                  ingressGroup.accountName!!,
-                  cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
-                  portRange
+                  portRange,
+                  ingressRange.ip + ingressRange.cidr
                 )
-                else -> ReferenceRule(
-                  protocol,
-                  if (ingressGroup.name == name) null else ingressGroup.name, // if it's a self-referential rule keel models the name as null
-                  portRange
-                )
-              }
-            } ?: emptyList()
-          ingressRange != null -> rule.portRanges
-            ?.map { it.toPortRange() }
-            ?.map { portRange ->
-              CidrRule(
-                protocol,
-                portRange,
-                ingressRange.ip + ingressRange.cidr
-              )
-            } ?: emptyList()
+              } ?: emptyList()
           else -> emptyList()
         }
       }

@@ -25,7 +25,8 @@ class EventController(
     path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
     and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
   )
   fun eventHistory(

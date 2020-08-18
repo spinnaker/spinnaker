@@ -61,10 +61,12 @@ class ResourceModelConverter(
           }
           discriminator = Discriminator()
             .propertyName("kind")
-            .mapping(specTypes.map<String, Class<*>, Pair<String, String>> { (kind, specClass) ->
+            .mapping(
+              specTypes.map<String, Class<*>, Pair<String, String>> { (kind, specClass) ->
                 kind to constructRef("${specClass.simpleName}${baseType.simpleName}")
               }
-              .toMap<String, String?>())
+                .toMap<String, String?>()
+            )
         }
       )
       ref(baseType)

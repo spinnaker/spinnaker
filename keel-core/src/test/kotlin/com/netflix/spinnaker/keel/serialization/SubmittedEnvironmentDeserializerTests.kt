@@ -32,7 +32,8 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     context("locations is specified on the resource spec") {
       fixture {
-        Fixture("""
+        Fixture(
+          """
           |---
           |name: test
           |resources:
@@ -72,7 +73,8 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
 
     context("locations is omitted from the resource spec") {
       fixture {
-        Fixture("""
+        Fixture(
+          """
           |---
           |name: test
           |resources:
@@ -105,7 +107,8 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
 
     context("locations is omitted from the resource spec for a resource with non-subnet aware locations") {
       fixture {
-        Fixture("""
+        Fixture(
+          """
           |---
           |name: test
           |resources:
@@ -138,7 +141,8 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
 
     context("locations appears in one environment but not another") {
       fixture {
-        Fixture("""
+        Fixture(
+          """
           |---
           |- name: test
           |  resources:
@@ -176,7 +180,8 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
 
     context("locations is omitted from the resource spec and the environment") {
       fixture {
-        Fixture("""
+        Fixture(
+          """
           |---
           |name: test
           |resources:

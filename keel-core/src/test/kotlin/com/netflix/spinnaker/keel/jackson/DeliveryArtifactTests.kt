@@ -16,7 +16,8 @@ import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
 
 internal class DeliveryArtifactTests : JUnit5Minutests {
-  val debianArtifact = """
+  val debianArtifact =
+    """
       {
         "name": "fnord",
         "type": "deb",
@@ -32,7 +33,8 @@ internal class DeliveryArtifactTests : JUnit5Minutests {
       }
     """.trimIndent()
 
-  val dockerArtifact = """
+  val dockerArtifact =
+    """
       {
         "name": "fnord/blah",
         "type": "docker",
@@ -41,7 +43,8 @@ internal class DeliveryArtifactTests : JUnit5Minutests {
       }
     """.trimIndent()
 
-  val slashyDockerArtifact = """
+  val slashyDockerArtifact =
+    """
       {
         "name": "fnord/is/cool",
         "type": "docker",

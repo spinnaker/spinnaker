@@ -42,10 +42,12 @@ private fun <T : ObjectMapper> T.configureMe(): T =
   }
 
 private fun ObjectMapper.registerULIDModule(): ObjectMapper =
-  registerModule(SimpleModule("ULID").apply {
-    addSerializer(ULID.Value::class.java, ToStringSerializer())
-    addDeserializer(ULID.Value::class.java, ULIDDeserializer())
-  })
+  registerModule(
+    SimpleModule("ULID").apply {
+      addSerializer(ULID.Value::class.java, ToStringSerializer())
+      addDeserializer(ULID.Value::class.java, ULIDDeserializer())
+    }
+  )
 
 private fun ObjectMapper.configureSaneDateTimeRepresentation(): ObjectMapper =
   enable(WRITE_DATES_AS_TIMESTAMPS)

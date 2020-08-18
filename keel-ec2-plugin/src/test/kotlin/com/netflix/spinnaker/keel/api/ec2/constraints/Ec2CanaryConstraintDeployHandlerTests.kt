@@ -92,7 +92,8 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
       cloudDriverService,
       cloudDriverCache,
       imageService,
-      imageResolver)
+      imageResolver
+    )
   }
 
   fun tests() = rootContext<Fixture> {
@@ -138,7 +139,10 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
           type = "aws",
           attributes = mapOf(
             "attributes" to mapOf(
-              "environment" to "test")))
+              "environment" to "test"
+            )
+          )
+        )
       }
 
       test("generates and submits an orca task per regions") {
@@ -193,7 +197,8 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
                                   .isEqualTo(deliveryConfig.application)
                                 getValue("freeFormDetails")
                                   .isEqualTo(
-                                    "${parseMoniker(constraint.source.cluster).detail}-canary")
+                                    "${parseMoniker(constraint.source.cluster).detail}-canary"
+                                  )
                               }
                           }
                       }

@@ -123,8 +123,10 @@ class ResourceActuator(
                 with(versionedArtifact) {
                   val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
                   val environment = deliveryConfig.environmentFor(resource)?.name
-                    ?: error("Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name} " +
-                      "while attempting to veto artifact $artifactType:$artifactName version $artifactVersion")
+                    ?: error(
+                      "Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name} " +
+                        "while attempting to veto artifact $artifactType:$artifactName version $artifactVersion"
+                    )
                   val artifact = deliveryConfig.matchingArtifactByName(versionedArtifact.artifactName, artifactType)
                     ?: error("Artifact $artifactType:$artifactName not found in delivery config ${deliveryConfig.name}")
 
@@ -156,7 +158,9 @@ class ResourceActuator(
               response.message,
               response.vetoName,
               response.suggestedStatus,
-              clock.instant()))
+              clock.instant()
+            )
+          )
           return@withTracingContext
         }
 

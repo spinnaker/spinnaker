@@ -333,7 +333,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                 protocol = "tcp",
                 portRanges = listOf(SecurityGroupRulePortRange(443, 443)),
                 securityGroup = SecurityGroupRuleReference("otherapp", vpcOtherAccount.account, vpcOtherAccount.region, vpcOtherAccount.id),
-                range = null),
+                range = null
+              ),
               // multi-port range self-referencing ingress
               SecurityGroupRule(
                 protocol = "tcp",
@@ -414,7 +415,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               handlerMethod.invoke(
                 handler,
                 resource,
-                DefaultResourceDiff(handler.desired(resource), null))
+                DefaultResourceDiff(handler.desired(resource), null)
+              )
             }
           }
 
@@ -483,7 +485,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               handlerMethod.invoke(
                 handler,
                 resource,
-                DefaultResourceDiff(handler.desired(resource), null))
+                DefaultResourceDiff(handler.desired(resource), null)
+              )
             }
           }
 
@@ -547,7 +550,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               handlerMethod.invoke(
                 handler,
                 resource,
-                DefaultResourceDiff(handler.desired(resource), null))
+                DefaultResourceDiff(handler.desired(resource), null)
+              )
             }
           }
 
@@ -659,10 +663,14 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           val withoutIngress = resource
             .copy(
               spec = resource.spec.copy(
-                inboundRules = emptySet()))
+                inboundRules = emptySet()
+              )
+            )
 
-          handler.update(resource,
-            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutIngress)))
+          handler.update(
+            resource,
+            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutIngress))
+          )
         }
       }
 
@@ -718,8 +726,10 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             )
           )
 
-          handler.update(resource,
-            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutIngress)))
+          handler.update(
+            resource,
+            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutIngress))
+          )
         }
       }
 
@@ -791,7 +801,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           handler.update(
             resource,
-            DefaultResourceDiff(handler.desired(resource), handler.desired(onlyInEast)))
+            DefaultResourceDiff(handler.desired(resource), handler.desired(onlyInEast))
+          )
         }
       }
 
@@ -850,11 +861,14 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           val withoutOverride = resource
             .copy(
               spec = resource.spec.copy(
-                overrides = emptyMap()))
+                overrides = emptyMap()
+              )
+            )
 
           handler.upsert(
             resource,
-            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutOverride)))
+            DefaultResourceDiff(handler.desired(resource), handler.desired(withoutOverride))
+          )
         }
       }
 
@@ -877,10 +891,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           ipIngress.hasSize(1)
           ipIngress[0]["cidr"]
             .isEqualTo(
-              (securityGroupSpec.overrides
-                .getValue("us-east-17")
-                .inboundRules!!.first() as CidrRule)
-                .blockRange)
+              (
+                securityGroupSpec.overrides
+                  .getValue("us-east-17")
+                  .inboundRules!!.first() as CidrRule
+                )
+                .blockRange
+            )
         }
       }
     }

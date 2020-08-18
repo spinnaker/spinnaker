@@ -81,7 +81,9 @@ class PipelineConstraintEvaluator(
                 "s"
               } else {
                 ""
-              }))
+              }
+          )
+        )
       // TODO: Emit event
       return false
     }
@@ -98,8 +100,11 @@ class PipelineConstraintEvaluator(
           latestAttempt = clock.instant()
         )
       } catch (e: Exception) {
-        log.warn("Failed triggering pipeline ${constraint.pipelineId} for " +
-          "${deliveryConfig.application}:$deliveryConfig/$targetEnvironment", e)
+        log.warn(
+          "Failed triggering pipeline ${constraint.pipelineId} for " +
+            "${deliveryConfig.application}:$deliveryConfig/$targetEnvironment",
+          e
+        )
 
         attributes = PipelineConstraintStateAttributes(
           executionId = null,
@@ -119,7 +124,9 @@ class PipelineConstraintEvaluator(
             comment = "Failed to trigger pipeline ${constraint.pipelineId}, please review pipeline constraint " +
               "configuration in delivery-config ${deliveryConfig.name} for ${targetEnvironment.name}",
             judgedAt = clock.instant(),
-            judgedBy = "keel"))
+            judgedBy = "keel"
+          )
+        )
 
       return false
     }
@@ -127,10 +134,12 @@ class PipelineConstraintEvaluator(
     if (status == null || status.isIncomplete()) {
       // Persist the pipeline status if changed
       if (attributes.lastExecutionStatus !=
-        (state.attributes as PipelineConstraintStateAttributes?)?.lastExecutionStatus) {
+        (state.attributes as PipelineConstraintStateAttributes?)?.lastExecutionStatus
+      ) {
         repository
           .storeConstraintState(
-            state.copy(attributes = attributes))
+            state.copy(attributes = attributes)
+          )
       }
 
       return false
@@ -142,14 +151,16 @@ class PipelineConstraintEvaluator(
         comment = "Failed to validate environment promotion via $judge",
         judgedBy = judge,
         judgedAt = clock.instant(),
-        attributes = attributes)
+        attributes = attributes
+      )
     } else {
       state.copy(
         status = PASS,
         comment = "Validated environment promotion via $judge",
         judgedBy = judge,
         judgedAt = clock.instant(),
-        attributes = attributes)
+        attributes = attributes
+      )
     }
 
     repository.storeConstraintState(newState)

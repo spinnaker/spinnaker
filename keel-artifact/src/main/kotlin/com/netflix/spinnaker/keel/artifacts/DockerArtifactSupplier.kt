@@ -57,7 +57,7 @@ class DockerArtifactSupplier(
               reference = dockerImage.repository.substringAfter(':', dockerImage.repository),
               version = dockerImage.tag
             )
-        }
+          }
       }
     } else {
       null

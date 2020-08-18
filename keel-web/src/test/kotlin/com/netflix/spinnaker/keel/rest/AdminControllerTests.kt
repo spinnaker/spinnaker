@@ -70,8 +70,9 @@ internal class AdminControllerTests : JUnit5Minutests {
         mvc
           .perform(request)
           .andExpect(status().isOk)
-          .andExpect(content().json(
-            """
+          .andExpect(
+            content().json(
+              """
               [{
                 "deliveryConfigName": "fnord-manifest",
                 "application": "fnord",
@@ -79,8 +80,9 @@ internal class AdminControllerTests : JUnit5Minutests {
                 "apiVersion": "delivery.config.spinnaker.netflix.com/v1",
                 "isPaused":false
               }]
-            """.trimIndent()
-          ))
+              """.trimIndent()
+            )
+          )
       }
     }
 
@@ -114,8 +116,9 @@ internal class AdminControllerTests : JUnit5Minutests {
         mvc
           .perform(request)
           .andExpect(status().isOk)
-          .andExpect(content().json(
-            """
+          .andExpect(
+            content().json(
+              """
               [
                 {
                   "deliveryConfigName": "fnord-manifest",
@@ -131,8 +134,9 @@ internal class AdminControllerTests : JUnit5Minutests {
                   "isPaused":false
                 }
               ]
-            """.trimIndent()
-          ))
+              """.trimIndent()
+            )
+          )
       }
     }
 

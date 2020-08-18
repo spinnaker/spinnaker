@@ -94,7 +94,8 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
       environments = setOf(
         Environment(
           name = "test",
-          resources = setOf(resource(spec = DummyResourceSpec()))),
+          resources = setOf(resource(spec = DummyResourceSpec()))
+        ),
         targetEnvironment
       )
     )
@@ -487,7 +488,8 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
         true -> null
         false -> clock.instant()
       },
-      status = status)
+      status = status
+    )
 }
 
 class DummyCanaryConstraintDeployHandler : CanaryConstraintDeployHandler {

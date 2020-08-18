@@ -294,11 +294,13 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         test("backwards-compatibility: constraint state can be retrieved with missing artifact reference in the database") {
           val environment = deliveryConfig.environments.first { it.name == "staging" }
           val originalState = repository.getConstraintState(
-            deliveryConfig.name, environment.name, "keel-1.0.0", "manual-judgement", "keel")
+            deliveryConfig.name, environment.name, "keel-1.0.0", "manual-judgement", "keel"
+          )
           val stateWithNullReference = originalState!!.copy(artifactReference = null)
           repository.storeConstraintState(stateWithNullReference)
           val updatedState = repository.getConstraintState(
-            deliveryConfig.name, environment.name, "keel-1.0.0", "manual-judgement", "keel")
+            deliveryConfig.name, environment.name, "keel-1.0.0", "manual-judgement", "keel"
+          )
           expectThat(updatedState).isNotNull()
           expectThat(updatedState!!.artifactReference).isNull()
         }
@@ -309,7 +311,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           // This only works currently because the artifactVersion contains the artifact name for debians and makes them
           // unique, but won't work for Docker.
           val constraintState = repository.getConstraintState(
-            deliveryConfig.name, environment.name, "keel-1.0.0", "manual-judgement", null)
+            deliveryConfig.name, environment.name, "keel-1.0.0", "manual-judgement", null
+          )
           expectThat(constraintState).isNotNull()
           expectThat(constraintState!!.artifactReference).isNotNull()
         }

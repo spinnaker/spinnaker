@@ -249,10 +249,12 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
           app = "fnord",
           stack = "test"
         ),
-        imageProvider = ArtifactImageProvider(DebianArtifact(
-          name = "fnord",
-          vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = locations.regions.map(SubnetAwareRegionSpec::name).toSet())
-        )),
+        imageProvider = ArtifactImageProvider(
+          DebianArtifact(
+            name = "fnord",
+            vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = locations.regions.map(SubnetAwareRegionSpec::name).toSet())
+          )
+        ),
         locations = locations,
         _defaults = ServerGroupSpec(
           launchConfiguration = LaunchConfigurationSpec(

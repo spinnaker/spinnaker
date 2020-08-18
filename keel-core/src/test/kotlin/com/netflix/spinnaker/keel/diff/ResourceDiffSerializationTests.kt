@@ -46,14 +46,16 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
 
       test("serialized output contains simple property details") {
         val json = diff.toDeltaJson()
-        val expected = mapper.readValue<Map<String, Any?>>("""
+        val expected = mapper.readValue<Map<String, Any?>>(
+          """
           |{
           |  "/AString": {
           |    "state": "CHANGED",
           |    "desired": "FNORD",
           |    "current": "fnord"
           |  }
-          |}""".trimMargin())
+          |}""".trimMargin()
+        )
 
         expectThat(json).isEqualTo(expected)
       }
@@ -69,14 +71,16 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
 
       test("serialized output contains property details") {
         val json = diff.toDeltaJson()
-        val expected = mapper.readValue<Map<String, Any?>>("""
+        val expected = mapper.readValue<Map<String, Any?>>(
+          """
           |{
           |  "/ANullableString": {
           |    "state": "ADDED",
           |    "desired": "fnord",
           |    "current": null
           |  }
-          |}""".trimMargin())
+          |}""".trimMargin()
+        )
 
         expectThat(json).isEqualTo(expected)
       }
@@ -92,7 +96,8 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
 
       test("serialized output contains nested property details") {
         val json = diff.toDeltaJson()
-        val expected = mapper.readValue<Map<String, Any?>>("""
+        val expected = mapper.readValue<Map<String, Any?>>(
+          """
           |{
           |  "/ANestedValue": {
           |    "state": "CHANGED"
@@ -107,7 +112,8 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
           |    "desired": "FNORD",
           |    "current": "fnord"
           |  }
-          |}""".trimMargin())
+          |}""".trimMargin()
+        )
 
         expectThat(json).isEqualTo(expected)
       }
@@ -124,7 +130,8 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
 
         test("serialized output contains nested property details") {
           val json = diff.toDeltaJson()
-          val expected = mapper.readValue<Map<String, Any?>>("""
+          val expected = mapper.readValue<Map<String, Any?>>(
+            """
             |{
             |  "/AList": {
             |    "state": "CHANGED"
@@ -139,7 +146,8 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
             |    "desired": "bar",
             |    "current": null
             |  }
-            |}""".trimMargin())
+            |}""".trimMargin()
+          )
 
           expectThat(json).isEqualTo(expected)
         }
@@ -155,7 +163,8 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
 
         test("serialized output contains nested property details") {
           val json = diff.toDeltaJson()
-          val expected = mapper.readValue<Map<String, Any?>>("""
+          val expected = mapper.readValue<Map<String, Any?>>(
+            """
             |{
             |  "/AList": {
             |    "state": "CHANGED"
@@ -170,7 +179,8 @@ internal class ResourceDiffSerializationTests : JUnit5Minutests {
             |    "desired": null,
             |    "current": "foo"
             |  }
-            |}""".trimMargin())
+            |}""".trimMargin()
+          )
 
           expectThat(json).isEqualTo(expected)
         }

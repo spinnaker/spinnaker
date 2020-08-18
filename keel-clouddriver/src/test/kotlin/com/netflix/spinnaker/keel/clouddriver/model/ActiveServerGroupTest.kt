@@ -30,7 +30,8 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
   fun randomHex(count: Int = 8): String = random(count, "0123456789abcdef")
   fun randomIp() = (0..3).map { nextInt(0, 1000) }.joinToString(".")
 
-  override val json = """
+  override val json =
+    """
     |{
     |  "name": "$app-v$seq",
     |  "region": "$region",
@@ -454,15 +455,18 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
             dimensions = listOf(MetricDimensionModel(name = "AutoScalingGroupName", value = "$app-v$seq"))
           )
         ),
-        alarms = listOf(ScalingPolicyAlarm(
-          comparisonOperator = "GreaterThanThreshold",
-          dimensions = listOf(MetricDimensionModel(name = "AutoScalingGroupName", value = "$app-v$seq")),
-          evaluationPeriods = 3,
-          period = 60,
-          threshold = 560,
-          metricName = "RPS per instance",
-          namespace = "ZZZ/EPIC",
-          statistic = "Average"))
+        alarms = listOf(
+          ScalingPolicyAlarm(
+            comparisonOperator = "GreaterThanThreshold",
+            dimensions = listOf(MetricDimensionModel(name = "AutoScalingGroupName", value = "$app-v$seq")),
+            evaluationPeriods = 3,
+            period = 60,
+            threshold = 560,
+            metricName = "RPS per instance",
+            namespace = "ZZZ/EPIC",
+            statistic = "Average"
+          )
+        )
       )
     ),
     vpcId = vpc,

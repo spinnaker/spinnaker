@@ -55,14 +55,15 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
           )
           expectThat(result).isEqualTo(
             submittedDeliveryConfig.copy(
-              metadata = mapOf("importedFrom" to
-                mapOf(
-                  "repoType" to "stash",
-                  "projectKey" to "proj",
-                  "repoSlug" to "repo",
-                  "manifestPath" to "spinnaker.yml",
-                  "ref" to "refs/heads/master"
-                )
+              metadata = mapOf(
+                "importedFrom" to
+                  mapOf(
+                    "repoType" to "stash",
+                    "projectKey" to "proj",
+                    "repoSlug" to "repo",
+                    "manifestPath" to "spinnaker.yml",
+                    "ref" to "refs/heads/master"
+                  )
               )
             )
           )
@@ -70,9 +71,11 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
       }
 
       context("with HTTP error retrieving delivery config from igor") {
-        val retrofitError = RetrofitError.httpError("http://igor",
+        val retrofitError = RetrofitError.httpError(
+          "http://igor",
           Response("http://igor", 404, "not found", emptyList(), null),
-          null, null)
+          null, null
+        )
 
         before {
           every {

@@ -36,14 +36,15 @@ class DeliveryConfigImporter(
 
     log.debug("Successfully retrieved delivery config from $manifestLocation.")
     return submittedDeliveryConfig.copy(
-      metadata = mapOf("importedFrom" to
-        mapOf(
-          "repoType" to repoType,
-          "projectKey" to projectKey,
-          "repoSlug" to repoSlug,
-          "manifestPath" to manifestPath,
-          "ref" to ref
-        )
+      metadata = mapOf(
+        "importedFrom" to
+          mapOf(
+            "repoType" to repoType,
+            "projectKey" to projectKey,
+            "repoSlug" to repoSlug,
+            "manifestPath" to manifestPath,
+            "ref" to ref
+          )
       )
     )
   }

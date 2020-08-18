@@ -104,11 +104,14 @@ class ClassicLoadBalancerHandler(
       account = exportable.account,
       name = exportable.moniker.toString(),
       regions = exportable.regions,
-      serviceAccount = exportable.user)
+      serviceAccount = exportable.user
+    )
 
     if (clbs.isEmpty()) {
-      throw ResourceNotFound("Could not find classic load balancer: ${exportable.moniker} " +
-        "in account: ${exportable.account} for ")
+      throw ResourceNotFound(
+        "Could not find classic load balancer: ${exportable.moniker} " +
+          "in account: ${exportable.account} for "
+      )
     }
     val zonesByRegion = clbs.map { (region, clb) ->
       region to cloudDriverCache.availabilityZonesBy(
@@ -123,10 +126,12 @@ class ClassicLoadBalancerHandler(
     val zonesForCLB = clbs.map { (region, clb) ->
       region to if (
         clb.location.availabilityZones
-          .containsAll(zonesByRegion[region]
-            ?: error(
-              "Failed resolving availabilityZones for account: ${exportable.account}, region: $region, " +
-                "subnet: ${clb.location.subnet}")
+          .containsAll(
+            zonesByRegion[region]
+              ?: error(
+                "Failed resolving availabilityZones for account: ${exportable.account}, region: $region, " +
+                  "subnet: ${clb.location.subnet}"
+              )
           )
       ) {
         emptySet()

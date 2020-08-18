@@ -129,16 +129,18 @@ internal class ClusterExportTests : JUnit5Minutests {
       ),
       capacity = Capacity(min = 1, max = 6),
       scaling = Scaling(
-        targetTrackingPolicies = setOf(TargetTrackingPolicy(
-          name = targetTrackingPolicyName,
-          targetValue = 560.0,
-          disableScaleIn = true,
-          customMetricSpec = CustomizedMetricSpecification(
-            name = "RPS per instance",
-            namespace = "SPIN/ACH",
-            statistic = "Average"
+        targetTrackingPolicies = setOf(
+          TargetTrackingPolicy(
+            name = targetTrackingPolicyName,
+            targetValue = 560.0,
+            disableScaleIn = true,
+            customMetricSpec = CustomizedMetricSpecification(
+              name = "RPS per instance",
+              namespace = "SPIN/ACH",
+              statistic = "Average"
+            )
           )
-        ))
+        )
       ),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
@@ -364,7 +366,8 @@ internal class ClusterExportTests : JUnit5Minutests {
 
 private fun ActiveServerGroup.withNonDefaultHealthProps(): ActiveServerGroup =
   copy(
-    asg = asg.copy(terminationPolicies = setOf(TerminationPolicy.NewestInstance.name)
+    asg = asg.copy(
+      terminationPolicies = setOf(TerminationPolicy.NewestInstance.name)
     )
   )
 

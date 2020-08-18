@@ -21,13 +21,13 @@ class ExceptionHandlerTests : JUnit5Minutests {
     val subject = ExceptionHandler(listOf(DummyResourceHandlerV1))
     val mapper = configuredYamlMapper()
     val parseException = try {
-        mapper.registerSubtypes(NamedType(DummyResourceSpec::class.java, TEST_API_V1.qualify("whatever").toString()))
-        mapper.readValue(brokenYaml, SubmittedDeliveryConfig::class.java)
-        throw IllegalArgumentException("test is broken")
-      } catch (e: JsonMappingException) {
-        // we wrap it to emulate the HttpMessageConversionException passed to ExceptionHandler
-        Exception(e)
-      }
+      mapper.registerSubtypes(NamedType(DummyResourceSpec::class.java, TEST_API_V1.qualify("whatever").toString()))
+      mapper.readValue(brokenYaml, SubmittedDeliveryConfig::class.java)
+      throw IllegalArgumentException("test is broken")
+    } catch (e: JsonMappingException) {
+      // we wrap it to emulate the HttpMessageConversionException passed to ExceptionHandler
+      Exception(e)
+    }
     val apiError = subject.onParseFailure(parseException)
   }
 

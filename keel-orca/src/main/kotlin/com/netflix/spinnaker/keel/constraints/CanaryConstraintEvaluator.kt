@@ -106,7 +106,9 @@ class CanaryConstraintEvaluator(
           status = FAIL,
           judgedBy = judge,
           judgedAt = clock.instant(),
-          comment = "Canary failed: ${status.summary()}"))
+          comment = "Canary failed: ${status.summary()}"
+        )
+      )
 
       return false
     }
@@ -117,7 +119,9 @@ class CanaryConstraintEvaluator(
           status = PASS,
           judgedBy = judge,
           judgedAt = clock.instant(),
-          comment = "Canary passed: ${status.summary()}"))
+          comment = "Canary passed: ${status.summary()}"
+        )
+      )
 
       return true
     }
@@ -150,11 +154,15 @@ class CanaryConstraintEvaluator(
             judgedBy = judge,
             judgedAt = clock.instant(),
             attributes = attributes.copy(status = status),
-            comment = "Failure encountered launching canaries"))
+            comment = "Failure encountered launching canaries"
+          )
+        )
       } else if (attributes.status != status) {
         repository.storeConstraintState(
           state.copy(
-            attributes = attributes.copy(status = status)))
+            attributes = attributes.copy(status = status)
+          )
+        )
       }
 
       return false
@@ -168,20 +176,24 @@ class CanaryConstraintEvaluator(
         version = version,
         deliveryConfig = deliveryConfig,
         targetEnvironment = targetEnvironment,
-        regions = regionsToTrigger)
+        regions = regionsToTrigger
+      )
     }
 
     attributes = attributes.copy(
       executions = tasks.map { (region, task) ->
         RegionalExecutionId(region, task.id)
       }
-        .toSet())
+        .toSet()
+    )
 
     repository.storeConstraintState(
       state.copy(
         status = PENDING,
         attributes = attributes,
-        comment = "Running canaries in ${attributes.launchedRegions}"))
+        comment = "Running canaries in ${attributes.launchedRegions}"
+      )
+    )
 
     return false
   }
@@ -290,9 +302,10 @@ class CanaryConstraintEvaluator(
       attributes == null -> constraint.regions
       constraint.regions.size == attributes.executions.size -> emptySet()
       attributes.startAttempt >= 3 -> emptySet()
-      else -> constraint.regions - attributes.executions
-        .map { it.region }
-        .toSet()
+      else ->
+        constraint.regions - attributes.executions
+          .map { it.region }
+          .toSet()
     }
 
   private val CanaryConstraintAttributes.launchedRegions: Set<String>

@@ -74,7 +74,8 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
         "id" to "${SAMPLE_API_VERSION.group}:sample:sample-resource",
         "application" to "myapp",
         "serviceAccount" to "keel@spinnaker"
-      ))
+      )
+    )
 
   private fun generateDeliveryConfig(resource: Resource<SampleSpecWithContainer>, artifact: DockerArtifact): DeliveryConfig {
     val env = Environment(

@@ -89,7 +89,8 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
         constraint = PipelineConstraint(
           pipelineId = randomUID().toString(),
           parameters = mapOf("youSayManaged" to "weSayDelivery")
-        ))
+        )
+      )
     }
 
     context("promotion is gated on launching a pipeline and its final status") {

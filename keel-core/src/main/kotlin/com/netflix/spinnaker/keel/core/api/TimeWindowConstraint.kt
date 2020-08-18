@@ -27,7 +27,7 @@ data class TimeWindowConstraint(
       require(zoneId != null) {
         "tz must be a valid java parseable ZoneId"
       }
-}
+    }
   }
 }
 

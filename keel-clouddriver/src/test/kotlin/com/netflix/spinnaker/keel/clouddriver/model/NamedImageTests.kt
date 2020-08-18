@@ -12,22 +12,25 @@ class NamedImageTests : JUnit5Minutests {
 
       // Helper function to make a NamedImage fixture
       fun makeNamedImage(tagsByImageId: Map<String, Map<String, String?>?>) =
-          NamedImage(
-            imageName = "name",
-            attributes = mapOf("foo" to "bar"),
-            accounts = setOf("test"),
-            amis = mapOf("us-east-1" to listOf("ami-12345")),
-            tagsByImageId = tagsByImageId
+        NamedImage(
+          imageName = "name",
+          attributes = mapOf("foo" to "bar"),
+          accounts = setOf("test"),
+          amis = mapOf("us-east-1" to listOf("ami-12345")),
+          tagsByImageId = tagsByImageId
         )
 
       context("properly populated tagsByImageId") {
         fixture {
-          makeNamedImage(tagsByImageId = mapOf(
-            "ami-abc123" to
-              mapOf(
-                "appversion" to "foo-0.0.1-h123.abcde",
-                "base_ami_version" to "base"
-              )))
+          makeNamedImage(
+            tagsByImageId = mapOf(
+              "ami-abc123" to
+                mapOf(
+                  "appversion" to "foo-0.0.1-h123.abcde",
+                  "base_ami_version" to "base"
+                )
+            )
+          )
         }
 
         test("has an app version") {

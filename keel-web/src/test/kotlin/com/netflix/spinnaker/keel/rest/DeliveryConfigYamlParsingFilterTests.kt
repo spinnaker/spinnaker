@@ -38,7 +38,8 @@ class DeliveryConfigYamlParsingFilterTests : JUnit5Minutests {
     init {
       objectMapper.registerSubtypes(EC2_SECURITY_GROUP_V1.toNamedType())
       request.contentType = "application/x-yaml"
-      request.setContent("""
+      request.setContent(
+        """
         application: nimakspin
         serviceAccount: myservice@keel.io
         artifacts: []

@@ -42,10 +42,12 @@ internal class ServerGroupDiffTests : JUnit5Minutests {
       desired,
       desired.mapValues { (region, serverGroup) ->
         if (region == diffRegion) {
-          serverGroup.copy(launchConfiguration = serverGroup.launchConfiguration.copy(
-            imageId = "ami-${randomAlphanumeric(7)}",
-            appVersion = "fnord-0.0.9.h22.${randomNumeric(6)}"
-          ))
+          serverGroup.copy(
+            launchConfiguration = serverGroup.launchConfiguration.copy(
+              imageId = "ami-${randomAlphanumeric(7)}",
+              appVersion = "fnord-0.0.9.h22.${randomNumeric(6)}"
+            )
+          )
         } else {
           serverGroup
         }

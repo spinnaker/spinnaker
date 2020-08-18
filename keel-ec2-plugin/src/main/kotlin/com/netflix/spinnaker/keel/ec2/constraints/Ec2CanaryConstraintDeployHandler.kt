@@ -56,7 +56,8 @@ class Ec2CanaryConstraintDeployHandler(
     val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
       appVersion = AppVersion.parseName(version.replace("~", "_")),
       account = imageResolver.defaultImageAccount,
-      regions = constraint.regions.toList())
+      regions = constraint.regions.toList()
+    )
       ?.imageName ?: error("Image not found for $version in all requested regions ($regions)")
 
     val source = getSourceServerGroups(deliveryConfig.application, constraint, deliveryConfig.serviceAccount)

@@ -95,7 +95,8 @@ internal class StatefulConstraintEvaluatorTests : JUnit5Minutests {
     )
 
     val subject = FakeStatefulConstraintEvaluator(
-      repository, eventPublisher, fakeStatefulConstraintEvaluatorDelegate)
+      repository, eventPublisher, fakeStatefulConstraintEvaluatorDelegate
+    )
   }
 
   fun tests() = rootContext<Fixture> {

@@ -97,7 +97,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       reference = artifact2.reference,
       version = version4, // the older release build
       pinnedBy = "keel@spinnaker",
-      comment = "fnord")
+      comment = "fnord"
+    )
   }
 
   open fun Fixture<T>.persist() {
@@ -314,13 +315,18 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           subject.markAsVetoedIn(deliveryConfig = manifest, veto = veto, force = true)
 
           expectThat(
-            subject.vetoedEnvironmentVersions(manifest))
-            .isEqualTo(listOf(
-            EnvironmentArtifactVetoes(
-              deliveryConfigName = manifest.name,
-              targetEnvironment = environment1.name,
-              artifact = artifact1,
-              versions = mutableSetOf(version1))))
+            subject.vetoedEnvironmentVersions(manifest)
+          )
+            .isEqualTo(
+              listOf(
+                EnvironmentArtifactVetoes(
+                  deliveryConfigName = manifest.name,
+                  targetEnvironment = environment1.name,
+                  artifact = artifact1,
+                  versions = mutableSetOf(version1)
+                )
+              )
+            )
         }
       }
 
@@ -590,15 +596,19 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             val pins = subject.getPinnedEnvironments(manifest)
             expectThat(pins)
               .hasSize(1)
-              .isEqualTo(listOf(PinnedEnvironment(
-                deliveryConfigName = manifest.name,
-                targetEnvironment = pin1.targetEnvironment,
-                artifact = artifact2,
-                version = version4,
-                pinnedBy = pin1.pinnedBy,
-                pinnedAt = clock.instant(),
-                comment = pin1.comment
-              )))
+              .isEqualTo(
+                listOf(
+                  PinnedEnvironment(
+                    deliveryConfigName = manifest.name,
+                    targetEnvironment = pin1.targetEnvironment,
+                    artifact = artifact2,
+                    version = version4,
+                    pinnedBy = pin1.pinnedBy,
+                    pinnedAt = clock.instant(),
+                    comment = pin1.comment
+                  )
+                )
+              )
           }
 
           test("get env artifact version shows that artifact is pinned") {

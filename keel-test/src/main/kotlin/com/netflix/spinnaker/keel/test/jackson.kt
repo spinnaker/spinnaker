@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 
 fun configuredTestObjectMapper() = configuredObjectMapper()
-    .registerArtifactSubtypes()
+  .registerArtifactSubtypes()
 
 fun configuredTestYamlMapper() = configuredYamlMapper()
   .registerArtifactSubtypes()

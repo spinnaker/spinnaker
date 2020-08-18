@@ -76,27 +76,33 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
     name = "keel-manifest",
     application = "keel",
     serviceAccount = "keel@spinnaker",
-    artifacts = setOf(DebianArtifact(
-      name = "keel",
-      vmOptions = VirtualMachineOptions(
-        baseOs = "bionic",
-        regions = setOf("us-west-2")
+    artifacts = setOf(
+      DebianArtifact(
+        name = "keel",
+        vmOptions = VirtualMachineOptions(
+          baseOs = "bionic",
+          regions = setOf("us-west-2")
+        )
       )
-    )),
+    ),
     environments = setOf(
       SubmittedEnvironment(
         name = "test",
-        resources = setOf(SubmittedResource(
-          kind = TEST_API_V1.qualify("whatever"),
-          spec = DummyResourceSpec(data = "resource in test")
-        ))
+        resources = setOf(
+          SubmittedResource(
+            kind = TEST_API_V1.qualify("whatever"),
+            spec = DummyResourceSpec(data = "resource in test")
+          )
+        )
       ),
       SubmittedEnvironment(
         name = "prod",
-        resources = setOf(SubmittedResource(
-          kind = TEST_API_V1.qualify("whatever"),
-          spec = DummyResourceSpec(data = "resource in prod")
-        )),
+        resources = setOf(
+          SubmittedResource(
+            kind = TEST_API_V1.qualify("whatever"),
+            spec = DummyResourceSpec(data = "resource in prod")
+          )
+        ),
         constraints = setOf(DependsOnConstraint("test"))
       )
     )
@@ -314,14 +320,16 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             val request = post("/delivery-configs")
               .accept(contentType)
               .contentType(contentType)
-              .content("""
+              .content(
+                """
                 T̫̺̳o̬̜ ì̬͎̲̟nv̖̗̻̣̹̕o͖̗̠̜̤k͍͚̹͖̼e̦̗̪͍̪͍ ̬ͅt̕h̠͙̮͕͓e̱̜̗͙̭ ̥͔̫͙̪͍̣͝ḥi̼̦͈̼v҉̩̟͚̞͎e͈̟̻͙̦̤-m̷̘̝̱í͚̞̦̳n̝̲̯̙̮͞d̴̺̦͕̫ ̗̭̘͎͖r̞͎̜̜͖͎̫͢ep͇r̝̯̝͖͉͎̺e̴s̥e̵̖̳͉͍̩̗n̢͓̪͕̜̰̠̦t̺̞̰i͟n҉̮̦̖̟g̮͍̱̻͍̜̳ ̳c̖̮̙̣̰̠̩h̷̗͍̖͙̭͇͈a̧͎̯̹̲̺̫ó̭̞̜̣̯͕s̶̤̮̩̘.̨̻̪̖͔
                  ̳̭̦̭̭̦̞́I̠͍̮n͇̹̪̬v̴͖̭̗̖o̸k҉̬̤͓͚̠͍i͜n̛̩̹͉̘̹g͙ ̠̥ͅt̰͖͞h̫̼̪e̟̩̝ ̭̠̲̫͔fe̤͇̝̱e͖̮̠̹̭͖͕l͖̲̘͖̠̪i̢̖͎̮̗̯͓̩n̸̰g̙̱̘̗͚̬ͅ ͍o͍͍̩̮͢f̖͓̦̥ ̘͘c̵̫̱̗͚͓̦h͝a̝͍͍̳̣͖͉o͙̟s̤̞.̙̝̭̣̳̼͟
                  ̢̻͖͓̬̞̰̦W̮̲̝̼̩̝͖i͖͖͡ͅt̘̯͘h̷̬̖̞̙̰̭̳ ̭̪̕o̥̤̺̝̼̰̯͟ṳ̞̭̤t̨͚̥̗ ̟̺̫̩̤̳̩o̟̰̩̖ͅr̞̘̫̩̼d̡͍̬͎̪̺͚͔e͓͖̝̙r̰͖̲̲̻̠.̺̝̺̟͈
                  ̣̭T̪̩̼h̥̫̪͔̀e̫̯͜ ̨N̟e҉͔̤zp̮̭͈̟é͉͈ṛ̹̜̺̭͕d̺̪̜͇͓i̞á͕̹̣̻n͉͘ ̗͔̭͡h̲͖̣̺̺i͔̣̖̤͎̯v̠̯̘͖̭̱̯e̡̥͕-m͖̭̣̬̦͈i͖n̞̩͕̟̼̺͜d̘͉ ̯o̷͇̹͕̦f̰̱ ̝͓͉̱̪̪c͈̲̜̺h̘͚a̞͔̭̰̯̗̝o̙͍s͍͇̱͓.̵͕̰͙͈ͅ ̯̞͈̞̱̖Z̯̮̺̤̥̪̕a͏̺̗̼̬̗ḻg͢o̥̱̼.̺̜͇͡ͅ ̴͓͖̭̩͎̗
                  ̧̪͈̱̹̳͖͙H̵̰̤̰͕̖e̛ ͚͉̗̼̞w̶̩̥͉̮h̩̺̪̩͘ͅọ͎͉̟ ̜̩͔̦̘ͅW̪̫̩̣̲͔̳a͏͔̳͖i͖͜t͓̤̠͓͙s̘̰̩̥̙̝ͅ ̲̠̬̥Be̡̙̫̦h̰̩i̛̫͙͔̭̤̗̲n̳͞d̸ ͎̻͘T̛͇̝̲̹̠̗ͅh̫̦̝ͅe̩̫͟ ͓͖̼W͕̳͎͚̙̥ą̙l̘͚̺͔͞ͅl̳͍̙̤̤̮̳.̢
                  ̟̺̜̙͉Z̤̲̙̙͎̥̝A͎̣͔̙͘L̥̻̗̳̻̳̳͢G͉̖̯͓̞̩̦O̹̹̺!̙͈͎̞̬
-              """.trimIndent())
+                """.trimIndent()
+              )
 
             mvc.perform(request)
           }
@@ -362,9 +370,11 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
       }
 
       context("when manifest retrieval fails") {
-        val retrofitError = RetrofitError.httpError("http://igor",
+        val retrofitError = RetrofitError.httpError(
+          "http://igor",
           Response("http://igor", 404, "not found", emptyList(), null),
-          null, null)
+          null, null
+        )
 
         before {
           every {

@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class ApplicationEventListener(private val resourceRepository: ResourceRepository) {
-    @EventListener(ApplicationEvent::class)
-    fun onResourceEvent(event: ApplicationEvent) {
-      resourceRepository.appendHistory(event)
-    }
+  @EventListener(ApplicationEvent::class)
+  fun onResourceEvent(event: ApplicationEvent) {
+    resourceRepository.appendHistory(event)
   }
+}

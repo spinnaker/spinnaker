@@ -71,9 +71,11 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
   private val normalizers: List<Resolver<*>> = listOf(
     ApplicationLoadBalancerDefaultsResolver(),
-    ApplicationLoadBalancerNetworkResolver(cloudDriverCache))
+    ApplicationLoadBalancerNetworkResolver(cloudDriverCache)
+  )
 
-  private val yaml = """
+  private val yaml =
+    """
     |---
     |moniker:
     |  app: testapp
@@ -128,7 +130,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
             order = 1,
             targetGroupName = "managedogge-wow-tg",
             type = "forward",
-            redirectConfig = null)
+            redirectConfig = null
+          )
         )
       )
     ),

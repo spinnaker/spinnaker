@@ -48,10 +48,13 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
     private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
-      DebianArtifactSupplier(eventBridge, artifactService),
-      DockerArtifactSupplier(eventBridge, clouddriverService)
-    ))
+    val listener: ArtifactListener = ArtifactListener(
+      repository, publisher,
+      listOf(
+        DebianArtifactSupplier(eventBridge, artifactService),
+        DockerArtifactSupplier(eventBridge, clouddriverService)
+      )
+    )
   }
 
   fun artifactEventTests() = rootContext<ArtifactFixture> {
@@ -134,10 +137,13 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
     private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
-      DebianArtifactSupplier(eventBridge, artifactService),
-      DockerArtifactSupplier(eventBridge, clouddriverService)
-    ))
+    val listener: ArtifactListener = ArtifactListener(
+      repository, publisher,
+      listOf(
+        DebianArtifactSupplier(eventBridge, artifactService),
+        DockerArtifactSupplier(eventBridge, clouddriverService)
+      )
+    )
   }
 
   fun artifactRegisteredEventTests() = rootContext<RegisteredFixture> {
@@ -237,10 +243,13 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
     private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
-      DebianArtifactSupplier(eventBridge, artifactService),
-      DockerArtifactSupplier(eventBridge, clouddriverService)
-    ))
+    val listener: ArtifactListener = ArtifactListener(
+      repository, publisher,
+      listOf(
+        DebianArtifactSupplier(eventBridge, artifactService),
+        DockerArtifactSupplier(eventBridge, clouddriverService)
+      )
+    )
   }
 
   fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {

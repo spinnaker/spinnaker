@@ -48,12 +48,12 @@ class ClouddriverConfiguration {
     clientProvider: OkHttpClientProvider
   ):
     CloudDriverService =
-    Retrofit.Builder()
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-      .baseUrl(clouddriverEndpoint)
-      .client(clientProvider.getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString())))
-      .build()
-      .create(CloudDriverService::class.java)
+      Retrofit.Builder()
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .baseUrl(clouddriverEndpoint)
+        .client(clientProvider.getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString())))
+        .build()
+        .create(CloudDriverService::class.java)
 
   @Bean
   @ConditionalOnMissingBean(CloudDriverCache::class)

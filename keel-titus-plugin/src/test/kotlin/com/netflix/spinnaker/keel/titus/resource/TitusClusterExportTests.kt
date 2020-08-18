@@ -292,13 +292,15 @@ internal class TitusClusterExportTests : JUnit5Minutests {
               that(override).isNotNull().get { entryPoint }.isNotNull()
               that(override).isNotNull().get { capacity }.isNotNull()
               that(override).isNotNull().get { env }.isNotNull()
-              that(override).isNotNull().get { resources }.isEqualTo(ResourcesSpec(
-                cpu = 4,
-                disk = 81920,
-                gpu = 0,
-                memory = 16384,
-                networkMbps = 700
-              ))
+              that(override).isNotNull().get { resources }.isEqualTo(
+                ResourcesSpec(
+                  cpu = 4,
+                  disk = 81920,
+                  gpu = 0,
+                  memory = 16384,
+                  networkMbps = 700
+                )
+              )
 
               that(locations.regions).hasSize(2)
             }
@@ -352,11 +354,13 @@ internal class TitusClusterExportTests : JUnit5Minutests {
     copy(entryPoint = "/bin/blah")
 
   private fun TitusActiveServerGroup.withDifferentResources(): TitusActiveServerGroup =
-    copy(resources = Resources(
-      cpu = 4,
-      disk = 81920,
-      gpu = 0,
-      memory = 16384,
-      networkMbps = 700
-    ))
+    copy(
+      resources = Resources(
+        cpu = 4,
+        disk = 81920,
+        gpu = 0,
+        memory = 16384,
+        networkMbps = 700
+      )
+    )
 }

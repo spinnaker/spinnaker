@@ -5,7 +5,8 @@ import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
 object DeliveryTest : ModelParsingTestSupport<Front50Service, Delivery>(Front50Service::class.java) {
 
-  override val json = """
+  override val json =
+    """
     |{
     |  "id": "foo",
     |  "application": "bar",
@@ -38,5 +39,6 @@ object DeliveryTest : ModelParsingTestSupport<Front50Service, Delivery>(Front50S
     lastModifiedBy = "anonymous",
     deliveryArtifacts = listOf(mapOf("id" to "artifact1")),
     deliveryEnvironments = listOf(mapOf("id" to "environment1")),
-    details = mutableMapOf("otherAttribute1" to "bloop", "otherAttribute2" to "blerp"))
+    details = mutableMapOf("otherAttribute1" to "bloop", "otherAttribute2" to "blerp")
+  )
 }

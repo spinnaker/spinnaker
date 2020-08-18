@@ -69,13 +69,15 @@ class VersioningStrategyTests : JUnit5Minutests {
       }
 
       test("finds highest with confusing number in front") {
-        val regex = """^\dmaster-h(\d+).*$"""
+        val regex =
+          """^\dmaster-h(\d+).*$"""
         val sorted = trickyOtherTags.sortedWith(TagComparator(INCREASING_TAG, regex))
         expectThat(sorted.first()).isEqualTo("2master-h3.blah")
       }
 
       test("ignores a bad tag increasing strategy") {
-        val regex = """^\dmaster-h(\d+).*$"""
+        val regex =
+          """^\dmaster-h(\d+).*$"""
         val mixedTags = listOf("3master-h1.blah", "1master-h2.blah", "2master-h3.blah", "5master-h0.blah", "latest")
         val sorted = mixedTags.sortedWith(TagComparator(INCREASING_TAG, regex))
         expectThat(sorted.first()).isEqualTo("2master-h3.blah")
@@ -101,14 +103,16 @@ class VersioningStrategyTests : JUnit5Minutests {
     context("regex parsing") {
       test("able to parse with capture group") {
         val tag = "master-h1.blah"
-        val regex = """^master-h(\d+).*$"""
+        val regex =
+          """^master-h(\d+).*$"""
         val result = TagComparator.parseWithRegex(tag, INCREASING_TAG, regex)
         expectThat(result).isEqualTo("1")
       }
 
       test("too many captures throws exception") {
         val tag = "master-h1.blah"
-        val regex = """^master-h(\d+)(.*)$"""
+        val regex =
+          """^master-h(\d+)(.*)$"""
         expectCatching {
           TagComparator.parseWithRegex(tag, INCREASING_TAG, regex)
         }.isFailure()
@@ -117,7 +121,8 @@ class VersioningStrategyTests : JUnit5Minutests {
 
       test("no match returns null") {
         val tag = "v001"
-        val regex = """^master-h(\d+).*$"""
+        val regex =
+          """^master-h(\d+).*$"""
         val result = TagComparator.parseWithRegex(tag, INCREASING_TAG, regex)
         expectThat(result).isNull()
       }

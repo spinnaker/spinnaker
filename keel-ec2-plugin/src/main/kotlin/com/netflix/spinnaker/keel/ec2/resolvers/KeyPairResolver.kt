@@ -52,8 +52,10 @@ class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver
     } else {
       // if it's not templated, we can attempt to set it as the default if not conflicting with the spec
       if (defaults.launchConfiguration?.keyPair != null && !defaults.launchConfiguration!!.keyPair.equals(defaultKeyPair)) {
-        log.warn("Default key pair specified in cluster spec (${defaults.launchConfiguration?.keyPair}) " +
-          "does not match default configured in clouddriver ($defaultKeyPair)")
+        log.warn(
+          "Default key pair specified in cluster spec (${defaults.launchConfiguration?.keyPair}) " +
+            "does not match default configured in clouddriver ($defaultKeyPair)"
+        )
       } else {
         defaultLaunchConfig = if (defaults.launchConfiguration != null) {
           defaults.launchConfiguration!!.copy(keyPair = defaultKeyPair)

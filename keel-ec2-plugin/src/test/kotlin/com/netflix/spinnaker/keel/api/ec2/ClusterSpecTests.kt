@@ -136,10 +136,12 @@ data class Fixture(
       app = "fnord",
       stack = "test"
     ),
-    imageProvider = ArtifactImageProvider(DebianArtifact(
-      name = "fnord",
-      vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2", "us-east-1"))
-    )),
+    imageProvider = ArtifactImageProvider(
+      DebianArtifact(
+        name = "fnord",
+        vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2", "us-east-1"))
+      )
+    ),
     locations = SubnetAwareLocations(
       account = "test",
       vpc = "vpc0",

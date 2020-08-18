@@ -141,10 +141,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
       context("a version is vetoed") {
         before {
           runBlocking {
-            subject.checkEnvironment(generateContext(
-              versions = listOf("2.0", "1.2", "1.1", "1.0"),
-              vetoedVersions = mutableSetOf("2.0")
-            ))
+            subject.checkEnvironment(
+              generateContext(
+                versions = listOf("2.0", "1.2", "1.1", "1.0"),
+                vetoedVersions = mutableSetOf("2.0")
+              )
+            )
           }
         }
 
@@ -176,10 +178,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
       context("the environment has a simple constraint and a version can be found") {
         deriveFixture {
-          copy(environment = Environment(
-            name = "staging",
-            constraints = setOf(DependsOnConstraint("test"))
-          ))
+          copy(
+            environment = Environment(
+              name = "staging",
+              constraints = setOf(DependsOnConstraint("test"))
+            )
+          )
         }
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
@@ -200,10 +204,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
         context("a version is vetoed") {
           before {
             runBlocking {
-              subject.checkEnvironment(generateContext(
-                versions = listOf("2.0", "1.2", "1.1", "1.0"),
-                vetoedVersions = mutableSetOf("2.0")
-              ))
+              subject.checkEnvironment(
+                generateContext(
+                  versions = listOf("2.0", "1.2", "1.1", "1.0"),
+                  vetoedVersions = mutableSetOf("2.0")
+                )
+              )
             }
           }
 
@@ -232,9 +238,11 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
         context("no versions are vetoed") {
           before {
             runBlocking {
-              subject.checkEnvironment(generateContext(
-                versions = listOf("2.0", "1.2", "1.1", "1.0")
-              ))
+              subject.checkEnvironment(
+                generateContext(
+                  versions = listOf("2.0", "1.2", "1.1", "1.0")
+                )
+              )
             }
           }
 
@@ -259,10 +267,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
       context("the environment has constraints and a version can be found") {
         deriveFixture {
-          copy(environment = Environment(
-            name = "staging",
-            constraints = setOf(DependsOnConstraint("test"), ManualJudgementConstraint())
-          ))
+          copy(
+            environment = Environment(
+              name = "staging",
+              constraints = setOf(DependsOnConstraint("test"), ManualJudgementConstraint())
+            )
+          )
         }
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
@@ -326,10 +336,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
       context("the environment has constraints and a version cannot be found") {
         deriveFixture {
-          copy(environment = Environment(
-            name = "staging",
-            constraints = setOf(DependsOnConstraint("test"))
-          ))
+          copy(
+            environment = Environment(
+              name = "staging",
+              constraints = setOf(DependsOnConstraint("test"))
+            )
+          )
         }
 
         before {
@@ -357,10 +369,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
       context("the environment has a stateful constraint and a version cannot be found") {
         deriveFixture {
-          copy(environment = Environment(
-            name = "staging",
-            constraints = setOf(ManualJudgementConstraint())
-          ))
+          copy(
+            environment = Environment(
+              name = "staging",
+              constraints = setOf(ManualJudgementConstraint())
+            )
+          )
         }
 
         before {
@@ -404,10 +418,12 @@ internal class EnvironmentConstraintRunnerTests : JUnit5Minutests {
 
       context("a new artifact passes stateful constraints while older versions are pending") {
         deriveFixture {
-          copy(environment = Environment(
-            name = "staging",
-            constraints = setOf(DependsOnConstraint("test"), ManualJudgementConstraint())
-          ))
+          copy(
+            environment = Environment(
+              name = "staging",
+              constraints = setOf(DependsOnConstraint("test"), ManualJudgementConstraint())
+            )
+          )
         }
 
         before {

@@ -46,15 +46,15 @@ abstract class TaskTrackingRepositoryTests <T : TaskTrackingRepository> : JUnit5
       }
     }
 
-      test("no in-progress tasks") {
-        expectThat(subject.getTasks()).isEmpty()
-      }
+    test("no in-progress tasks") {
+      expectThat(subject.getTasks()).isEmpty()
+    }
 
-      test("store, get and delete task") {
-        subject.store(taskRecord1)
-        expectThat(subject.getTasks().size).isEqualTo(1)
-        subject.delete(taskRecord1.id)
-        expectThat(subject.getTasks()).isEmpty()
-      }
+    test("store, get and delete task") {
+      subject.store(taskRecord1)
+      expectThat(subject.getTasks().size).isEqualTo(1)
+      subject.delete(taskRecord1.id)
+      expectThat(subject.getTasks()).isEmpty()
+    }
   }
 }

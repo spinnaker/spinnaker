@@ -38,7 +38,7 @@ val NamedImage.hasAppVersion: Boolean
     .values
     .let { vals ->
       vals.isNotEmpty() && vals.all { it != null && it.containsKey("appversion") }
-      }
+    }
 
 val NamedImage.appVersion: String
   get() = tagsByImageId

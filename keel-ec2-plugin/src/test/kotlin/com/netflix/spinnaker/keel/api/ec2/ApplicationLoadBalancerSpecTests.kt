@@ -19,7 +19,8 @@ internal object ApplicationLoadBalancerSpecTests : JUnit5Minutests {
     context("a simple ALB definition in yaml") {
       fixture {
         Fixture(
-          yaml = """
+          yaml =
+            """
             |---
             |moniker:
             |  app: testapp

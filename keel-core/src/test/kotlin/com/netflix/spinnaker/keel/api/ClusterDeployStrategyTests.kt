@@ -59,7 +59,8 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
               stagger = listOf(
                 StaggeredRegion(
                   region = "us-west-2",
-                  hours = "12-18")
+                  hours = "12-18"
+                )
               )
             )
           )

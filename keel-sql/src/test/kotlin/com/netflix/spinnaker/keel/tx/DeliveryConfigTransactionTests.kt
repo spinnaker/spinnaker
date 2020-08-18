@@ -77,27 +77,33 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
       name = "keel-manifest",
       application = "keel",
       serviceAccount = "keel@spinnaker",
-      artifacts = setOf(DebianArtifact(
-        name = "keel",
-        deliveryConfigName = "keel-manifest",
-        vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
-      )),
+      artifacts = setOf(
+        DebianArtifact(
+          name = "keel",
+          deliveryConfigName = "keel-manifest",
+          vmOptions = VirtualMachineOptions(baseOs = "bionic", regions = setOf("us-west-2"))
+        )
+      ),
       environments = setOf(
         SubmittedEnvironment(
           name = "test",
-          resources = setOf(SubmittedResource(
-            kind = parseKind("test/whatever@v1"),
-            metadata = mapOf("serviceAccount" to "keel@spinnaker"),
-            spec = DummyResourceSpec("test", "resource in test", "keel")
-          ))
+          resources = setOf(
+            SubmittedResource(
+              kind = parseKind("test/whatever@v1"),
+              metadata = mapOf("serviceAccount" to "keel@spinnaker"),
+              spec = DummyResourceSpec("test", "resource in test", "keel")
+            )
+          )
         ),
         SubmittedEnvironment(
           name = "prod",
-          resources = setOf(SubmittedResource(
-            kind = parseKind("test/whatever@v1"),
-            metadata = mapOf("serviceAccount" to "keel@spinnaker"),
-            spec = DummyResourceSpec("prod", "resource in prod", "keel")
-          ))
+          resources = setOf(
+            SubmittedResource(
+              kind = parseKind("test/whatever@v1"),
+              metadata = mapOf("serviceAccount" to "keel@spinnaker"),
+              spec = DummyResourceSpec("prod", "resource in prod", "keel")
+            )
+          )
         )
       )
     )
@@ -114,9 +120,11 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
     context("a resource attached to the delivery config fails to persist") {
       before {
         every {
-          resourceRepository.store(match {
-            it.id == "test:whatever:prod"
-          })
+          resourceRepository.store(
+            match {
+              it.id == "test:whatever:prod"
+            }
+          )
         } throws DataAccessException("o noes")
 
         expectCatching { repository.upsertDeliveryConfig(submittedManifest) }

@@ -35,7 +35,7 @@ class OrcaConfiguration {
 
   @Bean
   fun orcaEndpoint(@Value("\${orca.base-url}") orcaBaseUrl: String) =
-          orcaBaseUrl.toHttpUrlOrNull()
+    orcaBaseUrl.toHttpUrlOrNull()
 
   @Bean
   fun orcaService(

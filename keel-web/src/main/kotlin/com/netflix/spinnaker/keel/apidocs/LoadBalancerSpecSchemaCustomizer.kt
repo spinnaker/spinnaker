@@ -11,8 +11,8 @@ class LoadBalancerSpecSchemaCustomizer : AbstractSchemaCustomizer() {
 
   override fun customize(schema: Schema<*>, type: Class<*>, context: ModelConverterContext) {
     eachSchemaProperty(LoadBalancerSpec::id, LoadBalancerSpec::loadBalancerType) {
-        schema.properties.remove(it)
-        schema.markOptional(it)
-      }
+      schema.properties.remove(it)
+      schema.markOptional(it)
+    }
   }
 }

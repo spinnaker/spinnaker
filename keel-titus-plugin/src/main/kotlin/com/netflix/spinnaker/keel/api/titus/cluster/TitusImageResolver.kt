@@ -56,10 +56,12 @@ class TitusImageResolver(
     artifact: DockerArtifact,
     tag: String
   ) =
-    resource.copy(spec = resource.spec.copy(
-      _defaults = resource.spec.defaults.copy(container = container),
-      _artifactName = artifact.name,
-      artifactVersion = tag)
+    resource.copy(
+      spec = resource.spec.copy(
+        _defaults = resource.spec.defaults.copy(container = container),
+        _artifactName = artifact.name,
+        artifactVersion = tag
+      )
     )
 
   override fun getTags(account: String, organization: String, image: String) =

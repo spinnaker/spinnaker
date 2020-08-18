@@ -141,16 +141,18 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       ),
       capacity = Capacity(1, 6),
       scaling = Scaling(
-        targetTrackingPolicies = setOf(TargetTrackingPolicy(
-          name = targetTrackingPolicyName,
-          targetValue = 560.0,
-          disableScaleIn = true,
-          customMetricSpec = CustomizedMetricSpecification(
-            name = "RPS per instance",
-            namespace = "SPIN/ACH",
-            statistic = "Average"
+        targetTrackingPolicies = setOf(
+          TargetTrackingPolicy(
+            name = targetTrackingPolicyName,
+            targetValue = 560.0,
+            disableScaleIn = true,
+            customMetricSpec = CustomizedMetricSpecification(
+              name = "RPS per instance",
+              namespace = "SPIN/ACH",
+              statistic = "Average"
+            )
           )
-        ))
+        )
       ),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
@@ -259,7 +261,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
               serverGroups.map {
                 it.copy(scaling = Scaling(), capacity = Capacity(2, 2, 2))
               }.byRegion(),
-              emptyMap()))
+              emptyMap()
+            )
+          )
         }
 
         val slot = slot<OrchestrationRequest>()

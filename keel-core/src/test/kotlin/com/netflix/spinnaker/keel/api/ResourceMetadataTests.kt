@@ -39,7 +39,8 @@ internal class ResourceMetadataTests : JUnit5Minutests {
           |creationTimestamp: "2017-05-31T12:56:35Z"
           |namespace: "default"
           |selfLink: "/apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object"
-          |""".trimMargin())
+          |""".trimMargin()
+        )
       }
     }
 

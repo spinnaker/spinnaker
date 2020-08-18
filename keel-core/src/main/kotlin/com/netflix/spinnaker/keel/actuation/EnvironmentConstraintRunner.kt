@@ -45,10 +45,11 @@ class EnvironmentConstraintRunner(
   ) {
     val pendingVersionsToCheck: MutableSet<String> =
       when (envContext.environment.constraints.anyStateful) {
-        true -> repository
-          .pendingConstraintVersionsFor(envContext.deliveryConfig.name, envContext.environment.name)
-          .filter { envContext.versions.contains(it) }
-          .toMutableSet()
+        true ->
+          repository
+            .pendingConstraintVersionsFor(envContext.deliveryConfig.name, envContext.environment.name)
+            .filter { envContext.versions.contains(it) }
+            .toMutableSet()
         false -> mutableSetOf()
       }
 
@@ -81,8 +82,10 @@ class EnvironmentConstraintRunner(
     var versionIsPending = false
     val vetoedVersions: Set<String> = envContext.vetoedVersions
 
-    log.debug("Checking constraints for ${envContext.artifact} in ${envContext.environment}, " +
-      "versions=${envContext.versions.joinToString()}, vetoed=${envContext.vetoedVersions.joinToString()}")
+    log.debug(
+      "Checking constraints for ${envContext.artifact} in ${envContext.environment}, " +
+        "versions=${envContext.versions.joinToString()}, vetoed=${envContext.vetoedVersions.joinToString()}"
+    )
 
     version = envContext.versions
       .filterNot { vetoedVersions.contains(it) }
@@ -103,10 +106,14 @@ class EnvironmentConstraintRunner(
             .any { it.status == ConstraintStatus.PENDING }
         }
 
-        log.debug("Version $v of ${envContext.artifact} ${if (passesConstraints) "passes" else "does not pass"} " +
-          "constraints in ${envContext.environment}")
-        log.debug("Version $v of ${envContext.artifact} ${if (versionIsPending) "is" else "is not"} " +
-          "pending constraint approval in ${envContext.environment}")
+        log.debug(
+          "Version $v of ${envContext.artifact} ${if (passesConstraints) "passes" else "does not pass"} " +
+            "constraints in ${envContext.environment}"
+        )
+        log.debug(
+          "Version $v of ${envContext.artifact} ${if (versionIsPending) "is" else "is not"} " +
+            "pending constraint approval in ${envContext.environment}"
+        )
 
         // select either the first version that passes all constraints,
         // or the first version where stateful constraints are pending.

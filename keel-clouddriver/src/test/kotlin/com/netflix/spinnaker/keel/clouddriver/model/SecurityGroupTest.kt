@@ -5,7 +5,8 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
 object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityGroupModel>(CloudDriverService::class.java) {
-  override val json = """
+  override val json =
+    """
     |{
     |  "class": "com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup",
     |  "type": "aws",

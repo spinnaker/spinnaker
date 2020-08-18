@@ -52,7 +52,8 @@ class ResourceController(
     path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
     and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
   )
   fun get(@PathVariable("id") id: String): Resource<*> {
@@ -64,7 +65,8 @@ class ResourceController(
     path = ["/{id}/status"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('READ', 'RESOURCE', #id)
     and @authorizationSupport.hasCloudAccountPermission('READ', 'RESOURCE', #id)"""
   )
   fun getStatus(@PathVariable("id") id: String): ResourceStatus =
@@ -86,7 +88,8 @@ class ResourceController(
     path = ["/{id}/pause"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("""@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #id)
+  @PreAuthorize(
+    """@authorizationSupport.hasApplicationPermission('WRITE', 'RESOURCE', #id)
     and @authorizationSupport.hasServiceAccountAccess('RESOURCE', #id)"""
   )
   fun resumeResource(

@@ -81,7 +81,8 @@ internal class RequiredSecurityGroupVetoTests : JUnit5Minutests {
               )
             ),
             description = "a resource with no dependencies"
-          ))
+          )
+        )
       }
 
       before {

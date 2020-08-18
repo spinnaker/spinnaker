@@ -40,7 +40,8 @@ data class DigestProvider(
 }
 
 @JsonDeserialize(using = JsonDeserializer.None::class)
-@Deprecated("Non-reference-based artifact providers are no longer supported.",
+@Deprecated(
+  "Non-reference-based artifact providers are no longer supported.",
   replaceWith = ReplaceWith("ReferenceArtifactImageProvider")
 )
 data class VersionedTagProvider(

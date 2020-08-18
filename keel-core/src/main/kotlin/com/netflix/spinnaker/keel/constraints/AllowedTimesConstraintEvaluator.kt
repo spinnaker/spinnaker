@@ -52,10 +52,14 @@ class AllowedTimesConstraintEvaluator(
   companion object {
     const val CONSTRAINT_NAME = "allowed-times"
 
-    val whiteSpace = """\s""".toRegex()
-    val intOnly = """^\d+$""".toRegex()
-    val intRange = """^\d+\-\d+$""".toRegex()
-    val seperators = """[\s,\-]""".toRegex()
+    val whiteSpace =
+      """\s""".toRegex()
+    val intOnly =
+      """^\d+$""".toRegex()
+    val intRange =
+      """^\d+\-\d+$""".toRegex()
+    val seperators =
+      """[\s,\-]""".toRegex()
     val fullDayFormatter: DateTimeFormatter = DateTimeFormatter
       .ofPattern("EEEE", Locale.getDefault())
     val shortDayFormatter: DateTimeFormatter = DateTimeFormatter
@@ -180,7 +184,8 @@ class AllowedTimesConstraintEvaluator(
         else -> throw InvalidConstraintException(
           CONSTRAINT_NAME,
           "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
-            "application: ${deliveryConfig.application}, environment: $envName")
+            "application: ${deliveryConfig.application}, environment: $envName"
+        )
       }
     }
 

@@ -203,7 +203,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
           test("we do actually go check in Igor") {
             verify {
-              igorService.getVersions(artifact.name,
+              igorService.getVersions(
+                artifact.name,
                 artifact.statuses.map(ArtifactStatus::toString),
                 DEBIAN
               )

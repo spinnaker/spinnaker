@@ -91,7 +91,8 @@ class IntermittentFailureTests : JUnit5Minutests {
       actuationPauser,
       vetoEnforcer,
       publisher,
-      Clock.systemUTC())
+      Clock.systemUTC()
+    )
     val desired = DummyResourceSpec(data = "fnord")
     val current = DummyResourceSpec()
     val diff = DefaultResourceDiff(desired, current)

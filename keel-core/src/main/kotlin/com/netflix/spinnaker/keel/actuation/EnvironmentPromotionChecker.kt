@@ -72,8 +72,10 @@ class EnvironmentPromotionChecker(
                    * We don't need to re-invoke stateful constraint evaluators for these, but we still
                    * check stateless constraints to avoid approval outside of allowed-times.
                    */
-                  log.debug("Version $v of artifact ${artifact.name} is queued for approval, " +
-                    "and being evaluated for stateless constraints in environment ${environment.name}")
+                  log.debug(
+                    "Version $v of artifact ${artifact.name} is queued for approval, " +
+                      "and being evaluated for stateless constraints in environment ${environment.name}"
+                  )
                   if (constraintRunner.checkStatelessConstraints(artifact, deliveryConfig, v, environment)) {
                     approveVersion(deliveryConfig, artifact, v, environment.name)
                     repository.deleteQueuedConstraintApproval(deliveryConfig.name, environment.name, v, artifact.reference)
@@ -109,7 +111,8 @@ class EnvironmentPromotionChecker(
         version,
         deliveryConfig.name,
         targetEnvironment,
-        deliveryConfig.application)
+        deliveryConfig.application
+      )
 
       publisher.publishEvent(
         ArtifactVersionApproved(
@@ -118,7 +121,9 @@ class EnvironmentPromotionChecker(
           targetEnvironment,
           artifact.name,
           artifact.type,
-          version))
+          version
+        )
+      )
     }
   }
 

@@ -28,7 +28,8 @@ sealed class ImageProvider
 /**
  * Provides image id by reference to a package
  */
-@Deprecated("Non-reference-based artifact providers are no longer supported.",
+@Deprecated(
+  "Non-reference-based artifact providers are no longer supported.",
   replaceWith = ReplaceWith("ReferenceArtifactImageProvider")
 )
 data class ArtifactImageProvider(
@@ -46,7 +47,8 @@ data class ReferenceArtifactImageProvider(
 /**
  * Provides an image by reference to a jenkins master, job, and job number
  */
-@Deprecated("Non-reference-based artifact providers are no longer supported.",
+@Deprecated(
+  "Non-reference-based artifact providers are no longer supported.",
   replaceWith = ReplaceWith("ReferenceArtifactImageProvider")
 )
 data class JenkinsImageProvider(

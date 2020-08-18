@@ -199,12 +199,14 @@ open class SqlResourceRepository(
         .select(EVENT.JSON)
         .from(EVENT)
         // look for resource events that match the resource...
-        .where(EVENT.SCOPE.eq(Scope.RESOURCE.name)
-          .and(EVENT.REF.eq(resource.uid))
+        .where(
+          EVENT.SCOPE.eq(Scope.RESOURCE.name)
+            .and(EVENT.REF.eq(resource.uid))
         )
         // ...or application events that match the application as they apply to all resources
-        .or(EVENT.SCOPE.eq(Scope.APPLICATION.name)
-          .and(EVENT.APPLICATION.eq(resource.application))
+        .or(
+          EVENT.SCOPE.eq(Scope.APPLICATION.name)
+            .and(EVENT.APPLICATION.eq(resource.application))
         )
         .orderBy(EVENT.TIMESTAMP.desc())
         .limit(limit)
@@ -238,12 +240,14 @@ open class SqlResourceRepository(
           .select(EVENT.JSON)
           .from(EVENT)
           // look for resource events that match the resource...
-          .where(EVENT.SCOPE.eq(Scope.RESOURCE.name)
-            .and(EVENT.REF.eq(ref))
+          .where(
+            EVENT.SCOPE.eq(Scope.RESOURCE.name)
+              .and(EVENT.REF.eq(ref))
           )
           // ...or application events that match the application as they apply to all resources
-          .or(EVENT.SCOPE.eq(Scope.APPLICATION.name)
-            .and(EVENT.APPLICATION.eq(event.application))
+          .or(
+            EVENT.SCOPE.eq(Scope.APPLICATION.name)
+              .and(EVENT.APPLICATION.eq(event.application))
           )
           .orderBy(EVENT.TIMESTAMP.desc())
           .limit(1)
