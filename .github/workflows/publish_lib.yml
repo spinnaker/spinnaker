@@ -20,7 +20,7 @@ jobs:
       - name: publish
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
-          app/scripts/modules/github_actions_publish.sh core
+          build_scripts/publish_github_actions.sh
         env:
           CI: true
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
