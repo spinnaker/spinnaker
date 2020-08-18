@@ -89,7 +89,7 @@ public class V2PipelineTemplatesController {
 
   @ApiOperation(value = "(ALPHA) Create a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
-  @ResponseStatus(value = HttpStatus.ACCEPTED)
+  @ResponseStatus(value = HttpStatus.OK)
   public Map create(
       @RequestParam(value = "tag", required = false) String tag,
       @RequestBody Map<String, Object> pipelineTemplate) {
@@ -135,7 +135,7 @@ public class V2PipelineTemplatesController {
 
   @ApiOperation(value = "(ALPHA) Update a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
-  @ResponseStatus(value = HttpStatus.ACCEPTED)
+  @ResponseStatus(value = HttpStatus.OK)
   public Map update(
       @PathVariable String id,
       @RequestParam(value = "tag", required = false) String tag,
@@ -186,7 +186,7 @@ public class V2PipelineTemplatesController {
 
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-  @ResponseStatus(value = HttpStatus.ACCEPTED)
+  @ResponseStatus(value = HttpStatus.OK)
   public Map delete(
       @PathVariable String id,
       @RequestParam(value = "tag", required = false) String tag,
