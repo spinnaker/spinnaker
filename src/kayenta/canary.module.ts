@@ -11,7 +11,7 @@ import 'kayenta/report/detail/graph/semiotic';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(key => {
+templates.keys().forEach((key) => {
   templates(key);
 });
 
