@@ -47,7 +47,7 @@ module.exports = function (config) {
     // web server port
     port: 8081,
 
-    browsers: [process.env.TRAVIS || process.env.GITHUB_ACTIONS ? 'ChromeCI' : 'Chrome'],
+    browsers: [process.env.GITHUB_ACTIONS ? 'ChromeCI' : 'Chrome'],
 
     colors: true,
 

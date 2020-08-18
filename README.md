@@ -1,6 +1,6 @@
 # Spinnaker Canary UI
 
-[![Build Status](https://travis-ci.org/spinnaker/deck-kayenta.png?branch=master)](https://travis-ci.org/spinnaker/deck-kayenta)
+![Branch Build](https://github.com/spinnaker/deck-kayenta/workflows/Branch%20Build/badge.svg)
 
 ## PR Process
 

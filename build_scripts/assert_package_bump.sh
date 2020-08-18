@@ -10,7 +10,7 @@ if [[ $GITHUB_EVENT_NAME == "pull_request" && ( $GITHUB_BASE_REF != "master" || 
 fi
 
 cd "$(dirname "$0")" || exit 1;
-if [[ -n $TRAVIS || -n $GITHUB_ACTIONS ]] ; then
+if [[ -n $GITHUB_ACTIONS ]] ; then
   echo "git fetch -q..."
   git fetch -q
   CI_TARGET_BRANCH=origin/master # dirname should maybe work in both cases?
