@@ -6,7 +6,7 @@
 echo "Kayenta package publisher ---> Checking that this script is run by GitHub Actions."
 if [ "x${GITHUB_ACTIONS}" != "xtrue" ] ; then
   echo "This publish script should only be run by GitHub Actions and is not meant to be run locally."
-#  exit 2
+  exit 2
 fi
 
 # Check that the last commit modifying package.json contains a version bump ONLY
