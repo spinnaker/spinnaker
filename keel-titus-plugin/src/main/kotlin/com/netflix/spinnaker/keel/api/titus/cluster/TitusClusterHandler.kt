@@ -44,6 +44,7 @@ import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.exceptions.RegistryNotFoundException
 import com.netflix.spinnaker.keel.api.titus.exceptions.TitusAccountConfigurationException
+import com.netflix.spinnaker.keel.api.withDefaultsOmitted
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -65,6 +66,7 @@ import com.netflix.spinnaker.keel.exceptions.DockerArtifactExportError
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.orca.toOrcaJobProperties
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -147,7 +149,7 @@ class TitusClusterHandler(
 
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.upsertServerGroupJob(tagToUse) + resource.spec.deployWith.toOrcaJobProperties()
+            else -> diff.upsertServerGroupJob(tagToUse) + resource.spec.deployWith.toOrcaJobProperties("Amazon")
           }
 
           val description = when (version) {
@@ -422,7 +424,9 @@ class TitusClusterHandler(
     )
       .also { them ->
         val sameContainer: Boolean = them.distinctBy { it.container.digest }.size == 1
-        val healthy: Boolean = them.all { it.instanceCounts?.isHealthy() == true }
+        val healthy: Boolean = them.all {
+          it.instanceCounts?.isHealthy(resource.spec.deployWith.noHealth) == true
+        }
         if (sameContainer && healthy) {
           // only publish a successfully deployed event if the server group is healthy
           val container = them.first().container

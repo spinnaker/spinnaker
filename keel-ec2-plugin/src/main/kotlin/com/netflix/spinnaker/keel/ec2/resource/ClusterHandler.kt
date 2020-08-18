@@ -46,6 +46,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
+import com.netflix.spinnaker.keel.api.withDefaultsOmitted
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -71,6 +72,7 @@ import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.dependsOn
 import com.netflix.spinnaker.keel.orca.restrictedExecutionWindow
+import com.netflix.spinnaker.keel.orca.toOrcaJobProperties
 import com.netflix.spinnaker.keel.orca.waitStage
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -203,11 +205,11 @@ class ClusterHandler(
         }
         when {
           diff.shouldDeployAndModifyScalingPolicies() -> {
-            stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties())
+            stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon"))
             refId++
             stages.addAll(diff.modifyScalingPolicyJob(refId))
           }
-          else -> stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties())
+          else -> stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon"))
         }
 
         if (stages.isEmpty()) {
@@ -264,7 +266,7 @@ class ClusterHandler(
           refId++
         }
 
-        val stage = (diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties())
+        val stage = (diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties("Amazon"))
           .toMutableMap()
 
         refId++
@@ -805,7 +807,9 @@ class ClusterHandler(
     )
       .also { them ->
         val allSame: Boolean = them.distinctBy { it.launchConfiguration.appVersion }.size == 1
-        val healthy: Boolean = them.all { it.instanceCounts?.isHealthy() == true }
+        val healthy: Boolean = them.all {
+          it.instanceCounts?.isHealthy(resource.spec.deployWith.noHealth) == true
+        }
         if (allSame && healthy) {
           // // only publish a successfully deployed event if the server group is healthy
           val appVersion = them.first().launchConfiguration.appVersion

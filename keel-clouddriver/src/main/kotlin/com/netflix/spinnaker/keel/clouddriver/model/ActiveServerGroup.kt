@@ -35,11 +35,7 @@ data class InstanceCounts(
   val unknown: Int,
   val outOfService: Int,
   val starting: Int
-) {
-  // active asg is healthy if all instances are up
-  fun isHealthy(): Boolean =
-    up == total
-}
+)
 
 /**
  * Fields common to classes that model EC2 server groups

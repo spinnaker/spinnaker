@@ -64,6 +64,7 @@ import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
 import strikt.assertions.get
@@ -731,9 +732,39 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
         }
 
+        test("the cluster does not use discovery-based health during deployment") {
+          val deployWith = RedBlack(noHealth = true)
+          runBlocking {
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = deployWith)), diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("redblack")
+            get("interestingHealthProviderNames").isA<List<String>>().containsExactly("Amazon")
+          }
+        }
+
+        test("the cluster uses discovery-based health during deployment") {
+          val deployWith = RedBlack(noHealth = false)
+          runBlocking {
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = deployWith)), diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("redblack")
+            get("interestingHealthProviderNames").isNull()
+          }
+        }
+
         test("a different deploy strategy is used") {
           runBlocking {
-            upsert(resource.copy(spec = resource.spec.copy(deployWith = Highlander)), diff)
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = Highlander())), diff)
           }
 
           val slot = slot<OrchestrationRequest>()

@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import java.time.Duration
 import kotlinx.coroutines.async
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -96,13 +97,13 @@ class ClusterExportHelper(
       when (val strategy = context?.get("strategy")) {
         "redblack" -> {
           try {
-            RedBlack.fromOrcaStageContext(context)
+            context.contextToRedBlack()
           } catch (e: ClassCastException) {
             log.error("Could not convert strategy to redblack, context is {}", context)
             null
           }
         }
-        "highlander" -> Highlander
+        "highlander" -> Highlander()
         null -> null.also {
           log.error(
             "Deployment strategy information not found for server group $serverGroupName " +
@@ -119,6 +120,20 @@ class ClusterExportHelper(
       }
     }
   }
+
+  private fun Map<String, Any?>.contextToRedBlack() =
+    RedBlack(
+      rollbackOnFailure = this["rollback"]
+        ?.let {
+          @Suppress("UNCHECKED_CAST")
+          it as Map<String, Any>
+        }
+        ?.get("onFailure") as Boolean,
+      resizePreviousToZero = this["scaleDown"] as Boolean,
+      maxServerGroups = this["maxRemainingAsgs"].toString().toInt(),
+      delayBeforeDisable = Duration.ofSeconds((this["delayBeforeDisableSec"].toString().toInt()).toLong()),
+      delayBeforeScaleDown = Duration.ofSeconds((this["delayBeforeScaleDownSec"].toString().toInt()).toLong())
+    )
 
   @Suppress("UNCHECKED_CAST")
   private fun ExecutionDetailResponse.getDeployStageContext() =
