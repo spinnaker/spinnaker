@@ -275,7 +275,16 @@ public class AuthorizeController {
      * User does not have any stored permissions but the requested userId matches the
      * X-SPINNAKER-USER header value, likely a request that has not transited gate.
      */
-    if (userId.equalsIgnoreCase(authenticatedUserId)) {
+    if (userId.equalsIgnoreCase(authenticatedUserId)
+        && (configProps.isAllowPermissionResolverFallback()
+            || configProps.isDefaultToUnrestrictedUser())) {
+
+      Optional<UserPermission> unrestricted =
+          permissionsRepository.get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME);
+      if (!unrestricted.isPresent()) {
+        log.error(
+            "Error resolving fallback permissions: lookup of unrestricted user failed. Access to anonymous resources will fail");
+      }
 
       /*
        * First, attempt to resolve via the permissionsResolver.
@@ -285,6 +294,7 @@ public class AuthorizeController {
         if (resolvedUserPermission.getAllResources().stream().anyMatch(Objects::nonNull)) {
           log.debug("Resolved fallback permissions for user {}", authenticatedUserId);
           userPermission = resolvedUserPermission;
+          unrestricted.ifPresent(userPermission::merge);
         }
       }
 
@@ -292,12 +302,11 @@ public class AuthorizeController {
        * If user permissions are not resolved, default to those of the unrestricted user.
        */
       if (userPermission == null && configProps.isDefaultToUnrestrictedUser()) {
-        log.debug("Falling back to unrestricted user permissions for user {}", authenticatedUserId);
-        userPermission =
-            permissionsRepository
-                .get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
-                .map(u -> u.setId(authenticatedUserId))
-                .orElse(null);
+        if (unrestricted.isPresent()) {
+          log.debug(
+              "Falling back to unrestricted user permissions for user {}", authenticatedUserId);
+          userPermission = unrestricted.get().setId(authenticatedUserId);
+        }
       }
     }
 

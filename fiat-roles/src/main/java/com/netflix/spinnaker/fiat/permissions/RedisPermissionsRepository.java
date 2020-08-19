@@ -29,7 +29,14 @@ import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -160,35 +167,42 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   @Override
   public Optional<UserPermission> get(@NonNull String id) {
     try {
-      return redisClientDelegate.withMultiKeyPipeline(
+      boolean userExists =
+          redisClientDelegate.withCommandsClient(
+              c -> {
+                return c.sismember(allUsersKey(), id);
+              });
+      if (!userExists) {
+        return Optional.empty();
+      }
+      final RawUserPermission userResponseMap = new RawUserPermission();
+      final RawUserPermission unrestrictedResponseMap = new RawUserPermission();
+      redisClientDelegate.withMultiKeyPipeline(
           p -> {
-            RawUserPermission userResponseMap = new RawUserPermission();
-            RawUserPermission unrestrictedResponseMap = new RawUserPermission();
-
-            Response<Boolean> isUserInRepo = p.sismember(allUsersKey(), id);
             resources.stream()
                 .map(Resource::getResourceType)
                 .forEach(
                     r -> {
-                      Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
+                      String userKey = userKey(id, r);
+                      String unrestrictedUserKey = unrestrictedUserKey(r);
+                      Response<Map<String, String>> resourceMap = p.hgetAll(userKey);
                       userResponseMap.put(r, resourceMap);
-                      Response<Map<String, String>> unrestrictedMap =
-                          p.hgetAll(unrestrictedUserKey(r));
-                      unrestrictedResponseMap.put(r, unrestrictedMap);
+                      if (userKey.equals(unrestrictedUserKey)) {
+                        unrestrictedResponseMap.put(r, resourceMap);
+                      } else {
+                        Response<Map<String, String>> unrestrictedMap =
+                            p.hgetAll(unrestrictedUserKey);
+                        unrestrictedResponseMap.put(r, unrestrictedMap);
+                      }
                       log.info("Resource: {}; map size: {}", r, unrestrictedResponseMap.size());
                     });
             Response<Boolean> admin = p.sismember(adminKey(), id);
             p.sync();
-
-            if (!isUserInRepo.get()) {
-              return Optional.empty();
-            }
-
             userResponseMap.isAdmin = admin.get();
-            UserPermission unrestrictedUser =
-                getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
-            return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
           });
+
+      UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
+      return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
