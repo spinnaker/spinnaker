@@ -66,7 +66,7 @@ class PluginInfoController(
 
   @ApiOperation(value = "Get all plugin info objects")
   @RequestMapping(method = [RequestMethod.GET])
-  fun getAllPluginInfo(@RequestParam(value = "service", required = false) service: String?): List<Map<*, *>> {
+  fun getAllPluginInfo(@RequestParam(value = "service", required = false) service: String?): List<*> {
     return front50Service.getPluginInfo(service)
   }
 
