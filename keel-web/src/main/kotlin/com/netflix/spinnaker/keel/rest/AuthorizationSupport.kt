@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.keel.api.AccountAwareLocations
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -167,10 +168,11 @@ class AuthorizationSupport(
         APPLICATION -> repository.getDeliveryConfigForApplication(identifier).resources
         DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).resources
         else -> throw InvalidRequestException("Invalid target type ${target.name} for cloud account permission check")
-      }.filter { it.spec is Locatable<*> }
+      }.filter { (it.spec as? Locatable<*>)?.locations is AccountAwareLocations<*> }
 
       locatableResources.forEach {
-        val account = (it.spec as Locatable<*>).locations.account
+        val locations = (it.spec as Locatable<*>).locations
+        val account = (locations as AccountAwareLocations<*>).account
         AuthenticatedRequest.allowAnonymous {
           permissionEvaluator.hasPermission(auth, account, "ACCOUNT", action.name)
         }.also { allowed ->

@@ -11,6 +11,14 @@ interface Locatable<T : Locations<*>> : ResourceSpec {
   val locations: T
 }
 
+/** A [Locations] type for resources where the regions alone are sufficient information */
+data class SimpleRegions(override val regions: Set<SimpleRegionSpec>) : Locations<SimpleRegionSpec>
+
+interface AccountAwareLocations<T : RegionSpec> : Locations<T> {
+  val account: String
+}
+
+/** A [Locations] type for resources where the VPC and subnet matter. */
 data class SubnetAwareLocations(
   override val account: String,
   /**
@@ -18,9 +26,9 @@ data class SubnetAwareLocations(
    */
   val subnet: String?,
   // TODO: this is not ideal as we'd like this default to be configurable
-  override val vpc: String? = defaultVPC(subnet),
+  val vpc: String? = defaultVPC(subnet),
   override val regions: Set<SubnetAwareRegionSpec>
-) : Locations<SubnetAwareRegionSpec> {
+) : AccountAwareLocations<SubnetAwareRegionSpec> {
   // TODO: probably should be an extension at use-site
   fun withDefaultsOmitted() =
     copy(
@@ -37,12 +45,13 @@ data class SubnetAwareLocations(
     )
 }
 
+/** A [Locations] type for resources where the VPC matters. */
 data class SimpleLocations(
   override val account: String,
   // TODO: this is not ideal as we'd like this default to be configurable
-  override val vpc: String? = DEFAULT_VPC_NAME,
+  val vpc: String? = DEFAULT_VPC_NAME,
   override val regions: Set<SimpleRegionSpec>
-) : Locations<SimpleRegionSpec>
+) : AccountAwareLocations<SimpleRegionSpec>
 
 object LocationConstants {
   const val DEFAULT_VPC_NAME = "vpc0"
