@@ -8,7 +8,7 @@ Method | HTTP request | Description
 [**DeleteManifestByAppUsingDELETE**](ManagedControllerApi.md#DeleteManifestByAppUsingDELETE) | **Delete** /managed/application/{application}/config | Delete a delivery config manifest for an application
 [**DeleteManifestUsingDELETE**](ManagedControllerApi.md#DeleteManifestUsingDELETE) | **Delete** /managed/delivery-configs/{name} | Delete a delivery config manifest
 [**DeletePinUsingDELETE**](ManagedControllerApi.md#DeletePinUsingDELETE) | **Delete** /managed/application/{application}/pin/{targetEnvironment} | Unpin one or more artifact(s) in an environment. If the &#x60;reference&#x60; parameter is specified, only the corresponding artifact will be unpinned. If it&#39;s omitted, all pinned artifacts in the environment will be unpinned.
-[**DeleteVetoUsingDELETE**](ManagedControllerApi.md#DeleteVetoUsingDELETE) | **Delete** /managed/application/{application}/veto/{targetEnvironment}/{reference}/{version} | Veto an artifact version in an environment
+[**DeleteVetoUsingDELETE**](ManagedControllerApi.md#DeleteVetoUsingDELETE) | **Delete** /managed/application/{application}/veto/{targetEnvironment}/{reference}/{version} | Remove veto of an artifact version in an environment
 [**DiffManifestUsingPOST**](ManagedControllerApi.md#DiffManifestUsingPOST) | **Post** /managed/delivery-configs/diff | Ad-hoc validate and diff a config manifest
 [**DiffResourceUsingPOST**](ManagedControllerApi.md#DiffResourceUsingPOST) | **Post** /managed/resources/diff | Ad-hoc validate and diff a resource
 [**ExportResourceUsingGET**](ManagedControllerApi.md#ExportResourceUsingGET) | **Get** /managed/resources/export/artifact/{cloudProvider}/{account}/{clusterName} | Generates an artifact definition based on the artifact used in a running cluster
@@ -149,7 +149,7 @@ No authorization required
 
 # **DeleteVetoUsingDELETE**
 > DeleteVetoUsingDELETE(ctx, application, reference, targetEnvironment, version)
-Veto an artifact version in an environment
+Remove veto of an artifact version in an environment
 
 ### Required Parameters
 

@@ -121,20 +121,20 @@ PluginInfoControllerApiService Get all plugin info objects
  * @param optional nil or *PluginInfoControllerApiGetAllPluginInfoUsingGETOpts - Optional Parameters:
      * @param "Service" (optional.String) -  service
 
-@return []Mapstringobject
+@return []interface{}
 */
 
 type PluginInfoControllerApiGetAllPluginInfoUsingGETOpts struct { 
 	Service optional.String
 }
 
-func (a *PluginInfoControllerApiService) GetAllPluginInfoUsingGET(ctx context.Context, localVarOptionals *PluginInfoControllerApiGetAllPluginInfoUsingGETOpts) ([]Mapstringobject, *http.Response, error) {
+func (a *PluginInfoControllerApiService) GetAllPluginInfoUsingGET(ctx context.Context, localVarOptionals *PluginInfoControllerApiGetAllPluginInfoUsingGETOpts) ([]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		localVarReturnValue []Mapstringobject
+		localVarReturnValue []interface{}
 	)
 
 	// create path and map variables
@@ -195,7 +195,7 @@ func (a *PluginInfoControllerApiService) GetAllPluginInfoUsingGET(ctx context.Co
 		}
 		
 		if localVarHttpResponse.StatusCode == 200 {
-			var v []Mapstringobject
+			var v []interface{}
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()

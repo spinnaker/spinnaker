@@ -21,6 +21,7 @@ import (
 	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
+	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
 	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
@@ -88,6 +89,7 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context, templateId, getQueryParam)
 
 	var saveResp *http.Response
+	var saveRet map[string]interface{}
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
 		opt := &gate.V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts{}
@@ -95,14 +97,14 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 			opt.Tag = optional.NewString(options.tag)
 		}
 
-		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, opt)
+		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, opt)
 	} else if resp.StatusCode == http.StatusNotFound {
 		opt := &gate.V2PipelineTemplatesControllerApiCreateUsingPOST1Opts{}
 		if options.tag != "" {
 			opt.Tag = optional.NewString(options.tag)
 		}
 
-		saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, opt)
+		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, opt)
 	} else {
 		if queryErr != nil {
 			return queryErr
@@ -119,6 +121,13 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 		return fmt.Errorf("Encountered an error saving pipeline template %v, status code: %d\n",
 			templateJson,
 			saveResp.StatusCode)
+	}
+
+	if len(saveRet) > 0 {
+		taskSucceeded := orca_tasks.TaskSucceeded(saveRet)
+		if !taskSucceeded {
+			return fmt.Errorf("Encountered an error with saving pipeline template %v", saveRet)
+		}
 	}
 
 	options.Ui.Success("Pipeline template save succeeded")

@@ -6,7 +6,7 @@ Interested in contributing to Spinnaker? Please review the [contribution documen
 
 ### Go
 
-[Install Go 1.13.x](https://golang.org/doc/install). 
+[Install Go 1.13.x](https://golang.org/doc/install).
 
 ### Go modules
 
@@ -50,9 +50,9 @@ from the root `spin/` directory.
 
 ## Updating the Gate API
 
-Spin CLI uses [Swagger](https://swagger.io/) to generate the API client library for [Gate](https://github.com/spinnaker/gate). 
+Spin CLI uses [Swagger](https://swagger.io/) to generate the API client library for [Gate](https://github.com/spinnaker/gate).
 
-Spin CLI's `master` should be using Gate's `master` swagger definition. Similarly, each [spin release version](https://github.com/spinnaker/spin/tags) `version-{major}.{minor}.x` should match [Gate's tag](https://github.com/spinnaker/gate/tags) `version-{major}.{minor}`. 
+Spin CLI's `master` should be using Gate's `master` swagger definition. Similarly, each [spin release version](https://github.com/spinnaker/spin/tags) `version-{major}.{minor}.x` should match [Gate's tag](https://github.com/spinnaker/gate/tags) `version-{major}.{minor}`.
 
 Example:
 | Spin CLI version | Gate version   |

@@ -462,7 +462,7 @@ PipelineControllerApiService Evaluate a pipeline expression using the provided e
 
 @return map[string]interface{}
 */
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression interface{}) (map[string]interface{}, *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST(ctx context.Context, id string, pipelineExpression string) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
@@ -480,7 +480,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 	localVarFormParams := url.Values{}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{"application/json"}
+	localVarHttpContentTypes := []string{"text/plain"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1270,10 +1270,17 @@ func (a *PipelineControllerApiService) ResumePipelineUsingPUT(ctx context.Contex
 PipelineControllerApiService Save a pipeline definition
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param pipeline pipeline
+ * @param optional nil or *PipelineControllerApiSavePipelineUsingPOSTOpts - Optional Parameters:
+     * @param "StaleCheck" (optional.Bool) -  staleCheck
 
 
 */
-func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context, pipeline interface{}) (*http.Response, error) {
+
+type PipelineControllerApiSavePipelineUsingPOSTOpts struct { 
+	StaleCheck optional.Bool
+}
+
+func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context, pipeline interface{}, localVarOptionals *PipelineControllerApiSavePipelineUsingPOSTOpts) (*http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
@@ -1289,6 +1296,9 @@ func (a *PipelineControllerApiService) SavePipelineUsingPOST(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.StaleCheck.IsSet() {
+		localVarQueryParams.Add("staleCheck", parameterToString(localVarOptionals.StaleCheck.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{"application/json"}
 

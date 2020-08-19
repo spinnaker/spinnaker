@@ -19,6 +19,8 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+
+	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type updateOptions struct {
@@ -82,7 +84,9 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 		foundPipeline["disabled"] = !options.enabled
 	}
 
-	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, foundPipeline)
+	// TODO: support option passing in and remove nil in below call
+	opt := &gate.PipelineControllerApiSavePipelineUsingPOSTOpts{}
+	saveResp, saveErr := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, foundPipeline, opt)
 
 	if saveErr != nil {
 		return saveErr

@@ -41,7 +41,7 @@ func WaitForSuccessfulTask(gateClient *gateclient.GatewayClient, taskRef map[str
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return fmt.Errorf("Encountered an error saving application, status code: %d\n", resp.StatusCode)
 	}
-	if !taskSucceeded(task) {
+	if !TaskSucceeded(task) {
 		return fmt.Errorf("Encountered an error saving application, task output was: %v\n", task)
 	}
 	return nil
@@ -61,7 +61,7 @@ func taskCompleted(task map[string]interface{}) bool {
 	return false
 }
 
-func taskSucceeded(task map[string]interface{}) bool {
+func TaskSucceeded(task map[string]interface{}) bool {
 	taskStatus, exists := task["status"]
 	if !exists {
 		return false

@@ -99,7 +99,7 @@ Class | Method | HTTP request | Description
 *ManagedControllerApi* | [**DeleteManifestByAppUsingDELETE**](docs/ManagedControllerApi.md#deletemanifestbyappusingdelete) | **Delete** /managed/application/{application}/config | Delete a delivery config manifest for an application
 *ManagedControllerApi* | [**DeleteManifestUsingDELETE**](docs/ManagedControllerApi.md#deletemanifestusingdelete) | **Delete** /managed/delivery-configs/{name} | Delete a delivery config manifest
 *ManagedControllerApi* | [**DeletePinUsingDELETE**](docs/ManagedControllerApi.md#deletepinusingdelete) | **Delete** /managed/application/{application}/pin/{targetEnvironment} | Unpin one or more artifact(s) in an environment. If the &#x60;reference&#x60; parameter is specified, only the corresponding artifact will be unpinned. If it&#39;s omitted, all pinned artifacts in the environment will be unpinned.
-*ManagedControllerApi* | [**DeleteVetoUsingDELETE**](docs/ManagedControllerApi.md#deletevetousingdelete) | **Delete** /managed/application/{application}/veto/{targetEnvironment}/{reference}/{version} | Veto an artifact version in an environment
+*ManagedControllerApi* | [**DeleteVetoUsingDELETE**](docs/ManagedControllerApi.md#deletevetousingdelete) | **Delete** /managed/application/{application}/veto/{targetEnvironment}/{reference}/{version} | Remove veto of an artifact version in an environment
 *ManagedControllerApi* | [**DiffManifestUsingPOST**](docs/ManagedControllerApi.md#diffmanifestusingpost) | **Post** /managed/delivery-configs/diff | Ad-hoc validate and diff a config manifest
 *ManagedControllerApi* | [**DiffResourceUsingPOST**](docs/ManagedControllerApi.md#diffresourceusingpost) | **Post** /managed/resources/diff | Ad-hoc validate and diff a resource
 *ManagedControllerApi* | [**ExportResourceUsingGET**](docs/ManagedControllerApi.md#exportresourceusingget) | **Get** /managed/resources/export/artifact/{cloudProvider}/{account}/{clusterName} | Generates an artifact definition based on the artifact used in a running cluster
@@ -130,7 +130,7 @@ Class | Method | HTTP request | Description
 *PipelineControllerApi* | [**DeletePipelineUsingDELETE1**](docs/PipelineControllerApi.md#deletepipelineusingdelete1) | **Delete** /pipelines/{id} | Delete a pipeline execution
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionAtStageUsingGET**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionatstageusingget) | **Get** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingGET**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingget) | **Get** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-*PipelineControllerApi* | [**EvaluateExpressionForExecutionViaPOSTUsingPOST1**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionviapostusingpost1) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+*PipelineControllerApi* | [**EvaluateExpressionForExecutionViaPOSTUsingPOST**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionviapostusingpost) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**EvaluateVariablesUsingPOST**](docs/PipelineControllerApi.md#evaluatevariablesusingpost) | **Post** /pipelines/{id}/evaluateVariables | Evaluate variables same as Evaluate Variables stage using the provided execution as context
 *PipelineControllerApi* | [**GetPipelineUsingGET**](docs/PipelineControllerApi.md#getpipelineusingget) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 *PipelineControllerApi* | [**InvokePipelineConfigUsingPOST1**](docs/PipelineControllerApi.md#invokepipelineconfigusingpost1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
@@ -219,6 +219,7 @@ Class | Method | HTTP request | Description
  - [File](docs/File.md)
  - [GrantedAuthority](docs/GrantedAuthority.md)
  - [HashMapstringobject](docs/HashMapstringobject.md)
+ - [Http](docs/Http.md)
  - [HttpEntity](docs/HttpEntity.md)
  - [InputStream](docs/InputStream.md)
  - [Mapstringobject](docs/Mapstringobject.md)
@@ -226,6 +227,8 @@ Class | Method | HTTP request | Description
  - [Notification](docs/Notification.md)
  - [PipelineTemplateDependent](docs/PipelineTemplateDependent.md)
  - [PluginDependency](docs/PluginDependency.md)
+ - [RemoteExtension](docs/RemoteExtension.md)
+ - [RemoteExtensionTransport](docs/RemoteExtensionTransport.md)
  - [ReorderPipelinesCommand](docs/ReorderPipelinesCommand.md)
  - [Resource](docs/Resource.md)
  - [ResponseEntity](docs/ResponseEntity.md)

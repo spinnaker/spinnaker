@@ -11,7 +11,7 @@ package swagger
 
 type EnvironmentArtifactVeto struct {
 	Comment string `json:"comment,omitempty"`
-	Reference string `json:"reference,omitempty"`
-	TargetEnvironment string `json:"targetEnvironment,omitempty"`
 	Version string `json:"version,omitempty"`
+	TargetEnvironment string `json:"targetEnvironment,omitempty"`
+	Reference string `json:"reference,omitempty"`
 }

@@ -359,7 +359,7 @@ func (a *ManagedControllerApiService) DeletePinUsingDELETE(ctx context.Context, 
 }
 
 /* 
-ManagedControllerApiService Veto an artifact version in an environment
+ManagedControllerApiService Remove veto of an artifact version in an environment
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param application application
  * @param reference reference

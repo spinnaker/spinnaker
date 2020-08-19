@@ -34,20 +34,20 @@ V2PipelineTemplatesControllerApiService (ALPHA) Create a pipeline template.
  * @param optional nil or *V2PipelineTemplatesControllerApiCreateUsingPOST1Opts - Optional Parameters:
      * @param "Tag" (optional.String) -  tag
 
-
+@return map[string]interface{}
 */
 
 type V2PipelineTemplatesControllerApiCreateUsingPOST1Opts struct { 
 	Tag optional.String
 }
 
-func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.Context, pipelineTemplate interface{}, localVarOptionals *V2PipelineTemplatesControllerApiCreateUsingPOST1Opts) (*http.Response, error) {
+func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.Context, pipelineTemplate interface{}, localVarOptionals *V2PipelineTemplatesControllerApiCreateUsingPOST1Opts) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
+		localVarReturnValue map[string]interface{}
 	)
 
 	// create path and map variables
@@ -81,20 +81,27 @@ func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.C
 	localVarPostBody = &pipelineTemplate
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return nil, err
+		return localVarReturnValue, nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return localVarHttpResponse, err
+		return localVarReturnValue, localVarHttpResponse, err
 	}
 
 	localVarBody, err := ioutil.ReadAll(localVarHttpResponse.Body)
 	localVarHttpResponse.Body.Close()
 	if err != nil {
-		return localVarHttpResponse, err
+		return localVarReturnValue, localVarHttpResponse, err
 	}
 
+	if localVarHttpResponse.StatusCode < 300 {
+		// If we succeed, return the data, otherwise pass on to decode error.
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
+		if err == nil { 
+			return localVarReturnValue, localVarHttpResponse, err
+		}
+	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
@@ -102,21 +109,21 @@ func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.C
 			error: localVarHttpResponse.Status,
 		}
 		
-		if localVarHttpResponse.StatusCode == 202 {
+		if localVarHttpResponse.StatusCode == 200 {
 			var v map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()
-					return localVarHttpResponse, newErr
+					return localVarReturnValue, localVarHttpResponse, newErr
 				}
 				newErr.model = v
-				return localVarHttpResponse, newErr
+				return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		
-		return localVarHttpResponse, newErr
+		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
-	return localVarHttpResponse, nil
+	return localVarReturnValue, localVarHttpResponse, nil
 }
 
 /* 
@@ -210,7 +217,7 @@ func (a *V2PipelineTemplatesControllerApiService) DeleteUsingDELETE1(ctx context
 			error: localVarHttpResponse.Status,
 		}
 		
-		if localVarHttpResponse.StatusCode == 202 {
+		if localVarHttpResponse.StatusCode == 200 {
 			var v map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
@@ -708,7 +715,7 @@ V2PipelineTemplatesControllerApiService (ALPHA) Update a pipeline template.
      * @param "SkipPlanDependents" (optional.Bool) -  skipPlanDependents
      * @param "Tag" (optional.String) -  tag
 
-
+@return map[string]interface{}
 */
 
 type V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts struct { 
@@ -716,13 +723,13 @@ type V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts struct {
 	Tag optional.String
 }
 
-func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.Context, id string, pipelineTemplate interface{}, localVarOptionals *V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts) (*http.Response, error) {
+func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.Context, id string, pipelineTemplate interface{}, localVarOptionals *V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts) (map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
+		localVarReturnValue map[string]interface{}
 	)
 
 	// create path and map variables
@@ -760,20 +767,27 @@ func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.C
 	localVarPostBody = &pipelineTemplate
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return nil, err
+		return localVarReturnValue, nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return localVarHttpResponse, err
+		return localVarReturnValue, localVarHttpResponse, err
 	}
 
 	localVarBody, err := ioutil.ReadAll(localVarHttpResponse.Body)
 	localVarHttpResponse.Body.Close()
 	if err != nil {
-		return localVarHttpResponse, err
+		return localVarReturnValue, localVarHttpResponse, err
 	}
 
+	if localVarHttpResponse.StatusCode < 300 {
+		// If we succeed, return the data, otherwise pass on to decode error.
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
+		if err == nil { 
+			return localVarReturnValue, localVarHttpResponse, err
+		}
+	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
@@ -781,19 +795,19 @@ func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.C
 			error: localVarHttpResponse.Status,
 		}
 		
-		if localVarHttpResponse.StatusCode == 202 {
+		if localVarHttpResponse.StatusCode == 200 {
 			var v map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
 				if err != nil {
 					newErr.error = err.Error()
-					return localVarHttpResponse, newErr
+					return localVarReturnValue, localVarHttpResponse, newErr
 				}
 				newErr.model = v
-				return localVarHttpResponse, newErr
+				return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		
-		return localVarHttpResponse, newErr
+		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
-	return localVarHttpResponse, nil
+	return localVarReturnValue, localVarHttpResponse, nil
 }

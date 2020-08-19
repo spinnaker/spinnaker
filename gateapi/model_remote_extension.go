@@ -9,8 +9,9 @@
 
 package swagger
 
-type ResponseEntity struct {
-	StatusCode string `json:"statusCode,omitempty"`
-	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
-	Body *interface{} `json:"body,omitempty"`
+type RemoteExtension struct {
+	Transport *RemoteExtensionTransport `json:"transport,omitempty"`
+	Type_ string `json:"type,omitempty"`
+	Config *interface{} `json:"config,omitempty"`
+	Id string `json:"id,omitempty"`
 }
