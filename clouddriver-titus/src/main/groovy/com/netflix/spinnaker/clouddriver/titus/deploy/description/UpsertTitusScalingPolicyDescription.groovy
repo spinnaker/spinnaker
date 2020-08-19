@@ -33,7 +33,10 @@ import com.netflix.titus.grpc.protogen.AlarmConfiguration.Statistic
 import com.netflix.titus.grpc.protogen.ScalingPolicy.Builder
 import com.netflix.titus.grpc.protogen.StepScalingPolicy.AdjustmentType
 import com.netflix.titus.grpc.protogen.StepScalingPolicy.MetricAggregationType
+import groovy.util.logging.Slf4j
+import groovy.json.JsonOutput
 
+@Slf4j
 class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescription implements ApplicationNameable {
   String application
 
@@ -215,7 +218,7 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
         new AwsMetricDimension().withName(dimension.name).withValue(value)
       })
     }
-
+    log.info("UpsertTitusScalingPolicyDescription for ${serverGroupName} description: ${ JsonOutput.toJson(description) }")
     description
   }
 
