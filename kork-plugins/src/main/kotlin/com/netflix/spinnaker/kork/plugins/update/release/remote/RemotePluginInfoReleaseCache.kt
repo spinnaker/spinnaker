@@ -19,12 +19,13 @@ package com.netflix.spinnaker.kork.plugins.update.release.remote
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
-import com.netflix.spinnaker.kork.plugins.events.RemotePluginExtensionsChanged
-import com.netflix.spinnaker.kork.plugins.events.RemotePluginExtensionsChanged.Status.DISABLED
-import com.netflix.spinnaker.kork.plugins.events.RemotePluginExtensionsChanged.Status.ENABLED
-import com.netflix.spinnaker.kork.plugins.events.RemotePluginExtensionsChanged.Status.UPDATED
+import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged
+import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.DISABLED
+import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.ENABLED
+import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.UPDATED
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
@@ -38,6 +39,7 @@ import org.springframework.scheduling.annotation.Scheduled
  * Emits [ENABLED], [DISABLED], and [UPDATED] events that contain the plugin ID, version, and remote
  * extensions when a corresponding change is detected in the cache (added, updated, or removed).
  */
+@Beta
 class RemotePluginInfoReleaseCache(
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val applicationEventPublisher: ApplicationEventPublisher,
@@ -67,7 +69,7 @@ class RemotePluginInfoReleaseCache(
     remove(enabledPlugins)
     addOrUpdate(enabledPlugins)
 
-    log.info("Cached ${pluginCache.estimatedSize()} remote plugins.")
+    log.info("Cached ${pluginCache.estimatedSize()} remote plugin configurations.")
   }
 
   /**
@@ -88,10 +90,10 @@ class RemotePluginInfoReleaseCache(
 
     if (disabledPlugins.isNotEmpty()) {
       disabledPlugins.forEach { disabledPlugin ->
-        log.debug("Removing remote plugin '{}' from cache.", disabledPlugin.key)
+        log.debug("Removing remote plugin configuration '{}' from cache.", disabledPlugin.key)
         pluginCache.invalidate(disabledPlugin.key)
         applicationEventPublisher.publishEvent(
-          RemotePluginExtensionsChanged(
+          RemotePluginConfigChanged(
             this, DISABLED, disabledPlugin.key,
             disabledPlugin.value.props.version, disabledPlugin.value.props.remoteExtensions
           )
@@ -111,10 +113,10 @@ class RemotePluginInfoReleaseCache(
         val cachedRelease = pluginCache.getIfPresent(enabledPlugin.pluginId)
 
         if (cachedRelease == null && versionConstraint(enabledPlugin.pluginId, enabledPlugin.props.requires)) {
-          log.debug("Adding remote plugin '{}' to cache.", enabledPlugin.pluginId)
+          log.debug("Adding remote plugin configuration '{}' to cache.", enabledPlugin.pluginId)
           pluginCache.put(enabledPlugin.pluginId, enabledPlugin)
           applicationEventPublisher.publishEvent(
-            RemotePluginExtensionsChanged(
+            RemotePluginConfigChanged(
               this, ENABLED, enabledPlugin.pluginId,
               enabledPlugin.props.version, enabledPlugin.props.remoteExtensions
             )
@@ -122,10 +124,10 @@ class RemotePluginInfoReleaseCache(
         } else if (cachedRelease != null && cachedRelease.props.version != enabledPlugin.props.version &&
           versionConstraint(enabledPlugin.pluginId, enabledPlugin.props.requires)
         ) {
-          log.debug("Updating remote plugin '{}' in cache.", enabledPlugin.pluginId)
+          log.debug("Updating remote plugin configuration '{}' in cache.", enabledPlugin.pluginId)
           pluginCache.put(enabledPlugin.pluginId, enabledPlugin)
           applicationEventPublisher.publishEvent(
-            RemotePluginExtensionsChanged(
+            RemotePluginConfigChanged(
               this, UPDATED, enabledPlugin.pluginId,
               enabledPlugin.props.version, enabledPlugin.props.remoteExtensions
             )

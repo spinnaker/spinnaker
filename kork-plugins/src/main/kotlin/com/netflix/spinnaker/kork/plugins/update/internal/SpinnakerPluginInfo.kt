@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.update.internal
 
 import com.fasterxml.jackson.annotation.JsonSetter
-import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtension
+import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
 import org.pf4j.update.PluginInfo
 
 class SpinnakerPluginInfo : PluginInfo() {
@@ -39,6 +39,6 @@ class SpinnakerPluginInfo : PluginInfo() {
    */
   data class SpinnakerPluginRelease(
     val preferred: Boolean = false,
-    val remoteExtensions: MutableList<RemoteExtension> = mutableListOf()
+    val remoteExtensions: MutableList<RemoteExtensionConfig> = mutableListOf()
   ) : PluginRelease()
 }

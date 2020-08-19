@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
 import com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostProcessor;
@@ -75,7 +76,7 @@ import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableConfigurationProperties(PluginsConfigurationProperties.class)
-@Import({Front50PluginsConfiguration.class})
+@Import({Front50PluginsConfiguration.class, RemotePluginsConfiguration.class})
 public class PluginsAutoConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(PluginsAutoConfiguration.class);
@@ -201,8 +202,10 @@ public class PluginsAutoConfiguration {
         pluginInfoReleaseSources, springStrictPluginLoaderStatusProvider);
   }
 
+  /** Not a static bean - see {@link RemotePluginsConfiguration}. */
   @Bean
-  public static RemotePluginInfoReleaseCache remotePluginInfoReleaseCache(
+  @Beta
+  public RemotePluginInfoReleaseCache remotePluginInfoReleaseCache(
       Collection<PluginInfoReleaseSource> pluginInfoReleaseSources,
       SpringStrictPluginLoaderStatusProvider springStrictPluginLoaderStatusProvider,
       ApplicationEventPublisher applicationEventPublisher,

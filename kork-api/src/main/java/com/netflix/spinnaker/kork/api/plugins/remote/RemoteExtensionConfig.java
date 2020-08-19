@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kork.api.plugins.remote;
 
+import com.netflix.spinnaker.kork.annotations.Beta;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -38,7 +39,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RemoteExtension {
+@Beta
+public class RemoteExtensionConfig {
 
   /**
    * The remote extension type. The remote extension is configured in the service that implements
@@ -53,7 +55,7 @@ public class RemoteExtension {
    * Outbound transport configuration for the remote extension point; the protocol to address it
    * with and the necessary configuration.
    */
-  @Nonnull private RemoteExtensionTransport transport = new RemoteExtensionTransport();
+  @Nonnull private RemoteExtensionTransportConfig transport = new RemoteExtensionTransportConfig();
 
   /** Configures the remote extension point. */
   @Nullable private Map<String, Object> config;
@@ -61,7 +63,7 @@ public class RemoteExtension {
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
-  public static class RemoteExtensionTransport {
+  public static class RemoteExtensionTransportConfig {
 
     @Nonnull private Http http = new Http();
 

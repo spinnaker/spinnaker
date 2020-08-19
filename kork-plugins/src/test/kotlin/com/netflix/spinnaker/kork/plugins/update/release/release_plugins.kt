@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kork.plugins.update.release
 
-import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtension
+import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import java.time.Instant
 import java.util.Date
@@ -94,11 +94,11 @@ val pluginWithRemoteExtension = SpinnakerPluginInfo().apply {
     SpinnakerPluginInfo.SpinnakerPluginRelease(
       true,
       mutableListOf(
-        RemoteExtension(
+        RemoteExtensionConfig(
           "type",
           "netflix.remote.extension",
-          RemoteExtension.RemoteExtensionTransport(
-            RemoteExtension.RemoteExtensionTransport.Http(
+          RemoteExtensionConfig.RemoteExtensionTransportConfig(
+            RemoteExtensionConfig.RemoteExtensionTransportConfig.Http(
               "https://example.com",
               mutableMapOf()
             )

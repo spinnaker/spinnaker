@@ -17,25 +17,27 @@
 
 package com.netflix.spinnaker.kork.plugins.events
 
-import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtension
+import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
 import com.netflix.spinnaker.kork.plugins.update.release.remote.RemotePluginInfoReleaseCache
 import org.springframework.context.ApplicationEvent
 
 /**
- * A Spring [ApplicationEvent] that is emitted when a remote extension is changed.
+ * A Spring [ApplicationEvent] that is emitted when a remote plugin configuration is changed.
  *
  * @param source The source of the event
- * @param status Whether the remote extension is [ENABLED], [DISABLED], or [UPDATED]
+ * @param status Whether the remote plugin config is [ENABLED], [DISABLED], or [UPDATED].  [ENABLED]
+ * and [DISABLED] are self-explanatory. [UPDATED] occurs when a plugin is already enabled and the
+ * version changes.
  * @param pluginId The plugin ID for the remote extension
  * @param version The plugin release version
- * @param remoteExtensions The list of remote extensions associated with the plugin release
+ * @param remoteExtensionConfigs A list of remote extension configs associated with the plugin release
  */
-data class RemotePluginExtensionsChanged(
+data class RemotePluginConfigChanged(
   private val source: RemotePluginInfoReleaseCache,
   val status: Status,
   val pluginId: String,
   val version: String,
-  val remoteExtensions: List<RemoteExtension>
+  val remoteExtensionConfigs: List<RemoteExtensionConfig>
 ) : ApplicationEvent(source) {
   enum class Status {
     ENABLED,
