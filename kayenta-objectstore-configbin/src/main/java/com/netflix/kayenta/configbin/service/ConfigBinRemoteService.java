@@ -21,22 +21,26 @@ import retrofit.client.Response;
 import retrofit.http.*;
 
 public interface ConfigBinRemoteService {
-  @GET("/{ownerApp}/{configType}")
-  String list(@Path("ownerApp") String ownerApp, @Path("configType") String configType);
 
-  @DELETE("/{ownerApp}/{configType}/{configName}")
+  @GET("/browse/{ownerApp}/{configType}?pageSize=1000&showDeleted=false")
+  String list(
+      @Path("ownerApp") String ownerApp,
+      @Path("configType") String configType,
+      @Query("nextPageId") String nextPageId);
+
+  @DELETE("/{ownerApp}/{configType}/{configName}?user=kayenta&comment=spinnaker")
   Response delete(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,
       @Path("configName") String configName);
 
-  @GET("/payload/{ownerApp}/{configType}/{configName}")
+  @GET("/{ownerApp}/{configType}/{configName}")
   String get(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,
       @Path("configName") String configName);
 
-  @POST("/{ownerApp}/{configType}/{configName}")
+  @POST("/{ownerApp}/{configType}/{configName}?overwrite=true&user=kayenta&comment=spinnaker")
   Response post(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,

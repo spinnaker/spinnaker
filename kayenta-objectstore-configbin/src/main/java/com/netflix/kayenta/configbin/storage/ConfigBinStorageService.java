@@ -165,7 +165,7 @@ public class ConfigBinStorageService implements StorageService {
             credentials, CanaryConfigIndexAction.UPDATE, correlationId);
       }
     } catch (Exception e) {
-      log.error("Update failed on path {}: {}", objectKey, e);
+      log.error("Update failed on path {}", objectKey, e);
 
       if (objectType == ObjectType.CANARY_CONFIG) {
         canaryConfigIndex.removeFailedPendingUpdate(
@@ -285,25 +285,42 @@ public class ConfigBinStorageService implements StorageService {
       String ownerApp = credentials.getOwnerApp();
       String configType = credentials.getConfigType();
       ConfigBinRemoteService remoteService = credentials.getRemoteService();
-      String jsonBody =
-          AuthenticatedRequest.allowAnonymous(
-              () ->
-                  retry.retry(
-                      () -> remoteService.list(ownerApp, configType), MAX_RETRIES, RETRY_BACKOFF));
-
-      try {
-        List<String> ids =
-            kayentaObjectMapper.readValue(jsonBody, new TypeReference<List<String>>() {});
-
-        if (ids.size() > 0) {
-          return ids.stream().map(i -> metadataFor(credentials, i)).collect(Collectors.toList());
+      List<String> ids = new ArrayList<>();
+      boolean hasNext = true;
+      String pageId = null;
+      while (hasNext) {
+        try {
+          final String currentPage = pageId;
+          String jsonBody =
+              AuthenticatedRequest.allowAnonymous(
+                  () ->
+                      retry.retry(
+                          () -> remoteService.list(ownerApp, configType, currentPage),
+                          MAX_RETRIES,
+                          RETRY_BACKOFF));
+          ConfigBinListResponse response =
+              kayentaObjectMapper.readValue(jsonBody, ConfigBinListResponse.class);
+          hasNext = response.hasNext;
+          pageId = response.nextPageId;
+          ids.addAll(
+              response.nameVersions.stream().map(nv -> nv.configName).collect(Collectors.toList()));
+        } catch (IOException e) {
+          log.error("List failed on path {}", ownerApp, e);
+          return Collections.emptyList();
         }
-      } catch (IOException e) {
-        log.error("List failed on path {}: {}", ownerApp, e);
       }
-
-      return Collections.emptyList();
+      return ids.stream().map(i -> metadataFor(credentials, i)).collect(Collectors.toList());
     }
+  }
+
+  private static class ConfigBinListResponse {
+    public List<ConfigBinPrefixResponse> nameVersions;
+    public String nextPageId;
+    public boolean hasNext;
+  }
+
+  private static class ConfigBinPrefixResponse {
+    public String configName;
   }
 
   private Map<String, Object> metadataFor(ConfigBinNamedAccountCredentials credentials, String id) {
@@ -328,7 +345,7 @@ public class ConfigBinStorageService implements StorageService {
     try {
       config = kayentaObjectMapper.readValue(json, CanaryConfig.class);
     } catch (Throwable e) {
-      log.error("Read failed on path {}: {}", id, e);
+      log.error("Read failed on path {}", id, e);
       throw new IllegalStateException(e);
     }
     return new ImmutableMap.Builder<String, Object>()
