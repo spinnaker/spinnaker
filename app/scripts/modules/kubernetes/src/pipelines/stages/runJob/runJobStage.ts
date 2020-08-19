@@ -23,6 +23,7 @@ Registry.pipeline.registerStage({
   executionDetailsSections: [RunJobExecutionDetails, DeployStatus, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
   producesArtifacts: true,
+  restartable: true,
   validators: [
     {
       type: 'custom',
