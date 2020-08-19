@@ -10,6 +10,7 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 
 abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<T> {
 

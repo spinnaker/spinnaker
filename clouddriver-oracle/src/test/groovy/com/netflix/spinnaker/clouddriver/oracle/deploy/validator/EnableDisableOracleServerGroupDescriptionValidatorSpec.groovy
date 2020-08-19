@@ -8,6 +8,7 @@
  */
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.EnableDisableOracleServerGroupDescription
 import spock.lang.Shared
 import spock.lang.Specification

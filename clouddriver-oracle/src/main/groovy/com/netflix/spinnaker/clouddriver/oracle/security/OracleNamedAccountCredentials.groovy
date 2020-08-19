@@ -10,6 +10,7 @@ package com.netflix.spinnaker.clouddriver.oracle.security
 
 import com.google.common.base.Supplier
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
+import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.oracle.bmc.Region
 import com.oracle.bmc.auth.AuthenticationDetailsProvider
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider

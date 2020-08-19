@@ -17,6 +17,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandType
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
 import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
@@ -42,7 +43,7 @@ class OracleSecurityGroupCachingAgent extends AbstractOracleCachingAgent impleme
 
   OracleSecurityGroupCachingAgent(String clouddriverUserAgentApplicationName, OracleNamedAccountCredentials credentials, ObjectMapper objectMapper, Registry registry) {
     super(objectMapper, credentials, clouddriverUserAgentApplicationName)
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${OracleCloudProvider.ID}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${OracleCloudProvider.ID}:${OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -72,8 +73,8 @@ class OracleSecurityGroupCachingAgent extends AbstractOracleCachingAgent impleme
   }
 
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == OracleCloudProvider.ID
+  boolean handles(OnDemandType type, String cloudProvider) {
+    type == OnDemandType.SecurityGroup && cloudProvider == OracleCloudProvider.ID
   }
 
   @Override

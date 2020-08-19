@@ -9,6 +9,7 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.DestroyOracleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
