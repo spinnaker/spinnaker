@@ -1,0 +1,19 @@
+{
+  "name": "ecsapp",
+  "attributes": {
+    "name": "ecsapp",
+    "email": "someemail@amazon.com",
+    "updateTs": "1600700470000",
+    "lastModifiedBy": "anonymous",
+    "cloudProviders": "ecs",
+    "trafficGuards": [],
+    "instancePort": 80,
+    "user": "[anonymous]",
+    "dataSources": {
+      "disabled": [],
+      "enabled": []
+    },
+    "accounts": "ecs-my-aws-devel-acct"
+  },
+  "clusters": {}
+}

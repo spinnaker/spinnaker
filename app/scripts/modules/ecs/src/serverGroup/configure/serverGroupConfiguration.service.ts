@@ -31,7 +31,7 @@ import {
 import { IAmazonLoadBalancer } from '@spinnaker/amazon';
 import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
 import { IamRoleReader } from '../../iamRoles/iamRole.read.service';
-import { EscClusterReader } from '../../ecsCluster/ecsCluster.read.service';
+import { EcsClusterReader } from '../../ecsCluster/ecsCluster.read.service';
 import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';
 import { IRoleDescriptor } from '../../iamRoles/IRole';
 import { IMetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
@@ -163,7 +163,7 @@ export class EcsServerGroupConfigurationService {
     private loadBalancerReader: LoadBalancerReader,
     private serverGroupCommandRegistry: ServerGroupCommandRegistry,
     private iamRoleReader: IamRoleReader,
-    private ecsClusterReader: EscClusterReader,
+    private ecsClusterReader: EcsClusterReader,
     private metricAlarmReader: MetricAlarmReader,
     private placementStrategyService: PlacementStrategyService,
     private securityGroupReader: SecurityGroupReader,

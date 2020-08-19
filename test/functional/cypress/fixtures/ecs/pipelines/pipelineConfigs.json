@@ -1,0 +1,151 @@
+[
+  {
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "artifactAccount": "my-github-artifact-account",
+          "id": "6df946fd-ada6-491a-842c-6d6ce2f76dbe",
+          "name": "demo-task-def.json",
+          "reference": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+          "type": "github/file",
+          "version": "master"
+        },
+        "displayName": "purple-monkey-99",
+        "id": "bde8fefb-265c-4a30-bf01-2d1cbd136953",
+        "matchArtifact": {
+          "artifactAccount": "my-github-artifact-account",
+          "id": "2b9b9393-af50-4687-a309-45506829963d",
+          "name": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+          "type": "github/file"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      }
+    ],
+    "appConfig": {},
+    "application": "ecsapp",
+    "lastModifiedBy": "anonymous",
+    "name": "ecs-demo",
+    "stages": [
+      {
+        "clusters": [
+          {
+            "account": "ecs-my-aws-devel-acct",
+            "application": "ecsapp",
+            "associatePublicIpAddress": false,
+            "availabilityZones": {
+              "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"]
+            },
+            "capacity": {
+              "desired": 3,
+              "max": 6,
+              "min": 2
+            },
+            "cloudProvider": "ecs",
+            "computeUnits": 256,
+            "containerMappings": [
+              {
+                "containerName": "v001",
+                "imageDescription": {
+                  "account": "my-us-west-2-devel-registry",
+                  "fromTrigger": true,
+                  "imageId": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images (Tag resolved at runtime)",
+                  "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+                  "repository": "spinnaker-deployment-images",
+                  "tag": ""
+                }
+              }
+            ],
+            "containerPort": 80,
+            "copySourceScalingPoliciesAndActions": false,
+            "delayBeforeDisableSec": 0,
+            "delayBeforeScaleDownSec": 0,
+            "dockerImageCredentialsSecret": "None (No registry credentials)",
+            "dockerLabels": {},
+            "ecsClusterName": "spinnaker-deployment-cluster",
+            "environmentVariables": {
+              "PORT": "80"
+            },
+            "freeFormDetails": "ecsdemo",
+            "healthCheckGracePeriodSeconds": 5,
+            "healthCheckType": "EC2",
+            "iamRole": "None (No IAM role)",
+            "imageDescription": {
+              "account": "my-us-west-2-devel-registry",
+              "fromTrigger": true,
+              "imageId": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images (Tag resolved at runtime)",
+              "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+              "repository": "spinnaker-deployment-images",
+              "tag": ""
+            },
+            "launchType": "FARGATE",
+            "loadBalancedContainer": "",
+            "loadBalancers": [],
+            "logDriver": "awslogs",
+            "logOptions": {
+              "awslogs-group": "spinnaker-ecs-demo",
+              "awslogs-region": "us-west-2",
+              "awslogs-stream-prefix": "spinnaker"
+            },
+            "maxRemainingAsgs": 2,
+            "moniker": {
+              "app": "ecsapp",
+              "detail": "ecsdemo",
+              "stack": "prod"
+            },
+            "networkMode": "awsvpc",
+            "placementConstraints": [],
+            "placementStrategyName": "",
+            "placementStrategySequence": [],
+            "preferSourceCapacity": false,
+            "provider": "ecs",
+            "reservedMemory": 512,
+            "rollback": {
+              "onFailure": true
+            },
+            "scaleDown": true,
+            "securityGroupNames": ["spinnaker-ecs-demo-private-access"],
+            "securityGroups": [],
+            "serviceDiscoveryAssociations": [],
+            "stack": "prod",
+            "strategy": "redblack",
+            "subnetType": "private-subnet",
+            "tags": {},
+            "targetGroup": "",
+            "targetGroupMappings": [
+              {
+                "containerName": "v001",
+                "containerPort": 80,
+                "targetGroup": "spinnaker-ecs-demo-tg"
+              }
+            ],
+            "taskDefinitionArtifact": {
+              "artifactId": "bde8fefb-265c-4a30-bf01-2d1cbd136953"
+            },
+            "taskDefinitionArtifactAccount": "my-github-artifact-account",
+            "useSourceCapacity": false,
+            "useTaskDefinitionArtifact": true
+          }
+        ],
+        "name": "Deploy",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "deploy"
+      }
+    ],
+    "index": 0,
+    "id": "50de3b0e-ff24-400b-9bb9-83659fb550f1",
+    "triggers": [
+      {
+        "account": "my-us-west-2-devel-registry",
+        "description": "(Docker Registry) my-us-west-2-devel-registry: spinnaker-deployment-images",
+        "enabled": true,
+        "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+        "repository": "spinnaker-deployment-images",
+        "tag": "",
+        "type": "docker"
+      }
+    ],
+    "updateTs": "1600700457000"
+  }
+]

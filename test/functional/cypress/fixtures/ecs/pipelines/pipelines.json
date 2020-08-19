@@ -1,0 +1,218 @@
+[
+  {
+    "type": "PIPELINE",
+    "id": "01EJRKPD2SPEPHQ5NRN205047Q",
+    "application": "ecsapp",
+    "name": "ecs-demo",
+    "buildTime": 1600701281489,
+    "canceled": false,
+    "limitConcurrent": false,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01EJRKPDCFEHM2A7GC74HEQNPS",
+        "refId": "1<1",
+        "type": "createServerGroup",
+        "name": "Deploy in us-west-2",
+        "startTime": 1600701281703,
+        "endTime": 1600701573643,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01EJRKPD6G5YJW27HQ2QAGGV7A",
+        "requisiteStageRefIds": []
+      },
+      {
+        "id": "01EJRKTBZVK84F1MW6CPSATC7P",
+        "refId": "1<1>3",
+        "type": "scaleDownCluster",
+        "name": "scaleDown",
+        "startTime": 1600701546653,
+        "endTime": 1600701573538,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01EJRKPDCFEHM2A7GC74HEQNPS",
+        "requisiteStageRefIds": ["1<1>2"]
+      },
+      {
+        "id": "01EJRKTBZTTQ38KMJVKZAJ5WJD",
+        "refId": "1<1>2",
+        "type": "disableCluster",
+        "name": "disableCluster",
+        "startTime": 1600701438418,
+        "endTime": 1600701546602,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01EJRKPDCFEHM2A7GC74HEQNPS",
+        "requisiteStageRefIds": ["1<1>1"]
+      },
+      {
+        "id": "01EJRKTBZRK5WET8997F1ZZCPK",
+        "refId": "1<1>1",
+        "type": "shrinkCluster",
+        "name": "shrinkCluster",
+        "startTime": 1600701411346,
+        "endTime": 1600701438365,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01EJRKPDCFEHM2A7GC74HEQNPS",
+        "requisiteStageRefIds": []
+      },
+      {
+        "id": "01EJRKPD6G5YJW27HQ2QAGGV7A",
+        "refId": "1",
+        "type": "deploy",
+        "name": "Deploy",
+        "startTime": 1600701281656,
+        "endTime": 1600701573902,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": []
+      }
+    ],
+    "startTime": 1600701281597,
+    "endTime": 1600701573956,
+    "status": "SUCCEEDED",
+    "authentication": {
+      "user": "anonymous",
+      "allowedAccounts": [
+        "ecs-my-aws-devel-acct",
+        "my-dockerhub-devel-acct",
+        "my-us-west-2-devel-registry",
+        "my-aws-devel-acct"
+      ]
+    },
+    "origin": "api",
+    "trigger": {
+      "type": "manual",
+      "user": "[anonymous]",
+      "parameters": {},
+      "artifacts": [
+        {
+          "customKind": false,
+          "reference": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images:ecsimage",
+          "metadata": {},
+          "name": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images",
+          "type": "docker/image",
+          "version": "ecsimage"
+        },
+        {
+          "customKind": false,
+          "reference": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+          "metadata": {
+            "id": "6df946fd-ada6-491a-842c-6d6ce2f76dbe"
+          },
+          "name": "demo-task-def.json",
+          "artifactAccount": "my-github-artifact-account",
+          "type": "github/file",
+          "version": "master"
+        }
+      ],
+      "notifications": [],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "account": "my-us-west-2-devel-registry",
+      "repository": "spinnaker-deployment-images",
+      "tag": "ecsimage",
+      "resolvedExpectedArtifacts": [
+        {
+          "usePriorArtifact": false,
+          "useDefaultArtifact": true,
+          "defaultArtifact": {
+            "customKind": false,
+            "reference": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+            "metadata": {
+              "id": "6df946fd-ada6-491a-842c-6d6ce2f76dbe"
+            },
+            "name": "demo-task-def.json",
+            "artifactAccount": "my-github-artifact-account",
+            "type": "github/file",
+            "version": "master"
+          },
+          "id": "bde8fefb-265c-4a30-bf01-2d1cbd136953",
+          "boundArtifact": {
+            "customKind": false,
+            "reference": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+            "metadata": {
+              "id": "6df946fd-ada6-491a-842c-6d6ce2f76dbe"
+            },
+            "name": "demo-task-def.json",
+            "artifactAccount": "my-github-artifact-account",
+            "type": "github/file",
+            "version": "master"
+          },
+          "matchArtifact": {
+            "customKind": false,
+            "metadata": {
+              "id": "2b9b9393-af50-4687-a309-45506829963d"
+            },
+            "name": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+            "artifactAccount": "my-github-artifact-account",
+            "type": "github/file"
+          }
+        }
+      ],
+      "expectedArtifacts": [
+        {
+          "usePriorArtifact": false,
+          "useDefaultArtifact": true,
+          "defaultArtifact": {
+            "customKind": false,
+            "reference": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+            "metadata": {
+              "id": "6df946fd-ada6-491a-842c-6d6ce2f76dbe"
+            },
+            "name": "demo-task-def.json",
+            "artifactAccount": "my-github-artifact-account",
+            "type": "github/file",
+            "version": "master"
+          },
+          "id": "bde8fefb-265c-4a30-bf01-2d1cbd136953",
+          "boundArtifact": {
+            "customKind": false,
+            "reference": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+            "metadata": {
+              "id": "6df946fd-ada6-491a-842c-6d6ce2f76dbe"
+            },
+            "name": "demo-task-def.json",
+            "artifactAccount": "my-github-artifact-account",
+            "type": "github/file",
+            "version": "master"
+          },
+          "matchArtifact": {
+            "customKind": false,
+            "metadata": {
+              "id": "2b9b9393-af50-4687-a309-45506829963d"
+            },
+            "name": "https://api.github.com/repos/ecs-examples/spinnaker-artifacts/contents/demo-task-def.json",
+            "artifactAccount": "my-github-artifact-account",
+            "type": "github/file"
+          }
+        }
+      ],
+      "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+      "eventId": "5473b6dc-7d84-447e-8960-749e0de98471",
+      "enabled": true,
+      "executionId": "01EJRKPD2SPEPHQ5NRN205047Q",
+      "preferred": false
+    },
+    "pipelineConfigId": "50de3b0e-ff24-400b-9bb9-83659fb550f1",
+    "notifications": [],
+    "initialConfig": {},
+    "systemNotifications": []
+  }
+]

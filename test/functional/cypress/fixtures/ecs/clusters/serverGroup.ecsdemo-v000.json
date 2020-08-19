@@ -1,0 +1,147 @@
+{
+  "capacity": {
+    "desired": 3,
+    "max": 6,
+    "min": 2,
+    "pinned": false
+  },
+  "cloudProvider": "ecs",
+  "createdTime": 1600701284469,
+  "disabled": false,
+  "ecsCluster": "spinnaker-deployment-cluster",
+  "image": {
+    "imageId": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images:ecsimages",
+    "name": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images:ecsimages"
+  },
+  "instanceCounts": {
+    "down": 0,
+    "outOfService": 0,
+    "starting": 0,
+    "total": 3,
+    "unknown": 0,
+    "up": 3
+  },
+  "instances": [
+    {
+      "cloudProvider": "ecs",
+      "health": [
+        {
+          "instanceId": "630cbec0-afa2-4529-80dd-5d84c9f7f4fa",
+          "state": "Up",
+          "type": "loadBalancer"
+        },
+        {
+          "healthClass": "platform",
+          "instanceId": "630cbec0-afa2-4529-80dd-5d84c9f7f4fa",
+          "state": "Up",
+          "type": "ecs"
+        }
+      ],
+      "healthState": "Up",
+      "humanReadableName": "630cbec0-afa2-4529-80dd-5d84c9f7f4fa",
+      "labels": {},
+      "launchTime": 1600701322415,
+      "name": "630cbec0-afa2-4529-80dd-5d84c9f7f4fa",
+      "networkInterface": {
+        "attachmentId": "1eda706a-2133-4d6c-bf10-99e783613227",
+        "privateIpv4Address": "10.0.153.137"
+      },
+      "providerType": "ecs"
+    },
+    {
+      "cloudProvider": "ecs",
+      "health": [
+        {
+          "instanceId": "f46861e5-ae1f-48df-ae26-52eeefa85423",
+          "state": "Up",
+          "type": "loadBalancer"
+        },
+        {
+          "healthClass": "platform",
+          "instanceId": "f46861e5-ae1f-48df-ae26-52eeefa85423",
+          "state": "Up",
+          "type": "ecs"
+        }
+      ],
+      "healthState": "Up",
+      "humanReadableName": "f46861e5-ae1f-48df-ae26-52eeefa85423",
+      "labels": {},
+      "launchTime": 1600701322419,
+      "name": "f46861e5-ae1f-48df-ae26-52eeefa85423",
+      "networkInterface": {
+        "attachmentId": "b0ca174b-4897-4a39-8332-7242c1622236",
+        "privateIpv4Address": "10.0.226.126"
+      },
+      "providerType": "ecs"
+    },
+    {
+      "cloudProvider": "ecs",
+      "health": [
+        {
+          "instanceId": "97c4f01c-6bba-4ba0-a0bb-a4d20d39a6d7",
+          "state": "Up",
+          "type": "loadBalancer"
+        },
+        {
+          "healthClass": "platform",
+          "instanceId": "97c4f01c-6bba-4ba0-a0bb-a4d20d39a6d7",
+          "state": "Up",
+          "type": "ecs"
+        }
+      ],
+      "healthState": "Up",
+      "humanReadableName": "97c4f01c-6bba-4ba0-a0bb-a4d20d39a6d7",
+      "labels": {},
+      "launchTime": 1600701322264,
+      "name": "97c4f01c-6bba-4ba0-a0bb-a4d20d39a6d7",
+      "networkInterface": {
+        "attachmentId": "424d64f5-3513-477b-89a9-e4608aa0fad5",
+        "privateIpv4Address": "10.0.252.35"
+      },
+      "providerType": "ecs"
+    }
+  ],
+  "labels": {},
+  "metricAlarms": [],
+  "moniker": {
+    "app": "ecsapp",
+    "cluster": "aws-prod-ecsdemo",
+    "detail": "ecsdemo",
+    "sequence": 0,
+    "stack": "prod"
+  },
+  "name": "aws-prod-ecsdemo-v000",
+  "region": "us-west-2",
+  "securityGroups": ["sg-0fd7ba18d92eb6fe8"],
+  "serverGroupManagers": [],
+  "taskDefinition": {
+    "containerImage": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images:ecsimages",
+    "containerPort": 81,
+    "cpuUnits": 256,
+    "environmentVariables": [
+      {
+        "name": "CLOUD_DETAIL",
+        "value": "ecsdemo"
+      },
+      {
+        "name": "SERVER_GROUP",
+        "value": "aws-prod-ecsdemo-v000"
+      },
+      {
+        "name": "CLOUD_STACK",
+        "value": "prod"
+      },
+      {
+        "name": "PORT",
+        "value": "80"
+      }
+    ],
+    "iamRole": "None",
+    "memoryLimit": 512,
+    "memoryReservation": 512,
+    "taskName": "aws-prod-ecsdemo:91"
+  },
+  "type": "ecs",
+  "vpcId": "vpc-0a9ccfd1cba7bc715",
+  "insightActions": []
+}

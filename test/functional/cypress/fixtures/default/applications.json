@@ -13,6 +13,19 @@
     "user": "[anonymous]"
   },
   {
+    "cloudProviders": "ecs",
+    "createTs": "1519160914577",
+    "dataSources": { "disabled": [], "enabled": ["canaryConfigs", "serverGroups", "loadBalancers", "securityGroups"] },
+    "email": "someemail@amazon.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "ecsapp",
+    "platformHealthOnly": true,
+    "providerSettings": { "ecs": { "associatePublicIpAddress": false } },
+    "updateTs": "1544636963981",
+    "user": "[anonymous]"
+  },
+  {
     "cloudProviders": "kubernetes",
     "createTs": "1538510658871",
     "email": "sbws@google.com",
