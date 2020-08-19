@@ -18,13 +18,11 @@ package com.netflix.spinnaker.igor
 
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
 import sun.net.InetAddressCachePolicy
 
 import java.security.Security
@@ -32,10 +30,14 @@ import java.security.Security
 /**
  * Application entry point.
  */
-@Configuration
-@EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
 @EnableConfigurationProperties(IgorConfigurationProperties)
-@ComponentScan(['com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor'])
+@SpringBootApplication(
+  scanBasePackages = [
+    "com.netflix.spinnaker.config",
+    "com.netflix.spinnaker.igor"
+  ],
+  exclude = [GroovyTemplateAutoConfiguration]
+)
 class Main extends SpringBootServletInitializer {
 
   static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "igor").build()
