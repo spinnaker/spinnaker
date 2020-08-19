@@ -23,10 +23,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class PropertyParser {
+  private static final Logger log = LoggerFactory.getLogger(PropertyParser.class);
 
   private static final String MAGIC_SEARCH_STRING = "SPINNAKER_PROPERTY_";
   private static final Pattern MAGIC_SEARCH_PATTERN = Pattern.compile(MAGIC_SEARCH_STRING);

@@ -33,12 +33,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Value
 public final class KubernetesV2ServerGroupManager
     implements KubernetesResource, ServerGroupManager {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2ServerGroupManager.class);
   // private final KubernetesManifest manifest;
   private final String account;
   private final Set<KubernetesV2ServerGroupSummary> serverGroups;

@@ -32,12 +32,13 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesManifest extends HashMap<String, Object> {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesManifest.class);
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @Nullable private KubernetesKind computedKind;

@@ -39,10 +39,12 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesCleanupArtifactsOperation implements AtomicOperation<OperationResult> {
+  private static final Logger log =
+      LoggerFactory.getLogger(KubernetesCleanupArtifactsOperation.class);
   private final KubernetesCleanupArtifactsDescription description;
   private final KubernetesCredentials credentials;
   @Nonnull private final String accountName;

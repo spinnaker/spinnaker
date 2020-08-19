@@ -52,11 +52,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public abstract class KubernetesV2CachingAgent
     implements AgentIntervalAware, CachingAgent, AccountAware {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2CachingAgent.class);
+
   @Getter @Nonnull protected final String accountName;
   protected final Registry registry;
   protected final KubernetesCredentials credentials;

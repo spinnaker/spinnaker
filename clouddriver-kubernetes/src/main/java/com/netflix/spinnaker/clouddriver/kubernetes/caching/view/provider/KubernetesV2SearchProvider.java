@@ -45,13 +45,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class KubernetesV2SearchProvider implements SearchProvider {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2SearchProvider.class);
   private final KubernetesCacheUtils cacheUtils;
   private final ObjectMapper mapper;
   private final KubernetesSpinnakerKindMap kindMap;

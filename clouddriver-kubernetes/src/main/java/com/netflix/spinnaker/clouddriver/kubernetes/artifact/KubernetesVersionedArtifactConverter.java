@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 final class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
+  private static final Logger log =
+      LoggerFactory.getLogger(KubernetesVersionedArtifactConverter.class);
   static final KubernetesVersionedArtifactConverter INSTANCE =
       new KubernetesVersionedArtifactConverter();
 

@@ -25,7 +25,8 @@ import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,10 +36,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequestMapping("/manifests")
 public class ManifestController {
+  private static final Logger log = LoggerFactory.getLogger(ManifestController.class);
   final KubernetesManifestProvider manifestProvider;
 
   final RequestQueue requestQueue;

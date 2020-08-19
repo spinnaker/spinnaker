@@ -29,10 +29,8 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 
 @Value
-@Slf4j
 @NonnullByDefault
 public final class KubernetesManifestStrategy {
   private static final String STRATEGY_ANNOTATION_PREFIX =

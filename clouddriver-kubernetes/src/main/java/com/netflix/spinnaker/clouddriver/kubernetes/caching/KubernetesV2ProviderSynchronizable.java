@@ -28,10 +28,12 @@ import com.netflix.spinnaker.clouddriver.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesV2ProviderSynchronizable implements CredentialsInitializerSynchronizable {
+  private static final Logger log =
+      LoggerFactory.getLogger(KubernetesV2ProviderSynchronizable.class);
 
   private final KubernetesV2Provider kubernetesV2Provider;
   private final AccountCredentialsRepository accountCredentialsRepository;

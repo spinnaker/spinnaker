@@ -43,11 +43,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2CachingAgent
     implements OnDemandAgent {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2OnDemandCachingAgent.class);
   @Getter protected final OnDemandMetricsSupport metricsSupport;
 
   protected static final String ON_DEMAND_TYPE = "onDemand";

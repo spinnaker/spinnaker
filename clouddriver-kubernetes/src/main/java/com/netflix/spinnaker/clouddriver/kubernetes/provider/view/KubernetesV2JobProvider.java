@@ -35,13 +35,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatus> {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2JobProvider.class);
   @Getter private final String platform = "kubernetes";
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final KubernetesManifestProvider manifestProvider;

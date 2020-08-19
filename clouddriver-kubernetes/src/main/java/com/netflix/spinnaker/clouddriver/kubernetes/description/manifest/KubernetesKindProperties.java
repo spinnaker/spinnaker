@@ -24,11 +24,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode
 @ParametersAreNonnullByDefault
-@Slf4j
 public class KubernetesKindProperties {
   public static List<KubernetesKindProperties> getGlobalKindProperties() {
     return ImmutableList.of(

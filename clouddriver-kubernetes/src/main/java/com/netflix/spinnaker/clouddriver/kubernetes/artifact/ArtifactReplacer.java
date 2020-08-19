@@ -42,11 +42,12 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ParametersAreNonnullByDefault
-@Slf4j
 public class ArtifactReplacer {
+  private static final Logger log = LoggerFactory.getLogger(ArtifactReplacer.class);
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final Configuration configuration =
       Configuration.builder()

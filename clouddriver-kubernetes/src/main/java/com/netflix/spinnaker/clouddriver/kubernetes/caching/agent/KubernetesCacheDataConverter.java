@@ -44,10 +44,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesCacheDataConverter {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesCacheDataConverter.class);
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JSON json = new JSON();
   // TODO(lwander): make configurable

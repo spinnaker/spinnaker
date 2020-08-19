@@ -29,10 +29,11 @@ import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class Keys {
+  private static final Logger log = LoggerFactory.getLogger(Keys.class);
   /**
    * Keys are split into "logical" and "infrastructure" kinds. "logical" keys are for spinnaker
    * groupings that exist by naming/moniker convention, whereas "infrastructure" keys correspond to

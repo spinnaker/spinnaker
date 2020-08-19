@@ -47,13 +47,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @NonnullByDefault
-@Slf4j
 class KubernetesCacheUtils {
   private final Cache cache;
   private final KubernetesSpinnakerKindMap kindMap;

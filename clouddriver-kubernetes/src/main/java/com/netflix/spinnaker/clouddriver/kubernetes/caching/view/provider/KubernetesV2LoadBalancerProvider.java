@@ -40,13 +40,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class KubernetesV2LoadBalancerProvider
     implements LoadBalancerProvider<KubernetesV2LoadBalancer> {
   private final KubernetesCacheUtils cacheUtils;

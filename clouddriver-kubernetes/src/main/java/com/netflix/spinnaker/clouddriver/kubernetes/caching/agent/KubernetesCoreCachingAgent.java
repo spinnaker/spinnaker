@@ -29,9 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent {
   public KubernetesCoreCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,

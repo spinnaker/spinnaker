@@ -28,13 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @NonnullByDefault
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
 public final class KubernetesKindRegistry {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesKindRegistry.class);
   private final Map<KubernetesKind, KubernetesKindProperties> kindMap = new ConcurrentHashMap<>();
   private final GlobalKubernetesKindRegistry globalKindRegistry;
   private final Function<KubernetesKind, Optional<KubernetesKindProperties>> crdLookup;

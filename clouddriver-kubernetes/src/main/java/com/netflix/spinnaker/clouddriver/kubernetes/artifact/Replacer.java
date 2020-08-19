@@ -40,11 +40,13 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NonnullByDefault
-@Slf4j
 public final class Replacer {
+  private static final Logger log = LoggerFactory.getLogger(Replacer.class);
+
   private final KubernetesArtifactType type;
   private final JsonPath findPath;
   private final Function<Artifact, JsonPath> replacePathSupplier;

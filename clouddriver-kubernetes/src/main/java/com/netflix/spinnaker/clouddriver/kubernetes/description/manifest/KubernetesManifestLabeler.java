@@ -22,9 +22,7 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class KubernetesManifestLabeler {
   private static final String SPINNAKER_LABEL = "spinnaker.io";
   private static final String MONIKER_LABEL_PREFIX = "moniker." + SPINNAKER_LABEL;

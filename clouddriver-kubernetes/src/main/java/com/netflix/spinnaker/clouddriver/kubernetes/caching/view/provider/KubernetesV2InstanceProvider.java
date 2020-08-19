@@ -34,14 +34,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class KubernetesV2InstanceProvider
     implements InstanceProvider<KubernetesV2Instance, List<ContainerLog>> {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2InstanceProvider.class);
   private final KubernetesCacheUtils cacheUtils;
   private final KubernetesAccountResolver accountResolver;
 

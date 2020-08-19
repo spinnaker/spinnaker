@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NonnullByDefault
 final class MetricParser {
@@ -66,8 +67,8 @@ final class MetricParser {
                 MetricParser.MetricLine::getPod, MetricParser.MetricLine::toContainerMetric));
   }
 
-  @Slf4j
   private static final class LineParser {
+    private static final Logger log = LoggerFactory.getLogger(LineParser.class);
     private static final Splitter columnSplitter =
         Splitter.on(Pattern.compile("\\s+")).trimResults();
     private final ImmutableList<String> headers;

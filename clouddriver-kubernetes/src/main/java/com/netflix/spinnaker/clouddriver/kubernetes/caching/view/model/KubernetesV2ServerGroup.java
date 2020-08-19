@@ -53,11 +53,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.Null;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Value
 public final class KubernetesV2ServerGroup implements KubernetesResource, ServerGroup {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesV2ServerGroup.class);
   private final boolean disabled;
   private final Set<KubernetesV2Instance> instances;
   private final Set<String> loadBalancers;

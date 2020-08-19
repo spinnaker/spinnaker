@@ -39,9 +39,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
   protected static final ObjectMapper objectMapper = new ObjectMapper();
 

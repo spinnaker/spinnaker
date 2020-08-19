@@ -27,10 +27,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Getter
-@Slf4j
 public class KubernetesResourceProperties {
   @Nonnull private final KubernetesHandler handler;
   private final boolean versioned;

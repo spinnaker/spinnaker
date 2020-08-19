@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
 
 public class CustomKubernetesHandlerFactory {
   public static KubernetesHandler create(
@@ -40,7 +39,6 @@ public class CustomKubernetesHandlerFactory {
     return new Handler(kubernetesKind, spinnakerKind, versioned, deployPriority);
   }
 
-  @Slf4j
   private static class Handler extends KubernetesHandler {
     private final KubernetesKind kubernetesKind;
     private final SpinnakerKind spinnakerKind;

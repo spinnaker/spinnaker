@@ -37,9 +37,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class KubernetesPatchManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesPatchManifestDescription description;
   private final KubernetesCredentials credentials;

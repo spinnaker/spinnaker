@@ -40,10 +40,12 @@ import com.netflix.spinnaker.moniker.Moniker;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesDeployManifestOperation implements AtomicOperation<OperationResult> {
+  private static final Logger log =
+      LoggerFactory.getLogger(KubernetesDeployManifestOperation.class);
   private final KubernetesDeployManifestDescription description;
   private final KubernetesCredentials credentials;
   private final ArtifactProvider provider;

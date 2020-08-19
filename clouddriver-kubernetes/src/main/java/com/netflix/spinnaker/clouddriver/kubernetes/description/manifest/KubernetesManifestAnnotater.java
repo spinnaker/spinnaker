@@ -31,10 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesManifestAnnotater {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesManifestAnnotater.class);
+
   static final String SPINNAKER_ANNOTATION = "spinnaker.io";
   private static final String TRAFFIC_ANNOTATION_PREFIX = "traffic." + SPINNAKER_ANNOTATION;
   private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;

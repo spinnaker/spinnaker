@@ -31,11 +31,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeploy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.*;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubernetesRunJobOperation
     implements AtomicOperation<KubernetesRunJobDeploymentResult> {
+  private static final Logger log = LoggerFactory.getLogger(KubernetesRunJobOperation.class);
   private static final String OP_NAME = "RUN_KUBERNETES_JOB";
   private final KubernetesRunJobOperationDescription description;
   private final ArtifactProvider provider;

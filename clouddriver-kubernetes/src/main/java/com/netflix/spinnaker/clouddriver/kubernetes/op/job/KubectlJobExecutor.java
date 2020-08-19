@@ -43,15 +43,16 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.WillClose;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class KubectlJobExecutor {
+  private static final Logger log = LoggerFactory.getLogger(KubectlJobExecutor.class);
   private static final String NOT_FOUND_STRING = "(NotFound)";
   private final JobExecutor jobExecutor;
   private final String executable;

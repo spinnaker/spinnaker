@@ -21,10 +21,11 @@ import com.google.common.hash.Hashing;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class KubeconfigFileHasher {
+  private static final Logger log = LoggerFactory.getLogger(KubeconfigFileHasher.class);
 
   public static String hashKubeconfigFile(@Nonnull String filepath) {
     if (filepath.isEmpty()) {
