@@ -27,5 +27,5 @@ public abstract class DescriptionValidator<T> implements VersionedCloudProviderO
     return description + "Validator";
   }
 
-  public abstract void validate(List priorDescriptions, T description, ValidationErrors errors);
+  public abstract void validate(List<T> priorDescriptions, T description, ValidationErrors errors);
 }

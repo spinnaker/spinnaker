@@ -34,7 +34,7 @@ public interface AtomicOperationConverter extends VersionedCloudProviderOperatio
    * @return atomic operation
    */
   @Nullable
-  AtomicOperation convertOperation(Map input);
+  AtomicOperation convertOperation(Map<String, Object> input);
 
   /**
    * This method takes a Map input and creates a description object, that will often be used by an
@@ -43,5 +43,5 @@ public interface AtomicOperationConverter extends VersionedCloudProviderOperatio
    * @param input
    * @return instance of an operation description object
    */
-  Object convertDescription(Map input);
+  Object convertDescription(Map<String, Object> input);
 }

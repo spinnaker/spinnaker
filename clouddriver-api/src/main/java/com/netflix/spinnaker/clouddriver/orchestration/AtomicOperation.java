@@ -37,7 +37,7 @@ public interface AtomicOperation<R> {
    * @param priorOutputs
    * @return parameterized type
    */
-  R operate(List priorOutputs);
+  R operate(List<R> priorOutputs);
 
   default Collection<OperationEvent> getEvents() {
     return Collections.emptyList();
