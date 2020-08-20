@@ -18,13 +18,10 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.LogicalKind.CLUSTERS;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
@@ -32,9 +29,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMet
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -52,16 +49,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesManifestProvider {
   private static final Logger log = LoggerFactory.getLogger(KubernetesManifestProvider.class);
-  private final KubernetesCacheUtils cacheUtils;
   private final KubernetesAccountResolver accountResolver;
   private final ExecutorService executorService =
       Executors.newCachedThreadPool(
           new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d").build());
 
   @Autowired
-  public KubernetesManifestProvider(
-      KubernetesAccountResolver accountResolver, KubernetesCacheUtils cacheUtils) {
-    this.cacheUtils = cacheUtils;
+  public KubernetesManifestProvider(KubernetesAccountResolver accountResolver) {
     this.accountResolver = accountResolver;
   }
 
@@ -123,37 +117,24 @@ public class KubernetesManifestProvider {
   }
 
   @Nullable
-  public List<KubernetesV2Manifest> getClusterAndSortAscending(
-      String account, String location, String kind, String app, String cluster, Sort sort) {
+  public List<KubernetesManifest> getClusterAndSortAscending(
+      String account, String location, String kind, String cluster, Sort sort) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (!optionalCredentials.isPresent()) {
       return null;
     }
     KubernetesCredentials credentials = optionalCredentials.get();
+    KubernetesKind kubernetesKind = KubernetesKind.fromString(kind);
 
     KubernetesResourceProperties properties =
-        credentials.getResourcePropertyRegistry().get(KubernetesKind.fromString(kind));
+        credentials.getResourcePropertyRegistry().get(kubernetesKind);
 
     KubernetesHandler handler = properties.getHandler();
 
-    return cacheUtils
-        .getSingleEntry(CLUSTERS.toString(), Keys.ClusterCacheKey.createKey(account, app, cluster))
-        .map(
-            c ->
-                cacheUtils.getRelationships(c, kind).stream()
-                    .map(
-                        cd ->
-                            KubernetesV2ManifestBuilder.buildManifest(
-                                credentials,
-                                KubernetesCacheDataConverter.getManifest(cd),
-                                ImmutableList.of(),
-                                ImmutableList.of()))
-                    .filter(m -> m.getLocation().equals(location))
-                    .sorted(
-                        (m1, m2) ->
-                            handler.comparatorFor(sort).compare(m1.getManifest(), m2.getManifest()))
-                    .collect(Collectors.toList()))
-        .orElse(new ArrayList<>());
+    return credentials.list(kubernetesKind, location).stream()
+        .filter(m -> cluster.equals(KubernetesManifestAnnotater.getManifestCluster(m)))
+        .sorted((m1, m2) -> handler.comparatorFor(sort).compare(m1, m2))
+        .collect(Collectors.toList());
   }
 
   public enum Sort {

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.annotations.FieldsAreNullableByDefault;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
@@ -69,5 +70,20 @@ public class KubernetesCoordinates {
       this.name = parts.get(1);
       return this;
     }
+  }
+
+  /**
+   * Given a full KubernetesManifest object, parses out the kind, namespace, and name to create a
+   * corresponding KubernetesCoordinates object.
+   *
+   * @param manifest the manifest to parse
+   * @return the KubernetesCoordinates object
+   */
+  public static KubernetesCoordinates fromManifest(KubernetesManifest manifest) {
+    return KubernetesCoordinates.builder()
+        .kind(manifest.getKind())
+        .namespace(manifest.getNamespace())
+        .name(manifest.getName())
+        .build();
   }
 }

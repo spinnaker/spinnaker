@@ -44,11 +44,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.Kubernete
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroupManager;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2ServerGroupSummary;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler;
@@ -159,6 +161,8 @@ final class KubernetesDataProviderIntegrationTest {
       new KubernetesV2ServerGroupManagerProvider(cacheUtils);
   private static KubernetesV2ArtifactProvider artifactProvider =
       new KubernetesV2ArtifactProvider(cacheUtils, objectMapper);
+  private static KubernetesManifestProvider manifestProvider =
+      new KubernetesManifestProvider(accountResolver);
 
   @BeforeAll
   static void prepareCache() {
@@ -517,6 +521,20 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(artifacts).isEmpty();
   }
 
+  @Test
+  void getClusterAndSortAscending(SoftAssertions softly) {
+    List<KubernetesManifest> manifests =
+        manifestProvider.getClusterAndSortAscending(
+            ACCOUNT_NAME, "backend-ns", "replicaSet", "replicaSet backend", Sort.AGE);
+    assertThat(manifests).isNotNull();
+    softly
+        .assertThat(
+            manifests.stream()
+                .map(KubernetesManifest::getFullResourceName)
+                .collect(toImmutableList()))
+        .containsExactly("replicaSet backend-v014", "replicaSet backend-v015");
+  }
+
   private static KubectlJobExecutor getJobExecutor() {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class, new ReturnsSmartNulls());
     when(jobExecutor.list(
@@ -531,6 +549,7 @@ final class KubernetesDataProviderIntegrationTest {
                         file ->
                             ManifestFetcher.getManifest(
                                 KubernetesDataProviderIntegrationTest.class, file))
+                    .filter(m -> invocation.getArgument(1, List.class).contains(m.getKind()))
                     .collect(toImmutableList()));
     return jobExecutor;
   }
