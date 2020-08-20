@@ -43,7 +43,7 @@ public class KubernetesRollingRestartManifestOperation implements AtomicOperatio
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public Void operate(List<Void> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting rolling restart operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 

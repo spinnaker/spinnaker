@@ -37,7 +37,7 @@ public class KubernetesEnableManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesEnableDisableManifestDescription> priorDescriptions,
       KubernetesEnableDisableManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util =

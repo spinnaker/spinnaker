@@ -32,12 +32,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesScaleManifestConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
-  public AtomicOperation convertOperation(Map input) {
+  public AtomicOperation<Void> convertOperation(Map<String, Object> input) {
     return new KubernetesScaleManifestOperation(convertDescription(input));
   }
 
   @Override
-  public KubernetesScaleManifestDescription convertDescription(Map input) {
+  public KubernetesScaleManifestDescription convertDescription(Map<String, Object> input) {
     return KubernetesAtomicOperationConverterHelper.convertDescription(
         input, this, KubernetesScaleManifestDescription.class);
   }

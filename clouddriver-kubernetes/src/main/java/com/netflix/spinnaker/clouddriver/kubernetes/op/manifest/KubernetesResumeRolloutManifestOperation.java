@@ -43,7 +43,7 @@ public class KubernetesResumeRolloutManifestOperation implements AtomicOperation
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public Void operate(List<Void> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting resume rollout operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 

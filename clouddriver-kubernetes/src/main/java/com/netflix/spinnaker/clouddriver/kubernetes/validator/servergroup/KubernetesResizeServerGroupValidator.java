@@ -37,7 +37,7 @@ public class KubernetesResizeServerGroupValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesResizeServerGroupDescription> priorDescriptions,
       KubernetesResizeServerGroupDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util =

@@ -37,7 +37,7 @@ public class KubernetesUndoRolloutManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesUndoRolloutManifestDescription> priorDescriptions,
       KubernetesUndoRolloutManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util =

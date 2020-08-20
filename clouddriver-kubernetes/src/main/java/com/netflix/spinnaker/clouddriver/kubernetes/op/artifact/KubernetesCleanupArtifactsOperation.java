@@ -64,7 +64,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
   }
 
   @Override
-  public OperationResult operate(List priorOutputs) {
+  public OperationResult operate(List<OperationResult> priorOutputs) {
     OperationResult result = new OperationResult();
 
     List<Artifact> artifacts =

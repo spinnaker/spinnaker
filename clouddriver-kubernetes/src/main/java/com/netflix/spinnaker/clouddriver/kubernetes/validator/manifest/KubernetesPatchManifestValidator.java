@@ -38,7 +38,7 @@ public class KubernetesPatchManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesPatchManifestDescription> priorDescriptions,
       KubernetesPatchManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("patchKubernetesManifest", errors);

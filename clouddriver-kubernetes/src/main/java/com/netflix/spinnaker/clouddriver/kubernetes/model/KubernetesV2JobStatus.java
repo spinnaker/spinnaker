@@ -28,12 +28,11 @@ import io.kubernetes.client.openapi.models.V1JobSpec;
 import io.kubernetes.client.openapi.models.V1JobStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodStatus;
-import java.io.Serializable;
 import java.util.*;
 import lombok.Data;
 
 @Data
-public class KubernetesV2JobStatus implements JobStatus, Serializable {
+public class KubernetesV2JobStatus implements JobStatus {
 
   String name;
   String cluster;

@@ -133,7 +133,7 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
   }
 
   @Override
-  public OperationResult operate(List priorOutputs) {
+  public OperationResult operate(List<OperationResult> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting " + getVerbName() + " operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
     KubernetesManifest target =

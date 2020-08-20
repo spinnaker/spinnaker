@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesV2ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.job.KubernetesRunJobOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubernetesRunJobDeploymentResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubernetesRunJobOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
@@ -46,12 +47,13 @@ public class KubernetesRunJobOperationConverter extends AbstractAtomicOperations
   }
 
   @Override
-  public AtomicOperation convertOperation(Map input) {
+  public AtomicOperation<KubernetesRunJobDeploymentResult> convertOperation(
+      Map<String, Object> input) {
     return new KubernetesRunJobOperation(convertDescription(input), artifactProvider, appendSuffix);
   }
 
   @Override
-  public KubernetesRunJobOperationDescription convertDescription(Map input) {
+  public KubernetesRunJobOperationDescription convertDescription(Map<String, Object> input) {
     return KubernetesAtomicOperationConverterHelper.convertDescription(
         input, this, KubernetesRunJobOperationDescription.class);
   }

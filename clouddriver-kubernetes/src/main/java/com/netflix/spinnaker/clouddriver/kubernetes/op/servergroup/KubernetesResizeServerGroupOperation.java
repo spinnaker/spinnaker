@@ -42,7 +42,7 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public Void operate(List<Void> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting resize operation...");
     KubernetesCoordinates coordinates = description.getCoordinates();
 

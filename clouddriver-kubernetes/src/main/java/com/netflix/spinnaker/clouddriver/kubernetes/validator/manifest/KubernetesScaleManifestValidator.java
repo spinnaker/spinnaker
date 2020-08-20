@@ -37,7 +37,7 @@ public class KubernetesScaleManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesScaleManifestDescription> priorDescriptions,
       KubernetesScaleManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("scaleKubernetesManifest", errors);

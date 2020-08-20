@@ -34,12 +34,12 @@ public class KubernetesResizeServerGroupConverter
     extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
-  public AtomicOperation convertOperation(Map input) {
+  public AtomicOperation<Void> convertOperation(Map<String, Object> input) {
     return new KubernetesResizeServerGroupOperation(convertDescription(input));
   }
 
   @Override
-  public KubernetesResizeServerGroupDescription convertDescription(Map input) {
+  public KubernetesResizeServerGroupDescription convertDescription(Map<String, Object> input) {
     return KubernetesAtomicOperationConverterHelper.convertDescription(
         input, this, KubernetesResizeServerGroupDescription.class);
   }

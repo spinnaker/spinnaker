@@ -75,6 +75,20 @@ public class KubernetesNamedAccountCredentials
     this.credentials = credentialFactory.build(managedAccount);
   }
 
+  /**
+   * This method is deprecated and users should instead supply {@link
+   * KubernetesNamedAccountCredentials#permissions}. In order to continue to support users who have
+   * `requiredGroupMembership` in their account config, we still need to override this method. We'll
+   * need to either communicate the backwards-incompatible change or translate the supplied
+   * `requiredGroupMembership` into {@link KubernetesNamedAccountCredentials#permissions} before
+   * removing this override.
+   */
+  @Override
+  @SuppressWarnings("deprecation")
+  public List<String> getRequiredGroupMembership() {
+    return requiredGroupMembership;
+  }
+
   public List<String> getNamespaces() {
     return credentials.getDeclaredNamespaces();
   }

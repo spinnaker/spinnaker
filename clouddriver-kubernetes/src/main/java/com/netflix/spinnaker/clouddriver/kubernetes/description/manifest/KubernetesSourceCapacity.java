@@ -17,14 +17,19 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 
 public class KubernetesSourceCapacity {
-
   public static Double getSourceCapacity(
       KubernetesManifest manifest, KubernetesCredentials credentials) {
     KubernetesManifest currentManifest =
-        credentials.get(manifest.getKind(), manifest.getNamespace(), manifest.getName());
+        credentials.get(
+            KubernetesCoordinates.builder()
+                .kind(manifest.getKind())
+                .namespace(manifest.getNamespace())
+                .name(manifest.getName())
+                .build());
     if (currentManifest != null) {
       return currentManifest.getReplicas();
     }

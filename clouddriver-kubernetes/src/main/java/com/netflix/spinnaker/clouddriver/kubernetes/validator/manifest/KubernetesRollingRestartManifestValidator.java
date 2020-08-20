@@ -42,7 +42,7 @@ public class KubernetesRollingRestartManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesRollingRestartManifestDescription> priorDescriptions,
       KubernetesRollingRestartManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util =

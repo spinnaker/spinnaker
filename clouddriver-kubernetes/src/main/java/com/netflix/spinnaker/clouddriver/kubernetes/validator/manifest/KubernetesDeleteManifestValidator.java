@@ -39,7 +39,7 @@ public class KubernetesDeleteManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesDeleteManifestDescription> priorDescriptions,
       KubernetesDeleteManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util =

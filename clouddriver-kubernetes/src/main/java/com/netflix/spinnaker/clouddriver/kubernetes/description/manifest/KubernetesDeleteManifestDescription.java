@@ -32,7 +32,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperationDescription {
-  V1DeleteOptions options;
+  private V1DeleteOptions options;
   private String manifestName;
   private String location;
   private List<String> kinds = new ArrayList<>();
@@ -55,7 +55,6 @@ public class KubernetesDeleteManifestDescription extends KubernetesAtomicOperati
   }
 
   @JsonIgnore
-  @Deprecated
   public KubernetesCoordinates getPointCoordinates() {
     return KubernetesCoordinates.builder()
         .namespace(location)

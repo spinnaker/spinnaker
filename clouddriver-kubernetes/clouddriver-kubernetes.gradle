@@ -21,7 +21,6 @@ tasks.withType(JavaCompile) {
 
     // Temporarily suppressed warnings. These are here only while we fix or
     // suppress the warnings in these categories.
-    '-Xlint:-deprecation',
     '-Xlint:-rawtypes',
     '-Xlint:-unchecked',
   ]

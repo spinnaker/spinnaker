@@ -42,7 +42,7 @@ public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public Void operate(List<Void> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting scale operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 

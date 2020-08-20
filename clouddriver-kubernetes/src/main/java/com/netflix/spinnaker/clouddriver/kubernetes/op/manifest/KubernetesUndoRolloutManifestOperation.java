@@ -43,7 +43,7 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public Void operate(List<Void> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting undo rollout operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 

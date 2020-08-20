@@ -43,7 +43,7 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
   }
 
   @Override
-  public Void operate(List priorOutputs) {
+  public Void operate(List<Void> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting pause rollout operation...");
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 

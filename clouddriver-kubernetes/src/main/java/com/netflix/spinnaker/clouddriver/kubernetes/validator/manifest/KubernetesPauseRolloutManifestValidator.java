@@ -37,7 +37,7 @@ public class KubernetesPauseRolloutManifestValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesPauseRolloutManifestDescription> priorDescriptions,
       KubernetesPauseRolloutManifestDescription description,
       ValidationErrors errors) {
     KubernetesValidationUtil util =

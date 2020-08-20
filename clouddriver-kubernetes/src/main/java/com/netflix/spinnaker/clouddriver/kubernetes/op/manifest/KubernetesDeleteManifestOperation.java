@@ -43,7 +43,7 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
   }
 
   @Override
-  public OperationResult operate(List priorOutputs) {
+  public OperationResult operate(List<OperationResult> priorOutputs) {
     getTask().updateStatus(OP_NAME, "Starting delete operation...");
     List<KubernetesCoordinates> coordinates;
 

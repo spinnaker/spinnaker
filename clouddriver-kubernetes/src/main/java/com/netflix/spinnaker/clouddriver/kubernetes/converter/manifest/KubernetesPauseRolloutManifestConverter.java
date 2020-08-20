@@ -33,12 +33,12 @@ import org.springframework.stereotype.Component;
 public class KubernetesPauseRolloutManifestConverter
     extends AbstractAtomicOperationsCredentialsSupport {
   @Override
-  public AtomicOperation convertOperation(Map input) {
+  public AtomicOperation<Void> convertOperation(Map<String, Object> input) {
     return new KubernetesPauseRolloutManifestOperation(convertDescription(input));
   }
 
   @Override
-  public KubernetesPauseRolloutManifestDescription convertDescription(Map input) {
+  public KubernetesPauseRolloutManifestDescription convertDescription(Map<String, Object> input) {
     return KubernetesAtomicOperationConverterHelper.convertDescription(
         input, this, KubernetesPauseRolloutManifestDescription.class);
   }

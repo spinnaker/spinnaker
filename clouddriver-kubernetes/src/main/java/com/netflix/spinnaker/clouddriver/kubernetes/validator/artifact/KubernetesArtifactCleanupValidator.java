@@ -36,7 +36,7 @@ public class KubernetesArtifactCleanupValidator
 
   @Override
   public void validate(
-      List priorDescriptions,
+      List<KubernetesCleanupArtifactsDescription> priorDescriptions,
       KubernetesCleanupArtifactsDescription description,
       ValidationErrors errors) {}
 }

@@ -33,12 +33,12 @@ import org.springframework.stereotype.Component;
 public class KubernetesUndoRolloutManifestConverter
     extends AbstractAtomicOperationsCredentialsSupport {
   @Override
-  public AtomicOperation convertOperation(Map input) {
+  public AtomicOperation<Void> convertOperation(Map<String, Object> input) {
     return new KubernetesUndoRolloutManifestOperation(convertDescription(input));
   }
 
   @Override
-  public KubernetesUndoRolloutManifestDescription convertDescription(Map input) {
+  public KubernetesUndoRolloutManifestDescription convertDescription(Map<String, Object> input) {
     return KubernetesAtomicOperationConverterHelper.convertDescription(
         input, this, KubernetesUndoRolloutManifestDescription.class);
   }

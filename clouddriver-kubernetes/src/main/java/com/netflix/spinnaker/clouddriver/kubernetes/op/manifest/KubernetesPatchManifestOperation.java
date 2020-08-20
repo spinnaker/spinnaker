@@ -55,7 +55,7 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   }
 
   @Override
-  public OperationResult operate(List _unused) {
+  public OperationResult operate(List<OperationResult> _unused) {
     updateStatus("Beginning patching of manifest");
     KubernetesCoordinates objToPatch = description.getPointCoordinates();
 

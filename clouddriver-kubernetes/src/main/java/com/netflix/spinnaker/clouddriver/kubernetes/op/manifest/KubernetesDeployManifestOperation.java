@@ -65,14 +65,22 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   }
 
   @Override
-  public OperationResult operate(List _unused) {
+  public OperationResult operate(List<OperationResult> _unused) {
     getTask().updateStatus(OP_NAME, "Beginning deployment of manifest...");
 
     List<KubernetesManifest> inputManifests = description.getManifests();
     List<KubernetesManifest> deployManifests = new ArrayList<>();
     if (inputManifests == null || inputManifests.isEmpty()) {
-      log.warn("Relying on deprecated single manifest input: " + description.getManifest());
-      inputManifests = ImmutableList.of(description.getManifest());
+      // The stage currently only supports using the `manifests` field but we need to continue to
+      // check `manifest` for backwards compatibility until all existing stages have been updated.
+      @SuppressWarnings("deprecation")
+      KubernetesManifest manifest = description.getManifest();
+      log.warn(
+          "Relying on deprecated single manifest input (account: {}, kind: {}, name: {})",
+          accountName,
+          manifest.getKind(),
+          manifest.getName());
+      inputManifests = ImmutableList.of(manifest);
     }
 
     inputManifests = inputManifests.stream().filter(Objects::nonNull).collect(Collectors.toList());

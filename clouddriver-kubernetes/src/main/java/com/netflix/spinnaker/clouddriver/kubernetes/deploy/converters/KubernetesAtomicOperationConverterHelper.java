@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class KubernetesAtomicOperationConverterHelper {
   public static <T extends KubernetesAtomicOperationDescription> T convertDescription(
-      Map input,
+      Map<String, Object> input,
       AbstractAtomicOperationsCredentialsSupport credentialsSupport,
       Class<T> targetDescriptionType) {
     String account = (String) input.get("account");
