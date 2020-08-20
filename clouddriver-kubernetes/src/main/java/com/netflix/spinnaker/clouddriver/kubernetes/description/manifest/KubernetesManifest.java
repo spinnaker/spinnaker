@@ -48,15 +48,6 @@ public class KubernetesManifest extends HashMap<String, Object> {
     return (KubernetesManifest) super.clone();
   }
 
-  private static <T> T getRequiredField(KubernetesManifest manifest, String field) {
-    T res = (T) manifest.get(field);
-    if (res == null) {
-      throw MalformedManifestException.missingField(manifest, field);
-    }
-
-    return res;
-  }
-
   @JsonIgnore
   @Nonnull
   public KubernetesKind getKind() {
@@ -83,7 +74,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public String getKindName() {
-    return getRequiredField(this, "kind");
+    return Optional.ofNullable((String) get("kind"))
+        .orElseThrow(() -> MalformedManifestException.missingField(this, "kind"));
   }
 
   @JsonIgnore
@@ -94,7 +86,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public KubernetesApiVersion getApiVersion() {
-    return KubernetesApiVersion.fromString(getRequiredField(this, "apiVersion"));
+    return Optional.ofNullable((String) get("apiVersion"))
+        .map(KubernetesApiVersion::fromString)
+        .orElseThrow(() -> MalformedManifestException.missingField(this, "apiVersion"));
   }
 
   @JsonIgnore
@@ -105,7 +99,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   private Map<String, Object> getMetadata() {
-    return getRequiredField(this, "metadata");
+    return Optional.ofNullable((Map<String, Object>) get("metadata"))
+        .orElseThrow(() -> MalformedManifestException.missingField(this, "metadata"));
   }
 
   @JsonIgnore

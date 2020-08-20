@@ -25,15 +25,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 
 @RunWith(JUnitPlatform.class)
 final class KubernetesKindRegistryTest {
-  private static final Function<KubernetesKind, Optional<KubernetesKindProperties>>
-      NOOP_CRD_LOOKUP = k -> Optional.empty();
   private static final KubernetesApiGroup CUSTOM_API_GROUP = KubernetesApiGroup.fromString("test");
   private static final KubernetesKind CUSTOM_KIND =
       KubernetesKind.from("customKind", CUSTOM_API_GROUP);

@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Data;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -116,11 +115,5 @@ public class KubernetesV2LoadBalancerProvider
                         .collect(toImmutableSet())))
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
-  }
-
-  @Data
-  private static class Item implements LoadBalancerProvider.Item {
-    String name;
-    List<ByAccount> byAccounts = new ArrayList<>();
   }
 }

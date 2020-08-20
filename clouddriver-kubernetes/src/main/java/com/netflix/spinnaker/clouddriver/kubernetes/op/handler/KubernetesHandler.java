@@ -45,7 +45,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   private final ArtifactReplacer artifactReplacer;
 
-  public KubernetesHandler() {
+  protected KubernetesHandler() {
     this.artifactReplacer = new ArtifactReplacer(artifactReplacers());
   }
 

@@ -1,7 +1,47 @@
+plugins {
+  id("net.ltgt.errorprone") version "1.2.1"
+}
+
 tasks.compileGroovy.enabled = false
 sourceSets.main.java.srcDirs = ['src/main/java']
 
+tasks.withType(JavaCompile) {
+  options.compilerArgs += [
+    '-Xlint:all',
+
+    // This check ensures that all annotations are handled at compile time, but
+    // many of the annotations we use are not intended to be handled at compile
+    // time and are instead used at runtime.
+    '-Xlint:-processing',
+    // This check ensures that all classes implementing Serializable set the
+    // serialVersionUID. We don't use Java serialization, but some classes
+    // extend JDK classes implementing Serializable. Rather than add a
+    // meaningless serialVersionUID, just disable the warning.
+    '-Xlint:-serial',
+
+    // Temporarily suppressed warnings. These are here only while we fix or
+    // suppress the warnings in these categories.
+    '-Xlint:-deprecation',
+    '-Xlint:-rawtypes',
+    '-Xlint:-unchecked',
+  ]
+
+  // Temporarily disable error-prone checks that are generating warnings. These
+  // are only here while we fix or suppress the warnings in these categories.
+  options.errorprone.disable(
+    "DefaultCharset",
+    "EmptyCatch",
+    "ImmutableEnumChecker",
+    "JdkObsolete",
+    "MissingOverride",
+    "StringSplitter",
+    "UnnecessaryParentheses",
+    "UnusedVariable"
+  )
+}
+
 dependencies {
+  errorprone("com.google.errorprone:error_prone_core:2.4.0")
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")

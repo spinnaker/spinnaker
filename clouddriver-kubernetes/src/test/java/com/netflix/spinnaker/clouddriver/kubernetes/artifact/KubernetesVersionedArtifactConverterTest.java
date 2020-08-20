@@ -113,6 +113,8 @@ final class KubernetesVersionedArtifactConverterTest {
     assertThat(artifact.getVersion()).isEqualTo(testCase.getNextVersion());
   }
 
+  // Called by @MethodSource which error-prone does not detect.
+  @SuppressWarnings("unused")
   private static Stream<VersionTestCase> versionTestCases() {
     return Stream.of(
         new VersionTestCase(ImmutableList.of("v000", "v001", "v002"), "v003"),

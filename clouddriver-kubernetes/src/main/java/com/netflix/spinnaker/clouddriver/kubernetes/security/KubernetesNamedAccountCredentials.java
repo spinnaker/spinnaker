@@ -30,7 +30,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ParametersAreNonnullByDefault
 public class KubernetesNamedAccountCredentials
     extends AbstractAccountCredentials<KubernetesCredentials> {

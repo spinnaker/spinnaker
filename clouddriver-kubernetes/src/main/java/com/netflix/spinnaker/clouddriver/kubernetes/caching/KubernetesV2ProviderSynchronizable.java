@@ -131,11 +131,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
         deletedAccounts, catsModule); // delete caching agents
   }
 
-  /**
-   * Validate and save credentials to repository
-   *
-   * @param account
-   */
+  /** Validate and save credentials to repository */
   private void saveToCredentialsRepository(KubernetesNamedAccountCredentials account) {
     // Attempt to get namespaces to resolve any connectivity error without blocking /credentials
     List<String> namespaces = account.getCredentials().getDeclaredNamespaces();

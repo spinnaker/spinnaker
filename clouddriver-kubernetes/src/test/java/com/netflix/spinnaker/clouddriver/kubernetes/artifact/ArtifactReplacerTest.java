@@ -119,6 +119,8 @@ final class ArtifactReplacerTest {
     assertThat(artifact.getReference()).isEqualTo(testCase.getImage());
   }
 
+  // Called by @MethodSource which error-prone does not detect.
+  @SuppressWarnings("unused")
   private static Stream<ImageTestCase> imageArtifactTestCases() {
     return Stream.of(
         ImageTestCase.of("nginx:112", "nginx"),
