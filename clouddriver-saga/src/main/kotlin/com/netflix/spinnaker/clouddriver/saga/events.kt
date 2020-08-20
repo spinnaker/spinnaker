@@ -127,6 +127,16 @@ class SagaRollbackStarted : AbstractSagaEvent()
 class SagaRollbackCompleted : AbstractSagaEvent()
 
 /**
+ * @param conditionName The condition name.
+ * @param result The condition result.
+ */
+@JsonTypeName("sagaConditionEvaluated")
+class SagaConditionEvaluated(
+  val conditionName: String,
+  val result: Boolean
+) : AbstractSagaEvent()
+
+/**
  * The root event type for all mutating [Saga] operations.
  */
 interface SagaCommand : SagaEvent

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.saga.DoAction1
 import com.netflix.spinnaker.clouddriver.saga.DoAction2
 import com.netflix.spinnaker.clouddriver.saga.DoAction3
 import com.netflix.spinnaker.clouddriver.saga.SagaCommandCompleted
+import com.netflix.spinnaker.clouddriver.saga.SagaConditionEvaluated
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranch
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranchPredicate
 import dev.minutest.rootContext
@@ -49,6 +50,20 @@ class SagaFlowIteratorTest : AbstractSagaTest() {
 
     test("iterates conditional actions") {
       saga.addEventForTest(ShouldBranch())
+
+      expect {
+        that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action1>()
+        that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action2>()
+        that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action3>()
+        that(subject.hasNext()).isFalse()
+      }
+    }
+
+    test("conditions are not re-evaluated") {
+      saga.addEventForTest(SagaConditionEvaluated("shouldBranch", true))
 
       expect {
         that(subject.hasNext()).isTrue()

@@ -92,6 +92,30 @@ class Saga(
       }
   }
 
+  @Suppress("UNCHECKED_CAST")
+  fun <T : SagaEvent> maybeGetEvent(clazz: Class<T>): T? =
+    events.reversed()
+      .filter { clazz.isAssignableFrom(it.javaClass) }
+      .let {
+        when (it.size) {
+          0 -> null
+          1 -> it.first() as T?
+          else -> throw SagaStateIntegrationException.tooManyResults(clazz, this)
+        }
+      }
+
+  @Suppress("UNCHECKED_CAST")
+  fun <T : SagaEvent> maybeGetEvent(clazz: Class<T>, reducer: (List<T>) -> T?): T? =
+    events.reversed()
+      .filter { clazz.isAssignableFrom(it.javaClass) }
+      .let {
+        when (it.size) {
+          0 -> null
+          1 -> it.first() as T?
+          else -> throw SagaStateIntegrationException.tooManyResults(clazz, this)
+        }
+      }
+
   internal fun completed(command: Class<SagaCommand>): Boolean {
     return getEvents().filterIsInstance<SagaCommandCompleted>().any { it.matches(command) }
   }

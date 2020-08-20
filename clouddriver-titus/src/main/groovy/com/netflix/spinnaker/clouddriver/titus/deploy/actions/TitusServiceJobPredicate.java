@@ -15,15 +15,16 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.clouddriver.titus.JobType;
 import com.netflix.spinnaker.clouddriver.titus.TitusException;
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy.PrepareTitusDeployCommand;
-import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TitusServiceJobPredicate implements Predicate<Saga> {
+public class TitusServiceJobPredicate implements SagaFlow.ConditionPredicate {
   @Override
   public boolean test(Saga saga) {
     return saga.getEvents().stream()
@@ -37,5 +38,11 @@ public class TitusServiceJobPredicate implements Predicate<Saga> {
             () ->
                 new TitusException(
                     "Could not determine job type: No TitusDeployDescription found"));
+  }
+
+  @Nonnull
+  @Override
+  public String getName() {
+    return "titusServiceJobPredicate";
   }
 }

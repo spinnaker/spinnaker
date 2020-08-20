@@ -85,7 +85,7 @@ class SagaFlow {
    * @param condition The [Predicate] that will evaluate whether or not to branch logic
    * @param builder The nested [SagaFlow] used to define the branched steps, will only be called if [condition] is true
    */
-  fun on(condition: Class<out Predicate<Saga>>, builder: (SagaFlow) -> Unit): SagaFlow {
+  fun on(condition: Class<out ConditionPredicate>, builder: (SagaFlow) -> Unit): SagaFlow {
     steps.add(ConditionStep(condition, SagaFlow().also(builder)))
     return this
   }
@@ -93,7 +93,7 @@ class SagaFlow {
   /**
    * Java-compatible interface.
    */
-  fun on(condition: Class<out Predicate<Saga>>, builder: Consumer<SagaFlow>): SagaFlow {
+  fun on(condition: Class<out ConditionPredicate>, builder: Consumer<SagaFlow>): SagaFlow {
     steps.add(ConditionStep(condition, SagaFlow().also { builder.accept(this) }))
     return this
   }
@@ -118,9 +118,19 @@ class SagaFlow {
     return this
   }
 
+  interface ConditionPredicate : Predicate<Saga> {
+    /**
+     * The name of the predicate. Used for correlating previously evaluated conditions to their responses.
+     *
+     * If the same predicate is used more than once in a Saga, the predicates will need to be uniquely named
+     * to distinguish between them.
+     */
+    val name: String
+  }
+
   interface Step
   inner class ActionStep(val action: Class<out SagaAction<*>>) : Step
-  inner class ConditionStep(val predicate: Class<out Predicate<Saga>>, val nestedBuilder: SagaFlow) : Step
+  inner class ConditionStep(val predicate: Class<out ConditionPredicate>, val nestedBuilder: SagaFlow) : Step
 
   enum class InjectLocation {
     BEFORE,
