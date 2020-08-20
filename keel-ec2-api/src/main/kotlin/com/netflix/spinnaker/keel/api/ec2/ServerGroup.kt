@@ -97,7 +97,7 @@ data class ServerGroup(
   ) {
     // active asg is healthy if all instances are up
     fun isHealthy(noHealth: Boolean): Boolean =
-      if (noHealth) unknown == total
+      if (noHealth) (unknown + up) == total
       else up == total
   }
 
