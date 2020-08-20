@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
+import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
@@ -49,7 +50,7 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Manifest getDynamicManifest(
+  public ManifestCoordinates getDynamicManifest(
       String account, String location, String kind, String app, String cluster, String criteria) {
     return getService().getDynamicManifest(account, location, kind, app, cluster, criteria);
   }

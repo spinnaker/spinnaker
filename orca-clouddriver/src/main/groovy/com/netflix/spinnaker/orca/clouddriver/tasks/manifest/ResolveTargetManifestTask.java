@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
+import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import java.io.IOException;
 import java.util.Map;
@@ -56,7 +56,7 @@ public class ResolveTargetManifestTask extends AbstractCloudProviderAwareTask im
       return TaskResult.SUCCEEDED;
     }
 
-    Manifest target =
+    ManifestCoordinates target =
         retrySupport.retry(
             () ->
                 oortService.getDynamicManifest(
@@ -75,7 +75,9 @@ public class ResolveTargetManifestTask extends AbstractCloudProviderAwareTask im
     }
 
     Map<String, Object> outputs =
-        new ImmutableMap.Builder<String, Object>().put("manifestName", target.getName()).build();
+        new ImmutableMap.Builder<String, Object>()
+            .put("manifestName", target.getFullResourceName())
+            .build();
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }

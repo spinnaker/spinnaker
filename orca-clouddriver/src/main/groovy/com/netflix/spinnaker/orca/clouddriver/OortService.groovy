@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest
+import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
@@ -57,12 +58,12 @@ interface OortService {
                        @Query("includeEvents") boolean includeEvents)
 
   @GET("/manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}/dynamic/{criteria}")
-  Manifest getDynamicManifest(@Path("account") String account,
-                              @Path("location") String location,
-                              @Path("kind") String kind,
-                              @Path("app") String app,
-                              @Path("clusterName") String clusterName,
-                              @Path("criteria") String criteria)
+  ManifestCoordinates getDynamicManifest(@Path("account") String account,
+                                         @Path("location") String location,
+                                         @Path("kind") String kind,
+                                         @Path("app") String app,
+                                         @Path("clusterName") String clusterName,
+                                         @Path("criteria") String criteria)
 
   @Deprecated
   @GET("/applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
