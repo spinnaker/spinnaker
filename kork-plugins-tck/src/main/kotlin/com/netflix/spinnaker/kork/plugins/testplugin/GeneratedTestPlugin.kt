@@ -1,0 +1,139 @@
+/*
+ * Copyright 2020 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.netflix.spinnaker.kork.plugins.testplugin
+
+import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPropertiesPluginDescriptorFinder
+import java.lang.IllegalStateException
+import java.nio.file.Files
+import java.nio.file.Path
+
+/**
+ * A flexible runtime-generated test plugin.
+ *
+ * Should be built with [testPlugin].
+ */
+class GeneratedTestPlugin {
+
+  var name: String = "Generated"
+    set(value) {
+      field = value.capitalize()
+    }
+
+  var packageName: String = "com.netflix.spinnaker.kork.plugins.testplugin.generated"
+  var version: String = "0.0.1"
+  var pluginId: String = "spinnaker.${name.toLowerCase()}-testplugin"
+  internal var sources: MutableList<SourceFile> = mutableListOf()
+  internal var pluginClass: SourceFile? = null
+
+  private var generated: Boolean = false
+
+  fun pluginClass(contents: String) {
+    pluginClass = SourceFile(name, contents)
+  }
+
+  fun sourceFile(simpleName: String, contents: String) {
+    sources.add(SourceFile(simpleName, contents))
+  }
+
+  fun sourceFiles(): List<SourceFile> =
+    listOf(pluginClass())
+      .plus(sources)
+
+  internal fun pluginClass(): SourceFile {
+    return pluginClass ?: DefaultPluginClassSourceFile(name, packageName)
+  }
+
+  fun properties(): String {
+    return """
+      plugin.id=$pluginId
+      plugin.description=A generated TestPlugin named $name
+      plugin.class=${canonicalPluginClass()}
+      plugin.version=$version
+      plugin.provider=Spinnaker
+      plugin.dependencies=
+      plugin.requires=*
+      plugin.license=Apache 2.0
+      plugin.unsafe=false
+    """.trimIndent()
+  }
+
+  fun canonicalClass(className: String): String =
+    "$packageName.$className"
+
+  fun canonicalPluginClass(): String =
+    canonicalClass(pluginClass().simpleName)
+
+  fun generate(rootPath: Path? = null): GenerateResult {
+    if (generated) {
+      throw IllegalStateException("A test plugin instance cannot be generated more than once")
+    }
+
+    return TestPluginGenerator(this, rootPath ?: Files.createTempDirectory("generatedplugin")).let {
+      it.generate()
+      generated = true
+
+      GenerateResult(
+        rootPath = it.rootPath,
+        pluginPath = it.pluginPath,
+        descriptor = SpinnakerPropertiesPluginDescriptorFinder().find(it.pluginPath) as SpinnakerPluginDescriptor,
+        plugin = this
+      )
+    }
+  }
+
+  /**
+   * @param rootPath The plugins root directory; generated plugins are subdirectories under this path.
+   * @param pluginPath The path to the generated plugin within the plugins directory.
+   * @param descriptor The plugin descriptor for this generated plugin.
+   * @param plugin Self-reference to this [GeneratedTestPlugin].
+   */
+  inner class GenerateResult(
+    val rootPath: Path,
+    val pluginPath: Path,
+    val descriptor: SpinnakerPluginDescriptor,
+    val plugin: GeneratedTestPlugin
+  )
+}
+
+/**
+ * A single Java source file.
+ */
+open class SourceFile(var simpleName: String, var contents: String)
+
+/**
+ * The default [Plugin] source file.
+ *
+ * You will usually not have to change this.
+ */
+class DefaultPluginClassSourceFile(
+  pluginName: String,
+  packageName: String
+) : SourceFile(
+  pluginName,
+  """
+    package $packageName;
+
+    import org.pf4j.Plugin;
+    import org.pf4j.PluginWrapper;
+
+    public class {{simpleName}} extends Plugin {
+      public {{simpleName}}(PluginWrapper wrapper) {
+        super(wrapper);
+      }
+    }
+  """.trimIndent()
+)

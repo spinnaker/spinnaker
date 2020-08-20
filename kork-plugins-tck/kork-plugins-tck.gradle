@@ -5,6 +5,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   implementation project(":kork-plugins")
+  implementation project(":kork-plugins-api")
   implementation "org.pf4j:pf4j"
 
   //Test framework dependencies
@@ -15,8 +16,6 @@ dependencies {
   api("org.springframework.security:spring-security-test")
   api("org.springframework.security:spring-security-config")
   api("com.ninja-squad:springmockk")
-
-  testImplementation project(":kork-plugins-api")
 
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

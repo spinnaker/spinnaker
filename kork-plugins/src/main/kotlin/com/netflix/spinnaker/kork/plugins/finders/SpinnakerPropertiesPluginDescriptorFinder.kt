@@ -26,7 +26,7 @@ import org.pf4j.PropertiesPluginDescriptorFinder
  * Decorates the default [PluginDescriptor] created from [PropertiesPluginDescriptorFinder]
  * with Spinnaker-specific descriptor metadata.
  */
-internal class SpinnakerPropertiesPluginDescriptorFinder(
+class SpinnakerPropertiesPluginDescriptorFinder(
   propertiesFileName: String = DEFAULT_PROPERTIES_FILE_NAME
 ) : PropertiesPluginDescriptorFinder(propertiesFileName) {
 

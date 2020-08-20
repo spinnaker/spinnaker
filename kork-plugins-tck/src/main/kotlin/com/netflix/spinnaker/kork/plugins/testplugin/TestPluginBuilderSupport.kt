@@ -32,9 +32,9 @@ import javax.tools.ToolProvider
  * has an Extension implementing {@code TestExtension}
  *
  * @see com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension
- *
  */
-class TestPluginBuilder(
+@Deprecated("use testPlugin builder instead")
+class TestPluginBuilderSupport(
   /**
    * The directory in which to create a plugin.
    */

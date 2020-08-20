@@ -16,13 +16,10 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
-import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPropertiesPluginDescriptorFinder
-import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilder
 import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension
+import com.netflix.spinnaker.kork.plugins.testplugin.basicGeneratedPlugin
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.nio.file.Files
-import java.nio.file.Path
 import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginState
 import org.pf4j.PluginWrapper
@@ -95,11 +92,11 @@ class PluginSystemTest : JUnit5Minutests {
       test("An extension from an external plugin is available from the pluginManager") {
         app.run { ctx: AssertableApplicationContext ->
           val pluginManager = ctx.getBean("pluginManager") as SpinnakerPluginManager
-          expectThat(pluginManager.getPlugin(descriptor.pluginId)).isNotNull()
-          val extensions: List<TestExtension> = pluginManager.getExtensions(TestExtension::class.java, descriptor.pluginId)
+          expectThat(pluginManager.getPlugin(plugin.descriptor.pluginId)).isNotNull()
+          val extensions: List<TestExtension> = pluginManager.getExtensions(TestExtension::class.java, plugin.descriptor.pluginId)
           expectThat(extensions).isNotEmpty()
           expectThat(extensions).hasSize(1)
-          expectThat(extensions.first().testValue).isEqualTo("${testPluginName}TestExtension")
+          expectThat(extensions.first().testValue).isEqualTo("${testPluginName}Extension")
         }
       }
 
@@ -110,7 +107,7 @@ class PluginSystemTest : JUnit5Minutests {
           }
           expectThat(extensions).isNotEmpty()
           expectThat(extensions).hasSize(1)
-          expectThat(extensions.values.first().testValue).isEqualTo("${testPluginName}TestExtension")
+          expectThat(extensions.values.first().testValue).isEqualTo("${testPluginName}Extension")
         }
       }
     }
@@ -120,8 +117,8 @@ class PluginSystemTest : JUnit5Minutests {
     val app = ApplicationContextRunner()
       .withPropertyValues(
         "spring.application.name=kork",
-        "spinnaker.extensibility.plugins-root-path=${pluginsDir.toAbsolutePath()}",
-        "spinnaker.extensibility.plugins.${descriptor.pluginId}.enabled=true",
+        "spinnaker.extensibility.plugins-root-path=${plugin.rootPath.toAbsolutePath()}",
+        "spinnaker.extensibility.plugins.${plugin.descriptor.pluginId}.enabled=true",
         "spinnaker.extensibility.plugins.spinnaker.pluginsystemtesttestplugin.extensions.spinnaker.pluginsystemtest-test-extension.config.foo=foo"
       )
       .withConfiguration(
@@ -134,15 +131,6 @@ class PluginSystemTest : JUnit5Minutests {
   // companion to avoid generating a plugin per test case
   companion object GeneratedPlugin {
     val testPluginName: String = "PluginSystemTest"
-    val pluginsDir: Path = Files.createTempDirectory("systemtest").also {
-      it.toFile().deleteOnExit()
-    }
-    val generatedPlugin: Path = Files.createTempDirectory(pluginsDir, "systemtestplugin").also {
-      it.toFile().deleteOnExit()
-    }
-    init {
-      TestPluginBuilder(pluginPath = generatedPlugin, name = testPluginName).build()
-    }
-    val descriptor: SpinnakerPluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(generatedPlugin) as SpinnakerPluginDescriptor
+    val plugin = basicGeneratedPlugin(testPluginName).generate()
   }
 }
