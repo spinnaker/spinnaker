@@ -9,6 +9,7 @@ export interface IInstanceConsoleOutput {
 export interface IInstanceMultiOutputLog {
   name: string;
   output: string;
+  formattedOutput?: string;
 }
 
 export class InstanceReader {
