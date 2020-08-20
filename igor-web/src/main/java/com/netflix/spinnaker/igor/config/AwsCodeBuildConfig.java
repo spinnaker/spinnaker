@@ -30,17 +30,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 @ConditionalOnProperty("codebuild.enabled")
 @EnableConfigurationProperties({AwsCodeBuildProperties.class})
 public class AwsCodeBuildConfig {
   @Bean("awsCodeBuildAccountRepository")
-  @DependsOn({"awsSecurityTokenServiceClient"})
   AwsCodeBuildAccountRepository awsCodeBuildAccountRepository(
       AwsCodeBuildProperties awsCodeBuildProperties,
-      AWSSecurityTokenServiceClient awsSecurityTokenServiceClient,
       AWSCredentialsProvider awsCredentialsProvider) {
     AwsCodeBuildAccountRepository accounts = new AwsCodeBuildAccountRepository();
     awsCodeBuildProperties
@@ -50,6 +47,12 @@ public class AwsCodeBuildConfig {
               AwsCodeBuildAccount account =
                   new AwsCodeBuildAccount(awsCredentialsProvider, a.getRegion());
               if (a.getAccountId() != null && a.getAssumeRole() != null) {
+                AWSSecurityTokenServiceClient awsSecurityTokenServiceClient =
+                    (AWSSecurityTokenServiceClient)
+                        AWSSecurityTokenServiceClientBuilder.standard()
+                            .withCredentials(awsCredentialsProvider)
+                            .withRegion(a.getRegion())
+                            .build();
                 STSAssumeRoleSessionCredentialsProvider stsAssumeRoleSessionCredentialsProvider =
                     new STSAssumeRoleSessionCredentialsProvider.Builder(
                             getRoleArn(a.getAccountId(), a.getAssumeRole()), "spinnaker-session")
@@ -61,16 +64,6 @@ public class AwsCodeBuildConfig {
               accounts.addAccount(a.getName(), account);
             });
     return accounts;
-  }
-
-  @Bean("awsSecurityTokenServiceClient")
-  @DependsOn({"awsCredentialsProvider"})
-  AWSSecurityTokenServiceClient awsSecurityTokenServiceClient(
-      AWSCredentialsProvider awsCredentialsProvider) {
-    return (AWSSecurityTokenServiceClient)
-        AWSSecurityTokenServiceClientBuilder.standard()
-            .withCredentials(awsCredentialsProvider)
-            .build();
   }
 
   @Bean("awsCredentialsProvider")
