@@ -17,8 +17,6 @@
  */
 package com.netflix.spinnaker.keel.pause
 
-import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ApplicationActuationPaused
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused

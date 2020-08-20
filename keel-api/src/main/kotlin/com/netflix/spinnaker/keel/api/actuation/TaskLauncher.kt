@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.api.actuation
 
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
+import java.util.concurrent.CompletableFuture
 
 interface TaskLauncher {
   suspend fun submitJob(
@@ -23,6 +24,13 @@ interface TaskLauncher {
     correlationId: String,
     stages: List<Map<String, Any?>>
   ): Task
+
+  fun submitJobAsync(
+    resource: Resource<*>,
+    description: String,
+    correlationId: String,
+    stages: List<Map<String, Any?>>
+  ): CompletableFuture<Task>
 
   suspend fun submitJob(
     user: String,

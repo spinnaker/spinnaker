@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.services
 
-import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.events.ApplicationActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched

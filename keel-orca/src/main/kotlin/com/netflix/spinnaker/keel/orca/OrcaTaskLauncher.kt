@@ -22,9 +22,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
-import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.model.Job
@@ -33,9 +30,12 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.TaskRecord
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.future.future
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.util.concurrent.CompletableFuture
 
 /**
  * Wraps [OrcaService] to make it easier to launch tasks in a standard way.
@@ -62,6 +62,15 @@ class OrcaTaskLauncher(
       stages = stages,
       type = SubjectType.RESOURCE
     )
+
+  override fun submitJobAsync(
+    resource: Resource<*>,
+    description: String,
+    correlationId: String,
+    stages: List<Map<String, Any?>>
+  ): CompletableFuture<Task> = GlobalScope.future {
+    submitJob(resource, description, correlationId, stages)
+  }
 
   override suspend fun submitJob(
     user: String,

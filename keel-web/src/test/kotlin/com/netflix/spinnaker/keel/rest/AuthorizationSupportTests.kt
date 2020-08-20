@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.CombinedRepository
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.Action
 import com.netflix.spinnaker.keel.rest.AuthorizationSupport.TargetEntity

@@ -2,12 +2,17 @@ package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.TEST_API_V1
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.assertj.core.api.Assertions.assertThat
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.hasEntry
 import strikt.assertions.isEqualTo
+
 
 internal class ResourceMetadataTests : JUnit5Minutests {
 
@@ -67,6 +72,25 @@ internal class ResourceMetadataTests : JUnit5Minutests {
       test("deserializes extra data") {
         expectThat(mapper.readValue<Map<String, Any?>>(this))
           .hasEntry("namespace", "default")
+      }
+    }
+
+    derivedContext<Resource<*>>("standard metadata fields") {
+      fixture {
+        Resource(
+          kind = TEST_API_V1.qualify("whatever"),
+          spec = DummyResourceSpec(id = "myResource", application = "fnord"),
+          metadata =  mapOf(
+          "id" to "myResource",
+          "serviceAccount" to "myAccount",
+          "application" to "fnord"
+        ))
+      }
+
+      test("are exposed via field accessors") {
+        assertThat(this.id).isEqualTo("myResource")
+        assertThat(this.serviceAccount).isEqualTo("myAccount")
+        assertThat(this.application).isEqualTo("fnord")
       }
     }
   }

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spinnaker.config.ManualJudgementNotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationConfig
-import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.api.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint

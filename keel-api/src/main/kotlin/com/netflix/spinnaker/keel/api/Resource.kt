@@ -13,6 +13,15 @@ data class Resource<out T : ResourceSpec>(
     require(metadata["application"].isValidApplication()) { "application must be a valid application" }
   }
 
+  val id: String
+    get() = metadata.getValue("id").toString()
+
+  val serviceAccount: String
+    get() = metadata.getValue("serviceAccount").toString()
+
+  val application: String
+    get() = metadata.getValue("application").toString()
+
   /**
    * Attempts to find an artifact in the delivery config based on information in this resource's spec.
    */
@@ -57,15 +66,6 @@ data class Resource<out T : ResourceSpec>(
  */
 fun generateId(kind: ResourceKind, spec: ResourceSpec) =
   "${kind.group}:${kind.kind}:${spec.id}"
-
-val <T : ResourceSpec> Resource<T>.id: String
-  get() = metadata.getValue("id").toString()
-
-val <T : ResourceSpec> Resource<T>.serviceAccount: String
-  get() = metadata.getValue("serviceAccount").toString()
-
-val <T : ResourceSpec> Resource<T>.application: String
-  get() = metadata.getValue("application").toString()
 
 private fun Any?.isValidId() =
   when (this) {

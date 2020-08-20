@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.id
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
