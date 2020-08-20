@@ -115,6 +115,47 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     [moniker: null, serverGroup: serverGroup, additionalRollbackContext: [onlyEnabledServerGroups: onlyEnabledServerGroups]]
   }
 
+  def "should build EXPLICIT rollback context when entity tags contain previousServerGroup info and there's a corresponding active server group"() {
+    given: "entity tags contain metadata with the image id of the previous server group"
+    featuresService.areEntityTagsAvailable() >> { return true }
+    oortService.getEntityTags(*_) >> {
+      return [buildSpinnakerMetadata("my_image-0", "ami-xxxxx0", "5")]
+    }
+
+    and: "there's an enabled server group with the same image id"
+    oortService.getCluster("app", "test", "app-stack-details", "aws") >> {
+      return buildResponse([
+          serverGroups: [
+              buildServerGroup("servergroup-v001", "us-west-2",  100, false, [name: "my_image-0", imageId: "ami-xxxxx0"], [:], 5),
+              buildServerGroup("servergroup-v002", "us-west-2" , 150, false, [name: "my_image-1", imageId: "ami-xxxxx1"], [:], 5)
+          ]
+      ])
+    }
+    when: "the task executes"
+    def result = task.execute(stage)
+
+    then:
+    result.context["imagesToRestore"]["rollbackMethod"] == ["EXPLICIT"]
+
+    result.context == [
+        imagesToRestore: [
+            [region: "us-west-2", image: "my_image-0", buildNumber: "5", rollbackMethod: "EXPLICIT"]
+        ]
+    ]
+    result.outputs == [
+        rollbackTypes   : [
+            "us-west-2": "EXPLICIT"
+        ],
+        rollbackContexts: [
+            "us-west-2": [
+                rollbackServerGroupName         : "servergroup-v002",
+                restoreServerGroupName          : "servergroup-v001",
+                targetHealthyRollbackPercentage : 100
+            ]
+        ]
+    ]
+  }
+
   def "should build PREVIOUS_IMAGE rollback context when there are _only_ entity tags"() {
     when: "there are no previous server groups but there are entity tags"
     def result = task.execute(stage)
