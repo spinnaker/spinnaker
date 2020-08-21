@@ -118,7 +118,7 @@ internal fun Class<*>.createWithConstructor(
   return ctor.newInstanceSafely(classKind, args)
 }
 
-private fun Class<*>.newInstanceSafely(kind: ClassKind): Any =
+internal fun Class<*>.newInstanceSafely(kind: ClassKind): Any =
   try {
     newInstance()
   } catch (ie: InstantiationException) {

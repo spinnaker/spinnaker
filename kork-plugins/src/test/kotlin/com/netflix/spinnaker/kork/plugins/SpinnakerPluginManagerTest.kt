@@ -42,6 +42,7 @@ class SpinnakerPluginManagerTest : JUnit5Minutests {
         listOf(),
         "kork",
         Paths.get("plugins"),
+        mockk(),
         mockk()
       )
     }

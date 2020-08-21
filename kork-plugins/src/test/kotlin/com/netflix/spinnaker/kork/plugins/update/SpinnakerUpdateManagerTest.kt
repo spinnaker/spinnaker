@@ -137,7 +137,8 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       listOf(),
       "orca",
       paths.plugins,
-      PluginBundleExtractor(mockk(relaxed = true))
+      PluginBundleExtractor(mockk(relaxed = true)),
+      mockk(relaxed = true)
     )
 
     val repositories = listOf(

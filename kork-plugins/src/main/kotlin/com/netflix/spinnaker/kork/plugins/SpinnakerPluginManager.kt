@@ -58,7 +58,8 @@ open class SpinnakerPluginManager(
   sdkFactories: List<SdkFactory>,
   private val serviceName: String,
   pluginsRoot: Path,
-  private val pluginBundleExtractor: PluginBundleExtractor
+  private val pluginBundleExtractor: PluginBundleExtractor,
+  private val spinnakerPluginFactory: PluginFactory
 ) : DefaultPluginManager(pluginsRoot) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -68,8 +69,6 @@ open class SpinnakerPluginManager(
     configFactory,
     sdkFactories
   )
-
-  private val spinnakerPluginFactory = SpinnakerPluginFactory(sdkFactories, configFactory)
 
   private inner class ExtensionFactoryDelegate : ExtensionFactory {
     override fun <T : Any?> create(extensionClass: Class<T>?): T = springExtensionFactory.create(extensionClass)
