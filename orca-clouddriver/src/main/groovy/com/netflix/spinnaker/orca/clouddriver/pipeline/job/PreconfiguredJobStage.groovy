@@ -89,6 +89,18 @@ class PreconfiguredJobStage extends RunJobStage {
         }
       }
     }
+
+    //Allow for parameters not defined in the preconfigured job parameters configuration to be passed
+    //in via dynamicPreconfiguredParameters.  This way additional optional parameters may be used
+    //without requiring an update to the configuration.
+    //If the root property does not exist in the preconfigured job configuration, an
+    //IllegalArgumentException is thrown.
+    if (context.dynamicParameters) {
+      context.dynamicParameters.each { k, v ->
+        setNestedValue(context, (String)k, v.toString())
+      }
+    }
+
     context.preconfiguredJobParameters = preconfiguredJob.parameters
     return context
   }

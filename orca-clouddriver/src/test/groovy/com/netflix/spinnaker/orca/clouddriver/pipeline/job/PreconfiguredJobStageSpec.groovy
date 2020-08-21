@@ -108,7 +108,7 @@ class PreconfiguredJobStageSpec extends Specification {
     def overriddenValue = "newValue"
     def stage = stage {
       type = "test"
-      context = [account: "test"]
+      context = [account: "test", dynamicParameters: ["manifest.addValue": "value"]]
     }
     def property = new KubernetesPreconfiguredJobProperties(
       enabled: true,
@@ -143,9 +143,10 @@ class PreconfiguredJobStageSpec extends Specification {
     preconfiguredJob.getManifest().getSpec().getTemplate().getSpec().getContainers()[0].getEnv()[0].getValue() == manifestEnvValue
     // verify that stage manifest has the correctly overridden name
     stage.getContext().get("manifest").spec.template.spec.containers[0].env[0].value == overriddenValue
+    stage.getContext().get("manifest").addValue == "value"
   }
 
-  def "setNestedValue throws an error if the index is invalid"() {
+  def "setNestedValue throws an error if a dynamic parameter root"() {
     given:
     def manifestEnvValue = "defaultValue"
     def overriddenValue = "newValue"
@@ -223,5 +224,45 @@ class PreconfiguredJobStageSpec extends Specification {
     then:
     def ex = thrown(IllegalArgumentException)
     assert ex.getMessage().startsWith("no property missingProperty on")
+  }
+
+  def "setNestedValue throws an error if the root property of a dynamic parameter is invalid"() {
+    given:
+    def manifestEnvValue = "defaultValue"
+    def overriddenValue = "newValue"
+    def stage = stage {
+      type = "test"
+      context = [account: "test", dynamicParameters: ["undefined.parameter": "value"]]
+    }
+    def property = new KubernetesPreconfiguredJobProperties(
+        enabled: true,
+        label: "test",
+        type: "test",
+        cloudProvider: "kubernetes",
+        parameters: [
+            new PreconfiguredJobStageParameter(
+                mapping: "manifest.spec.template.spec.containers[0].env[0].value",
+                defaultValue: overriddenValue,
+                name: "envVariable"
+            )
+        ],
+        manifest: new V1Job(spec: [template: [spec: [containers: [new V1Container(env: [new V1EnvVar(name: "foo", value: manifestEnvValue)])]]]])
+    )
+
+    def jobService = Mock(JobService) {
+      1 * getPreconfiguredStages() >> {
+        return [
+            property
+        ]
+      }
+    }
+
+    when:
+    PreconfiguredJobStage preconfiguredJobStage = new PreconfiguredJobStage(Mock(DestroyJobTask), [], Optional.of(jobService))
+    preconfiguredJobStage.buildTaskGraph(stage)
+
+    then:
+    def ex = thrown(IllegalArgumentException)
+    assert ex.getMessage().startsWith("no property undefined on")
   }
 }
