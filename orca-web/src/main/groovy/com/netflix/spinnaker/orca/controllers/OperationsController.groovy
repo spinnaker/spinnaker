@@ -171,6 +171,7 @@ class OperationsController {
   }
 
   private Map<String, Object> orchestratePipeline(Map pipeline) {
+    long startTime = System.currentTimeMillis()
     def request = objectMapper.writeValueAsString(pipeline)
 
     Exception pipelineError = null
@@ -189,7 +190,12 @@ class OperationsController {
 
     if (pipelineError == null) {
       def id = startPipeline(processedPipeline)
-      log.info("Started pipeline {} based on request body {}", id, request)
+      log.info(
+          "Started pipeline {} based on request body {} (took: {}ms)",
+          id,
+          request,
+          System.currentTimeMillis() - startTime
+      )
       return [ref: "/pipelines/" + id]
     } else {
       def id = markPipelineFailed(processedPipeline, pipelineError)
