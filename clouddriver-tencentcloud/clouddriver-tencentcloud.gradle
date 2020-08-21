@@ -8,7 +8,7 @@ dependencies {
   implementation project(":clouddriver-security")
 
   compileOnly "org.projectlombok:lombok"
-  testCompile "org.projectlombok:lombok"
+  testCompileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 

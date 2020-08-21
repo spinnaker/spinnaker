@@ -27,10 +27,10 @@ dependencies {
   testImplementation "org.jetbrains.spek:spek-subject-extension"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
 
-  testRuntime "org.junit.platform:junit-platform-launcher"
-  testRuntime "org.junit.jupiter:junit-jupiter-engine"
-  testRuntime "org.junit.vintage:junit-vintage-engine"
-  testRuntime "org.jetbrains.spek:spek-junit-platform-engine"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+  testRuntimeOnly "org.jetbrains.spek:spek-junit-platform-engine"
 
   testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin"
   testImplementation "io.strikt:strikt-core"

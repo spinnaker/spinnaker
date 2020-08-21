@@ -18,12 +18,21 @@ dependencies {
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation("io.searchbox:jest:2.0.3") {
-    force = true
-  }
+  implementation("io.searchbox:jest")
   implementation "org.codehaus.groovy:groovy-all"
-  implementation("org.elasticsearch:elasticsearch:2.4.1") {
-    force = true
-  }
+  implementation("org.elasticsearch:elasticsearch")
   implementation "org.springframework.boot:spring-boot-starter-web"
+
+  constraints {
+    implementation("io.searchbox:jest") {
+      version {
+        strictly "2.0.3"
+      }
+    }
+    implementation("org.elasticsearch:elasticsearch") {
+      version {
+        strictly "2.4.1"
+      }
+    }
+  }
 }

@@ -5,7 +5,7 @@ dependencies {
   implementation project(":cats:cats-core")
 
   compileOnly "org.projectlombok:lombok"
-  testCompile "org.projectlombok:lombok"
+  testCompileOnly "org.projectlombok:lombok"
 
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
