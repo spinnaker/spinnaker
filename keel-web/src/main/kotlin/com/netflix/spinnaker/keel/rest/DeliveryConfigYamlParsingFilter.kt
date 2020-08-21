@@ -11,6 +11,9 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 import org.yaml.snakeyaml.Yaml
+import java.lang.ClassCastException
+import javax.servlet.http.HttpServletResponse
+import org.springframework.http.HttpStatus
 
 /**
  * A filter for POST /delivery-configs which first parses YAML using snakeyaml, which supports YAML anchors
@@ -30,9 +33,19 @@ class DeliveryConfigYamlParsingFilter : Filter {
       request.contentType.toLowerCase().contains("yaml")
     ) {
 
-      val yaml = Yaml()
-      val deliveryConfig: Map<String, Any?> = yaml.load(request.inputStream)
-      val deliveryConfigAsJson = jsonMapper.writeValueAsString(deliveryConfig)
+      val deliveryConfigAsJson: String
+      try {
+
+        val yaml = Yaml()
+        val deliveryConfig: Map<String, Any?> = yaml.load(request.inputStream)
+        deliveryConfigAsJson = jsonMapper.writeValueAsString(deliveryConfig)
+
+      } catch(e: ClassCastException) {
+        (response as HttpServletResponse).status = HttpStatus.BAD_REQUEST.value()
+        response.writer.print(e.message)
+        response.writer.flush()
+        return
+      }
 
       normalizedRequest = object : HttpServletRequestWrapper(request) {
         override fun getContentType(): String {

@@ -31,7 +31,7 @@ class DeliveryConfigYamlParsingFilterTests : JUnit5Minutests {
   object Fixture {
     val chain: FilterChain = mockk()
     val filter = DeliveryConfigYamlParsingFilter()
-    val request = MockHttpServletRequest("POST", "/delivery-configs/")
+    val request = MockHttpServletRequest("POST", "/delivery-configs")
     val response = MockHttpServletResponse()
     val objectMapper = configuredTestObjectMapper().registerKeelEc2ApiModule()
 
