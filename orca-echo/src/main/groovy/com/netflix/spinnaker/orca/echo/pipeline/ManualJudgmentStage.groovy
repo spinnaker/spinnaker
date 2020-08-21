@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -155,6 +158,19 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
 
     Map<String, Date> lastNotifiedByNotificationState = [:]
     Long notifyEveryMs = -1
+
+    @JsonIgnore
+    Map<String, Object> other = new HashMap<>()
+
+    @JsonAnyGetter
+    Map<String, Object> other() {
+      return other
+    }
+
+    @JsonAnySetter
+    void setOther(String name, Object value) {
+      other.put(name, value)
+    }
 
     boolean shouldNotify(String notificationState, Date now = new Date()) {
       // The new scheme for configuring notifications requires the use of the when list (just like the other stages).
