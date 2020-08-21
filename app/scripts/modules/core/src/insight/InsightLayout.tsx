@@ -10,7 +10,6 @@ export interface IInsightLayoutProps {
 }
 
 export const InsightLayout = ({ app }: IInsightLayoutProps) => {
-  const [appIsReady, setAppIsReady] = React.useState(false);
   const [expandFilters, setExpandFilters] = React.useState(ReactInjector.insightFilterStateModel.filtersExpanded);
   const { filtersHidden } = ReactInjector.insightFilterStateModel;
   const filterClass = expandFilters ? 'filters-expanded' : 'filters-collapsed';
@@ -22,10 +21,6 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
 
   const { state: currentState } = useCurrentStateAndParams();
   const showDetailsView = Boolean(Object.keys(currentState.views).find(v => v.indexOf('detail@') !== -1));
-
-  React.useEffect(() => {
-    app.ready().then(() => setAppIsReady(true));
-  }, []);
 
   if (app.notFound || app.hasError) {
     return null;
@@ -45,7 +40,7 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
       )}
       <div className="flex-1">
         <UIView name="master" className="nav-content ng-scope" data-scroll-id="nav-content" />
-        {appIsReady && showDetailsView && (
+        {showDetailsView && (
           <div>
             <UIView name="detail" className="detail-content" />
           </div>
