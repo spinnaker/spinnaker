@@ -28,8 +28,8 @@ dependencies {
   implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")
   implementation("com.netflix.spinnaker.fiat:fiat-core:${property("fiatVersion")}")
   implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("org.springdoc:springdoc-openapi-webmvc-core:1.3.9")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.3.9")
+  implementation("org.springdoc:springdoc-openapi-webmvc-core")
+  implementation("org.springdoc:springdoc-openapi-kotlin")
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("com.netflix.spinnaker.kork:kork-plugins")
 
