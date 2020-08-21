@@ -60,6 +60,7 @@ include(
   "kork-swagger",
   "kork-telemetry",
   "kork-test",
+  "kork-tomcat",
   "kork-web",
 )
 
