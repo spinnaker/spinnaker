@@ -32,7 +32,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
       test("serializes to JSON") {
         expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
           path("strategy").textValue() isEqualTo "highlander"
-          path("noHealth").isBoolean().booleanValue().isFalse()
+          path("health").textValue() isEqualTo DeployHealth.AUTO.name
         }
       }
     }
@@ -43,7 +43,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
       test("serializes to JSON") {
         expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
           path("strategy").textValue() isEqualTo "red-black"
-          path("noHealth").isBoolean().booleanValue().isFalse()
+          path("health").textValue() isEqualTo DeployHealth.AUTO.name
           path("resizePreviousToZero").isBoolean().booleanValue().isFalse()
           path("rollbackOnFailure").isBoolean().booleanValue().isFalse()
           path("maxServerGroups").numberValue().isEqualTo(2)

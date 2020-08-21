@@ -2,6 +2,9 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy.Companion.DEFAULT_WAIT_FOR_INSTANCES_UP
+import com.netflix.spinnaker.keel.api.DeployHealth
+import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
+import com.netflix.spinnaker.keel.api.DeployHealth.NONE
 import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import java.time.Duration.ZERO
@@ -26,19 +29,17 @@ fun ClusterDeployStrategy.toOrcaJobProperties(vararg instanceOnlyHealthProviders
           (delayBeforeDisable ?: ZERO) +
           (delayBeforeScaleDown ?: ZERO)
         ).toMillis(),
-      "interestingHealthProviderNames" to if (noHealth) {
-        instanceOnlyHealthProviders.toList()
-      } else {
-        null
+      "interestingHealthProviderNames" to when (health) {
+        NONE -> instanceOnlyHealthProviders.toList()
+        AUTO -> null
       }
     )
     is Highlander -> mapOf(
       "strategy" to "highlander",
       "stageTimeoutMs" to DEFAULT_WAIT_FOR_INSTANCES_UP.toMillis(),
-      "interestingHealthProviderNames" to if (noHealth) {
-        instanceOnlyHealthProviders.toList()
-      } else {
-        null
+      "interestingHealthProviderNames" to when (health) {
+        NONE -> instanceOnlyHealthProviders.toList()
+        AUTO -> null
       }
     )
   }

@@ -1,12 +1,13 @@
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
 import java.time.Duration
 import java.time.Duration.ZERO
 
 sealed class ClusterDeployStrategy {
   open val isStaggered: Boolean = false
   open val stagger: List<StaggeredRegion> = emptyList()
-  abstract val noHealth: Boolean
+  abstract val health: DeployHealth
 
   companion object {
     val DEFAULT_WAIT_FOR_INSTANCES_UP: Duration = Duration.ofMinutes(30)
@@ -14,7 +15,7 @@ sealed class ClusterDeployStrategy {
 }
 
 data class RedBlack(
-  override val noHealth: Boolean = false,
+  override val health: DeployHealth = AUTO,
   // defaulting to false because this rollback behavior doesn't seem to play nice with managed delivery
   val rollbackOnFailure: Boolean? = false,
   val resizePreviousToZero: Boolean? = false,
@@ -30,8 +31,15 @@ data class RedBlack(
 }
 
 data class Highlander(
-  override val noHealth: Boolean = false
+  override val health: DeployHealth = AUTO
 ) : ClusterDeployStrategy()
+
+enum class DeployHealth {
+  /** Use Orca's default (Discovery and ELB/Target group if attached). */
+  AUTO,
+  /** Use only cloud provider health. */
+  NONE
+}
 
 fun ClusterDeployStrategy.withDefaultsOmitted(): ClusterDeployStrategy =
   when (this) {

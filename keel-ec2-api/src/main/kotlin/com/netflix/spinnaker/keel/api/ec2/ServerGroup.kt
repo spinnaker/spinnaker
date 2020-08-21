@@ -17,6 +17,9 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.DeployHealth
+import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
+import com.netflix.spinnaker.keel.api.DeployHealth.NONE
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
@@ -96,9 +99,11 @@ data class ServerGroup(
     val starting: Int
   ) {
     // active asg is healthy if all instances are up
-    fun isHealthy(noHealth: Boolean): Boolean =
-      if (noHealth) (unknown + up) == total
-      else up == total
+    fun isHealthy(health: DeployHealth): Boolean =
+      when (health) {
+        AUTO -> up == total
+        NONE -> (up + unknown) == total
+      }
   }
 
   data class LaunchConfiguration(
@@ -115,6 +120,7 @@ data class ServerGroup(
     companion object {
       const val DEFAULT_EBS_OPTIMIZED = false
       const val DEFAULT_INSTANCE_MONITORING = false
+
       // TODO (lpollo): make configurable, or resolve via LaunchConfigurationResolver
       fun defaultIamRoleFor(application: String) = "${application}InstanceProfile"
     }

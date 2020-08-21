@@ -423,7 +423,7 @@ class TitusClusterHandler(
       .also { them ->
         val sameContainer: Boolean = them.distinctBy { it.container.digest }.size == 1
         val healthy: Boolean = them.all {
-          it.instanceCounts?.isHealthy(resource.spec.deployWith.noHealth) == true
+          it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
         }
         if (sameContainer && healthy) {
           // only publish a successfully deployed event if the server group is healthy

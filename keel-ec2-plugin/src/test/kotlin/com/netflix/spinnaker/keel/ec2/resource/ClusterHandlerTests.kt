@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.netflix.spinnaker.keel.api.DeployHealth
+import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
+import com.netflix.spinnaker.keel.api.DeployHealth.NONE
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Highlander
@@ -731,7 +734,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         test("the cluster does not use discovery-based health during deployment") {
-          val deployWith = RedBlack(noHealth = true)
+          val deployWith = RedBlack(health = NONE)
           runBlocking {
             upsert(resource.copy(spec = resource.spec.copy(deployWith = deployWith)), diff)
           }
@@ -746,7 +749,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         test("the cluster uses discovery-based health during deployment") {
-          val deployWith = RedBlack(noHealth = false)
+          val deployWith = RedBlack(health = AUTO)
           runBlocking {
             upsert(resource.copy(spec = resource.spec.copy(deployWith = deployWith)), diff)
           }
