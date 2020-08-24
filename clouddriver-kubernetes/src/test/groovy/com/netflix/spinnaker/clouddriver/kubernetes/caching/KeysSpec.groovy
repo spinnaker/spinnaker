@@ -187,20 +187,4 @@ class KeysSpec extends Specification {
     Keys.LogicalKind.APPLICATIONS | "applications"
     Keys.LogicalKind.CLUSTERS     | "clusters"
   }
-
-  def "serialization and deserialization are inverses"() {
-    when:
-    def parsed = Keys.parseKey(key).get()
-
-    then:
-    parsed.toString() == key
-
-    where:
-    key << [
-      "kubernetes.v2:artifact:kubernetes/replicaSet:spinnaker-io:docs-site:v046",
-      "kubernetes.v2:infrastructure:secret:k8s:spin:spinnaker",
-      "kubernetes.v2:logical:applications:spinnaker",
-      "kubernetes.v2:logical:clusters:k8s:docs:docs-site"
-    ]
-  }
 }

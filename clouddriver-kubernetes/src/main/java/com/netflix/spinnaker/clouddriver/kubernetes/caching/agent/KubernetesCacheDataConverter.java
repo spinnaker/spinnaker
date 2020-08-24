@@ -35,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest.OwnerReference;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
@@ -59,22 +58,6 @@ public class KubernetesCacheDataConverter {
   // todo(lwander) investigate if this can cause flapping in UI for on demand updates -- no
   // consensus on this yet.
   @Getter private static final List<KubernetesKind> stickyKinds = Arrays.asList(SERVICE, POD);
-
-  static void convertAsArtifact(
-      KubernetesCacheData kubernetesCacheData, String account, KubernetesManifest manifest) {
-    KubernetesManifestAnnotater.getArtifact(manifest, account)
-        .ifPresent(
-            artifact -> {
-              kubernetesCacheData.addItem(
-                  new Keys.ArtifactCacheKey(
-                      artifact.getType(),
-                      artifact.getName(),
-                      artifact.getLocation(),
-                      artifact.getVersion()),
-                  ImmutableMap.of(
-                      "artifact", artifact, "creationTimestamp", manifest.getCreationTimestamp()));
-            });
-  }
 
   @NonnullByDefault
   public static CacheData mergeCacheData(CacheData current, CacheData added) {

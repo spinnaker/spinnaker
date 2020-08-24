@@ -18,8 +18,10 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
 import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
 public interface ArtifactProvider {
-  ImmutableList<Artifact> getArtifacts(String type, String name, String location, String account);
+  ImmutableList<Artifact> getArtifacts(
+      KubernetesKind kind, String name, String location, String account);
 }

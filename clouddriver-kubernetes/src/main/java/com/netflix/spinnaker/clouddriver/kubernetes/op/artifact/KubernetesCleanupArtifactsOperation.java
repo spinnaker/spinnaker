@@ -116,7 +116,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
 
     ImmutableList<Artifact> artifacts =
         artifactProvider.getArtifacts(
-            artifact.getType(), artifact.getName(), artifact.getLocation(), accountName);
+            manifest.getKind(), artifact.getName(), artifact.getLocation(), accountName);
     if (maxVersionHistory >= artifacts.size()) {
       return ImmutableList.of();
     } else {

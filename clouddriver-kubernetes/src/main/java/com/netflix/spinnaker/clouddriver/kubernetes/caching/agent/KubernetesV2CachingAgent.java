@@ -229,8 +229,6 @@ public abstract class KubernetesV2CachingAgent
                     credentials.getNamer(),
                     rs,
                     relationships.getOrDefault(rs, ImmutableList.of()));
-                KubernetesCacheDataConverter.convertAsArtifact(
-                    kubernetesCacheData, accountName, rs);
               } catch (RuntimeException e) {
                 log.warn("{}: Failure converting {}", getAgentType(), rs, e);
               }

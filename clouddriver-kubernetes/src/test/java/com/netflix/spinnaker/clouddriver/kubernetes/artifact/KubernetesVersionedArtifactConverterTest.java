@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.stream.Stream;
@@ -81,7 +82,7 @@ final class KubernetesVersionedArtifactConverterTest {
     String version2 = "v002";
 
     ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE, ACCOUNT))
+    when(provider.getArtifacts(KubernetesKind.fromString(KIND), NAME, NAMESPACE, ACCOUNT))
         .thenReturn(
             ImmutableList.of(
                 Artifact.builder()
@@ -103,7 +104,7 @@ final class KubernetesVersionedArtifactConverterTest {
   @MethodSource("versionTestCases")
   void correctlyPicksNextVersion(VersionTestCase testCase) {
     ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(ARTIFACT_TYPE, NAME, NAMESPACE, ACCOUNT))
+    when(provider.getArtifacts(KubernetesKind.fromString(KIND), NAME, NAMESPACE, ACCOUNT))
         .thenReturn(
             testCase.getExistingVersions().stream()
                 .map(v -> Artifact.builder().putMetadata("account", ACCOUNT).version(v).build())

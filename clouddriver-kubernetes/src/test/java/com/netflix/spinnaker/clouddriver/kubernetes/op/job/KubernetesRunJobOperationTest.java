@@ -195,7 +195,7 @@ final class KubernetesRunJobOperationTest {
       KubernetesRunJobOperationDescription description, boolean appendSuffix) {
     ArtifactProvider provider = mock(ArtifactProvider.class);
     when(provider.getArtifacts(
-            any(String.class), any(String.class), any(String.class), any(String.class)))
+            any(KubernetesKind.class), any(String.class), any(String.class), any(String.class)))
         .thenReturn(ImmutableList.of());
     return new KubernetesRunJobOperation(description, provider, appendSuffix)
         .operate(ImmutableList.of());

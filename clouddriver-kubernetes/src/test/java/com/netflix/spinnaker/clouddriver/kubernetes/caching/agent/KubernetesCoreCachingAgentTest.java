@@ -576,6 +576,11 @@ final class KubernetesCoreCachingAgentTest {
     }
   }
 
+  /**
+   * See comment in {@link KubernetesCoreCachingAgent#getProvidedDataTypes()} for why we are
+   * continuing to use the deprecated Keys.Kind.ARTIFACT.
+   */
+  @SuppressWarnings("deprecation")
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 10})
   public void authoritativeForLogicalTypes(int numAgents) {

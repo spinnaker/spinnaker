@@ -42,6 +42,9 @@ public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent
   }
 
   public Collection<AgentDataType> getProvidedDataTypes() {
+    // The ARTIFACT kind is deprecated; no new entries of this type will be created. We are leaving
+    // it in the authoritative types for now so that existing entries get evicted.
+    @SuppressWarnings("deprecation")
     Stream<String> logicalTypes =
         Stream.of(Keys.LogicalKind.APPLICATIONS, Keys.LogicalKind.CLUSTERS, Keys.Kind.ARTIFACT)
             .map(Enum::toString);

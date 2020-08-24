@@ -231,7 +231,7 @@ final class KubernetesDeployManifestOperationTest {
   private static OperationResult deploy(KubernetesDeployManifestDescription description) {
     ArtifactProvider provider = mock(ArtifactProvider.class);
     when(provider.getArtifacts(
-            any(String.class), any(String.class), any(String.class), any(String.class)))
+            any(KubernetesKind.class), any(String.class), any(String.class), any(String.class)))
         .thenReturn(ImmutableList.of());
     return new KubernetesDeployManifestOperation(description, provider).operate(ImmutableList.of());
   }

@@ -41,6 +41,7 @@ public class Keys {
    */
   public enum Kind {
     LOGICAL,
+    @Deprecated
     ARTIFACT,
     INFRASTRUCTURE;
 
@@ -130,7 +131,7 @@ public class Keys {
         case LOGICAL:
           return Optional.of(parseLogicalKey(parts));
         case ARTIFACT:
-          return Optional.of(new ArtifactCacheKey(parts));
+          return Optional.empty();
         case INFRASTRUCTURE:
           return Optional.of(new InfrastructureCacheKey(parts));
         default:
@@ -180,42 +181,6 @@ public class Keys {
     @Override
     public final String getGroup() {
       return getLogicalKind().toString();
-    }
-  }
-
-  @EqualsAndHashCode(callSuper = true)
-  @Getter
-  @RequiredArgsConstructor
-  public static class ArtifactCacheKey extends CacheKey {
-    @Getter private static final Kind kind = Kind.ARTIFACT;
-    private final String type;
-    private final String name;
-    private final String location;
-    private final String version;
-
-    protected ArtifactCacheKey(String[] parts) {
-      if (parts.length != 6) {
-        throw new IllegalArgumentException("Malformed artifact key" + Arrays.toString(parts));
-      }
-
-      type = parts[2];
-      name = parts[3];
-      location = parts[4];
-      version = parts[5];
-    }
-
-    public static String createKey(String type, String name, String location, String version) {
-      return createKeyFromParts(kind, type, name, location, version);
-    }
-
-    @Override
-    public String toString() {
-      return createKeyFromParts(kind, type, name, location, version);
-    }
-
-    @Override
-    public String getGroup() {
-      return kind.toString();
     }
   }
 
