@@ -48,7 +48,8 @@ class ApiExtensionController @Autowired constructor(private val apiExtensions: L
     val duplicateApiExtensionIds = apiExtensions
       .groupBy { it.id().toLowerCase() }
       .filter { it.value.size > 1 }
-      .flatMap { it.value }
+      .map { it.value }
+      .flatten()
       .map { "[class=${it.javaClass}], id=${it.id()}]" }
 
     if (duplicateApiExtensionIds.isNotEmpty()) {
