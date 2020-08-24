@@ -9,3 +9,4 @@ export * from './managed.dataSource';
 export * from './managedResourceDecorators';
 export * from './ManagedMenuItem';
 export * from './toggleResourceManagement';
+export * from './resources/resourceRegistry';

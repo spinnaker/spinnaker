@@ -2,12 +2,13 @@ import React, { memo } from 'react';
 import { useSref } from '@uirouter/react';
 
 import { Application } from 'core/application';
-import { Icon, IconNames } from '../presentation';
+import { Icon } from '../presentation';
 import { IManagedResourceSummary, IManagedEnviromentSummary, IManagedArtifactSummary } from '../domain/IManagedEntity';
 
 import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
+import { getResourceIcon } from './resources/resourceRegistry';
 import { getResourceName, getArtifactVersionDisplayName } from './displayNames';
 import { StatusBubble } from './StatusBubble';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
@@ -21,16 +22,10 @@ export interface IManagedResourceObjectProps {
   depth?: number;
 }
 
-const kindIconMap: { [kind: string]: IconNames } = {
-  cluster: 'cluster',
-  'security-group': 'securityGroup',
-  'classic-load-balancer': 'loadBalancer',
-  'application-load-balancer': 'loadBalancer',
-};
-
-const getIconTypeFromKind = (kind: string) => kindIconMap[getKindName(kind)] ?? 'placeholder';
-
-const getResourceRoutingInfo = (
+// We'll add detail drawers for resources soon, but in the meantime let's link
+// to infrastructure views for 'native' Spinnaker resources in a one-off way
+// so the registry doesn't have to know about it.
+const getNativeResourceRoutingInfo = (
   resource: IManagedResourceSummary,
 ): { state: string; params: { [key: string]: string } } | null => {
   const {
@@ -65,7 +60,7 @@ export const ManagedResourceObject = memo(
   ({ application, resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
     const { kind } = resource;
     const resourceName = getResourceName(resource);
-    const routingInfo = getResourceRoutingInfo(resource) ?? { state: '', params: {} };
+    const routingInfo = getNativeResourceRoutingInfo(resource) ?? { state: '', params: {} };
     const route = useSref(routingInfo.state, routingInfo.params);
 
     const current =
@@ -92,7 +87,7 @@ export const ManagedResourceObject = memo(
 
     return (
       <ObjectRow
-        icon={getIconTypeFromKind(kind)}
+        icon={getResourceIcon(kind)}
         title={route ? <a {...route}>{resourceName}</a> : resourceName}
         depth={depth}
         content={resourceStatus}
