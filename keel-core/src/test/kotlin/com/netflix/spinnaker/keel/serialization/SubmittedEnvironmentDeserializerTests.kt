@@ -208,10 +208,14 @@ private data class TestSubnetAwareLocatableResource(
   override val id: String,
   override val application: String,
   override val locations: SubnetAwareLocations
-) : Locatable<SubnetAwareLocations>
+) : Locatable<SubnetAwareLocations> {
+  override val displayName: String = "$application-$id"
+}
 
 private data class TestSimpleLocatableResource(
   override val id: String,
   override val application: String,
   override val locations: SimpleLocations
-) : Locatable<SimpleLocations>
+) : Locatable<SimpleLocations> {
+  override val displayName: String = "$application-$id"
+}

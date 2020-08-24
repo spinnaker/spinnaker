@@ -12,3 +12,4 @@ out/
 *.rdb
 /.shelf/
 **/*/out/*
+/plugins/

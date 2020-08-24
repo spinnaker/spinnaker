@@ -71,6 +71,9 @@ data class SampleSpecWithContainer(
 
   @JsonIgnore
   override val application: String = "myapp"
+
+  @JsonIgnore
+  override val displayName: String = "myapp-sample-resource"
 }
 
 val SAMPLE_API_VERSION = ApiVersion("sample.resource")

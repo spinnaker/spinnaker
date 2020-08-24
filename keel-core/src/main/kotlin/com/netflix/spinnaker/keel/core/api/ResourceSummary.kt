@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
@@ -32,17 +33,23 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus
  * This powers the UI view of resource status.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder(value = ["id", "kind", "status", "moniker", "locations", "artifact"])
+@JsonPropertyOrder(value = ["id", "kind", "status", "moniker", "displayName", "locations", "artifact"])
 data class ResourceSummary(
   @JsonIgnore
   val resource: Resource<*>,
   val status: ResourceStatus,
-  val moniker: Moniker?,
   val locations: Locations<*>?,
   val artifact: ResourceArtifactSummary? = null
 ) {
   val id: String = resource.id
   val kind: ResourceKind = resource.kind
+  val displayName: String = resource.spec.displayName
+  val moniker: Moniker?
+    get() = if (resource.spec is Monikered) {
+      (resource.spec as Monikered).moniker
+    } else {
+      null
+    }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

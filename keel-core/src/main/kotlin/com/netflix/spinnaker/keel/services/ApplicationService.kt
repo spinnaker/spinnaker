@@ -148,11 +148,6 @@ class ApplicationService(
     ResourceSummary(
       resource = this,
       status = resourceStatusService.getStatus(id),
-      moniker = if (spec is Monikered) {
-        (spec as Monikered).moniker
-      } else {
-        null
-      },
       locations = if (spec is Locatable<*>) {
         (spec as Locatable<*>).locations
       } else {

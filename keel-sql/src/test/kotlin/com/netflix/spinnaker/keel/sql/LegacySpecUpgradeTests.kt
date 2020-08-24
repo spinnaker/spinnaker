@@ -28,6 +28,7 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
   ) : ResourceSpec {
     override val id = name
     override val application = "fnord"
+    override val displayName: String = "$application-$name"
   }
 
   data class SpecV2(
@@ -36,6 +37,7 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
   ) : ResourceSpec {
     override val id = name
     override val application = "fnord"
+    override val displayName: String = "$application-$name"
   }
 
   data class SpecV3(
@@ -45,6 +47,7 @@ internal class LegacySpecUpgradeTests : JUnit5Minutests {
   ) : ResourceSpec {
     override val id = name
     override val application = "fnord"
+    override val displayName: String = "$application-$name"
   }
 
   object Fixture {

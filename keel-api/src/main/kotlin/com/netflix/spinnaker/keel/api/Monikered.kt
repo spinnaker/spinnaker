@@ -28,4 +28,7 @@ interface Monikered : ResourceSpec {
    */
   override val application: String
     get() = moniker.app
+
+  override val displayName: String
+    get() = moniker.toString()
 }
