@@ -13,6 +13,7 @@ interface ArtifactProvider {
   val artifactName: String?
   val artifactType: ArtifactType?
 
+  @JvmDefault
   fun completeArtifactOrNull() =
     if (artifactName != null && artifactType != null) {
       CompleteArtifact(artifactName!!, artifactType!!)
@@ -28,6 +29,7 @@ interface ArtifactProvider {
 interface VersionedArtifactProvider : ArtifactProvider {
   val artifactVersion: String?
 
+  @JvmDefault
   fun completeVersionedArtifactOrNull() =
     if (artifactName != null && artifactType != null && artifactVersion != null) {
       CompleteVersionedArtifact(artifactName!!, artifactType!!, artifactVersion!!)
@@ -44,6 +46,7 @@ interface ArtifactReferenceProvider {
   val artifactReference: String?
   val artifactType: ArtifactType?
 
+  @JvmDefault
   fun completeArtifactReferenceOrNull() =
     if (artifactReference != null && artifactType != null) {
       CompleteArtifactReference(artifactReference!!, artifactType!!)

@@ -26,19 +26,18 @@ data class Resource<out T : ResourceSpec>(
    * Attempts to find an artifact in the delivery config based on information in this resource's spec.
    */
   fun findAssociatedArtifact(deliveryConfig: DeliveryConfig) =
-    if (spec is ComputeResourceSpec) {
-      // prefer reference-based artifact info
-      spec.completeArtifactReferenceOrNull()
-        ?.let { ref ->
-          deliveryConfig.matchingArtifactByReference(ref.artifactReference)
-        }
-        // if not found, then try old-style image provider info
-        ?: spec.completeArtifactOrNull()
+    when (spec) {
+      is ArtifactReferenceProvider ->
+        spec.completeArtifactReferenceOrNull()
+          ?.let { ref ->
+            deliveryConfig.matchingArtifactByReference(ref.artifactReference)
+          }
+      is ArtifactProvider ->
+        spec.completeArtifactOrNull()
           ?.let { art ->
             deliveryConfig.matchingArtifactByName(art.artifactName, art.artifactType)
           }
-    } else {
-      null
+      else -> null
     }
 
   // TODO: this is kinda dirty, but because we add uid to the metadata when persisting we don't really want to consider it in equality checks
