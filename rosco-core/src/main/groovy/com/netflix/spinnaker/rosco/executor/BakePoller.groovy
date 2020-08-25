@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.executor
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
@@ -224,9 +225,11 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               )
 
               // The artifacts that are found does not have the complete context as they are extracted from the logs.
-              bakeDetails.artifacts.each {
-                it.name = bakeRecipe.name
-                it.uuid = bakeDetails.id
+              bakeDetails.artifacts = bakeDetails.artifacts.collect { Artifact artifact ->
+                artifact.toBuilder()
+                  .name(bakeRecipe.name)
+                  .uuid(bakeDetails.id)
+                  .build()
               }
 
               bakeStore.updateBakeDetails(bakeDetails)

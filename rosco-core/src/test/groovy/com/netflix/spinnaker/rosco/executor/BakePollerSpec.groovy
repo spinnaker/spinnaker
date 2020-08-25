@@ -22,6 +22,7 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
+import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
@@ -174,6 +175,52 @@ class BakePollerSpec extends Specification implements TestDefaults {
       1 * bakeStoreMock.retrieveBakeRequestById(JOB_ID) >> bakeRequest
       1 * bakeStoreMock.retrieveBakeRecipeById(JOB_ID) >> bakeRecipe
       1 * bakeStoreMock.updateBakeDetails(decoratedBakeDetails)
+  }
+
+  void 'sets the name and uuid on baked artifacts'() {
+    setup:
+    def bakedArtifact = Artifact.builder()
+            .type("aws/image")
+            .location("eu-north-1")
+            .reference("ami-076cf277a86b6e5b4")
+            .build()
+
+    def bakeStoreMock = Mock(BakeStore) {
+      retrieveCloudProviderById(JOB_ID) >> BakeRequest.CloudProviderType.aws.toString()
+      retrieveRegionById(JOB_ID) >> SOME_REGION
+      retrieveBakeRequestById(JOB_ID) >> new BakeRequest(build_info_url: SOME_BUILD_INFO_URL)
+      retrieveBakeRecipeById(JOB_ID) >> new BakeRecipe(name: SOME_BAKE_RECIPE_NAME, version: SOME_APP_VERSION_STR, command: [])
+    }
+
+    def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler) {
+      scrapeCompletedBakeResults(SOME_REGION, JOB_ID, _ as String) >> new Bake(id: JOB_ID, ami: AMI_ID, artifacts: [bakedArtifact])
+      produceArtifactDecorationFrom(_ as BakeRequest, _ as BakeRecipe, _ as Bake, _ as String, _ as String) >> bakedArtifact
+      deleteArtifactFile(_ as String) >> {}
+    }
+
+    def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry) {
+      lookup(BakeRequest.CloudProviderType.aws) >> cloudProviderBakeHandlerMock
+    }
+
+    @Subject
+    def bakePoller = new BakePoller(
+            bakeStore: bakeStoreMock,
+            executor: Mock(JobExecutor),
+            cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+            registry: new DefaultRegistry())
+
+    when:
+    bakePoller.completeBake(JOB_ID, LOGS_CONTENT)
+
+    then:
+    1 * bakeStoreMock.updateBakeDetails(_ as Bake) >> { Bake bake ->
+      assert bake.getArtifacts().size() == 1
+      Artifact artifact = bake.getArtifacts().get(0)
+      assert artifact.getName() == SOME_BAKE_RECIPE_NAME
+      assert artifact.getUuid() == JOB_ID
+      assert artifact.getType() == "aws/image"
+      assert artifact.getReference() == "ami-076cf277a86b6e5b4"
+    }
   }
 
 }
