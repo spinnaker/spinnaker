@@ -46,6 +46,7 @@ subprojects {
     apply plugin: 'groovy'
     apply plugin: 'nebula.kotlin'
     apply plugin: "kotlin-allopen"
+    apply plugin: "jacoco"
 
     sourceSets.main.java.srcDirs = []
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
@@ -81,6 +82,14 @@ subprojects {
         minHeapSize = "512m"
         maxHeapSize = "512m"
       }
+      jacoco {
+        enabled = project.hasProperty('testCoverage')
+      }
+    }
+
+    // The test report requires tests to have run first
+    jacocoTestReport {
+      dependsOn test
     }
   }
 
