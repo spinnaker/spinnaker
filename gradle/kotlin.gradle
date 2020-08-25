@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-apply plugin: "nebula.kotlin"
+apply plugin: "kotlin"
 apply plugin: "kotlin-spring"
 
 configurations.all {
@@ -29,7 +29,7 @@ configurations.all {
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.3"
+    languageVersion = "1.4"
     jvmTarget = "1.8"
   }
 }

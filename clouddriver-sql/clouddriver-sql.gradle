@@ -15,6 +15,7 @@
  */
 
 apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/kotlin-test.gradle"
 
 dependencies {
   implementation project(":cats:cats-core")
