@@ -152,6 +152,9 @@ final class GitRepoArtifactCredentials implements ArtifactCredentials {
   }
 
   private String artifactSubPath(Artifact artifact) {
+    if (!Strings.nullToEmpty(artifact.getLocation()).isEmpty()) {
+      return artifact.getLocation();
+    }
     return Strings.nullToEmpty((String) artifact.getMetadata("subPath"));
   }
 
