@@ -19,6 +19,8 @@ package com.netflix.spinnaker.fiat.permissions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.ArrayIterator;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
@@ -29,11 +31,13 @@ import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -71,12 +75,18 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private static final String KEY_ROLES = "roles";
   private static final String KEY_ALL_USERS = "users";
   private static final String KEY_ADMIN = "admin";
+  private static final String KEY_LAST_MODIFIED = "last_modified";
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
+  private static final String NO_LAST_MODIFIED = "unknown_last_modified";
 
   private final ObjectMapper objectMapper;
   private final RedisClientDelegate redisClientDelegate;
   private final List<Resource> resources;
+  private final LoadingCache<String, UserPermission> unrestrictedPermission =
+      Caffeine.newBuilder()
+          .expireAfterAccess(Duration.ofSeconds(10))
+          .build(k -> reloadUnrestricted());
 
   private final String prefix;
 
@@ -90,6 +100,22 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     this.redisClientDelegate = redisClientDelegate;
     this.prefix = prefix;
     this.resources = resources;
+  }
+
+  private UserPermission reloadUnrestricted() {
+    return getFromRedis(UNRESTRICTED).orElseThrow(NoSuchElementException::new);
+  }
+
+  private UserPermission getUnrestrictedUserPermission() {
+    String serverLastModified =
+        redisClientDelegate.withCommandsClient(
+            c -> {
+              return c.get(unrestrictedLastModifiedKey());
+            });
+    if (serverLastModified == null) {
+      serverLastModified = NO_LAST_MODIFIED;
+    }
+    return unrestrictedPermission.get(serverLastModified);
   }
 
   @Override
@@ -126,6 +152,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                     .collect(Collectors.toSet());
               });
 
+      AtomicReference<Response<List<String>>> serverTime = new AtomicReference<>();
       redisClientDelegate.withMultiKeyPipeline(
           pipeline -> {
             String userId = permission.getId();
@@ -156,8 +183,18 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                         pipeline.del(userResourceKey);
                       }
                     });
+
+            serverTime.set(pipeline.time());
+
             pipeline.sync();
           });
+      if (UNRESTRICTED.equals(permission.getId())) {
+        String lastModified = serverTime.get().get().get(0);
+        redisClientDelegate.withCommandsClient(
+            c -> {
+              c.set(unrestrictedLastModifiedKey(), lastModified);
+            });
+      }
     } catch (Exception e) {
       log.error("Storage exception writing " + permission.getId() + " entry.", e);
     }
@@ -166,17 +203,24 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public Optional<UserPermission> get(@NonNull String id) {
+    if (UNRESTRICTED.equals(id)) {
+      return Optional.of(getUnrestrictedUserPermission());
+    }
+    return getFromRedis(id);
+  }
+
+  private Optional<UserPermission> getFromRedis(@NonNull String id) {
     try {
       boolean userExists =
-          redisClientDelegate.withCommandsClient(
-              c -> {
-                return c.sismember(allUsersKey(), id);
-              });
+          UNRESTRICTED.equals(id)
+              || redisClientDelegate.withCommandsClient(
+                  c -> {
+                    return c.sismember(allUsersKey(), id);
+                  });
       if (!userExists) {
         return Optional.empty();
       }
       final RawUserPermission userResponseMap = new RawUserPermission();
-      final RawUserPermission unrestrictedResponseMap = new RawUserPermission();
       redisClientDelegate.withMultiKeyPipeline(
           p -> {
             resources.stream()
@@ -184,25 +228,19 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                 .forEach(
                     r -> {
                       String userKey = userKey(id, r);
-                      String unrestrictedUserKey = unrestrictedUserKey(r);
                       Response<Map<String, String>> resourceMap = p.hgetAll(userKey);
                       userResponseMap.put(r, resourceMap);
-                      if (userKey.equals(unrestrictedUserKey)) {
-                        unrestrictedResponseMap.put(r, resourceMap);
-                      } else {
-                        Response<Map<String, String>> unrestrictedMap =
-                            p.hgetAll(unrestrictedUserKey);
-                        unrestrictedResponseMap.put(r, unrestrictedMap);
-                      }
-                      log.info("Resource: {}; map size: {}", r, unrestrictedResponseMap.size());
                     });
             Response<Boolean> admin = p.sismember(adminKey(), id);
             p.sync();
             userResponseMap.isAdmin = admin.get();
           });
 
-      UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
-      return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
+      UserPermission userPermission = getUserPermission(id, userResponseMap);
+      if (!UNRESTRICTED.equals(id)) {
+        userPermission.merge(getUnrestrictedUserPermission());
+      }
+      return Optional.of(userPermission);
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
@@ -236,7 +274,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     if (anyRoles == null) {
       return getAllById();
     } else if (anyRoles.isEmpty()) {
-      val unrestricted = get(UNRESTRICTED);
+      val unrestricted = getFromRedis(UNRESTRICTED);
       if (unrestricted.isPresent()) {
         val map = new HashMap<String, UserPermission>();
         map.put(UNRESTRICTED, unrestricted.get());
@@ -402,6 +440,14 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private String roleKey(String role) {
     return String.format("%s:%s:%s", prefix, KEY_ROLES, role);
+  }
+
+  private String lastModifiedKey(String userId) {
+    return String.format("%s:%s:%s", prefix, KEY_LAST_MODIFIED, userId);
+  }
+
+  private String unrestrictedLastModifiedKey() {
+    return lastModifiedKey(UNRESTRICTED);
   }
 
   private Set<Resource> extractResources(ResourceType r, Map<String, String> resourceMap) {

@@ -17,6 +17,7 @@
 dependencies {
   implementation project(":fiat-core")
 
+  implementation "com.github.ben-manes.caffeine:caffeine"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.okhttp:okhttp"

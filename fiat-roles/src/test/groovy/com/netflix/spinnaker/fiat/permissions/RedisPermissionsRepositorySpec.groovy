@@ -76,6 +76,19 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.flushDB()
   }
 
+  def "should set last modified for unrestricted user on save"() {
+    expect:
+    !jedis.sismember("unittests:users", UNRESTRICTED)
+    !jedis.exists("unittests:last_modified:__unrestricted_user__")
+
+    when:
+    repo.put(new UserPermission().setId(UNRESTRICTED))
+
+    then:
+    jedis.sismember("unittests:users", UNRESTRICTED)
+    jedis.exists("unittests:last_modified:__unrestricted_user__")
+  }
+
   def "should put the specified permission in redis"() {
     setup:
     Account account1 = new Account().setName("account")
@@ -113,10 +126,10 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.sadd("unittests:roles:role1", "testUser")
     jedis.hset("unittests:permissions:testUser:accounts",
                "account",
-               '{"name":"account","requiredGroupMembership":[]}')
+               '{"name":"account","permissions":{}}')
     jedis.hset("unittests:permissions:testUser:applications",
                "app",
-               '{"name":"app","requiredGroupMembership":[]}')
+               '{"name":"app","permissions":{}}')
     jedis.hset("unittests:permissions:testUser:service_accounts",
                "serviceAccount",
                '{"name":"serviceAccount"}')
@@ -145,10 +158,10 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.sadd("unittests:users", "testUser");
     jedis.hset("unittests:permissions:testUser:accounts",
                "account",
-               '{"name":"account","requiredGroupMembership":["abc"]}')
+               '{"name":"account","permissions":{"READ":["abc"]}}')
     jedis.hset("unittests:permissions:testUser:applications",
                "app",
-               '{"name":"app","requiredGroupMembership":["abc"]}')
+               '{"name":"app","permissions":{"READ":["abc"]}}')
     jedis.hset("unittests:permissions:testUser:service_accounts",
                "serviceAccount",
                '{"name":"serviceAccount"}')
@@ -157,19 +170,19 @@ class RedisPermissionsRepositorySpec extends Specification {
     def result = repo.get("testUser").get()
 
     then:
+    def abcRead = new Permissions.Builder().add(Authorization.READ, "abc").build();
     def expected = new UserPermission()
         .setId("testUser")
-        .setAccounts([new Account().setName("account")
-                                   .setRequiredGroupMembership(["abc"])] as Set)
-        .setApplications([new Application().setName("app")
-                                           .setRequiredGroupMembership(["abc"])] as Set)
+        .setAccounts([new Account().setName("account").setPermissions(abcRead)] as Set)
+        .setApplications([new Application().setName("app").setPermissions(abcRead)] as Set)
         .setServiceAccounts([new ServiceAccount().setName("serviceAccount")] as Set)
     result == expected
 
     when:
     jedis.hset("unittests:permissions:__unrestricted_user__:accounts",
                "account",
-               '{"name":"unrestrictedAccount","requiredGroupMembership":[]}')
+               '{"name":"unrestrictedAccount","permissions":{}}')
+    jedis.set("unittests:last_modified:__unrestricted_user__", "1")
     result = repo.get("testUser").get()
 
     then:
@@ -187,24 +200,25 @@ class RedisPermissionsRepositorySpec extends Specification {
     ServiceAccount serviceAccount1 = new ServiceAccount().setName("serviceAccount1")
     jedis.hset("unittests:permissions:testUser1:accounts",
                "account1",
-               '{"name":"account1","requiredGroupMembership":[]}')
+               '{"name":"account1","permissions":{}}')
     jedis.hset("unittests:permissions:testUser1:applications",
                "app1",
-               '{"name":"app1","requiredGroupMembership":[]}')
+               '{"name":"app1","permissions":{}}')
     jedis.hset("unittests:permissions:testUser1:service_accounts",
                "serviceAccount1",
                '{"name":"serviceAccount1"}')
 
     and:
-    Account account2 = new Account().setName("account2").setRequiredGroupMembership(["abc"])
-    Application app2 = new Application().setName("app2").setRequiredGroupMembership(["abc"])
+    def abcRead = new Permissions.Builder().add(Authorization.READ, "abc").build()
+    Account account2 = new Account().setName("account2").setPermissions(abcRead)
+    Application app2 = new Application().setName("app2").setPermissions(abcRead)
     ServiceAccount serviceAccount2 = new ServiceAccount().setName("serviceAccount2")
     jedis.hset("unittests:permissions:testUser2:accounts",
                "account2",
-               '{"name":"account2","requiredGroupMembership":["abc"]}')
+               '{"name":"account2","permissions":{"READ":["abc"]}}')
     jedis.hset("unittests:permissions:testUser2:applications",
                "app2",
-               '{"name":"app2","requiredGroupMembership":["abc"]}')
+               '{"name":"app2","permissions":{"READ":["abc"]}}')
     jedis.hset("unittests:permissions:testUser2:service_accounts",
                "serviceAccount2",
                '{"name":"serviceAccount2"}')
