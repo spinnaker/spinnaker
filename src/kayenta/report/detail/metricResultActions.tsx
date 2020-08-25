@@ -21,7 +21,9 @@ const buildAtlasGraphUrl = (metricSetPair: IMetricSetPair) => {
 
   // TODO: If the control and experiment have different baseURLs, generate two links instead of a combined one.
   const backend = encodeURIComponent(attributes.control.baseURL);
-  const query = `${attributes.experiment.query},Canary,:legend,:freeze,${attributes.control.query},Baseline,:legend`;
+  const experimentQuery = encodeURIComponent(attributes.experiment.query);
+  const controlQuery = encodeURIComponent(attributes.control.query);
+  const query = `${experimentQuery},Canary,:legend,:freeze,${controlQuery},Baseline,:legend`;
 
   const startTime = Math.min(scopes.control.startTimeMillis, scopes.experiment.startTimeMillis);
   const controlEndTime = scopes.control.startTimeMillis + values.control.length * scopes.control.stepMillis;
