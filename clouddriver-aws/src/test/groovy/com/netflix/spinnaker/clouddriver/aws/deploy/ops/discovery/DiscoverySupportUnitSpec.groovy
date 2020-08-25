@@ -105,7 +105,7 @@ class DiscoverySupportUnitSpec extends Specification {
 
     then:
     thrown(AbstractEurekaSupport.RetryableException)
-    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * eureka.updateInstanceStatus(*_)
   }
 
@@ -154,7 +154,7 @@ class DiscoverySupportUnitSpec extends Specification {
     )
 
     then:
-    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * eureka.updateInstanceStatus(*_)
     1 * task.updateStatus(_, "Could not find application name in Discovery or AWS, short-circuiting (asg: myapp-test-v000, region: us-east-1)")
   }
@@ -173,7 +173,7 @@ class DiscoverySupportUnitSpec extends Specification {
     )
 
     then:
-    (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >>
       [
         instance: [
@@ -207,7 +207,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then:
-    task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * task.fail()
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
     1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
@@ -240,7 +240,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then:
-    task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
     1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
@@ -273,7 +273,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then:
-    task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
     1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> httpError(500)
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
@@ -306,7 +306,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should retry on NOT_FOUND"
-    3 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    3 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * task.fail()
     2 * eureka.getInstanceInfo(_) >> {
       throw failure
@@ -341,7 +341,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
-    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     discoverySupport.eurekaSupportConfigurationProperties.retryMax * eureka.getInstanceInfo(_) >> {
       throw httpError(404)
     }
@@ -376,7 +376,7 @@ class DiscoverySupportUnitSpec extends Specification {
         ]
       ]
     3 * eureka.resetInstanceStatus(appName, 'i-123', AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >>> [response(302), response(201), response(200)]
-    4 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    4 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * task.fail()
 
     where:
@@ -407,7 +407,7 @@ class DiscoverySupportUnitSpec extends Specification {
         ]
       ]
     eureka.updateInstanceStatus(appName, 'i-123', status.value) >> { throw httpError(404) }
-    task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * task.fail()
 
     where:
@@ -426,7 +426,7 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should retry on NOT_FOUND"
-    (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >>
       [
         instance: [

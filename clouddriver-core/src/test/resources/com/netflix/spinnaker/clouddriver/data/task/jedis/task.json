@@ -11,7 +11,7 @@
   ],
   "id" : "123",
   "ownerId" : "owner",
-  "requestId" : null,
+  "requestId" : "requestId",
   "resultObjects" : [
     {
       "instances" : [

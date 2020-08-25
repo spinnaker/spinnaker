@@ -78,7 +78,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     then:
     1 * amazonEc2.describeInstances(_) >> describeInstanceResult
-    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    2 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * eureka.getInstanceInfo('i1') >>
         [

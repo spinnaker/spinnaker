@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
@@ -39,7 +40,8 @@ final class JedisTaskTest {
   @Test
   void serializationTest() throws Exception {
     RedisTaskRepository taskRepository = mock(RedisTaskRepository.class);
-    JedisTask task = new JedisTask("123", 100, taskRepository, "owner", ImmutableList.of(), false);
+    JedisTask task =
+        new JedisTask("123", 100, taskRepository, "owner", "requestId", ImmutableSet.of(), false);
 
     DefaultTaskStatus oldStatus =
         DefaultTaskStatus.create(PHASE, "Starting deploy", TaskState.STARTED);
@@ -65,7 +67,8 @@ final class JedisTaskTest {
   @Test
   void statusComputedFirst() throws Exception {
     RedisTaskRepository taskRepository = mock(RedisTaskRepository.class);
-    JedisTask task = new JedisTask("123", 100, taskRepository, "owner", ImmutableList.of(), false);
+    JedisTask task =
+        new JedisTask("123", 100, taskRepository, "owner", "requestId", ImmutableSet.of(), false);
 
     objectMapper.writeValueAsString(task);
 

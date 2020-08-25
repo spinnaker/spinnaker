@@ -97,7 +97,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
         ]
       ]
     1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE') >> new Response('http://foo', 200, 'OK', [], null)
-    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    2 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * task.fail()
   }
 
@@ -114,7 +114,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     then:
     1 * amazonEc2.describeInstances(_) >> describeInstanceResult
-    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    2 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * eureka.getInstanceInfo('i1') >>
       [
@@ -144,7 +144,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     then:
     _ * amazonEc2.describeInstances(_) >> describeInstanceResult
-    _ * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    _ * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     _ * asgService.getAutoScalingGroup(_) >> asg
     _ * eureka.getInstanceInfo('i1') >>
       [
