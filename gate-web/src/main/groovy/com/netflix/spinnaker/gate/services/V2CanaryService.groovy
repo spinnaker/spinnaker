@@ -101,9 +101,9 @@ class V2CanaryService {
     }
   }
 
-  List getCanaryResultsByApplication(String application, int limit, String statuses, String storageAccountName) {
+  List getCanaryResultsByApplication(String application, int limit, int page, String statuses, String storageAccountName) {
     try {
-      return kayentaService.getCanaryResultsByApplication(application, limit, statuses, storageAccountName)
+      return kayentaService.getCanaryResultsByApplication(application, limit, page, statuses, storageAccountName)
     } catch (RetrofitError error) {
       throw classifyError(error)
     }

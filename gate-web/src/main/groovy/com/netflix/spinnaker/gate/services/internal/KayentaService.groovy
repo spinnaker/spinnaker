@@ -74,6 +74,7 @@ interface KayentaService {
   @GET("/canary/executions")
   List getCanaryResultsByApplication(@Query("application") String application,
                                      @Query("limit") int limit,
+                                     @Query("page") int page,
                                      @Query("statuses") String statuses,
                                      @Query("storageAccountName") String storageAccountName)
 

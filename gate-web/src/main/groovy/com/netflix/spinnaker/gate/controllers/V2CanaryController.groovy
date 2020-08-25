@@ -103,10 +103,11 @@ class V2CanaryController {
   @RequestMapping(value = '/{application}/executions', method = RequestMethod.GET)
   List getCanaryResultsByApplication(@PathVariable String application,
                                      @RequestParam(value='limit') int limit,
+                                     @RequestParam(value='page', defaultValue='1') int page,
                                      @ApiParam('Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL')
                                      @RequestParam(value='statuses', required = false) String statuses,
                                      @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
-    v2CanaryService.getCanaryResultsByApplication(application, limit, statuses, storageAccountName)
+    v2CanaryService.getCanaryResultsByApplication(application, limit, page, statuses, storageAccountName)
   }
 
   // TODO(dpeach): remove this endpoint when a Kayenta endpoint for
