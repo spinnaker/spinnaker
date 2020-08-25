@@ -7,4 +7,17 @@ style:
     active: false
   MaxLineLength:
     active: false
+  ReturnCount:
+    active: false
 
+performance:
+  SpreadOperator:
+    active: false
+
+comments:
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
