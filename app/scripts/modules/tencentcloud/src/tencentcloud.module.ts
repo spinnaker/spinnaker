@@ -9,6 +9,11 @@ import { TENCENTCLOUD_SEARCH_SEARCHRESULTFORMATTER } from './search/searchResult
 import { TENCENTCLOUD_REACT_MODULE } from './reactShims/tencentcloud.react.module';
 import './validation/ApplicationNameValidator';
 
+// load pipeline stage
+import './pipeline/stages/disableCluster/disableClusterStage';
+import './pipeline/stages/rollbackCluster/rollbackClusterStage';
+import './pipeline/stages/scaleDownCluster/scaleDownClusterStage';
+import './pipeline/stages/shrinkCluster/shrinkClusterStage';
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
