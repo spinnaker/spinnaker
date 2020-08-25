@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins.v2
 
+import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import org.pf4j.Plugin
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.beans.factory.config.BeanDefinition
@@ -33,7 +35,8 @@ import org.springframework.context.support.GenericApplicationContext
 class PluginContainer(
   val actual: Plugin,
   private val serviceApplicationContext: GenericApplicationContext,
-  private val beanPromoter: BeanPromoter
+  private val beanPromoter: BeanPromoter,
+  private val invocationAspects: List<InvocationAspect<*>>
 ) : Plugin(actual.wrapper) {
 
   private val pluginContext = GenericApplicationContext(serviceApplicationContext).also {
@@ -49,7 +52,11 @@ class PluginContainer(
       .addConstructorArgValue(actual)
       .addConstructorArgValue(actual.wrapper)
       .addConstructorArgValue(pluginContext)
-      .addConstructorArgValue(beanPromoter)
+      .addConstructorArgValue(LegacyProxyingBeanPromoter(
+        beanPromoter,
+        invocationAspects,
+        wrapper.descriptor as SpinnakerPluginDescriptor
+      ))
       .beanDefinition
 
     registry.registerBeanDefinition(initializerBeanName, initializerBeanDefinition)

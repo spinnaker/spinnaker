@@ -19,6 +19,7 @@ import com.netflix.spinnaker.kork.plugins.ClassKind
 import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.createWithConstructor
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import org.pf4j.Plugin
 import org.pf4j.PluginFactory
@@ -37,7 +38,8 @@ import org.springframework.context.support.GenericApplicationContext
 class SpringPluginFactory(
   private val sdkFactories: List<SdkFactory>,
   private val configFactory: ConfigFactory,
-  private val serviceApplicationContext: GenericApplicationContext
+  private val serviceApplicationContext: GenericApplicationContext,
+  private val invocationAspects: List<InvocationAspect<*>>
 ) : PluginFactory {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -64,7 +66,7 @@ class SpringPluginFactory(
     // PluginContainer attempts to offer some of the convenience that PrivilegedSpringPlugin does, but without using
     // Spring itself as an API contract.
     return if (actualPlugin !is PrivilegedSpringPlugin) {
-      PluginContainer(actualPlugin, serviceApplicationContext, beanPromoter)
+      PluginContainer(actualPlugin, serviceApplicationContext, beanPromoter, invocationAspects)
     } else {
       actualPlugin
     }

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.kork.plugins.FRAMEWORK_V2
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import com.netflix.spinnaker.kork.plugins.update.release.provider.PluginInfoReleaseProvider
@@ -40,9 +41,10 @@ class V2PluginConfiguration {
   fun pluginFactory(
     sdkFactories: List<SdkFactory>,
     configFactory: ConfigFactory,
-    applicationContext: GenericApplicationContext
+    applicationContext: GenericApplicationContext,
+    invocationAspects: List<InvocationAspect<*>>
   ): PluginFactory =
-    SpringPluginFactory(sdkFactories, configFactory, applicationContext)
+    SpringPluginFactory(sdkFactories, configFactory, applicationContext, invocationAspects)
 
   @Bean
   fun pluginService(
