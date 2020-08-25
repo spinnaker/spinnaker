@@ -1,11 +1,26 @@
 FROM ubuntu:bionic
 LABEL maintainer="sig-platform@spinnaker.io"
+RUN echo "mysql-server mysql-server/root_password password sa" | debconf-set-selections
+RUN echo "mysql-server mysql-server/root_password_again password sa" | debconf-set-selections
 RUN apt-get update && apt-get install -y \
     openjdk-8-jdk \
     openjdk-11-jdk \
+    mysql-server \
  && rm -rf /var/lib/apt/lists/*
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 ENV JDK_18 /usr/lib/jvm/java-8-openjdk-amd64
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx6g
-CMD ./gradlew --no-daemon -PenableCrossCompilerPlugin=true keel-web:installDist -x test
+
+RUN usermod -d /var/lib/mysql/ mysql && \
+    sed -i "s/bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/mysql.conf.d/mysqld.cnf && \
+    sed -i "s/port\s*=\s*3306/port = 6603/" /etc/mysql/mysql.conf.d/mysqld.cnf && \
+    /etc/init.d/mysql start && \
+    mysql -u root --password=sa -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'sa' WITH GRANT OPTION;" && \
+    mysql -u root --password=sa -e "GRANT PROXY ON ''@'' TO 'root'@'%' WITH GRANT OPTION;" && \
+    /etc/init.d/mysql restart && \
+    mysql -u root --password=sa -e 'CREATE DATABASE `keel` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
+
+CMD /etc/init.d/mysql restart && \
+    ./gradlew --no-daemon -PenableCrossCompilerPlugin=true -PbuildingInDocker=true \
+        keel-web:installDist -x test
