@@ -23,7 +23,6 @@ import { ManagedReader } from './ManagedReader';
 import { Spinner } from 'core/widgets';
 
 import { ManagedResourceDiffTable } from './ManagedResourceDiffTable';
-import { getResourceName } from './displayNames';
 
 import './ManagedResourceHistoryModal.less';
 
@@ -192,7 +191,6 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
   );
   const previousHistoryEvents: IManagedResourceEvent[] = usePrevious(historyEvents);
 
-  const resourceDisplayName = getResourceName(resourceSummary);
   const isLoading = !historyEvents && ['NONE', 'PENDING'].includes(historyEventStatus);
   const shouldShowExistingData = !isLoading && historyEventStatus !== 'REJECTED';
 
@@ -246,7 +244,7 @@ export const ManagedResourceHistoryModal = ({ resourceSummary, dismissModal }: I
                       >
                         <TableCell>
                           <AccountTag account={account} />{' '}
-                          <span className="sp-margin-s-left">{resourceDisplayName}</span>
+                          <span className="sp-margin-s-left">{resourceSummary.displayName}</span>
                         </TableCell>
                         <TableCell>
                           <i

@@ -7,9 +7,10 @@ import { IManagedEnviromentSummary, IManagedResourceSummary, IManagedArtifactSum
 import { ManagedResourceObject } from './ManagedResourceObject';
 import { EnvironmentRow } from './EnvironmentRow';
 
+import { isResourceKindSupported } from './resources/resourceRegistry';
+
 function shouldDisplayResource(resource: IManagedResourceSummary) {
-  //TODO: naively filter on presence of moniker but how should we really decide what to display?
-  return !!resource.moniker;
+  return isResourceKindSupported(resource.kind);
 }
 
 interface IEnvironmentsListProps {

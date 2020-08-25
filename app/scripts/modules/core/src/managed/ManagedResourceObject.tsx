@@ -9,7 +9,7 @@ import { getKindName } from './ManagedReader';
 import { ObjectRow } from './ObjectRow';
 import { AnimatingPill, Pill } from './Pill';
 import { getResourceIcon } from './resources/resourceRegistry';
-import { getResourceName, getArtifactVersionDisplayName } from './displayNames';
+import { getArtifactVersionDisplayName } from './displayNames';
 import { StatusBubble } from './StatusBubble';
 import { viewConfigurationByStatus } from './managedResourceStatusConfig';
 import { ManagedResourceStatusPopover } from './ManagedResourceStatusPopover';
@@ -30,15 +30,16 @@ const getNativeResourceRoutingInfo = (
 ): { state: string; params: { [key: string]: string } } | null => {
   const {
     kind,
-    moniker: { stack, detail },
+    moniker,
+    displayName,
     locations: { account },
   } = resource;
   const kindName = getKindName(kind);
   const params = {
     acct: account,
-    stack: stack ?? '(none)',
-    detail: detail ?? '(none)',
-    q: getResourceName(resource),
+    stack: moniker?.stack ?? '(none)',
+    detail: moniker?.detail ?? '(none)',
+    q: displayName,
   };
 
   switch (kindName) {
@@ -58,8 +59,7 @@ const getNativeResourceRoutingInfo = (
 
 export const ManagedResourceObject = memo(
   ({ application, resource, artifactVersionsByState, artifactDetails, depth }: IManagedResourceObjectProps) => {
-    const { kind } = resource;
-    const resourceName = getResourceName(resource);
+    const { kind, displayName } = resource;
     const routingInfo = getNativeResourceRoutingInfo(resource) ?? { state: '', params: {} };
     const route = useSref(routingInfo.state, routingInfo.params);
 
@@ -88,7 +88,7 @@ export const ManagedResourceObject = memo(
     return (
       <ObjectRow
         icon={getResourceIcon(kind)}
-        title={route ? <a {...route}>{resourceName}</a> : resourceName}
+        title={route ? <a {...route}>{displayName}</a> : displayName}
         depth={depth}
         content={resourceStatus}
         metadata={

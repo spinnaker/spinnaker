@@ -46,11 +46,12 @@ export interface IManagedResourceSummary {
   kind: string;
   status: ManagedResourceStatus;
   isPaused: boolean;
-  moniker: IMoniker;
+  displayName: string;
   locations: {
     account: string;
     regions: Array<{ name: string }>;
   };
+  moniker?: IMoniker;
   artifact?: {
     name: string;
     type: string;

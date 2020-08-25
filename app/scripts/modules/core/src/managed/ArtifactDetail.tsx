@@ -20,12 +20,12 @@ import { showMarkArtifactAsBadModal } from './MarkArtifactAsBadModal';
 
 import { ConstraintCard } from './constraints/ConstraintCard';
 import { isConstraintSupported } from './constraints/constraintRegistry';
+import { isResourceKindSupported } from './resources/resourceRegistry';
 
 import './ArtifactDetail.less';
 
 function shouldDisplayResource(reference: string, resource: IManagedResourceSummary) {
-  //TODO: naively filter on presence of moniker but how should we really decide what to display?
-  return !!resource.moniker && reference === resource.artifact?.reference;
+  return isResourceKindSupported(resource.kind) && reference === resource.artifact?.reference;
 }
 
 const inStyles = {
