@@ -21,6 +21,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.Ordered
 import org.springframework.core.PriorityOrdered
 
@@ -42,7 +43,7 @@ class PluginFrameworkInitializer(
   }
 
   override fun setApplicationContext(applicationContext: ApplicationContext) {
-    ApplicationContextGraph.serviceApplicationContext = applicationContext
+    ApplicationContextGraph.serviceApplicationContext = applicationContext as ConfigurableApplicationContext
   }
 
   override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE

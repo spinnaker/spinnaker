@@ -15,20 +15,19 @@
  */
 package com.netflix.spinnaker.kork.plugins.v2
 
-import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
-import com.netflix.spinnaker.kork.plugins.api.PluginComponent
-import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
-import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
+import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
+import com.netflix.spinnaker.kork.plugins.v2.context.ComponentScanningCustomizer
+import com.netflix.spinnaker.kork.plugins.v2.context.PluginConfigurationRegisteringCustomizer
+import com.netflix.spinnaker.kork.plugins.v2.context.PluginSdksRegisteringCustomizer
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import org.springframework.context.annotation.ClassPathBeanDefinitionScanner
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.core.io.DefaultResourceLoader
-import org.springframework.core.type.filter.AnnotationTypeFilter
-import org.springframework.core.type.filter.AssignableTypeFilter
 
 /**
  * Initializes the given [plugin]'s [pluginApplicationContext] after being connected to the service's
@@ -44,36 +43,35 @@ class SpringPluginInitializer(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun setApplicationContext(applicationContext: ApplicationContext) {
+    if (applicationContext !is ConfigurableApplicationContext) {
+      throw SystemException("ApplicationContext must be configurable")
+    }
+
     log.info("Initializing '${pluginWrapper.pluginId}'")
 
     // For every bean created in the plugin ApplicationContext, we'll need to post-process to evaluate
     // which ones need to be promoted to the service ApplicationContext for autowiring into core functionality.
     pluginApplicationContext
       .beanFactory
-      .addBeanPostProcessor(ExtensionPromotionBeanPostProcessor(
-        pluginWrapper,
-        pluginApplicationContext,
-        beanPromoter
-      ))
+      .addBeanPostProcessor(
+        ExtensionPromotionBeanPostProcessor(
+          pluginWrapper,
+          pluginApplicationContext,
+          beanPromoter
+        )
+      )
 
     pluginApplicationContext.classLoader = pluginWrapper.pluginClassLoader
     pluginApplicationContext.setResourceLoader(DefaultResourceLoader(pluginWrapper.pluginClassLoader))
-    pluginApplicationContext.scanForComponents()
+
+    listOf(
+      PluginConfigurationRegisteringCustomizer(applicationContext.getBean(ConfigFactory::class.java)),
+      PluginSdksRegisteringCustomizer(applicationContext),
+      ComponentScanningCustomizer()
+    ).forEach {
+      it.accept(plugin, pluginApplicationContext)
+    }
+
     pluginApplicationContext.refresh()
-  }
-
-  private fun GenericApplicationContext.scanForComponents() {
-    val scanner = ClassPathBeanDefinitionScanner(this, false, environment)
-      .apply {
-        addIncludeFilter(AnnotationTypeFilter(PluginComponent::class.java))
-        addIncludeFilter(AssignableTypeFilter(SpinnakerExtensionPoint::class.java))
-
-        // TODO(rz): We'll need FactoryBeans for these types of components in order for them to be
-        //  created correctly.
-        addIncludeFilter(AnnotationTypeFilter(PluginConfiguration::class.java))
-        addIncludeFilter(AnnotationTypeFilter(ExtensionConfiguration::class.java))
-      }
-
-    scanner.scan(plugin.javaClass.`package`.name)
   }
 }
