@@ -239,7 +239,8 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       resources = resolveResources(it.name),
       tags = defaults.tags + overrides[it.name]?.tags,
       artifactName = artifactName,
-      artifactVersion = artifactVersion
+      artifactVersion = artifactVersion,
+      onlyEnabledServerGroup = true
     )
   }
     .toSet()

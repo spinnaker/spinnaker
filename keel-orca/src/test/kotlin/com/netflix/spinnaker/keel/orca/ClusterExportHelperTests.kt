@@ -64,7 +64,8 @@ class ClusterExportHelperTests : JUnit5Minutests {
       securityGroups = emptySet(),
       accountName = "test",
       moniker = parseMoniker("keek-test-v001"),
-      instanceCounts = InstanceCounts(1, 1, 0, 0, 0, 0)
+      instanceCounts = InstanceCounts(1, 1, 0, 0, 0, 0),
+      createdTime = 1544656135184
     )
 
     val taskEntityTags = EntityTags(

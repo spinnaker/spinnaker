@@ -243,6 +243,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     securityGroups = setOf("fnord"),
     accountName = "test",
     moniker = parseMoniker("fnord-prod"),
-    instanceCounts = InstanceCounts(10, 10, 0, 0, 0, 0)
+    instanceCounts = InstanceCounts(10, 10, 0, 0, 0, 0),
+    createdTime = 1544656134371
   )
 }

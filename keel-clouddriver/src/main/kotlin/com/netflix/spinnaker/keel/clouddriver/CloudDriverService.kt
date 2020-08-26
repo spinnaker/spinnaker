@@ -113,8 +113,7 @@ interface CloudDriverService {
     @Path("app") app: String,
     @Path("account") account: String,
     @Path("cluster") cluster: String,
-    @Path("cloudProvider") cloudProvider: String,
-    @Query("region") region: String
+    @Path("cloudProvider") cloudProvider: String = "aws"
   ): ServerGroupCollection<ServerGroup>
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
@@ -123,8 +122,7 @@ interface CloudDriverService {
     @Path("app") app: String,
     @Path("account") account: String,
     @Path("cluster") cluster: String,
-    @Path("cloudProvider") cloudProvider: String,
-    @Query("region") region: String
+    @Path("cloudProvider") cloudProvider: String = "titus"
   ): ServerGroupCollection<TitusServerGroup>
 
   /**

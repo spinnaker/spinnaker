@@ -45,6 +45,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
@@ -142,6 +143,14 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val activeServerGroupResponseEast = serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount)
   val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount)
 
+  val allServerGroups = ServerGroupCollection(
+    titusAccount,
+    setOf(
+      activeServerGroupResponseEast.toAllServerGroupsResponse(),
+      activeServerGroupResponseWest.toAllServerGroupsResponse()
+    )
+  )
+
   val resource = resource(
     kind = TITUS_CLUSTER_V1.kind,
     spec = spec
@@ -220,6 +229,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } throws RETROFIT_NOT_FOUND
         coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
+        coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
       }
 
       test("the current model is null") {
@@ -252,6 +262,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
         coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
+        coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns allServerGroups
       }
 
       // TODO: test for multiple server group response
@@ -284,10 +295,14 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     context("the cluster has unhealthy active server groups") {
       before {
         val instanceCounts = InstanceCounts(1, 0, 0, 1, 0, 0)
-        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount, instanceCounts)
-        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount, instanceCounts)
+        val east = serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount, instanceCounts)
+        val west = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount, instanceCounts)
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns east
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns west
         coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
+        coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns
+          ServerGroupCollection(titusAccount, setOf(east.toAllServerGroupsResponse(), west.toAllServerGroupsResponse()))
       }
 
       // TODO: test for multiple server group response
@@ -336,6 +351,46 @@ class TitusClusterHandlerTests : JUnit5Minutests {
               }
             )
             get("serverGroupName").isEqualTo(activeServerGroupResponseWest.name)
+          }
+        }
+      }
+
+      context("the diff is only in enabled/disabled status") {
+        val east = serverGroupEast.toMultiServerGroupResponse(listOf(sg1East, sg2East), awsAccount, allEnabled = true)
+        val west = serverGroupWest.toMultiServerGroupResponse(listOf(sg1West, sg2West), awsAccount)
+
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+
+        before {
+          coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any())} returns
+            ServerGroupCollection(
+              titusAccount,
+              east + west
+            )
+          coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
+            listOf(
+              DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111")
+            )
+        }
+
+        test("resolving diff disables the oldest enabled server group") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("disableServerGroup")
+            get("asgName").isEqualTo(east.sortedBy { it.createdTime }.first().name)
           }
         }
       }

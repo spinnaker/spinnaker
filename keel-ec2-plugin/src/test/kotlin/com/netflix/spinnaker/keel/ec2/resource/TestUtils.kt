@@ -111,6 +111,7 @@ fun ServerGroup.toCloudDriverResponse(
       securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
       accountName = location.account,
       moniker = parseMoniker("$name-v$sequence"),
-      instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) }
+      instanceCounts = instanceCounts.run { InstanceCounts(total, up, down, unknown, outOfService, starting) },
+      createdTime = 1544656134371
     )
   }

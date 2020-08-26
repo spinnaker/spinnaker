@@ -26,6 +26,7 @@ interface BaseServerGroup {
   val disabled: Boolean
     get() = false
   val instanceCounts: InstanceCounts
+  val createdTime: Long
 }
 
 data class InstanceCounts(
@@ -74,7 +75,8 @@ data class ServerGroup(
   override val moniker: Moniker,
   override val buildInfo: BuildInfo? = null,
   override val disabled: Boolean,
-  override val instanceCounts: InstanceCounts
+  override val instanceCounts: InstanceCounts,
+  override val createdTime: Long
 ) : BaseEc2ServerGroup
 
 fun ServerGroup.toActive(accountName: String) =
@@ -95,7 +97,8 @@ fun ServerGroup.toActive(accountName: String) =
     accountName = accountName,
     moniker = moniker,
     buildInfo = buildInfo,
-    instanceCounts = instanceCounts
+    instanceCounts = instanceCounts,
+    createdTime = createdTime
   )
 
 // todo eb: this should be more general so that it works for all server groups, not just ec2
@@ -116,7 +119,8 @@ data class ActiveServerGroup(
   val accountName: String,
   override val moniker: Moniker,
   override val buildInfo: BuildInfo? = null,
-  override val instanceCounts: InstanceCounts
+  override val instanceCounts: InstanceCounts,
+  override val createdTime: Long
 ) : BaseEc2ServerGroup
 
 fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =

@@ -67,7 +67,8 @@ data class TitusServerGroup(
   override val resources: Resources,
   override val capacityGroup: String,
   override val disabled: Boolean,
-  override val instanceCounts: InstanceCounts
+  override val instanceCounts: InstanceCounts,
+  override val createdTime: Long
 ) : BaseTitusServerGroup
 
 fun TitusServerGroup.toActive() =
@@ -93,7 +94,8 @@ fun TitusServerGroup.toActive() =
     tags = tags,
     resources = resources,
     capacityGroup = capacityGroup,
-    instanceCounts = instanceCounts
+    instanceCounts = instanceCounts,
+    createdTime = createdTime
   )
 
 /**
@@ -124,7 +126,8 @@ data class TitusActiveServerGroup(
   override val tags: Map<String, String>,
   override val resources: Resources,
   override val capacityGroup: String,
-  override val instanceCounts: InstanceCounts
+  override val instanceCounts: InstanceCounts,
+  override val createdTime: Long
 ) : BaseTitusServerGroup
 
 data class Placement(
