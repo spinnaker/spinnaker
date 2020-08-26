@@ -24,7 +24,11 @@ import org.pf4j.PluginWrapper
 interface SdkFactory {
 
   /**
-   * Create the SDK for the provided [extensionClass] and [pluginWrapper].
+   * Create the SDK for the provided [pluginClass] and [pluginWrapper].
+   *
+   * TODO(rz): pluginWrapper should never be null. Investigate.
+   *
+   * @param pluginClass Any class inside of a plugin.
    */
-  fun create(extensionClass: Class<*>, pluginWrapper: PluginWrapper?): Any
+  fun create(pluginClass: Class<*>, pluginWrapper: PluginWrapper?): Any
 }

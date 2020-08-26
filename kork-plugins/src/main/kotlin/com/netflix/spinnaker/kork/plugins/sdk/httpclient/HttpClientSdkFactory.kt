@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.kork.plugins.sdk.IdResolver
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.CompositeOkHttpClientFactory
+import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.springframework.core.env.Environment
 
@@ -32,13 +33,13 @@ class HttpClientSdkFactory(
   private val objectMapper: ObjectMapper,
   private val okHttp3ClientConfiguration: OkHttp3ClientConfiguration
 ) : SdkFactory {
-  override fun create(extensionClass: Class<*>, pluginWrapper: PluginWrapper?): Any {
+
+  override fun create(pluginClass: Class<*>, pluginWrapper: PluginWrapper?): Any {
     return Ok3HttpClientRegistry(
-      IdResolver.pluginOrExtensionId(extensionClass, pluginWrapper),
+      IdResolver.pluginOrExtensionId(pluginClass, pluginWrapper),
       environment,
       objectMapper,
       okHttpClientFactory,
       okHttp3ClientConfiguration
-    )
-  }
+    )  }
 }

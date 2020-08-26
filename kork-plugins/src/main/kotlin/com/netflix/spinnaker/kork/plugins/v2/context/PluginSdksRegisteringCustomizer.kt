@@ -34,7 +34,7 @@ class PluginSdksRegisteringCustomizer(
   override fun accept(plugin: Plugin, context: ConfigurableApplicationContext) {
     val sdk = PluginSdksImpl(
       serviceApplicationContext.getBeansOfType(SdkFactory::class.java).values
-        .map { it.create(Any::class.java, plugin.wrapper) }
+        .map { it.create(plugin.javaClass, plugin.wrapper) }
     )
     context.beanFactory.registerSingleton("pluginSdks", sdk)
   }

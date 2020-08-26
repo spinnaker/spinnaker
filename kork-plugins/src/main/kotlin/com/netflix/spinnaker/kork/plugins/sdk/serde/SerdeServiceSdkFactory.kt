@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.sdk.serde
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
+import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
@@ -53,6 +54,6 @@ class SerdeServiceSdkFactory(
       .let { SerdeServiceImpl(it) }
   }
 
-  override fun create(extensionClass: Class<*>, pluginWrapper: PluginWrapper?): Any =
+  override fun create(pluginClass: Class<*>, pluginWrapper: PluginWrapper?): Any =
     serdeService
 }

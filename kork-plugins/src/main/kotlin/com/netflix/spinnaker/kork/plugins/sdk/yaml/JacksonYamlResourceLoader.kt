@@ -21,17 +21,21 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 
-class JacksonYamlResourceLoader(private val extensionClass: Class<*>) : YamlResourceLoader {
+class JacksonYamlResourceLoader(
+  private val pluginClass: Class<*>
+) : YamlResourceLoader {
 
-  private val mapper: ObjectMapper = ObjectMapper(YAMLFactory()).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+  private val mapper: ObjectMapper = ObjectMapper(YAMLFactory())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
   override fun <T : Any?> loadResource(resourceName: String, toValueType: Class<T>): T? {
-
-    this.extensionClass.classLoader.getResourceAsStream(resourceName).use { inputStream ->
+    pluginClass.classLoader.getResourceAsStream(resourceName).use { inputStream ->
       if (inputStream != null) {
         return mapper.readValue(inputStream, toValueType)
       }
-      throw IllegalArgumentException("Cannot load specified resource: $resourceName , for extension: ${extensionClass.simpleName}")
+      throw IllegalArgumentException(
+        "Cannot load specified resource '$resourceName' for '${pluginClass.simpleName}'"
+      )
     }
   }
 }

@@ -39,7 +39,7 @@ class JacksonYamlResourceLoaderTest : JUnit5Minutests {
         expectThrows<IllegalArgumentException> {
           subject.loadResource("unknown.yml", HashMap<String, String>().javaClass)
         }.and {
-          message.isEqualTo("Cannot load specified resource: unknown.yml , for extension: Fixture")
+          message.isEqualTo("Cannot load specified resource 'unknown.yml' for 'Fixture'")
         }
       }
 

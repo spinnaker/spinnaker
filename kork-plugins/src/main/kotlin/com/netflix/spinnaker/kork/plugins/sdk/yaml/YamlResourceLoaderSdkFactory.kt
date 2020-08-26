@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.kork.plugins.sdk.yaml
 
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
+import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 
 /**
  * Creates YAML Resource Loader for the provided extension class.
  */
-class YamlResourceLoaderSdkFactory() : SdkFactory {
+class YamlResourceLoaderSdkFactory : SdkFactory {
 
-  override fun create(extensionClass: Class<*>, pluginWrapper: PluginWrapper?): Any {
-    return JacksonYamlResourceLoader(extensionClass)
-  }
+  override fun create(pluginClass: Class<*>, pluginWrapper: PluginWrapper?): Any =
+    JacksonYamlResourceLoader(pluginClass)
 }
