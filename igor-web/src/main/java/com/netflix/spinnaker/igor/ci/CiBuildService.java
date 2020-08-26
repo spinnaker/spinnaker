@@ -32,8 +32,15 @@ public interface CiBuildService {
    *
    * @param projectKey the project key
    * @param repoSlug the repository name
+   * @param buildNumber the build number
+   * @param commitId the commit id
    * @param completionStatus filter builds based on status
    * @return a list of builds
    */
-  List<GenericBuild> getBuilds(String projectKey, String repoSlug, String completionStatus);
+  List<GenericBuild> getBuilds(
+      String projectKey,
+      String repoSlug,
+      String buildNumber,
+      String commitId,
+      String completionStatus);
 }
