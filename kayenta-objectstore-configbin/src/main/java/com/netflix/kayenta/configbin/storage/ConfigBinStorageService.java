@@ -351,6 +351,8 @@ public class ConfigBinStorageService implements StorageService {
     return new ImmutableMap.Builder<String, Object>()
         .put("id", id)
         .put("name", config.getName())
+        .put("updatedTimestamp", config.getUpdatedTimestamp())
+        .put("updatedTimestampIso", config.getUpdatedTimestampIso())
         .build();
   }
 }
