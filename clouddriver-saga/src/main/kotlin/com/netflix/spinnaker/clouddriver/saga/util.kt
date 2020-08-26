@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.clouddriver.saga
 
 import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaSystemException
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
+import org.springframework.core.ResolvableType
 
 /**
  * Get the name of the provided [command] instance.
@@ -32,3 +35,21 @@ internal fun getStepCommandName(command: SagaCommand): String =
  */
 internal fun getStepCommandName(commandClass: Class<SagaCommand>): String =
   commandClass.getAnnotation(JsonTypeName::class.java)?.value ?: commandClass.simpleName
+
+/**
+ * Get the [SagaCommand] for a given [SagaAction].
+ */
+internal fun getCommandTypeFromAction(action: Class<out SagaAction<*>>): Class<SagaCommand> {
+  val actionType = ResolvableType.forClass(SagaAction::class.java, action)
+  actionType.resolve()
+
+  val commandType = actionType.getGeneric(0)
+  commandType.resolve()
+
+  val rawClass = commandType.rawClass!!
+  if (SagaCommand::class.java.isAssignableFrom(rawClass)) {
+    @Suppress("UNCHECKED_CAST")
+    return rawClass as Class<SagaCommand>
+  }
+  throw SagaSystemException("Resolved next action is not a SagaCommand: ${rawClass.simpleName}")
+}

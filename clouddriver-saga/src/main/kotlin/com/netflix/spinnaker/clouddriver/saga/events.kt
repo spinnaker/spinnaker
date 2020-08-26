@@ -137,6 +137,29 @@ class SagaConditionEvaluated(
 ) : AbstractSagaEvent()
 
 /**
+ * An event type that finalizes a [SagaCommand]
+ */
+interface CommandFinalizer : SagaEvent {
+
+  /**
+   * The command name that was finalized.
+   */
+  val command: String
+
+  /**
+   * Returns whether or not the given [candidateCommand] was finalized by this event.
+   */
+  fun matches(candidateCommand: Class<out SagaCommand>): Boolean =
+    candidateCommand.getAnnotation(JsonTypeName::class.java)?.value == command
+}
+
+@JsonTypeName("sagaCommandSkipped")
+class SagaCommandSkipped(
+  override val command: String,
+  val reason: String
+) : AbstractSagaEvent(), CommandFinalizer
+
+/**
  * The root event type for all mutating [Saga] operations.
  */
 interface SagaCommand : SagaEvent
@@ -153,12 +176,8 @@ interface SagaRollbackCommand : SagaCommand
  */
 @JsonTypeName("sagaCommandCompleted")
 class SagaCommandCompleted(
-  val command: String
-) : AbstractSagaEvent() {
-
-  fun matches(candidateCommand: Class<out SagaCommand>): Boolean =
-    candidateCommand.getAnnotation(JsonTypeName::class.java)?.value == command
-}
+  override val command: String
+) : AbstractSagaEvent(), CommandFinalizer
 
 /**
  * A [SagaCommand] wrapper for [SagaAction]s that need to return more than one [SagaCommand].

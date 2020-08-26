@@ -24,12 +24,17 @@ import com.netflix.spinnaker.clouddriver.saga.DoAction1
 import com.netflix.spinnaker.clouddriver.saga.DoAction2
 import com.netflix.spinnaker.clouddriver.saga.DoAction3
 import com.netflix.spinnaker.clouddriver.saga.SagaCommandCompleted
+import com.netflix.spinnaker.clouddriver.saga.SagaCommandSkipped
 import com.netflix.spinnaker.clouddriver.saga.SagaConditionEvaluated
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranch
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranchPredicate
 import dev.minutest.rootContext
 import strikt.api.expect
+import strikt.assertions.first
+import strikt.assertions.get
+import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -101,6 +106,25 @@ class SagaFlowIteratorTest : AbstractSagaTest() {
         that(subject.hasNext()).isTrue()
         that(subject.next()).get { action }.isA<Action3>()
         that(subject.hasNext()).isFalse()
+      }
+    }
+
+    test("adds skipped command messages for skipped branches") {
+      saga.addEventForTest(DoAction1())
+      saga.addEventForTest(SagaCommandCompleted("doAction1"))
+      saga.addEventForTest(DoAction2())
+      saga.addEventForTest(DoAction3())
+
+      expect {
+        that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action3>()
+        that(subject.hasNext()).isFalse()
+
+        // The iterator doesn't perform saves, so the skip events will be pending.
+        that(saga.getPendingEvents().filterIsInstance<SagaCommandSkipped>()).and {
+          hasSize(1)
+          first().get { command }.isEqualTo("doAction2")
+        }
       }
     }
   }
