@@ -54,8 +54,8 @@ class DeployConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(DeployHandlerRegistry)
-  DeployHandlerRegistry deployHandlerRegistry() {
-    new DefaultDeployHandlerRegistry()
+  DeployHandlerRegistry deployHandlerRegistry(List<DeployHandler> deployHandlers) {
+    new DefaultDeployHandlerRegistry(deployHandlers)
   }
 
   @Bean
