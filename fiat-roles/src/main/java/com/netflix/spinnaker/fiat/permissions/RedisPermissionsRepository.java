@@ -47,9 +47,6 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
@@ -67,7 +64,6 @@ import redis.clients.jedis.ScanResult;
  * in will likely not be exactly what you get out. That's because of "unrestricted" resources, which
  * are added to the returned UserPermission.
  */
-@Component
 @Slf4j
 public class RedisPermissionsRepository implements PermissionsRepository {
 
@@ -90,12 +86,11 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private final String prefix;
 
-  @Autowired
   public RedisPermissionsRepository(
       ObjectMapper objectMapper,
       RedisClientDelegate redisClientDelegate,
       List<Resource> resources,
-      @Value("${fiat.redis.prefix:spinnaker:fiat}") String prefix) {
+      String prefix) {
     this.objectMapper = objectMapper;
     this.redisClientDelegate = redisClientDelegate;
     this.prefix = prefix;
