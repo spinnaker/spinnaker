@@ -84,7 +84,11 @@ class GcsStorageServiceTest {
     clock = SettableClock()
     gcs = when {
       testInfo.tags.contains("mockGcs") -> mockk()
-      else -> StorageOptions.newBuilder().setServiceRpcFactory(FakeStorageRpcFactory(clock)).build().service
+      else -> {
+        val service = StorageOptions.newBuilder().setServiceRpcFactory(FakeStorageRpcFactory(clock)).build().service
+        service.create(Bucket.of(BUCKET_NAME))
+        service
+      }
     }
     executor = when {
       testInfo.tags.contains("testExecutor") -> ControlledExecutor()

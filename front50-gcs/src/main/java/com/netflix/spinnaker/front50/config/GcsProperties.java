@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class GcsProperties {
   private String bucket;
 
-  private String bucketLocation;
+  private String bucketLocation = "";
 
   private String rootFolder = "front50";
 
