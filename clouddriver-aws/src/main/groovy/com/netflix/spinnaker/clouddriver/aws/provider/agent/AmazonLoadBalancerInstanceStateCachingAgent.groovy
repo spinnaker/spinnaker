@@ -48,6 +48,10 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LO
 
 @Slf4j
 class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, HealthProvidingCachingAgent, AccountAware {
+
+  final static String healthId = "aws-load-balancer-instance-health"
+  private final static String STILL_REGISTERING_DESCRIPTION = "Instance registration is still in progress."
+
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -55,8 +59,6 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
   final ApplicationContext ctx
 
   private Cache cacheView
-  final static String healthId = "aws-load-balancer-instance-health"
-
 
   AmazonLoadBalancerInstanceStateCachingAgent(AmazonClientProvider amazonClientProvider,
                                               NetflixAmazonCredentials account, String region,
@@ -125,6 +127,15 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
             instanceState.reasonCode,
             instanceState.description)
           loadBalancerInstances << loadBalancerInstance
+
+          // We want to track how long instances remain in a "still registering" state. Logging any time we
+          // see an instance with this description is a poor man's way of getting the metrics we need, without
+          // having to do expensive lookups - we can defer this to our logging platform to do the maths.
+          // TODO(rz): This kind of metric may be easier to create if we had a method of emitting events when
+          //  cache state changes.
+          if (instanceState.description == STILL_REGISTERING_DESCRIPTION) {
+            log.info("Instance '${instanceState.instanceId}' is still registering with load balancer '$lbName'")
+          }
         }
 
         LoadBalancerInstanceState loadBalancerInstanceState = new LoadBalancerInstanceState(
