@@ -204,6 +204,7 @@ export class ServerGroupWriter {
       region: serverGroup.region,
       securityGroups: securityGroups.map((group: ISecurityGroup) => group.id),
       serverGroupName: serverGroup.name,
+      type: 'updateSecurityGroupsForServerGroup',
     };
 
     if (hasLaunchTemplate) {
