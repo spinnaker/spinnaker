@@ -521,19 +521,28 @@ class TitusClusterHandler(
   private suspend fun getExistingServerGroupsByRegion(resource: Resource<TitusClusterSpec>): Map<String, List<ClouddriverTitusServerGroup>> {
     val existingServerGroups: MutableMap<String, MutableList<ClouddriverTitusServerGroup>> = mutableMapOf()
 
-    cloudDriverService
-      .listTitusServerGroups(
-        user = resource.serviceAccount,
-        app = resource.spec.application,
-        account = resource.spec.locations.account,
-        cluster = resource.spec.moniker.toString()
-      )
-      .serverGroups
-      .forEach { sg ->
-        val existing = existingServerGroups.getOrPut(sg.region, { mutableListOf() })
-        existing.add(sg)
-        existingServerGroups[sg.region] = existing
+    try {
+      cloudDriverService
+        .listTitusServerGroups(
+          user = resource.serviceAccount,
+          app = resource.spec.application,
+          account = resource.spec.locations.account,
+          cluster = resource.spec.moniker.toString()
+        )
+        .serverGroups
+        .forEach { sg ->
+          val existing = existingServerGroups.getOrPut(sg.region, { mutableListOf() })
+          existing.add(sg)
+          existingServerGroups[sg.region] = existing
+        }
+    } catch (e: HttpException) {
+      if (e.isNotFound) {
+        return emptyMap()
+      } else {
+        throw e
       }
+    }
+
     return existingServerGroups
   }
 
