@@ -19,16 +19,13 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
 
-  constraints {
-    implementation("io.searchbox:jest") {
-      version {
-        strictly "6.3.1"
-      }
-    }
-    implementation("org.elasticsearch:elasticsearch") {
-      version {
-        strictly "6.8.6"
-      }
-    }
+  //TODO(jonsie): Determine why this is necessary to extend and build clouddriver so we can
+  // use the version constraints that were introduced in this PR:
+  // https://github.com/spinnaker/clouddriver/pull/4826
+  implementation("org.elasticsearch:elasticsearch:6.8.6") {
+    force = true
+  }
+  implementation("io.searchbox:jest:6.3.1") {
+    force = true
   }
 }
