@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { BreakString } from '@spinnaker/core';
 import { ITableColumn } from 'kayenta/layout/table';
 import { IMetricResultsTableRow } from './metricResultsList';
 import MetricResultClassification from './metricResultClassification';
@@ -7,7 +8,7 @@ import MetricResultDeviation from './metricResultDeviation';
 export const metricResultsColumns: Array<ITableColumn<IMetricResultsTableRow>> = [
   {
     label: 'metric name',
-    getContent: ({ metricName }) => <span>{metricName}</span>,
+    getContent: ({ metricName }) => <BreakString>{metricName}</BreakString>,
     width: 5,
   },
   {

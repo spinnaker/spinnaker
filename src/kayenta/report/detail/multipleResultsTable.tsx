@@ -2,6 +2,7 @@ import * as React from 'react';
 import { chain } from 'lodash';
 import { connect, Dispatch } from 'react-redux';
 import * as classNames from 'classnames';
+import { BreakString } from '@spinnaker/core';
 
 import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import { ITableColumn, Table } from 'kayenta/layout/table';
@@ -37,7 +38,7 @@ const MultipleResultsTable = ({
   let columns: Array<ITableColumn<ICanaryAnalysisResult>> = tagKeys.map((key) => ({
     label: key,
     width: 5,
-    getContent: (result: ICanaryAnalysisResult) => <span>{result.tags[key]}</span>,
+    getContent: (result: ICanaryAnalysisResult) => <BreakString>{result.tags[key]}</BreakString>,
   }));
 
   columns = columns.concat([
