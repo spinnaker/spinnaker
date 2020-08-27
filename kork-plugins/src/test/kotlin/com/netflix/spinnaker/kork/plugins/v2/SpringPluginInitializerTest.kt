@@ -17,16 +17,10 @@
 package com.netflix.spinnaker.kork.plugins.v2
 
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
-import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
-import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
-import com.netflix.spinnaker.kork.plugins.internal.PluginZip
-import com.netflix.spinnaker.kork.plugins.testplugin.basicGeneratedPlugin
 import com.netflix.spinnaker.kork.plugins.testplugin.testPlugin
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.pf4j.Plugin
-import org.pf4j.PluginWrapper
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner

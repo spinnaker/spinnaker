@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.config;
 
 import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V1;
+import static com.netflix.spinnaker.kork.plugins.PackageKt.FRAMEWORK_V2;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spectator.api.Registry;
@@ -48,6 +49,9 @@ import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleas
 import com.netflix.spinnaker.kork.plugins.update.release.source.PreferredPluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.SpringPluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.repository.ConfigurableUpdateRepository;
+import com.netflix.spinnaker.kork.plugins.v2.PluginFrameworkInitializer;
+import com.netflix.spinnaker.kork.plugins.v2.SpinnakerPluginService;
+import com.netflix.spinnaker.kork.plugins.v2.SpringPluginFactory;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
 import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.version.VersionResolver;
@@ -70,15 +74,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 @EnableConfigurationProperties(PluginsConfigurationProperties.class)
-@Import({
-  V2PluginConfiguration.class,
-  Front50PluginsConfiguration.class,
-  RemotePluginsConfiguration.class
-})
+@Import({Front50PluginsConfiguration.class, RemotePluginsConfiguration.class})
 public class PluginsAutoConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(PluginsAutoConfiguration.class);
@@ -136,6 +137,29 @@ public class PluginsAutoConfiguration {
     return configResolver.resolve(
         new RepositoryConfigCoordinates(),
         new TypeReference<HashMap<String, PluginRepositoryProperties>>() {});
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "spinnaker.extensibility.framework.version",
+      havingValue = FRAMEWORK_V1,
+      matchIfMissing = true)
+  public static PluginFactory pluginFactoryV1(
+      List<SdkFactory> sdkFactories, ConfigFactory configFactory) {
+    return new SpinnakerPluginFactory(sdkFactories, configFactory);
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "spinnaker.extensibility.framework.version",
+      havingValue = FRAMEWORK_V2)
+  public static PluginFactory pluginFactoryV2(
+      List<SdkFactory> sdkFactories,
+      ConfigFactory configFactory,
+      GenericApplicationContext applicationContext,
+      List<InvocationAspect<?>> invocationAspects) {
+    return new SpringPluginFactory(
+        sdkFactories, configFactory, applicationContext, invocationAspects);
   }
 
   @Bean
@@ -298,16 +322,6 @@ public class PluginsAutoConfiguration {
       value = "spinnaker.extensibility.framework.version",
       havingValue = FRAMEWORK_V1,
       matchIfMissing = true)
-  public static PluginFactory pluginFactory(
-      List<SdkFactory> sdkFactories, ConfigFactory configFactory) {
-    return new SpinnakerPluginFactory(sdkFactories, configFactory);
-  }
-
-  @Bean
-  @ConditionalOnProperty(
-      value = "spinnaker.extensibility.framework.version",
-      havingValue = FRAMEWORK_V1,
-      matchIfMissing = true)
   public static ExtensionBeanDefinitionRegistryPostProcessor pluginBeanPostProcessor(
       SpinnakerPluginManager pluginManager,
       SpinnakerUpdateManager updateManager,
@@ -322,5 +336,27 @@ public class PluginsAutoConfiguration {
         springPluginStatusProvider,
         applicationEventPublisher,
         invocationAspects);
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "spinnaker.extensibility.framework.version",
+      havingValue = FRAMEWORK_V2)
+  public SpinnakerPluginService spinnakerPluginService(
+      SpinnakerPluginManager pluginManager,
+      SpinnakerUpdateManager updateManager,
+      PluginInfoReleaseProvider pluginInfoReleaseProvider,
+      SpringPluginStatusProvider springPluginStatusProvider,
+      ApplicationEventPublisher applicationEventPublisher) {
+    return new SpinnakerPluginService(
+        pluginManager, updateManager, pluginInfoReleaseProvider, springPluginStatusProvider);
+  }
+
+  @Bean
+  @ConditionalOnProperty(
+      value = "spinnaker.extensibility.framework.version",
+      havingValue = FRAMEWORK_V2)
+  PluginFrameworkInitializer pluginFrameworkInitializer(SpinnakerPluginService pluginService) {
+    return new PluginFrameworkInitializer(pluginService);
   }
 }
