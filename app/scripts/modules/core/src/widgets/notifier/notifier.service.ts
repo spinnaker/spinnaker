@@ -1,9 +1,11 @@
+import React from 'react';
 import { Subject } from 'rxjs';
 
 export interface INotifier {
   key: string;
   action: 'remove' | 'create';
-  body?: string;
+  body?: string /* Deprecated in favor of `content` */;
+  content?: React.ReactNode;
 }
 
 export class NotifierService {

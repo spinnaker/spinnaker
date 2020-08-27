@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Application } from '../application.model';
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
 
@@ -30,7 +32,11 @@ export class InferredApplicationWarningService {
     NotifierService.publish({
       key: 'inferredApplicationWarning',
       action: 'create',
-      body: `The application <b>${appName}</b> has not been <a href="#/applications/${appName}/config">configured</a>.`,
+      content: (
+        <div>
+          The application <b>{appName}</b> has not been <a href={`#/applications/${appName}/config`}>configured</a>.
+        </div>
+      ),
     });
   }
 }

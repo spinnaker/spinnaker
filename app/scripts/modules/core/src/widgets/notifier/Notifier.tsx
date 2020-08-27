@@ -44,7 +44,11 @@ export class Notifier extends React.Component<{}, INotifierState> {
 
   private makeNotification = (message: INotifier) => (
     <div key={message.key} className="user-notification horizontal space-around">
-      <Markdown className="message" message={message.body} options={{ ADD_ATTR: ['onclick'] }} />
+      {message.content ? (
+        <div className="message">{message.content}</div>
+      ) : (
+        <Markdown className="message" message={message.body} options={{ ADD_ATTR: ['onclick'] }} />
+      )}
       <button className="btn btn-link close-notification" role="button" onClick={() => this.dismiss(message.key)}>
         <span className="fa fa-times" />
       </button>

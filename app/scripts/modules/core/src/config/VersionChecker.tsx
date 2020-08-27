@@ -1,3 +1,4 @@
+import React from 'react';
 import { $http, $log } from 'ngimport';
 
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
@@ -39,8 +40,14 @@ export class VersionChecker {
         NotifierService.publish({
           key: 'newVersion',
           action: 'create',
-          body: `A new version of Spinnaker is available
-              <a role="button" class="action" onclick="document.location.reload(true)">Refresh</a>`,
+          content: (
+            <div>
+              A new version of Spinnaker is available{' '}
+              <a role="button" className="action" onClick={() => document.location.reload(true)}>
+                Refresh
+              </a>
+            </div>
+          ),
         });
         this.scheduler.unsubscribe();
       }
