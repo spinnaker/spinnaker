@@ -303,4 +303,8 @@ public class KubernetesManifestAnnotater {
   public static String getManifestCluster(KubernetesManifest manifest) {
     return Strings.nullToEmpty(manifest.getAnnotations().get(CLUSTER));
   }
+
+  public static String getManifestApplication(KubernetesManifest manifest) {
+    return Strings.nullToEmpty(manifest.getAnnotations().get(APPLICATION));
+  }
 }

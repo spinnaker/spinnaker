@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
@@ -48,6 +49,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.Kubern
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -525,7 +527,7 @@ final class KubernetesDataProviderIntegrationTest {
   void getClusterAndSortAscending(SoftAssertions softly) {
     List<KubernetesManifest> manifests =
         manifestProvider.getClusterAndSortAscending(
-            ACCOUNT_NAME, "backend-ns", "replicaSet", "replicaSet backend", Sort.AGE);
+            ACCOUNT_NAME, "backend-ns", "replicaSet", "replicaSet backend", "backendapp", Sort.AGE);
     assertThat(manifests).isNotNull();
     softly
         .assertThat(
@@ -533,6 +535,66 @@ final class KubernetesDataProviderIntegrationTest {
                 .map(KubernetesManifest::getFullResourceName)
                 .collect(toImmutableList()))
         .containsExactly("replicaSet backend-v014", "replicaSet backend-v015");
+  }
+
+  @Test
+  void getClusterAndSortAscendingBadAccount(SoftAssertions softly) {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            manifestProvider.getClusterAndSortAscending(
+                "not-an-account",
+                "backend-ns",
+                "replicaSet",
+                "replicaSet backend",
+                "backendapp",
+                Sort.AGE));
+  }
+
+  @Test
+  void getClusterManifestCoordinates(SoftAssertions softly) {
+    List<KubernetesCoordinates> coordinates =
+        manifestProvider.getClusterManifestCoordinates(
+            ACCOUNT_NAME, "backend-ns", "replicaSet", "backendapp", "replicaSet backend");
+    assertThat(coordinates).isNotNull();
+    softly
+        .assertThat(coordinates.stream().collect(toImmutableList()))
+        .containsExactlyInAnyOrder(
+            KubernetesCoordinates.builder()
+                .kind(KubernetesKind.REPLICA_SET)
+                .name("backend-v014")
+                .namespace("backend-ns")
+                .build(),
+            KubernetesCoordinates.builder()
+                .kind(KubernetesKind.REPLICA_SET)
+                .name("backend-v015")
+                .namespace("backend-ns")
+                .build());
+  }
+
+  @Test
+  void getClusterManifestCoordinatesBadAccount(SoftAssertions softly) {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            manifestProvider.getClusterManifestCoordinates(
+                "not-an-account", "backend-ns", "replicaSet", "backendapp", "replicaSet backend"));
+  }
+
+  @Test
+  void getClusterManifestCoordinatesEmptyNamespace(SoftAssertions softly) {
+    List<KubernetesCoordinates> coordinates =
+        manifestProvider.getClusterManifestCoordinates(
+            ACCOUNT_NAME, "empty", "replicaSet", "backendapp", "replicaSet backend");
+    softly.assertThat(coordinates).isEmpty();
+  }
+
+  @Test
+  void getClusterManifestCoordinatesEmptyCluster(SoftAssertions softly) {
+    List<KubernetesCoordinates> coordinates =
+        manifestProvider.getClusterManifestCoordinates(
+            ACCOUNT_NAME, "empty-namespace", "replicaSet", "backendapp", "replicaSet empty");
+    softly.assertThat(coordinates).isEmpty();
   }
 
   private static KubectlJobExecutor getJobExecutor() {

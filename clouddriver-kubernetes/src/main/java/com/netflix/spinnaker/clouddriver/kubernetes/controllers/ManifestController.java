@@ -41,9 +41,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/manifests")
 public class ManifestController {
   private static final Logger log = LoggerFactory.getLogger(ManifestController.class);
-  final KubernetesManifestProvider manifestProvider;
-
-  final RequestQueue requestQueue;
+  private final KubernetesManifestProvider manifestProvider;
+  private final RequestQueue requestQueue;
 
   @Autowired
   public ManifestController(
@@ -124,14 +123,10 @@ public class ManifestController {
               account,
               () ->
                   manifestProvider.getClusterAndSortAscending(
-                      account, location, kind, cluster, criteria.getSort()));
+                      account, location, kind, cluster, app, criteria.getSort()));
     } catch (Throwable t) {
       log.warn("Failed to read {}", request, t);
       return null;
-    }
-
-    if (manifests == null) {
-      throw new NotFoundException("No manifests matching " + request + " found");
     }
 
     try {
@@ -150,6 +145,36 @@ public class ManifestController {
     } catch (IndexOutOfBoundsException e) {
       throw new NotFoundException("No manifests matching " + request + " found");
     }
+  }
+
+  @RequestMapping(
+      value = "/{account:.+}/{location:.+}/{kind:.+}/cluster/{app:.+}/{cluster:.+}",
+      method = RequestMethod.GET)
+  List<KubernetesCoordinates> getClusterManifestCoordinates(
+      @PathVariable String account,
+      @PathVariable String location,
+      @PathVariable String kind,
+      @PathVariable String app,
+      @PathVariable String cluster) {
+    final String request =
+        String.format(
+            "(account: %s, location: %s, kind: %s, app %s, cluster: %s)",
+            account, location, kind, app, cluster);
+
+    List<KubernetesCoordinates> coordinates;
+    try {
+      coordinates =
+          requestQueue.execute(
+              account,
+              () ->
+                  manifestProvider.getClusterManifestCoordinates(
+                      account, location, kind, app, cluster));
+    } catch (Throwable t) {
+      log.warn("Failed to read {}", request, t);
+      return null;
+    }
+
+    return coordinates;
   }
 
   enum Criteria {

@@ -26,11 +26,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.Kubernete
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric.ContainerMetric;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import java.util.Collection;
 import java.util.List;
@@ -116,25 +114,46 @@ public class KubernetesManifestProvider {
         .collect(toImmutableList());
   }
 
-  @Nullable
   public List<KubernetesManifest> getClusterAndSortAscending(
-      String account, String location, String kind, String cluster, Sort sort) {
-    Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
-    if (!optionalCredentials.isPresent()) {
-      return null;
-    }
-    KubernetesCredentials credentials = optionalCredentials.get();
+      String account, String location, String kind, String cluster, String app, Sort sort) {
     KubernetesKind kubernetesKind = KubernetesKind.fromString(kind);
+    return accountResolver
+        .getCredentials(account)
+        .map(
+            credentials ->
+                credentials.list(kubernetesKind, location).stream()
+                    .filter(
+                        m ->
+                            cluster.equals(KubernetesManifestAnnotater.getManifestCluster(m))
+                                & app.equals(KubernetesManifestAnnotater.getManifestApplication(m)))
+                    .sorted(
+                        (m1, m2) ->
+                            credentials
+                                .getResourcePropertyRegistry()
+                                .get(kubernetesKind)
+                                .getHandler()
+                                .comparatorFor(sort)
+                                .compare(m1, m2))
+                    .collect(Collectors.toList()))
+        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account: " + account));
+  }
 
-    KubernetesResourceProperties properties =
-        credentials.getResourcePropertyRegistry().get(kubernetesKind);
-
-    KubernetesHandler handler = properties.getHandler();
-
-    return credentials.list(kubernetesKind, location).stream()
-        .filter(m -> cluster.equals(KubernetesManifestAnnotater.getManifestCluster(m)))
-        .sorted((m1, m2) -> handler.comparatorFor(sort).compare(m1, m2))
-        .collect(Collectors.toList());
+  public List<KubernetesCoordinates> getClusterManifestCoordinates(
+      String account, String location, String kind, String app, String cluster) {
+    KubernetesKind kubernetesKind = KubernetesKind.fromString(kind);
+    return accountResolver
+        .getCredentials(account)
+        .map(
+            credentials ->
+                credentials.list(kubernetesKind, location).stream()
+                    .filter(
+                        m ->
+                            cluster.equals(KubernetesManifestAnnotater.getManifestCluster(m))
+                                && app.equals(
+                                    KubernetesManifestAnnotater.getManifestApplication(m)))
+                    .map(KubernetesCoordinates::fromManifest)
+                    .collect(Collectors.toList()))
+        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account: " + account));
   }
 
   public enum Sort {
