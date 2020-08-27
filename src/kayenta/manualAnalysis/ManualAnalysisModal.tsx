@@ -43,6 +43,7 @@ export interface IManualAnalysisModalProps extends IModalComponentProps {
   title: string;
   application: Application;
   accounts: IKayentaAccount[];
+  initialValues?: IManualAnalysisModalFormProps;
 }
 
 export interface IManualAnalysisModalState {
@@ -117,7 +118,7 @@ const transformFormPropsToExecutionRequest = (
   };
 };
 
-const initialValues: IManualAnalysisModalFormProps = {
+const defaultValues: IManualAnalysisModalFormProps = {
   configId: null,
   startTime: '',
   endTime: '',
@@ -138,11 +139,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
   public static defaultProps: Partial<IManualAnalysisModalProps> = {
     closeModal: noop,
     dismissModal: noop,
-  };
-
-  public state: IManualAnalysisModalState = {
-    showAllControlLocations: false,
-    showAllExperimentLocations: false,
+    initialValues: defaultValues,
   };
 
   public static show(props: IManualAnalysisModalProps): Promise<any> {
@@ -152,6 +149,13 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
 
   constructor(props: IManualAnalysisModalProps) {
     super(props);
+    const { initialValues, accounts } = props;
+    const selectedMetricsStore = accounts.find(({ name }) => initialValues.metricsAccountName === name);
+    const recommendedLocations = selectedMetricsStore?.recommendedLocations ?? [];
+    this.state = {
+      showAllControlLocations: !recommendedLocations.includes(initialValues.baselineLocation),
+      showAllExperimentLocations: !recommendedLocations.includes(initialValues.canaryLocation),
+    };
   }
 
   private validate = (values: IManualAnalysisModalFormProps) => {
@@ -257,7 +261,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
   };
 
   public render() {
-    const { dismissModal, title, application, accounts } = this.props;
+    const { dismissModal, title, application, accounts, initialValues } = this.props;
     const { showAllControlLocations, showAllExperimentLocations } = this.state;
 
     const canaryConfigs: ICanaryConfigSummary[] = application
@@ -282,6 +286,7 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
         }}
         onSubmit={this.submit}
         validate={this.validate}
+        isInitialValid={!!initialValues.configId} // if we have a config id initially, everything else should be valid
         render={({
           values,
           touched,
@@ -313,7 +318,19 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
           const selectedObjectStore = objectStores.find(({ name }) => values.storageAccountName === name);
 
           const recommendedLocations = get(selectedMetricsStore, 'recommendedLocations', []);
+          const { canaryLocation, baselineLocation } = initialValues;
           const locations = get(selectedMetricsStore, 'locations', []);
+          // Almost every report generated for Atlas uses a simple region for its location. On the backend, Kayenta
+          // performs amazing feats to reconcile the location with an Atlas backend, considering the values of several
+          // extended params. We are not going to reverse engineer that logic here in order to pick a predefined value
+          // from the dropdown: if a location was valid to generate the report, it'll probably be valid when we
+          // regenerate it.
+          if (canaryLocation && !locations.includes(canaryLocation)) {
+            locations.push(canaryLocation);
+          }
+          if (baselineLocation && !locations.includes(baselineLocation)) {
+            locations.push(baselineLocation);
+          }
 
           const hasLocationChoices = recommendedLocations.length > 0 || locations.length > 0;
 
@@ -577,7 +594,7 @@ const LocationField = ({
   if (!hasLocationChoices) {
     return <ValidatedField name={field} errors={errors} touched={touched} />;
   }
-  const combinedLocations = combineLocations(showAll, recommendedLocations, locations);
+  const combinedLocations = combineLocations(showAll, recommendedLocations, locations).sort();
   const options = combinedLocations.map((location) => ({ label: location, value: location }));
 
   return (

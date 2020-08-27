@@ -6,16 +6,19 @@ export const CANARY_EXECUTION_NO_PIPELINE_STATUS = 'no-parent-pipeline-execution
 
 export interface ICanaryExecutionStatusResult {
   id: string; // Added by Deck on load.
+  canaryConfigId: string;
   complete: boolean;
   status: string;
   result: ICanaryResult;
   exception?: ICanaryExecutionException;
   stageStatus: { [key: string]: string };
   startTimeIso: string;
+  endTimeIso: string;
   application: string;
   pipelineId: string;
   parentPipelineExecutionId: string;
   metricSetPairListId: string;
+  metricsAccountName: string;
   config: ICanaryConfig;
   canaryExecutionRequest: ICanaryExecutionRequest;
   storageAccountName: string;
@@ -65,4 +68,5 @@ export interface ICanaryScope {
   end: string;
   step: number;
   extendedScopeParams?: { [param: string]: string };
+  resourceType?: string;
 }

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import * as moment from 'moment';
 import { isEqual, get } from 'lodash';
 
-import { Application, ReactInjector, Spinner } from '@spinnaker/core';
+import { Application, ReactInjector, Spinner, Tooltip } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
@@ -53,7 +53,7 @@ const getScopeLocations = (scopes: ICanaryScopesByName, metrics: ICanaryMetricCo
     return acc;
   }, new Set<string>());
 
-const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
+const baseColumns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
   {
     label: 'Summary',
     getContent: (execution) => (
@@ -147,6 +147,54 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
   },
 ];
 
+const getTableColumns = (application: Application, accounts: IKayentaAccount[]) => {
+  if (!CanarySettings.manualAnalysisEnabled) {
+    return baseColumns;
+  }
+  return baseColumns.concat([
+    {
+      label: 'Actions',
+      getContent: (execution) => (
+        <Tooltip value="Re-run analysis">
+          <button className="link" onClick={() => rerunAnalysis(execution, application, accounts)}>
+            <i className="fas fa-redo-alt" />
+          </button>
+        </Tooltip>
+      ),
+    },
+  ]);
+};
+
+const rerunAnalysis = (
+  execution: ICanaryExecutionStatusResult,
+  application: Application,
+  accounts: IKayentaAccount[],
+) => {
+  const { controlScope, experimentScope } = Object.values(execution.canaryExecutionRequest.scopes)[0];
+  const step = `${controlScope.step ?? 60}`;
+  ManualAnalysisModal.show({
+    title: 'Start Manual Analysis',
+    application,
+    accounts,
+    initialValues: {
+      configId: execution.canaryConfigId,
+      startTime: controlScope.start,
+      endTime: controlScope.end,
+      step,
+      baselineScope: controlScope.scope,
+      canaryScope: experimentScope.scope,
+      baselineLocation: controlScope.location,
+      canaryLocation: experimentScope.location,
+      extendedScopeParams: controlScope.extendedScopeParams,
+      resourceType: controlScope.resourceType,
+      marginalThreshold: `${execution.canaryExecutionRequest.thresholds.marginal}`,
+      passThreshold: `${execution.canaryExecutionRequest.thresholds.pass}`,
+      metricsAccountName: execution.metricsAccountName,
+      storageAccountName: execution.storageAccountName,
+    },
+  });
+};
+
 const startManualAnalysis = (application: Application, accounts: IKayentaAccount[]) => {
   ManualAnalysisModal.show({
     title: 'Start Manual Analysis',
@@ -165,9 +213,11 @@ interface IExecutionListTableStateProps {
 const TableRows = ({
   executions,
   application,
+  accounts,
 }: {
   executions: ICanaryExecutionStatusResult[];
   application: Application;
+  accounts: IKayentaAccount[];
 }) => {
   if (!application.getDataSource('canaryExecutions').loaded) {
     return (
@@ -189,7 +239,7 @@ const TableRows = ({
     <NativeTable
       rows={executions}
       className="flex-1 execution-list-table"
-      columns={columns}
+      columns={getTableColumns(application, accounts)}
       rowKey={(execution) => execution.pipelineId}
     />
   );
@@ -243,7 +293,7 @@ const ExecutionListTable = ({ executions, application, accounts, executionsCount
           </button>
         )}
       </div>
-      <TableRows executions={executions} application={application} />
+      <TableRows executions={executions} application={application} accounts={accounts} />
     </div>
   );
 };
