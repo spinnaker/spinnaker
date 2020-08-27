@@ -178,6 +178,14 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       try {
         kato.resumeTask(katoTask.id)
       } catch (Exception e) {
+        if (e instanceof RetrofitError) {
+          RetrofitError retrofitError = (RetrofitError) e
+          if (retrofitError?.response?.status == 404) {
+            // unexpected -- no sense attempting to resume a saga that `clouddriver` has no knowledge about
+            throw e
+          }
+        }
+
         // Swallow the exception; we'll let Orca retry the next time around.
         log.error("Request failed attempting to resume task", e)
       }
