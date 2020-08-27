@@ -56,6 +56,12 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
+  public List<ManifestCoordinates> getClusterManifests(
+      String account, String location, String kind, String app, String cluster) {
+    return getService().getClusterManifests(account, location, kind, app, cluster);
+  }
+
+  @Override
   public Response getServerGroupFromCluster(
       String app,
       String account,

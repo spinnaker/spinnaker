@@ -65,6 +65,13 @@ interface OortService {
                                          @Path("clusterName") String clusterName,
                                          @Path("criteria") String criteria)
 
+  @GET("/manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}")
+  List<ManifestCoordinates> getClusterManifests(@Path("account") String account,
+                                                @Path("location") String location,
+                                                @Path("kind") String kind,
+                                                @Path("app") String app,
+                                                @Path("clusterName") String clusterName)
+
   @Deprecated
   @GET("/applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
   Response getServerGroup(@Path("app") String app,
