@@ -60,6 +60,7 @@ interface EchoService {
       GOOGLECHAT,
       HIPCHAT,
       JIRA,
+      MICROSOFTTEAMS,
       PAGER_DUTY,
       PUBSUB,
       SLACK,
