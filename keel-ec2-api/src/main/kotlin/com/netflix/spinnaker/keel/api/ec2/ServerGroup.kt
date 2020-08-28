@@ -45,6 +45,7 @@ data class ServerGroup(
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap(),
+  val onlyEnabledServerGroup: Boolean = true,
   @get:ExcludedFromDiff
   val image: ActiveServerGroupImage? = null,
   @get:ExcludedFromDiff

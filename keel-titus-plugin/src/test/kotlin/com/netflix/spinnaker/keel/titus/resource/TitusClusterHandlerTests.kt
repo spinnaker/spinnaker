@@ -229,7 +229,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } throws RETROFIT_NOT_FOUND
         coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
-        coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
+        coEvery { cloudDriverService.listTitusServerGroups(any(), any(), any(), any()) } throws RETROFIT_NOT_FOUND
       }
 
       test("the current model is null") {

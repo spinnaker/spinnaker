@@ -54,6 +54,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificatio
 import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
+import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup as ClouddriverServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
@@ -65,6 +66,7 @@ import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
 import com.netflix.spinnaker.keel.ec2.toEc2Api
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
+import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -83,6 +85,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 
@@ -110,7 +113,7 @@ class ClusterHandler(
 
   override suspend fun current(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     cloudDriverService
-      .getServerGroups(resource)
+      .getActiveServerGroups(resource)
       .byRegion()
 
   override suspend fun upsert(
@@ -123,7 +126,7 @@ class ClusterHandler(
         .filter { diff -> diff.hasChanges() }
 
       val deferred: MutableList<Deferred<Task>> = mutableListOf()
-      val modifyDiffs = diffs.filter { it.isCapacityOrAutoScalingOnly() }
+      val modifyDiffs = diffs.filter { it.isCapacityOrAutoScalingOnly() || it.isEnabledOnly() }
       val createDiffs = diffs - modifyDiffs
 
       if (modifyDiffs.isNotEmpty()) {
@@ -162,10 +165,19 @@ class ClusterHandler(
   ): List<Deferred<Task>> =
     coroutineScope {
       diffs.mapNotNull { diff ->
-        val (job, what) = when {
-          diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob()) to "capacity"
-          diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob() to "auto-scaling"
-          else -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1) to "capacity and auto-scaling"
+        val (job, description) = when {
+          diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob()) to "Modify capacity of server group ${diff.desired.moniker} in " +
+            "${diff.desired.location.account}/${diff.desired.location.region}"
+          diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob() to "Modify auto-scaling of server group ${diff.desired.moniker} in " +
+            "${diff.desired.location.account}/${diff.desired.location.region}"
+          diff.isEnabledOnly() -> {
+            val appVersion = diff.desired.launchConfiguration.appVersion ?: throw MissingAppVersionException(resource.id)
+            val job = diff.disableOtherServerGroupJob(resource, appVersion)
+            listOf(job) to "Disable extra active server group ${job["asgName"]} in " +
+              "${diff.desired.location.account}/${diff.desired.location.region}"
+          }
+          else -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1) to "Modify capacity and auto-scaling of server group ${diff.desired.moniker} in " +
+            "${diff.desired.location.account}/${diff.desired.location.region}"
         }
 
         if (job.isEmpty()) {
@@ -176,8 +188,7 @@ class ClusterHandler(
           async {
             taskLauncher.submitJob(
               resource = resource,
-              description = "Modify $what of server group ${diff.desired.moniker} in " +
-                "${diff.desired.location.account}/${diff.desired.location.region}",
+              description = description,
               correlationId = "${resource.id}:${diff.desired.location.region}",
               stages = job
             )
@@ -333,7 +344,7 @@ class ClusterHandler(
 
   override suspend fun export(exportable: Exportable): ClusterSpec {
     // Get existing infrastructure
-    val serverGroups = cloudDriverService.getServerGroups(
+    val serverGroups = cloudDriverService.getActiveServerGroups(
       account = exportable.account,
       moniker = exportable.moniker,
       regions = exportable.regions,
@@ -420,7 +431,7 @@ class ClusterHandler(
   }
 
   override suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact {
-    val serverGroups = cloudDriverService.getServerGroups(
+    val serverGroups = cloudDriverService.getActiveServerGroups(
       account = exportable.account,
       moniker = exportable.moniker,
       regions = exportable.regions,
@@ -522,6 +533,14 @@ class ClusterHandler(
       current!!.capacity.max == desired.capacity.max
 
   /**
+   * @return true if the only difference is in the onlyEnabledServerGroup property
+   */
+  private fun ResourceDiff<ServerGroup>.isEnabledOnly(): Boolean =
+    current != null &&
+      affectedRootPropertyNames.all { it == "onlyEnabledServerGroup" } &&
+      current!!.onlyEnabledServerGroup != desired.onlyEnabledServerGroup
+
+  /**
    * @return `true` if [current] doesn't exist and desired includes a scaling policy.
    */
   private fun ResourceDiff<ServerGroup>.shouldDeployAndModifyScalingPolicies(): Boolean =
@@ -545,6 +564,51 @@ class ClusterHandler(
         current!!.scaling.targetTrackingPolicies != desired.scaling.targetTrackingPolicies ||
           current!!.scaling.stepScalingPolicies != desired.scaling.stepScalingPolicies
         )
+
+  private fun ResourceDiff<ServerGroup>.disableOtherServerGroupJob(resource: Resource<ClusterSpec>, desiredVersion: String): Map<String, Any?> {
+    val current = requireNotNull(current) {
+      "Current server group must not be null when generating a disable job"
+    }
+    val existingServerGroups: Map<String, List<ClouddriverServerGroup>> = runBlocking { getExistingServerGroupsByRegion(resource) }
+    val sgInRegion = existingServerGroups.getOrDefault(current.location.region, emptyList()).filterNot { it.disabled }
+
+    if (sgInRegion.size < 2) {
+      log.error("Diff says this is not the only active server group, but now we say otherwise. " +
+        "What is going on? Existing server groups: {}", existingServerGroups)
+      throw ActiveServerGroupsException(resource.id, "No other active server group found to disable.")
+    }
+
+    val (rightImageASGs, wrongImageASGs) = sgInRegion
+      .sortedBy { it.createdTime }
+      .partition { it.image.appVersion == desiredVersion }
+
+    val sgToDisable = when {
+      wrongImageASGs.isNotEmpty() -> {
+        log.debug("Disabling oldest server group with incorrect app version for {}", resource.id)
+        wrongImageASGs.first()
+      }
+      rightImageASGs.size > 1 -> {
+        log.debug("Disabling oldest server group with correct app version " +
+          "(because there is more than one active server group with the correct image) for {}", resource.id)
+        rightImageASGs.first()
+      }
+      else -> {
+        log.error("Could not find a server group to disable, looking at: {}", wrongImageASGs + rightImageASGs)
+        throw ActiveServerGroupsException(resource.id, "No other active server group found to disable.")
+      }
+    }
+    log.debug("Disabling server group {} for {}: {}", sgToDisable.name, resource.id, sgToDisable)
+
+    return mapOf(
+      "type" to "disableServerGroup",
+      "cloudProvider" to CLOUD_PROVIDER,
+      "credentials" to desired.location.account,
+      "moniker" to sgToDisable.moniker.orcaClusterMoniker,
+      "region" to sgToDisable.region,
+      "serverGroupName" to sgToDisable.name,
+      "asgName" to sgToDisable.name
+    )
+  }
 
   private fun ResourceDiff<ServerGroup>.createServerGroupJob(startingRefId: Int = 0): Map<String, Any?> =
     with(desired) {
@@ -796,33 +860,71 @@ class ClusterHandler(
       }
     }
 
-  private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> =
-    getServerGroups(
+  private suspend fun CloudDriverService.getActiveServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> {
+    val existingServerGroups: Map<String, List<ClouddriverServerGroup>> = getExistingServerGroupsByRegion(resource)
+    val activeServerGroups = getActiveServerGroups(
       account = resource.spec.locations.account,
       moniker = resource.spec.moniker,
       regions = resource.spec.locations.regions.map { it.name }.toSet(),
       serviceAccount = resource.serviceAccount
-    )
-      .also { them ->
-        val allSame: Boolean = them.distinctBy { it.launchConfiguration.appVersion }.size == 1
-        val healthy: Boolean = them.all {
-          it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
-        }
-        if (allSame && healthy) {
-          // // only publish a successfully deployed event if the server group is healthy
-          val appVersion = them.first().launchConfiguration.appVersion
-          if (appVersion != null) {
-            publisher.publishEvent(
-              ArtifactVersionDeployed(
-                resourceId = resource.id,
-                artifactVersion = appVersion
-              )
-            )
-          }
-        }
-      }
+    ).map { activeServerGroup ->
+      val numEnabled = existingServerGroups
+        .getOrDefault(activeServerGroup.location.region, emptyList())
+        .filter { !it.disabled }
+        .size
 
-  private suspend fun CloudDriverService.getServerGroups(
+      when (numEnabled) {
+        1 -> activeServerGroup.copy(onlyEnabledServerGroup = true)
+        else -> activeServerGroup.copy(onlyEnabledServerGroup = false)
+      }
+    }
+
+    val allSame: Boolean = activeServerGroups.distinctBy { it.launchConfiguration.appVersion }.size == 1
+    val healthy: Boolean = activeServerGroups.all {
+      it.instanceCounts?.isHealthy(resource.spec.deployWith.health) == true
+    }
+    if (allSame && healthy) {
+      // // only publish a successfully deployed event if the server group is healthy
+      val appVersion = activeServerGroups.first().launchConfiguration.appVersion
+      if (appVersion != null) {
+        publisher.publishEvent(
+          ArtifactVersionDeployed(
+            resourceId = resource.id,
+            artifactVersion = appVersion
+          )
+        )
+      }
+    }
+
+    return activeServerGroups
+  }
+
+  private suspend fun getExistingServerGroupsByRegion(resource: Resource<ClusterSpec>): Map<String, List<ClouddriverServerGroup>> {
+    val existingServerGroups: MutableMap<String, MutableList<ClouddriverServerGroup>> = mutableMapOf()
+
+    try {
+      cloudDriverService
+        .listServerGroups(
+          user = resource.serviceAccount,
+          app = resource.spec.application,
+          account = resource.spec.locations.account,
+          cluster = resource.spec.moniker.toString()
+        )
+        .serverGroups
+        .forEach { sg ->
+          val existing = existingServerGroups.getOrPut(sg.region, { mutableListOf() })
+          existing.add(sg)
+          existingServerGroups[sg.region] = existing
+        }
+    } catch (e: HttpException) {
+      if (!e.isNotFound) {
+        throw e
+      }
+    }
+    return existingServerGroups
+  }
+
+  private suspend fun CloudDriverService.getActiveServerGroups(
     account: String,
     moniker: Moniker,
     regions: Set<String>,

@@ -536,13 +536,10 @@ class TitusClusterHandler(
           existingServerGroups[sg.region] = existing
         }
     } catch (e: HttpException) {
-      if (e.isNotFound) {
-        return emptyMap()
-      } else {
+      if (!e.isNotFound) {
         throw e
       }
     }
-
     return existingServerGroups
   }
 

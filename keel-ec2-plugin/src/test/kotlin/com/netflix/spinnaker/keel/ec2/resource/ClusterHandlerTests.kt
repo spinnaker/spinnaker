@@ -35,6 +35,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
@@ -239,10 +240,28 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       clearAllMocks()
     }
 
+    context("no server groups exist and the cluster doesn't exist") {
+      before {
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } throws RETROFIT_NOT_FOUND
+      }
+
+      test("the current model can be calculated correctly as no server groups") {
+        val current = runBlocking {
+          current(resource)
+        }
+        expectThat(current)
+          .hasSize(0)
+      }
+    }
+
     context("the cluster does not exist or has no active server groups") {
       before {
         coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(vpcEast.account, setOf(activeServerGroupResponseEast.toAllServerGroupsResponse()))
       }
 
       test("the current model is null") {
@@ -332,6 +351,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       before {
         coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(
+            vpcEast.account,
+            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), activeServerGroupResponseWest.toAllServerGroupsResponse()))
       }
 
       // TODO: test for multiple server group response
@@ -364,20 +387,24 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     context("the cluster has unhealthy active server groups") {
       before {
         val instanceCounts = InstanceCounts(1, 0, 0, 1, 0, 0)
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns
-          serverGroupEast.toCloudDriverResponse(
-            vpc = vpcEast,
-            subnets = listOf(subnet1East, subnet2East, subnet3East),
-            securityGroups = listOf(sg1East, sg2East),
-            instanceCounts = instanceCounts
-          )
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns
-          serverGroupWest.toCloudDriverResponse(
-            vpc = vpcWest,
-            subnets = listOf(subnet1West, subnet2West, subnet3West),
-            securityGroups = listOf(sg1West, sg2West),
-            instanceCounts = instanceCounts
-          )
+        val east = serverGroupEast.toCloudDriverResponse(
+          vpc = vpcEast,
+          subnets = listOf(subnet1East, subnet2East, subnet3East),
+          securityGroups = listOf(sg1East, sg2East),
+          instanceCounts = instanceCounts
+        )
+        val west = serverGroupWest.toCloudDriverResponse(
+          vpc = vpcWest,
+          subnets = listOf(subnet1West, subnet2West, subnet3West),
+          securityGroups = listOf(sg1West, sg2West),
+          instanceCounts = instanceCounts
+        )
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns east
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns west
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(
+            vpcEast.account,
+            setOf(east.toAllServerGroupsResponse(), west.toAllServerGroupsResponse()))
       }
 
       derivedContext<Map<String, ServerGroup>>("fetching the current server group state") {
@@ -395,8 +422,13 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups with different app versions") {
       before {
+        val west = activeServerGroupResponseWest.withOlderAppVersion()
         coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest.withOlderAppVersion()
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns west
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(
+            vpcEast.account,
+            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), west.toAllServerGroupsResponse()))
 
         runBlocking {
           current(resource)
@@ -410,8 +442,13 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups with missing app version tag in one region") {
       before {
+        val west = activeServerGroupResponseWest.withMissingAppVersion()
         coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } answers { activeServerGroupResponseWest.withMissingAppVersion() }
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns west
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(
+            vpcEast.account,
+            setOf(activeServerGroupResponseEast.toAllServerGroupsResponse(), west.toAllServerGroupsResponse()))
       }
 
       test("app version is null in the region with missing tag") {
@@ -454,6 +491,40 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
           get { get("availabilityZones") }.isA<Map<String, String>>().containsKey("us-west-2")
+        }
+      }
+    }
+
+    context("the cluster has too many enabled server groups in one region") {
+      val east = serverGroupEast.toMultiServerGroupResponse(vpc = vpcEast, subnets = listOf(subnet1East, subnet2East, subnet3East), securityGroups = listOf(sg1East, sg2East), allEnabled = true)
+      val west = serverGroupWest.toMultiServerGroupResponse(vpc = vpcWest, subnets = listOf(subnet1West, subnet2West, subnet3West), securityGroups = listOf(sg1West, sg2West))
+
+      before {
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
+        coEvery { cloudDriverService.listServerGroups(any(), any(), any(), any()) } returns
+          ServerGroupCollection(vpcEast.account, east + west)
+      }
+
+      test("applying the diff creates a disable job for the oldest server group") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name, onlyEnabledServerGroup = false),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+        )
+        val diff = DefaultResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+        runBlocking {
+          upsert(resource, diff)
+        }
+
+        val slot = slot<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
+
+        expectThat(slot.captured.job.first()) {
+          get("type").isEqualTo("disableServerGroup")
+          get("asgName").isEqualTo(east.sortedBy { it.createdTime }.first().name)
         }
       }
     }
