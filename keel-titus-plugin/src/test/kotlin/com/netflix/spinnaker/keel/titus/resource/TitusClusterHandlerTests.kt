@@ -31,7 +31,10 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
@@ -48,8 +51,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -67,13 +68,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import java.time.Clock
-import java.time.Duration
-import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.ResponseBody.Companion.toResponseBody
-import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import retrofit2.Response
 import strikt.api.Assertion
@@ -87,6 +84,9 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.map
+import java.time.Clock
+import java.time.Duration
+import java.util.UUID
 
 // todo eb: we could probably have generic cluster tests
 // where you provide the correct info for the spec and active server groups
@@ -96,7 +96,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val repository = mockk<KeelRepository>()
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  val publisher: EventPublisher = mockk(relaxUnitFun = true)
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,

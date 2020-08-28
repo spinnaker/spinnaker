@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
@@ -45,9 +46,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
@@ -57,6 +56,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
+import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
@@ -69,7 +69,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
-  private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  private val publisher: EventPublisher = mockk(relaxUnitFun = true)
   private val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,

@@ -36,10 +36,10 @@ import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.ALL
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel as ClouddriverSecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleCidr
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePortRange
@@ -59,13 +59,9 @@ import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearMocks
-import io.mockk.coEvery as every
-import io.mockk.coVerify as verify
 import io.mockk.confirmVerified
 import io.mockk.mockk
-import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -79,6 +75,10 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.util.UUID.randomUUID
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel as ClouddriverSecurityGroup
+import io.mockk.coEvery as every
+import io.mockk.coVerify as verify
 
 @Suppress("UNCHECKED_CAST")
 internal class SecurityGroupHandlerTests : JUnit5Minutests {
@@ -90,7 +90,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     every { environmentFor(any()) } returns Environment("test")
   }
 
-  private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  private val publisher: EventPublisher = mockk(relaxUnitFun = true)
   private val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,

@@ -7,6 +7,11 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
+import com.netflix.spinnaker.keel.api.events.ArtifactPublishedEvent
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 
@@ -25,6 +30,11 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
  * 3. Act to resolve the drift when requested by keel. This is done via the [create], [update] and [delete]
  *    methods, which receive a [ResourceDiff] as a parameter.
  *
+ *    a. A [ResourceHandler] whose [Resource] type supports [DeliveryArtifact] deployments is additionally
+ *       responsible for notifying core Keel when new versions of those artifacts transition to a deploying
+ *       state and to a successfully deployed state via the [notifyArtifactDeploying] and [notifyArtifactDeployed]
+ *       methods, respectively.
+ *
  * @param S the spec type.
  * @param R the resolved model type.
  */
@@ -37,6 +47,12 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * Maps the kind to the implementation type.
    */
   val supportedKind: SupportedKind<S>
+
+  /**
+   * Optional [EventPublisher] which can be used to signal other modules of relevant events.
+   */
+  val eventPublisher: EventPublisher?
+    get() = null
 
   /**
    * Resolve and convert the resource spec into the type that represents the diff-able desired
@@ -137,6 +153,26 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    */
   @JvmDefault
   suspend fun actuationInProgress(resource: Resource<S>): Boolean = false
+
+  /**
+   * Notifies core Keel that a new artifact version is being deployed to the specified resource.
+   *
+   * The default implementation achieves this by publishing an [ArtifactVersionDeploying] event via the
+   * [EventPublisher], and should *not* be overridden by plugin implementations.
+   */
+  @JvmDefault
+  fun notifyArtifactDeploying(resource: Resource<S>, artifactVersion: String) =
+    eventPublisher?.publishEvent(ArtifactVersionDeploying(resource.id, artifactVersion))
+
+  /**
+   * Notifies core Keel that a new artifact version was successfully deployed to the specified resource.
+   *
+   * The default implementation achieves this by publishing an [ArtifactVersionDeployed] event via the
+   * [EventPublisher], and should *not* be overridden by plugin implementations.
+   */
+  @JvmDefault
+  fun notifyArtifactDeployed(resource: Resource<S>, artifactVersion: String) =
+    eventPublisher?.publishEvent(ArtifactVersionDeployed(resource.id, artifactVersion))
 }
 
 /**

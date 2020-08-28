@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_1
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
@@ -40,9 +41,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.get
@@ -50,13 +49,14 @@ import strikt.assertions.getValue
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
-  private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  private val publisher: EventPublisher = mockk(relaxUnitFun = true)
   private val repository = mockk<KeelRepository> {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")

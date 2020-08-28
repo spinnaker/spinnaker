@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
 import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -38,7 +39,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
@@ -48,7 +48,7 @@ import strikt.assertions.isNotEmpty
 class OrcaTaskLauncherTests : JUnit5Minutests {
   class Fixture {
     val orcaService: OrcaService = mockk()
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val publisher: EventPublisher = mockk(relaxUnitFun = true)
     val combinedRepository = mockk<KeelRepository>()
     val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher)
     val resource: Resource<DummyResourceSpec> = resource()

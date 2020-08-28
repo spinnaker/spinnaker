@@ -26,11 +26,11 @@ import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.Capacity as ClouddriverCapacity
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -48,11 +48,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import java.time.Clock
-import java.time.Duration
-import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.hasSize
@@ -62,6 +58,10 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.time.Clock
+import java.time.Duration
+import java.util.UUID
+import com.netflix.spinnaker.keel.clouddriver.model.Capacity as ClouddriverCapacity
 
 internal class ClusterExportTests : JUnit5Minutests {
 
@@ -70,7 +70,7 @@ internal class ClusterExportTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val clock = Clock.systemUTC()
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  val publisher: EventPublisher = mockk(relaxUnitFun = true)
   val repository = mockk<KeelRepository>()
   val taskLauncher = OrcaTaskLauncher(
     orcaService,

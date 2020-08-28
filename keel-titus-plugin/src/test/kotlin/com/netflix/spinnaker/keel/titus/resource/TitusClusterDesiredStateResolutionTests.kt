@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
@@ -19,12 +20,11 @@ import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
-import java.time.Clock
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.getValue
 import strikt.assertions.isEqualTo
+import java.time.Clock
 
 class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
 
@@ -113,7 +113,7 @@ class TitusClusterDesiredStateResolutionTests : JUnit5Minutests {
     val cloudDriverCache = mockk<CloudDriverCache>()
     val orcaService = mockk<OrcaService>()
     val taskLauncher = mockk<TaskLauncher>()
-    val publisher = mockk<ApplicationEventPublisher>()
+    val publisher = mockk<EventPublisher>()
     val handler = TitusClusterHandler(
       cloudDriverService,
       cloudDriverCache,

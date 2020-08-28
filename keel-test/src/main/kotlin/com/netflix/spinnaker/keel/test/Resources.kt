@@ -16,7 +16,9 @@ import com.netflix.spinnaker.keel.api.artifacts.DEBIAN
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import io.mockk.mockk
 import java.time.Duration
 import java.util.UUID
 
@@ -211,6 +213,8 @@ object DummyResourceHandlerV1 : SimpleResourceHandler<DummyResourceSpec>(emptyLi
   override val supportedKind =
     SupportedKind(TEST_API_V1.qualify("whatever"), DummyResourceSpec::class.java)
 
+  override val eventPublisher: EventPublisher = mockk(relaxed = true)
+
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")
   }
@@ -219,6 +223,8 @@ object DummyResourceHandlerV1 : SimpleResourceHandler<DummyResourceSpec>(emptyLi
 object DummyResourceHandlerV2 : SimpleResourceHandler<DummyResourceSpec>(emptyList()) {
   override val supportedKind =
     SupportedKind(TEST_API_V2.qualify("whatever"), DummyResourceSpec::class.java)
+
+  override val eventPublisher: EventPublisher = mockk(relaxed = true)
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

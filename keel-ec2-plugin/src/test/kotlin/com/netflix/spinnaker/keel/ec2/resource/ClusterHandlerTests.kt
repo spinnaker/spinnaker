@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.DeployHealth
 import com.netflix.spinnaker.keel.api.DeployHealth.AUTO
 import com.netflix.spinnaker.keel.api.DeployHealth.NONE
 import com.netflix.spinnaker.keel.api.Environment
@@ -38,8 +37,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -86,7 +86,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val clock = Clock.systemUTC()
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  val publisher: EventPublisher = mockk(relaxUnitFun = true)
   val repository = mockk<KeelRepository>()
   val taskLauncher = OrcaTaskLauncher(
     orcaService,

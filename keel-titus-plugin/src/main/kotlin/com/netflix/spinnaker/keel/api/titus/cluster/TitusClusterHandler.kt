@@ -38,9 +38,9 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.api.titus.exceptions.RegistryNotFoundException
 import com.netflix.spinnaker.keel.api.titus.exceptions.TitusAccountConfigurationException
 import com.netflix.spinnaker.keel.api.withDefaultsOmitted
@@ -54,15 +54,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.TitusServerGroup as ClouddriverTitusServerGroup
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
+import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.exceptions.DockerArtifactExportError
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -71,16 +69,16 @@ import com.netflix.spinnaker.keel.orca.toOrcaJobProperties
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import net.swiftzer.semver.SemVer
-import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import com.netflix.spinnaker.keel.clouddriver.model.TitusServerGroup as ClouddriverTitusServerGroup
 
 class TitusClusterHandler(
   private val cloudDriverService: CloudDriverService,
@@ -88,7 +86,7 @@ class TitusClusterHandler(
   private val orcaService: OrcaService,
   private val clock: Clock,
   private val taskLauncher: TaskLauncher,
-  private val publisher: ApplicationEventPublisher,
+  override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
 ) : ResolvableResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
@@ -172,10 +170,7 @@ class TitusClusterHandler(
 
           if (diff.willDeployNewVersion()) {
             tags.forEach { tag ->
-              publisher.publishEvent(ArtifactVersionDeploying(
-                resourceId = resource.id,
-                artifactVersion = tag
-              ))
+              notifyArtifactDeploying(resource, tag)
             }
           }
           return@map result
@@ -507,12 +502,7 @@ class TitusClusterHandler(
           // We publish an event for each tag that matches the digest
           // so that we handle the tags like `latest` where more than one tags have the same digest
           // and we don't care about some of them.
-          publisher.publishEvent(
-            ArtifactVersionDeployed(
-              resourceId = resource.id,
-              artifactVersion = tag
-            )
-          )
+          notifyArtifactDeployed(resource, tag)
         }
     }
     return activeServerGroups

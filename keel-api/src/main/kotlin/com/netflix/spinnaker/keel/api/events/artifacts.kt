@@ -25,3 +25,19 @@ data class ArtifactRegisteredEvent(
 data class ArtifactSyncEvent(
   val controllerTriggered: Boolean = false
 )
+
+/**
+ * An event fired to signal that an artifact version is deploying to a resource.
+ */
+data class ArtifactVersionDeploying(
+  val resourceId: String,
+  val artifactVersion: String
+)
+
+/**
+ * An event fired to signal that an artifact version was successfully deployed to a resource.
+ */
+data class ArtifactVersionDeployed(
+  val resourceId: String,
+  val artifactVersion: String
+)

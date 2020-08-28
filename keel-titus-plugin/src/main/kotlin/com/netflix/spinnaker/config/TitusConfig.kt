@@ -19,16 +19,16 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
-import java.time.Clock
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.time.Clock
 
 @Configuration
 @ConditionalOnProperty("keel.plugins.titus.enabled")
@@ -40,7 +40,7 @@ class TitusConfig {
     orcaService: OrcaService,
     clock: Clock,
     taskLauncher: TaskLauncher,
-    publisher: ApplicationEventPublisher,
+    eventPublisher: EventPublisher,
     resolvers: List<Resolver<*>>,
     clusterExportHelper: ClusterExportHelper
   ): TitusClusterHandler = TitusClusterHandler(
@@ -49,7 +49,7 @@ class TitusConfig {
     orcaService,
     clock,
     taskLauncher,
-    publisher,
+    eventPublisher,
     resolvers,
     clusterExportHelper
   )

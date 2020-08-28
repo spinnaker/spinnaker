@@ -44,6 +44,7 @@ import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.plugins.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.withDefaultsOmitted
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -64,8 +65,6 @@ import com.netflix.spinnaker.keel.core.serverGroup
 import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.MissingAppVersionException
 import com.netflix.spinnaker.keel.ec2.toEc2Api
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
-import com.netflix.spinnaker.keel.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.exceptions.ActiveServerGroupsException
 import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
@@ -77,17 +76,16 @@ import com.netflix.spinnaker.keel.orca.waitStage
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import retrofit2.HttpException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
-import retrofit2.HttpException
 
 class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
@@ -95,7 +93,7 @@ class ClusterHandler(
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
   private val clock: Clock,
-  private val publisher: ApplicationEventPublisher,
+  override val eventPublisher: EventPublisher,
   resolvers: List<Resolver<*>>,
   private val clusterExportHelper: ClusterExportHelper
 ) : ResolvableResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
@@ -148,12 +146,7 @@ class ClusterHandler(
       )
 
       if (createDiffs.isNotEmpty()) {
-        publisher.publishEvent(
-          ArtifactVersionDeploying(
-            resourceId = resource.id,
-            artifactVersion = version
-          )
-        )
+        notifyArtifactDeploying(resource, version)
       }
 
       return@coroutineScope deferred.map { it.await() }
@@ -311,12 +304,7 @@ class ClusterHandler(
           )
         }
 
-        publisher.publishEvent(
-          ArtifactVersionDeploying(
-            resourceId = resource.id,
-            artifactVersion = version
-          )
-        )
+        notifyArtifactDeploying(resource, version)
 
         val task = deferred.await()
         priorExecutionId = task.id
@@ -887,12 +875,7 @@ class ClusterHandler(
       // // only publish a successfully deployed event if the server group is healthy
       val appVersion = activeServerGroups.first().launchConfiguration.appVersion
       if (appVersion != null) {
-        publisher.publishEvent(
-          ArtifactVersionDeployed(
-            resourceId = resource.id,
-            artifactVersion = appVersion
-          )
-        )
+        notifyArtifactDeployed(resource, appVersion)
       }
     }
 

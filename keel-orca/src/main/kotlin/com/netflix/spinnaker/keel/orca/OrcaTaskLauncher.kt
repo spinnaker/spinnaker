@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.actuation.SubjectType
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.model.Job
@@ -33,7 +34,6 @@ import com.netflix.spinnaker.keel.persistence.TaskRecord
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.util.concurrent.CompletableFuture
 
@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture
 class OrcaTaskLauncher(
   private val orcaService: OrcaService,
   private val repository: KeelRepository,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: EventPublisher
 ) : TaskLauncher {
   override suspend fun submitJob(
     resource: Resource<*>,

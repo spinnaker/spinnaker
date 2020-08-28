@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_CO
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.ResourcesSpec
@@ -41,10 +42,7 @@ import io.mockk.coEvery
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
-import java.time.Clock
-import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -54,6 +52,8 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.time.Clock
+import java.util.UUID
 
 internal class TitusClusterExportTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
@@ -61,7 +61,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val repository = mockk<KeelRepository>()
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  val publisher: EventPublisher = mockk(relaxUnitFun = true)
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
     repository,

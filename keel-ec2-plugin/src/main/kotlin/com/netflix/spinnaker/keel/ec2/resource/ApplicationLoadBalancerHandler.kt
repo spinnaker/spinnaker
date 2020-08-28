@@ -26,10 +26,10 @@ import com.netflix.spinnaker.keel.ec2.toEc2Api
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import java.time.Duration
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import retrofit2.HttpException
+import java.time.Duration
 
 class ApplicationLoadBalancerHandler(
   private val cloudDriverService: CloudDriverService,
