@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -35,20 +37,23 @@ public class PropertyParser {
   private static final Pattern MAGIC_JSON_SEARCH_PATTERN =
       Pattern.compile("^\\s*" + MAGIC_JSON_SEARCH_STRING);
 
+  private static final Splitter lineSplitter = Splitter.on("\n").omitEmptyStrings().trimResults();
+  private static final Splitter equalsSplitter = Splitter.on("=").omitEmptyStrings().trimResults();
+
   public static Map<String, Object> extractPropertiesFromLog(String buildLog) throws IOException {
     final Map<String, Object> map = new HashMap<>();
 
-    for (String line : buildLog.split("\n")) {
+    for (String line : lineSplitter.split(buildLog)) {
       if (MAGIC_SEARCH_PATTERN.matcher(line).find()) {
         log.debug("Identified: " + line);
-        String[] splittedLine = line.split("=");
+        List<String> splittedLine = equalsSplitter.splitToList(line);
         // if the split line doesn't match our expected length it cannot
         // be parsed so we should skip it.
-        if (splittedLine.length != 2) {
+        if (splittedLine.size() != 2) {
           continue;
         }
-        final String key = splittedLine[0].replaceFirst(MAGIC_SEARCH_STRING, "").toLowerCase();
-        final String value = splittedLine[1].trim();
+        final String key = splittedLine.get(0).replaceFirst(MAGIC_SEARCH_STRING, "").toLowerCase();
+        final String value = splittedLine.get(1);
         log.debug(key + ":" + value);
         map.put(key, value);
       }
