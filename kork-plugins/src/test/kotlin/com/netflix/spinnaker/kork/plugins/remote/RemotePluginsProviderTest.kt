@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.kork.plugins.remote
 
+import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtension
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
@@ -46,7 +47,7 @@ class RemotePluginsProviderTest : JUnit5Minutests {
               "netflix.remote1.extension",
               "netflix.remote1",
               "stage",
-              mutableMapOf(),
+              mockk(relaxed = true),
               mockk(relaxed = true)
             )
           )
@@ -62,7 +63,7 @@ class RemotePluginsProviderTest : JUnit5Minutests {
               "netflix.remote2.extension",
               "netflix.remote1",
               "stage",
-              mutableMapOf(),
+              mockk(relaxed = true),
               mockk(relaxed = true)
             )
           )
@@ -78,7 +79,7 @@ class RemotePluginsProviderTest : JUnit5Minutests {
               "netflix.remote3.extension",
               "netflix.remote1",
               "resourceHandler",
-              mutableMapOf(),
+              mockk(relaxed = true),
               mockk(relaxed = true)
             )
           )

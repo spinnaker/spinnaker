@@ -26,7 +26,9 @@ import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.DISABLED
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.ENABLED
 import com.netflix.spinnaker.kork.plugins.events.RemotePluginConfigChanged.Status.UPDATED
-import com.netflix.spinnaker.kork.plugins.remote.transport.OkHttpRemoteExtensionTransport
+import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtension
+import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPointDefinition
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.OkHttpRemoteExtensionTransport
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationListener
 import javax.inject.Provider
@@ -39,7 +41,8 @@ import javax.inject.Provider
 class RemotePluginConfigChangedListener(
   private val objectMapper: Provider<ObjectMapper>,
   private val okHttpClientProvider: Provider<OkHttpClientProvider>,
-  private val remotePluginsCache: RemotePluginsCache
+  private val remotePluginsCache: RemotePluginsCache,
+  private val remoteExtensionPointDefinitions: List<RemoteExtensionPointDefinition>
 ) : ApplicationListener<RemotePluginConfigChanged> {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -76,12 +79,18 @@ class RemotePluginConfigChangedListener(
         throw RemoteExtensionTransportConfigurationException(event.pluginId)
       }
 
+      val remoteExtensionDefinition = remoteExtensionPointDefinitions
+        .find { it.type() == remoteExtensionConfig.type }
+        ?: throw RemoteExtensionDefinitionNotFound(remoteExtensionConfig.type)
+
+      val configType = remoteExtensionDefinition.configType()
+
       remoteExtensions.add(
         RemoteExtension(
           remoteExtensionConfig.id,
           event.pluginId,
-          remoteExtensionConfig.type,
-          remoteExtensionConfig.config ?: mapOf(),
+          remoteExtensionDefinition.type(),
+          objectMapper.get().convertValue(remoteExtensionConfig.config, configType),
           remoteExtensionTransport
         )
       )
@@ -96,3 +105,7 @@ class RemotePluginConfigChangedListener(
 class RemoteExtensionTransportConfigurationException(
   pluginId: String
 ) : IntegrationException("No transport configuration for remote plugin '{}'", pluginId)
+
+class RemoteExtensionDefinitionNotFound(
+  type: String
+) : IntegrationException("No remote extension definition found for type '{}'", type)

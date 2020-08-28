@@ -15,9 +15,10 @@
  *
  */
 
-package com.netflix.spinnaker.kork.plugins.remote.transport
+package com.netflix.spinnaker.kork.plugins.remote.extension.transport
 
 import com.netflix.spinnaker.kork.annotations.Beta
+import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPayload
 
 /**
  * The transport on which to address the remote extension.

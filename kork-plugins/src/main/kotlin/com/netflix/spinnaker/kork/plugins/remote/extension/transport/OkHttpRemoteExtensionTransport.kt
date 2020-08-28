@@ -15,10 +15,11 @@
  *
  */
 
-package com.netflix.spinnaker.kork.plugins.remote.transport
+package com.netflix.spinnaker.kork.plugins.remote.extension.transport
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtensionPayload
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Headers
 import okhttp3.MediaType

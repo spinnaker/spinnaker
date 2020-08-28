@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.kork.plugins.remote
 
 import com.netflix.spinnaker.kork.annotations.Beta
+import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtension
 
 @Beta
 data class RemotePlugin(

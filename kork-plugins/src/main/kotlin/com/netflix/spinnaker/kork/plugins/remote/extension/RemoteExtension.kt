@@ -15,12 +15,11 @@
  *
  */
 
-package com.netflix.spinnaker.kork.plugins.remote
+package com.netflix.spinnaker.kork.plugins.remote.extension
 
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.common.Header
-import com.netflix.spinnaker.kork.plugins.remote.transport.RemoteExtensionPayload
-import com.netflix.spinnaker.kork.plugins.remote.transport.RemoteExtensionTransport
+import com.netflix.spinnaker.kork.plugins.remote.extension.transport.RemoteExtensionTransport
 import org.slf4j.MDC
 
 /**
@@ -46,10 +45,18 @@ class RemoteExtension(
    * Configuration necessary for the extension point - typically specifying something to configure
    * prior to the remote extension invocation.
    */
-  val config: Map<String, Any>,
+  val config: RemoteExtensionPointConfig,
 
   private val transport: RemoteExtensionTransport
 ) {
+
+  /**
+   * Return the configuration as the requested type.
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun <T: RemoteExtensionPointConfig> getTypedConfig(): T {
+    return config as T
+  }
 
   /** Invoke the remote extension via the [RemoteExtensionTransport] implementation. */
   fun invoke(payload: RemoteExtensionPayload) {
