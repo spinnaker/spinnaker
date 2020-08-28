@@ -91,8 +91,8 @@ public class KubernetesPodHandler extends KubernetesHandler {
     Failed(true, "Pod has failed"),
     Unknown(true, "Pod phase is unknown");
 
-    @Getter private String message;
-    @Getter private boolean unstable;
+    @Getter private final String message;
+    @Getter private final boolean unstable;
 
     PodPhase(boolean unstable, String message) {
       this.message = message;

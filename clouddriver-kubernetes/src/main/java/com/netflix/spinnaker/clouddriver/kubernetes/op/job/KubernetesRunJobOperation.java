@@ -109,7 +109,7 @@ public class KubernetesRunJobOperation
 
     KubernetesDeployManifestOperation deployManifestOperation =
         new KubernetesDeployManifestOperation(deployManifestDescription, provider);
-    OperationResult operationResult = deployManifestOperation.operate(new ArrayList());
+    OperationResult operationResult = deployManifestOperation.operate(new ArrayList<>());
     KubernetesRunJobDeploymentResult deploymentResult =
         new KubernetesRunJobDeploymentResult(operationResult);
     Map<String, List<String>> deployedNames = deploymentResult.getDeployedNamesByLocation();

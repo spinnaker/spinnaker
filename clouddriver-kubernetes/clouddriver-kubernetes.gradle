@@ -21,7 +21,6 @@ tasks.withType(JavaCompile) {
 
     // Temporarily suppressed warnings. These are here only while we fix or
     // suppress the warnings in these categories.
-    '-Xlint:-rawtypes',
     '-Xlint:-unchecked',
   ]
 
@@ -29,7 +28,6 @@ tasks.withType(JavaCompile) {
   // are only here while we fix or suppress the warnings in these categories.
   options.errorprone.disable(
     "EmptyCatch",
-    "ImmutableEnumChecker",
     "MissingOverride",
   )
 }

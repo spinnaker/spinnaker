@@ -102,7 +102,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
               KubernetesNamedAccountCredentials credentials =
                   new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
 
-              AccountCredentials existingCredentials =
+              AccountCredentials<?> existingCredentials =
                   accountCredentialsRepository.getOne(managedAccount.getName());
 
               if (existingCredentials == null || !existingCredentials.equals(credentials)) {
@@ -146,9 +146,11 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
   private List<String> getDeletedAccountNames() {
     List<String> existingNames =
         accountCredentialsRepository.getAll().stream()
-            .filter(
-                (AccountCredentials c) -> KubernetesCloudProvider.ID.equals(c.getCloudProvider()))
-            .map(AccountCredentials::getName)
+            .filter(c -> KubernetesCloudProvider.ID.equals(c.getCloudProvider()))
+            // Using a lambda here causes a warning about raw types; the real fix would be to have
+            // the credentials repository return AccountCredentials<?> instead of an
+            // AccountCredentials.
+            .map(c -> c.getName())
             .collect(Collectors.toList());
 
     Set<String> newNames =

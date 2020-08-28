@@ -167,16 +167,16 @@ final class KubernetesHealthIndicatorTest {
     return managedAccount;
   }
 
-  private static AccountCredentials nonKubernetesAccount(String name) {
-    AccountCredentials credentials = mock(AccountCredentials.class);
+  private static AccountCredentials<?> nonKubernetesAccount(String name) {
+    AccountCredentials<?> credentials = mock(AccountCredentials.class);
     when(credentials.getName()).thenReturn(name);
     return credentials;
   }
 
   private static AccountCredentialsProvider stubAccountCredentialsProvider(
-      Iterable<AccountCredentials> accounts) {
+      Iterable<AccountCredentials<?>> accounts) {
     AccountCredentialsRepository accountRepository = new MapBackedAccountCredentialsRepository();
-    for (AccountCredentials account : accounts) {
+    for (AccountCredentials<?> account : accounts) {
       accountRepository.save(account.getName(), account);
     }
     return new DefaultAccountCredentialsProvider(accountRepository);

@@ -89,7 +89,7 @@ public class KubernetesManifestAnnotater {
     return getAnnotation(annotations, key, typeReference, null);
   }
 
-  private static boolean stringTypeReference(TypeReference typeReference) {
+  private static boolean stringTypeReference(TypeReference<?> typeReference) {
     if (typeReference.getType() == null || typeReference.getType().getTypeName() == null) {
       log.warn("Malformed type reference {}", typeReference);
       return false;
