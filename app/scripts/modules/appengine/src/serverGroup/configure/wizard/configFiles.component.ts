@@ -7,6 +7,7 @@ import {
   NgAppengineConfigArtifactDelegate,
   IArtifactAccount,
   IArtifactAccountPair,
+  IArtifact,
 } from '@spinnaker/core';
 
 import './serverGroupWizard.less';
@@ -23,11 +24,13 @@ class ConfigArtifact implements IArtifactAccountPair {
   public delegate: NgAppengineConfigArtifactDelegate;
   public id: string;
   public account: string;
+  public artifact?: IArtifact;
 
-  constructor($scope: IScope, artifact = { id: '', account: '' }) {
+  constructor($scope: IScope, pair: IArtifactAccountPair = { id: '', account: '' }) {
     const unserializable = { configurable: false, enumerable: false, writable: false };
-    this.id = artifact.id;
-    this.account = artifact.account;
+    this.id = pair?.id;
+    this.account = pair.account || pair?.artifact?.artifactAccount;
+    this.artifact = pair?.artifact;
     Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
     const delegate = new NgAppengineConfigArtifactDelegate(this);
     const controller = new ExpectedArtifactSelectorViewController(delegate);

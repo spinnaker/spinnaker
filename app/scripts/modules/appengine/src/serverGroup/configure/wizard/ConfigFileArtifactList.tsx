@@ -1,10 +1,17 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import { IArtifact, IExpectedArtifact, IPipeline, IStage, StageArtifactSelectorDelegate } from '@spinnaker/core';
+import {
+  IArtifact,
+  IExpectedArtifact,
+  IPipeline,
+  IStage,
+  StageArtifactSelector,
+  IArtifactAccountPair,
+} from '@spinnaker/core';
 
 interface IConfigFileArtifactListProps {
-  configArtifacts: any[];
+  configArtifacts: IArtifactAccountPair[];
   pipeline: IPipeline;
   stage: IStage;
   updateConfigArtifacts: (configArtifacts: any[]) => void;
@@ -12,7 +19,7 @@ interface IConfigFileArtifactListProps {
 
 export const ConfigFileArtifactList = (props: IConfigFileArtifactListProps) => {
   const addConfigArtifact = () => {
-    props.updateConfigArtifacts(props.configArtifacts.concat([{}]));
+    props.updateConfigArtifacts(props.configArtifacts.concat([{ id: '', account: '' }]));
   };
 
   const deleteConfigArtifact = (index: number) => {
@@ -48,12 +55,10 @@ export const ConfigFileArtifactList = (props: IConfigFileArtifactListProps) => {
             })}
           >
             <div className="col-md-9">
-              <StageArtifactSelectorDelegate
+              <StageArtifactSelector
                 artifact={a.artifact}
                 excludedArtifactTypePatterns={[]}
-                expectedArtifactId={a.id}
-                fieldColumns={7}
-                label={''}
+                expectedArtifactId={a.artifact == null ? a.id : null}
                 onArtifactEdited={(artifact: IArtifact) => {
                   onExpectedArtifactEdited(artifact, i);
                 }}
