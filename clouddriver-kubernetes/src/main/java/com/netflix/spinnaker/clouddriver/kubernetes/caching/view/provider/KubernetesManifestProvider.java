@@ -125,7 +125,8 @@ public class KubernetesManifestProvider {
                     .filter(
                         m ->
                             cluster.equals(KubernetesManifestAnnotater.getManifestCluster(m))
-                                & app.equals(KubernetesManifestAnnotater.getManifestApplication(m)))
+                                && app.equals(
+                                    KubernetesManifestAnnotater.getManifestApplication(m)))
                     .sorted(
                         (m1, m2) ->
                             credentials
