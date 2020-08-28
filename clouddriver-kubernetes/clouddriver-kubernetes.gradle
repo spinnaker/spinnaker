@@ -28,7 +28,6 @@ tasks.withType(JavaCompile) {
   // Temporarily disable error-prone checks that are generating warnings. These
   // are only here while we fix or suppress the warnings in these categories.
   options.errorprone.disable(
-    "DefaultCharset",
     "EmptyCatch",
     "ImmutableEnumChecker",
     "MissingOverride",

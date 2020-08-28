@@ -38,6 +38,7 @@ import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -431,7 +432,9 @@ public class KubectlJobExecutor {
 
     JobResult<String> status =
         jobExecutor.runJob(
-            new JobRequest(command, new ByteArrayInputStream(manifestAsJson.getBytes())));
+            new JobRequest(
+                command,
+                new ByteArrayInputStream(manifestAsJson.getBytes(StandardCharsets.UTF_8))));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
       throw new KubectlException("Deploy failed: " + status.getError());
@@ -459,7 +462,9 @@ public class KubectlJobExecutor {
 
     JobResult<String> status =
         jobExecutor.runJob(
-            new JobRequest(command, new ByteArrayInputStream(manifestAsJson.getBytes())));
+            new JobRequest(
+                command,
+                new ByteArrayInputStream(manifestAsJson.getBytes(StandardCharsets.UTF_8))));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
       if (status.getError().contains(NOT_FOUND_STRING)) {
@@ -489,7 +494,9 @@ public class KubectlJobExecutor {
 
     JobResult<String> status =
         jobExecutor.runJob(
-            new JobRequest(command, new ByteArrayInputStream(manifestAsJson.getBytes())));
+            new JobRequest(
+                command,
+                new ByteArrayInputStream(manifestAsJson.getBytes(StandardCharsets.UTF_8))));
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
       throw new KubectlException("Create failed: " + status.getError());
