@@ -42,9 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import rx.Observable;
-import rx.Scheduler;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 @Component
 @ConditionalOnExpression(
@@ -53,8 +51,6 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
     extends AbstractPollingNotificationAgent {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
-
-  private Scheduler scheduler = Schedulers.io();
 
   private Func1<? super PipelineExecution, Boolean> filter =
       (PipelineExecution execution) ->

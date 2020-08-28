@@ -18,7 +18,7 @@ package com.netflix.spinnaker.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("pollers.top-application-execution-cleanup")
-class TopApplicationExecutionCleanupAgentConfigurationProperties {
+class TopApplicationExecutionCleanupAgentConfigurationProperties() {
   /**
    * How often the agent runs, in millis
    */
@@ -33,4 +33,21 @@ class TopApplicationExecutionCleanupAgentConfigurationProperties {
    * Chunk size for SQL operations
    */
   var chunkSize: Int = 1
+
+  /**
+   * Exception application and their thresholds during cleanup (e.g. for compliance reasons)
+   */
+  var exceptionApplicationThresholds: Map<String, Int> = emptyMap()
+
+  constructor(
+    intervalMs: Long,
+    threshold: Int,
+    chunkSize: Int,
+    exceptionApplicationThresholds: Map<String, Int>
+  ) : this() {
+    this.intervalMs = intervalMs
+    this.threshold = threshold
+    this.chunkSize = chunkSize
+    this.exceptionApplicationThresholds = exceptionApplicationThresholds
+  }
 }

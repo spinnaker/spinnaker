@@ -40,7 +40,7 @@ class OldPipelineCleanupAgentConfigurationProperties() {
   var chunkSize: Int = 1
 
   /**
-   * Application names to that have special threshold during cleanup (e.g. for compliance reasons)
+   * Application names that have special threshold during cleanup (e.g. for compliance reasons)
    */
   var exceptionalApplications: List<String> = emptyList()
 

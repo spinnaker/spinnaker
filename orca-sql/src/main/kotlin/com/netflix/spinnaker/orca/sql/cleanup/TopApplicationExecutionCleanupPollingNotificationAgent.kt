@@ -50,55 +50,60 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
     // We don't have an index on partition/application so a query on a given partition is very expensive.
     // Instead perform a query without partition constraint to get potential candidates.
     // Then use the results of this candidate query to perform partial queries with partition set
-    val candidateApplications = jooq
+    val candidateApplicationGroups = jooq
       .select(DSL.field("application"))
       .from(DSL.table("orchestrations"))
       .groupBy(DSL.field("application"))
       .having(DSL.count(DSL.field("id")).gt(configurationProperties.threshold))
       .fetch(DSL.field("application"), String::class.java)
+      .groupBy { app ->
+        configurationProperties.exceptionApplicationThresholds[app] ?: configurationProperties.threshold
+      }
 
-    for (chunk in candidateApplications.chunked(5)) {
-      val applicationsWithLotsOfOrchestrations = jooq
-        .select(DSL.field("application"))
-        .from(DSL.table("orchestrations"))
-        .where(
-          if (orcaSqlProperties.partitionName == null) {
-            DSL.noCondition()
-          } else {
-            DSL.field(name("partition")).eq(orcaSqlProperties.partitionName)
+    candidateApplicationGroups.forEach { (thresholdToUse, candidateApplications) ->
+      for (chunk in candidateApplications.chunked(5)) {
+        val applicationsWithLotsOfOrchestrations = jooq
+          .select(DSL.field("application"))
+          .from(DSL.table("orchestrations"))
+          .where(
+            if (orcaSqlProperties.partitionName == null) {
+              DSL.noCondition()
+            } else {
+              DSL.field(name("partition")).eq(orcaSqlProperties.partitionName)
+            }
+          )
+          .and(DSL.field("application").`in`(*chunk.toTypedArray()))
+          .groupBy(DSL.field("application"))
+          .having(DSL.count(DSL.field("id")).gt(thresholdToUse))
+          .fetch(DSL.field("application"), String::class.java)
+
+        applicationsWithLotsOfOrchestrations
+          .filter { !it.isNullOrEmpty() }
+          .forEach { application ->
+            try {
+              val startTime = System.currentTimeMillis()
+
+              log.debug("Cleaning up old orchestrations for $application")
+              val deletedOrchestrationCount = performCleanup(application, thresholdToUse)
+              log.debug(
+                "Cleaned up {} old orchestrations for {} in {}ms",
+                deletedOrchestrationCount,
+                application,
+                System.currentTimeMillis() - startTime
+              )
+            } catch (e: Exception) {
+              log.error("Failed to cleanup old orchestrations for $application", e)
+              errorsCounter.increment()
+            }
           }
-        )
-        .and(DSL.field("application").`in`(*chunk.toTypedArray()))
-        .groupBy(DSL.field("application"))
-        .having(DSL.count(DSL.field("id")).gt(configurationProperties.threshold))
-        .fetch(DSL.field("application"), String::class.java)
-
-      applicationsWithLotsOfOrchestrations
-        .filter { !it.isNullOrEmpty() }
-        .forEach { application ->
-          try {
-            val startTime = System.currentTimeMillis()
-
-            log.debug("Cleaning up old orchestrations for $application")
-            val deletedOrchestrationCount = performCleanup(application)
-            log.debug(
-              "Cleaned up {} old orchestrations for {} in {}ms",
-              deletedOrchestrationCount,
-              application,
-              System.currentTimeMillis() - startTime
-            )
-          } catch (e: Exception) {
-            log.error("Failed to cleanup old orchestrations for $application", e)
-            errorsCounter.increment()
-          }
-        }
+      }
     }
   }
 
   /**
    * An application can have at most [threshold] completed orchestrations.
    */
-  private fun performCleanup(application: String): Int {
+  private fun performCleanup(application: String, threshold: Int): Int {
     val deletedExecutionCount = AtomicInteger()
 
     val executionsToRemove = jooq
@@ -109,7 +114,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
           .and(DSL.field("status").`in`(*completedStatuses.toTypedArray()))
       )
       .orderBy(DSL.field("build_time").desc())
-      .limit(configurationProperties.threshold, Int.MAX_VALUE)
+      .limit(threshold, Int.MAX_VALUE)
       .fetch(DSL.field("id"), String::class.java)
 
     log.debug("Found {} old orchestrations for {}", executionsToRemove.size, application)
