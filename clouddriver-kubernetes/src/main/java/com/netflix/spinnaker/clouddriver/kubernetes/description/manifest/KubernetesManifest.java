@@ -161,7 +161,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
     String timestamp = getCreationTimestamp();
     try {
       if (!Strings.isNullOrEmpty(timestamp)) {
-        return (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(timestamp)).getTime();
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(timestamp).getTime();
       }
     } catch (ParseException e) {
       log.warn("Failed to parse timestamp: ", e);
