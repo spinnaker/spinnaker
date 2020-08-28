@@ -66,7 +66,7 @@ public final class KubernetesV2LoadBalancer
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
     this.serverGroups = serverGroups;
-    this.createdTime = manifest.getFormattedCreationTimestamp();
+    this.createdTime = manifest.getCreationTimestampEpochMillis();
   }
 
   @Nullable

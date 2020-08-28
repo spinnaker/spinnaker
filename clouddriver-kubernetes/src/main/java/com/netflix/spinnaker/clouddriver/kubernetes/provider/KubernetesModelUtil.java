@@ -18,31 +18,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.provider;
 
 import com.netflix.spinnaker.clouddriver.model.HealthState;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class KubernetesModelUtil {
-  private static final Logger log = LoggerFactory.getLogger(KubernetesModelUtil.class);
-
-  public static long translateTime(String time) {
-    return KubernetesModelUtil.translateTime(time, "yyyy-MM-dd'T'HH:mm:ssX");
-  }
-
-  public static long translateTime(String time, String format) {
-    try {
-      return StringUtils.isNotEmpty(time) ? new SimpleDateFormat(format).parse(time).getTime() : 0;
-    } catch (ParseException e) {
-      log.error("Failed to parse kubernetes timestamp", e);
-      return 0;
-    }
-  }
-
   public static HealthState getHealthState(List<Map<String, Object>> health) {
     return someUpRemainingUnknown(health)
         ? HealthState.Up

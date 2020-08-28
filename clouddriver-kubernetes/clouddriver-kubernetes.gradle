@@ -31,8 +31,7 @@ tasks.withType(JavaCompile) {
     "DefaultCharset",
     "EmptyCatch",
     "ImmutableEnumChecker",
-    "JdkObsolete",
-    "MissingOverride"
+    "MissingOverride",
   )
 }
 

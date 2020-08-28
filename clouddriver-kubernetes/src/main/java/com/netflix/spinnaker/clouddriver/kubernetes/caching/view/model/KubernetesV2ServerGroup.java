@@ -134,7 +134,7 @@ public final class KubernetesV2ServerGroup implements KubernetesResource, Server
     this.displayName = manifest.getName();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
-    this.createdTime = manifest.getFormattedCreationTimestamp();
+    this.createdTime = manifest.getCreationTimestampEpochMillis();
     this.buildInfo =
         ImmutableMap.of(
             "images",

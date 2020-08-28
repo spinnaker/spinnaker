@@ -75,7 +75,7 @@ public final class KubernetesV2Instance implements Instance, KubernetesResource 
     this.kind = manifest.getKind();
     this.labels = ImmutableMap.copyOf(manifest.getLabels());
     this.moniker = moniker;
-    this.createdTime = manifest.getFormattedCreationTimestamp();
+    this.createdTime = manifest.getCreationTimestampEpochMillis();
 
     this.health = new ArrayList<>();
     V1PodStatus status =
