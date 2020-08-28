@@ -57,6 +57,7 @@ public class KubernetesV2JobStatus implements JobStatus {
     this.createdTime = job.getMetadata().getCreationTimestamp().getMillis();
   }
 
+  @Override
   public Map<String, String> getCompletionDetails() {
     Map<String, String> details = new HashMap<>();
     details.put("exitCode", this.exitCode != null ? this.exitCode.toString() : "");
@@ -66,6 +67,7 @@ public class KubernetesV2JobStatus implements JobStatus {
     return details;
   }
 
+  @Override
   public JobState getJobState() {
     V1JobStatus status = job.getStatus();
     if (status == null) {

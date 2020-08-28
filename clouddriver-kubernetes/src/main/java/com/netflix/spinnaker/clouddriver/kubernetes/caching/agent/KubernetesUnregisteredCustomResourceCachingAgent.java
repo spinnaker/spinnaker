@@ -40,6 +40,7 @@ public class KubernetesUnregisteredCustomResourceCachingAgent
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
   }
 
+  @Override
   public ImmutableSet<AgentDataType> getProvidedDataTypes() {
     return primaryKinds().stream()
         .map(k -> AUTHORITATIVE.forType(k.toString()))

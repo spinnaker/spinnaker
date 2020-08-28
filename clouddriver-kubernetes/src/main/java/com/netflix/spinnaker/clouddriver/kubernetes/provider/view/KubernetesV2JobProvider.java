@@ -54,6 +54,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     this.manifestProvider = manifestProvider;
   }
 
+  @Override
   @Nullable
   public KubernetesV2JobStatus collectJob(String account, String location, String id) {
     Optional<V1Job> optionalJob = getKubernetesJob(account, location, id);
@@ -84,6 +85,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     return jobStatus;
   }
 
+  @Override
   @Nullable
   public Map<String, Object> getFileContents(
       String account, String location, String id, String containerName) {
@@ -104,6 +106,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
         .orElse(null);
   }
 
+  @Override
   public void cancelJob(String account, String location, String id) {
     throw new NotImplementedException(
         "cancelJob is not implemented for the V2 Kubernetes provider");

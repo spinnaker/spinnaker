@@ -51,6 +51,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   public abstract int deployPriority();
 
+  @Override
   @Nonnull
   public abstract KubernetesKind kind();
 
