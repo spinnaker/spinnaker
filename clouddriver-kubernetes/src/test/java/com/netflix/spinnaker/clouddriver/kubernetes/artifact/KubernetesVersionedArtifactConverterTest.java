@@ -48,7 +48,6 @@ final class KubernetesVersionedArtifactConverterTest {
   private static final String NAMESPACE = "ns";
   private static final String NAME = "name";
   private static final String KIND = "Pod";
-  private static final String ARTIFACT_TYPE = "kubernetes/pod";
 
   @Test
   void inferVersionedArtifactProperties() {

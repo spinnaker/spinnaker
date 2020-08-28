@@ -105,6 +105,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
     return search(query, types, pageNumber, pageSize, ImmutableMap.of());
   }
 
+  // TODO: Use filters
   @Override
   public SearchResultSet search(
       String query,
@@ -114,7 +115,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
       Map<String, String> filters) {
     log.info("Querying {} for term {}", types, query);
     List<Map<String, Object>> results =
-        paginateResults(getMatches(query, types, filters), pageSize, pageNumber);
+        paginateResults(getMatches(query, types), pageSize, pageNumber);
 
     return SearchResultSet.builder()
         .pageNumber(pageNumber)
@@ -195,9 +196,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
     private final Keys.LogicalKey logicalKey;
   }
 
-  // TODO(lwander): use filters
-  private List<Map<String, Object>> getMatches(
-      String query, List<String> types, Map<String, String> filters) {
+  private List<Map<String, Object>> getMatches(String query, List<String> types) {
     String matchQuery = String.format("*%s*", query.toLowerCase());
     Set<String> typesToSearch = new HashSet<>(types);
 

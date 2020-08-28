@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -43,8 +42,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(JUnitPlatform.class)
 final class KubectlJobExecutorTest {
-  private static final ObjectMapper objectMapper = new ObjectMapper();
-
   private static final String NAMESPACE = "test-namespace";
 
   @Test

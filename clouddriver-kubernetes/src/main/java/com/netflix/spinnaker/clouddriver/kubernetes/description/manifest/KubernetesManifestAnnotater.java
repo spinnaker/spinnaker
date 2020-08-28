@@ -42,7 +42,6 @@ public class KubernetesManifestAnnotater {
   private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;
   private static final String MONIKER_ANNOTATION_PREFIX = "moniker." + SPINNAKER_ANNOTATION;
   private static final String CACHING_ANNOTATION_PREFIX = "caching." + SPINNAKER_ANNOTATION;
-  private static final String STRATEGY_ANNOTATION_PREFIX = "strategy." + SPINNAKER_ANNOTATION;
   private static final String CLUSTER = MONIKER_ANNOTATION_PREFIX + "/cluster";
   private static final String APPLICATION = MONIKER_ANNOTATION_PREFIX + "/application";
   private static final String STACK = MONIKER_ANNOTATION_PREFIX + "/stack";

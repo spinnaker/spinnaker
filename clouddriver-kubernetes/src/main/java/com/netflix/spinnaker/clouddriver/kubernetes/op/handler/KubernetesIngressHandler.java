@@ -93,8 +93,6 @@ public class KubernetesIngressHandler extends KubernetesHandler {
   public void addRelationships(
       Map<KubernetesKind, List<KubernetesManifest>> allResources,
       Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
-    Map<KubernetesManifest, List<KubernetesManifest>> result;
-
     BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
 
     Map<String, KubernetesManifest> services =

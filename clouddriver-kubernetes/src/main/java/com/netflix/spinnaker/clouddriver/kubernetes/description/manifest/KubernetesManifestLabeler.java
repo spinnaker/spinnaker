@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
@@ -35,8 +34,6 @@ public class KubernetesManifestLabeler {
   private static final String APP_COMPONENT = APP_LABEL_PREFIX + "/component";
   private static final String APP_PART_OF = APP_LABEL_PREFIX + "/part-of";
   private static final String APP_MANAGED_BY = APP_LABEL_PREFIX + "/managed-by";
-
-  private static ObjectMapper objectMapper = new ObjectMapper();
 
   private static void storeLabelAndOverwrite(Map<String, String> labels, String key, String value) {
     if (value == null) {

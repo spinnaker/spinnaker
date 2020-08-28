@@ -34,8 +34,7 @@ tasks.withType(JavaCompile) {
     "JdkObsolete",
     "MissingOverride",
     "StringSplitter",
-    "UnnecessaryParentheses",
-    "UnusedVariable"
+    "UnnecessaryParentheses"
   )
 }
 
