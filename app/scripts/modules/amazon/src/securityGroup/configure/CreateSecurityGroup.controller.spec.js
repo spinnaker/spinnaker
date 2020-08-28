@@ -113,8 +113,8 @@ describe('Controller: CreateSecurityGroup', function() {
       this.$scope.securityGroup.regions = ['us-east-1'];
       this.ctrl.accountUpdated();
       this.$scope.$digest();
-      expect(this.$scope.availableSecurityGroups.length).toBe(2);
-      expect(this.$scope.existingSecurityGroupNames).toEqual(['group1', 'group2']);
+      expect(this.$scope.availableSecurityGroups.length).toBe(1);
+      expect(this.$scope.existingSecurityGroupNames).toEqual(['group3']);
     });
 
     it('filters existing names based on join of groups from all regions', function() {
@@ -136,7 +136,7 @@ describe('Controller: CreateSecurityGroup', function() {
       this.$scope.securityGroup.vpcId = 'vpc1-tw';
       this.ctrl.accountUpdated();
       this.$scope.$digest();
-      expect(this.$scope.availableSecurityGroups.length).toBe(1);
+      expect(this.$scope.availableSecurityGroups.length).toBe(0);
     });
 
     it('filters VPCs based on account + region', function() {
@@ -178,10 +178,13 @@ describe('Controller: CreateSecurityGroup', function() {
 
       it('removes rules that are not available when account changes', function() {
         let securityGroup = this.$scope.securityGroup;
+        securityGroup.credentials = 'test';
+        this.ctrl.accountUpdated();
+        this.$scope.$digest();
         this.$scope.availableSecurityGroups.forEach(group => securityGroup.securityGroupIngress.push({ name: group }));
         expect(securityGroup.securityGroupIngress.length).toBe(2);
 
-        securityGroup.credentials = 'test';
+        securityGroup.credentials = 'prod';
         this.ctrl.accountUpdated();
         this.$scope.$digest();
         expect(this.$scope.state.removedRules.length).toBe(1);
@@ -190,13 +193,16 @@ describe('Controller: CreateSecurityGroup', function() {
 
       it('does not repeatedly add removed rule warnings when multiple rules for the same group are removed', function() {
         let securityGroup = this.$scope.securityGroup;
+        securityGroup.credentials = 'test';
+        this.ctrl.accountUpdated();
+        this.$scope.$digest();
         this.$scope.availableSecurityGroups.forEach(group => {
           securityGroup.securityGroupIngress.push({ name: group, startPort: 7001, endPort: 7001, protocol: 'HTTPS' });
           securityGroup.securityGroupIngress.push({ name: group, startPort: 7000, endPort: 7000, protocol: 'HTTP' });
         });
         expect(securityGroup.securityGroupIngress.length).toBe(4);
 
-        securityGroup.credentials = 'test';
+        securityGroup.credentials = 'prod';
         this.ctrl.accountUpdated();
         this.$scope.$digest();
         expect(this.$scope.state.removedRules).toEqual(['group2']);

@@ -187,7 +187,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       // We matched the vpc ids from one account to another but they are never the same. In order to ensure that users still retain their VPC choice, irrespective of the account, we switched to using vpc names instead of vpc ids
       const selectedVpc = $scope.allVpcs.find(vpc => vpc.id === $scope.securityGroup.vpcId);
       const match = (available || []).find(vpc => selectedVpc && selectedVpc.label === vpc.label);
-      const defaultVpc = (available || []).find(vpc => AWSProviderSettings.defaults.vpc === vpc.label);
+      const defaultVpc =
+        (available || []).find(vpc => AWSProviderSettings.defaults.vpc === vpc.label) || ($scope.activeVpcs || [])[0];
       $scope.securityGroup.vpcId = (match && match.ids[0]) || (defaultVpc && defaultVpc.ids[0]);
       this.vpcUpdated();
     };
