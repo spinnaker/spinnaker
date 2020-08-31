@@ -51,19 +51,21 @@ class SqlConfiguration {
   @ConditionalOnProperty("sql.task-repository.enabled")
   fun sqlTaskRepository(
     jooq: DSLContext,
-    clock: Clock
+    clock: Clock,
+    objectMapper: ObjectMapper
   ): TaskRepository =
-    SqlTaskRepository(jooq, ObjectMapper(), clock, ConnectionPools.TASKS.value)
+    SqlTaskRepository(jooq, objectMapper, clock, ConnectionPools.TASKS.value)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled", "sql.task-repository.secondary.enabled")
   fun secondarySqlTaskRepository(
     jooq: DSLContext,
     clock: Clock,
+    objectMapper: ObjectMapper,
     @Value("\${sql.task-repository.secondary.pool-name}") poolName: String
 
   ): TaskRepository =
-    SqlTaskRepository(jooq, ObjectMapper(), clock, poolName)
+    SqlTaskRepository(jooq, objectMapper, clock, poolName)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
