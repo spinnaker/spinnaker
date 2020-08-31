@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   api(project(":keel-api"))
-  api(project(":keel-ec2-api"))
+  api(project(":keel-titus-api"))
   implementation(project(":keel-core")) // TODO: ideally not
   implementation(project(":keel-clouddriver"))
   implementation(project(":keel-orca"))

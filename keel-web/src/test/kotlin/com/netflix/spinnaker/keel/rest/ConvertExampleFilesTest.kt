@@ -28,11 +28,12 @@ import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
+import com.netflix.spinnaker.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.titus.jackson.registerKeelTitusApiModule
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -40,7 +41,9 @@ import strikt.assertions.isA
 import strikt.assertions.isSuccess
 
 class ConvertExampleFilesTest : JUnit5Minutests {
-  private val mapper = configuredTestYamlMapper().registerKeelEc2ApiModule()
+  private val mapper = configuredTestYamlMapper()
+    .registerKeelEc2ApiModule()
+    .registerKeelTitusApiModule()
 
   fun tests() = rootContext<Unit> {
     before {
@@ -121,7 +124,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<TitusClusterSpec>>(file)
+          mapper.readValue<SubmittedResource<*>>(file)
         }.isSuccess()
       }
     }

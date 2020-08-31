@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.resources.SpecMigrator
+import com.netflix.spinnaker.titus.jackson.registerKeelTitusApiModule
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -41,6 +42,7 @@ class KeelConfigurationFinalizer(
   fun registerApiExtensionsWithObjectMappers() {
     objectMappers.forEach {
       it.registerKeelEc2ApiModule()
+      it.registerKeelTitusApiModule()
     }
   }
 

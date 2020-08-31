@@ -12,13 +12,9 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
-import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.titus.cluster.ResourcesSpec
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroupSpec
-import com.netflix.spinnaker.keel.api.titus.cluster.resolve
+import com.netflix.spinnaker.keel.api.titus.ResourcesSpec
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
+import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -35,6 +31,10 @@ import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.titus.CLOUD_PROVIDER
+import com.netflix.spinnaker.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.titus.TitusClusterHandler
+import com.netflix.spinnaker.titus.resolve
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
@@ -91,14 +91,13 @@ internal class TitusClusterExportTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
-      container = container,
       capacity = Capacity(1, 6, 4),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)
       )
     ),
-    containerProvider = container
+    container = container
   )
 
   val serverGroups = spec.resolve()
@@ -191,7 +190,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
       before {
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
-        coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
+        coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns images
         coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
       }
 
@@ -213,7 +212,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
               that(spec.defaults.env).isNull()
               that(spec.defaults.containerAttributes).isNull()
               that(spec.defaults.tags).isNull()
-              that(containerProvider).isA<ReferenceProvider>()
+              that(container).isA<ReferenceProvider>()
             }
           }
         }
@@ -222,7 +221,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
       context("exported artifact") {
         context("tags are just increasing numbers") {
           before {
-            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns images
           }
           test("tag strategy is chosen as INCREASING_TAG") {
             val artifact = runBlocking {
@@ -235,7 +234,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
         }
         context("tags are branch-job.sha") {
           before {
-            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns branchJobShaImages
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns branchJobShaImages
           }
 
           test("tag strategy is chosen as BRANCH_JOB_COMMIT_BY_JOB") {
@@ -250,7 +249,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
 
         context("tags are just string garbage") {
           before {
-            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns weirdImages
+            coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns weirdImages
           }
 
           test("exception is throw") {

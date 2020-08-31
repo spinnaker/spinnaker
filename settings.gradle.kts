@@ -44,6 +44,7 @@ include(
   "keel-spring-test-support",
   "keel-sql",
   "keel-test",
+  "keel-titus-api",
   "keel-titus-plugin",
   "keel-web"
 )

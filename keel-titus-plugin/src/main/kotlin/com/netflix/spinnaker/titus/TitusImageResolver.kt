@@ -15,16 +15,18 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.titus.cluster
+package com.netflix.spinnaker.titus
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DockerImageResolver
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.titus.exceptions.NoDigestFound
+import com.netflix.spinnaker.titus.exceptions.RegistryNotFound
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -45,7 +47,7 @@ class TitusImageResolver(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun getContainerFromSpec(resource: Resource<TitusClusterSpec>) =
-    resource.spec.defaults.container ?: error("Container not specified or resolved")
+    resource.spec.container
 
   override fun getAccountFromSpec(resource: Resource<TitusClusterSpec>) =
     resource.spec.deriveRegistry()
@@ -58,7 +60,7 @@ class TitusImageResolver(
   ) =
     resource.copy(
       spec = resource.spec.copy(
-        _defaults = resource.spec.defaults.copy(container = container),
+        container = container,
         _artifactName = artifact.name,
         artifactVersion = tag
       )

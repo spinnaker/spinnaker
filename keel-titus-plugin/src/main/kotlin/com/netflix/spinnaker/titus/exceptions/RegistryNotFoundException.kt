@@ -15,11 +15,13 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.titus.exceptions
+package com.netflix.spinnaker.titus.exceptions
 
-import com.netflix.spinnaker.keel.docker.ContainerProvider
-import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 
-class ErrorResolvingContainerException(
-  val container: ContainerProvider
-) : SystemException("There was an error resolving the correct docker container (current container: $container)")
+/**
+ * A titus registry was not provided by clouddriver for the specified titus account
+ */
+class RegistryNotFoundException(
+  val titusAccount: String
+) : IntegrationException("Unable to find a registry configured for Titus account $titusAccount")

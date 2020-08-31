@@ -35,15 +35,9 @@ import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.api.events.ArtifactVersionDeploying
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
-import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroup
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroupSpec
-import com.netflix.spinnaker.keel.api.titus.cluster.byRegion
-import com.netflix.spinnaker.keel.api.titus.cluster.resolve
-import com.netflix.spinnaker.keel.api.titus.cluster.resolveCapacity
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
+import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
+import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
@@ -58,6 +52,12 @@ import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.titus.CLOUD_PROVIDER
+import com.netflix.spinnaker.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.titus.TitusClusterHandler
+import com.netflix.spinnaker.titus.byRegion
+import com.netflix.spinnaker.titus.resolve
+import com.netflix.spinnaker.titus.resolveCapacity
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks
@@ -126,14 +126,13 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
-      container = digestProvider,
       capacity = Capacity(1, 6, 4),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)
       )
     ),
-    containerProvider = digestProvider
+    container = digestProvider
   )
 
   val serverGroups = spec.resolve()

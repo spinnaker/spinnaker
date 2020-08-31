@@ -15,10 +15,10 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.titus
+package com.netflix.spinnaker.titus
 
 import com.netflix.spinnaker.keel.api.plugins.kind
-import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 
 const val CLOUD_PROVIDER = "titus"
 

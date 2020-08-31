@@ -15,11 +15,13 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.titus.exceptions
+package com.netflix.spinnaker.titus.exceptions
 
+import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 
-class TitusAccountConfigurationException(
-  val titusAccount: String,
-  val missingProperty: String
-) : IntegrationException("Titus account $titusAccount misconfigured: missing value for $missingProperty")
+class NoDigestFound(repository: String, tag: String) :
+  ResourceCurrentlyUnresolvable("No digest found for docker image $repository:$tag in any registry")
+
+class RegistryNotFound(titusAccount: String) :
+  IntegrationException("Unable to find docker registry for titus account $titusAccount")

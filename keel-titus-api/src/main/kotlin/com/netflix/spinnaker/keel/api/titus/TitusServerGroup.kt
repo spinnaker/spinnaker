@@ -1,35 +1,12 @@
-/*
- *
- * Copyright 2019 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-package com.netflix.spinnaker.keel.api.titus.cluster
+package com.netflix.spinnaker.keel.api.titus
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
-import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.VersionedArtifactProvider
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
-import com.netflix.spinnaker.keel.clouddriver.model.Constraints
-import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
-import com.netflix.spinnaker.keel.clouddriver.model.Resources
-import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.docker.DigestProvider
 
 data class TitusServerGroup(
@@ -60,28 +37,36 @@ data class TitusServerGroup(
   val delayBeforeDisableSec: Int = 0,
   val delayBeforeScaleDownSec: Int = 0,
   val onlyEnabledServerGroup: Boolean = true,
-  @JsonIgnore
   @get:ExcludedFromDiff
   override val artifactName: String? = null,
-  @JsonIgnore
   @get:ExcludedFromDiff
   override val artifactType: ArtifactType? = DOCKER,
-  @JsonIgnore
   @get:ExcludedFromDiff
   override val artifactVersion: String? = null,
-  @JsonIgnore
   @get:ExcludedFromDiff
   val instanceCounts: InstanceCounts? = null
-) : VersionedArtifactProvider
+) : VersionedArtifactProvider {
 
-val TitusServerGroup.moniker: Moniker
-  get() = parseMoniker(name)
+  // todo eb: should this be more general?
+  data class Location(
+    val account: String,
+    val region: String
+  )
 
-fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup> =
-  associateBy { it.location.region }
+  data class Resources(
+    val cpu: Int = 1,
+    val disk: Int = 10000,
+    val gpu: Int = 0,
+    val memory: Int = 512,
+    val networkMbps: Int = 128
+  )
 
-// todo eb: should this be more general?
-data class Location(
-  val account: String,
-  val region: String
-)
+  data class Constraints(
+    val hard: Map<String, Any> = emptyMap(),
+    val soft: Map<String, Any> = mapOf("ZoneBalance" to "true")
+  )
+
+  data class MigrationPolicy(
+    val type: String = "systemDefault"
+  )
+}
