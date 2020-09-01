@@ -195,6 +195,7 @@ class MonitoredDeployStrategySpec extends Specification {
     def pipeline = configureBasicPipeline()
     def strategy = createStrategy()
     def deployedServerGroupMoniker = "test-dev"
+    def originalServerGroupName = "${deployedServerGroupMoniker}-v005".toString()
     def deployedServerGroupName = "${deployedServerGroupMoniker}-v006".toString()
 
     when: 'no target server group is created (yet)'
@@ -231,6 +232,7 @@ class MonitoredDeployStrategySpec extends Specification {
     then: 'should rollback, unpin source, and then notify monitor of completion'
     failureStages.size() == 4
     failureStages[0].type == RollbackClusterStage.PIPELINE_CONFIG_TYPE
+    failureStages[0].context.originalServerGroup == originalServerGroupName
     failureStages[1].type == DestroyServerGroupStage.PIPELINE_CONFIG_TYPE
     failureStages[1].name == "Destroy ${deployedServerGroupName} due to rollback"
     failureStages[1].context.serverGroupName == deployedServerGroupName

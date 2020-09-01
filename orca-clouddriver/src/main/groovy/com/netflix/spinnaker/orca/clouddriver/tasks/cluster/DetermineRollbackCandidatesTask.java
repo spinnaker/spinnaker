@@ -57,8 +57,11 @@ import retrofit.client.Response;
  * The {@code DetermineRollbackCandidatesTask} task determines how one or more regions of a cluster
  * should be rolled back.
  *
- * <p>The determination is based on inspecting the most recently deployed (and enabled!) server
- * group in each region.
+ * <p>If the stage's context contains an `originalServerGroup` key, then this value is used as the
+ * server group to roll back to.
+ *
+ * <p>If the `originalServerGroup` is not specified in the stage context, the determination is based
+ * on inspecting the most recently deployed (and enabled!) server group in each region.
  *
  * <p>If this server group has the `spinnaker:metadata` entity tag: - rollback to a previous server
  * group (if exists!) with the `spinnaker:metadata` image id - if no such server group exists, clone
@@ -124,11 +127,11 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
       return TaskResult.RUNNING;
     }
 
-    return determineRollbackCandidates(stageData, moniker.getCluster(), serverGroups);
+    return determineRollbackCandidates(stage, stageData, moniker.getCluster(), serverGroups);
   }
 
   private TaskResult determineRollbackCandidates(
-      StageData stageData, String cluster, List<ServerGroup> serverGroups) {
+      StageExecution stage, StageData stageData, String cluster, List<ServerGroup> serverGroups) {
 
     List<Map> imagesToRestore = new ArrayList<>();
     Map<String, String> rollbackTypes = new HashMap<>();
@@ -156,6 +159,7 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
               allServerGroupsInRegion,
               enabledServerGroupsInRegion,
               serverGroupToRollBack,
+              stage,
               stageData,
               cluster,
               region);
@@ -181,6 +185,7 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
       List<ServerGroup> allServerGroupsInRegion,
       List<ServerGroup> enabledServerGroupsInRegion,
       ServerGroup serverGroupToRollBack,
+      StageExecution stage,
       StageData stageData,
       String cluster,
       String region) {
@@ -194,7 +199,35 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
         previousImageRollbackSupport.getImageDetailsFromEntityTags(
             stageData.cloudProvider, stageData.credentials, region, serverGroupToRollBack.name);
 
-    return getBestCandidate(cluster, region, serverGroupToRollBack, candidates, imageDetails);
+    return getOriginalServerGroup(stage)
+        .map(
+            serverGroupToRestore ->
+                getRollbackDetails(serverGroupToRollBack.name, serverGroupToRestore, imageDetails))
+        .orElseGet(
+            () ->
+                getBestCandidate(cluster, region, serverGroupToRollBack, candidates, imageDetails));
+  }
+
+  private RollbackDetails getRollbackDetails(
+      String serverGroupToRollBack, String serverGroupToRestore, ImageDetails imageDetails) {
+
+    Map<String, String> context =
+        ImmutableMap.<String, String>builder()
+            .put("rollbackServerGroupName", serverGroupToRollBack)
+            .put("restoreServerGroupName", serverGroupToRestore)
+            .build();
+
+    return new RollbackDetails(
+        EXPLICIT, context, imageDetails.getImageName(), imageDetails.getBuildNumber());
+  }
+
+  /** Return the name of the original server group we should roll back to */
+  private Optional<String> getOriginalServerGroup(StageExecution stage) {
+    Object originalServerGroup = stage.getContext().get("originalServerGroup");
+
+    return originalServerGroup instanceof String
+        ? Optional.of(originalServerGroup.toString())
+        : Optional.empty();
   }
 
   private ServerGroup getServerGroupToRollBack(

@@ -393,7 +393,7 @@ class MonitoredDeployStrategy implements Strategy {
       return stages
     }
 
-    stages.addAll(composeRollbackStages(parent))
+    stages.addAll(composeRollbackStages(parent, source))
 
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(parent)
 
@@ -451,7 +451,7 @@ class MonitoredDeployStrategy implements Strategy {
     return stages
   }
 
-  List<StageExecution> composeRollbackStages(StageExecution parent) {
+  List<StageExecution> composeRollbackStages(StageExecution parent, ResizeStrategy.Source source) {
     CreateServerGroupStage.StageData stageData = parent.mapTo(CreateServerGroupStage.StageData)
     MonitoredDeployStageData monitoredDeployStageData = parent.mapTo(MonitoredDeployStageData)
     String deployedServerGroupName = stageData.getServerGroup()
@@ -480,6 +480,7 @@ class MonitoredDeployStrategy implements Strategy {
         cloudProvider            : stageData.cloudProvider,
         regions                  : [stageData.region],
         serverGroup              : stageData.serverGroup,
+        originalServerGroup      : source.serverGroupName,
         stageTimeoutMs           : MINUTES.toMillis(30), // timebox a rollback to 30 minutes
         additionalRollbackContext: [
           enableAndDisableOnly: true,
