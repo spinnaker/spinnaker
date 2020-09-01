@@ -232,7 +232,10 @@ final class KubernetesDeployManifestOperationTest {
   private static OperationResult deploy(KubernetesDeployManifestDescription description) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class), any(String.class), any(String.class), any(String.class)))
+            any(KubernetesKind.class),
+            any(String.class),
+            any(String.class),
+            any(KubernetesCredentials.class)))
         .thenReturn(ImmutableList.of());
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
     return new KubernetesDeployManifestOperation(description, resourceVersioner)

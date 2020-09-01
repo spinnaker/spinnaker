@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.OptionalInt;
 import java.util.stream.Stream;
@@ -52,6 +53,7 @@ final class ResourceVersionerTest {
   private static final String NAME = "name";
   private static final String KIND = "Pod";
 
+  @Mock private KubernetesCredentials mockCredentials;
   @Mock private ArtifactProvider artifactProvider;
   private ResourceVersioner versioner;
 
@@ -68,7 +70,8 @@ final class ResourceVersionerTest {
     manifest1.put("data", ImmutableMap.of("key", 1));
     manifest2.put("data", ImmutableMap.of("key", 3));
 
-    when(artifactProvider.getArtifacts(KubernetesKind.fromString(KIND), NAME, NAMESPACE, ACCOUNT))
+    when(artifactProvider.getArtifacts(
+            KubernetesKind.fromString(KIND), NAME, NAMESPACE, mockCredentials))
         .thenReturn(
             ImmutableList.of(
                 Artifact.builder()
@@ -82,20 +85,21 @@ final class ResourceVersionerTest {
                     .version("v002")
                     .build()));
 
-    OptionalInt version = versioner.getVersion(manifest1, ACCOUNT);
+    OptionalInt version = versioner.getVersion(manifest1, mockCredentials);
     assertThat(version).hasValue(1);
   }
 
   @ParameterizedTest
   @MethodSource("versionTestCases")
   void correctlyPicksNextVersion(VersionTestCase testCase) {
-    when(artifactProvider.getArtifacts(KubernetesKind.fromString(KIND), NAME, NAMESPACE, ACCOUNT))
+    when(artifactProvider.getArtifacts(
+            KubernetesKind.fromString(KIND), NAME, NAMESPACE, mockCredentials))
         .thenReturn(
             testCase.getExistingVersions().stream()
                 .map(v -> Artifact.builder().putMetadata("account", ACCOUNT).version(v).build())
                 .collect(toImmutableList()));
 
-    OptionalInt version = versioner.getVersion(getStubManifest(), ACCOUNT);
+    OptionalInt version = versioner.getVersion(getStubManifest(), mockCredentials);
     assertThat(version).hasValue(testCase.getNextVersion());
   }
 

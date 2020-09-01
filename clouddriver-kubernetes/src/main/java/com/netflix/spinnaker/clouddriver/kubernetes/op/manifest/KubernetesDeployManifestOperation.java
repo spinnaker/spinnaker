@@ -155,7 +155,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
       OptionalInt version =
           isVersioned(properties, strategy)
-              ? resourceVersioner.getVersion(manifest, accountName)
+              ? resourceVersioner.getVersion(manifest, credentials)
               : OptionalInt.empty();
 
       Moniker moniker = cloneMoniker(description.getMoniker());

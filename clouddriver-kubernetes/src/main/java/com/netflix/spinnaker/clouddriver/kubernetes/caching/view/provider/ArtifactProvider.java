@@ -17,11 +17,31 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Comparator;
+import java.util.Optional;
+import org.springframework.stereotype.Component;
 
-public interface ArtifactProvider {
-  ImmutableList<Artifact> getArtifacts(
-      KubernetesKind kind, String name, String location, String account);
+@Component
+@NonnullByDefault
+public class ArtifactProvider {
+  public ImmutableList<Artifact> getArtifacts(
+      KubernetesKind kind, String name, String location, KubernetesCredentials credentials) {
+    return credentials.list(kind, location).stream()
+        .sorted(Comparator.comparing(KubernetesManifest::getCreationTimestamp))
+        .map(m -> KubernetesManifestAnnotater.getArtifact(m, credentials.getAccountName()))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(a -> Strings.nullToEmpty(a.getName()).equals(name))
+        .collect(toImmutableList());
+  }
 }

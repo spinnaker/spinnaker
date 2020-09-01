@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
@@ -48,10 +49,10 @@ public final class ResourceVersioner {
     this.artifactProvider = Objects.requireNonNull(artifactProvider);
   }
 
-  public OptionalInt getVersion(KubernetesManifest manifest, String account) {
+  public OptionalInt getVersion(KubernetesManifest manifest, KubernetesCredentials credentials) {
     ImmutableList<Artifact> priorVersions =
         artifactProvider.getArtifacts(
-            manifest.getKind(), manifest.getName(), manifest.getNamespace(), account);
+            manifest.getKind(), manifest.getName(), manifest.getNamespace(), credentials);
 
     OptionalInt maybeVersion = findMatchingVersion(priorVersions, manifest);
     if (maybeVersion.isPresent()) {

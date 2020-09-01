@@ -196,7 +196,10 @@ final class KubernetesRunJobOperationTest {
       KubernetesRunJobOperationDescription description, boolean appendSuffix) {
     ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
     when(artifactProvider.getArtifacts(
-            any(KubernetesKind.class), any(String.class), any(String.class), any(String.class)))
+            any(KubernetesKind.class),
+            any(String.class),
+            any(String.class),
+            any(KubernetesCredentials.class)))
         .thenReturn(ImmutableList.of());
     ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
     return new KubernetesRunJobOperation(description, resourceVersioner, appendSuffix)
