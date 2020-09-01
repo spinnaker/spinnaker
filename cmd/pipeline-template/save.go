@@ -117,7 +117,7 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 		return saveErr
 	}
 
-	if saveResp.StatusCode != http.StatusAccepted {
+	if saveResp.StatusCode != http.StatusAccepted && saveResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error saving pipeline template %v, status code: %d\n",
 			templateJson,
 			saveResp.StatusCode)
