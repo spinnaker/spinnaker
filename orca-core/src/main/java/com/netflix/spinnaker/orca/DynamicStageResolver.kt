@@ -19,8 +19,6 @@ package com.netflix.spinnaker.orca
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
-import com.netflix.spinnaker.orca.pipeline.SimpleStageDefinitionBuilder
 import org.slf4j.LoggerFactory
 
 /**
@@ -40,8 +38,7 @@ import org.slf4j.LoggerFactory
  */
 class DynamicStageResolver(
   private val dynamicConfigService: DynamicConfigService,
-  stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
-  simpleStages: Collection<SimpleStage<*>>?
+  stageDefinitionBuilders: Collection<StageDefinitionBuilder>
 ) : StageResolver {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -55,9 +52,6 @@ class DynamicStageResolver(
       builder.aliases().forEach { alias ->
         putOrAdd(alias, builder)
       }
-    }
-    simpleStages?.forEach {
-      putOrAdd(it.name, SimpleStageDefinitionBuilder(it))
     }
 
     stageDefinitionBuildersByAlias.filter { it.value.size > 1 }.also {

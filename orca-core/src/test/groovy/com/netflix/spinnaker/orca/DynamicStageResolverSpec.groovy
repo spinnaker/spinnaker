@@ -42,7 +42,7 @@ class DynamicStageResolverSpec extends Specification {
   @Unroll
   def "should lookup stage by name or alias"() {
     when:
-    def result = new DynamicStageResolver(dynamicConfigService, builders, null)
+    def result = new DynamicStageResolver(dynamicConfigService, builders)
         .getStageDefinitionBuilder(stageTypeIdentifier, null).getType()
 
     then:
@@ -59,7 +59,7 @@ class DynamicStageResolverSpec extends Specification {
   @Unroll
   def "should use configured preference on duplicate alias"() {
     when:
-    def result = new DynamicStageResolver(dynamicConfigService, builders, null)
+    def result = new DynamicStageResolver(dynamicConfigService, builders)
         .getStageDefinitionBuilder("same", null).class
 
     then:
@@ -96,7 +96,7 @@ class DynamicStageResolverSpec extends Specification {
     ]
 
     when:
-    def result = new DynamicStageResolver(dynamicConfigService, builders, null)
+    def result = new DynamicStageResolver(dynamicConfigService, builders)
         .getStageDefinitionBuilder("same", null).class
 
     then:
@@ -106,7 +106,7 @@ class DynamicStageResolverSpec extends Specification {
 
   def "should raise exception when stage not found"() {
     when:
-    new DynamicStageResolver(dynamicConfigService, builders, null)
+    new DynamicStageResolver(dynamicConfigService, builders)
         .getStageDefinitionBuilder("DoesNotExist", null)
 
     then:
@@ -121,8 +121,7 @@ class DynamicStageResolverSpec extends Specification {
       [
           new DefaultStageResolverSpec.AliasedStageDefinitionBuilder(),
           new DefaultStageResolverSpec.AliasedStageDefinitionBuilder()
-      ],
-      [new DefaultStageResolverSpec.TestSimpleStage()]
+      ]
     )
 
     then:
@@ -137,8 +136,7 @@ class DynamicStageResolverSpec extends Specification {
       [
           new BuilderOne(),
           new BuilderOne()
-      ],
-      null
+      ]
     )
 
     then:

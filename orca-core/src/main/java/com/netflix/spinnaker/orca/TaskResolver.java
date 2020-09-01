@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage;
-import com.netflix.spinnaker.orca.pipeline.SimpleTask;
 import java.util.*;
 import javax.annotation.Nonnull;
 
@@ -44,10 +42,6 @@ public class TaskResolver {
    *     alias
    */
   public TaskResolver(Collection<Task> tasks, boolean allowFallback) {
-    this(tasks, Collections.emptyList(), true);
-  }
-
-  public TaskResolver(Collection<Task> tasks, List<SimpleStage> stages, boolean allowFallback) {
     for (Task task : tasks) {
       taskByAlias.put(task.getExtensionClass().getCanonicalName(), task);
       for (String alias : task.aliases()) {
@@ -62,9 +56,6 @@ public class TaskResolver {
 
         taskByAlias.put(alias, task);
       }
-    }
-    for (SimpleStage stage : stages) {
-      taskByAlias.put(stage.getClass().getCanonicalName(), new SimpleTask(stage));
     }
 
     this.allowFallback = allowFallback;

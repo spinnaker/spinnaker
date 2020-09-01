@@ -30,7 +30,6 @@ import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.plugins.OrcaPlugin
 import com.netflix.spinnaker.orca.plugins.PreconfiguredJobConfigurationProviderExtension
-import com.netflix.spinnaker.orca.plugins.SimpleStageExtension
 import com.netflix.spinnaker.orca.plugins.StageDefinitionBuilderExtension
 import com.netflix.spinnaker.orca.plugins.TaskExtension1
 import com.netflix.spinnaker.orca.plugins.TaskExtension2
@@ -63,8 +62,7 @@ class OrcaPluginsFixture : PluginsTckFixture, OrcaTestService() {
     StageDefinitionBuilderExtension::class.java.name,
     PreconfiguredJobConfigurationProviderExtension::class.java.name,
     TaskExtension1::class.java.name,
-    TaskExtension2::class.java.name,
-    SimpleStageExtension::class.java.name
+    TaskExtension2::class.java.name
   )
 
   final override fun buildPlugin(pluginId: String, systemVersionRequirement: String): PluginJar {

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.plugins.test
 import com.netflix.spinnaker.kork.plugins.tck.PluginsTck
 import com.netflix.spinnaker.kork.plugins.tck.serviceFixture
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
-import com.netflix.spinnaker.orca.plugins.SimpleStageExtension
 import com.netflix.spinnaker.orca.plugins.StageDefinitionBuilderExtension
 import com.netflix.spinnaker.orca.plugins.TaskExtension1
 import com.netflix.spinnaker.orca.plugins.TaskExtension2
@@ -60,16 +59,6 @@ class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
 
         expect {
           that(stageDefinitionBuilder.type).isEqualTo(StageDefinitionBuilderExtension().type)
-        }
-      }
-
-      test("Simple stage extension is resolved to the correct type") {
-        val stageDefinitionBuilder = stageResolver.getStageDefinitionBuilder(
-          SimpleStageExtension::class.java.simpleName, "simpleStage"
-        )
-
-        expect {
-          that(stageDefinitionBuilder.type).isEqualTo("simple")
         }
       }
 

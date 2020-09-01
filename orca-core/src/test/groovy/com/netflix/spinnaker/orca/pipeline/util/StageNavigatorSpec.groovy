@@ -38,7 +38,7 @@ class StageNavigatorSpec extends Specification {
   ]
 
   @Subject
-  def stageNavigator = new StageNavigator(new DefaultStageResolver(stageBuilders, []))
+  def stageNavigator = new StageNavigator(new DefaultStageResolver(stageBuilders))
 
   def execution = PipelineExecutionImpl.newPipeline("orca")
 

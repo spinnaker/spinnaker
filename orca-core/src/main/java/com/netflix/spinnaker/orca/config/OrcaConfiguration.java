@@ -30,7 +30,6 @@ import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage;
 import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand;
 import com.netflix.spinnaker.orca.events.ExecutionEvent;
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter;
@@ -47,10 +46,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -208,29 +205,23 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public TaskResolver taskResolver(
-      Collection<Task> tasks, Optional<List<SimpleStage>> simpleStages) {
-    List<SimpleStage> stages = simpleStages.orElseGet(ArrayList::new);
-    return new TaskResolver(tasks, stages, true);
+  public TaskResolver taskResolver(Collection<Task> tasks) {
+    return new TaskResolver(tasks, true);
   }
 
   @Bean
   @ConditionalOnProperty("dynamic-stage-resolver.enabled")
   public DynamicStageResolver dynamicStageResolver(
       DynamicConfigService dynamicConfigService,
-      Collection<StageDefinitionBuilder> stageDefinitionBuilders,
-      Optional<List<SimpleStage<?>>> simpleStages) {
-    return new DynamicStageResolver(
-        dynamicConfigService, stageDefinitionBuilders, simpleStages.orElse(null));
+      Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
+    return new DynamicStageResolver(dynamicConfigService, stageDefinitionBuilders);
   }
 
   @Bean
   @ConditionalOnMissingBean(StageResolver.class)
   public DefaultStageResolver defaultStageResolver(
-      Collection<StageDefinitionBuilder> stageDefinitionBuilders,
-      Optional<List<SimpleStage>> simpleStages) {
-    List<SimpleStage> stages = simpleStages.orElseGet(ArrayList::new);
-    return new DefaultStageResolver(stageDefinitionBuilders, stages);
+      Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
+    return new DefaultStageResolver(stageDefinitionBuilders);
   }
 
   @Bean(name = EVENT_LISTENER_FACTORY_BEAN_NAME)

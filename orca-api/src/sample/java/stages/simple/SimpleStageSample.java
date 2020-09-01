@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Armory, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
-
-package com.netflix.spinnaker.orca.pipeline;
+package stages.simple;
 
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage;
-import com.netflix.spinnaker.orca.api.simplestage.SimpleTaskDefinition;
 import javax.annotation.Nonnull;
+import org.pf4j.Extension;
 
-public class SimpleStageDefinitionBuilder implements StageDefinitionBuilder {
-  private SimpleStage simpleStage;
+/**
+ * Exhibits the simplest {@link StageDefinitionBuilder} implementation.
+ *
+ * <p>This stage simply adds a customizable "hello, world" message into the stage outputs via {@link
+ * SimpleStageTask}.
+ */
+@Extension
+public class SimpleStageSample implements StageDefinitionBuilder {
 
-  public SimpleStageDefinitionBuilder(SimpleStage simpleStage) {
-    this.simpleStage = simpleStage;
-  }
-
+  @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    builder.withTask(new SimpleTaskDefinition(simpleStage.getName(), simpleStage.getClass()));
+    builder.withTask("myTask", SimpleStageTask.class);
   }
 }

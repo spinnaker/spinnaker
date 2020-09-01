@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTE
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
@@ -57,7 +56,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
   val stageNavigator: StageNavigator = mock()
 
   val cancellableStage: CancelableStageDefinitionBuilder = mock()
-  val stageResolver = DefaultStageResolver(listOf(singleTaskStage, cancellableStage), emptyList<SimpleStage<Object>>())
+  val stageResolver = DefaultStageResolver(listOf(singleTaskStage, cancellableStage))
 
   subject(GROUP) {
     CancelStageHandler(

@@ -33,10 +33,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStage
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStageInput
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStageOutput
-import com.netflix.spinnaker.orca.api.simplestage.SimpleStageStatus
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
@@ -149,24 +145,6 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     }
   }
 
-  val emptyApiStage = object : SimpleStage<Any> {
-    override fun getName() = "emptyApiStage"
-
-    override fun execute(simpleStageInput: SimpleStageInput<Any>): SimpleStageOutput<Any, Any> {
-      return SimpleStageOutput()
-    }
-  }
-
-  val successfulApiStage = object : SimpleStage<Any> {
-    override fun getName() = "successfulApiStage"
-
-    override fun execute(simpleStageInput: SimpleStageInput<Any>): SimpleStageOutput<Any, Any> {
-      val output = SimpleStageOutput<Any, Any>()
-      output.status = SimpleStageStatus.SUCCEEDED
-      return output
-    }
-  }
-
   subject(GROUP) {
     CompleteStageHandler(
       queue,
@@ -191,10 +169,6 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             stageWithNothingButAfterStages,
             stageWithSyntheticOnFailure,
             emptyStage
-          ),
-          listOf(
-            emptyApiStage,
-            successfulApiStage
           )
         )
       )
@@ -1637,24 +1611,6 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
         }
       }
-    }
-  }
-
-  given("api stage completed successfully") {
-    val pipeline = pipeline {
-      stage {
-        refId = "1"
-        type = successfulApiStage.name
-      }
-    }
-
-    val message = CompleteStage(pipeline.stageByRef("1"))
-    pipeline.stageById(message.stageId).apply {
-      status = SUCCEEDED
-    }
-
-    it("stage was successfully ran") {
-      assertThat(pipeline.stageById(message.stageId).status).isEqualTo(SUCCEEDED)
     }
   }
 })
