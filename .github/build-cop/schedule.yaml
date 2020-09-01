@@ -1,10 +1,4 @@
 shifts:
-- startDate: Mon 10 Aug 2020
-  user: cfieber
-- startDate: Mon 17 Aug 2020
-  user: ethanfrogers
-- startDate: Mon 24 Aug 2020
-  user: ezimanyi
 - startDate: Mon 31 Aug 2020
   user: jonsie
 - startDate: Mon 07 Sep 2020
@@ -16,5 +10,9 @@ shifts:
 - startDate: Mon 28 Sep 2020
   user: ajordens
 - startDate: Mon 05 Oct 2020
-  stopDate: Sun 11 Oct 2020
   user: cfieber
+- startDate: Mon 12 Oct 2020
+  user: ethanfrogers
+- startDate: Mon 19 Oct 2020
+  stopDate: Sun 25 Oct 2020
+  user: ezimanyi
