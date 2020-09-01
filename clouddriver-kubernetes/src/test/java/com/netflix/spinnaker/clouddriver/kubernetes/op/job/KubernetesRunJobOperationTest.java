@@ -28,6 +28,7 @@ import com.google.common.collect.Iterators;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
@@ -193,11 +194,12 @@ final class KubernetesRunJobOperationTest {
 
   private static OperationResult operate(
       KubernetesRunJobOperationDescription description, boolean appendSuffix) {
-    ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(
+    ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
+    when(artifactProvider.getArtifacts(
             any(KubernetesKind.class), any(String.class), any(String.class), any(String.class)))
         .thenReturn(ImmutableList.of());
-    return new KubernetesRunJobOperation(description, provider, appendSuffix)
+    ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
+    return new KubernetesRunJobOperation(description, resourceVersioner, appendSuffix)
         .operate(ImmutableList.of());
   }
 }

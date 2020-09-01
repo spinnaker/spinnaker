@@ -30,6 +30,7 @@ import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
@@ -229,10 +230,12 @@ final class KubernetesDeployManifestOperationTest {
   }
 
   private static OperationResult deploy(KubernetesDeployManifestDescription description) {
-    ArtifactProvider provider = mock(ArtifactProvider.class);
-    when(provider.getArtifacts(
+    ArtifactProvider artifactProvider = mock(ArtifactProvider.class);
+    when(artifactProvider.getArtifacts(
             any(KubernetesKind.class), any(String.class), any(String.class), any(String.class)))
         .thenReturn(ImmutableList.of());
-    return new KubernetesDeployManifestOperation(description, provider).operate(ImmutableList.of());
+    ResourceVersioner resourceVersioner = new ResourceVersioner(artifactProvider);
+    return new KubernetesDeployManifestOperation(description, resourceVersioner)
+        .operate(ImmutableList.of());
   }
 }

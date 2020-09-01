@@ -17,30 +17,28 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.artifact;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.OptionalInt;
 
-final class KubernetesUnversionedArtifactConverter extends KubernetesArtifactConverter {
-  static final KubernetesUnversionedArtifactConverter INSTANCE =
-      new KubernetesUnversionedArtifactConverter();
+@NonnullByDefault
+public final class ArtifactConverter {
+  // Static methods only; prevent instantiation.
+  private ArtifactConverter() {}
 
-  private KubernetesUnversionedArtifactConverter() {}
-
-  @Override
-  public Artifact toArtifact(
-      ArtifactProvider provider, KubernetesManifest manifest, String account) {
+  public static Artifact toArtifact(
+      KubernetesManifest manifest, String account, OptionalInt version) {
+    String name = manifest.getName();
+    String versionString = version.isPresent() ? String.format("v%03d", version.getAsInt()) : "";
+    String versionedName = versionString.isEmpty() ? name : String.join("-", name, versionString);
     return Artifact.builder()
-        .type(artifactType(manifest.getKind()))
-        .name(manifest.getName())
+        .type("kubernetes/" + manifest.getKind().toString())
+        .name(name)
         .location(manifest.getNamespace())
-        .reference(manifest.getName())
+        .version(versionString)
+        .reference(versionedName)
         .putMetadata("account", account)
         .build();
-  }
-
-  @Override
-  public String getDeployedName(Artifact artifact) {
-    return artifact.getName();
   }
 }

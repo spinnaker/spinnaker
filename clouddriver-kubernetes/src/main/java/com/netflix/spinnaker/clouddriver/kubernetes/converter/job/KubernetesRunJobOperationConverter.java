@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.converter.job;
 import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.RUN_JOB;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesV2ArtifactProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.job.KubernetesRunJobOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubernetesRunJobDeploymentResult;
@@ -35,21 +35,22 @@ import org.springframework.stereotype.Component;
 @KubernetesOperation(RUN_JOB)
 @Component
 public class KubernetesRunJobOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  private final KubernetesV2ArtifactProvider artifactProvider;
+  private final ResourceVersioner resourceVersioner;
   private final boolean appendSuffix;
 
   @Autowired
   public KubernetesRunJobOperationConverter(
-      KubernetesV2ArtifactProvider artifactProvider,
+      ResourceVersioner resourceVersioner,
       @Value("${kubernetes.jobs.append-suffix:false}") boolean appendSuffix) {
-    this.artifactProvider = artifactProvider;
+    this.resourceVersioner = resourceVersioner;
     this.appendSuffix = appendSuffix;
   }
 
   @Override
   public AtomicOperation<KubernetesRunJobDeploymentResult> convertOperation(
       Map<String, Object> input) {
-    return new KubernetesRunJobOperation(convertDescription(input), artifactProvider, appendSuffix);
+    return new KubernetesRunJobOperation(
+        convertDescription(input), resourceVersioner, appendSuffix);
   }
 
   @Override

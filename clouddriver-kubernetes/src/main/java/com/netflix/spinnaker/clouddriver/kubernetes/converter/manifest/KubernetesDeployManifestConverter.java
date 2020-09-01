@@ -22,7 +22,7 @@ import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.D
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesV2ArtifactProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ResourceVersioner;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -46,21 +46,21 @@ public class KubernetesDeployManifestConverter extends AbstractAtomicOperationsC
   private static final String KIND_VALUE_LIST = "list";
   private static final String KIND_LIST_ITEMS_KEY = "items";
 
-  private final KubernetesV2ArtifactProvider artifactProvider;
+  private final ResourceVersioner resourceVersioner;
 
   @Autowired
   public KubernetesDeployManifestConverter(
       AccountCredentialsProvider accountCredentialsProvider,
       ObjectMapper objectMapper,
-      KubernetesV2ArtifactProvider artifactProvider) {
+      ResourceVersioner resourceVersioner) {
     this.setAccountCredentialsProvider(accountCredentialsProvider);
     this.setObjectMapper(objectMapper);
-    this.artifactProvider = artifactProvider;
+    this.resourceVersioner = resourceVersioner;
   }
 
   @Override
   public AtomicOperation<OperationResult> convertOperation(Map<String, Object> input) {
-    return new KubernetesDeployManifestOperation(convertDescription(input), artifactProvider);
+    return new KubernetesDeployManifestOperation(convertDescription(input), resourceVersioner);
   }
 
   @Override
