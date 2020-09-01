@@ -25,11 +25,6 @@ class DefaultBeanPromoter(
 ) : BeanPromoter {
 
   override fun promote(beanName: String, bean: Any, beanClass: Class<*>) {
-    serviceApplicationContext.registerBean(
-      beanName,
-      beanClass,
-      { bean },
-      { }
-    )
+    serviceApplicationContext.beanFactory.registerSingleton(beanName, bean)
   }
 }
