@@ -73,6 +73,11 @@ class RestartStageHandler(
     }
 
     val trigger = topStage.execution.trigger as PipelineTrigger
+    if (trigger.parentPipelineStageId == null) {
+      // Must've been triggered by dependent pipeline, we don't restart those
+      return
+    }
+
     // We have a copy of the parent execution, not the live one. So we retrieve the live one.
     val parentExecution = repository.retrieve(trigger.parentExecution.type, trigger.parentExecution.id)
 

@@ -371,7 +371,8 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
         .findFirst()
         .orElseThrow(
             () ->
-                new IllegalArgumentException(String.format("No stage with id %s exists", stageId)));
+                new IllegalArgumentException(
+                    String.format("No stage with id %s exists on execution %s", stageId, id)));
   }
 
   @Nonnull
