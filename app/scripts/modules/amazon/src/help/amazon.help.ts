@@ -68,6 +68,8 @@ const helpContents: { [key: string]: string } = {
   'aws.serverGroup.base64UserData': '(Optional) <b>UserData</b> is a base64 encoded string.',
   'aws.serverGroup.enabledMetrics':
     '(Optional) <b>Enabled Metrics</b> are the Auto Scaling Group metrics to enable on this group. Existing metrics are not modified.',
+  'aws.serverGroup.imdsv2':
+    "(Recommended) <b>IMDSv2</b> helps mitigate AWS credential theft from the exploitation of SSRF vulnerabilities in web applications. All modern AWS SDKs support IMDSv2 and it should not be disabled unless you're using a legacy SDK.",
   'aws.serverGroup.instanceMonitoring':
     '(Optional) <b>Instance Monitoring</b> whether to enable detailed monitoring of instances. Group metrics must be disabled to update an ASG with Instance Monitoring set to false.',
   'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',

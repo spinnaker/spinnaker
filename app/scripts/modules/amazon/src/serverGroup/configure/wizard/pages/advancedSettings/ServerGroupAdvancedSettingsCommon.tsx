@@ -208,6 +208,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           <div className="form-group">
             <div className="col-md-5 sm-label-right">
               <b>IMDSv2 </b>
+              <HelpField id="aws.serverGroup.imdsv2" />
             </div>
             <div className="col-md-6 checkbox">
               <label>

@@ -44,6 +44,7 @@ export interface IAWSProviderSettings extends IProviderSettings {
   serverGroups?: {
     enableIPv6?: boolean;
     enableIMDSv2?: boolean;
+    defaultIMDSv2AppAgeLimit?: number;
   };
   useAmiBlockDeviceMappings?: boolean;
 }
