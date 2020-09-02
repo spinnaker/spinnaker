@@ -460,6 +460,8 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
       if (urlMap.getPathMatchers() != null) {
         for (PathMatcher pathMatcher : urlMap.getPathMatchers()) {
           String pathMatchDefaultService = Utils.getLocalName(pathMatcher.getDefaultService());
+          List<PathRule> pathRules =
+              pathMatcher.getPathRules() != null ? pathMatcher.getPathRules() : new ArrayList<>();
           for (HostRule hostRule : urlMap.getHostRules()) {
             if (hostRule.getPathMatcher() != null
                 && hostRule.getPathMatcher().equals(pathMatcher.getName())) {
@@ -474,7 +476,7 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
               gHostRule.setHostPatterns(hostRule.getHosts());
               gHostRule.setPathMatcher(gPathMatcher);
               List<GooglePathRule> collect =
-                  pathMatcher.getPathRules().stream()
+                  pathRules.stream()
                       .map(
                           pathRule -> {
                             GoogleBackendService service = new GoogleBackendService();
@@ -492,7 +494,7 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
           }
 
           queuedServices.add(pathMatchDefaultService);
-          for (PathRule pathRule : pathMatcher.getPathRules()) {
+          for (PathRule pathRule : pathRules) {
             if (pathRule.getService() != null) {
               queuedServices.add(Utils.getLocalName(pathRule.getService()));
             }
