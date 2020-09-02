@@ -39,6 +39,8 @@ spinnaker:
     plugins:
       com.netflix.gate.enabled.plugin:
         enabled: true
+        api-extension.config:
+          id: test
       com.netflix.gate.disabled.plugin:
         enabled: false
       com.netflix.gate.version.not.supported.plugin:
