@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.orca.front50.tasks;
 
+import static java.lang.String.format;
+
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -128,9 +131,9 @@ public class SaveServiceAccountTask implements RetryableTask {
     }
 
     if (!isUserAuthorized(user, roles)) {
-      // TODO: Push this to the output result so Deck can show it.
       log.warn("User {} is not authorized with all roles for pipeline", user);
-      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
+      throw new UserException(
+          format("User '%s' is not authorized with all roles for pipeline", user));
     }
 
     ServiceAccount svcAcct = new ServiceAccount();
