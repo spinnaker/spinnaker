@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.echo;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
@@ -55,7 +56,8 @@ public class JiraService {
       notification.setSource(source);
       notification.setNotificationType(EchoService.Notification.Type.JIRA);
       notification.setAdditionalContext(ImmutableMap.of("issueContext", createIssueRequest));
-      Response response = echoService.create(notification);
+      Response response =
+          AuthenticatedRequest.allowAnonymous(() -> echoService.create(notification));
       return mapper.readValue(response.getBody().in(), CreateJiraIssueResponse.class);
     } catch (Exception e) {
       throw new CreateJiraIssueException(
@@ -121,6 +123,11 @@ public class JiraService {
 
       public void setSelf(String self) {
         this.self = self;
+      }
+
+      @Override
+      public String toString() {
+        return "(id='" + id + '\'' + ", key='" + key + '\'' + ", self='" + self + '\'' + ')';
       }
     }
   }
