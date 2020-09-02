@@ -32,17 +32,17 @@ class DynamicStageResolverSpec extends Specification {
 
   DynamicConfigService dynamicConfigService = Mock()
 
-  List<StageDefinitionBuilder> builders = [
+  StageDefinitionBuildersProvider stageDefinitionBuildersProvider = new StageDefinitionBuildersProvider([
       new WaitStage(),
       new DefaultStageResolverSpec.AliasedStageDefinitionBuilder(),
       new BuilderOne(),
       new BuilderTwo()
-  ]
+  ])
 
   @Unroll
   def "should lookup stage by name or alias"() {
     when:
-    def result = new DynamicStageResolver(dynamicConfigService, builders)
+    def result = new DynamicStageResolver(dynamicConfigService, stageDefinitionBuildersProvider)
         .getStageDefinitionBuilder(stageTypeIdentifier, null).getType()
 
     then:
@@ -59,7 +59,7 @@ class DynamicStageResolverSpec extends Specification {
   @Unroll
   def "should use configured preference on duplicate alias"() {
     when:
-    def result = new DynamicStageResolver(dynamicConfigService, builders)
+    def result = new DynamicStageResolver(dynamicConfigService, stageDefinitionBuildersProvider)
         .getStageDefinitionBuilder("same", null).class
 
     then:
@@ -96,7 +96,7 @@ class DynamicStageResolverSpec extends Specification {
     ]
 
     when:
-    def result = new DynamicStageResolver(dynamicConfigService, builders)
+    def result = new DynamicStageResolver(dynamicConfigService, new StageDefinitionBuildersProvider(builders))
         .getStageDefinitionBuilder("same", null).class
 
     then:
@@ -106,22 +106,22 @@ class DynamicStageResolverSpec extends Specification {
 
   def "should raise exception when stage not found"() {
     when:
-    new DynamicStageResolver(dynamicConfigService, builders)
+    new DynamicStageResolver(dynamicConfigService, stageDefinitionBuildersProvider)
         .getStageDefinitionBuilder("DoesNotExist", null)
 
     then:
     thrown(StageResolver.NoSuchStageDefinitionBuilderException)
-    2 * dynamicConfigService.getConfig(_, _, _) >> BuilderOne.class.canonicalName
+    4 * dynamicConfigService.getConfig(_, _, _) >> BuilderOne.class.canonicalName
   }
 
   def "should raise exception when no preference is configured"() {
     when:
     new DynamicStageResolver(
       dynamicConfigService,
-      [
+      new StageDefinitionBuildersProvider([
           new DefaultStageResolverSpec.AliasedStageDefinitionBuilder(),
           new DefaultStageResolverSpec.AliasedStageDefinitionBuilder()
-      ]
+      ])
     )
 
     then:
@@ -133,10 +133,10 @@ class DynamicStageResolverSpec extends Specification {
     when:
     new DynamicStageResolver(
       dynamicConfigService,
-      [
+      new StageDefinitionBuildersProvider([
           new BuilderOne(),
           new BuilderOne()
-      ]
+      ])
     )
 
     then:

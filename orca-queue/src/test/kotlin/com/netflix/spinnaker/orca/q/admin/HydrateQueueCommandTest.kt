@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.StartTask
+import com.netflix.spinnaker.orca.q.TasksProvider
 import com.netflix.spinnaker.orca.q.handler.plan
 import com.netflix.spinnaker.orca.q.stageWithSyntheticAfter
 import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
@@ -65,7 +66,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val taskResolver = TaskResolver(emptyList())
+  val taskResolver = TaskResolver(TasksProvider(emptyList()))
 
   subject(CachingMode.GROUP) {
     HydrateQueueCommand(queue, repository, taskResolver)

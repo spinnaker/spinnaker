@@ -44,6 +44,7 @@ import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.InvalidExecutionId
 import com.netflix.spinnaker.orca.q.InvalidStageId
 import com.netflix.spinnaker.orca.q.SkipStage
+import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.orca.q.buildBeforeStages
@@ -107,17 +108,19 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       stageNavigator,
       DefaultStageDefinitionBuilderFactory(
         DefaultStageResolver(
-          listOf(
-            singleTaskStage,
-            multiTaskStage,
-            stageWithSyntheticBefore,
-            stageWithSyntheticAfter,
-            stageWithParallelBranches,
-            rollingPushStage,
-            zeroTaskStage,
-            stageWithSyntheticAfterAndNoTasks,
-            webhookStage,
-            failPlanningStage
+          StageDefinitionBuildersProvider(
+            listOf(
+              singleTaskStage,
+              multiTaskStage,
+              stageWithSyntheticBefore,
+              stageWithSyntheticAfter,
+              stageWithParallelBranches,
+              rollingPushStage,
+              zeroTaskStage,
+              stageWithSyntheticAfterAndNoTasks,
+              webhookStage,
+              failPlanningStage
+            )
           )
         )
       ),

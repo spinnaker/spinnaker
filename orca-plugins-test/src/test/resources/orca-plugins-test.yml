@@ -22,8 +22,13 @@ spring:
   application:
     name: orca
 
+dynamic-stage-resolver:
+  enabled: true
+
 spinnaker:
   extensibility:
+    framework:
+      version: v2
     plugins-root-path: build/plugins
     plugins:
       com.netflix.orca.enabled.plugin:

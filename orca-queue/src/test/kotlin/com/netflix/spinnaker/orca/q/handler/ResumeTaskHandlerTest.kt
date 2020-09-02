@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
 import com.netflix.spinnaker.orca.q.ResumeTask
 import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.TasksProvider
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.check
 import com.nhaarman.mockito_kotlin.doReturn
@@ -45,7 +46,7 @@ object ResumeTaskHandlerTest : SubjectSpek<ResumeTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val taskResolver = TaskResolver(emptyList())
+  val taskResolver = TaskResolver(TasksProvider(emptyList()))
 
   subject(GROUP) {
     ResumeTaskHandler(queue, repository, taskResolver)

@@ -34,7 +34,8 @@ public class JobService {
 
   private final JobConfigurationProperties jobConfigurationProperties;
 
-  private final List<PreconfiguredJobConfigurationProvider> preconfiguredJobConfigurationProviders;
+  private final ObjectProvider<List<PreconfiguredJobConfigurationProvider>>
+      preconfiguredJobConfigurationProviders;
 
   @Autowired
   JobService(
@@ -42,8 +43,7 @@ public class JobService {
       ObjectProvider<List<PreconfiguredJobConfigurationProvider>>
           preconfiguredJobConfigurationProviders) {
     this.jobConfigurationProperties = jobConfigurationProperties;
-    this.preconfiguredJobConfigurationProviders =
-        preconfiguredJobConfigurationProviders.getIfAvailable(ArrayList::new);
+    this.preconfiguredJobConfigurationProviders = preconfiguredJobConfigurationProviders;
   }
 
   public List<PreconfiguredJobStageProperties> getPreconfiguredStages() {
@@ -52,13 +52,14 @@ public class JobService {
     preconfiguredJobStageProperties.addAll(jobConfigurationProperties.getTitus());
     preconfiguredJobStageProperties.addAll(jobConfigurationProperties.getKubernetes());
 
+    List<PreconfiguredJobConfigurationProvider> providers =
+        preconfiguredJobConfigurationProviders.getIfAvailable(ArrayList::new);
+
     // Also load job configs that are provided via extension implementations(plugins)
-    if (!preconfiguredJobConfigurationProviders.isEmpty()) {
+    if (!providers.isEmpty()) {
 
       List<PreconfiguredJobStageProperties> jobStageProperties =
-          preconfiguredJobConfigurationProviders.stream()
-              .flatMap(obj -> obj.getJobConfigurations().stream())
-              .collect(toList());
+          providers.stream().flatMap(obj -> obj.getJobConfigurations().stream()).collect(toList());
 
       jobStageProperties.forEach(
           properties -> {

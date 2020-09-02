@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.plugins
 
-import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
+import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobConfigurationProvider
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties
@@ -41,7 +41,7 @@ class PreconfiguredJobConfigurationProviderExtension(
   }
 }
 
-@ExtensionConfiguration("preconfigured-job-config")
+@PluginConfiguration("preconfigured-job-config")
 class PreconfiguredJobConfigProperties {
   var enabled = true
 }

@@ -19,7 +19,9 @@ package com.netflix.spinnaker.orca
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import java.util.concurrent.ConcurrentHashMap
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.ObjectProvider
 
 /**
  * Allows for multiple stages to be wired up with the same alias, using dynamic config to dictate which to use.
@@ -38,30 +40,33 @@ import org.slf4j.LoggerFactory
  */
 class DynamicStageResolver(
   private val dynamicConfigService: DynamicConfigService,
-  stageDefinitionBuilders: Collection<StageDefinitionBuilder>
+  private val stageDefinitionBuildersProvider: ObjectProvider<Collection<StageDefinitionBuilder>>
 ) : StageResolver {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val stageDefinitionBuildersByAlias: MutableMap<String, MutableList<StageDefinitionBuilder>> = mutableMapOf()
-  private val fallbackPreferences: MutableMap<String, String> = mutableMapOf()
+  private val stageDefinitionBuildersByAlias: ConcurrentHashMap<String, MutableList<StageDefinitionBuilder>> = ConcurrentHashMap()
+  private val fallbackPreferences: ConcurrentHashMap<String, String> = ConcurrentHashMap()
 
-  init {
-    stageDefinitionBuilders.forEach { builder ->
-      putOrAdd(builder.type, builder)
-      builder.aliases().forEach { alias ->
-        putOrAdd(alias, builder)
+  init { computeStageDefinitionBuilders() }
+
+  override fun getStageDefinitionBuilder(type: String, typeAlias: String?): StageDefinitionBuilder {
+    var builder = stageDefinitionBuilder(type, typeAlias)
+
+    if (builder == null) {
+      log.debug("Stage definition builder for $type not found in initial stage definition builder cache, re-computing...")
+      computeStageDefinitionBuilders()
+      builder = stageDefinitionBuilder(type, typeAlias)
+
+      if (builder == null) {
+        throw StageResolver.NoSuchStageDefinitionBuilderException(type, typeAlias, stageDefinitionBuildersByAlias.keys)
       }
     }
 
-    stageDefinitionBuildersByAlias.filter { it.value.size > 1 }.also {
-      validatePreferences(it)
-      validateClassNames(it)
-      cachePreferences(it)
-    }
+    return builder
   }
 
-  override fun getStageDefinitionBuilder(type: String, typeAlias: String?): StageDefinitionBuilder {
+  private fun stageDefinitionBuilder(type: String, typeAlias: String?): StageDefinitionBuilder? {
     var builder: StageDefinitionBuilder? = null
 
     val builderForType = stageDefinitionBuildersByAlias[type]
@@ -73,15 +78,40 @@ class DynamicStageResolver(
       builder = stageDefinitionBuildersByAlias[typeAlias]?.resolveByPreference(typeAlias)
     }
 
-    if (builder == null) {
-      throw StageResolver.NoSuchStageDefinitionBuilderException(type, typeAlias, stageDefinitionBuildersByAlias.keys)
-    }
-
     return builder
   }
 
-  private fun putOrAdd(key: String, stageDefinitionBuilder: StageDefinitionBuilder) {
-    stageDefinitionBuildersByAlias.computeIfAbsent(key) { mutableListOf() }.add(stageDefinitionBuilder)
+  /**
+   *  Compute a cache of stage definition builders.  A local map is first built and validated for
+   *  duplicate stages and conflicting dynamic config stage preferences and then copied to the
+   *  thread safe cache.
+   *
+   *  This allows us to re-compute the stage definition builder cache if necessary (on a cache miss
+   *  for example) and ensures the validation always runs correctly against the latest set of
+   *  [StageDefinitionBuilder] classes.
+   */
+  private fun computeStageDefinitionBuilders() {
+    val localStageDefinitionBuildersByAlias: MutableMap<String, MutableList<StageDefinitionBuilder>> =
+      mutableMapOf()
+    stageDefinitionBuildersProvider.getIfAvailable { ArrayList() }
+      .forEach { builder ->
+        localStageDefinitionBuildersByAlias.putOrAdd(builder.type, builder)
+        builder.aliases().forEach { alias ->
+          localStageDefinitionBuildersByAlias.putOrAdd(alias, builder)
+        }
+      }
+
+    localStageDefinitionBuildersByAlias.filter { it.value.size > 1 }.also {
+      validatePreferences(it)
+      validateClassNames(it)
+      cachePreferences(it)
+    }
+
+    stageDefinitionBuildersByAlias.putAll(localStageDefinitionBuildersByAlias)
+  }
+
+  private fun MutableMap<String, MutableList<StageDefinitionBuilder>>.putOrAdd(key: String, stageDefinitionBuilder: StageDefinitionBuilder) {
+    this.computeIfAbsent(key) { mutableListOf() }.add(stageDefinitionBuilder)
   }
 
   /**

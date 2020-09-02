@@ -24,10 +24,10 @@ import spock.lang.Unroll
 
 class DefaultStageResolverSpec extends Specification {
   @Subject
-  def stageResolver = new DefaultStageResolver([
+  def stageResolver = new DefaultStageResolver(new StageDefinitionBuildersProvider([
     new WaitStage(),
     new AliasedStageDefinitionBuilder()
-  ])
+  ]))
 
   @Unroll
   def "should lookup stage by name or alias"() {
@@ -43,10 +43,10 @@ class DefaultStageResolverSpec extends Specification {
 
   def "should raise exception on duplicate alias"() {
     when:
-    new DefaultStageResolver([
+    new DefaultStageResolver(new StageDefinitionBuildersProvider([
       new AliasedStageDefinitionBuilder(),
       new AliasedStageDefinitionBuilder()
-    ])
+    ]))
 
     then:
     thrown(StageResolver.DuplicateStageAliasException)

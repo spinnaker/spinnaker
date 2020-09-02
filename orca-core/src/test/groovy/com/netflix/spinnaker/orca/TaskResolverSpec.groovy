@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.ObjectProvider
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,10 +30,10 @@ import javax.annotation.Nonnull;
 
 class TaskResolverSpec extends Specification {
   @Subject
-  def taskResolver = new TaskResolver([
+  def taskResolver = new TaskResolver(new TasksProvider([
       new WaitTask(),
       new AliasedTask()
-  ], false)
+  ]), false)
 
   @Unroll
   def "should lookup task by name or alias"() {
@@ -47,10 +49,10 @@ class TaskResolverSpec extends Specification {
 
   def "should raise exception on duplicate alias"() {
     when:
-    new TaskResolver([
+    new TaskResolver(new TasksProvider([
         new AliasedTask(),
         new AliasedTask()
-    ], false)
+    ]), false)
 
     then:
     thrown(TaskResolver.DuplicateTaskAliasException)
@@ -71,5 +73,34 @@ class TaskResolverSpec extends Specification {
     TaskResult execute(@Nonnull StageExecution stage) {
       return TaskResult.SUCCEEDED
     }
+  }
+}
+
+class TasksProvider implements ObjectProvider<Collection<Task>> {
+
+  Collection<Task> tasks
+
+  TasksProvider(Collection<Task> tasks) {
+    this.tasks = tasks
+  }
+
+  @Override
+  Collection<Task> getObject(Object... args) throws BeansException {
+    return tasks
+  }
+
+  @Override
+  Collection<Task> getIfAvailable() throws BeansException {
+    return tasks
+  }
+
+  @Override
+  Collection<Task> getIfUnique() throws BeansException {
+    return tasks
+  }
+
+  @Override
+  Collection<Task> getObject() throws BeansException {
+    return tasks
   }
 }

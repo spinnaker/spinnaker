@@ -49,6 +49,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import org.pf4j.PluginManager;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -205,7 +206,7 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public TaskResolver taskResolver(Collection<Task> tasks) {
+  public TaskResolver taskResolver(ObjectProvider<Collection<Task>> tasks) {
     return new TaskResolver(tasks, true);
   }
 
@@ -213,14 +214,14 @@ public class OrcaConfiguration {
   @ConditionalOnProperty("dynamic-stage-resolver.enabled")
   public DynamicStageResolver dynamicStageResolver(
       DynamicConfigService dynamicConfigService,
-      Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
+      ObjectProvider<Collection<StageDefinitionBuilder>> stageDefinitionBuilders) {
     return new DynamicStageResolver(dynamicConfigService, stageDefinitionBuilders);
   }
 
   @Bean
   @ConditionalOnMissingBean(StageResolver.class)
   public DefaultStageResolver defaultStageResolver(
-      Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
+      ObjectProvider<Collection<StageDefinitionBuilder>> stageDefinitionBuilders) {
     return new DefaultStageResolver(stageDefinitionBuilders);
   }
 

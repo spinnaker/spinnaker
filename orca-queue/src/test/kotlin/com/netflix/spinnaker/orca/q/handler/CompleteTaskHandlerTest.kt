@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.CompleteTask
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.SkipStage
+import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
 import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.orca.q.buildTasks
 import com.netflix.spinnaker.orca.q.get
@@ -70,7 +71,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
-  val stageResolver = DefaultStageResolver(emptyList())
+  val stageResolver = DefaultStageResolver(StageDefinitionBuildersProvider(emptyList()))
 
   subject(GROUP) {
     CompleteTaskHandler(queue, repository, DefaultStageDefinitionBuilderFactory(stageResolver), ContextParameterProcessor(), publisher, clock, NoopRegistry())

@@ -28,7 +28,9 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
 import com.netflix.spinnaker.orca.q.StartTask
+import com.netflix.spinnaker.orca.q.TasksProvider
 import com.netflix.spinnaker.orca.q.buildTasks
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
@@ -54,8 +56,8 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
-  val taskResolver = TaskResolver(emptyList())
-  val stageResolver = DefaultStageResolver(emptyList())
+  val taskResolver = TaskResolver(TasksProvider(emptyList()))
+  val stageResolver = DefaultStageResolver(StageDefinitionBuildersProvider(emptyList()))
   val clock = fixedClock()
 
   subject(GROUP) {

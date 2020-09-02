@@ -50,6 +50,7 @@ import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.ContinueParentStage
 import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.buildAfterStages
 import com.netflix.spinnaker.orca.q.buildBeforeStages
@@ -157,18 +158,20 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       registry,
       DefaultStageDefinitionBuilderFactory(
         DefaultStageResolver(
-          listOf(
-            singleTaskStage,
-            multiTaskStage,
-            stageWithSyntheticBefore,
-            stageWithSyntheticAfter,
-            stageWithParallelBranches,
-            stageWithTaskAndAfterStages,
-            stageThatBlowsUpPlanningAfterStages,
-            stageWithSyntheticOnFailure,
-            stageWithNothingButAfterStages,
-            stageWithSyntheticOnFailure,
-            emptyStage
+          StageDefinitionBuildersProvider(
+            listOf(
+              singleTaskStage,
+              multiTaskStage,
+              stageWithSyntheticBefore,
+              stageWithSyntheticAfter,
+              stageWithParallelBranches,
+              stageWithTaskAndAfterStages,
+              stageThatBlowsUpPlanningAfterStages,
+              stageWithSyntheticOnFailure,
+              stageWithNothingButAfterStages,
+              stageWithSyntheticOnFailure,
+              emptyStage
+            )
           )
         )
       )
