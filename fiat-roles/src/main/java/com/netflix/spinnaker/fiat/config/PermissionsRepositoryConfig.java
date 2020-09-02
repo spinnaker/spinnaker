@@ -4,16 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigProps;
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy;
+import io.github.resilience4j.retry.RetryRegistry;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(RedisPermissionRepositoryConfigProps.class)
 public class PermissionsRepositoryConfig {
   @Bean
   PermissionsRepository redisPermissionsRepository(
@@ -21,12 +24,14 @@ public class PermissionsRepositoryConfig {
       ObjectMapper objectMapper,
       RedisClientDelegate redisClientDelegate,
       List<Resource> resources,
-      @Value("${fiat.redis.prefix:spinnaker:fiat}") String prefix) {
-    PermissionsRepository repository =
-        new RedisPermissionsRepository(objectMapper, redisClientDelegate, resources, prefix);
+      RedisPermissionRepositoryConfigProps configProps,
+      RetryRegistry retryRegistry) {
+    RedisPermissionsRepository redisPermissionsRepository =
+        new RedisPermissionsRepository(
+            objectMapper, redisClientDelegate, resources, configProps, retryRegistry);
     return InstrumentedProxy.proxy(
         registry,
-        repository,
+        redisPermissionsRepository,
         "permissionsRepository",
         Collections.singletonMap("repositoryType", "redis"));
   }

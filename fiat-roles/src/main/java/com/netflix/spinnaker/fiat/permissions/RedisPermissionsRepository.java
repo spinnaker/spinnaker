@@ -30,14 +30,17 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import io.github.resilience4j.retry.RetryRegistry;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -50,6 +53,7 @@ import lombok.val;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.commands.JedisCommands;
 
 /**
  * This Redis-backed permission repository is structured in a way to optimized reading types of
@@ -67,6 +71,8 @@ import redis.clients.jedis.ScanResult;
 @Slf4j
 public class RedisPermissionsRepository implements PermissionsRepository {
 
+  private static final String REDIS_READ_RETRY = "permissionsRepositoryRedisRead";
+
   private static final String KEY_PERMISSIONS = "permissions";
   private static final String KEY_ROLES = "roles";
   private static final String KEY_ALL_USERS = "users";
@@ -76,9 +82,13 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
   private static final String NO_LAST_MODIFIED = "unknown_last_modified";
 
+  private final Clock clock;
   private final ObjectMapper objectMapper;
   private final RedisClientDelegate redisClientDelegate;
   private final List<Resource> resources;
+  private final RedisPermissionRepositoryConfigProps configProps;
+  private final RetryRegistry retryRegistry;
+
   private final LoadingCache<String, UserPermission> unrestrictedPermission =
       Caffeine.newBuilder()
           .expireAfterAccess(Duration.ofSeconds(10))
@@ -86,27 +96,50 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private final String prefix;
 
+  RedisPermissionsRepository(
+      Clock clock,
+      ObjectMapper objectMapper,
+      RedisClientDelegate redisClientDelegate,
+      List<Resource> resources,
+      RedisPermissionRepositoryConfigProps configProps,
+      RetryRegistry retryRegistry) {
+    this.clock = clock;
+    this.objectMapper = objectMapper;
+    this.redisClientDelegate = redisClientDelegate;
+    this.configProps = configProps;
+    this.prefix = configProps.getPrefix();
+    this.resources = resources;
+    this.retryRegistry = retryRegistry;
+  }
+
   public RedisPermissionsRepository(
       ObjectMapper objectMapper,
       RedisClientDelegate redisClientDelegate,
       List<Resource> resources,
-      String prefix) {
-    this.objectMapper = objectMapper;
-    this.redisClientDelegate = redisClientDelegate;
-    this.prefix = prefix;
-    this.resources = resources;
+      RedisPermissionRepositoryConfigProps configProps,
+      RetryRegistry retryRegistry) {
+    this(
+        Clock.systemUTC(),
+        objectMapper,
+        redisClientDelegate,
+        resources,
+        configProps,
+        retryRegistry);
   }
 
   private UserPermission reloadUnrestricted() {
-    return getFromRedis(UNRESTRICTED).orElseThrow(NoSuchElementException::new);
+    return getFromRedis(UNRESTRICTED)
+        .orElseThrow(() -> new PermissionRepositoryException("Failed to read unrestricted user"));
   }
 
   private UserPermission getUnrestrictedUserPermission() {
     String serverLastModified =
-        redisClientDelegate.withCommandsClient(
-            c -> {
-              return c.get(unrestrictedLastModifiedKey());
-            });
+        redisRead(
+            new TimeoutContext(
+                "checkLastModified",
+                clock,
+                configProps.getRepository().getCheckLastModifiedTimeout()),
+            c -> c.get(unrestrictedLastModifiedKey()));
     if (serverLastModified == null) {
       serverLastModified = NO_LAST_MODIFIED;
     }
@@ -151,8 +184,6 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       redisClientDelegate.withMultiKeyPipeline(
           pipeline -> {
             String userId = permission.getId();
-            pipeline.sadd(allUsersKey(), userId);
-
             if (permission.isAdmin()) {
               pipeline.sadd(adminKey(), userId);
             } else {
@@ -180,6 +211,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                     });
 
             serverTime.set(pipeline.time());
+            pipeline.sadd(allUsersKey(), userId);
 
             pipeline.sync();
           });
@@ -206,40 +238,36 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private Optional<UserPermission> getFromRedis(@NonNull String id) {
     try {
+      TimeoutContext timeoutContext =
+          new TimeoutContext(
+              String.format("getPermission for user: %s", id),
+              clock,
+              configProps.getRepository().getGetPermissionTimeout());
       boolean userExists =
-          UNRESTRICTED.equals(id)
-              || redisClientDelegate.withCommandsClient(
-                  c -> {
-                    return c.sismember(allUsersKey(), id);
-                  });
+          UNRESTRICTED.equals(id) || redisRead(timeoutContext, c -> c.sismember(allUsersKey(), id));
       if (!userExists) {
         return Optional.empty();
       }
-      final RawUserPermission userResponseMap = new RawUserPermission();
-      redisClientDelegate.withMultiKeyPipeline(
-          p -> {
-            resources.stream()
-                .map(Resource::getResourceType)
-                .forEach(
-                    r -> {
-                      String userKey = userKey(id, r);
-                      Response<Map<String, String>> resourceMap = p.hgetAll(userKey);
-                      userResponseMap.put(r, resourceMap);
-                    });
-            Response<Boolean> admin = p.sismember(adminKey(), id);
-            p.sync();
-            userResponseMap.isAdmin = admin.get();
+      UserPermission userPermission = new UserPermission().setId(id);
+      resources.forEach(
+          r -> {
+            ResourceType resourceType = r.getResourceType();
+            String userKey = userKey(id, resourceType);
+            Map<String, String> resourcePermissions = hgetall(timeoutContext, userKey);
+            userPermission.addResources(extractResources(resourceType, resourcePermissions));
           });
-
-      UserPermission userPermission = getUserPermission(id, userResponseMap);
+      userPermission.setAdmin(redisRead(timeoutContext, c -> c.sismember(adminKey(), id)));
       if (!UNRESTRICTED.equals(id)) {
         userPermission.merge(getUnrestrictedUserPermission());
       }
       return Optional.of(userPermission);
+    } catch (SpinnakerException se) {
+      throw se;
     } catch (Exception e) {
-      log.error("Storage exception reading " + id + " entry.", e);
+      String message = String.format("Storage exception reading %s entry.", id);
+      log.error(message, e);
+      throw new PermissionReadException(message, e);
     }
-    return Optional.empty();
   }
 
   @Override
@@ -486,5 +514,69 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     RawUserPermission(Map<ResourceType, Response<Map<String, String>>> source) {
       super(source);
     }
+  }
+
+  /**
+   * TimeoutContext allows specifying an expiration time for request processing.
+   *
+   * <p>If something exceeds the specified timeout duration, the request handler should stop doing
+   * work and just bail out with a timeout.
+   */
+  private static class TimeoutContext {
+    private final String name;
+    private final Instant expiry;
+    private final Clock clock;
+    private final Duration timeout;
+
+    public TimeoutContext(String name, Clock clock, Duration timeout) {
+      this(name, clock, timeout, Instant.now(clock));
+    }
+
+    public TimeoutContext(String name, Clock clock, Duration timeout, Instant startTime) {
+      this.name = name;
+      this.expiry = startTime.plus(timeout);
+      this.clock = clock;
+      this.timeout = timeout;
+    }
+
+    boolean isTimedOut() {
+      return Instant.now(clock).isAfter(expiry);
+    }
+
+    String getName() {
+      return name;
+    }
+
+    Duration getTimeout() {
+      return timeout;
+    }
+  }
+
+  private <T> T redisRead(TimeoutContext timeoutContext, Function<JedisCommands, T> fn) {
+    return retryRegistry
+        .retry(REDIS_READ_RETRY)
+        .executeSupplier(
+            () -> {
+              if (timeoutContext.isTimedOut()) {
+                throw new PermissionReadException(
+                    String.format(
+                        "request processing timeout after %s for %s",
+                        timeoutContext.getTimeout(), timeoutContext.getName()));
+              }
+              return redisClientDelegate.withCommandsClient(fn);
+            });
+  }
+
+  private Map<String, String> hgetall(TimeoutContext timeoutContext, String key) {
+    Map<String, String> all = new HashMap<>();
+    String cursor = ScanParams.SCAN_POINTER_START;
+    do {
+      final String thisCursor = cursor;
+      ScanResult<Map.Entry<String, String>> result =
+          redisRead(timeoutContext, c -> c.hscan(key, thisCursor));
+      result.getResult().forEach(e -> all.put(e.getKey(), e.getValue()));
+      cursor = result.getCursor();
+    } while (!ScanParams.SCAN_POINTER_START.equals(cursor));
+    return all;
   }
 }

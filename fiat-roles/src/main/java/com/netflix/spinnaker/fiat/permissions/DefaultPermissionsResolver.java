@@ -123,7 +123,11 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
           permission.addResources(provider.getAllRestricted(roles, permission.isAdmin()));
         }
       } catch (ProviderException pe) {
-        throw new PermissionResolutionException(pe);
+        throw new PermissionResolutionException(
+            String.format(
+                "permission resolution failed from provider %s",
+                provider.getClass().getSimpleName()),
+            pe);
       }
     }
     return permission;
@@ -207,7 +211,11 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
               try {
                 return provider.getAllRestricted(roles, isAdmin).stream();
               } catch (ProviderException pe) {
-                throw new PermissionResolutionException(pe);
+                throw new PermissionResolutionException(
+                    String.format(
+                        "resource lookup failed from provider %s",
+                        provider.getClass().getSimpleName()),
+                    pe);
               }
             })
         .collect(Collectors.toSet());

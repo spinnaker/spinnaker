@@ -28,10 +28,12 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
@@ -117,7 +119,7 @@ public class AuthorizeController {
     return getUserPermissionView(userId).getAccounts().stream()
         .filter(account -> accountName.equalsIgnoreCase(account.getName()))
         .findFirst()
-        .orElseThrow(NotFoundException::new);
+        .orElseThrow(userNotFound(userId));
   }
 
   @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
@@ -133,7 +135,7 @@ public class AuthorizeController {
     return getUserPermissionView(userId).getApplications().stream()
         .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
         .findFirst()
-        .orElseThrow(NotFoundException::new);
+        .orElseThrow(userNotFound(userId));
   }
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
@@ -164,7 +166,7 @@ public class AuthorizeController {
   public ServiceAccount.View getServiceAccount(
       @PathVariable String userId, @PathVariable String serviceAccountName) {
     return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
+        .orElseThrow(userNotFound(userId))
         .getView()
         .getServiceAccounts()
         .stream()
@@ -174,7 +176,7 @@ public class AuthorizeController {
                     .getName()
                     .equalsIgnoreCase(ControllerSupport.convert(serviceAccountName)))
         .findFirst()
-        .orElseThrow(NotFoundException::new);
+        .orElseThrow(serviceAccountNotFound(userId, serviceAccountName));
   }
 
   @RequestMapping(
@@ -330,8 +332,18 @@ public class AuthorizeController {
 
   private UserPermission.View getUserPermissionView(String userId) {
     return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
+        .orElseThrow(userNotFound(userId))
         .getView()
         .setAllowAccessToUnknownApplications(configProps.isAllowAccessToUnknownApplications());
+  }
+
+  private Supplier<NotFoundException> userNotFound(String userId) {
+    return () -> new NotFoundException(String.format("user not found: %s", userId));
+  }
+
+  private Supplier<NotFoundException> serviceAccountNotFound(String userId, String serviceAccount) {
+    return () ->
+        new NotFoundException(
+            String.format("service account not found: %s, for user: %s", serviceAccount, userId));
   }
 }

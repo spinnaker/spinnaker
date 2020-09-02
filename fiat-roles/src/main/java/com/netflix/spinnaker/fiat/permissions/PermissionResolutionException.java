@@ -16,23 +16,21 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
-public class PermissionResolutionException extends RuntimeException {
-  public PermissionResolutionException() {}
+import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 
+/**
+ * An exception resolving permissions.
+ *
+ * <p>Resolving permissions is side-effect free, so this exception is retryable by default.
+ */
+public class PermissionResolutionException extends IntegrationException {
   public PermissionResolutionException(String message) {
     super(message);
+    setRetryable(true);
   }
 
   public PermissionResolutionException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public PermissionResolutionException(Throwable cause) {
-    super(cause);
-  }
-
-  public PermissionResolutionException(
-      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
+    setRetryable(true);
   }
 }

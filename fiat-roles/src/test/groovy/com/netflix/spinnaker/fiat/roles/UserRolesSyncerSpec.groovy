@@ -29,12 +29,14 @@ import com.netflix.spinnaker.fiat.model.resources.BuildService
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
+import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigProps
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.lock.LockManager
+import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.actuate.health.Health
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -77,7 +79,8 @@ class UserRolesSyncerSpec extends Specification {
         objectMapper,
         new JedisClientDelegate(embeddedRedis.pool as JedisPool),
         [new Application(), new Account(), new ServiceAccount(), new Role(), new BuildService()],
-        "unittests"
+        new RedisPermissionRepositoryConfigProps(prefix: "unittests"),
+        RetryRegistry.ofDefaults()
     )
   }
 
