@@ -1,7 +1,10 @@
 export interface IHealth {
-  type: string;
-  state: string;
+  description: string;
+  healthCheckUrl?: string;
   loadBalancers: ILoadBalancerHealth[];
+  state: string;
+  statusPageUrl?: string;
+  type: string;
 }
 
 export interface ILoadBalancerHealth {
