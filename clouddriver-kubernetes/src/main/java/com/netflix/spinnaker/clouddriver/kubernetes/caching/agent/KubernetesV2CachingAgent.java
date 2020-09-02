@@ -225,7 +225,7 @@ public abstract class KubernetesV2CachingAgent
                 KubernetesCacheDataConverter.convertAsResource(
                     kubernetesCacheData,
                     accountName,
-                    credentials.getKindProperties(rs.getKind()),
+                    credentials.getKubernetesSpinnakerKindMap(),
                     credentials.getNamer(),
                     rs,
                     relationships.getOrDefault(rs, ImmutableList.of()));

@@ -18,16 +18,19 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.cache.CacheData
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesDeploymentHandler
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesReplicaSetHandler
+import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesServiceHandler
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.moniker.Moniker
 import org.apache.commons.lang3.tuple.Pair
@@ -39,8 +42,6 @@ import spock.lang.Unroll
 class KubernetesCacheDataConvertSpec extends Specification {
   def mapper = new ObjectMapper()
   def yaml = new Yaml(new SafeConstructor())
-  def ACCOUNT = "my-account"
-  def NAMESPACE = "spinnaker"
 
   KubernetesManifest stringToManifest(String input) {
     return mapper.convertValue(yaml.load(input), KubernetesManifest.class)
@@ -76,7 +77,7 @@ metadata:
     KubernetesCacheDataConverter.convertAsResource(
       kubernetesCacheData,
       account,
-      KubernetesKindProperties.create(kind, true),
+      new KubernetesSpinnakerKindMap(ImmutableList.of(new KubernetesDeploymentHandler(), new KubernetesReplicaSetHandler(), new KubernetesServiceHandler())),
       new KubernetesManifestNamer(),
       manifest,
       [])

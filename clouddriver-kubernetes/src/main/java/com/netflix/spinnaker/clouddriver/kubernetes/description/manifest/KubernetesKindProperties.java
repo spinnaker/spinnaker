@@ -30,62 +30,58 @@ import lombok.Getter;
 public class KubernetesKindProperties {
   public static List<KubernetesKindProperties> getGlobalKindProperties() {
     return ImmutableList.of(
-        new KubernetesKindProperties(KubernetesKind.API_SERVICE, false, false),
-        new KubernetesKindProperties(KubernetesKind.CLUSTER_ROLE, false, false),
-        new KubernetesKindProperties(KubernetesKind.CLUSTER_ROLE_BINDING, false, false),
-        new KubernetesKindProperties(KubernetesKind.CONFIG_MAP, true, false),
-        new KubernetesKindProperties(KubernetesKind.CONTROLLER_REVISION, true, false),
-        new KubernetesKindProperties(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, false, false),
-        new KubernetesKindProperties(KubernetesKind.CRON_JOB, true, false),
-        new KubernetesKindProperties(KubernetesKind.DAEMON_SET, true, true),
-        new KubernetesKindProperties(KubernetesKind.DEPLOYMENT, true, true),
-        new KubernetesKindProperties(KubernetesKind.EVENT, true, false),
-        new KubernetesKindProperties(KubernetesKind.HORIZONTAL_POD_AUTOSCALER, true, false),
-        new KubernetesKindProperties(KubernetesKind.INGRESS, true, true),
-        new KubernetesKindProperties(KubernetesKind.JOB, true, false),
-        new KubernetesKindProperties(KubernetesKind.LIMIT_RANGE, true, false),
-        new KubernetesKindProperties(KubernetesKind.MUTATING_WEBHOOK_CONFIGURATION, false, false),
-        new KubernetesKindProperties(KubernetesKind.NAMESPACE, false, false),
-        new KubernetesKindProperties(KubernetesKind.NETWORK_POLICY, true, true),
-        new KubernetesKindProperties(KubernetesKind.PERSISTENT_VOLUME, false, false),
-        new KubernetesKindProperties(KubernetesKind.PERSISTENT_VOLUME_CLAIM, true, false),
-        new KubernetesKindProperties(KubernetesKind.POD, true, false),
-        new KubernetesKindProperties(KubernetesKind.POD_PRESET, true, false),
-        new KubernetesKindProperties(KubernetesKind.POD_SECURITY_POLICY, false, false),
-        new KubernetesKindProperties(KubernetesKind.POD_DISRUPTION_BUDGET, true, false),
-        new KubernetesKindProperties(KubernetesKind.REPLICA_SET, true, true),
-        new KubernetesKindProperties(KubernetesKind.ROLE, true, false),
-        new KubernetesKindProperties(KubernetesKind.ROLE_BINDING, true, false),
-        new KubernetesKindProperties(KubernetesKind.SECRET, true, false),
-        new KubernetesKindProperties(KubernetesKind.SERVICE, true, true),
-        new KubernetesKindProperties(KubernetesKind.SERVICE_ACCOUNT, true, false),
-        new KubernetesKindProperties(KubernetesKind.STATEFUL_SET, true, true),
-        new KubernetesKindProperties(KubernetesKind.STORAGE_CLASS, false, false),
-        new KubernetesKindProperties(KubernetesKind.VALIDATING_WEBHOOK_CONFIGURATION, false, false),
-        new KubernetesKindProperties(KubernetesKind.NONE, true, false));
+        new KubernetesKindProperties(KubernetesKind.API_SERVICE, false),
+        new KubernetesKindProperties(KubernetesKind.CLUSTER_ROLE, false),
+        new KubernetesKindProperties(KubernetesKind.CLUSTER_ROLE_BINDING, false),
+        new KubernetesKindProperties(KubernetesKind.CONFIG_MAP, true),
+        new KubernetesKindProperties(KubernetesKind.CONTROLLER_REVISION, true),
+        new KubernetesKindProperties(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, false),
+        new KubernetesKindProperties(KubernetesKind.CRON_JOB, true),
+        new KubernetesKindProperties(KubernetesKind.DAEMON_SET, true),
+        new KubernetesKindProperties(KubernetesKind.DEPLOYMENT, true),
+        new KubernetesKindProperties(KubernetesKind.EVENT, true),
+        new KubernetesKindProperties(KubernetesKind.HORIZONTAL_POD_AUTOSCALER, true),
+        new KubernetesKindProperties(KubernetesKind.INGRESS, true),
+        new KubernetesKindProperties(KubernetesKind.JOB, true),
+        new KubernetesKindProperties(KubernetesKind.LIMIT_RANGE, true),
+        new KubernetesKindProperties(KubernetesKind.MUTATING_WEBHOOK_CONFIGURATION, false),
+        new KubernetesKindProperties(KubernetesKind.NAMESPACE, false),
+        new KubernetesKindProperties(KubernetesKind.NETWORK_POLICY, true),
+        new KubernetesKindProperties(KubernetesKind.PERSISTENT_VOLUME, false),
+        new KubernetesKindProperties(KubernetesKind.PERSISTENT_VOLUME_CLAIM, true),
+        new KubernetesKindProperties(KubernetesKind.POD, true),
+        new KubernetesKindProperties(KubernetesKind.POD_PRESET, true),
+        new KubernetesKindProperties(KubernetesKind.POD_SECURITY_POLICY, false),
+        new KubernetesKindProperties(KubernetesKind.POD_DISRUPTION_BUDGET, true),
+        new KubernetesKindProperties(KubernetesKind.REPLICA_SET, true),
+        new KubernetesKindProperties(KubernetesKind.ROLE, true),
+        new KubernetesKindProperties(KubernetesKind.ROLE_BINDING, true),
+        new KubernetesKindProperties(KubernetesKind.SECRET, true),
+        new KubernetesKindProperties(KubernetesKind.SERVICE, true),
+        new KubernetesKindProperties(KubernetesKind.SERVICE_ACCOUNT, true),
+        new KubernetesKindProperties(KubernetesKind.STATEFUL_SET, true),
+        new KubernetesKindProperties(KubernetesKind.STORAGE_CLASS, false),
+        new KubernetesKindProperties(KubernetesKind.VALIDATING_WEBHOOK_CONFIGURATION, false),
+        new KubernetesKindProperties(KubernetesKind.NONE, true));
   }
 
   @Nonnull @Getter private final KubernetesKind kubernetesKind;
   @Getter private final boolean isNamespaced;
-  // generally reserved for workloads, can be read as "does this belong to a spinnaker cluster?"
-  private final boolean hasClusterRelationship;
 
-  private KubernetesKindProperties(
-      KubernetesKind kubernetesKind, boolean isNamespaced, boolean hasClusterRelationship) {
+  private KubernetesKindProperties(KubernetesKind kubernetesKind, boolean isNamespaced) {
     this.kubernetesKind = kubernetesKind;
     this.isNamespaced = isNamespaced;
-    this.hasClusterRelationship = hasClusterRelationship;
   }
 
   @Nonnull
   public static KubernetesKindProperties withDefaultProperties(KubernetesKind kubernetesKind) {
-    return new KubernetesKindProperties(kubernetesKind, true, false);
+    return new KubernetesKindProperties(kubernetesKind, true);
   }
 
   @Nonnull
   public static KubernetesKindProperties create(
       KubernetesKind kubernetesKind, boolean isNamespaced) {
-    return new KubernetesKindProperties(kubernetesKind, isNamespaced, false);
+    return new KubernetesKindProperties(kubernetesKind, isNamespaced);
   }
 
   @Nonnull
@@ -94,10 +90,6 @@ public class KubernetesKindProperties {
     return create(
         KubernetesKind.fromCustomResourceDefinition(crd),
         crd.getSpec().getScope().equalsIgnoreCase("namespaced"));
-  }
-
-  public boolean hasClusterRelationship() {
-    return this.hasClusterRelationship;
   }
 
   public ResourceScope getResourceScope() {

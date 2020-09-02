@@ -182,24 +182,16 @@ final class KubernetesDataProviderIntegrationTest {
     assertThat(results).containsKey(ACCOUNT_NAME);
 
     Set<KubernetesV2Cluster> clusters = results.get(ACCOUNT_NAME);
-    assertThat(clusters).hasSize(4);
+    assertThat(clusters).hasSize(2);
 
-    // TODO(ezimanyi): I don't think it's correct that we are returning services/load balancers as
-    // clusters. I believe that they are just being ignored by deck, and should be removed from
-    // the result of this call (likely with performance benefits). In any case, as seen in the
-    // assertions below, these load balancer clusters are not well formed and don't map to any
-    // server groups.
     assertThat(clusters)
         .extracting(KubernetesV2Cluster::getName)
-        .containsExactlyInAnyOrder(
-            "service frontend", "deployment frontend", "service backendlb", "replicaSet backend");
+        .containsExactlyInAnyOrder("deployment frontend", "replicaSet backend");
 
     Map<String, KubernetesV2Cluster> clusterLookup =
         clusters.stream().collect(toImmutableMap(KubernetesV2Cluster::getName, c -> c));
 
-    assertFrontendServiceCluster(softly, clusterLookup.get("service frontend"));
     assertFrontendCluster(softly, clusterLookup.get("deployment frontend"), true);
-    assertBackendServiceCluster(softly, clusterLookup.get("service backendlb"));
     assertBackendCluster(softly, clusterLookup.get("replicaSet backend"), true);
   }
 
@@ -210,32 +202,30 @@ final class KubernetesDataProviderIntegrationTest {
     assertThat(results).containsKey(ACCOUNT_NAME);
 
     Set<KubernetesV2Cluster> clusters = results.get(ACCOUNT_NAME);
-    assertThat(clusters).hasSize(2);
+    assertThat(clusters).hasSize(1);
 
     assertThat(clusters)
         .extracting(KubernetesV2Cluster::getName)
-        .containsExactlyInAnyOrder("service backendlb", "replicaSet backend");
+        .containsExactlyInAnyOrder("replicaSet backend");
 
     Map<String, KubernetesV2Cluster> clusterLookup =
         clusters.stream().collect(toImmutableMap(KubernetesV2Cluster::getName, c -> c));
 
-    assertBackendServiceCluster(softly, clusterLookup.get("service backendlb"));
     assertBackendCluster(softly, clusterLookup.get("replicaSet backend"), true);
   }
 
   @Test
   void getClustersForApplicationAndAccount(SoftAssertions softly) {
     Set<KubernetesV2Cluster> clusters = clusterProvider.getClusters("backendapp", ACCOUNT_NAME);
-    assertThat(clusters).hasSize(2);
+    assertThat(clusters).hasSize(1);
 
     assertThat(clusters)
         .extracting(KubernetesV2Cluster::getName)
-        .containsExactlyInAnyOrder("service backendlb", "replicaSet backend");
+        .containsExactlyInAnyOrder("replicaSet backend");
 
     Map<String, KubernetesV2Cluster> clusterLookup =
         clusters.stream().collect(toImmutableMap(KubernetesV2Cluster::getName, c -> c));
 
-    assertBackendServiceCluster(softly, clusterLookup.get("service backendlb"));
     assertBackendCluster(softly, clusterLookup.get("replicaSet backend"), true);
   }
 
@@ -285,16 +275,15 @@ final class KubernetesDataProviderIntegrationTest {
     assertThat(results).containsKey(ACCOUNT_NAME);
 
     Set<KubernetesV2Cluster> clusters = results.get(ACCOUNT_NAME);
-    assertThat(clusters).hasSize(2);
+    assertThat(clusters).hasSize(1);
 
     assertThat(clusters)
         .extracting(KubernetesV2Cluster::getName)
-        .containsExactlyInAnyOrder("service backendlb", "replicaSet backend");
+        .containsExactlyInAnyOrder("replicaSet backend");
 
     Map<String, KubernetesV2Cluster> clusterLookup =
         clusters.stream().collect(toImmutableMap(KubernetesV2Cluster::getName, c -> c));
 
-    assertBackendServiceCluster(softly, clusterLookup.get("service backendlb"));
     assertBackendCluster(softly, clusterLookup.get("replicaSet backend"), false);
   }
 
@@ -628,18 +617,6 @@ final class KubernetesDataProviderIntegrationTest {
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
-  // This is documenting the current cluster that is returned representing a service, but we
-  // probably should not return a cluster for a service at all.
-  private void assertFrontendServiceCluster(SoftAssertions softly, KubernetesV2Cluster cluster) {
-    softly.assertThat(cluster.getMoniker().getApp()).isEqualTo("frontendapp");
-    softly.assertThat(cluster.getMoniker().getCluster()).isEqualTo("service frontend");
-    softly.assertThat(cluster.getType()).isEqualTo("kubernetes");
-    softly.assertThat(cluster.getAccountName()).isEqualTo(ACCOUNT_NAME);
-    softly.assertThat(cluster.getServerGroups()).isEmpty();
-    softly.assertThat(cluster.getLoadBalancers()).isEmpty();
-    softly.assertThat(cluster.getApplication()).isEqualTo("frontendapp");
-  }
-
   private void assertFrontendLoadBalancer(
       SoftAssertions softly, KubernetesV2LoadBalancer loadBalancer) {
     softly.assertThat(loadBalancer.getRegion()).isEqualTo("frontend-ns");
@@ -950,18 +927,6 @@ final class KubernetesDataProviderIntegrationTest {
     softly.assertThat(serverGroup.getRegion()).isEqualTo("frontend-ns");
   }
 
-  // This is documenting the current cluster that is returned representing a service, but we
-  // probably should not return a cluster for a service at all.
-  private void assertBackendServiceCluster(SoftAssertions softly, KubernetesV2Cluster cluster) {
-    softly.assertThat(cluster.getMoniker().getApp()).isEqualTo("backendapp");
-    softly.assertThat(cluster.getMoniker().getCluster()).isEqualTo("service backendlb");
-    softly.assertThat(cluster.getType()).isEqualTo("kubernetes");
-    softly.assertThat(cluster.getAccountName()).isEqualTo(ACCOUNT_NAME);
-    softly.assertThat(cluster.getServerGroups()).isEmpty();
-    softly.assertThat(cluster.getLoadBalancers()).isEmpty();
-    softly.assertThat(cluster.getApplication()).isEqualTo("backendapp");
-  }
-
   private void assertBackendLoadBalancer(
       SoftAssertions softly, KubernetesV2LoadBalancer loadBalancer) {
     softly.assertThat(loadBalancer.getRegion()).isEqualTo("backend-ns");
@@ -1175,9 +1140,7 @@ final class KubernetesDataProviderIntegrationTest {
     Set<String> clusterNames = application.getClusterNames().get(ACCOUNT_NAME);
     softly.assertThat(clusterNames).isNotNull();
     if (clusterNames != null) {
-      softly
-          .assertThat(clusterNames)
-          .containsExactlyInAnyOrder("deployment frontend", "service frontend");
+      softly.assertThat(clusterNames).containsExactlyInAnyOrder("deployment frontend");
     }
   }
 
@@ -1191,9 +1154,7 @@ final class KubernetesDataProviderIntegrationTest {
     Set<String> clusterNames = application.getClusterNames().get(ACCOUNT_NAME);
     softly.assertThat(clusterNames).isNotNull();
     if (clusterNames != null) {
-      softly
-          .assertThat(clusterNames)
-          .containsExactlyInAnyOrder("service backendlb", "replicaSet backend");
+      softly.assertThat(clusterNames).containsExactlyInAnyOrder("replicaSet backend");
     }
   }
 }

@@ -18,6 +18,10 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.LOAD_BALANCERS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SECURITY_GROUPS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUPS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind.SERVER_GROUP_MANAGERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind.POD;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind.SERVICE;
 import static java.lang.Math.toIntExact;
@@ -31,8 +35,9 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.CacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ClusterCacheKey;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest.OwnerReference;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
@@ -58,6 +63,10 @@ public class KubernetesCacheDataConverter {
   // todo(lwander) investigate if this can cause flapping in UI for on demand updates -- no
   // consensus on this yet.
   @Getter private static final List<KubernetesKind> stickyKinds = Arrays.asList(SERVICE, POD);
+  private static final ImmutableSet<SpinnakerKind> logicalRelationshipKinds =
+      ImmutableSet.of(LOAD_BALANCERS, SECURITY_GROUPS, SERVER_GROUPS, SERVER_GROUP_MANAGERS);
+  private static final ImmutableSet<SpinnakerKind> clusterRelationshipKinds =
+      ImmutableSet.of(SERVER_GROUPS, SERVER_GROUP_MANAGERS);
 
   @NonnullByDefault
   public static CacheData mergeCacheData(CacheData current, CacheData added) {
@@ -94,7 +103,7 @@ public class KubernetesCacheDataConverter {
   public static void convertAsResource(
       KubernetesCacheData kubernetesCacheData,
       String account,
-      KubernetesKindProperties kindProperties,
+      KubernetesSpinnakerKindMap kindMap,
       Namer<KubernetesManifest> namer,
       KubernetesManifest manifest,
       List<KubernetesManifest> resourceRelationships) {
@@ -117,8 +126,15 @@ public class KubernetesCacheDataConverter {
     Keys.CacheKey key = new Keys.InfrastructureCacheKey(kind, account, namespace, name);
     kubernetesCacheData.addItem(key, attributes);
 
-    if (kindProperties.hasClusterRelationship() && !Strings.isNullOrEmpty(moniker.getApp())) {
-      addLogicalRelationships(kubernetesCacheData, key, account, moniker);
+    SpinnakerKind spinnakerKind = kindMap.translateKubernetesKind(kind);
+    if (logicalRelationshipKinds.contains(spinnakerKind)
+        && !Strings.isNullOrEmpty(moniker.getApp())) {
+      addLogicalRelationships(
+          kubernetesCacheData,
+          key,
+          account,
+          moniker,
+          clusterRelationshipKinds.contains(spinnakerKind));
     }
     kubernetesCacheData.addRelationships(
         key, ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
@@ -147,13 +163,14 @@ public class KubernetesCacheDataConverter {
       KubernetesCacheData kubernetesCacheData,
       Keys.CacheKey infrastructureKey,
       String account,
-      Moniker moniker) {
+      Moniker moniker,
+      boolean hasClusterRelationship) {
     String application = moniker.getApp();
     Keys.CacheKey applicationKey = new Keys.ApplicationCacheKey(application);
     kubernetesCacheData.addRelationship(infrastructureKey, applicationKey);
 
     String cluster = moniker.getCluster();
-    if (!Strings.isNullOrEmpty(cluster)) {
+    if (hasClusterRelationship && !Strings.isNullOrEmpty(cluster)) {
       CacheKey clusterKey = new ClusterCacheKey(account, application, cluster);
       kubernetesCacheData.addRelationship(infrastructureKey, clusterKey);
       kubernetesCacheData.addRelationship(applicationKey, clusterKey);

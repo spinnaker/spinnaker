@@ -35,7 +35,6 @@ class KubernetesKindPropertiesSpec extends Specification {
     then:
     properties.getKubernetesKind() == KubernetesKind.REPLICA_SET
     properties.isNamespaced()
-    !properties.hasClusterRelationship()
 
     when:
     properties = KubernetesKindProperties.create(KubernetesKind.REPLICA_SET, false)
@@ -43,7 +42,6 @@ class KubernetesKindPropertiesSpec extends Specification {
     then:
     properties.getKubernetesKind() == KubernetesKind.REPLICA_SET
     !properties.isNamespaced()
-    !properties.hasClusterRelationship()
   }
 
   def "sets default properties to the expected values"() {
@@ -52,7 +50,6 @@ class KubernetesKindPropertiesSpec extends Specification {
 
     then:
     properties.isNamespaced()
-    !properties.hasClusterRelationship()
   }
 
   def "returns expected results for built-in kinds"() {
@@ -68,11 +65,9 @@ class KubernetesKindPropertiesSpec extends Specification {
     then:
     replicaSetProperties.isPresent()
     replicaSetProperties.get().isNamespaced()
-    replicaSetProperties.get().hasClusterRelationship()
 
     namespaceProperties.isPresent()
     !namespaceProperties.get().isNamespaced()
-    !namespaceProperties.get().hasClusterRelationship()
   }
 
   @Unroll
