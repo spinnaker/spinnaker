@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.api.extension.ApiExtension
 import com.netflix.spinnaker.gate.api.extension.HttpRequest
 import com.netflix.spinnaker.gate.api.extension.HttpResponse
 import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
+import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import javax.annotation.Nonnull
 import org.pf4j.Extension
@@ -65,7 +66,7 @@ class GateApiExtension(
   }
 }
 
-@ExtensionConfiguration("api-extension")
+@PluginConfiguration("api-extension")
 class ApiExtensionConfigProperties {
   var id: String = "test"
 }

@@ -33,6 +33,8 @@ slack:
 
 spinnaker:
   extensibility:
+    framework:
+      version: v2
     plugins-root-path: build/plugins
     plugins:
       com.netflix.gate.enabled.plugin:
