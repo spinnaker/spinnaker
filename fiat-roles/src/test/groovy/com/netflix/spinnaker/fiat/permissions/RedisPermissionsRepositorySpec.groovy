@@ -163,7 +163,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     // this is gross, but a brief sleep will ensure the repo.get
     // call attempts to make a redis call and hits the pause
     // point in the PausableRedisClientDelegate.
-    Thread.sleep(1)
+    Thread.sleep(5)
     clock.tick(configProps.repository.getPermissionTimeout.plusMillis(1))
     redisClientDelegate.resume()
     result.get()
