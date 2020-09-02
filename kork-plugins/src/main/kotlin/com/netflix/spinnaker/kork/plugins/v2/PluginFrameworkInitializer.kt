@@ -39,6 +39,7 @@ class PluginFrameworkInitializer(
     pluginService.startPlugins(registry)
   }
 
+  @Suppress("EmptyFunctionBlock")
   override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
   }
 

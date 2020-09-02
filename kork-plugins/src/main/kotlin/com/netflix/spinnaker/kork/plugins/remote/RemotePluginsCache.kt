@@ -29,33 +29,33 @@ import org.springframework.context.ApplicationEventPublisher
  * for use in services.
  */
 class RemotePluginsCache(
-  val applicationEventPublisher: ApplicationEventPublisher
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val remotePluginsCache: Cache<String, RemotePlugin> = Caffeine.newBuilder()
+  private val cache: Cache<String, RemotePlugin> = Caffeine.newBuilder()
     .build<String, RemotePlugin>()
 
   /** Get the remote plugin by plugin ID, returns null if the plugin is not found. */
   internal fun get(pluginId: String): RemotePlugin? {
-    return remotePluginsCache.getIfPresent(pluginId)
+    return cache.getIfPresent(pluginId)
   }
 
   /** Return all plugins in the remote plugin cache. */
   internal fun getAll(): Map<String, RemotePlugin> {
-    return remotePluginsCache.asMap()
+    return cache.asMap()
   }
 
   /** Put a plugin in the cache, emits a [RemotePluginCacheRefresh] event. */
   internal fun put(remotePlugin: RemotePlugin) {
-    remotePluginsCache.put(remotePlugin.id, remotePlugin)
+    cache.put(remotePlugin.id, remotePlugin)
     applicationEventPublisher.publishEvent(RemotePluginCacheRefresh(this, remotePlugin.id))
     log.debug("Put remote plugin '{}'.", remotePlugin.id)
   }
 
   /** Remove the specified plugin from the cache, emits a [RemotePluginCacheRefresh] event. */
   internal fun remove(pluginId: String) {
-    remotePluginsCache.invalidate(pluginId)
+    cache.invalidate(pluginId)
     applicationEventPublisher.publishEvent(RemotePluginCacheRefresh(this, pluginId))
     log.debug("Removed remote plugin '{}'.", pluginId)
   }

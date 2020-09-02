@@ -67,6 +67,9 @@ class ProcessFileDownloader(
    * the purposes of mocking process execution during unit tests.
    */
   interface ProcessRunner {
+    /**
+     * Run the given [processBuilder], waiting for completion or timing out after the configured time.
+     */
     fun completeOrTimeout(processBuilder: ProcessBuilder): String
   }
 }

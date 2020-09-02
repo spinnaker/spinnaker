@@ -24,6 +24,9 @@ import com.netflix.spinnaker.kork.plugins.config.Configurable
 import org.pf4j.update.FileDownloader
 import org.pf4j.update.UpdateRepository
 
+/**
+ * Provides a [FileDownloader] based on configuration.
+ */
 class FileDownloaderProvider(
   private val compositeFileDownloader: CompositeFileDownloader
 ) {

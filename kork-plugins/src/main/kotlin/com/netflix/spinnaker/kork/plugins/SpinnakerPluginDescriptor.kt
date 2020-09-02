@@ -25,6 +25,7 @@ import org.pf4j.PluginDescriptor
  *
  * @param unsafe If set to true, a plugin will be created using the parent application ClassLoader.
  */
+@Suppress("LongParameterList")
 class SpinnakerPluginDescriptor(
   pluginId: String? = null,
   pluginDescription: String? = null,

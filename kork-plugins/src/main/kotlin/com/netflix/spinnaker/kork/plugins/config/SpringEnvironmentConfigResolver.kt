@@ -131,5 +131,5 @@ class SpringEnvironmentConfigResolver(
       .map { it to getProperty(it) }
       .toMap()
 
-  inner class SystemConfigException(message: String) : SystemException(message)
+  private inner class SystemConfigException(message: String) : SystemException(message)
 }

@@ -17,12 +17,20 @@ package com.netflix.spinnaker.kork.plugins.config
 
 private const val ROOT_PATH = "/spinnaker/extensibility"
 
+/**
+ * Represents the config path coordinates for a particular loading strategy.
+ */
 sealed class ConfigCoordinates {
+  /**
+   * Converts a coordinate class into a Jackson JsonNode pointer.
+   */
   abstract fun toPointer(): String
 }
 
 /**
  * Config coordinates for a plugin's extension.
+ *
+ * @param pluginId The plugin ID to load config for.
  */
 class ExtensionConfigCoordinates(
   val pluginId: String,
@@ -39,6 +47,8 @@ class ExtensionConfigCoordinates(
 
 /**
  * Config coordinates for a plugin.
+ *
+ * @param pluginId The plugin ID to load config for.
  */
 class PluginConfigCoordinates(
   val pluginId: String,

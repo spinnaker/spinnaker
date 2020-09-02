@@ -28,7 +28,7 @@ class EnvironmentServerGroupNameResolver(
     SEARCH_CHAIN.mapNotNull { environment.getProperty(it) }.firstOrNull()
 
   private companion object {
-    val SEARCH_CHAIN = listOf(
+    private val SEARCH_CHAIN = listOf(
       "NETFLIX_AUTO_SCALE_GROUP",
       "spinnaker.extensibility.serverGroupName"
     )

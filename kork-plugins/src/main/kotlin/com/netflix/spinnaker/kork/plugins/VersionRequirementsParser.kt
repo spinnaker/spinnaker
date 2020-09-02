@@ -75,6 +75,12 @@ object VersionRequirementsParser {
   fun stringify(requirements: List<VersionRequirements>): String =
     requirements.joinToString(",") { it.toString() }
 
+  /**
+   * Version constraint requirements for a plugin release.
+   *
+   * @param service The service that this requirement is for
+   * @param constraint The SemVer constraint expression
+   */
   data class VersionRequirements(
     val service: String,
     val constraint: String
@@ -82,6 +88,9 @@ object VersionRequirementsParser {
     override fun toString(): String = "$service$constraint"
   }
 
+  /**
+   * Thrown when a given version requirement is invalid.
+   */
   class InvalidPluginVersionRequirementException(version: String) : UserException(
     "The provided version requirement '$version' is not valid: It must conform a valid semantic version expression"
   )

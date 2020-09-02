@@ -39,6 +39,9 @@ data class RemotePluginConfigChanged(
   val version: String,
   val remoteExtensionConfigs: List<RemoteExtensionConfig>
 ) : ApplicationEvent(source) {
+  /**
+   * The type of config change.
+   */
   enum class Status {
     ENABLED,
     DISABLED,

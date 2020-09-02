@@ -44,6 +44,9 @@ class SpringPluginStatusProvider(
   override fun isPluginDisabled(pluginId: String): Boolean =
     !isEnabled(pluginId)
 
+  /**
+   * Returns whether or not a plugin is enabled or not.
+   */
   fun isPluginEnabled(pluginId: String): Boolean =
     isEnabled(pluginId)
 
@@ -63,6 +66,9 @@ class SpringPluginStatusProvider(
   private fun enabledPropertyName(pluginId: String): String =
     "$rootConfig.$pluginId"
 
+  /**
+   * Provides the plugin version a plugin should be running.
+   */
   fun pluginVersion(pluginId: String): String? =
     dynamicConfigService.getConfig(String::class.java, versionPropertyName(pluginId), "unspecified")
 

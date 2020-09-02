@@ -35,40 +35,8 @@ class DefaultOkHttp3ClientFactory(
     baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
 
   override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
-    return OkHttpClientConfigurationProperties()
-      .apply {
-        config.connectionPool.keepAlive?.let {
-          connectionPool.keepAliveDurationMs = it.toMillis().toInt()
-        }
-        config.connectionPool.maxIdleConnections?.let {
-          connectionPool.maxIdleConnections = it
-        }
-
-        config.connection.connectTimeout?.let {
-          connectTimeoutMs = it.toMillis()
-        }
-        config.connection.readTimeout?.let {
-          readTimeoutMs = it.toMillis()
-        }
-        retryOnConnectionFailure = config.connection.isRetryOnConnectionFailure
-
-        if (config.security.keyStorePath != null && config.security.trustStorePath != null) {
-          keyStore = config.security.keyStorePath.toFile()
-          keyStoreType = config.security.keyStoreType
-          keyStorePassword = config.security.keyStorePassword
-
-          trustStore = config.security.trustStorePath.toFile()
-          trustStoreType = config.security.trustStoreType
-          trustStorePassword = config.security.trustStorePassword
-
-          tlsVersions = config.security.tlsVersions
-          cipherSuites = config.security.cipherSuites
-        }
-      }
-      .let {
-        // TODO(rz): Add plugin ID to the metrics. Requires refactoring existing metrics interceptor.
-        OkHttp3ClientConfiguration(it, okHttpClientHttp3MetricsInterceptor).create()
-      }
+    // TODO(rz): Add plugin ID to the metrics. Requires refactoring existing metrics interceptor.
+    return OkHttp3ClientConfiguration(convertToOkHttp(config), okHttpClientHttp3MetricsInterceptor).create()
       .also {
         if (config.logging.level != LoggingLevel.NONE) {
           it.addInterceptor(
@@ -85,4 +53,36 @@ class DefaultOkHttp3ClientFactory(
       }
       .build()
   }
+
+  private fun convertToOkHttp(config: HttpClientConfig): OkHttpClientConfigurationProperties =
+    OkHttpClientConfigurationProperties().apply {
+      config.connectionPool.keepAlive?.let {
+        connectionPool.keepAliveDurationMs = it.toMillis().toInt()
+      }
+      config.connectionPool.maxIdleConnections?.let {
+        connectionPool.maxIdleConnections = it
+      }
+
+      config.connection.connectTimeout?.let {
+        connectTimeoutMs = it.toMillis()
+      }
+      config.connection.readTimeout?.let {
+        readTimeoutMs = it.toMillis()
+      }
+      retryOnConnectionFailure = config.connection.isRetryOnConnectionFailure
+
+      if (config.security.keyStorePath != null && config.security.trustStorePath != null) {
+        keyStore = config.security.keyStorePath.toFile()
+        keyStoreType = config.security.keyStoreType
+        keyStorePassword = config.security.keyStorePassword
+
+        trustStore = config.security.trustStorePath.toFile()
+        trustStoreType = config.security.trustStoreType
+        trustStorePassword = config.security.trustStorePassword
+
+        tlsVersions = config.security.tlsVersions
+        cipherSuites = config.security.cipherSuites
+      }
+    }
+
 }

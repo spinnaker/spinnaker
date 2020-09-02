@@ -27,7 +27,7 @@ class EnvironmentServerGroupLocationResolver(
     SEARCH_CHAIN.mapNotNull { environment.getProperty(it) }.firstOrNull()
 
   private companion object {
-    val SEARCH_CHAIN = listOf(
+    private val SEARCH_CHAIN = listOf(
       "EC2_REGION",
       "spinnaker.extensibility.serverGroupLocation"
     )

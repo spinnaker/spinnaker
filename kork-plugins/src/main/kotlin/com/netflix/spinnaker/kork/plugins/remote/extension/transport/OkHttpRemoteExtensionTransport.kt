@@ -27,6 +27,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 
+/**
+ * An HTTP [RemoteExtensionTransport], using OkHttp for the client.
+ */
 class OkHttpRemoteExtensionTransport(
   private val objectMapper: ObjectMapper,
   private val client: OkHttpClient,
@@ -63,6 +66,9 @@ class OkHttpRemoteExtensionTransport(
   }
 }
 
+/**
+ * Thrown when there is an issue performing a call to the remote extension.
+ */
 class OkHttpRemoteExtensionTransportException(
   reason: String
 ) : IntegrationException("Unable to invoke remote extension due to unexpected error: $reason")

@@ -76,6 +76,11 @@ class PluginConfigurationRegisteringCustomizer(
    * Allows for easier testing.
    */
   interface ClassResolver {
+    /**
+     * Resolves a [Class] given its class name.
+     *
+     * @param className The class name to resolve
+     */
     fun resolveClassName(className: String): Class<*>
   }
 

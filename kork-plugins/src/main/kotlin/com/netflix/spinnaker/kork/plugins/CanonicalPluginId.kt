@@ -40,15 +40,24 @@ data class CanonicalPluginId(
   companion object {
     private val pattern = Pattern.compile("^(?<namespace>[\\w\\-.])+\\.(?<id>[\\w\\-]+)$")
 
+    /**
+     * Returns a boolean of whether or not the given [pluginId] is correctly formed.
+     */
     fun isValid(pluginId: String): Boolean =
       pattern.matcher(pluginId).matches()
 
+    /**
+     * Validates the given [pluginId], throwing an exception if the ID is malformed.
+     */
     fun validate(pluginId: String) {
       if (!isValid(pluginId)) {
         throw MalformedPluginIdException(pluginId)
       }
     }
 
+    /**
+     * Parses the given [pluginId] into a [CanonicalPluginId] model.
+     */
     fun parse(pluginId: String): CanonicalPluginId? {
       val matcher = pattern.matcher(pluginId)
       if (matcher.matches()) {

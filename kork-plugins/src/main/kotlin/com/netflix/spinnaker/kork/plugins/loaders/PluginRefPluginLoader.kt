@@ -29,7 +29,7 @@ import org.pf4j.PluginManager
 /**
  * A [PluginLoader] that can produce a [PluginClassLoader] from a [PluginRef].
  */
-class PluginRefPluginLoader(val pluginManager: PluginManager) : PluginLoader {
+class PluginRefPluginLoader(private val pluginManager: PluginManager) : PluginLoader {
   override fun loadPlugin(pluginPath: Path?, pluginDescriptor: PluginDescriptor?): ClassLoader {
     if (pluginDescriptor is SpinnakerPluginDescriptor && pluginDescriptor.unsafe) {
       return UnsafePluginClassLoader(pluginManager, pluginDescriptor, javaClass.classLoader)

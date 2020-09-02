@@ -22,7 +22,6 @@ import org.springframework.context.ApplicationEvent
  * An event emitted whenever a plugin has been downloaded (successfully or not).
  *
  * @param source The [SpinnakerUpdateManager], which has emitted this event.
- * @param operation Defines whether the plugin was being installed or updated.
  * @param status Whether or not the plugin download succeeded
  * @param pluginId The ID of the plugin
  * @param version The version of the plugin downloaded
@@ -33,6 +32,9 @@ class PluginDownloaded(
   val pluginId: String,
   val version: String
 ) : ApplicationEvent(source) {
+  /**
+   * The down status of the plugin.
+   */
   enum class Status {
     SUCCEEDED,
     FAILED

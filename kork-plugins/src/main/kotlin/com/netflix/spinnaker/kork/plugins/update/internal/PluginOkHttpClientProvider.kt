@@ -23,6 +23,8 @@ import okhttp3.OkHttpClient
  * We need to share an OkHttpClient around the plugin framework codebase, but we don't want to wire up an OkHttpClient
  * Bean, since we would risk changing existing service configuration behavior. This class just wraps a single
  * configured instance of OkHttpClient.
+ *
+ * @param okHttpClient The proxied [OkHttpClient].
  */
 class PluginOkHttpClientProvider(
   val okHttpClient: OkHttpClient

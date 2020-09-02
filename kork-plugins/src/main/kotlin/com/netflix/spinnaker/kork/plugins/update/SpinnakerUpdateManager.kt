@@ -63,54 +63,50 @@ class SpinnakerUpdateManager(
   }
 
   internal fun downloadPluginReleases(pluginInfoReleases: Set<PluginInfoRelease>): Set<Path> {
-    val downloadedPlugins: MutableSet<Path> = mutableSetOf()
+    return pluginInfoReleases.mapNotNull { it.download() }.toSet()
+  }
 
-    pluginInfoReleases
-      .forEach release@{ release ->
+  private fun PluginInfoRelease.download(): Path? {
+    // This is a remote plugin only, do nothing here.
+    if (props.url == null && props.remoteExtensions.isNotEmpty()) {
+      log.info("Nothing to download - plugin '{}' is a remote plugin and there is no in-process plugin binary.", pluginId)
+      return null
+    }
 
-        // This is a remote plugin only, do nothing here.
-        if (release.props.url == null && release.props.remoteExtensions.isNotEmpty()) {
-          log.info("Nothing to download - plugin '{}' is a remote plugin and there is no in-process plugin binary.", release.pluginId)
-          return@release
-        }
+    val loadedPlugin = pluginManager.getPlugin(pluginId)
+    if (loadedPlugin != null) {
+      val loadedPluginVersion = loadedPlugin.descriptor.version
 
-        val loadedPlugin = pluginManager.getPlugin(release.pluginId)
-        if (loadedPlugin != null) {
-          val loadedPluginVersion = loadedPlugin.descriptor.version
-
-          // If a plugin was built without a version specified (via the Plugin-Version MANIFEST.MF
-          // attribute), to be safe we always check for the configured plugin version.
-          if (loadedPluginVersion == "unspecified" || pluginManager.versionManager.compareVersions(release.props.version, loadedPluginVersion) > 0) {
-            log.debug(
-              "Newer version '{}' of plugin '{}' found, deleting previous version '{}'",
-              release.props.version, release.pluginId, loadedPluginVersion
-            )
-            val deleted = pluginManager.deletePlugin(loadedPlugin.pluginId)
-
-            if (!deleted) {
-              throw IntegrationException(
-                "Unable to update plugin '${release.pluginId}' to version '${release.props.version}', " +
-                  "failed to delete previous version '$loadedPluginVersion}'"
-              )
-            }
-          } else {
-            return@release
-          }
-        }
-
-        log.debug("Downloading plugin '{}' with version '{}'", release.pluginId, release.props.version)
-        val tmpPath = downloadPluginRelease(release.pluginId, release.props.version)
-        val downloadedPluginPath = pluginManager.pluginsRoot.write(release.pluginId, tmpPath)
-
-        log.debug("Downloaded plugin '{}'", release.pluginId)
-        applicationEventPublisher.publishEvent(
-          PluginDownloaded(this, PluginDownloaded.Status.SUCCEEDED, release.pluginId, release.props.version)
+      // If a plugin was built without a version specified (via the Plugin-Version MANIFEST.MF
+      // attribute), to be safe we always check for the configured plugin version.
+      if (loadedPluginVersion == "unspecified" || pluginManager.versionManager.compareVersions(props.version, loadedPluginVersion) > 0) {
+        log.debug(
+          "Newer version '{}' of plugin '{}' found, deleting previous version '{}'",
+          props.version, pluginId, loadedPluginVersion
         )
+        val deleted = pluginManager.deletePlugin(loadedPlugin.pluginId)
 
-        downloadedPlugins.add(downloadedPluginPath)
+        if (!deleted) {
+          throw IntegrationException(
+            "Unable to update plugin '${pluginId}' to version '${props.version}', " +
+              "failed to delete previous version '$loadedPluginVersion}'"
+          )
+        }
+      } else {
+        return null
       }
+    }
 
-    return downloadedPlugins
+    log.debug("Downloading plugin '{}' with version '{}'", pluginId, props.version)
+    val tmpPath = downloadPluginRelease(pluginId, props.version)
+    val downloadedPluginPath = pluginManager.pluginsRoot.write(pluginId, tmpPath)
+
+    log.debug("Downloaded plugin '{}'", pluginId)
+    applicationEventPublisher.publishEvent(
+      PluginDownloaded(this@SpinnakerUpdateManager, PluginDownloaded.Status.SUCCEEDED, pluginId, props.version)
+    )
+
+    return downloadedPluginPath
   }
 
   /**

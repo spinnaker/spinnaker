@@ -20,15 +20,16 @@ package com.netflix.spinnaker.kork.plugins.remote
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.plugins.remote.extension.RemoteExtension
 
+/**
+ * The root class of a remote plugin model.
+ *
+ * @param id The canonical plugin ID.  See [CanonicalPluginId].
+ * @param version The version of the plugin.
+ * @param remoteExtensions The list of remote extensions associated with this plugin.
+ */
 @Beta
 data class RemotePlugin(
-
-  /** The canonical plugin ID.  See [CanonicalPluginId]. */
   val id: String,
-
-  /** The version of the plugin. */
   val version: String,
-
-  /** The list of remote extensions associated with this plugin. */
   val remoteExtensions: Set<RemoteExtension>
 )

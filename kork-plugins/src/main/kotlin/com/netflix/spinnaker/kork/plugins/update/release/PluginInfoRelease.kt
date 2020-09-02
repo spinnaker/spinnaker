@@ -20,5 +20,8 @@ import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 
 /**
  * A tuple of [pluginId] and [SpinnakerPluginInfo.SpinnakerPluginRelease]
+ *
+ * @param pluginId The plugin ID
+ * @param props A [SpinnakerPluginInfo.SpinnakerPluginRelease] for the given [pluginId]
  */
 data class PluginInfoRelease(val pluginId: String, var props: SpinnakerPluginInfo.SpinnakerPluginRelease)

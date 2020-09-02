@@ -31,6 +31,8 @@ import org.springframework.context.support.GenericApplicationContext
  * to the plugin developer. This container does, however, mean that plugin framework developers
  * must be sure _not_ to use this class in `$plugin::java.class` operations, instead using
  * `$plugin.actual::java.class` to get access to the actual plugin Java class.
+ *
+ * @param actual The actual plugin-provided [Plugin] class.
  */
 class PluginContainer(
   val actual: Plugin,
@@ -43,6 +45,10 @@ class PluginContainer(
     ApplicationContextGraph.pluginContexts[wrapper.pluginId] = it
   }
 
+  /**
+   * Registers the [SpringPluginInitializer] with the service [ApplicationContext] so that the plugin can be
+   * initialized at the correct time in the service's startup process.
+   */
   fun registerInitializer(registry: BeanDefinitionRegistry) {
     val initializerBeanName = "${wrapper.pluginId}Initializer"
 

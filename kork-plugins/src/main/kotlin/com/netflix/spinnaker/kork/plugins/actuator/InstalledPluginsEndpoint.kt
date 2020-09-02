@@ -25,11 +25,17 @@ import org.springframework.boot.actuate.endpoint.annotation.Endpoint
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation
 import org.springframework.boot.actuate.endpoint.annotation.Selector
 
+/**
+ * An endpoint that exposes [PluginDescriptor] information about the service's installed plugins.
+ */
 @Endpoint(id = "installedPlugins")
 class InstalledPluginsEndpoint(
   private val pluginManager: SpinnakerPluginManager
 ) {
 
+  /**
+   * Returns a list of all installed plugins' [PluginDescriptor].
+   */
   @ReadOperation
   fun plugins(): List<PluginDescriptor> {
     return pluginManager.plugins.stream()
@@ -37,6 +43,9 @@ class InstalledPluginsEndpoint(
       .collect(Collectors.toList())
   }
 
+  /**
+   * Returns the [PluginDescriptor] for a single plugin by [pluginId].
+   */
   @ReadOperation
   fun pluginById(@Selector pluginId: String): PluginDescriptor {
     val pluginWrapper = pluginManager.getPlugin(pluginId) ?: throw NotFoundException("Plugin not found: $pluginId")

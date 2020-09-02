@@ -25,12 +25,25 @@ import com.netflix.spectator.api.Id
  */
 interface InvocationState
 
+/**
+ * Tracks the state of a method invocation for the purposes of metrics collection.
+ *
+ * @param extensionName The name of the extension
+ * @param startTimeMs The time the method invocation started
+ * @param timingId The optional metric ID, if left unset, one will be assigned automatically based on the method name
+ */
 data class MetricInvocationState(
   internal val extensionName: String,
   internal val startTimeMs: Long,
   internal val timingId: Id?
 ) : InvocationState
 
+/**
+ * Tracks the state of a method invocation for the purposes of logging.
+ *
+ * @param extensionName The name of the extension
+ * @param methodName The method name that is calling the log
+ */
 data class LogInvocationState(
   internal val extensionName: String,
   internal val methodName: String

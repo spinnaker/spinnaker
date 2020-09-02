@@ -99,6 +99,9 @@ class ExtensionInvocationProxy(
   }
 
   companion object {
+    /**
+     * Factory method for wrapping a [SpinnakerExtensionPoint] in an [ExtensionInvocationProxy].
+     */
     fun proxy(
       target: SpinnakerExtensionPoint,
       invocationAspects: List<InvocationAspect<InvocationState>>,

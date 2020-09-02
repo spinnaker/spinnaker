@@ -23,6 +23,9 @@ import java.util.Optional
 import okhttp3.ResponseBody
 import org.slf4j.LoggerFactory
 
+/**
+ * An OkHttp-backed HTTP client [Response].
+ */
 class Ok3Response(
   private val objectMapper: ObjectMapper,
   private val response: okhttp3.Response?,
@@ -70,7 +73,7 @@ class Ok3Response(
     try {
       response?.body()?.close()
       responseBody?.close()
-    } catch (e: Exception) {
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
       log.warn("Failed to cleanup resource", e)
     }
   }

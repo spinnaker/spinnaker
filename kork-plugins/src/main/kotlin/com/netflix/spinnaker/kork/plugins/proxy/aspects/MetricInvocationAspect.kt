@@ -46,7 +46,7 @@ class MetricInvocationAspect(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private val methodMetricIds: Cache<Method, MetricIds> = Caffeine.newBuilder()
-    .maximumSize(1000)
+    .maximumSize(MAX_CACHE_SIZE)
     .expireAfterWrite(1, TimeUnit.HOURS)
     .build<Method, MetricIds>()
 
@@ -169,6 +169,7 @@ class MetricInvocationAspect(
 
   companion object {
     private const val TIMING = "timing"
+    private const val MAX_CACHE_SIZE = 1000L
 
     enum class Result {
       SUCCESS, FAILURE;

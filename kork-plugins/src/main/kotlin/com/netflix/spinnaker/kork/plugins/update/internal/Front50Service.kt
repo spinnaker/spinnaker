@@ -29,12 +29,23 @@ import retrofit2.http.Query
  */
 interface Front50Service {
 
+  /**
+   * Get [SpinnakerPluginInfo] by the plugin ID.
+   */
   @GET("/pluginInfo/{id}")
   fun getById(@Path("id") id: String): Call<SpinnakerPluginInfo>
 
+  /**
+   * List all registered [SpinnakerPluginInfo] from front50.
+   */
   @GET("/pluginInfo")
   fun listAll(): Call<Collection<SpinnakerPluginInfo>>
 
+  /**
+   * Pin a service's plugins to a particular set of plugin/plugin version tuples.
+   *
+   * This ensures that, even through instance replacement, a server group's installed plugins will remain homogenous.
+   */
   @PUT("/pluginVersions/{serverGroupName}")
   fun pinVersions(
     @Path("serverGroupName") serverGroupName: String,

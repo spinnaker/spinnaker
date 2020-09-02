@@ -23,6 +23,9 @@ import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource
 import org.pf4j.update.PluginInfo
 
+/**
+ * A composite [PluginInfoReleaseSource], that processes releases as defined by their order.
+ */
 class AggregatePluginInfoReleaseProvider(
   private val pluginInfoReleaseSources: List<PluginInfoReleaseSource>,
   private val strictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider

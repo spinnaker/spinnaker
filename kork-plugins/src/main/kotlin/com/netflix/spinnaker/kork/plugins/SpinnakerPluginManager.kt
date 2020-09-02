@@ -44,12 +44,12 @@ import org.slf4j.LoggerFactory
 /**
  * The primary entry-point to the plugins system from a provider-side (services, libs, CLIs, and so-on).
  *
+ * @param spinnakerVersionManager The [VersionManager] configured for Spinnaker.
  * @param statusProvider A Spring Environment-aware plugin status provider.
- * @param extensionInitializer The extension initialization strategy used by the extension factory.
- * @param configResolver The config resolver for extensions.
  * @param pluginsRoot The root path to search for in-process plugin artifacts.
  */
 @Beta
+@Suppress("LongParameterList")
 open class SpinnakerPluginManager(
   private val serviceVersion: ServiceVersion,
   val spinnakerVersionManager: VersionManager,

@@ -38,6 +38,9 @@ interface PluginInfoReleaseProvider {
   fun getReleases(pluginInfo: List<SpinnakerPluginInfo>): Set<PluginInfoRelease>
 }
 
+/**
+ * Thrown when a requested plugin release is not found.
+ */
 class PluginReleaseNotFoundException(pluginId: String, sources: List<PluginInfoReleaseSource>) :
   IntegrationException(
     "A release version of '$pluginId' was not sourced from the provider sources '$sources'"

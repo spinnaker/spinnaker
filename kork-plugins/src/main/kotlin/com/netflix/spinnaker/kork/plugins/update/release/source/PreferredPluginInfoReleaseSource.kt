@@ -21,6 +21,10 @@ import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import org.slf4j.LoggerFactory
 
+/**
+ * Selects a [PluginInfoRelease] based on which release has [SpinnakerPluginInfo.SpinnakerPluginRelease.preferred]
+ * set to true.
+ */
 class PreferredPluginInfoReleaseSource : PluginInfoReleaseSource {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -40,5 +44,8 @@ class PreferredPluginInfoReleaseSource : PluginInfoReleaseSource {
     }
   }
 
+  /**
+   * The [PluginInfoReleaseSource] chain order.
+   */
   override fun getOrder(): Int = 200
 }

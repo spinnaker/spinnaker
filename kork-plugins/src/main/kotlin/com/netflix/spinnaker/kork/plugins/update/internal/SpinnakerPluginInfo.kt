@@ -20,13 +20,24 @@ import com.fasterxml.jackson.annotation.JsonSetter
 import com.netflix.spinnaker.kork.api.plugins.remote.RemoteExtensionConfig
 import org.pf4j.update.PluginInfo
 
+/**
+ * Spinnaker-specific [PluginInfo].
+ *
+ * Required to expose [SpinnakerPluginRelease] to the rest of the framework.
+ */
 class SpinnakerPluginInfo : PluginInfo() {
 
+  /**
+   * Get all known releases for a plugin.
+   */
   @Suppress("UNCHECKED_CAST")
   fun getReleases(): List<SpinnakerPluginRelease> {
     return releases as List<SpinnakerPluginRelease>
   }
 
+  /**
+   * Set all known releases for a plugin.
+   */
   @JsonSetter("releases")
   fun setReleases(spinnakerReleases: List<SpinnakerPluginRelease>) {
     releases = spinnakerReleases
@@ -36,6 +47,10 @@ class SpinnakerPluginInfo : PluginInfo() {
    * It is not guaranteed that the [org.pf4j.update.UpdateRepository] implementation returns a
    * SpinnakerPluginInfo object.  Therefore, additional fields defined here must provide a default
    * value.
+   *
+   * @param preferred Whether or not the plugin release is preferred. Preferred plugin releases will be more
+   *  likely to be loaded than other releases.
+   * @param remoteExtensions Any remote extension configs attached to the plugin.
    */
   data class SpinnakerPluginRelease(
     val preferred: Boolean = false,

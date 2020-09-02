@@ -15,5 +15,12 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+/**
+ * Plugin Framework V1 config value.
+ */
 const val FRAMEWORK_V1 = "v1"
+
+/**
+ * Plugin Framework V2 config value.
+ */
 const val FRAMEWORK_V2 = "v2"

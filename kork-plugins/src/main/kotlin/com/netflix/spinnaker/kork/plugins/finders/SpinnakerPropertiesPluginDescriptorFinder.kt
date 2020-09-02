@@ -41,6 +41,9 @@ class SpinnakerPropertiesPluginDescriptorFinder(
   override fun createPluginDescriptorInstance(): DefaultPluginDescriptor = SpinnakerPluginDescriptor()
 
   companion object {
+    /**
+     * The property key for the unsafe configuration.
+     */
     const val PLUGIN_UNSAFE = "plugin.unsafe"
   }
 }

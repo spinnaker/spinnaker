@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 
+/**
+ * A Jackson-backed [YamlResourceLoader].
+ */
 class JacksonYamlResourceLoader(
   private val pluginClass: Class<*>
 ) : YamlResourceLoader {

@@ -18,11 +18,18 @@ package com.netflix.spinnaker.kork.plugins.sdk.serde
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
-import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 
+/**
+ * Builds a [SerdeServiceImpl] for plugins to use.
+ *
+ * This will search the service [ApplicationContext] for a single [ObjectMapper]. If more than one [ObjectMapper]
+ * is found, the first one will be chosen. This is an unsafe operation, as there are no guarantees that the same
+ * [ObjectMapper] will be chosen on each startup - a log error is raised so that service developers can track these
+ * issues down and consolidate where possible.
+ */
 class SerdeServiceSdkFactory(
   private val applicationContext: ApplicationContext
 ) : SdkFactory {

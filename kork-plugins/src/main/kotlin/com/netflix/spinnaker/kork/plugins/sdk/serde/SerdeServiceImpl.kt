@@ -24,6 +24,9 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.serde.SerdeService
 import java.io.IOException
 
+/**
+ * The standard [SerdeService] implementation, backed by Jackson.
+ */
 class SerdeServiceImpl(
   private val objectMapper: ObjectMapper
 ) : SerdeService {

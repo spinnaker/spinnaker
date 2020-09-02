@@ -20,6 +20,8 @@ import kotlin.reflect.KClass
 /**
  * Marks a class as configurable, allowing the results of a [ConfigResolver] to be injected into a
  * class as a constructor argument.
+ *
+ * @param value The configuration class.
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)

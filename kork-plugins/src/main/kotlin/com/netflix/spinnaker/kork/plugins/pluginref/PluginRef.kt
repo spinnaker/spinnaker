@@ -36,6 +36,10 @@ import org.pf4j.PluginDescriptor
  * The intention of [PluginRef] is to allow a runtime experience similar to dropping a fully
  * packaged plugin into the host application, without requiring the packaging and deployment
  * step (aside from a one time generation and copy/link of the [PluginRef] file).
+ *
+ * @param pluginPath The path to the concrete [Plugin] implementation.
+ * @param classesDirs A list of directories containing compiled class-files for the [Plugin].
+ * @param libsDirs A list of directories containing jars scoped to the [Plugin].
  */
 data class PluginRef(
   /**
@@ -61,13 +65,22 @@ data class PluginRef(
   val libsDirs: List<String>
 ) {
   companion object {
+    /**
+     * The PluginRef file extension name.
+     */
     const val EXTENSION = ".plugin-ref"
 
     private val mapper = jacksonObjectMapper()
 
+    /**
+     * Returns whether or not the provided [path] is a valid [PluginRef].
+     */
     fun isPluginRef(path: Path?): Boolean =
       path != null && Files.isRegularFile(path) && path.toString().toLowerCase().endsWith(EXTENSION)
 
+    /**
+     * Loads the given [path] as a [PluginRef].
+     */
     fun loadPluginRef(path: Path?): PluginRef {
       if (!isPluginRef(path)) {
         throw InvalidPluginRefException(path)
@@ -86,13 +99,22 @@ data class PluginRef(
     }
   }
 
+  /**
+   * The path to the plugin ref file.
+   */
   val refPath: Path
     @JsonIgnore
     get() = Paths.get(pluginPath)
 }
 
+/**
+ * Thrown when a given plugin ref cannot be found at the given path.
+ */
 class InvalidPluginRefException(path: Path?) :
   UserException(path?.let { "${it.fileName} is not a plugin-ref file" } ?: "Null path passed as plugin-ref")
 
+/**
+ * Thrown when a valid plugin ref path contains a malformed body.
+ */
 class MalformedPluginRefException(path: Path, cause: Throwable) :
   UserException("${path.fileName} is not a valid plugin-ref", cause)

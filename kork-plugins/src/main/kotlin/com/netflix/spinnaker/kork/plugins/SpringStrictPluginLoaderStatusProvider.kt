@@ -24,6 +24,13 @@ class SpringStrictPluginLoaderStatusProvider(
   private val environment: Environment
 ) {
 
+  /**
+   * Returns whether or not the service is configured to be strict about plugin loading or not.
+   *
+   * When in strict mode, the service will fail to start if any plugin cannot be loaded.
+   *
+   * Defaults to true.
+   */
   fun isStrictPluginLoading(): Boolean =
     environment.getProperty("spinnaker.extensibility.strict-plugin-loading")?.toBoolean() ?: true
 }

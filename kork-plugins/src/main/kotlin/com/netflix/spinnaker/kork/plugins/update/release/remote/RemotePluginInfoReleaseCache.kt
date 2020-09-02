@@ -54,6 +54,9 @@ class RemotePluginInfoReleaseCache(
   private val pluginCache: Cache<String, PluginInfoRelease> = Caffeine.newBuilder()
     .build<String, PluginInfoRelease>()
 
+  /**
+   * Refresh cache process for plugin releases.
+   */
   @Scheduled(
     fixedDelayString = "\${spinnaker.extensibility.remote-plugins.cache-refresh-interval-ms:60000}",
     initialDelay = 0

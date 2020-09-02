@@ -27,6 +27,10 @@ import java.io.IOException
 import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered.LOWEST_PRECEDENCE
 
+/**
+ * Resolves plugin releases from front50, optionally aligning which releases are returned based on
+ * server group version pinning.
+ */
 class Front50PluginInfoReleaseSource(
   private val front50Service: Front50Service,
   private val serverGroupNameResolver: ServerGroupNameResolver,
