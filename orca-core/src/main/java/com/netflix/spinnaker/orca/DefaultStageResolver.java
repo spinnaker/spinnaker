@@ -110,13 +110,19 @@ public class DefaultStageResolver implements StageResolver {
   }
 
   /**
-   * {@link ConcurrentHashMap#get)} throws an NPE if the parameter is null, so first ensure
-   * typeAlias is not null and then perform the necessary get.
+   * {@link ConcurrentHashMap#get)} throws an NPE if the parameter is null, so first check if
+   * typeAlias is null and then perform the necessary lookups.
    */
   private StageDefinitionBuilder getOrDefault(@Nonnull String type, String typeAlias) {
-    return typeAlias != null
-        ? stageDefinitionBuilderByAlias.getOrDefault(
-            type, stageDefinitionBuilderByAlias.get(typeAlias))
-        : stageDefinitionBuilderByAlias.get(type);
+    StageDefinitionBuilder stageDefinitionBuilder = null;
+    if (typeAlias == null) {
+      stageDefinitionBuilder = stageDefinitionBuilderByAlias.get(type);
+    }
+
+    if (stageDefinitionBuilder == null && typeAlias != null) {
+      stageDefinitionBuilder = stageDefinitionBuilderByAlias.get(typeAlias);
+    }
+
+    return stageDefinitionBuilder;
   }
 }
