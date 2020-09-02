@@ -33,11 +33,10 @@ try {
 }
 
 // Ensure user is using git:// protocol (not https) for upstream
-const isHttpsUpstream = execSync('git remote -v')
+const remotes = execSync('git remote -v')
   .toString()
-  .split(/[\r\n]/)
-  .find(x => x.includes('https://github.com/spinnaker/deck.git (push)'));
-
+  .split(/[\r\n]/);
+const isHttpsUpstream = remotes.find(x => x.includes('https://github.com/spinnaker/deck.git (push)'));
 if (isHttpsUpstream) {
   const upstream = /^([\w]+)/.exec(isHttpsUpstream)[1];
   console.error(`The ${upstream} remote for spinnaker is using https protocol but should be using git`);
@@ -46,6 +45,9 @@ if (isHttpsUpstream) {
   console.error(`git remote set-url ${upstream} git@github.com:spinnaker/deck.git`);
   process.exit(2);
 }
+
+const upstreamRemoteLine = remotes.find(x => x.includes('git@github.com:spinnaker/deck.git (push)'));
+const upstream = upstreamRemoteLine ? /^([\w]+)/.exec(upstreamRemoteLine)[1] : null;
 
 // Ensure the working directory is clean and tracks master
 try {
@@ -141,26 +143,57 @@ const prompt = {
 
 function bumpPackages(packages = []) {
   let branchNameCreated = null;
+  const CHANGELOGTEMP = '___changelog.tmp.txt';
   try {
     const committer = execSync(`sh -c "git config --get user.name"`)
       .toString()
       .trim()
       .toLocaleLowerCase()
       .replace(/[^a-zA-Z]/g, '-');
-    let commitMessage = 'chore(package): publish';
-    let branchName = `package-bump-${committer}`;
+
+    const publishes = [];
+    // Update package.json and build the branch name
     packages.forEach(pkg => {
       execSync(`sh -c "cd ${pkg}; npm version patch --no-git-tag-version"`);
       const version = JSON.parse(fs.readFileSync(`${pkg}/package.json`).toString()).version;
-      commitMessage += ` ${pkg} ${version}`;
-      branchName += `-${pkg}-${version}`;
+      const changelog = changelogs.find(cl => cl.pkg === pkg);
+      publishes.push({ pkg, version, lines: changelog && changelog.lines });
     });
+
+    const branchString = publishes.map(p => `${p.pkg}-${p.version}`).join('-');
+    const branchName = `package-bump-${committer}-${branchString}`;
     execSync(`sh -c "git checkout -b ${branchName}"`);
     branchNameCreated = branchName;
-    execSync(`sh -c "git commit */package.json -m '${commitMessage}'"`);
-    execSync(`sh -c "gh pr create --title '${commitMessage}' --body 'PR created via modules/publish.js'"`);
+
+    publishes.forEach(({ pkg, version, lines }) => {
+      const commitMessage = `chore(${pkg}): publish ${pkg}@${version}\n\n\n${lines.join('\n')}`;
+      const commitMessageFile = `____commitmessage.${pkg}.tmp`;
+      try {
+        fs.writeFileSync(commitMessageFile, commitMessage);
+        execSync(`sh -c "git commit ${pkg}/package.json -F ${commitMessageFile}"`);
+      } finally {
+        fs.unlinkSync(commitMessageFile);
+      }
+    });
+
+    // Push to upstream, if configured
+    if (upstream) {
+      try {
+        execSync(`sh -c "git push ${upstream} ${branchName}"`);
+      } catch (error) {
+        // Probably failed because the user doesn't have write permission.
+        // This is OK: 'gh pr create' will create the PR in the user's fork
+      }
+    }
+
+    // export msg=$(cat msg) ; gh create pr -b "$msg"
+    const changes = publishes.map(p => `## ${p.pkg}@${p.version}\n\n${p.lines.join('\n')}`);
+    fs.writeFileSync(CHANGELOGTEMP, changes.join('\n\n') + '\n\nPR created via `modules/publish.js`\n\n');
+    const title = 'chore(package): ' + publishes.map(p => `${p.pkg}@${p.version}`).join(' ');
+    execSync(`sh -c 'export msg=$(cat "${CHANGELOGTEMP}") ; gh pr create --title "${title}" --body "$msg"'`);
   } finally {
     execSync(`sh -c "git checkout master"`);
     branchNameCreated && execSync(`sh -c "git branch -D ${branchNameCreated}"`);
+    fs.unlinkSync(CHANGELOGTEMP);
   }
 }
