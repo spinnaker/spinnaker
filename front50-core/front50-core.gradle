@@ -30,6 +30,7 @@ dependencies {
 
   api "com.netflix.spinnaker.kork:kork-plugins"
 
+  implementation "com.netflix.spinnaker.kork:kork-api"
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
