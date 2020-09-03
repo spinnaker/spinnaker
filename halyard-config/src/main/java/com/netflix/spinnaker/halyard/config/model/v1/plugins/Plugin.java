@@ -31,6 +31,7 @@ public class Plugin extends Node {
   private Boolean enabled;
   @Deprecated private String uiResourceLocation;
   private String version;
+  private Map<String, Object> config = new HashMap<>();
   private Map<String, PluginExtension> extensions = new HashMap<>();
 
   @Override
@@ -50,6 +51,7 @@ public class Plugin extends Node {
     Map<String, Object> pluginYaml = new LinkedHashMap<>();
     pluginYaml.put("enabled", enabled);
     pluginYaml.put("version", version);
+    pluginYaml.put("config", config);
     pluginYaml.put("extensions", extensionsConfig());
     return pluginYaml;
   }
