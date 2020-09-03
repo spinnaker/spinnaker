@@ -22,7 +22,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesManifestContainer;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMetric.ContainerMetric;
@@ -58,7 +58,7 @@ public class KubernetesManifestProvider {
   }
 
   @Nullable
-  public KubernetesV2Manifest getManifest(
+  public KubernetesManifestContainer getManifest(
       String account, String location, String name, boolean includeEvents) {
     Optional<KubernetesCredentials> optionalCredentials = accountResolver.getCredentials(account);
     if (!optionalCredentials.isPresent()) {
@@ -93,7 +93,7 @@ public class KubernetesManifestProvider {
     }
 
     try {
-      return KubernetesV2ManifestBuilder.buildManifest(
+      return KubernetesManifestContainerBuilder.buildManifest(
           credentials, manifest, events.get(), metrics.get());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

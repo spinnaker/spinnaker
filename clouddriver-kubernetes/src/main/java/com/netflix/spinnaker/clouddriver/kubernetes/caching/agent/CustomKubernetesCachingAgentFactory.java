@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 
 public class CustomKubernetesCachingAgentFactory {
-  public static KubernetesV2OnDemandCachingAgent create(
+  public static KubernetesOnDemandCachingAgent create(
       KubernetesKind kind,
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
@@ -46,7 +46,7 @@ public class CustomKubernetesCachingAgentFactory {
         agentInterval);
   }
 
-  private static class Agent extends KubernetesV2OnDemandCachingAgent {
+  private static class Agent extends KubernetesOnDemandCachingAgent {
     private final KubernetesKind kind;
 
     Agent(

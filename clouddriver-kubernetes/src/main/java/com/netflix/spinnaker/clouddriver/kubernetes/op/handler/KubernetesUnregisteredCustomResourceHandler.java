@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesHandler.DeployPriority.LOWEST_PRIORITY;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesUnregisteredCustomResourceCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -59,7 +59,7 @@ public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandl
   }
 
   @Override
-  protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+  protected KubernetesCachingAgentFactory cachingAgentFactory() {
     return KubernetesUnregisteredCustomResourceCachingAgent::new;
   }
 }

@@ -22,8 +22,8 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCoreCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
@@ -71,7 +71,7 @@ public class KubernetesEventHandler extends KubernetesHandler {
   }
 
   @Override
-  protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+  protected KubernetesCachingAgentFactory cachingAgentFactory() {
     return KubernetesCoreCachingAgent::new;
   }
 

@@ -29,7 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 
 public class KubernetesUnregisteredCustomResourceCachingAgent
-    extends KubernetesV2OnDemandCachingAgent {
+    extends KubernetesOnDemandCachingAgent {
   public KubernetesUnregisteredCustomResourceCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,

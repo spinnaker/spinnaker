@@ -29,7 +29,7 @@ import lombok.Value;
 
 /**
  * A collection of CacheItem entries used when building up the items being cached by the Kubernetes
- * V2 caching agent. This class supports adding items as well as adding relationships between items.
+ * caching agent. This class supports adding items as well as adding relationships between items.
  *
  * <p>Once all cache items and relationships have been added, calling toCacheData() will return a
  * Collection of CacheData entries that represent all added items and their relationships. The
@@ -92,7 +92,7 @@ public class KubernetesCacheData {
   }
 
   /**
-   * An item being cached by the Kubernetes V2 provider. This corresponds to a CacheData entry, but
+   * An item being cached by the Kubernetes provider. This corresponds to a CacheData entry, but
    * stores the information in a format that is more efficient to manipulate as we build up the
    * cache data.
    *

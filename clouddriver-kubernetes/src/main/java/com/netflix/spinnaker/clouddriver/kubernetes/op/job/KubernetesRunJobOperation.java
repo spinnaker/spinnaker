@@ -61,8 +61,7 @@ public class KubernetesRunJobOperation
     KubernetesManifest jobSpec = this.description.getManifest();
     KubernetesKind kind = jobSpec.getKind();
     if (!kind.equals(KubernetesKind.JOB)) {
-      throw new IllegalArgumentException(
-          "Only kind of Job is accepted for the V2 Run Job operation.");
+      throw new IllegalArgumentException("Only kind of Job is accepted for the Run Job operation.");
     }
 
     jobSpec.computeIfAbsent("metadata", k -> new HashMap<>());

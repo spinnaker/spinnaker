@@ -26,8 +26,8 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.op.handler.Kubernetes
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCoreCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch.Op;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
@@ -77,7 +77,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
   }
 
   @Override
-  protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+  protected KubernetesCachingAgentFactory cachingAgentFactory() {
     return KubernetesCoreCachingAgent::new;
   }
 

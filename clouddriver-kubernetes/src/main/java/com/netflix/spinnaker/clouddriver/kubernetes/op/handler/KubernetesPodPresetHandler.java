@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.op.handler;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCoreCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
@@ -57,7 +57,7 @@ public class KubernetesPodPresetHandler extends KubernetesHandler {
   }
 
   @Override
-  protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+  protected KubernetesCachingAgentFactory cachingAgentFactory() {
     return KubernetesCoreCachingAgent::new;
   }
 }

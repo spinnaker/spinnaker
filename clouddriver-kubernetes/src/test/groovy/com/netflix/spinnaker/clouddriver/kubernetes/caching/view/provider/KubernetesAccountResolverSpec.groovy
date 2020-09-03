@@ -31,7 +31,7 @@ class KubernetesAccountResolverSpec extends Specification {
   AccountCredentialsRepository credentialsRepository = Mock(AccountCredentialsRepository)
   ResourcePropertyRegistry globalResourcePropertyRegistry = Mock(GlobalResourcePropertyRegistry)
 
-  void "returns an account in the repository if and only if it is a kubernetes v2 account"() {
+  void "returns an account in the repository if and only if it is a kubernetes account"() {
     given:
     KubernetesAccountResolver accountResolver = new KubernetesAccountResolver(credentialsRepository, globalResourcePropertyRegistry)
     KubernetesCredentials kubernetesCredentials = Mock(KubernetesCredentials)
@@ -65,7 +65,7 @@ class KubernetesAccountResolverSpec extends Specification {
   void "returns the account's property registry, falling back to the global registry"() {
     given:
     KubernetesAccountResolver accountResolver = new KubernetesAccountResolver(credentialsRepository, globalResourcePropertyRegistry)
-    ResourcePropertyRegistry v2ResourcePropertyRegistry = Mock(ResourcePropertyRegistry)
+    ResourcePropertyRegistry resourcePropertyRegistry = Mock(ResourcePropertyRegistry)
     ResourcePropertyRegistry registry
 
     when:
@@ -74,10 +74,10 @@ class KubernetesAccountResolverSpec extends Specification {
     then:
     1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> Mock(KubernetesCredentials) {
-        getResourcePropertyRegistry() >> v2ResourcePropertyRegistry
+        getResourcePropertyRegistry() >> resourcePropertyRegistry
       }
     }
-    registry == v2ResourcePropertyRegistry
+    registry == resourcePropertyRegistry
 
     when:
     registry = accountResolver.getResourcePropertyRegistry(ACCOUNT_NAME)

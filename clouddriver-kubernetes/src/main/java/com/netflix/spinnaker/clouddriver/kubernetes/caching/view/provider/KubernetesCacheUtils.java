@@ -33,7 +33,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesV2CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.data.KubernetesCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
@@ -207,7 +207,7 @@ class KubernetesCacheUtils {
     return cd -> seen.add(cd.getId());
   }
 
-  KubernetesHandler getHandler(KubernetesV2CacheData cacheData) {
+  KubernetesHandler getHandler(KubernetesCacheData cacheData) {
     Keys.InfrastructureCacheKey key =
         (Keys.InfrastructureCacheKey) Keys.parseKey(cacheData.primaryData().getId()).get();
     // TODO(ezimanyi): The kind is also stored directly on the cache data; get it from there instead
