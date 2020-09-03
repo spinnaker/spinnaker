@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
+import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import org.springframework.stereotype.Component
 
@@ -23,8 +24,9 @@ import org.springframework.stereotype.Component
 @Component
 class NpmArtifactSupplier(
   override val eventPublisher: EventPublisher,
-  private val artifactService: ArtifactService
-) : ArtifactSupplier<NpmArtifact, NetflixSemVerVersioningStrategy> {
+  private val artifactService: ArtifactService,
+  override val artifactMetadataService: ArtifactMetadataService
+) : BaseArtifactSupplier<NpmArtifact, NetflixSemVerVersioningStrategy>(artifactMetadataService) {
 
   override val supportedArtifact = SupportedArtifact(NPM, NpmArtifact::class.java)
 
@@ -62,7 +64,7 @@ class NpmArtifactSupplier(
   /**
    * Extracts the build number from the version string using the Netflix semver convention.
    */
-  override fun getBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
+  override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
     return NetflixSemVerVersioningStrategy.getBuildNumber(artifact)
       ?.let { BuildMetadata(it) }
   }
@@ -70,10 +72,12 @@ class NpmArtifactSupplier(
   /**
    * Extracts the commit hash from the version string using the Netflix semver convention.
    */
-  override fun getGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
+  override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
+
     return NetflixSemVerVersioningStrategy.getCommitHash(artifact)
       ?.let { GitMetadata(it) }
   }
+
 
   // The API requires colons in place of slashes to avoid path pattern conflicts
   private val DeliveryArtifact.nameForQuery: String

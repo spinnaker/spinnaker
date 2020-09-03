@@ -14,6 +14,8 @@ import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.services.ArtifactMetadataService
+import com.netflix.spinnaker.keel.telemetry.ArtifactSaved
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -45,16 +47,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val repository: KeelRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
     val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
+    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
   ) {
     private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(
-      repository, publisher,
-      listOf(
-        DebianArtifactSupplier(eventBridge, artifactService),
-        DockerArtifactSupplier(eventBridge, clouddriverService)
-      )
-    )
+    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
+      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
+      DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
+    ))
   }
 
   fun artifactEventTests() = rootContext<ArtifactFixture> {
@@ -124,6 +124,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         test("a telemetry event is recorded") {
           verify { publisher.publishEvent(any<ArtifactVersionUpdated>()) }
         }
+        test("artifact saved event was sent") {
+          verify { publisher.publishEvent(any<ArtifactSaved>()) }
+        }
       }
     }
   }
@@ -134,16 +137,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val repository: KeelRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
     val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
+    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
   ) {
     private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(
-      repository, publisher,
-      listOf(
-        DebianArtifactSupplier(eventBridge, artifactService),
-        DockerArtifactSupplier(eventBridge, clouddriverService)
-      )
-    )
+    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
+      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
+      DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
+    ))
   }
 
   fun artifactRegisteredEventTests() = rootContext<RegisteredFixture> {
@@ -205,6 +206,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             repository.storeArtifact("fnord", DEBIAN, "fnord-0.227.0-h141.bd97556", FINAL)
           }
         }
+
+        test("artifact saved event was sent") {
+          verify { publisher.publishEvent(any<ArtifactSaved>()) }
+        }
       }
 
       context("there no versions of the artifact") {
@@ -219,6 +224,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           verify(exactly = 0) {
             repository.storeArtifact(any(), any(), any())
           }
+        }
+
+        test("artifact saved event was not sent") {
+          verify(exactly = 0) { publisher.publishEvent(any<ArtifactSaved>()) }
         }
       }
     }
@@ -240,16 +249,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val repository: KeelRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
     val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
-    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true),
+    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
   ) {
     private val eventBridge = SpringEventPublisherBridge(publisher)
-    val listener: ArtifactListener = ArtifactListener(
-      repository, publisher,
-      listOf(
-        DebianArtifactSupplier(eventBridge, artifactService),
-        DockerArtifactSupplier(eventBridge, clouddriverService)
-      )
-    )
+    val listener: ArtifactListener = ArtifactListener(repository, publisher, listOf(
+      DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
+      DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
+    ))
   }
 
   fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {
@@ -284,6 +291,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
         listener.syncArtifactVersions()
         verify { repository.storeArtifact(debArtifact.name, debArtifact.type, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) }
         verify { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, "master-h5.blahblah", null) }
+        verify { publisher.publishEvent(any<ArtifactSaved>()) }
       }
     }
 
@@ -310,6 +318,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           listener.syncArtifactVersions()
           verify { repository.storeArtifact(debArtifact.name, debArtifact.type, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) }
           verify { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, "master-h6.hehehe", null) }
+          verify { publisher.publishEvent(any<ArtifactSaved>()) }
         }
       }
 
@@ -329,6 +338,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           listener.syncArtifactVersions()
           verify(exactly = 0) { repository.storeArtifact(debArtifact.name, debArtifact.type, any(), FINAL) }
           verify(exactly = 0) { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, any(), FINAL) }
+          verify(exactly = 0) { publisher.publishEvent(any<ArtifactSaved>()) }
+
         }
       }
 
@@ -342,6 +353,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           listener.syncArtifactVersions()
           verify(exactly = 0) { repository.storeArtifact(debArtifact.name, debArtifact.type, any(), FINAL) }
           verify(exactly = 0) { repository.storeArtifact(dockerArtifact.name, dockerArtifact.type, any(), FINAL) }
+          verify(exactly = 0) { publisher.publishEvent(any<ArtifactSaved>()) }
         }
       }
     }

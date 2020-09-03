@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.api.plugins
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
@@ -74,7 +75,7 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    * This function is currently *not* expected to make calls to other systems, but only look into
    * the metadata available within the [PublishedArtifact] object itself.
    */
-  fun getBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? = null
+  fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? = null
 
   /**
    * Given a [PublishedArtifact] and a [VersioningStrategy] supported by this [ArtifactSupplier],
@@ -83,7 +84,15 @@ interface ArtifactSupplier<A : DeliveryArtifact, V : VersioningStrategy> : Spinn
    * This function is currently *not* expected to make calls to other systems, but only look into
    * the metadata available within the [PublishedArtifact] object itself.
    */
-  fun getGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? = null
+  fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? = null
+
+  /**
+   * Given a [PublishedArtifact] supported by this [ArtifactSupplier],
+   * return the [ArtifactMetadata] for the artifact, if available.
+   *
+   * This function is currently expected to make calls to CI systems.
+   */
+  suspend fun getArtifactMetadata(artifact: PublishedArtifact): ArtifactMetadata?
 }
 
 /**

@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.artifacts.DebianArtifactSupplier
 import com.netflix.spinnaker.keel.artifacts.DockerArtifactSupplier
 import com.netflix.spinnaker.keel.artifacts.NpmArtifactSupplier
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import io.mockk.mockk
 
 class DummyArtifact(
@@ -30,9 +31,10 @@ fun defaultArtifactSuppliers(): List<ArtifactSupplier<*, *>> {
   val artifactService: ArtifactService = mockk(relaxUnitFun = true)
   val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true)
   val eventBridge: SpringEventPublisherBridge = mockk(relaxUnitFun = true)
+  val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
   return listOf(
-    DebianArtifactSupplier(eventBridge, artifactService),
-    DockerArtifactSupplier(eventBridge, clouddriverService),
-    NpmArtifactSupplier(eventBridge, artifactService)
+    DebianArtifactSupplier(eventBridge, artifactService, artifactMetadataService),
+    DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService),
+    NpmArtifactSupplier(eventBridge, artifactService, artifactMetadataService)
   )
 }

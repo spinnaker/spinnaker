@@ -2,6 +2,8 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
+import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
@@ -117,8 +119,9 @@ class ApplicationServiceTests : JUnit5Minutests {
       } answers {
         publishedArtifact.captured.version
       }
-      every { getBuildMetadata(any(), any()) } returns null
-      every { getGitMetadata(any(), any()) } returns null
+      every { parseDefaultBuildMetadata(any(), any()) } returns null
+      every { parseDefaultGitMetadata(any(), any()) } returns null
+      every { getReleaseStatus(any()) } returns null
     }
 
     // subject
@@ -129,6 +132,16 @@ class ApplicationServiceTests : JUnit5Minutests {
       listOf(artifactSupplier),
       configuredTestObjectMapper()
     )
+
+    val buildMetadata = BuildMetadata(
+      id = 1,
+      number = "1",
+    )
+
+    val gitMetadata = GitMetadata (
+      author = "keel user",
+      commit = "1sdla"
+    )
   }
 
   fun applicationServiceTests() = rootContext<Fixture> {
@@ -138,6 +151,14 @@ class ApplicationServiceTests : JUnit5Minutests {
 
     before {
       every { repository.getDeliveryConfigForApplication(application) } returns deliveryConfig
+
+      every {
+        repository.getArtifactGitMetadata(any(), any(), any(), any())
+      } returns null
+
+      every {
+        repository.getArtifactBuildMetadata(any(), any(), any(), any())
+      } returns null
     }
 
     context("artifact summaries by application") {
@@ -165,6 +186,14 @@ class ApplicationServiceTests : JUnit5Minutests {
           every {
             dependsOnEvaluator.canPromote(artifact, any(), deliveryConfig, environments.getValue("production"))
           } returns false
+
+          every {
+            repository.getArtifactGitMetadata(any(), any(), any(), any())
+          } returns gitMetadata
+
+          every {
+            repository.getArtifactBuildMetadata(any(), any(), any(), any())
+          } returns buildMetadata
         }
 
         test("artifact summary shows all versions pending in all environments") {
@@ -184,6 +213,10 @@ class ApplicationServiceTests : JUnit5Minutests {
                     }
                   }
                 }
+                  .first().and {
+                    get { build }.isEqualTo(buildMetadata)
+                    get { git }.isEqualTo(gitMetadata)
+                  }
               }
             }
           }

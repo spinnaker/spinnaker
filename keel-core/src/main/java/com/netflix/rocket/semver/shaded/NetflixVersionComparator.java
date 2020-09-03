@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DebianVersionComparator implements Comparator<String> {
+public class NetflixVersionComparator implements Comparator<String> {
   private static final String PRERELEASE_SPLIT = "~";
   private static final String DOT_SEPARATOR = "\\.";
   private static final String PRERELEASE_SEPARATOR = "[.+]";

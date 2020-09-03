@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import org.springframework.stereotype.Component
 
 /**
@@ -24,8 +25,9 @@ import org.springframework.stereotype.Component
 @Component
 class DockerArtifactSupplier(
   override val eventPublisher: EventPublisher,
-  private val cloudDriverService: CloudDriverService
-) : ArtifactSupplier<DockerArtifact, DockerVersioningStrategy> {
+  private val cloudDriverService: CloudDriverService,
+  override val artifactMetadataService: ArtifactMetadataService
+) : BaseArtifactSupplier<DockerArtifact, DockerVersioningStrategy>(artifactMetadataService) {
   override val supportedArtifact = SupportedArtifact("docker", DockerArtifact::class.java)
 
   override val supportedVersioningStrategy =
@@ -55,7 +57,17 @@ class DockerArtifactSupplier(
               name = dockerImage.repository,
               type = DOCKER,
               reference = dockerImage.repository.substringAfter(':', dockerImage.repository),
-              version = dockerImage.tag
+              version = dockerImage.tag,
+              metadata = let {
+                if (dockerImage.commitId != null && dockerImage.buildNumber != null) {
+                  mapOf(
+                    "commitId" to dockerImage.commitId,
+                    "buildNumber" to dockerImage.buildNumber
+                  )
+                } else {
+                  emptyMap()
+                }
+              }
             )
           }
       }
@@ -64,23 +76,21 @@ class DockerArtifactSupplier(
     }
   }
 
-  override fun getBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
-    if (versioningStrategy.hasBuild()) {
-      // todo eb: this could be less brittle
-      val regex = Regex("""^.*-h(\d+).*$""")
-      val result = regex.find(artifact.version)
-      if (result != null && result.groupValues.size == 2) {
-        return BuildMetadata(id = result.groupValues[1].toInt())
+  override fun parseDefaultBuildMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): BuildMetadata? {
+      if (versioningStrategy.hasBuild()) {
+        val regex = Regex("""^.*-h(\d+).*$""")
+        val result = regex.find(artifact.version)
+        if (result != null && result.groupValues.size == 2) {
+          return BuildMetadata(id = result.groupValues[1].toInt())
+        }
       }
-    }
     return null
   }
 
-  override fun getGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
-    if (versioningStrategy.hasCommit()) {
-      // todo eb: this could be less brittle
-      return GitMetadata(commit = artifact.version.substringAfterLast("."))
-    }
+  override fun parseDefaultGitMetadata(artifact: PublishedArtifact, versioningStrategy: VersioningStrategy): GitMetadata? {
+      if (versioningStrategy.hasCommit()) {
+        return GitMetadata(commit = artifact.version.substringAfterLast("."))
+      }
     return null
   }
 

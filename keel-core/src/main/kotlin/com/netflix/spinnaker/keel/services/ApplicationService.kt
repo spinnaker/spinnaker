@@ -316,12 +316,23 @@ class ApplicationService(
   ): ArtifactVersionSummary {
     val artifactSupplier = artifactSuppliers.supporting(artifact.type)
     val publishedArtifact = artifact.toSpinnakerArtifact(version)
+    val artifactStatus = artifactSupplier.getReleaseStatus(publishedArtifact)
+    val buildMetadata = repository.getArtifactBuildMetadata(artifact.name, artifact.type, version, artifactStatus)
+    val gitMetadata = repository.getArtifactGitMetadata(artifact.name, artifact.type, version, artifactStatus)
     return ArtifactVersionSummary(
       version = version,
       environments = environments,
       displayName = artifactSupplier.getVersionDisplayName(publishedArtifact),
-      build = artifactSupplier.getBuildMetadata(publishedArtifact, artifact.versioningStrategy),
-      git = artifactSupplier.getGitMetadata(publishedArtifact, artifact.versioningStrategy)
+
+      // first attempt to fetch the artifact metadata from the DB, then fallback to the default if not found
+      build = when (buildMetadata) {
+        null -> artifactSupplier.parseDefaultBuildMetadata(publishedArtifact, artifact.versioningStrategy)
+        else -> buildMetadata
+      },
+      git = when (gitMetadata) {
+        null -> artifactSupplier.parseDefaultGitMetadata(publishedArtifact, artifact.versioningStrategy)
+        else -> gitMetadata
+      }
     )
   }
 

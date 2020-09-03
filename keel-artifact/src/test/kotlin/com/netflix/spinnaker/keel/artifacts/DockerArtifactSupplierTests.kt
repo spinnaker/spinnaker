@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.artifacts
 
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactMetadata
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.DOCKER
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
@@ -10,9 +12,13 @@ import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.plugins.SupportedArtifact
 import com.netflix.spinnaker.keel.api.plugins.SupportedVersioningStrategy
 import com.netflix.spinnaker.keel.api.support.SpringEventPublisherBridge
+import com.netflix.spinnaker.keel.artifacts.DebianArtifactSupplierTests.Fixture.artifactMetadata
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
+import com.netflix.spinnaker.keel.services.ArtifactMetadataService
 import com.netflix.spinnaker.keel.test.deliveryConfig
+import dev.minutest.experimental.SKIP
+import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery as every
@@ -27,6 +33,7 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
   object Fixture {
     val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true)
     val eventBridge: SpringEventPublisherBridge = mockk(relaxUnitFun = true)
+    val artifactMetadataService: ArtifactMetadataService = mockk(relaxUnitFun = true)
     val deliveryConfig = deliveryConfig()
     val dockerArtifact = DockerArtifact(
       name = "fnord",
@@ -40,7 +47,18 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       reference = dockerArtifact.reference,
       version = versions.last()
     )
-    val dockerArtifactSupplier = DockerArtifactSupplier(eventBridge, clouddriverService)
+
+    val latestArtifactWithMetadata = PublishedArtifact(
+      name = dockerArtifact.name,
+      type = dockerArtifact.type,
+      reference = dockerArtifact.reference,
+      version = versions.last(),
+      metadata = mapOf(
+        "buildNumber" to "1",
+        "commitId" to "a15p0"
+      )
+    )
+    val dockerArtifactSupplier = DockerArtifactSupplier(eventBridge, clouddriverService, artifactMetadataService)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -98,18 +116,35 @@ internal class DockerArtifactSupplierTests : JUnit5Minutests {
       }
 
       test("returns git metadata based on tag when available") {
-        expectThat(dockerArtifactSupplier.getGitMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
+        expectThat(dockerArtifactSupplier.parseDefaultGitMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
           .isEqualTo(GitMetadata(commit = "8a5b962"))
-        expectThat(dockerArtifactSupplier.getGitMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
+        expectThat(dockerArtifactSupplier.parseDefaultGitMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
           .isNull()
       }
 
       test("returns build metadata based on tag when available") {
-        expectThat(dockerArtifactSupplier.getBuildMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
+        expectThat(dockerArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, DockerVersioningStrategy(SEMVER_JOB_COMMIT_BY_SEMVER)))
           .isEqualTo(BuildMetadata(id = 1182))
-        expectThat(dockerArtifactSupplier.getBuildMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
+        expectThat(dockerArtifactSupplier.parseDefaultBuildMetadata(latestArtifact, DockerVersioningStrategy(INCREASING_TAG)))
           .isNull()
       }
+    }
+
+    context("DockerArtifactSupplier with metadata") {
+      before {
+        every {
+          artifactMetadataService.getArtifactMetadata("1", "a15p0")
+        } returns artifactMetadata
+      }
+
+       test("returns artifact metadata based on ci provider") {
+        val results = runBlocking {
+          dockerArtifactSupplier.getArtifactMetadata(latestArtifactWithMetadata)
+        }
+        expectThat(results)
+          .isEqualTo(artifactMetadata)
+      }
+
     }
   }
 }

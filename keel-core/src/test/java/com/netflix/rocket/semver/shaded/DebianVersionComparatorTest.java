@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class DebianVersionComparatorTest {
-  private static DebianVersionComparator comparator = new DebianVersionComparator();
+  private static NetflixVersionComparator comparator = new NetflixVersionComparator();
 
   @ParameterizedTest(name = "[{index}]: {0} < {1}")
   @MethodSource("compareVersionsLessThan")

@@ -70,6 +70,12 @@ okHttpClient:
   readTimeoutMs: 59000
   interceptor.skipHeaderCheck: true
 
+resilience4j:
+  retry:
+    maxRetryAttempts: 3
+    waitDuration: 100
+    maxAutoRetriesNextServer: 1
+
 server:
   port: 7010
   legacyServerPort: 7101

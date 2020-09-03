@@ -21,5 +21,7 @@ data class DockerImage(
   val account: String,
   val repository: String,
   val tag: String,
-  val digest: String?
+  val digest: String?,
+  val buildNumber: String? = null,
+  val commitId: String? = null
 )

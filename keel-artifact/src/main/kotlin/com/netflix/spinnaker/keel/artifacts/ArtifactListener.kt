@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
 import com.netflix.spinnaker.keel.exceptions.InvalidSystemStateException
 import com.netflix.spinnaker.keel.persistence.KeelRepository
+import com.netflix.spinnaker.keel.telemetry.ArtifactSaved
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
@@ -59,6 +60,8 @@ class ArtifactListener(
             .also { wasAdded ->
               if (wasAdded) {
                 publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.artifactType))
+                // send an event when the artifact is stored, so we can fetch its metadata
+                publisher.publishEvent(ArtifactSaved(artifact.copy(version = version), status))
               }
             }
         }
@@ -83,6 +86,8 @@ class ArtifactListener(
         var status = artifactSupplier.getReleaseStatus(latestArtifact)
         log.debug("Storing latest version {} (status={}) for registered artifact {}", latestVersion, status, artifact)
         repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
+        // send an event when the artifact is stored, so we can fetch its metadata
+        publisher.publishEvent(ArtifactSaved(latestArtifact, status))
       } else {
         log.warn("No artifact versions found for ${artifact.type}:${artifact.name}")
       }
@@ -128,6 +133,8 @@ class ArtifactListener(
                 log.debug("$artifact has a missing version $latestVersion, persisting.")
                 val status = artifactSupplier.getReleaseStatus(latestArtifact)
                 repository.storeArtifact(artifact.name, artifact.type, latestVersion, status)
+                // send an event when the artifact is stored, so we can fetch its metadata
+                publisher.publishEvent(ArtifactSaved(latestArtifact, status))
               } else {
                 log.debug("No new versions to persist for $artifact")
               }

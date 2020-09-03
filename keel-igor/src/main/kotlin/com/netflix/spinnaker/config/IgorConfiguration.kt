@@ -3,6 +3,7 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.igor.BuildService
 import com.netflix.spinnaker.igor.ScmService
 import com.netflix.spinnaker.keel.services.DeliveryConfigImporter
 import okhttp3.HttpUrl
@@ -34,6 +35,13 @@ class IgorConfiguration {
     objectMapper: ObjectMapper,
     clientProvider: OkHttpClientProvider
   ): ScmService = buildService(objectMapper, igorEndpoint, clientProvider)
+
+  @Bean
+  fun buildService(
+    igorEndpoint: HttpUrl,
+    objectMapper: ObjectMapper,
+    clientProvider: OkHttpClientProvider
+  ): BuildService = buildService(objectMapper, igorEndpoint, clientProvider)
 
   @Bean
   fun deliveryConfigImporter(
