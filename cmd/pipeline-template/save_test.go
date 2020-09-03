@@ -309,7 +309,7 @@ func testGatePipelineTemplateUpdateSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle(
 		"/v2/pipelineTemplates/update/testSpelTemplate",
-		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, ""),
+		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, ""),
 	)
 	// Return that we found an MPT to signal that we should update.
 	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
