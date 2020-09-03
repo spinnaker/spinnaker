@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.repository.artifactory.ArtifactoryRepository;
+import com.netflix.spinnaker.halyard.config.model.v1.repository.nexus.NexusRepository;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class Repositories extends Node implements Cloneable {
   ArtifactoryRepository artifactory = new ArtifactoryRepository();
+  NexusRepository nexus = new NexusRepository();
 
   @Override
   public String getNodeName() {
