@@ -49,6 +49,7 @@ import './pipeline/stages/shareService/cloudfoundryShareServiceStage.module';
 import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
 import './pipeline/stages/unshareService/cloudfoundryUnshareServiceStage.module';
 import './pipeline/stages/runJob/cloudfoundryRunJob.module';
+import './pipeline/stages/bakeCloudFoundryManifest/bakeCloudFoundryManifestStage';
 
 CloudProviderRegistry.registerProvider('cloudfoundry', {
   name: 'Cloud Foundry',

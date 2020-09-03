@@ -279,6 +279,21 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.bake.manifest.kustomize.filePath': `
     <p>This is the relative path to the kustomization.yaml file within your Git repo.</p>
     <p>e.g.: <b>examples/wordpress/mysql/kustomization.yaml</b></p>`,
+  'pipeline.config.bake.cf.manifest.name':
+    '<p> Name should be the same as the expected artifact in the Produces Artifact section. </p>',
+  'pipeline.config.bake.cf.manifest.templateArtifact': `
+    <p> This is the manifest template needing resolution. Variables in this template should use double parentheses notation.</p>
+    <p>e.g.: </p>
+    <p>---</p>
+    <p>buildpack: ((javabuildpack)) </p>
+    <p>foo: ((some.nestedKey)) </p>`,
+  'pipeline.config.bake.cf.manifest.varsArtifact': `
+    <p> These are the variables that will be substituted in the manifest template. These should be yaml files and follow standard convention. </p>
+    <p>e.g.: </p>
+    <p>---</p>
+    <p>javabuildpack: java_buildpack_offline </p>
+    <p>some: </p>
+    <p style="padding-left: 1em">nestedKey: bar </p>`,
   'pipeline.config.haltPipelineOnFailure':
     'Immediately halts execution of all running stages and fails the entire execution.',
   'pipeline.config.haltBranchOnFailure':
