@@ -62,7 +62,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   WebhookConfiguration,
   KeelConfiguration,
   CloudFoundryConfiguration,
-  GremlinConfiguration,
+  GremlinConfiguration
 ])
 @SpringBootApplication(
     scanBasePackages = [

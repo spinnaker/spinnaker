@@ -59,6 +59,7 @@ dependencies {
   implementation(project(":orca-queue-redis"))
   implementation(project(":orca-queue-sql"))
   implementation(project(":orca-redis"))
+  implementation(project(":orca-remote-stage"))
   implementation(project(":orca-sql"))
   implementation(project(":orca-webhook"))
   implementation("com.netflix.spinnaker.kork:kork-exceptions")
