@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -164,8 +166,49 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
       Map<String, Object> configVariables) {
     List<String> templateVariableNames =
         pipelineTemplateVariables.stream().map(var -> var.getName()).collect(Collectors.toList());
-    return configVariables.entrySet().stream()
-        .filter(configVar -> templateVariableNames.contains(configVar.getKey()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<String, Object> configVars =
+        configVariables.entrySet().stream()
+            .filter(configVar -> templateVariableNames.contains(configVar.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    List<String> variablesNotInPipelineWithDefaultValue =
+        templateVariableNames.stream()
+            .filter(templateVariableName -> !configVars.containsKey(templateVariableName))
+            .filter(
+                new Predicate<String>() {
+                  @Override
+                  public boolean test(String s) {
+                    if (pipelineTemplateVariables.stream()
+                            .filter(
+                                pipelineTemplateVariable ->
+                                    pipelineTemplateVariable.getName().equals(s)
+                                        && pipelineTemplateVariable.hasDefaultValue())
+                            .collect(Collectors.toList())
+                            .size()
+                        > 0) {
+                      return true;
+                    } else {
+                      return false;
+                    }
+                  }
+                })
+            .collect(Collectors.toList());
+    if (variablesNotInPipelineWithDefaultValue.size() > 0) {
+      variablesNotInPipelineWithDefaultValue.stream()
+          .forEach(
+              new Consumer<String>() {
+                @Override
+                public void accept(String s) {
+                  V2PipelineTemplate.Variable templateVariable =
+                      pipelineTemplateVariables.stream()
+                          .filter(
+                              pipelineTemplateVariable ->
+                                  pipelineTemplateVariable.getName().equals(s))
+                          .findFirst()
+                          .get();
+                  configVars.put(templateVariable.getName(), templateVariable.getDefaultValue());
+                }
+              });
+    }
+    return configVars;
   }
 }

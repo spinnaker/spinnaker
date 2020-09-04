@@ -35,9 +35,31 @@ class V2DefaultVariableAssignmentTransformTest extends Specification {
     [newTemplateVar("wait")] | [:]                          | [:]
   }
 
+  def "configurationVariables assign default value for config vars present in template vars but not assigned in config vars"() {
+    when:
+        def actualConfigVars = V2DefaultVariableAssignmentTransform.configurationVariables(templateVars, configVars)
+
+    then:
+        actualConfigVars == expectedVars
+
+    where:
+        templateVars                        | configVars                   | expectedVars
+        [newTemplateVar("wait", "DEFAULT")] | [wait: "OK"]                 | [wait: "OK"]
+        []                                  | [wait: "OK"]                 | [:]
+        [newTemplateVar("wait", "DEFAULT")] | [alsoWait: "NO"]             | [wait: "DEFAULT"]
+        [newTemplateVar("wait")]            | [:]                          | [:]
+  }
+
   V2PipelineTemplate.Variable newTemplateVar(String name) {
     def var = new V2PipelineTemplate.Variable()
     var.name = name
+    return var
+  }
+
+  V2PipelineTemplate.Variable newTemplateVar(String name, String defaultValue) {
+    def var = new V2PipelineTemplate.Variable()
+    var.name = name
+    var.defaultValue = defaultValue
     return var
   }
 }
