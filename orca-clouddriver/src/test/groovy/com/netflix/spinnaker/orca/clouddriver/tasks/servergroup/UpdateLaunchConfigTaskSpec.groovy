@@ -28,7 +28,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
   KatoService katoService = Mock(KatoService)
 
   @Subject
-  UpdateLaunchConfigTask task = new UpdateLaunchConfigTask(kato: katoService, defaultBakeAccount: "default")
+  UpdateLaunchConfigTask task = new UpdateLaunchConfigTask(katoService, "default")
 
   void "should populate deploy.server.groups to enable force cache refresh"() {
     setup:

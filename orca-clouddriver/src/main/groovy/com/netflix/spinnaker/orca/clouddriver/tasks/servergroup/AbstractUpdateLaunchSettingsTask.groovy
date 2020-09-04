@@ -21,26 +21,20 @@ import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
-
 import javax.annotation.Nonnull
 
-@Component
 @Slf4j
-class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProviderAware {
-
-  public static final String OPERATION = "updateLaunchConfig"
-
-  @Autowired
+abstract class AbstractUpdateLaunchSettingsTask implements Task, DeploymentDetailsAware, CloudProviderAware {
   KatoService kato
-
-  @Value('${default.bake.account:default}')
   String defaultBakeAccount
+  AbstractUpdateLaunchSettingsTask(KatoService kato, String defaultBakeAccount) {
+    this.kato = kato
+    this.defaultBakeAccount = defaultBakeAccount
+  }
 
   @Nonnull
   @Override
@@ -52,18 +46,14 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
       // provider-specific rigmarole here.
       ops = getAwsOps(stage)
     } else {
-      ops = [[(OPERATION): stage.context]]
+      ops = [[(getOperation()): stage.context]]
     }
 
     def taskId = kato.requestOperations(cloudProvider, ops)
 
-    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
-        "notification.type"                        : "modifyasglaunchconfiguration",
-        "modifyasglaunchconfiguration.account.name": getCredentials(stage),
-        "modifyasglaunchconfiguration.region"      : stage.context.region,
-        "kato.last.task.id"                        : taskId,
-        "deploy.server.groups"                     : [(stage.context.region): [stage.context.serverGroupName ?: stage.context.asgName]]
-    ]).build()
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+      .context(getContext(stage, taskId))
+      .build()
   }
 
   private getAwsOps(StageExecution stage) {
@@ -80,7 +70,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
       log.info("Generated `allowLaunchDescription` (allowLaunchDescription: ${ops})")
     }
 
-    ops << [(OPERATION): operation]
+    ops << [(getOperation()): operation]
     ops
   }
 
@@ -100,4 +90,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
   private static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
     [account: targetAccount, credentials: sourceAccount, region: region, amiName: ami]
   }
+
+  abstract String getOperation()
+  abstract Map<String, Object> getContext(StageExecution stage, TaskId taskId)
 }

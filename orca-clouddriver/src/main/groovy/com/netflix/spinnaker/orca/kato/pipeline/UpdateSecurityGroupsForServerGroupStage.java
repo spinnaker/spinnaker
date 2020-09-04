@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.UpdateInstancesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.UpdateLaunchConfigTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.UpdateLaunchTemplateTask;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +46,15 @@ class UpdateSecurityGroupsForServerGroupStage
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    builder
-        .withTask("updateLaunchConfig", UpdateLaunchConfigTask.class)
-        .withTask("updateInstances", UpdateInstancesTask.class);
+    Boolean hasLaunchTemplate =
+        (Boolean) stage.getContext().getOrDefault("hasLaunchTemplate", false);
+    if (hasLaunchTemplate) {
+      builder.withTask(UpdateLaunchTemplateTask.OPERATION, UpdateLaunchTemplateTask.class);
+    } else {
+      builder.withTask(UpdateLaunchConfigTask.OPERATION, UpdateLaunchConfigTask.class);
+    }
+
+    builder.withTask("updateInstances", UpdateInstancesTask.class);
 
     if (isForceCacheRefreshEnabled(dynamicConfigService)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
