@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+import javax.annotation.Nonnull
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -61,6 +62,7 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
     this(katoService, registry, Clock.systemUTC(), dynamicConfigService, retrySupport)
   }
 
+  @VisibleForTesting
   MonitorKatoTask(KatoService katoService, Registry registry, Clock clock, DynamicConfigService dynamicConfigService, RetrySupport retrySupport) {
     this.registry = registry
     this.clock = clock
@@ -79,6 +81,12 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       return Math.max(backoffPeriod, TimeUnit.MINUTES.toMillis(2))
     }
     return backoffPeriod
+  }
+
+  @Override
+  TaskResult onTimeout(@Nonnull StageExecution stage) {
+    monitorFinalTerminalRetry(stage, "timeout")
+    return null
   }
 
   @Override
@@ -181,6 +189,7 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
         if (e instanceof RetrofitError) {
           RetrofitError retrofitError = (RetrofitError) e
           if (retrofitError?.response?.status == 404) {
+            monitorFinalTerminalRetry(stage, "404")
             // unexpected -- no sense attempting to resume a saga that `clouddriver` has no knowledge about
             throw e
           }
@@ -221,6 +230,20 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       return ExecutionStatus.SUCCEEDED
     } else {
       return ExecutionStatus.RUNNING
+    }
+  }
+
+  /**
+   * Log and emits a metric when a kato task retry is finally terminal - typically either from
+   * the task timing out or from an unexpected error, like a 404, when attempting to retry.
+   */
+  private void monitorFinalTerminalRetry(StageExecution stage, String reason) {
+    if (stage.context."kato.task.retriedOperation" == true) {
+      TaskId taskId = stage.context."kato.last.task.id" as TaskId
+      Integer totalRetries = stage.context."kato.task.terminalRetryCount" as Integer
+      log.warn("Failed retrying kato task '{}' (retries: '{}') due to reason: '{}'", taskId.id,
+          totalRetries, reason)
+      registry.counter("monitorKatoTask.terminalRetry", "reason", reason).increment()
     }
   }
 
