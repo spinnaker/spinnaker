@@ -33,8 +33,9 @@ public interface OkHttpClientBuilderProvider {
    * @return true if supports the url given
    */
   default Boolean supports(ServiceEndpoint service) {
-    return service.getBaseUrl().startsWith("http://")
-        || service.getBaseUrl().startsWith("https://");
+    return ((service.getBaseUrl().startsWith("http://")
+            || service.getBaseUrl().startsWith("https://"))
+        && service.isSecure());
   }
 
   /**

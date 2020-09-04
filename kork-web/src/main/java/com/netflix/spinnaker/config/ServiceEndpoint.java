@@ -34,4 +34,7 @@ public interface ServiceEndpoint {
   /** Misc. config necessary for the service client. */
   @Nonnull
   public Map<String, Object> getConfig();
+
+  /** Indicates whether the certificate/host verification is desired or not */
+  public boolean isSecure();
 }

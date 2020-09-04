@@ -44,7 +44,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(Ordered.LOWEST_PRECEDENCE - 1)
 @Component
 public class DefaultOkHttpClientBuilderProvider implements OkHttpClientBuilderProvider {
 
