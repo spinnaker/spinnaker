@@ -21,6 +21,9 @@ import org.jooq.impl.DefaultExecuteListener
 import org.jooq.tools.StopWatch
 import org.slf4j.LoggerFactory
 
+/**
+ * Logs slow queries into the application log.
+ */
 class JooqSlowQueryLogger(
   slowQuerySecondsThreshold: Long = 1
 ) : DefaultExecuteListener() {

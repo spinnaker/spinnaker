@@ -17,6 +17,9 @@ package com.netflix.spinnaker.kork.sql.routing
 
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 
+/**
+ * Routes queries to a specific database based on the datasource name, as stored in a ThreadLocal.
+ */
 class NamedDataSourceRouter : AbstractRoutingDataSource() {
   override fun determineCurrentLookupKey(): Any? =
     NamedDatabaseContextHolder.get()

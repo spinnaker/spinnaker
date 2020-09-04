@@ -17,6 +17,18 @@ package com.netflix.spinnaker.kork.sql.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
+/**
+ * The entrypoint configuration properties for SQL integrations.
+ *
+ * This configuration supports multiple, named connection pools, as well as dedicated configurations for
+ * performing database migrations.
+ *
+ * @param migration The primary migration configuration
+ * @param secondaryMigration Migration configuration for the secondary database, if one is available
+ * @param connectionPools All non-migration connection pools for the application
+ * @param retries Default, global retry configuration across connection pools
+ * @param connectionPool Deprecated. Use [connectionPools] instead.
+ */
 @ConfigurationProperties("sql")
 data class SqlProperties(
   var migration: SqlMigrationProperties = SqlMigrationProperties(),
@@ -28,6 +40,10 @@ data class SqlProperties(
   var connectionPool: ConnectionPoolProperties? = null
 ) {
 
+  /**
+   * Convenience method for accessing all connection pool properties, backwards-compatible with deprecated
+   * [connectionPool] configuration.
+   */
   fun getDefaultConnectionPoolProperties(): ConnectionPoolProperties {
     if (connectionPools.isEmpty()) {
       if (connectionPool == null) {

@@ -19,3 +19,7 @@ dependencies {
   testRuntimeOnly project(":kork-sql-test")
   testRuntimeOnly project(":kork-web")
 }
+
+detekt {
+  ignoreFailures = false
+}

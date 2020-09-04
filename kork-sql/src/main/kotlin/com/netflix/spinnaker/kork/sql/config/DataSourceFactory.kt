@@ -22,5 +22,11 @@ import javax.sql.DataSource
  * additional autoconfigure functionality of kork-sql.
  */
 interface DataSourceFactory {
+  /**
+   * Build the [DataSource] from the given configuration.
+   *
+   * @param poolName The name of the data source
+   * @param connectionPoolProperties The properties to configure the [DataSource] with
+   */
   fun build(poolName: String, connectionPoolProperties: ConnectionPoolProperties): DataSource
 }

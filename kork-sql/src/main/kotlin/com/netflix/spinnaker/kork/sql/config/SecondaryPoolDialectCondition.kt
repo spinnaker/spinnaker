@@ -24,13 +24,16 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyN
 import org.springframework.context.annotation.ConditionContext
 import org.springframework.core.type.AnnotatedTypeMetadata
 
+/**
+ * Condition that asserts if the secondary pool dialect matches the one defined by the primary.
+ */
 class SecondaryPoolDialectCondition : SpringBootCondition() {
 
   override fun getMatchOutcome(context: ConditionContext?, metadata: AnnotatedTypeMetadata?): ConditionOutcome {
     return ConditionOutcome(hasDifferentDialect(context), "SQL Dialect check did not pass")
   }
 
-  fun hasDifferentDialect(context: ConditionContext?): Boolean {
+  private fun hasDifferentDialect(context: ConditionContext?): Boolean {
     val sqlProperties: SqlProperties = Binder.get(context?.environment)
       .bind(ConfigurationPropertyName.of("sql"), Bindable.of(SqlProperties::class.java))
       .orElse(SqlProperties())

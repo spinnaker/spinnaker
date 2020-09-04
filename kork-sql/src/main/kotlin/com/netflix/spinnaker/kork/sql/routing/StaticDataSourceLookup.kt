@@ -18,11 +18,14 @@ package com.netflix.spinnaker.kork.sql.routing
 import javax.sql.DataSource
 import org.springframework.jdbc.datasource.lookup.DataSourceLookup
 
+/**
+ * Lookup a [DataSource] by name from a static set.
+ */
 class StaticDataSourceLookup(
   /**
    * Publicly exposed as a registry of all target DataSources without digging through the Spring Environment elsewhere.
    */
-  val dataSources: Map<String, DataSource>
+  private val dataSources: Map<String, DataSource>
 ) : DataSourceLookup {
 
   override fun getDataSource(dataSourceName: String): DataSource? =

@@ -15,11 +15,23 @@
  */
 package com.netflix.spinnaker.kork.sql.config
 
+/**
+ * Retry config for SQL.
+ *
+ * @param transactions Defines retry configs for write operations
+ * @param reads Defines retry configs for read operations
+ */
 data class SqlRetryProperties(
   var transactions: RetryProperties = RetryProperties(),
   var reads: RetryProperties = RetryProperties()
 )
 
+/**
+ * Simple retry configuration.
+ *
+ * @param maxRetries The maximum number of retries in the event of an error
+ * @param backoffMs The amount of time to wait between retries
+ */
 data class RetryProperties(
   var maxRetries: Int = 5,
   var backoffMs: Long = 100

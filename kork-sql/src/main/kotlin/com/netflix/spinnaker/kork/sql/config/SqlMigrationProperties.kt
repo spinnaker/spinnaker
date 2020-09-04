@@ -15,6 +15,15 @@
  */
 package com.netflix.spinnaker.kork.sql.config
 
+/**
+ * Defines the configuration properties for connecting to a SQL database for schema migration purposes.
+ *
+ * @param jdbcUrl The JDBC URL to use to connect to the database
+ * @param user The user to connect to the database with
+ * @param password The password to authenticate the [user]
+ * @param driver The JDBC driver name
+ * @param additionalChangeLogs A list of additional change log paths. This is useful for libraries and extensions.
+ */
 data class SqlMigrationProperties(
   var jdbcUrl: String? = null,
   var user: String? = null,

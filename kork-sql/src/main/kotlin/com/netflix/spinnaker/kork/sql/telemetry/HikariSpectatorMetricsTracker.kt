@@ -20,21 +20,27 @@ import com.zaxxer.hikari.metrics.IMetricsTracker
 import com.zaxxer.hikari.metrics.PoolStats
 import java.util.concurrent.TimeUnit
 
+/**
+ * Records the metrics of HikariCP into the given Spectator registry.
+ */
 class HikariSpectatorMetricsTracker(
   poolName: String,
   private val poolStats: PoolStats,
   private val registry: Registry
 ) : IMetricsTracker {
 
-  val connectionAcquiredId = registry.createId("sql.pool.$poolName.connectionAcquiredTiming")
-  val connectionUsageId = registry.createId("sql.pool.$poolName.connectionUsageTiming")
-  val connectionTimeoutId = registry.createId("sql.pool.$poolName.connectionTimeout")
+  private val connectionAcquiredId = registry.createId("sql.pool.$poolName.connectionAcquiredTiming")
+  private val connectionUsageId = registry.createId("sql.pool.$poolName.connectionUsageTiming")
+  private val connectionTimeoutId = registry.createId("sql.pool.$poolName.connectionTimeout")
 
-  val idleConnectionsId = registry.createId("sql.pool.$poolName.idle")
-  val activeConnectionsId = registry.createId("sql.pool.$poolName.active")
-  val totalConnectionsId = registry.createId("sql.pool.$poolName.total")
-  val blockedThreadsId = registry.createId("sql.pool.$poolName.blocked")
+  private val idleConnectionsId = registry.createId("sql.pool.$poolName.idle")
+  private val activeConnectionsId = registry.createId("sql.pool.$poolName.active")
+  private val totalConnectionsId = registry.createId("sql.pool.$poolName.total")
+  private val blockedThreadsId = registry.createId("sql.pool.$poolName.blocked")
 
+  /**
+   * Record the individual pool's statistics.
+   */
   fun recordPoolStats() {
     registry.gauge(idleConnectionsId).set(poolStats.idleConnections.toDouble())
     registry.gauge(activeConnectionsId).set(poolStats.activeConnections.toDouble())

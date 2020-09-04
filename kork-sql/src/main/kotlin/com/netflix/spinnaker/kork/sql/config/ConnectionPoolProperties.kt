@@ -18,6 +18,22 @@ package com.netflix.spinnaker.kork.sql.config
 import java.util.concurrent.TimeUnit
 import org.jooq.SQLDialect
 
+/**
+ * Configuration properties for SQL connection pools.
+ *
+ * @param dialect The SQL dialect the connections will use
+ * @param jdbcUrl The JDBC URL used to connect to the database
+ * @param driver The JDBC driver name
+ * @param user The user to connect to the database with
+ * @param password The password to authenticate the [user]
+ * @param connectionTimeoutMs Max time to wait before timing out when connecting to the database
+ * @param validationTimeoutMs Max time the pool will wait for a connection to be validated as alive
+ * @param idleTimeoutMs Controls the maximum amount of time that a connection is allowed to sit idle in the pool
+ * @param maxLifetimeMs Controls the maximum amount of time a connection will exist in the pool.
+ * @param minIdle The minimum number of idle connections to maintain to the database
+ * @param maxPoolSize The maximum number of connections to keep in the pool
+ * @param default Whether or not this connection pool should be used as the default pool within the application
+ */
 @Suppress("MagicNumber")
 data class ConnectionPoolProperties(
   var dialect: SQLDialect = SQLDialect.MYSQL,

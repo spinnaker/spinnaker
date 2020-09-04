@@ -20,6 +20,9 @@ import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory
 import javax.sql.DataSource
 
+/**
+ * Creates a HikariCP-backed [DataSource].
+ */
 class HikariDataSourceFactory(
   private val metricsTrackerFactory: MetricsTrackerFactory
 ) : DataSourceFactory {

@@ -20,6 +20,9 @@ import org.jooq.impl.DefaultExecuteListener
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.jdbc.support.SQLStateSQLExceptionTranslator
 
+/**
+ * Converts raw JDBC exceptions exposed by jOOQ into Spring-compatible exceptions.
+ */
 class JooqToSpringExceptionTransformer : DefaultExecuteListener() {
 
   override fun exception(ctx: ExecuteContext) {

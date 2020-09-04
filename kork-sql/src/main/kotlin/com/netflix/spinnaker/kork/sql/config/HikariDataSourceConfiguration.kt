@@ -29,10 +29,12 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnMissingBean(DataSourceFactory::class)
 class HikariDataSourceConfiguration {
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   fun hikariMetricsTrackerFactory(registry: Registry): MetricsTrackerFactory =
     HikariSpectatorMetricsTrackerFactory(registry)
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   fun dataSourceFactory(metricsTrackerFactory: MetricsTrackerFactory): DataSourceFactory =
     HikariDataSourceFactory(metricsTrackerFactory)

@@ -24,6 +24,12 @@ import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 
+/**
+ * Continuously verifies connectivity to the database.
+ *
+ * The provider will poll for connectivity regularly, and requires consecutive [healthyThreshold] to become
+ * healthy, and similarly consecutive [unhealthyThreshold] to become unhealthy.
+ */
 class SqlHealthProvider(
   private val jooq: DSLContext,
   private val registry: Registry,
@@ -43,12 +49,24 @@ class SqlHealthProvider(
 
   private val invocationId = registry.createId("sql.healthProvider.invocations")
 
+  /**
+   * Returns the enabled state of the health provider.
+   */
   val enabled: Boolean
     get() = _enabled.get()
 
+  /**
+   * Returns the latest exception, if any, that was raised as part of the health provider's check.
+   */
   val healthException: Exception?
     get() = _healthException.get()
 
+  /**
+   * Perform a single connectivity check.
+   *
+   * If the application is connected to a read-only replica, this check will be a SELECT. If connected to
+   * a writer instance a DELETE will be performed against an empty healthcheck table.
+   */
   @Scheduled(fixedDelay = 1_000)
   fun performCheck() {
     try {

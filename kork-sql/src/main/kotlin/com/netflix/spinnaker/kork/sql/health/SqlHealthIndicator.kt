@@ -19,6 +19,13 @@ import org.jooq.SQLDialect
 import org.springframework.boot.actuate.health.AbstractHealthIndicator
 import org.springframework.boot.actuate.health.Health
 
+/**
+ * Utilizes the [SqlHealthProvider] to indicate health of the application.
+ *
+ * Once the application has become "up", this state will not change even if connection to the database is
+ * later severed. This behavior was chosen explicitly as network blips often occur in cloud environments that
+ * unnecessarily take applications out of service. Built-in application retry and back-offs are preferred.
+ */
 class SqlHealthIndicator(
   private val healthProvider: SqlHealthProvider,
   private val sqlDialect: SQLDialect

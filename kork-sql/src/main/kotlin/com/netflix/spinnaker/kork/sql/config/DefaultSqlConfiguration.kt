@@ -49,6 +49,9 @@ import org.springframework.context.annotation.Import
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 
+/**
+ * Default auto configuration for SQL integration.
+ */
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @EnableConfigurationProperties(SqlProperties::class)
@@ -62,17 +65,19 @@ class DefaultSqlConfiguration {
     System.setProperty("org.jooq.no-logo", "true")
   }
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(SpringLiquibase::class)
   fun liquibase(properties: SqlProperties, @Value("\${sql.read-only:false}") sqlReadOnly: Boolean): SpringLiquibase =
     SpringLiquibaseProxy(properties.migration, sqlReadOnly)
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnProperty("sql.secondary-migration.jdbc-url")
   fun secondaryLiquibase(properties: SqlProperties, @Value("\${sql.read-only:false}") sqlReadOnly: Boolean): SpringLiquibase =
     SpringLiquibaseProxy(properties.secondaryMigration, sqlReadOnly)
 
-  @Suppress("ReturnCount", "ThrowsCount")
+  @Suppress("ThrowsCount", "UndocumentedPublicFunction")
   @DependsOn("liquibase")
   @Bean
   fun dataSource(dataSourceFactory: DataSourceFactory, properties: SqlProperties): DataSource {
@@ -129,11 +134,13 @@ class DefaultSqlConfiguration {
     return dataSource
   }
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DataSourceTransactionManager::class)
   fun transactionManager(dataSource: DataSource): DataSourceTransactionManager =
     DataSourceTransactionManager(dataSource)
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DataSourceConnectionProvider::class)
   fun dataSourceConnectionProvider(dataSource: DataSource): DataSourceConnectionProvider =
@@ -146,6 +153,7 @@ class DefaultSqlConfiguration {
       }
     }
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DefaultConfiguration::class)
   fun jooqConfiguration(
@@ -164,11 +172,13 @@ class DefaultSqlConfiguration {
       setSQLDialect(properties.getDefaultConnectionPoolProperties().dialect)
     }
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean(destroyMethod = "close")
   @ConditionalOnMissingBean(DSLContext::class)
   fun jooq(jooqConfiguration: DefaultConfiguration): DSLContext =
     DefaultDSLContext(jooqConfiguration)
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean(destroyMethod = "close")
   @Conditional(SecondaryPoolDialectCondition::class)
   fun secondaryJooq(
@@ -193,6 +203,7 @@ class DefaultSqlConfiguration {
     return DefaultDSLContext(secondaryJooqConfig)
   }
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean
   fun sqlHealthProvider(
     jooq: DSLContext,
@@ -201,6 +212,7 @@ class DefaultSqlConfiguration {
   ): SqlHealthProvider =
     SqlHealthProvider(jooq, registry, readOnly)
 
+  @Suppress("UndocumentedPublicFunction")
   @Bean("dbHealthIndicator")
   fun dbHealthIndicator(
     sqlHealthProvider: SqlHealthProvider,

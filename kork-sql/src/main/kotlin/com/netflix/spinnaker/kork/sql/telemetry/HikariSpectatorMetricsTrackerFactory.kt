@@ -21,12 +21,18 @@ import com.zaxxer.hikari.metrics.MetricsTrackerFactory
 import com.zaxxer.hikari.metrics.PoolStats
 import org.springframework.scheduling.annotation.Scheduled
 
+/**
+ * Records HikariCP metrics into Spectator.
+ */
 class HikariSpectatorMetricsTrackerFactory(
   private val registry: Registry
 ) : MetricsTrackerFactory {
 
   private val trackers: MutableMap<String, HikariSpectatorMetricsTracker> = mutableMapOf()
 
+  /**
+   * Record all connection pools' statistics.
+   */
   @Scheduled(fixedRate = 5000L)
   fun recordConnectionPoolMetrics() {
     trackers.values.forEach { it.recordPoolStats() }
