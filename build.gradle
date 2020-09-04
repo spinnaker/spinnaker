@@ -17,7 +17,7 @@
 
 buildscript {
   ext {
-    kotlinVersion = "1.3.70"
+    kotlinVersion = "1.4.0"
     junitPlatformVersion = "1.0.2"
   }
 
@@ -32,9 +32,15 @@ buildscript {
 
 plugins {
   id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
-  id "nebula.kotlin" version "$kotlinVersion" apply false
-  id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
+  id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+  id 'org.jetbrains.kotlin.plugin.allopen' version "$kotlinVersion" apply false
   id "com.google.protobuf" version "0.8.12" apply false
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
 }
 
 subprojects {
@@ -44,7 +50,7 @@ subprojects {
   if (name != "clouddriver-bom" && name != "clouddriver-api") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
-    apply plugin: 'nebula.kotlin'
+    apply plugin: 'kotlin'
     apply plugin: "kotlin-allopen"
     apply plugin: "jacoco"
 
