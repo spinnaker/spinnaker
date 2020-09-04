@@ -111,6 +111,7 @@ export interface IEcsTargetGroupMapping {
 export interface IEcsServiceDiscoveryRegistryAssociation {
   registry: IServiceDiscoveryRegistryDescriptor;
   containerPort: number;
+  containerName: string;
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
@@ -130,6 +131,7 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   loadBalancedContainer: string;
   targetGroupMappings: IEcsTargetGroupMapping[];
   serviceDiscoveryAssociations: IEcsServiceDiscoveryRegistryAssociation[];
+  useTaskDefinitionArtifact: boolean;
 
   subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
