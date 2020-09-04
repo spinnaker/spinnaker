@@ -22,6 +22,8 @@ import static java.util.Comparator.comparing;
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateLaunchTemplateRequest;
+import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionRequest;
+import com.amazonaws.services.ec2.model.CreateLaunchTemplateVersionResult;
 import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsRequest;
 import com.amazonaws.services.ec2.model.DescribeLaunchTemplateVersionsResult;
 import com.amazonaws.services.ec2.model.LaunchTemplate;
@@ -36,9 +38,12 @@ import com.amazonaws.services.ec2.model.LaunchTemplateVersion;
 import com.amazonaws.services.ec2.model.LaunchTemplatesMonitoringRequest;
 import com.amazonaws.services.ec2.model.RequestLaunchTemplateData;
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings;
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription;
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider;
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider.UserDataRequest;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -48,11 +53,47 @@ import java.util.Optional;
 public class LaunchTemplateService {
   private final AmazonEC2 ec2;
   private final List<UserDataProvider> userDataProviders;
+  private final LocalFileUserDataProperties localFileUserDataProperties;
   private final RetrySupport retrySupport = new RetrySupport();
 
-  public LaunchTemplateService(AmazonEC2 ec2, List<UserDataProvider> userDataProviders) {
+  public LaunchTemplateService(
+      AmazonEC2 ec2,
+      List<UserDataProvider> userDataProviders,
+      LocalFileUserDataProperties localFileUserDataProperties) {
     this.ec2 = ec2;
     this.userDataProviders = userDataProviders;
+    this.localFileUserDataProperties = localFileUserDataProperties;
+  }
+
+  public LaunchTemplateVersion modifyLaunchTemplate(
+      NetflixAmazonCredentials credentials,
+      ModifyServerGroupLaunchTemplateDescription description,
+      LaunchTemplateVersion sourceVersion) {
+    RequestLaunchTemplateData data = launchTemplateData(credentials, description, sourceVersion);
+    CreateLaunchTemplateVersionResult result =
+        ec2.createLaunchTemplateVersion(
+            new CreateLaunchTemplateVersionRequest()
+                .withSourceVersion(String.valueOf(sourceVersion.getVersionNumber()))
+                .withLaunchTemplateId(sourceVersion.getLaunchTemplateId())
+                .withLaunchTemplateData(data));
+    return result.getLaunchTemplateVersion();
+  }
+
+  public List<LaunchTemplateBlockDeviceMappingRequest> buildDeviceMapping(
+      List<AmazonBlockDevice> amazonBlockDevices) {
+    final List<LaunchTemplateBlockDeviceMappingRequest> mappings = new ArrayList<>();
+    for (AmazonBlockDevice blockDevice : amazonBlockDevices) {
+      LaunchTemplateBlockDeviceMappingRequest mapping =
+          new LaunchTemplateBlockDeviceMappingRequest().withDeviceName(blockDevice.getDeviceName());
+      if (blockDevice.getVirtualName() != null) {
+        mapping.setVirtualName(blockDevice.getVirtualName());
+      } else {
+        mapping.setEbs(getLaunchTemplateEbsBlockDeviceRequest(blockDevice));
+      }
+
+      mappings.add(mapping);
+    }
+    return mappings;
   }
 
   public Optional<LaunchTemplateVersion> getLaunchTemplateVersion(
@@ -91,6 +132,91 @@ public class LaunchTemplateService {
       Boolean requireIMDSv2,
       Boolean associateIPv6Address) {
     final RequestLaunchTemplateData request =
+        buildLaunchTemplateData(settings, launchTemplateName, requireIMDSv2, associateIPv6Address);
+    return retrySupport.retry(
+        () -> {
+          final CreateLaunchTemplateRequest launchTemplateRequest =
+              new CreateLaunchTemplateRequest()
+                  .withLaunchTemplateName(launchTemplateName)
+                  .withLaunchTemplateData(request);
+          return ec2.createLaunchTemplate(launchTemplateRequest).getLaunchTemplate();
+        },
+        3,
+        Duration.ofMillis(3000),
+        false);
+  }
+
+  public RequestLaunchTemplateData launchTemplateData(
+      NetflixAmazonCredentials credentials,
+      ModifyServerGroupLaunchTemplateDescription description,
+      LaunchTemplateVersion launchTemplateVersion) {
+    String base64UserData =
+        (localFileUserDataProperties != null && !localFileUserDataProperties.isEnabled())
+            ? launchTemplateVersion.getLaunchTemplateData().getUserData()
+            : null;
+
+    RequestLaunchTemplateData request =
+        new RequestLaunchTemplateData()
+            .withImageId(description.getImageId())
+            .withKernelId(description.getKernelId())
+            .withInstanceType(description.getInstanceType())
+            .withRamDiskId(description.getRamdiskId())
+            .withEbsOptimized(description.getEbsOptimized())
+            .withKeyName(description.getKeyPair())
+            .withIamInstanceProfile(
+                new LaunchTemplateIamInstanceProfileSpecificationRequest()
+                    .withName(description.getIamRole()))
+            .withMonitoring(
+                new LaunchTemplatesMonitoringRequest()
+                    .withEnabled(description.getInstanceMonitoring()));
+
+    UserDataRequest userDataRequest =
+        UserDataRequest.builder()
+            .launchTemplate(true)
+            .asgName(description.getAsgName())
+            .launchSettingName(launchTemplateVersion.getLaunchTemplateName())
+            .region(description.getRegion())
+            .account(description.getAccount())
+            .environment(credentials.getEnvironment())
+            .accountType(credentials.getAccountType())
+            .iamRole(description.getIamRole())
+            .imageId(description.getImageId())
+            .build();
+
+    request.withUserData(userDataRequest.getUserData(userDataProviders, base64UserData));
+
+    // block device mappings
+    request.setBlockDeviceMappings(buildDeviceMapping(description.getBlockDevices()));
+
+    // metadata options
+    if (description.getRequireIMDV2()) {
+      request.setMetadataOptions(
+          new LaunchTemplateInstanceMetadataOptionsRequest().withHttpTokens("required"));
+    }
+
+    // instance market options
+    request.withInstanceMarketOptions(
+        new LaunchTemplateInstanceMarketOptionsRequest()
+            .withSpotOptions(
+                new LaunchTemplateSpotMarketOptionsRequest()
+                    .withMaxPrice(description.getSpotPrice())));
+
+    // network interfaces
+    request.withNetworkInterfaces(
+        new LaunchTemplateInstanceNetworkInterfaceSpecificationRequest()
+            .withAssociatePublicIpAddress(description.getAssociatePublicIpAddress())
+            .withIpv6AddressCount(description.getAssociateIPv6Address() ? 1 : 0)
+            .withGroups(description.getSecurityGroups())
+            .withDeviceIndex(0));
+    return request;
+  }
+
+  private RequestLaunchTemplateData buildLaunchTemplateData(
+      LaunchConfigurationSettings settings,
+      String launchTemplateName,
+      Boolean requireIMDSv2,
+      Boolean associateIPv6Address) {
+    RequestLaunchTemplateData request =
         new RequestLaunchTemplateData()
             .withImageId(settings.getAmi())
             .withKernelId(settings.getKernelId())
@@ -122,20 +248,7 @@ public class LaunchTemplateService {
         userDataRequest.getUserData(userDataProviders, settings.getBase64UserData()));
 
     // block device mappings
-    final List<LaunchTemplateBlockDeviceMappingRequest> mappings = new ArrayList<>();
-    for (AmazonBlockDevice blockDevice : settings.getBlockDevices()) {
-      LaunchTemplateBlockDeviceMappingRequest mapping =
-          new LaunchTemplateBlockDeviceMappingRequest().withDeviceName(blockDevice.getDeviceName());
-      if (blockDevice.getVirtualName() != null) {
-        mapping.setVirtualName(blockDevice.getVirtualName());
-      } else {
-        mapping.setEbs(getLaunchTemplateEbsBlockDeviceRequest(blockDevice));
-      }
-
-      mappings.add(mapping);
-    }
-
-    request.setBlockDeviceMappings(mappings);
+    request.setBlockDeviceMappings(buildDeviceMapping(settings.getBlockDevices()));
 
     // metadata options
     if (requireIMDSv2 != null && requireIMDSv2) {
@@ -157,18 +270,7 @@ public class LaunchTemplateService {
             .withIpv6AddressCount(associateIPv6Address ? 1 : 0)
             .withGroups(settings.getSecurityGroups())
             .withDeviceIndex(0));
-
-    return retrySupport.retry(
-        () -> {
-          final CreateLaunchTemplateRequest launchTemplateRequest =
-              new CreateLaunchTemplateRequest()
-                  .withLaunchTemplateName(launchTemplateName)
-                  .withLaunchTemplateData(request);
-          return ec2.createLaunchTemplate(launchTemplateRequest).getLaunchTemplate();
-        },
-        3,
-        Duration.ofMillis(3000),
-        false);
+    return request;
   }
 
   private LaunchTemplateEbsBlockDeviceRequest getLaunchTemplateEbsBlockDeviceRequest(
