@@ -32,8 +32,8 @@ import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
-import com.netflix.spinnaker.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.titus.jackson.registerKeelTitusApiModule
+import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching

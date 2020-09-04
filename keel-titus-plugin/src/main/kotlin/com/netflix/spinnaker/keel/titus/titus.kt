@@ -15,13 +15,11 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.titus.exceptions
+package com.netflix.spinnaker.keel.titus
 
-import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
-import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.keel.api.plugins.kind
+import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 
-class NoDigestFound(repository: String, tag: String) :
-  ResourceCurrentlyUnresolvable("No digest found for docker image $repository:$tag in any registry")
+const val CLOUD_PROVIDER = "titus"
 
-class RegistryNotFound(titusAccount: String) :
-  IntegrationException("Unable to find docker registry for titus account $titusAccount")
+val TITUS_CLUSTER_V1 = kind<TitusClusterSpec>("titus/cluster@v1")

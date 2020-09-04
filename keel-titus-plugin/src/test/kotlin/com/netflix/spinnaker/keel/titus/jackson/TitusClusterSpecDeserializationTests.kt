@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.toSimpleLocations
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.test.configuredTestYamlMapper
-import com.netflix.spinnaker.titus.jackson.registerKeelTitusApiModule
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat

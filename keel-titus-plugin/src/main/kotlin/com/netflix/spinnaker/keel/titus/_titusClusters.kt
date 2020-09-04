@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.titus
+package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.Capacity
@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.titus.exceptions.ErrorResolvingContainerException
+import com.netflix.spinnaker.keel.titus.exceptions.ErrorResolvingContainerException
 
 internal fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup> =
   associateBy { it.location.region }

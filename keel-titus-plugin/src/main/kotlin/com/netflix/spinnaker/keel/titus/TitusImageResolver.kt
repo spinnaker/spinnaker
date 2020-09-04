@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.titus
+package com.netflix.spinnaker.keel.titus
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
@@ -25,8 +25,8 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DockerImageResolver
 import com.netflix.spinnaker.keel.persistence.KeelRepository
-import com.netflix.spinnaker.titus.exceptions.NoDigestFound
-import com.netflix.spinnaker.titus.exceptions.RegistryNotFound
+import com.netflix.spinnaker.keel.titus.exceptions.NoDigestFound
+import com.netflix.spinnaker.keel.titus.exceptions.RegistryNotFound
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

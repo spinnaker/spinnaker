@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.titus.jackson
+package com.netflix.spinnaker.keel.titus.jackson
 
 import com.fasterxml.jackson.databind.BeanDescription
 import com.fasterxml.jackson.databind.DeserializationConfig
@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.titus.jackson.mixins.TitusClusterSpecMixin
+import com.netflix.spinnaker.keel.titus.jackson.mixins.TitusClusterSpecMixin
 
 fun ObjectMapper.registerKeelTitusApiModule(): ObjectMapper = registerModule(KeelTitusApiModule)
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.titus
+package com.netflix.spinnaker.keel.titus
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Exportable
@@ -70,8 +70,8 @@ import com.netflix.spinnaker.keel.orca.toOrcaJobProperties
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.netflix.spinnaker.titus.exceptions.RegistryNotFoundException
-import com.netflix.spinnaker.titus.exceptions.TitusAccountConfigurationException
+import com.netflix.spinnaker.keel.titus.exceptions.RegistryNotFoundException
+import com.netflix.spinnaker.keel.titus.exceptions.TitusAccountConfigurationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking

@@ -15,8 +15,8 @@ import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.test.resource
-import com.netflix.spinnaker.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.titus.TitusClusterHandler
+import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.keel.titus.TitusClusterHandler
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk

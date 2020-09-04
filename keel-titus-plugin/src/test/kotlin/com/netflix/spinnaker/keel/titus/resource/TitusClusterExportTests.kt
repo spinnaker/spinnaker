@@ -31,10 +31,10 @@ import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.test.resource
-import com.netflix.spinnaker.titus.CLOUD_PROVIDER
-import com.netflix.spinnaker.titus.TITUS_CLUSTER_V1
-import com.netflix.spinnaker.titus.TitusClusterHandler
-import com.netflix.spinnaker.titus.resolve
+import com.netflix.spinnaker.keel.titus.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.titus.TITUS_CLUSTER_V1
+import com.netflix.spinnaker.keel.titus.TitusClusterHandler
+import com.netflix.spinnaker.keel.titus.resolve
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.clearAllMocks

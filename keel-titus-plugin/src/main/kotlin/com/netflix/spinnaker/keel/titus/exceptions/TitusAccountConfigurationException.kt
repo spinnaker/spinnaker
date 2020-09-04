@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.titus.exceptions
+package com.netflix.spinnaker.keel.titus.exceptions
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 

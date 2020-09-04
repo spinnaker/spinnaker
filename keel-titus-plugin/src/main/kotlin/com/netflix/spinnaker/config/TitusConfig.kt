@@ -24,7 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.titus.TitusClusterHandler
+import com.netflix.spinnaker.keel.titus.TitusClusterHandler
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

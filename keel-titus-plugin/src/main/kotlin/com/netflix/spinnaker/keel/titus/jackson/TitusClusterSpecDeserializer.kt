@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.titus.jackson
+package com.netflix.spinnaker.keel.titus.jackson
 
 import com.fasterxml.jackson.core.TreeNode
 import com.fasterxml.jackson.databind.BeanProperty

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.titus.jackson.mixins
+package com.netflix.spinnaker.keel.titus.jackson.mixins
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude

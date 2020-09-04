@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.ConstraintEvaluator
+import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.support.ExtensionRegistry
@@ -15,7 +16,7 @@ import com.netflix.spinnaker.keel.api.support.register
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.ec2.jackson.registerKeelEc2ApiModule
 import com.netflix.spinnaker.keel.resources.SpecMigrator
-import com.netflix.spinnaker.titus.jackson.registerKeelTitusApiModule
+import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -32,7 +33,8 @@ class KeelConfigurationFinalizer(
   private val artifactHandlers: List<ArtifactHandler> = emptyList(),
   private val artifactSuppliers: List<ArtifactSupplier<*, *>> = emptyList(),
   private val objectMappers: List<ObjectMapper>,
-  private val extensionRegistry: ExtensionRegistry
+  private val extensionRegistry: ExtensionRegistry,
+  private val resolvers: List<Resolver<*>>
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -111,5 +113,6 @@ class KeelConfigurationFinalizer(
     log.info("Supported artifacts: {}", artifactSuppliers.joinToString { it.supportedArtifact.name })
     log.info("Using resource handlers: {}", resourceHandlers.joinToString { it.name })
     log.info("Using artifact handlers: {}", artifactHandlers.joinToString { it.name })
+    log.info("Using resolvers: {}", resolvers.joinToString { it.name })
   }
 }
