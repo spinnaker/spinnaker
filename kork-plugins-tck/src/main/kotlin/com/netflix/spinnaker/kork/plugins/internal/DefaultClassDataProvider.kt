@@ -28,7 +28,7 @@ class DefaultClassDataProvider : ClassDataProvider {
   override fun getClassData(className: String): ByteArray {
     val path = className.replace('.', '/') + ".class"
     val classDataStream = javaClass.classLoader.getResourceAsStream(path)
-      ?: throw RuntimeException("Cannot find class data")
+      ?: throw ClassDataProviderException("Cannot find class data")
 
     try {
       ByteArrayOutputStream().use { outputStream ->
@@ -36,7 +36,11 @@ class DefaultClassDataProvider : ClassDataProvider {
         return outputStream.toByteArray()
       }
     } catch (e: IOException) {
-      throw RuntimeException(e.message, e)
+      throw ClassDataProviderException(e.message, e)
     }
+  }
+
+  private class ClassDataProviderException(message: String?, cause: Throwable?) : RuntimeException(message, cause) {
+    constructor(message: String?) : this(message, null)
   }
 }

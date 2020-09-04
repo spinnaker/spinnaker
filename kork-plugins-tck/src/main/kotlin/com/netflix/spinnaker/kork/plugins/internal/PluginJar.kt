@@ -35,30 +35,74 @@ import org.pf4j.ManifestPluginDescriptorFinder
  * Additional manifest attributes can be provided via [Builder.manifestAttribute]
  */
 class PluginJar private constructor(builder: Builder) {
+  /**
+   * The path to the JAR.
+   */
   val path: Path
+
+  /**
+   * The plugin ID.
+   */
   val pluginId: String
+
+  /**
+   * The plugin class.
+   */
   val pluginClass: String
+
+  /**
+   * The plugin version.
+   */
   val pluginVersion: String
 
+  /**
+   * The [PluginJar] builder
+   *
+   * @param path Path to the directory that the plugin JAR will be written
+   * @param pluginId The plugin ID
+   */
   class Builder(val path: Path, val pluginId: String) {
+    /**
+     * The plugin class.
+     */
     lateinit var pluginClass: String
+
+    /**
+     * The plugin version.
+     */
     lateinit var pluginVersion: String
+
     private val manifestAttributes: MutableMap<String, String> = mutableMapOf()
     private val extensions: MutableList<String> = mutableListOf()
     private var classDataProvider: ClassDataProvider = DefaultClassDataProvider()
 
+    /**
+     * Set the plugin class name.
+     */
     fun pluginClass(pluginClass: String) =
       apply { this.pluginClass = pluginClass }
 
+    /**
+     * Set the plugin version.
+     */
     fun pluginVersion(pluginVersion: String) =
       apply { this.pluginVersion = pluginVersion }
 
+    /**
+     * Add a new extension class name.
+     */
     fun extension(extensionClassName: String) =
       apply { this.extensions.add(extensionClassName) }
 
+    /**
+     * Set multiple extension class names.
+     */
     fun extensions(extensionClassNames: MutableList<String>) =
       apply { this.extensions.addAll(extensionClassNames) }
 
+    /**
+     * Set a custom [ClassDataProvider].
+     */
     fun classDataProvider(classDataProvider: ClassDataProvider) =
       apply { this.classDataProvider = classDataProvider }
 
@@ -76,6 +120,9 @@ class PluginJar private constructor(builder: Builder) {
     fun manifestAttribute(name: String, value: String) =
       apply { this.manifestAttributes[name] = value }
 
+    /**
+     * Build the JAR.
+     */
     fun build(): PluginJar {
       val manifest = createManifest()
       FileOutputStream(path.toFile()).use { outputStream ->
@@ -125,6 +172,9 @@ class PluginJar private constructor(builder: Builder) {
   }
 
   companion object {
+    /**
+     * Create a PF4J plugin JAR manifest.
+     */
     fun createManifest(map: Map<String, String>): Manifest {
       val manifest = Manifest()
       val attributes = manifest.mainAttributes

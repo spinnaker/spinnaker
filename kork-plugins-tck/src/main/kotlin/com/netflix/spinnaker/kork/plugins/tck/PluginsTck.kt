@@ -33,6 +33,10 @@ import strikt.assertions.isTrue
  */
 abstract class PluginsTck<T : PluginsTckFixture> : JUnit5Minutests {
 
+  /**
+   * Basic tests that assert the plugin framework is behaving its fundamental plugin loading responsibilities within
+   * a service.
+   */
   fun ContextBuilder<T>.defaultPluginTests() {
     context("an integration test environment and relevant plugins") {
 

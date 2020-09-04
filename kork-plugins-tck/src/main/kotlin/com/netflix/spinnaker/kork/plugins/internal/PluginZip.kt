@@ -23,6 +23,11 @@ import java.util.zip.ZipOutputStream
 import org.pf4j.PropertiesPluginDescriptorFinder
 
 /**
+ * ".zip"
+ */
+private const val ZIP_EXTENSION_LENGTH = 4
+
+/**
  * Write a plugin ZIP to the specified path.  Add JARs via [Builder.addFile]. Supports the following
  * plugin properties:
  *
@@ -33,25 +38,63 @@ import org.pf4j.PropertiesPluginDescriptorFinder
  * Additional properties can be added via [Builder.properties] and [Builder.property].
  */
 class PluginZip private constructor(builder: Builder) {
+  /**
+   * Path to the plugin ZIP.
+   */
   val path: Path
+
+  /**
+   * The plugin ID.
+   */
   val pluginId: String
+
+  /**
+   * The plugin class.
+   */
   val pluginClass: String
+
+  /**
+   * The plugin version.
+   */
   val pluginVersion: String
 
+  /**
+   * Path to the unzipped plugin.
+   */
   fun unzippedPath(): Path {
     val fileName = path.fileName.toString()
-    return path.parent.resolve(fileName.substring(0, fileName.length - 4)) // without ".zip" suffix
+    return path.parent.resolve(fileName.substring(0, fileName.length - ZIP_EXTENSION_LENGTH)) // without ".zip" suffix
   }
 
+  /**
+   * Builder for [PluginZip].
+   *
+   * @param path Where the plugin ZIP will be created
+   * @param pluginId The plugin ID
+   */
   class Builder(val path: Path, val pluginId: String) {
+    /**
+     * The plugin class
+     */
     lateinit var pluginClass: String
+
+    /**
+     * The plugin version
+     */
     lateinit var pluginVersion: String
+
     private val properties: MutableMap<String, String> = mutableMapOf()
     private val files: MutableMap<Path, ByteArray> = mutableMapOf()
 
+    /**
+     * Set the plugin class.
+     */
     fun pluginClass(pluginClass: String) =
       apply { this.pluginClass = pluginClass }
 
+    /**
+     * Set the plugin version.
+     */
     fun pluginVersion(pluginVersion: String) =
       apply { this.pluginVersion = pluginVersion }
 
@@ -87,6 +130,9 @@ class PluginZip private constructor(builder: Builder) {
     fun addFile(path: Path, content: String) =
       apply { files[path] = content.toByteArray() }
 
+    /**
+     * Build the [PluginZip].
+     */
     fun build(): PluginZip {
       createPropertiesFile()
       return PluginZip(this)
@@ -116,6 +162,9 @@ class PluginZip private constructor(builder: Builder) {
   }
 
   companion object {
+    /**
+     * Create the [PluginZip] properties file manifest.
+     */
     fun createProperties(map: Map<String, String>): Properties {
       val properties = Properties()
       properties.putAll(map)

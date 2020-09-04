@@ -26,18 +26,26 @@ import javax.tools.ToolProvider
 
 /**
  * Generates [GeneratedTestPlugin]s.
+ *
+ * @param rootPath The root path the generated plugin will be created in.
  */
 class TestPluginGenerator(
   private val testPlugin: GeneratedTestPlugin,
   val rootPath: Path
 ) {
 
+  /**
+   * The sub-path that the plugin will be generated in.
+   */
   val pluginPath = Files.createTempDirectory(rootPath, testPlugin.name).recursivelyDeleteOnExit()
 
   init {
     rootPath.recursivelyDeleteOnExit()
   }
 
+  /**
+   * Generates the configured [GeneratedTestPlugin].
+   */
   fun generate() {
     val generated = generateSources()
     val classesDir = preparePluginDestination()

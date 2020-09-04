@@ -28,27 +28,50 @@ import java.nio.file.Path
  */
 class GeneratedTestPlugin {
 
+  /**
+   * The plugin name. This will be used as part of some generated class names, as well as in the plugin ID itself.
+   */
   var name: String = "Generated"
     set(value) {
       field = value.capitalize()
     }
 
+  /**
+   * The root package name the plugin classes will live.
+   */
   var packageName: String = "com.netflix.spinnaker.kork.plugins.testplugin.generated"
+
+  /**
+   * The plugin version.
+   */
   var version: String = "0.0.1"
+
+  /**
+   * The plugin ID of the generated plugin.
+   */
   var pluginId: String = "spinnaker.${name.toLowerCase()}-testplugin"
   internal var sources: MutableList<SourceFile> = mutableListOf()
   internal var pluginClass: SourceFile? = null
 
   private var generated: Boolean = false
 
+  /**
+   * Set the plugin class contents.
+   */
   fun pluginClass(contents: String) {
     pluginClass = SourceFile(name, contents)
   }
 
+  /**
+   * Add a new source file to the plugin.
+   */
   fun sourceFile(simpleName: String, contents: String) {
     sources.add(SourceFile(simpleName, contents))
   }
 
+  /**
+   * Returns a list of all [SourceFile]s in the plugin.
+   */
   fun sourceFiles(): List<SourceFile> =
     listOf(pluginClass())
       .plus(sources)
@@ -57,6 +80,9 @@ class GeneratedTestPlugin {
     return pluginClass ?: DefaultPluginClassSourceFile(name, packageName)
   }
 
+  /**
+   * Returns a rendered properties file for the plugin.
+   */
   fun properties(): String {
     return """
       plugin.id=$pluginId
@@ -71,12 +97,21 @@ class GeneratedTestPlugin {
     """.trimIndent()
   }
 
+  /**
+   * Returns the canonical class name given a relative package and class name value.
+   */
   fun canonicalClass(className: String): String =
     "$packageName.$className"
 
+  /**
+   * Returns the canonical plugin class name.
+   */
   fun canonicalPluginClass(): String =
     canonicalClass(pluginClass().simpleName)
 
+  /**
+   * Generates the plugin into the given [rootPath].
+   */
   fun generate(rootPath: Path? = null): GenerateResult {
     if (generated) {
       throw IllegalStateException("A test plugin instance cannot be generated more than once")
@@ -101,7 +136,7 @@ class GeneratedTestPlugin {
    * @param descriptor The plugin descriptor for this generated plugin.
    * @param plugin Self-reference to this [GeneratedTestPlugin].
    */
-  inner class GenerateResult(
+  class GenerateResult(
     val rootPath: Path,
     val pluginPath: Path,
     val descriptor: SpinnakerPluginDescriptor,
@@ -111,6 +146,9 @@ class GeneratedTestPlugin {
 
 /**
  * A single Java source file.
+ *
+ * @param simpleName The simple class name of the source file
+ * @param contents The contents of the source file
  */
 open class SourceFile(var simpleName: String, var contents: String)
 

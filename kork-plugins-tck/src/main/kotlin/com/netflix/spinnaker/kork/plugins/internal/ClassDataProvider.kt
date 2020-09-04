@@ -23,10 +23,12 @@ package com.netflix.spinnaker.kork.plugins.internal
  *  * String - the string (the source code) is compiled dynamically via [javax.tools.JavaCompiler]>
  *  * Generate the source code programmatically using something like `https://github.com/square/javapoet`
  *
- *
  * @author Decebal Suiu
  */
 interface ClassDataProvider {
 
+  /**
+   * Returns the compiled class, retrieved by class name.
+   */
   fun getClassData(className: String): ByteArray
 }

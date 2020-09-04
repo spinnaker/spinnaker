@@ -19,5 +19,8 @@ import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint
 
 /** A simple ExtensionPoint for unit/integration testing. */
 interface TestExtension : SpinnakerExtensionPoint {
+  /**
+   * An arbitrary test property.
+   */
   val testValue: String
 }

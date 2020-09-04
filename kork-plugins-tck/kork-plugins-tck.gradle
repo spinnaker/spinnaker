@@ -28,3 +28,7 @@ test {
     includeEngines("junit-jupiter", "junit-vintage")
   }
 }
+
+detekt {
+  ignoreFailures = false
+}

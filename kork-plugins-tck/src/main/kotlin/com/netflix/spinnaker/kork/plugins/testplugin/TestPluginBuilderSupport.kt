@@ -32,28 +32,18 @@ import javax.tools.ToolProvider
  * has an Extension implementing {@code TestExtension}
  *
  * @see com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension
+ *
+ * @param pluginPath The directory in which to create a plugin.
+ * @param packageName The package name for the generated Plugin and Extension.
+ * @param name The name of the generated plugin and extension.
+ *  The plugin will be ${name}TestPlugin and the Extension ${name}TestExtension.
+ * @param version The version of the generated plugin.
  */
 @Deprecated("use testPlugin builder instead")
 class TestPluginBuilderSupport(
-  /**
-   * The directory in which to create a plugin.
-   */
   val pluginPath: Path,
-
-  /**
-   * The package name for the generated Plugin and Extension.
-   */
   val packageName: String = "com.netflix.spinnaker.kork.plugins.testplugin.generated",
-
-  /**
-   * The name of the generated plugin and extension.
-   * The plugin will be ${name}TestPlugin and the Extension ${name}TestExtension.
-   */
   val name: String = "Generated",
-
-  /**
-   * The version of the generated plugin.
-   */
   val version: String = "0.0.1"
 ) {
 
@@ -72,6 +62,9 @@ class TestPluginBuilderSupport(
    */
   val pluginId = "spinnaker.${name.toLowerCase()}testplugin"
 
+  /**
+   * Compiles the generated sources of a plugin.
+   */
   fun build() {
     val generated = generateSources()
     val classesDir = preparePluginDestination()
