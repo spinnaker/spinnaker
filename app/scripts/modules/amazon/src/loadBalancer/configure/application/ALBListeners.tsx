@@ -133,7 +133,13 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
         const missingAuth = !!rule.actions.find(
           a => a.type === 'authenticate-oidc' && !a.authenticateOidcConfig.clientId,
         );
-        const missingValue = !!rule.conditions.find(c => c.values.includes(''));
+        const missingValue = !!rule.conditions.find(c => {
+          if (c.field === 'http-request-method') {
+            return !c.values.length;
+          }
+          return c.values.includes('');
+        });
+
         return missingTargets || missingAuth || missingValue;
       });
       return defaultActionsHaveMissingTarget || rulesHaveMissingFields;
@@ -320,6 +326,11 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
     newField: ListenerRuleConditionField,
   ): void => {
     condition.field = newField;
+
+    if (newField === 'http-request-method') {
+      condition.values = [];
+    }
+
     this.updateListeners();
   };
 
