@@ -79,7 +79,9 @@ interface ExpressionFunctionProvider : ExtensionPoint {
    * contract for interacting with the function.
    *
    * @param name The name of the function, without a namespace value.
+   * @param description Developer-friendly description of the function.
    * @param parameters A list of [FunctionParameter]s.
+   * @param documentation End-user friendly documentation of the function, will be surfaced to the UI via Deck.
    */
   data class FunctionDefinition(
     val name: String,
