@@ -183,9 +183,9 @@ class SqlTestConfig {
     "execution-repository.redis.enabled=false",
     "keiko.queue.redis.enabled=false",
     "keiko.queue.sql.enabled=true",
+    "keiko.queue.fillExecutorEachCycle=false",
     "sql.enabled=true",
     "spring.application.name=orcaTest"
   ]
 )
-
 class SqlQueueIntegrationTest : QueueIntegrationTest()
