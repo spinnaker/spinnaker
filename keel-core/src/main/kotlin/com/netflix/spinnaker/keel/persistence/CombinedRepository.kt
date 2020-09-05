@@ -356,6 +356,9 @@ class CombinedRepository(
   override fun isCurrentlyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String): Boolean =
     artifactRepository.isCurrentlyDeployedTo(deliveryConfig, artifact, version, targetEnvironment)
 
+  override fun getReleaseStatus(artifact: DeliveryArtifact, version: String): ArtifactStatus? =
+    artifactRepository.getReleaseStatus(artifact, version)
+
   override fun markAsSuccessfullyDeployedTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) =
     artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, version, targetEnvironment)
 

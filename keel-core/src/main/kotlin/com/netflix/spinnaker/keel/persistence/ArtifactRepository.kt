@@ -76,6 +76,11 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
   ): List<String>
 
   /**
+   * Returns the release status for the specified [version] of the [artifact], if available.
+   */
+  fun getReleaseStatus(artifact: DeliveryArtifact, version: String): ArtifactStatus?
+
+  /**
    * @return the latest version of [artifact] approved for use in [targetEnvironment]
    *
    * Only versions that meet the status requirements for an artifact can be approved

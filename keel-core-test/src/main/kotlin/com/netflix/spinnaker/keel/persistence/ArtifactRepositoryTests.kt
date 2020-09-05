@@ -236,6 +236,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           subject.store(artifact1, version1, SNAPSHOT)
         }
 
+        test("release status for the version is returned correctly") {
+          expectThat(subject.getReleaseStatus(artifact1, version1)).isEqualTo(SNAPSHOT)
+        }
+
         test("registering the same version is a no-op") {
           val result = subject.store(artifact1, version1, SNAPSHOT)
           expectThat(result).isFalse()

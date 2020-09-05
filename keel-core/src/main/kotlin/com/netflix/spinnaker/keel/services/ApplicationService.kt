@@ -350,6 +350,7 @@ class ApplicationService(
       .toMutableMap()
       .let {
         it["version"] = version
+        it["metadata"] = mapOf("releaseStatus" to repository.getReleaseStatus(this, version))
         objectMapper.convertValue(it, PublishedArtifact::class.java)
       }
 }

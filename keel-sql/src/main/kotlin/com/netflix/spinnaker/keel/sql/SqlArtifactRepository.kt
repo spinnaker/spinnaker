@@ -216,8 +216,8 @@ class SqlArtifactRepository(
         .and(ARTIFACT_VERSIONS.TYPE.eq(type))
         .and(ARTIFACT_VERSIONS.VERSION.eq(version))
         .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
-        .fetchOne()
-        ?.let { (metadata) ->
+        .fetchOne(ARTIFACT_VERSIONS.BUILD_METADATA)
+        ?.let { metadata ->
           objectMapper.readValue<BuildMetadata>(metadata)
         }
     }
@@ -232,8 +232,8 @@ class SqlArtifactRepository(
         .and(ARTIFACT_VERSIONS.TYPE.eq(type))
         .and(ARTIFACT_VERSIONS.VERSION.eq(version))
         .apply { if (status != null) and(ARTIFACT_VERSIONS.RELEASE_STATUS.eq(status.toString())) }
-        .fetchOne()
-        ?.let { (metadata) ->
+        .fetchOne(ARTIFACT_VERSIONS.GIT_METADATA)
+        ?.let { metadata ->
           objectMapper.readValue<GitMetadata>(metadata)
         }
     }
@@ -311,6 +311,23 @@ class SqlArtifactRepository(
             versions
           }
         }
+    } else {
+      throw NoSuchArtifactException(artifact)
+    }
+
+  override fun getReleaseStatus(artifact: DeliveryArtifact, version: String): ArtifactStatus? =
+    if (isRegistered(artifact.name, artifact.type)) {
+      sqlRetry.withRetry(READ) {
+        jooq
+          .select(ARTIFACT_VERSIONS.RELEASE_STATUS)
+          .from(ARTIFACT_VERSIONS)
+          .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type))
+          .and(ARTIFACT_VERSIONS.VERSION.eq(version))
+          .fetchOne(ARTIFACT_VERSIONS.RELEASE_STATUS)
+      }?.let {
+        ArtifactStatus.valueOf(it)
+      }
     } else {
       throw NoSuchArtifactException(artifact)
     }

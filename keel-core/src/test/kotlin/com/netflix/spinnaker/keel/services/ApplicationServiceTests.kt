@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.artifacts.BuildMetadata
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
@@ -159,6 +160,10 @@ class ApplicationServiceTests : JUnit5Minutests {
       every {
         repository.getArtifactBuildMetadata(any(), any(), any(), any())
       } returns null
+
+      every {
+        repository.getReleaseStatus(artifact, any())
+      } returns SNAPSHOT
     }
 
     context("artifact summaries by application") {
