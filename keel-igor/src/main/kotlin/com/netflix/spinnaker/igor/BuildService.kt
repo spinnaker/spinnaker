@@ -14,7 +14,6 @@ interface BuildService {
    * @param commitId The commit id.
    * @param buildNumber the build number .
    */
-  // TODO: implement this call in igor
   @GET("/ci/builds")
   suspend fun getArtifactMetadata(
     @Query("commitId") commitId: String,

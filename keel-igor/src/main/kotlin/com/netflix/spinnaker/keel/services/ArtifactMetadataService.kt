@@ -32,7 +32,6 @@ class ArtifactMetadataService(
     commitId: String
   ): ArtifactMetadata? {
 
-    try {
       val builds =
         buildService.getArtifactMetadata(commitId = commitId, buildNumber = buildNumber)
 
@@ -41,14 +40,6 @@ class ArtifactMetadataService(
       }
 
       return builds.first().toArtifactMetadata(commitId)
-    } catch (e: HttpException) {
-          log.warn(
-            "Exception ${e.message} has caught while calling ci provider to fetch details for commit id: $commitId and buildNumber $buildNumber" +
-              " Going to retry...",
-            e
-          )
-      }
-    return null
   }
 
   private fun Build.toArtifactMetadata(commitId: String) =
@@ -69,8 +60,7 @@ class ArtifactMetadataService(
         commit = commitId,
         commitInfo = Commit(
           sha = scm?.first()?.sha1,
-          //TODO[gyardeni]: add link (will come from Igor)
-          link = "",
+          link = scm?.first()?.compareUrl,
           message = scm?.first()?.message,
         ),
         author = scm?.first()?.committer,
@@ -90,8 +80,9 @@ class ArtifactMetadataService(
 
 
   // this method will be invoked whenever the retry will fail
-  protected fun fallback( buildNumber: String, commitId: String, e: Exception) {
-    log.error("received an error while calling artifact service for build number $buildNumber and commit id $commitId", e)
+  fun fallback( buildNumber: String, commitId: String, e: Exception)
+  : ArtifactMetadata? {
+    log.error("fallback: received an error while calling artifact service for build number $buildNumber and commit id $commitId", e)
     throw e
   }
 

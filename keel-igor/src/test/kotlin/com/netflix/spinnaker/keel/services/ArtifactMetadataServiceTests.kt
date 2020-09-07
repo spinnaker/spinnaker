@@ -40,7 +40,8 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
           GenericGitRevision(
             sha1 = "a15p0",
             message = "this is a commit message",
-            committer = "keel-user"
+            committer = "keel-user",
+            compareUrl = "https://github.com/spinnaker/keel/commit/a15p0"
           )
         ),
         properties = mapOf(
@@ -102,7 +103,7 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
                 commitInfo = Commit(
                   sha = "a15p0",
                   message = "this is a commit message",
-                  link = ""
+                  link = "https://github.com/spinnaker/keel/commit/a15p0"
                 ),
                 project = "spkr"
               )
@@ -140,7 +141,7 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
           } throws retrofitError
         }
 
-        test("show http error") {
+        test("throw an http error from fallback method") {
           expectCatching {
             artifactMetadataService.getArtifactMetadata("1", "a15p0")
           }
