@@ -50,6 +50,8 @@ public class DeleteLambdaAtomicOperation
     DeleteFunctionRequest request =
         new DeleteFunctionRequest().withFunctionName(cache.getFunctionArn());
 
+    request.withQualifier(description.getQualifier());
+
     DeleteFunctionResult result = client.deleteFunction(request);
     updateTaskStatus("Finished deletion of AWS Lambda Function  Operation...");
 
