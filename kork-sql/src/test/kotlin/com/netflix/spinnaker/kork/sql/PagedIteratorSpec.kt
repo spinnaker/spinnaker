@@ -28,42 +28,38 @@ import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.gherkin.Feature
 
 internal object PagedIteratorSpec : Spek({
 
-  describe("fetching paged data") {
-
+  Feature("fetching paged data") {
     val pageSize = 3
     val nextPage = mock<(Int, String?) -> Iterable<String>>()
 
-    given("there is no data") {
+    Scenario("there is no data") {
       val subject = PagedIterator(pageSize, String::toString, nextPage)
 
-      beforeGroup {
+      beforeScenario {
         whenever(nextPage(eq(pageSize), anyOrNull())) doReturn emptyList<String>()
       }
 
-      afterGroup { reset(nextPage) }
+      afterScenario { reset(nextPage) }
 
-      it("has no elements") {
+      Then("has no elements") {
         assertThat(subject.hasNext()).isFalse()
       }
 
-      it("won't return anything") {
+      Then("won't return anything") {
         assertThatThrownBy { subject.next() }
           .isInstanceOf<NoSuchElementException>()
       }
     }
 
-    given("there is less than one full page of data") {
+    Scenario("there is less than one full page of data") {
       val subject = PagedIterator(pageSize, String::toString, nextPage)
 
-      beforeGroup {
+      beforeScenario {
         whenever(nextPage(eq(pageSize), anyOrNull())) doAnswer {
           val (_, cursor) = it.arguments
           when (cursor) {
@@ -73,31 +69,31 @@ internal object PagedIteratorSpec : Spek({
         }
       }
 
-      afterGroup { reset(nextPage) }
+      afterScenario { reset(nextPage) }
 
-      it("has some elements") {
+      Given("has some elements") {
         assertThat(subject.hasNext()).isTrue()
       }
 
-      on("draining the iterator") {
-        val results = mutableListOf<String>()
+      val results = mutableListOf<String>()
+      When("draining the iterator") {
         subject.forEachRemaining { results.add(it) }
+      }
 
-        it("iterates over the available elements") {
-          assertThat(results).containsExactly("ONE", "TWO")
-        }
+      Then("iterates over the available elements") {
+        assertThat(results).containsExactly("ONE", "TWO")
+      }
 
-        it("does not try to fetch another page") {
-          verify(nextPage).invoke(pageSize, null)
-          verifyNoMoreInteractions(nextPage)
-        }
+      Then("does not try to fetch another page") {
+        verify(nextPage).invoke(pageSize, null)
+        verifyNoMoreInteractions(nextPage)
       }
     }
 
-    given("there is exactly one full page of data") {
+    Scenario("there is exactly one full page of data") {
       val subject = PagedIterator(pageSize, String::toString, nextPage)
 
-      beforeGroup {
+      beforeScenario {
         whenever(nextPage(eq(pageSize), anyOrNull())) doAnswer {
           val (_, cursor) = it.arguments
           when (cursor) {
@@ -107,32 +103,32 @@ internal object PagedIteratorSpec : Spek({
         }
       }
 
-      afterGroup { reset(nextPage) }
+      afterScenario { reset(nextPage) }
 
-      it("has some elements") {
+      Given("has some elements") {
         assertThat(subject.hasNext()).isTrue()
       }
 
-      on("draining the iterator") {
-        val results = mutableListOf<String>()
+      val results = mutableListOf<String>()
+      When("draining the iterator") {
         subject.forEachRemaining { results.add(it) }
+      }
 
-        it("iterates over the available elements") {
-          assertThat(results).containsExactly("ONE", "TWO", "THREE")
-        }
+      Then("iterates over the available elements") {
+        assertThat(results).containsExactly("ONE", "TWO", "THREE")
+      }
 
-        it("tries to fetch the next page before stopping") {
-          verify(nextPage).invoke(pageSize, null)
-          verify(nextPage).invoke(pageSize, "THREE")
-          verifyNoMoreInteractions(nextPage)
-        }
+      Then("tries to fetch the next page before stopping") {
+        verify(nextPage).invoke(pageSize, null)
+        verify(nextPage).invoke(pageSize, "THREE")
+        verifyNoMoreInteractions(nextPage)
       }
     }
 
-    given("there are multiple pages of data") {
+    Scenario("there are multiple pages of data") {
       val subject = PagedIterator(pageSize, String::toString, nextPage)
 
-      beforeGroup {
+      beforeScenario {
         whenever(nextPage(eq(pageSize), anyOrNull())) doAnswer {
           val (_, cursor) = it.arguments
           when (cursor) {
@@ -144,24 +140,24 @@ internal object PagedIteratorSpec : Spek({
         }
       }
 
-      afterGroup { reset(nextPage) }
+      afterScenario { reset(nextPage) }
 
-      it("has some elements") {
+      Given("has some elements") {
         assertThat(subject.hasNext()).isTrue()
       }
 
-      on("draining the iterator") {
-        val results = mutableListOf<String>()
+      val results = mutableListOf<String>()
+      When("draining the iterator") {
         subject.forEachRemaining { results.add(it) }
+      }
 
-        it("iterates over the available elements") {
-          assertThat(results)
-            .containsExactly("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
-        }
+      Then("iterates over the available elements") {
+        assertThat(results)
+          .containsExactly("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
+      }
 
-        it("does not try to fetch additional pages") {
-          verify(nextPage, times(3)).invoke(eq(pageSize), anyOrNull())
-        }
+      Then("does not try to fetch additional pages") {
+        verify(nextPage, times(3)).invoke(eq(pageSize), anyOrNull())
       }
     }
   }

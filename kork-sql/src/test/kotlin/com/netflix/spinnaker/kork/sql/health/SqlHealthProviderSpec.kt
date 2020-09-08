@@ -22,78 +22,75 @@ import com.nhaarman.mockito_kotlin.isA
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
 import org.jooq.DSLContext
 import org.jooq.DeleteUsingStep
 import org.jooq.Table
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.gherkin.Feature
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 internal object SqlHealthProviderSpec : Spek({
 
-  describe("healthchecking sql") {
+  Feature("healthchecking sql") {
 
     val dslContext = mock<DSLContext>()
     val query = mock<DeleteUsingStep<*>>()
 
-    given("a healthy current state") {
+    Scenario("a healthy current state") {
       val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
-      afterEachTest { reset(dslContext, query) }
+      afterEachStep { reset(dslContext, query) }
 
-      on("successive write failures") {
+      When("successive write failures") {
         whenever(dslContext.delete(isA<Table<*>>())) doThrow RuntimeException("oh no")
 
         subject.performCheck()
         subject.performCheck()
+      }
 
-        it("deactivates its enabled flag") {
-          expectThat(subject.enabled).isEqualTo(false)
-        }
+      Then("deactivates its enabled flag") {
+        expectThat(subject.enabled).isEqualTo(false)
       }
     }
 
-    given("a healthy current readOnly state") {
+    Scenario("a healthy current readOnly state") {
       val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = true, unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
-      afterEachTest { reset(dslContext, query) }
+      afterEachStep { reset(dslContext, query) }
 
-      on("successive read failures") {
+      When("successive read failures") {
         whenever(dslContext.select()) doThrow RuntimeException("oh no")
 
         subject.performCheck()
         subject.performCheck()
+      }
 
-        it("deactivates its enabled flag") {
-          expectThat(subject.enabled).isEqualTo(false)
-        }
+      Then("deactivates its enabled flag") {
+        expectThat(subject.enabled).isEqualTo(false)
       }
     }
 
-    given("an unhealthy sql connection") {
+    Scenario("an unhealthy sql connection") {
       val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, healthyThreshold = 1).apply {
         _enabled.set(false)
       }
 
-      afterEachTest { reset(dslContext, query) }
+      afterEachStep { reset(dslContext, query) }
 
-      on("successive write failures") {
+      When("successive write failures") {
         whenever(dslContext.delete(isA<Table<*>>())) doReturn query
 
         subject.performCheck()
         subject.performCheck()
+      }
 
-        it("deactivates its enabled flag") {
-          expectThat(subject.enabled).isEqualTo(true)
-        }
+      Then("deactivates its enabled flag") {
+        expectThat(subject.enabled).isEqualTo(true)
       }
     }
   }

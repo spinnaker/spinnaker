@@ -20,6 +20,7 @@ ext {
     retrofit2        : "2.8.1",
     spectator        : "0.103.0",
     spek             : "1.2.1",
+    spek2            : "2.0.9",
     springBoot       : "2.2.5.RELEASE",
     springCloud      : "Greenwich.SR2",
     springfoxSwagger : "2.9.2",
@@ -134,6 +135,8 @@ dependencies {
     api("org.codehaus.groovy:groovy-all:${versions.groovy}")
     api("org.funktionale:funktionale-partials:1.2")
     api("org.jetbrains:annotations:19.0.0")
+    api("org.spekframework.spek2:spek-dsl-jvm:${versions.spek2}")
+    api("org.spekframework.spek2:spek-runner-junit5:${versions.spek2}")
     api("org.jetbrains.spek:spek-api:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")

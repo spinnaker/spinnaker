@@ -21,7 +21,7 @@ apply plugin: "io.gitlab.arturbosch.detekt"
 dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.platform:junit-platform-runner"
-  testImplementation "org.jetbrains.spek:spek-api" // Deprecated
+  testImplementation "org.spekframework.spek2:spek-dsl-jvm"
   testImplementation "com.nhaarman:mockito-kotlin:1.5.0" // Deprecated
   testImplementation "org.assertj:assertj-core"
   testImplementation "io.strikt:strikt-core"
@@ -32,11 +32,12 @@ dependencies {
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
   testRuntimeOnly "org.jetbrains.spek:spek-junit-platform-engine"
+  testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5"
 }
 
 test {
   useJUnitPlatform {
-    includeEngines "spek", "junit-vintage", "junit-jupiter"
+    includeEngines "spek2", "junit-vintage", "junit-jupiter"
   }
 }
 
