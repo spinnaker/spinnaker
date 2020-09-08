@@ -29,6 +29,7 @@ import javax.naming.Name;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
+import javax.naming.directory.SearchControls;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -135,6 +136,10 @@ public class LdapUserRolesProvider implements UserRolesProvider {
                   configProps.getGroupSearchFilter(),
                   "*",
                   "*"), // Passing two wildcard params like loadRoles
+              SearchControls.OBJECT_SCOPE, // Limit the scope to single object
+              configProps
+                  .getGroupUserAttributes()
+                  .split(configProps.getGroupUserAttributesDelimiter()),
               new UserGroupMapper())
           .stream()
           .flatMap(List::stream)
