@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.gate.filters;
 
+import static com.netflix.spinnaker.gate.filters.RequestTimingFilter.REQUEST_START_TIME;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.*;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -35,12 +35,16 @@ public class RequestLoggingFilter extends HttpFilter {
   protected void doFilter(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    long startTime = System.nanoTime();
     try {
       chain.doFilter(request, response);
     } finally {
       try {
-        MDC.put("requestDuration", getRequestDuration(startTime));
+        MDC.put(
+            "requestDuration",
+            getRequestDuration(
+                Optional.ofNullable(MDC.get(REQUEST_START_TIME))
+                    .map(Long::parseLong)
+                    .orElse(null)));
         MDC.put("requestUserAgent", request.getHeader("User-Agent"));
         MDC.put("requestPort", String.valueOf(request.getServerPort()));
 
@@ -61,8 +65,11 @@ public class RequestLoggingFilter extends HttpFilter {
     }
   }
 
-  private static String getRequestDuration(long startTime) {
-    return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) + "ms";
+  private static String getRequestDuration(Long startTime) {
+    if (startTime == null) {
+      return "unknown";
+    }
+    return (System.currentTimeMillis() - startTime) + "ms";
   }
 
   private static String sourceIpAddress(HttpServletRequest request) {

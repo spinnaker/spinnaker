@@ -34,6 +34,7 @@ import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectio
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
+import com.netflix.spinnaker.gate.filters.RequestTimingFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -373,7 +374,9 @@ class GateConfig extends RedisHttpSessionConfiguration {
    */
   @Bean
   FilterRegistrationBean authenticatedRequestFilter() {
-    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, true))
+    // no need to force the `AuthenticatedRequestFilter` to create a request id as that is
+    // handled by the `RequestTimingFilter`.
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true, false))
     frb.order = Ordered.LOWEST_PRECEDENCE - 1
     return frb
   }
@@ -401,6 +404,16 @@ class GateConfig extends RedisHttpSessionConfiguration {
   FilterRegistrationBean requestLoggingFilter() {
     def frb = new FilterRegistrationBean(new RequestLoggingFilter())
     frb.order = Ordered.LOWEST_PRECEDENCE
+    return frb
+  }
+
+  @Bean
+  FilterRegistrationBean requestTimingFilter() {
+    def frb = new FilterRegistrationBean(new RequestTimingFilter())
+
+    // this filter should be placed very early in the request chain to ensure we track an accurate start time and
+    // have a request id available to propagate across thread and service boundaries.
+    frb.order = Ordered.HIGHEST_PRECEDENCE
     return frb
   }
 
