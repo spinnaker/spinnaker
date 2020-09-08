@@ -79,10 +79,10 @@ class ArtifactMetadataService(
 
 
   // this method will be invoked whenever the retry will fail
-  suspend fun fallback( buildNumber: String, commitId: String, e: Exception)
+  suspend fun fallback( buildNumber: String, commitId: String, cause: Throwable)
   : ArtifactMetadata? {
-    log.error("fallback: received an error while calling artifact service for build number $buildNumber and commit id $commitId", e)
-    throw e
+    log.error("fallback: received an error while calling artifact service for build number $buildNumber and commit id $commitId", cause)
+    throw cause
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
