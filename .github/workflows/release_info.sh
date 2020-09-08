@@ -31,5 +31,6 @@ SEMVER_REGEX="\
 # Used in downstream steps to determine if the release should be marked as a "prerelease" and if the build should build candidate release artifacts
 export IS_CANDIDATE=`[[ $NEW_TAG =~ $SEMVER_REGEX && ! -z ${BASH_REMATCH[4]} ]] && echo "true" || echo "false"`
 
+# This is the version string we will pass to the build, trim off leading 'v' if present
 export RELEASE_VERSION=`[[ $NEW_TAG =~ $SEMVER_REGEX ]] && echo "${NEW_TAG:1}" || echo "${NEW_TAG}"`
 echo "RELEASE_VERSION=$RELEASE_VERSION"

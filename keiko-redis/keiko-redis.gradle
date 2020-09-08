@@ -1,0 +1,14 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+dependencies {
+  api project(":keiko-core")
+  api("redis.clients:jedis")
+  api "com.fasterxml.jackson.core:jackson-databind"
+  api "com.fasterxml.jackson.module:jackson-module-kotlin"
+  api "org.funktionale:funktionale-partials"
+  api "com.github.ben-manes.caffeine:guava"
+
+  testImplementation project(":keiko-tck")
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+}

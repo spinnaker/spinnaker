@@ -1,0 +1,20 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+dependencies {
+  api project(":keiko-redis")
+  api project(":keiko-spring")
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-test"
+  testImplementation "org.assertj:assertj-core"
+
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "jupiter"
+  }
+}

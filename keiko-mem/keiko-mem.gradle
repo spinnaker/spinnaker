@@ -1,0 +1,10 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+dependencies {
+  api project(":keiko-core")
+  api "org.threeten:threeten-extra"
+
+  testImplementation project(":keiko-tck")
+  testImplementation "org.funktionale:funktionale-partials"
+}

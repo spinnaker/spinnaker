@@ -8,9 +8,9 @@ dependencies {
   implementation(project(":orca-queue"))
   api("com.netflix.spinnaker.kork:kork-sql")
   api("com.netflix.spinnaker.kork:kork-jedis")
-  api("com.netflix.spinnaker.keiko:keiko-sql:$keikoVersion")
+  api(project(":keiko-sql"))
   implementation(project(":orca-sql"))
-  implementation("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion")
+  implementation(project(":keiko-redis-spring"))
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   implementation("org.jooq:jooq")

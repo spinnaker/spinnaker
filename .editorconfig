@@ -11,4 +11,3 @@ continuation_indent_size = 4
 
 [{*.kt, *.kts}]
 continuation_indent_size = 2
-

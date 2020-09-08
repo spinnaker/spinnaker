@@ -1,0 +1,13 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+dependencies {
+  api "com.fasterxml.jackson.core:jackson-annotations"
+  api "com.fasterxml.jackson.core:jackson-databind"
+  api "org.springframework:spring-context"
+
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "javax.annotation:javax.annotation-api"
+
+  testImplementation project(":keiko-test-common")
+}

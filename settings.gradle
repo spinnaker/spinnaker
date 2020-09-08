@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-['fiat', 'keiko', 'kork'].each { prj ->
+['fiat', 'kork'].each { prj ->
   String propName = "${prj}Composite"
   String projectPath = "../$prj"
   if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
@@ -65,7 +65,16 @@ include "orca-api",
   "orca-test",
   "orca-validation",
   "orca-web",
-  "orca-webhook"
+  "orca-webhook",
+  "keiko-core",
+  "keiko-mem",
+  "keiko-mem-spring",
+  "keiko-redis",
+  "keiko-redis-spring",
+  "keiko-spring",
+  "keiko-sql",
+  "keiko-tck",
+  "keiko-test-common"
 
 rootProject.name = "orca"
 

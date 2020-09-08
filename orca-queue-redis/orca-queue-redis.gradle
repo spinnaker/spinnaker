@@ -25,7 +25,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-queue"))
   implementation(project(":orca-redis"))
-  implementation("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion")
+  implementation(project(":keiko-redis-spring"))
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   testImplementation(project(":orca-queue"))

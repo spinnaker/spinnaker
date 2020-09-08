@@ -35,7 +35,7 @@ allprojects {
 
 subprojects {
 
-  if ([korkVersion, keikoVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
+  if ([korkVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
     logger.info("Enabling mavenLocal")
     repositories {
       mavenLocal()

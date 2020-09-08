@@ -1,0 +1,273 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-keiko-queue-table-v1
+      author: afeldman
+      validCheckSum:
+        # Original changeset checksum
+        - 8:551ab623136d3c624d7fd4928d0f4c51
+      changes:
+        - createTable:
+            tableName: keiko_v1_queue_template
+            columns:
+              - column:
+                  name: id
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fingerprint
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delivery
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: locked
+                  type: char(46)
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: keiko_v1_queue_template
+
+  - changeSet:
+      id: create-keiko-queue-table-v1-indices
+      author: afeldman
+      changes:
+        - createIndex:
+            indexName: keiko_queue_fingerprint_idx
+            tableName: keiko_v1_queue_template
+            columns:
+              - column:
+                  name: fingerprint
+            unique: true
+        - createIndex:
+            indexName: keiko_queue_delivery_locked_idx
+            tableName: keiko_v1_queue_template
+            columns:
+              - column:
+                  name: delivery
+              - column:
+                  name: locked
+        - createIndex:
+            indexName: keiko_queue_locked_idx
+            tableName: keiko_v1_queue_template
+            columns:
+              - column:
+                  name: locked
+      rollback:
+        - dropIndex:
+            indexName: keiko_queue_fingerprint_idx
+            tableName: keiko_v1_queue_template
+        - dropIndex:
+            indexName: keiko_queue_delivery_locked_idx
+            tableName: keiko_v1_queue_template
+
+  - changeSet:
+      id: create-keiko-queue-unacked-table-v1
+      author: afeldman
+      changes:
+        - createTable:
+            tableName: keiko_v1_unacked_template
+            columns:
+              - column:
+                  name: id
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fingerprint
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: keiko_v1_unacked_template
+
+  - changeSet:
+      id: create-keiko-queue-unacked-table-v1-indices
+      author: afeldman
+      changes:
+        - createIndex:
+            indexName: keiko_unacked_fingerprint_idx
+            tableName: keiko_v1_unacked_template
+            columns:
+              - column:
+                  name: fingerprint
+            unique: true
+        - createIndex:
+            indexName: keiko_unacked_expiry_idx
+            tableName: keiko_v1_unacked_template
+            columns:
+              - column:
+                  name: expiry
+      rollback:
+        - dropIndex:
+            indexName: keiko_unacked_fingerprint_idx
+            tableName: keiko_v1_unacked_template
+        - dropIndex:
+            indexName: keiko_unacked_expiry_idx
+            tableName: keiko_v1_unacked_template
+
+  - changeSet:
+      id: create-keiko-queue-messages-table-v1
+      author: afeldman
+      changes:
+        - createTable:
+            tableName: keiko_v1_messages_template
+            columns:
+              - column:
+                  name: id
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fingerprint
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: keiko_v1_unacked_template
+
+  - changeSet:
+      id: create-keiko-queue-messages-table-v1-indices
+      author: afeldman
+      changes:
+        - createIndex:
+            indexName: keiko_messages_fingerprint_idx
+            tableName: keiko_v1_messages_template
+            columns:
+              - column:
+                  name: fingerprint
+            unique: true
+      rollback:
+        - dropIndex:
+            indexName: keiko_messages_fingerprint_idx
+            tableName: keiko_v1_messages_template
+
+  - changeSet:
+      id: create-keiko-dlq-table-v1
+      author: afeldman
+      validCheckSum:
+        # Original changeset checksum
+        - 8:7b2c146b7f0ff7de56fdb729c8e87277
+      changes:
+        - createTable:
+            tableName: keiko_v1_dlq_template
+            columns:
+              - column:
+                  name: id
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fingerprint
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: body
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: keiko_v1_dlq_template
+
+  - changeSet:
+      id: create-keiko-dlq-table-v1-indices
+      author: afeldman
+      changes:
+        - createIndex:
+            indexName: keiko_dlq_fingerprint_idx
+            tableName: keiko_v1_dlq_template
+            columns:
+              - column:
+                  name: fingerprint
+            unique: true
+        - createIndex:
+            indexName: keiko_dlq_updated_at_idx
+            tableName: keiko_v1_dlq_template
+            columns:
+              - column:
+                  name: updated_at
+      rollback:
+        - dropIndex:
+            indexName: keiko_messages_fingerprint_idx
+            tableName: keiko_v1_dlq_template
+
+  - changeSet:
+      id: add-keiko-queue-messages-updated-col
+      author: afeldman
+      validCheckSum:
+        # Original changeset checksum
+        - 8:53370973bc79095573dfe46d41cffae7
+      changes:
+      - addColumn:
+          tableName: keiko_v1_messages_template
+          columns:
+            - column:
+                name: updated_at
+                type: bigint
+                defaultValue: 0
+                constraints:
+                  nullable: false
+    rollback:
+      - dropColumn:
+          tableName: keiko_v1_messages_template
+          columnName: updated_at
+
+  - changeSet:
+      id: add-keiko-queue-messages-updated-idx
+      author: afeldman
+      changes:
+        - createIndex:
+            indexName: keiko_messages_updated_idx
+            tableName: keiko_v1_messages_template
+            columns:
+              - column:
+                  name: updated_at
+      rollback:
+        - dropIndex:
+            indexName: keiko_messages_updated_idx
+            tableName: keiko_v1_messages_template
